@@ -12,9 +12,11 @@ public class Patient
     public string? PhilhealthNumber { get; set; }
     public string Address { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
+    public string PostalCode { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation Properties
-    // public ICollection<Encounter> Encounters { get; set; } = new List<Encounter>();
-    // public ICollection<CarePlan> CarePlans { get; set; } = new List<CarePlan>();
+    public ICollection<PatientPhone> Phones { get; set; } = new List<PatientPhone>();
+    public ICollection<PatientEmail> Emails { get; set; } = new List<PatientEmail>();
+    public ICollection<PatientContact> Contacts { get; set; } = new List<PatientContact>();
 }

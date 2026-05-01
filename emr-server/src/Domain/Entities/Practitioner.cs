@@ -11,5 +11,6 @@ public class Practitioner
     public bool IsActive { get; set; } = true;
 
     // Navigation Properties
-    // public ICollection<Encounter> Encounters { get; set; } = new List<Encounter>();
+    public ICollection<PractitionerLicensure> Licensures { get; set; } = new List<PractitionerLicensure>();
+    public ICollection<PractitionerServiceArea> ServiceAreas { get; set; } = new List<PractitionerServiceArea>();
 }

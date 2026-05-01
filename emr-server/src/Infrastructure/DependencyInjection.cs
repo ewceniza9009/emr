@@ -1,5 +1,7 @@
 using Application.Common.Interfaces;
 using Infrastructure.Data;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +18,15 @@ public static class DependencyInjection
                 b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+        services.AddSingleton<IDateTimeProvider, Infrastructure.Services.DateTimeProvider>();
+
+        // Identity Configuration
+        services.AddIdentity<ApplicationUser, IdentityRole>(options => {
+            options.Password.RequireDigit = true;
+            options.Password.RequiredLength = 8;
+        })
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
 
         return services;
     }

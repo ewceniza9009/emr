@@ -60,6 +60,10 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
                .HasMaxLength(100)
                .IsRequired();
 
+        builder.Property(p => p.PostalCode)
+               .HasColumnName("postal_code")
+               .HasMaxLength(20);
+
         builder.Property(p => p.CreatedAt)
                .HasColumnName("created_at")
                .HasDefaultValueSql("CURRENT_TIMESTAMP");

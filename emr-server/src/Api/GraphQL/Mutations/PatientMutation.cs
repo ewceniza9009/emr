@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Api.GraphQL.Mutations;
 
-[MutationType]
+[ExtendObjectType("Mutation")]
 public class PatientMutation
 {
     public async Task<Guid> CreatePatient(

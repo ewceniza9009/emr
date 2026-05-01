@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Api.GraphQL.Queries;
 
-[QueryType]
+[ExtendObjectType("Query")]
 public class PatientQuery
 {
     public async Task<PatientDto?> GetPatientById(
@@ -13,5 +13,15 @@ public class PatientQuery
         CancellationToken cancellationToken)
     {
         return await mediator.Send(new GetPatientByIdQuery(patientId), cancellationToken);
+    }
+
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public async Task<IEnumerable<PatientDto>> GetPatients(
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        return await mediator.Send(new GetPatientsQuery(), cancellationToken);
     }
 }

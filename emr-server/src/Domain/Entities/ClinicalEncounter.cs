@@ -1,0 +1,22 @@
+using Domain.Enums;
+
+namespace Domain.Entities;
+
+public class ClinicalEncounter
+{
+    public Guid EncounterId { get; set; } = Guid.NewGuid();
+    public Guid PatientId { get; set; }
+    public Guid PractitionerId { get; set; }
+    public Guid? AppointmentId { get; set; }
+    public EncounterStatus Status { get; set; } = EncounterStatus.Planned;
+    public DateTimeOffset? AdmittedAt { get; set; }
+    public DateTimeOffset? DischargedAt { get; set; }
+    
+    public Patient Patient { get; set; } = null!;
+    public Practitioner Practitioner { get; set; } = null!;
+    public Appointment? Appointment { get; set; }
+    
+    public ICollection<Diagnosis> Diagnoses { get; set; } = new List<Diagnosis>();
+    public ICollection<VitalSign> VitalSigns { get; set; } = new List<VitalSign>();
+    public ICollection<ClinicalNote> ClinicalNotes { get; set; } = new List<ClinicalNote>();
+}
