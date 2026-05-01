@@ -1,0 +1,37 @@
+# Environments
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Next.js
+/emr-client/.next/
+/emr-client/out/
+/emr-client/build/
+
+# Node modules
+node_modules/
+
+# .NET / C#
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# IDE / Editor
+.vs/
+.vscode/
+.idea/
+*.suo
+*.userprefs
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
