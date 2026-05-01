@@ -42,6 +42,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<PatientEmail> PatientEmails => Set<PatientEmail>();
     public DbSet<PatientOutreach> PatientOutreaches => Set<PatientOutreach>();
     public DbSet<HealthPlan> HealthPlans => Set<HealthPlan>();
+    public DbSet<ProviderShift> ProviderShifts => Set<ProviderShift>();
     public DbSet<OutreachScript> OutreachScripts => Set<OutreachScript>();
     public DbSet<OutreachActivity> OutreachActivities => Set<OutreachActivity>();
     public DbSet<Facility> Facilities => Set<Facility>();

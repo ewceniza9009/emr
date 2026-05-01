@@ -20,6 +20,7 @@ import Link from "next/link";
 import SymptomTrendChart from "@/components/SymptomTrendChart";
 import MedicationRegistry from "@/components/MedicationRegistry";
 import VitalSignTimeline from "@/components/VitalSignTimeline";
+import LiveHeartbeat from "@/components/LiveHeartbeat";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -60,13 +61,18 @@ export default function PatientDetailPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/patients" className="p-2 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-all">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white">{patient.firstName} {patient.lastName}</h1>
-          <p className="text-slate-400 text-sm">MRN: {patient.mrn} • {patient.biologicalSex}</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/patients" className="p-2 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-all">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-white">{patient.firstName} {patient.lastName}</h1>
+            <p className="text-slate-400 text-sm font-mono tracking-widest uppercase mt-0.5">{patient.mrn} • {patient.biologicalSex}</p>
+          </div>
+        </div>
+        <div className="w-full md:w-64">
+           <LiveHeartbeat patientId={params.id as string} />
         </div>
       </div>
 

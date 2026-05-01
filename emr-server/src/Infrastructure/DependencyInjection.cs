@@ -28,6 +28,19 @@ public static class DependencyInjection
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders();
 
+        // Integrations
+        services.AddHttpClient<IElationClient, Infrastructure.Integrations.Elation.ElationClient>(client =>
+        {
+            client.BaseAddress = new Uri(configuration["Integrations:Elation:ApiUrl"] ?? "https://api.elationhealth.com/v1/");
+        });
+
+        services.AddHttpClient<ICareSourceClient, Infrastructure.Integrations.CareSource.CareSourceClient>(client =>
+        {
+            client.BaseAddress = new Uri(configuration["Integrations:CareSource:ApiUrl"] ?? "https://api.caresource.com/v1/");
+        });
+
+        services.AddScoped<ISchedulingService, Infrastructure.Services.SchedulingService>();
+
         return services;
     }
 }

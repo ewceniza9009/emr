@@ -1,0 +1,26 @@
+using Application.Common.Interfaces;
+using HotChocolate.Authorization;
+using MediatR;
+
+namespace Api.GraphQL.Mutations;
+
+[ExtendObjectType("Mutation")]
+public class IntegrationMutation
+{
+    public async Task<bool> SyncAllPartners(
+        [Service] IElationClient elationClient,
+        [Service] ICareSourceClient careSourceClient,
+        CancellationToken cancellationToken)
+    {
+        // In a real app, this might queue background jobs.
+        // For now we trigger them sequentially for demonstration.
+        
+        // 1. Sync demographics for a dummy patient to prove it's working
+        await elationClient.SyncPatientDemographicsAsync(Guid.Empty, cancellationToken);
+        
+        // 2. Report metrics for a dummy period
+        await careSourceClient.ReportPalliativeMetricsAsync(Guid.Empty, DateTimeOffset.UtcNow.AddDays(-30), DateTimeOffset.UtcNow, cancellationToken);
+        
+        return true;
+    }
+}

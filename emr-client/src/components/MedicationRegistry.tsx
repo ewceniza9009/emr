@@ -1,7 +1,6 @@
-"use client";
-
 import { useState } from "react";
-import { useQuery, useMutation, gql } from "@apollo/client";
+import { useQuery, useMutation, useLazyQuery, gql } from "@apollo/client";
+import { useToast } from "./ToastProvider";
 import { 
   Pill, 
   Plus, 
@@ -10,7 +9,8 @@ import {
   CheckCircle2, 
   ChevronRight,
   Clock,
-  MoreVertical
+  MoreVertical,
+  ShieldCheck
 } from "lucide-react";
 
 const GET_PRESCRIPTIONS = gql`
@@ -29,6 +29,12 @@ const GET_PRESCRIPTIONS = gql`
   }
 `;
 
+const VALIDATE_PRESCRIPTION = gql`
+  query Validate($patientId: UUID!, $name: String!) {
+    validatePrescription(patientId: $patientId, medicationName: $name)
+  }
+`;
+
 const ADD_PRESCRIPTION = gql`
   mutation AddPrescription($input: AddPrescriptionCommandInput!) {
     addPrescription(command: $input)
@@ -36,14 +42,25 @@ const ADD_PRESCRIPTION = gql`
 `;
 
 export default function MedicationRegistry({ patientId }: { patientId: string }) {
+  const { showToast } = useToast();
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newMed, setNewMed] = useState({ name: "", strength: "", dose: "", frequency: "", route: "Oral", indications: "" });
+  const [newMed, setNewMed] = useState({ name: "", strength: "", dose: "", frequency: "", route: "Oral", indications: "", signature: "" });
   
   const { data, loading, refetch } = useQuery(GET_PRESCRIPTIONS, {
-    variables: { patientId }
+    variables: { patientId },
   });
 
   const [addMed, { loading: adding }] = useMutation(ADD_PRESCRIPTION);
+  const [validate, { data: validationData }] = useLazyQuery(VALIDATE_PRESCRIPTION);
+
+  const conflicts = validationData?.validatePrescription || [];
+
+  const handleNameChange = (name: string) => {
+    setNewMed({...newMed, name});
+    if (name.length > 3) {
+      validate({ variables: { patientId, name } });
+    }
+  };
 
   const handleAdd = async () => {
     try {
@@ -56,13 +73,16 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
             dose: newMed.dose,
             frequency: newMed.frequency,
             route: newMed.route,
-            indications: newMed.indications
+            indications: newMed.indications,
+            digitalSignature: newMed.signature
           }
         }
       });
+      showToast(`${newMed.name} prescribed successfully.`, "success");
       setShowAddModal(false);
       refetch();
     } catch (err) {
+      showToast("Failed to sign prescription.", "error");
       console.error(err);
     }
   };
@@ -144,7 +164,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Medication Name</label>
                        <input 
                          value={newMed.name}
-                         onChange={(e) => setNewMed({...newMed, name: e.target.value})}
+                         onChange={(e) => handleNameChange(e.target.value)}
                          placeholder="e.g. Morphine" 
                          className="w-full premium-input rounded-xl py-3 px-4 text-white text-sm" 
                        />
@@ -159,6 +179,19 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                        />
                     </div>
                  </div>
+
+                 {/* Clinical Warnings */}
+                 {conflicts.length > 0 && (
+                   <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2 animate-in zoom-in duration-300">
+                      <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-widest">
+                         <AlertCircle className="w-4 h-4" />
+                         Clinical Conflict Detected
+                      </div>
+                      {conflicts.map((c: string, i: number) => (
+                        <p key={i} className="text-white text-xs font-medium leading-relaxed">{c}</p>
+                      ))}
+                   </div>
+                 )}
 
                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
@@ -203,11 +236,26 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                       className="w-full premium-input rounded-xl py-4 px-4 text-white text-sm min-h-[80px]" 
                     />
                  </div>
+
+                 {/* E-Signature Section */}
+                 <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10 space-y-4">
+                    <div className="flex items-center gap-2 text-blue-400 text-[10px] font-bold uppercase tracking-widest">
+                       <ShieldCheck className="w-4 h-4" />
+                       Clinical Digital Signature
+                    </div>
+                    <input 
+                      value={newMed.signature}
+                      onChange={(e) => setNewMed({...newMed, signature: e.target.value})}
+                      placeholder="Type Full Name to Sign" 
+                      className="w-full premium-input rounded-xl py-3 px-4 text-white text-sm italic font-serif" 
+                    />
+                    <p className="text-[10px] text-slate-500 italic">By signing, you confirm this pharmacological order is clinically indicated and you have reviewed the patient's allergy and conflict profile.</p>
+                 </div>
               </div>
 
               <button 
                 onClick={handleAdd}
-                disabled={adding || !newMed.name}
+                disabled={adding || !newMed.name || !newMed.signature}
                 className="w-full premium-button premium-gradient py-4 rounded-2xl text-white font-bold shadow-xl shadow-emerald-500/20 disabled:opacity-50"
               >
                 {adding ? "Signing Prescription..." : "Sign & Add Prescription"}

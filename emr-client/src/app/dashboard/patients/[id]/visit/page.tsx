@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, gql } from "@apollo/client";
+import { useToast } from "@/components/ToastProvider";
 import { 
   Stethoscope, 
   Activity, 
@@ -24,6 +25,7 @@ const COMPLETE_VISIT = gql`
 `;
 
 export default function GuidedVisit() {
+  const { showToast } = useToast();
   const params = useParams();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -63,8 +65,10 @@ export default function GuidedVisit() {
           }
         }
       });
+      showToast("Visit synchronized successfully with Elation Chart.", "success");
       router.push(`/dashboard/patients/${params.id}`);
     } catch (err) {
+      showToast("Clinical synchronization failed. Data preserved locally.", "error");
       console.error(err);
     }
   };

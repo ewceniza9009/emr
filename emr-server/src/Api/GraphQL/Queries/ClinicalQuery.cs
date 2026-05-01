@@ -1,4 +1,5 @@
 using Application.Clinical.Dtos;
+using Application.Clinical.Services;
 using Application.Common.Interfaces;
 using Domain.Entities;
 using Mapster;
@@ -72,6 +73,15 @@ public class ClinicalQuery
             .ToListAsync();
 
         return triageItems;
+    }
+
+    public async Task<List<string>> ValidatePrescription(
+        Guid patientId,
+        string medicationName,
+        [Service] IConflictEngine conflictEngine,
+        CancellationToken cancellationToken)
+    {
+        return await conflictEngine.CheckConflictsAsync(patientId, medicationName, cancellationToken);
     }
 }
 

@@ -41,6 +41,7 @@ public interface IApplicationDbContext
     DbSet<IntegrationProfile> IntegrationProfiles { get; }
     DbSet<Medication> Medications { get; }
     DbSet<Prescription> Prescriptions { get; }
+    DbSet<ProviderShift> ProviderShifts { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

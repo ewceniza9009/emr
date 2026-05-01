@@ -21,6 +21,11 @@ public class Patient
     public CommunicationAbility? CommunicationStatus { get; set; }
     public TechAccessLevel? TechAccess { get; set; }
     public string? BarriersToCare { get; set; }
+    
+    // Geospatial Coordinates (Patient Bedside)
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public HealthPlan? HealthPlan { get; set; }

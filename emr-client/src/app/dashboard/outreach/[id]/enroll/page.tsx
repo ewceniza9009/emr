@@ -28,6 +28,15 @@ const GET_LEAD_DETAILS = gql`
   }
 `;
 
+const GET_ENROLLMENT_DATA = gql`
+  query GetEnrollmentData {
+    healthPlans {
+      healthPlanId
+      name
+    }
+  }
+`;
+
 const FINALIZE_ENROLLMENT = gql`
   mutation FinalizeEnrollment($input: FinalizeEnrollmentCommandInput!) {
     finalizeEnrollment(command: $input)
@@ -38,11 +47,16 @@ export default function EnrollmentWizard() {
   const params = useParams();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedPlan, setSelectedPlan] = useState("");
+  const [selectedModality, setSelectedModality] = useState("HomeCare");
+  
   const [finalize, { loading: finalizing }] = useMutation(FINALIZE_ENROLLMENT);
 
-  const { data, loading } = useQuery(GET_LEAD_DETAILS, {
+  const { data: leadData, loading: leadLoading } = useQuery(GET_LEAD_DETAILS, {
     variables: { id: params.id },
   });
+
+  const { data: planData } = useQuery(GET_ENROLLMENT_DATA);
 
   const handleFinalize = async () => {
     try {
@@ -50,8 +64,8 @@ export default function EnrollmentWizard() {
         variables: {
           input: {
             patientOutreachId: params.id,
-            modality: "HomeCare",
-            healthPlanId: "00000000-0000-0000-0000-000000000000" // Placeholder
+            modality: selectedModality,
+            healthPlanId: selectedPlan
           }
         }
       });
@@ -63,7 +77,8 @@ export default function EnrollmentWizard() {
     }
   };
 
-  const lead = data?.outreachById;
+  const lead = leadData?.outreachById;
+  const plans = planData?.healthPlans || [];
 
   const steps = [
     { id: 1, label: "Contact", icon: PhoneCall },
@@ -74,7 +89,7 @@ export default function EnrollmentWizard() {
     { id: 6, label: "Finalize", icon: ClipboardCheck },
   ];
 
-  if (loading) return <div className="p-10 text-white">Loading Enrollment Workflow...</div>;
+  if (leadLoading) return <div className="p-10 text-white">Loading Enrollment Workflow...</div>;
 
   return (
     <div className="max-w-4xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4">
@@ -228,20 +243,32 @@ export default function EnrollmentWizard() {
             <div className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">Health Plan / Customer Tag</label>
-                <select className="w-full premium-input rounded-2xl py-4 px-6 text-white appearance-none">
+                <select 
+                  value={selectedPlan}
+                  onChange={(e) => setSelectedPlan(e.target.value)}
+                  className="w-full premium-input rounded-2xl py-4 px-6 text-white appearance-none bg-slate-900"
+                >
                    <option value="">Select Health Plan...</option>
-                   <option value="philhealth">PhilHealth (National)</option>
-                   <option value="maxicare">Maxicare (Corporate)</option>
-                   <option value="intellicare">Intellicare</option>
-                   <option value="self">Self-Pay / Private</option>
+                   {plans.map((p: any) => (
+                     <option key={p.healthPlanId} value={p.healthPlanId}>{p.name}</option>
+                   ))}
                 </select>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {["Home Care", "In-Patient Hospice", "Outpatient Clinic", "Virtual Care"].map((mod) => (
-                <button key={mod} onClick={() => setCurrentStep(6)} className="p-5 rounded-2xl bg-white/5 border border-white/10 text-white text-left font-medium hover:border-blue-400/50 hover:bg-blue-500/5 transition-all flex items-center justify-between group">
-                  {mod}
-                  <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-blue-400" />
+              {[
+                { label: "Home Care", val: "HomeCare" },
+                { label: "In-Patient Hospice", val: "InPatient" },
+                { label: "Outpatient Clinic", val: "Outpatient" },
+                { label: "Virtual Care", val: "Virtual" },
+              ].map((m) => (
+                <button 
+                  key={m.val} 
+                  onClick={() => { setSelectedModality(m.val); setCurrentStep(6); }} 
+                  className={`p-5 rounded-2xl border transition-all flex items-center justify-between group ${selectedModality === m.val ? 'bg-blue-500/10 border-blue-500/50 text-blue-400' : 'bg-white/5 border-white/10 text-white hover:border-blue-400/50'}`}
+                >
+                  {m.label}
+                  <ArrowRight className={`w-4 h-4 ${selectedModality === m.val ? 'text-blue-400' : 'text-slate-500 group-hover:text-blue-400'}`} />
                 </button>
               ))}
             </div>

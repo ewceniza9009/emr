@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -99,10 +100,12 @@ public static class DbInitializer
         if (!await context.Medications.AnyAsync())
         {
             context.Medications.AddRange(
-                new Medication { Name = "Morphine Sulfate", Strength = "5mg/ml", DefaultRoute = MedicationRoute.Sublingual },
-                new Medication { Name = "Lorazepam (Ativan)", Strength = "1mg", DefaultRoute = MedicationRoute.Oral },
-                new Medication { Name = "Oxygen", Strength = "2L/min", DefaultRoute = MedicationRoute.Transdermal }
+                new Medication { Name = "Morphine Sulfate",    Strength = "5mg/ml", DefaultRoute = MedicationRoute.Sublingual },
+                new Medication { Name = "Lorazepam (Ativan)",  Strength = "1mg",    DefaultRoute = MedicationRoute.Oral },
+                new Medication { Name = "Oxygen",              Strength = "2L/min", DefaultRoute = MedicationRoute.Transdermal }
             );
+            // ✅ Flush medications FIRST so step 9 can query them by name
+            await context.SaveChangesAsync();
         }
 
         // 8. Seed Sample Patients
@@ -137,38 +140,43 @@ public static class DbInitializer
                     HealthPlanId = philHealth.HealthPlanId
                 }
             );
+            await context.SaveChangesAsync();
         }
 
         // 9. Seed Sample Prescriptions for John Doe
         if (!await context.Prescriptions.AnyAsync())
         {
-            var john = await context.Patients.FirstAsync(x => x.Mrn == "MRN-001");
-            var drHouse = await context.Practitioners.FirstAsync(x => x.LastName == "House");
-            var morphine = await context.Medications.FirstAsync(x => x.Name == "Morphine Sulfate");
-            var ativan = await context.Medications.FirstAsync(x => x.Name == "Lorazepam (Ativan)");
+            var john     = await context.Patients.FirstOrDefaultAsync(x => x.Mrn == "MRN-001");
+            var drHouse  = await context.Practitioners.FirstOrDefaultAsync(x => x.LastName == "House");
+            var morphine = await context.Medications.FirstOrDefaultAsync(x => x.Name == "Morphine Sulfate");
+            var ativan   = await context.Medications.FirstOrDefaultAsync(x => x.Name == "Lorazepam (Ativan)");
 
-            context.Prescriptions.AddRange(
-                new Prescription 
-                { 
-                    PatientId = john.PatientId, 
-                    MedicationId = morphine.MedicationId, 
-                    Dose = "0.5ml", 
-                    Frequency = "Q4H PRN", 
-                    Route = MedicationRoute.Sublingual,
-                    StartDate = DateTimeOffset.UtcNow,
-                    PrescribedById = drHouse.PractitionerId
-                },
-                new Prescription 
-                { 
-                    PatientId = john.PatientId, 
-                    MedicationId = ativan.MedicationId, 
-                    Dose = "1mg", 
-                    Frequency = "Q6H PRN", 
-                    Route = MedicationRoute.Oral,
-                    StartDate = DateTimeOffset.UtcNow,
-                    PrescribedById = drHouse.PractitionerId
-                }
-            );
+            // Only seed if all dependencies exist — avoids crash on partial seed runs
+            if (john != null && drHouse != null && morphine != null && ativan != null)
+            {
+                context.Prescriptions.AddRange(
+                    new Prescription
+                    {
+                        PatientId      = john.PatientId,
+                        MedicationId   = morphine.MedicationId,
+                        Dose           = "0.5ml",
+                        Frequency      = "Q4H PRN",
+                        Route          = MedicationRoute.Sublingual,
+                        StartDate      = DateTimeOffset.UtcNow,
+                        PrescribedById = drHouse.PractitionerId
+                    },
+                    new Prescription
+                    {
+                        PatientId      = john.PatientId,
+                        MedicationId   = ativan.MedicationId,
+                        Dose           = "1mg",
+                        Frequency      = "Q6H PRN",
+                        Route          = MedicationRoute.Oral,
+                        StartDate      = DateTimeOffset.UtcNow,
+                        PrescribedById = drHouse.PractitionerId
+                    }
+                );
+            }
         }
 
         await context.SaveChangesAsync();

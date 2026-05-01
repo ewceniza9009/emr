@@ -12,7 +12,9 @@ public class Appointment
     public DateTimeOffset ScheduledEnd { get; set; }
     public AppointmentModality Modality { get; set; } = AppointmentModality.InPersonFacility;
     public string? MeetingLink { get; set; }
+    public Guid? PractitionerId { get; set; }
 
     public Patient Patient { get; set; } = null!;
+    public Practitioner? Practitioner { get; set; }
     public ICollection<AppointmentResource> AppointmentResources { get; set; } = new List<AppointmentResource>();
 }

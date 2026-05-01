@@ -31,10 +31,12 @@ public record CompleteGuidedEncounterCommand : IRequest<Guid>
 public class CompleteGuidedEncounterCommandHandler : IRequestHandler<CompleteGuidedEncounterCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IElationClient _elationClient;
 
-    public CompleteGuidedEncounterCommandHandler(IApplicationDbContext context)
+    public CompleteGuidedEncounterCommandHandler(IApplicationDbContext context, IElationClient elationClient)
     {
         _context = context;
+        _elationClient = elationClient;
     }
 
     public async Task<Guid> Handle(CompleteGuidedEncounterCommand request, CancellationToken cancellationToken)
@@ -80,6 +82,18 @@ public class CompleteGuidedEncounterCommandHandler : IRequestHandler<CompleteGui
         _context.ClinicalNotes.AddRange(notes);
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // 4. Trigger External Sync to Elation Health
+        try 
+        {
+            await _elationClient.PushSoapNoteAsync(encounter.EncounterId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail the primary save
+            // In production, we'd queue this for retry
+            Console.WriteLine($"Elation Sync Failed: {ex.Message}");
+        }
 
         return encounter.EncounterId;
     }

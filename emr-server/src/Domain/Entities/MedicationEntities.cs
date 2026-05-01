@@ -36,6 +36,10 @@ public class Prescription
     public DateTimeOffset? EndDate { get; set; }
     public bool IsActive { get; set; } = true;
     
+    // E-Signature
+    public string? SignatureHash { get; set; }
+    public DateTimeOffset? SignedAt { get; set; }
+    
     public Patient Patient { get; set; } = null!;
     public Medication Medication { get; set; } = null!;
     public Practitioner PrescribedBy { get; set; } = null!;

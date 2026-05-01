@@ -1,6 +1,7 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -12,18 +13,27 @@ public class ElationClient : IElationClient
     private readonly IApplicationDbContext _context;
     private readonly ILogger<ElationClient> _logger;
 
-    public ElationClient(HttpClient httpClient, IApplicationDbContext context, ILogger<ElationClient> logger)
+    private readonly IConfiguration _configuration;
+
+    public ElationClient(HttpClient httpClient, IApplicationDbContext context, ILogger<ElationClient> logger, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _context = context;
         _logger = logger;
+        _configuration = configuration;
+
+        var apiKey = _configuration["Integrations:Elation:ApiKey"];
+        if (!string.IsNullOrEmpty(apiKey))
+        {
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+        }
     }
 
     public async Task<bool> PushSoapNoteAsync(Guid encounterId, CancellationToken cancellationToken = default)
     {
         var encounter = await _context.ClinicalEncounters
             .Include(x => x.Patient)
-            .Include(x => x.Notes)
+            .Include(x => x.ClinicalNotes)
             .FirstOrDefaultAsync(x => x.EncounterId == encounterId, cancellationToken);
 
         if (encounter == null) return false;
@@ -37,7 +47,7 @@ public class ElationClient : IElationClient
         {
             patient_id = encounter.Patient.ExternalId ?? "EL-EXT-001",
             note_type = "Palliative SOAP",
-            content = string.Join("\n", encounter.Notes.Select(n => $"{n.Type}: {n.Content}"))
+            content = string.Join("\n", encounter.ClinicalNotes.Select(n => $"{n.Type}: {n.Content}"))
         };
 
         _logger.LogDebug("Elation Payload: {Payload}", JsonSerializer.Serialize(payload));

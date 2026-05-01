@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation, gql } from "@apollo/client";
 import { 
   Zap, 
   RefreshCcw, 
@@ -13,8 +14,14 @@ import {
   ChevronRight
 } from "lucide-react";
 
+const SYNC_ALL = gql`
+  mutation SyncAllPartners {
+    syncAllPartners
+  }
+`;
+
 export default function IntegrationsPage() {
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncAll, { loading: isSyncing }] = useMutation(SYNC_ALL);
 
   const partners = [
     { 
@@ -43,9 +50,12 @@ export default function IntegrationsPage() {
     }
   ];
 
-  const handleSync = () => {
-    setIsSyncing(true);
-    setTimeout(() => setIsSyncing(false), 2000);
+  const handleSync = async () => {
+    try {
+      await syncAll();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (

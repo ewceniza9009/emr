@@ -25,5 +25,9 @@ public class Facility
     public string? ContactPhone { get; set; }
     public string? ContactEmail { get; set; }
     
+    // Geospatial Coordinates
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    
     public ICollection<Patient> Residents { get; set; } = new List<Patient>();
 }

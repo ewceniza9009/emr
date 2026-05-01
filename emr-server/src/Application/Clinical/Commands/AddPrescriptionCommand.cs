@@ -16,6 +16,7 @@ public record AddPrescriptionCommand : IRequest<Guid>
     public MedicationRoute Route { get; init; }
     public string? Indications { get; init; }
     public DateTimeOffset StartDate { get; init; } = DateTimeOffset.UtcNow;
+    public string DigitalSignature { get; init; } = string.Empty;
 }
 
 public class AddPrescriptionCommandHandler : IRequestHandler<AddPrescriptionCommand, Guid>
@@ -55,7 +56,9 @@ public class AddPrescriptionCommandHandler : IRequestHandler<AddPrescriptionComm
             Route = request.Route,
             Indications = request.Indications,
             StartDate = request.StartDate,
-            IsActive = true
+            IsActive = true,
+            SignatureHash = request.DigitalSignature,
+            SignedAt = DateTimeOffset.UtcNow
         };
 
         _context.Prescriptions.Add(prescription);
