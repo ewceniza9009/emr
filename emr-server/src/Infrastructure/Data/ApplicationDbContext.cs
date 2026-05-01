@@ -43,6 +43,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<HealthPlan> HealthPlans => Set<HealthPlan>();
     public DbSet<OutreachScript> OutreachScripts => Set<OutreachScript>();
     public DbSet<OutreachActivity> OutreachActivities => Set<OutreachActivity>();
+    public DbSet<Facility> Facilities => Set<Facility>();
+    public DbSet<AdvanceDirective> AdvanceDirectives => Set<AdvanceDirective>();
     public DbSet<ClinicalEncounter> ClinicalEncounters => Set<ClinicalEncounter>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -14,12 +14,15 @@ public class Patient
     public string City { get; set; } = string.Empty;
     public string PostalCode { get; set; } = string.Empty;
     public Guid? HealthPlanId { get; set; }
+    public Guid? FacilityId { get; set; }
     public CommunicationAbility? CommunicationStatus { get; set; }
     public TechAccessLevel? TechAccess { get; set; }
     public string? BarriersToCare { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public HealthPlan? HealthPlan { get; set; }
+    public Facility? Facility { get; set; }
+    public ICollection<AdvanceDirective> AdvanceDirectives { get; set; } = new List<AdvanceDirective>();
 
     // Navigation Properties
     public ICollection<PatientPhone> Phones { get; set; } = new List<PatientPhone>();
