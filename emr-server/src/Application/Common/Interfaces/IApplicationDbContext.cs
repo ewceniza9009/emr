@@ -32,6 +32,7 @@ public interface IApplicationDbContext
     DbSet<PatientContact> PatientContacts { get; }
     DbSet<PatientPhone> PatientPhones { get; }
     DbSet<PatientEmail> PatientEmails { get; }
+    DbSet<PatientOutreach> PatientOutreaches { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

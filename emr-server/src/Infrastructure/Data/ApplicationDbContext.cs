@@ -37,8 +37,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<PractitionerLicensure> PractitionerLicensures { get; } = null!;
     public DbSet<PractitionerServiceArea> PractitionerServiceAreas { get; } = null!;
     public DbSet<PatientContact> PatientContacts { get; } = null!;
-    public DbSet<PatientPhone> PatientPhones { get; } = null!;
-    public DbSet<PatientEmail> PatientEmails { get; } = null!;
+    public DbSet<PatientPhone> PatientPhones => Set<PatientPhone>();
+    public DbSet<PatientEmail> PatientEmails => Set<PatientEmail>();
+    public DbSet<PatientOutreach> PatientOutreaches => Set<PatientOutreach>();
+    public DbSet<HealthPlan> HealthPlans => Set<HealthPlan>();
+    public DbSet<OutreachScript> OutreachScripts => Set<OutreachScript>();
+    public DbSet<OutreachActivity> OutreachActivities => Set<OutreachActivity>();
+    public DbSet<ClinicalEncounter> ClinicalEncounters => Set<ClinicalEncounter>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

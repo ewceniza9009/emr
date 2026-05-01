@@ -19,12 +19,31 @@ public class CreateClinicalEncounterCommandHandler : IRequestHandler<CreateClini
 
     public async Task<Guid> Handle(CreateClinicalEncounterCommand request, CancellationToken cancellationToken)
     {
-        var encounter = request.Adapt<ClinicalEncounter>();
-        encounter.EncounterId = Guid.NewGuid();
-        encounter.Status = EncounterStatus.Planned;
-        encounter.AdmittedAt = _dateTime.UtcNow;
+        var encounter = new ClinicalEncounter
+        {
+            EncounterId = Guid.NewGuid(),
+            PatientId = request.PatientId,
+            PractitionerId = request.PractitionerId,
+            AppointmentId = request.AppointmentId,
+            Status = EncounterStatus.InProgress,
+            AdmittedAt = _dateTime.UtcNow,
+            ChiefComplaint = request.ChiefComplaint
+        };
+
+        // Create the initial clinical note
+        var note = new ClinicalNote
+        {
+            NoteId = Guid.NewGuid(),
+            EncounterId = encounter.EncounterId,
+            AuthorId = request.PractitionerId,
+            Content = request.Notes,
+            CreatedAt = _dateTime.UtcNow,
+            IsSigned = false,
+            Type = NoteType.Progress
+        };
 
         _context.ClinicalEncounters.Add(encounter);
+        _context.ClinicalNotes.Add(note);
         await _context.SaveChangesAsync(cancellationToken);
 
         return encounter.EncounterId;

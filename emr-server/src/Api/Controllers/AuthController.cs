@@ -47,6 +47,11 @@ public class AuthController : ControllerBase
                 new Claim("userId", user.Id)
             };
 
+            if (user.PractitionerId.HasValue)
+            {
+                authClaims.Add(new Claim("practitionerId", user.PractitionerId.Value.ToString()));
+            }
+
             foreach (var userRole in userRoles)
             {
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));

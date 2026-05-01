@@ -7,7 +7,7 @@ export function TopBar() {
   const { data: session } = useSession();
 
   return (
-    <header className="h-20 flex items-center justify-between px-10 border-b border-white/5 bg-[#0f172a]/50 backdrop-blur-md sticky top-0 z-40">
+    <header className="h-20 flex items-center justify-between px-10 border-b border-white/5 bg-slate-900 sticky top-0 z-40">
       <div className="flex-1 max-w-md">
         <div className="relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />

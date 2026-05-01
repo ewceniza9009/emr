@@ -11,12 +11,14 @@ import {
   LogOut,
   Stethoscope,
   HeartPulse,
-  Navigation2
+  Navigation2,
+  PhoneCall
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Mission Control", href: "/dashboard" },
+  { icon: PhoneCall, label: "Outreach", href: "/dashboard/outreach" },
   { icon: Users, label: "Patients", href: "/dashboard/patients" },
   { icon: Calendar, label: "Schedule", href: "/dashboard/schedule" },
   { icon: HeartPulse, label: "Vitals & IoT", href: "/dashboard/telemetry" },

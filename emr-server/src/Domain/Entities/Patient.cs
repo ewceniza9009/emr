@@ -13,7 +13,13 @@ public class Patient
     public string Address { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
     public string PostalCode { get; set; } = string.Empty;
+    public Guid? HealthPlanId { get; set; }
+    public CommunicationAbility? CommunicationStatus { get; set; }
+    public TechAccessLevel? TechAccess { get; set; }
+    public string? BarriersToCare { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public HealthPlan? HealthPlan { get; set; }
 
     // Navigation Properties
     public ICollection<PatientPhone> Phones { get; set; } = new List<PatientPhone>();

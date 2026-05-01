@@ -61,10 +61,10 @@ export default function LoginPage() {
           alt="Login Background"
           fill
           style={{ objectFit: 'cover' }}
-          className="scale-105 blur-[2px] opacity-40"
+          className="opacity-20"
           priority
         />
-        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-slate-950" />
       </div>
 
       {/* Login Card */}
