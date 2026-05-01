@@ -15,27 +15,27 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const GET_TRIAGE_DATA = gql`
-  query GetTriageData {
-    patients {
+const GET_TRIAGE_WORKLIST = gql`
+  query GetTriageWorklist {
+    triageWorklist {
       patientId
+      mrn
       firstName
       lastName
-      mrn
-      biologicalSex
-      communicationStatus
-      advanceDirectives {
-        type
-        isActive
-      }
-      # In a real app, we'd fetch the latest ESAS score here
+      latestPainScore
+      latestWellbeingScore
+      advanceDirectiveType
+      isAlert
     }
   }
 `;
 
 export default function TriageDashboard() {
-  const { data, loading } = useQuery(GET_TRIAGE_DATA);
-  const patients = data?.patients || [];
+  const { data, loading } = useQuery(GET_TRIAGE_WORKLIST);
+  const triageItems = data?.triageWorklist || [];
+
+  const alertCount = triageItems.filter((i: any) => i.isAlert).length;
+  const stableCount = triageItems.length - alertCount;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -48,11 +48,11 @@ export default function TriageDashboard() {
         <div className="flex gap-4">
           <div className="px-6 py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400">
             <div className="text-[10px] uppercase font-bold tracking-widest">High Severity</div>
-            <div className="text-xl font-bold">12 Patients</div>
+            <div className="text-xl font-bold">{alertCount} Patients</div>
           </div>
           <div className="px-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
             <div className="text-[10px] uppercase font-bold tracking-widest">Stable</div>
-            <div className="text-xl font-bold">48 Patients</div>
+            <div className="text-xl font-bold">{stableCount} Patients</div>
           </div>
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function TriageDashboard() {
               </h2>
               <div className="flex gap-2">
                 <button className="p-2 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5">
-                  <Filter className="w-4 h-4" />
+                   <Filter className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -86,11 +86,11 @@ export default function TriageDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {patients.slice(0, 5).map((p: any, idx: number) => (
+                  {triageItems.map((p: any) => (
                     <tr key={p.patientId} className="group hover:bg-white/[0.02] transition-colors">
                       <td className="px-8 py-5">
                         <div className="flex items-center gap-3">
-                          <div className={`w-2 h-2 rounded-full ${idx === 0 ? 'bg-red-500 animate-pulse' : 'bg-amber-500'}`} />
+                          <div className={`w-2 h-2 rounded-full ${p.isAlert ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
                           <div>
                             <p className="text-white font-semibold">{p.firstName} {p.lastName}</p>
                             <p className="text-slate-500 text-[10px] font-mono">{p.mrn}</p>
@@ -98,21 +98,25 @@ export default function TriageDashboard() {
                         </div>
                       </td>
                       <td className="px-8 py-5 text-center">
-                        <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-red-500/10 text-red-400 text-xs font-bold border border-red-500/20">
-                          {9 - idx}/10
+                        <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border 
+                          ${p.latestPainScore > 7 ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+                          Pain: {p.latestPainScore}/10
                         </div>
                       </td>
                       <td className="px-8 py-5 text-center">
-                        <span className="px-2 py-1 rounded-lg bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">
-                          DNR/DNI
+                        <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border 
+                          ${p.advanceDirectiveType !== 'None' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-slate-500 border-white/10'}`}>
+                          {p.advanceDirectiveType}
                         </span>
                       </td>
                       <td className="px-8 py-5">
-                        <span className="text-slate-400 text-xs italic">High Pain: Escalating</span>
+                        <span className="text-slate-400 text-xs italic">
+                           {p.isAlert ? 'Urgent Review Needed' : 'Stable'}
+                        </span>
                       </td>
                       <td className="px-8 py-5 text-right">
-                        <Link href={`/dashboard/patients/${p.patientId}/visit`} className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all inline-block">
-                          <Stethoscope className="w-4 h-4" />
+                        <Link href={`/dashboard/patients/${p.patientId}`} className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all inline-block">
+                          <ChevronRight className="w-4 h-4" />
                         </Link>
                       </td>
                     </tr>

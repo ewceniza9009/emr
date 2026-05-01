@@ -16,15 +16,21 @@ import {
 } from "lucide-react";
 
 const GET_LEAD_DETAILS = gql`
-  query GetLeadDetails($id: ID!) {
-    outreachById(id: $id) {
-      outreachId
+  query GetLeadDetails($id: UUID!) {
+    outreachById(outreachId: $id) {
       firstName
       lastName
-      primaryPhone
-      status
       city
+      communicationStatus
+      techAccess
+      barriersToCare
     }
+  }
+`;
+
+const FINALIZE_ENROLLMENT = gql`
+  mutation FinalizeEnrollment($input: FinalizeEnrollmentCommandInput!) {
+    finalizeEnrollment(command: $input)
   }
 `;
 
@@ -32,7 +38,30 @@ export default function EnrollmentWizard() {
   const params = useParams();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const { data, loading } = useQuery(GET_LEAD_DETAILS, { variables: { id: params.id } });
+  const [finalize, { loading: finalizing }] = useMutation(FINALIZE_ENROLLMENT);
+
+  const { data, loading } = useQuery(GET_LEAD_DETAILS, {
+    variables: { id: params.id },
+  });
+
+  const handleFinalize = async () => {
+    try {
+      const { data: finalizeData } = await finalize({
+        variables: {
+          input: {
+            patientOutreachId: params.id,
+            modality: "HomeCare",
+            healthPlanId: "00000000-0000-0000-0000-000000000000" // Placeholder
+          }
+        }
+      });
+      if (finalizeData?.finalizeEnrollment) {
+        router.push(`/dashboard/patients/${finalizeData.finalizeEnrollment}`);
+      }
+    } catch (err) {
+      console.error("Enrollment failed:", err);
+    }
+  };
 
   const lead = data?.outreachById;
 
@@ -229,8 +258,13 @@ export default function EnrollmentWizard() {
               <h2 className="text-3xl font-bold text-white">Enrollment Ready</h2>
               <p className="text-slate-400 max-w-sm">All mandatory steps are complete. Click below to generate the MRN and create the clinical record.</p>
             </div>
-            <button className="premium-button premium-gradient px-12 py-4 rounded-2xl text-white font-bold text-lg shadow-xl shadow-blue-500/20">
-              Finalize & Generate MRN
+            <button 
+              onClick={handleFinalize}
+              disabled={finalizing}
+              className="px-10 py-4 rounded-2xl bg-blue-500 text-white font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-500/20 flex items-center gap-2 disabled:opacity-50"
+            >
+              {finalizing ? "Generating MRN..." : "Finalize & Generate MRN"}
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         )}

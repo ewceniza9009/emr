@@ -13,9 +13,13 @@ import {
   ClipboardList,
   AlertCircle,
   Plus,
-  UserCircle
+  UserCircle,
+  TrendingUp
 } from "lucide-react";
 import Link from "next/link";
+import SymptomTrendChart from "@/components/SymptomTrendChart";
+import MedicationRegistry from "@/components/MedicationRegistry";
+import VitalSignTimeline from "@/components/VitalSignTimeline";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -124,12 +128,34 @@ export default function PatientDetailPage() {
 
         {/* Center Column: Clinical Timeline */}
         <div className="lg:col-span-2 space-y-6">
+           {/* Vital Signs */}
+           <VitalSignTimeline patientId={params.id as string} />
+
+           {/* Symptom Trends */}
+           <div className="glass-morphism rounded-3xl p-8 border border-white/5">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-blue-400" />
+                    Symptom Trajectory
+                  </h2>
+                  <p className="text-slate-500 text-xs">ESAS-R Standardized Tracking (Pain, Anxiety, Fatigue)</p>
+                </div>
+                <div className="flex gap-2">
+                   <button className="px-3 py-1 rounded-lg bg-white/5 text-slate-400 text-[10px] font-bold border border-white/5 hover:text-white transition-all">Last 30 Days</button>
+                   <button className="px-3 py-1 rounded-lg bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">All Time</button>
+                </div>
+              </div>
+              
+              <SymptomTrendChart patientId={params.id as string} />
+           </div>
+
            <div className="glass-morphism rounded-3xl p-8 min-h-[400px] flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 text-slate-500">
                 <ClipboardList className="w-8 h-8" />
               </div>
-              <h3 className="text-white font-bold text-lg">No Clinical Encounters</h3>
-              <p className="text-slate-500 text-sm max-w-xs mt-2">There are no documented encounters for this patient yet. Start a new assessment below.</p>
+              <h3 className="text-white font-bold text-lg">Clinical Timeline</h3>
+              <p className="text-slate-500 text-sm max-w-xs mt-2">Start a new assessment to begin tracking clinical progress.</p>
               <div className="flex gap-4 mt-8">
             <Link 
               href={`/dashboard/patients/${params.id}/visit`}

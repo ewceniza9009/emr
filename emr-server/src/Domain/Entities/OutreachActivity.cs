@@ -4,16 +4,16 @@ namespace Domain.Entities;
 
 public enum OutreachMethod
 {
-    Telephone = 1,
-    InPerson = 2,
-    Telehealth = 3,
-    Email = 4,
-    Sms = 5
+    Telephone,
+    InPerson,
+    Telehealth,
+    Email,
+    Sms
 }
 
 public class OutreachActivity
 {
-    public Guid ActivityId { get; set; } = Guid.NewGuid();
+    public Guid OutreachActivityId { get; set; } = Guid.NewGuid();
     public Guid OutreachId { get; set; }
     public Guid PractitionerId { get; set; }
     public OutreachMethod Method { get; set; }

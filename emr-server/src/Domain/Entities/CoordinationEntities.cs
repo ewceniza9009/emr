@@ -1,8 +1,10 @@
 namespace Domain.Entities;
 
+using Domain.Enums;
+
 public class AdvanceDirective
 {
-    public Guid DirectiveId { get; set; } = Guid.NewGuid();
+    public Guid AdvanceDirectiveId { get; set; } = Guid.NewGuid();
     public Guid PatientId { get; set; }
     public DirectiveType Type { get; set; }
     public string? DocumentUrl { get; set; } // Link to scanned document

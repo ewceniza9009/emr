@@ -1,8 +1,11 @@
 namespace Domain.Entities;
 
+using Domain.Enums;
+
 public class Patient
 {
     public Guid PatientId { get; set; } = Guid.NewGuid();
+    public string? ExternalId { get; set; } // For Elation/CareSource Mapping
     public string Mrn { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;

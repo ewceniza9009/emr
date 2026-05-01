@@ -18,7 +18,7 @@ public class CreateOutreachCommandHandler : IRequestHandler<CreateOutreachComman
     {
         var outreach = new PatientOutreach
         {
-            OutreachId = Guid.NewGuid(),
+            PatientOutreachId = Guid.NewGuid(),
             FirstName = request.FirstName,
             LastName = request.LastName,
             ReferralSource = request.ReferralSource,
@@ -32,6 +32,6 @@ public class CreateOutreachCommandHandler : IRequestHandler<CreateOutreachComman
         _context.PatientOutreaches.Add(outreach);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return outreach.OutreachId;
+        return outreach.PatientOutreachId;
     }
 }

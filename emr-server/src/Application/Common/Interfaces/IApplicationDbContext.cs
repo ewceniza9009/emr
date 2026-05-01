@@ -33,6 +33,14 @@ public interface IApplicationDbContext
     DbSet<PatientPhone> PatientPhones { get; }
     DbSet<PatientEmail> PatientEmails { get; }
     DbSet<PatientOutreach> PatientOutreaches { get; }
+    DbSet<HealthPlan> HealthPlans { get; }
+    DbSet<OutreachScript> OutreachScripts { get; }
+    DbSet<OutreachActivity> OutreachActivities { get; }
+    DbSet<Facility> Facilities { get; }
+    DbSet<AdvanceDirective> AdvanceDirectives { get; }
+    DbSet<IntegrationProfile> IntegrationProfiles { get; }
+    DbSet<Medication> Medications { get; }
+    DbSet<Prescription> Prescriptions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

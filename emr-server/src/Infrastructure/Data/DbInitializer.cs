@@ -72,9 +72,44 @@ public static class DbInitializer
             await userManager.AddToRoleAsync(drUser, "Practitioner");
         }
 
-        // 5. Seed Sample Patients
+        // 5. Seed Health Plans
+        var careSource = await context.HealthPlans.FirstOrDefaultAsync(x => x.Name == "CareSource");
+        if (careSource == null)
+        {
+            careSource = new HealthPlan { Name = "CareSource", Code = "CS-2026", Description = "Primary Palliative Partner" };
+            context.HealthPlans.Add(careSource);
+        }
+
+        var philHealth = await context.HealthPlans.FirstOrDefaultAsync(x => x.Name == "PhilHealth");
+        if (philHealth == null)
+        {
+            philHealth = new HealthPlan { Name = "PhilHealth", Code = "PH-NAT", Description = "National Health Insurance" };
+            context.HealthPlans.Add(philHealth);
+        }
+
+        // 6. Seed Facilities
+        var manilaMed = await context.Facilities.FirstOrDefaultAsync(x => x.Name == "Manila Medical Center");
+        if (manilaMed == null)
+        {
+            manilaMed = new Facility { Name = "Manila Medical Center", Type = FacilityType.Hospital, Address = "United Nations Ave, Manila" };
+            context.Facilities.Add(manilaMed);
+        }
+
+        // 7. Seed Medication Catalog
+        if (!await context.Medications.AnyAsync())
+        {
+            context.Medications.AddRange(
+                new Medication { Name = "Morphine Sulfate", Strength = "5mg/ml", DefaultRoute = MedicationRoute.Sublingual },
+                new Medication { Name = "Lorazepam (Ativan)", Strength = "1mg", DefaultRoute = MedicationRoute.Oral },
+                new Medication { Name = "Oxygen", Strength = "2L/min", DefaultRoute = MedicationRoute.Transdermal }
+            );
+        }
+
+        // 8. Seed Sample Patients
         if (!await context.Patients.AnyAsync())
         {
+            await context.SaveChangesAsync(); // Save to get IDs for Plans/Facilities
+
             context.Patients.AddRange(
                 new Patient
                 {
@@ -85,7 +120,9 @@ public static class DbInitializer
                     Dob = new DateTime(1955, 5, 20, 0, 0, 0, DateTimeKind.Utc),
                     BiologicalSex = "Male",
                     Address = "123 Palliative St",
-                    City = "Manila"
+                    City = "Manila",
+                    HealthPlanId = careSource.HealthPlanId,
+                    FacilityId = manilaMed.FacilityId
                 },
                 new Patient
                 {
@@ -96,7 +133,40 @@ public static class DbInitializer
                     Dob = new DateTime(1960, 10, 12, 0, 0, 0, DateTimeKind.Utc),
                     BiologicalSex = "Female",
                     Address = "456 Hospice Ave",
-                    City = "Quezon City"
+                    City = "Quezon City",
+                    HealthPlanId = philHealth.HealthPlanId
+                }
+            );
+        }
+
+        // 9. Seed Sample Prescriptions for John Doe
+        if (!await context.Prescriptions.AnyAsync())
+        {
+            var john = await context.Patients.FirstAsync(x => x.Mrn == "MRN-001");
+            var drHouse = await context.Practitioners.FirstAsync(x => x.LastName == "House");
+            var morphine = await context.Medications.FirstAsync(x => x.Name == "Morphine Sulfate");
+            var ativan = await context.Medications.FirstAsync(x => x.Name == "Lorazepam (Ativan)");
+
+            context.Prescriptions.AddRange(
+                new Prescription 
+                { 
+                    PatientId = john.PatientId, 
+                    MedicationId = morphine.MedicationId, 
+                    Dose = "0.5ml", 
+                    Frequency = "Q4H PRN", 
+                    Route = MedicationRoute.Sublingual,
+                    StartDate = DateTimeOffset.UtcNow,
+                    PrescribedById = drHouse.PractitionerId
+                },
+                new Prescription 
+                { 
+                    PatientId = john.PatientId, 
+                    MedicationId = ativan.MedicationId, 
+                    Dose = "1mg", 
+                    Frequency = "Q6H PRN", 
+                    Route = MedicationRoute.Oral,
+                    StartDate = DateTimeOffset.UtcNow,
+                    PrescribedById = drHouse.PractitionerId
                 }
             );
         }

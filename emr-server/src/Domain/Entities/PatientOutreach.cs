@@ -4,7 +4,7 @@ namespace Domain.Entities;
 
 public class PatientOutreach
 {
-    public Guid OutreachId { get; set; } = Guid.NewGuid();
+    public Guid PatientOutreachId { get; set; } = Guid.NewGuid();
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;

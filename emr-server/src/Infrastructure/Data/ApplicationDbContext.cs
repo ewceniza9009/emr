@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -45,7 +46,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<OutreachActivity> OutreachActivities => Set<OutreachActivity>();
     public DbSet<Facility> Facilities => Set<Facility>();
     public DbSet<AdvanceDirective> AdvanceDirectives => Set<AdvanceDirective>();
-    public DbSet<ClinicalEncounter> ClinicalEncounters => Set<ClinicalEncounter>();
+    public DbSet<IntegrationProfile> IntegrationProfiles => Set<IntegrationProfile>();
+    public DbSet<Medication> Medications => Set<Medication>();
+    public DbSet<Prescription> Prescriptions => Set<Prescription>();
+
+
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -7,5 +7,6 @@ public enum EncounterStatus
     Triaged,
     InProgress,
     Discharged,
+    Completed,
     Cancelled
 }

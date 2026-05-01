@@ -6,5 +6,9 @@ public enum NoteType
     Triage,
     Discharge,
     Transfer,
-    MultidisciplinaryTeam
+    MultidisciplinaryTeam,
+    Subjective,
+    Objective,
+    Assessment,
+    Plan
 }

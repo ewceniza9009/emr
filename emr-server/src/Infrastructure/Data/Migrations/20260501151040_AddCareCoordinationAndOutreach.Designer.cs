@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260501151040_AddCareCoordinationAndOutreach")]
+    partial class AddCareCoordinationAndOutreach
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -688,39 +691,6 @@ namespace Infrastructure.Data.Migrations
                     b.ToTable("HealthPlans");
                 });
 
-            modelBuilder.Entity("Domain.Entities.IntegrationProfile", b =>
-                {
-                    b.Property<Guid>("IntegrationProfileId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ApiKey")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("BaseUrl")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTimeOffset?>("LastSyncAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Partner")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("SettingsJson")
-                        .HasColumnType("text");
-
-                    b.Property<string>("WebhookSecret")
-                        .HasColumnType("text");
-
-                    b.HasKey("IntegrationProfileId");
-
-                    b.ToTable("IntegrationProfiles");
-                });
-
             modelBuilder.Entity("Domain.Entities.InterventionLog", b =>
                 {
                     b.Property<Guid>("InterventionId")
@@ -746,28 +716,6 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("CaseId");
 
                     b.ToTable("intervention_logs", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Entities.Medication", b =>
-                {
-                    b.Property<Guid>("MedicationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("DefaultRoute")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Strength")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("MedicationId");
-
-                    b.ToTable("Medications");
                 });
 
             modelBuilder.Entity("Domain.Entities.NavigationTask", b =>
@@ -911,9 +859,6 @@ namespace Infrastructure.Data.Migrations
                     b.Property<DateTime>("Dob")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("dob");
-
-                    b.Property<string>("ExternalId")
-                        .HasColumnType("text");
 
                     b.Property<Guid?>("FacilityId")
                         .HasColumnType("uuid");
@@ -1314,55 +1259,6 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("ZipCode");
 
                     b.ToTable("practitioner_service_areas", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Entities.Prescription", b =>
-                {
-                    b.Property<Guid>("PrescriptionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Dose")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("EndDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Frequency")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Indications")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("MedicationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PatientId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PrescribedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Route")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("StartDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("PrescriptionId");
-
-                    b.HasIndex("MedicationId");
-
-                    b.HasIndex("PatientId");
-
-                    b.HasIndex("PrescribedById");
-
-                    b.ToTable("Prescriptions");
                 });
 
             modelBuilder.Entity("Domain.Entities.ScheduleBlock", b =>
@@ -2144,33 +2040,6 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Practitioner");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Prescription", b =>
-                {
-                    b.HasOne("Domain.Entities.Medication", "Medication")
-                        .WithMany()
-                        .HasForeignKey("MedicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Patient", "Patient")
-                        .WithMany()
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Practitioner", "PrescribedBy")
-                        .WithMany()
-                        .HasForeignKey("PrescribedById")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Medication");
-
-                    b.Navigation("Patient");
-
-                    b.Navigation("PrescribedBy");
                 });
 
             modelBuilder.Entity("Domain.Entities.ScheduleBlock", b =>
