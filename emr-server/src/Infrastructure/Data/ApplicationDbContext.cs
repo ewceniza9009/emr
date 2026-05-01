@@ -13,6 +13,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     {
     }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        // Suppress the warning about pending model changes to avoid crash on MigrateAsync in dev
+        optionsBuilder.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    }
+
     public DbSet<Patient> Patients { get; set; } = null!;
     public DbSet<Practitioner> Practitioners { get; set; } = null!;
     public DbSet<Appointment> Appointments { get; set; } = null!;
@@ -50,9 +57,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<IntegrationProfile> IntegrationProfiles => Set<IntegrationProfile>();
     public DbSet<Medication> Medications => Set<Medication>();
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
-
-
-
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

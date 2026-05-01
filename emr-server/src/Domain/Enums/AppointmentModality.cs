@@ -5,5 +5,6 @@ public enum AppointmentModality
     InPersonFacility,
     InPersonHomeVisit,
     TelehealthVideo,
-    TelehealthAudioOnly
+    TelehealthAudioOnly,
+    Telephone
 }

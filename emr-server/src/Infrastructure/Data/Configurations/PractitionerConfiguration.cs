@@ -46,5 +46,23 @@ public class PractitionerConfiguration : IEntityTypeConfiguration<Practitioner>
         builder.Property(p => p.IsActive)
                .HasColumnName("is_active")
                .HasDefaultValue(true);
+
+        builder.Property(p => p.Position)
+               .HasColumnName("position")
+               .HasConversion<string>();
+
+        builder.Property(p => p.IsCareNavigator)
+               .HasColumnName("is_care_navigator")
+               .HasDefaultValue(false);
+
+        builder.Property(p => p.IsSupportingClinician)
+               .HasColumnName("is_supporting_clinician")
+               .HasDefaultValue(false);
+
+        builder.Property(p => p.BaseLatitude)
+               .HasColumnName("base_latitude");
+
+        builder.Property(p => p.BaseLongitude)
+               .HasColumnName("base_longitude");
     }
 }

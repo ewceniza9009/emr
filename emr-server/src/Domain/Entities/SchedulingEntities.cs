@@ -12,10 +12,11 @@ public class ProviderShift
     public Practitioner Practitioner { get; set; } = null!;
 }
 
-public class ProviderDistance
+public class ClinicalSlot
 {
-    public Guid ProviderId { get; set; }
+    public Guid PractitionerId { get; set; }
+    public DateTimeOffset StartTime { get; set; }
+    public DateTimeOffset EndTime { get; set; }
     public double DistanceInMiles { get; set; }
     public double TravelTimeInMinutes { get; set; }
-    public DateTimeOffset? FromTime { get; set; }
 }

@@ -21,6 +21,8 @@ public class Practitioner
     public string? NpiNumber { get; set; }
     public bool IsActive { get; set; } = true;
     public PractitionerPosition Position { get; set; } = PractitionerPosition.CareNavigator;
+    public bool IsCareNavigator { get; set; }
+    public bool IsSupportingClinician { get; set; }
 
     // Computed — used by GraphQL
     public string FullName => $"{FirstName} {LastName}".Trim();

@@ -5,7 +5,7 @@ namespace Application.Common.Interfaces;
 
 public interface ISchedulingService
 {
-    Task<List<ProviderDistance>> GetAvailableProvidersAsync(
+    Task<List<ClinicalSlot>> GetAvailableProvidersAsync(
         DateTimeOffset targetStart, 
         TimeSpan duration, 
         AppointmentModality modality, 

@@ -35,6 +35,19 @@ public class AppointmentQuery
             .AsNoTracking();
     }
 
+    [UseFirstOrDefault]
+    [UseProjection]
+    public IQueryable<Appointment> GetAppointment(
+        Guid id,
+        [Service] IApplicationDbContext context)
+    {
+        return context.Appointments
+            .Where(a => a.AppointmentId == id)
+            .Include(a => a.Patient)
+            .Include(a => a.Practitioner)
+            .AsNoTracking();
+    }
+
     /// <summary>
     /// Returns available care navigators and clinicians for a given patient visit,
     /// with real-time geospatial distance and travel time from their last known location.

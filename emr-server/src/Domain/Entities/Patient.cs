@@ -31,6 +31,7 @@ public class Patient
     public HealthPlan? HealthPlan { get; set; }
     public Facility? Facility { get; set; }
     public ICollection<AdvanceDirective> AdvanceDirectives { get; set; } = new List<AdvanceDirective>();
+    public ICollection<EsasAssessment> EsasAssessments { get; set; } = new List<EsasAssessment>();
 
     // Navigation Properties
     public ICollection<PatientPhone> Phones { get; set; } = new List<PatientPhone>();

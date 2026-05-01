@@ -38,7 +38,7 @@ public class EsasAssessmentConfiguration : IEntityTypeConfiguration<EsasAssessme
                .IsRequired();
 
         builder.HasOne(e => e.Patient)
-               .WithMany()
+               .WithMany(p => p.EsasAssessments)
                .HasForeignKey(e => e.PatientId)
                .OnDelete(DeleteBehavior.Cascade);
 

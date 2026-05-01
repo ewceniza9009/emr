@@ -42,7 +42,7 @@ public class ClinicalQuery
     public async Task<List<TriageItemDto>> GetTriageWorklist(
         [Service] IApplicationDbContext context)
     {
-        // Fetch all patients and their latest ESAS
+        // Fetch all patients and their latest ESAS using navigation properties
         var triageItems = await context.Patients
             .AsNoTracking()
             .Select(p => new TriageItemDto
@@ -51,22 +51,19 @@ public class ClinicalQuery
                 Mrn = p.Mrn,
                 FirstName = p.FirstName,
                 LastName = p.LastName,
-                LatestPainScore = context.EsasAssessments
-                    .Where(e => e.PatientId == p.PatientId)
+                LatestPainScore = p.EsasAssessments
                     .OrderByDescending(e => e.AssessedAt)
                     .Select(e => e.Pain)
                     .FirstOrDefault(),
-                LatestWellbeingScore = context.EsasAssessments
-                    .Where(e => e.PatientId == p.PatientId)
+                LatestWellbeingScore = p.EsasAssessments
                     .OrderByDescending(e => e.AssessedAt)
                     .Select(e => e.Wellbeing)
                     .FirstOrDefault(),
-                AdvanceDirectiveType = context.AdvanceDirectives
-                    .Where(ad => ad.PatientId == p.PatientId && ad.IsActive)
+                AdvanceDirectiveType = p.AdvanceDirectives
+                    .Where(ad => ad.IsActive)
                     .Select(ad => ad.Type.ToString())
                     .FirstOrDefault() ?? "None",
-                IsAlert = context.EsasAssessments
-                    .Where(e => e.PatientId == p.PatientId)
+                IsAlert = p.EsasAssessments
                     .OrderByDescending(e => e.AssessedAt)
                     .Any(e => e.Pain > 7 || e.Wellbeing > 7)
             })

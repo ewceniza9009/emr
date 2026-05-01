@@ -19,103 +19,138 @@ public class SchedulingService : ISchedulingService
         _logger = logger;
     }
 
-    public async Task<List<ProviderDistance>> GetAvailableProvidersAsync(
+    public async Task<List<ClinicalSlot>> GetAvailableProvidersAsync(
         DateTimeOffset targetStart, 
         TimeSpan duration, 
         AppointmentModality modality, 
         Guid patientId,
         CancellationToken cancellationToken = default)
     {
-        var targetEnd = targetStart.Add(duration);
-        var dayOfWeek = targetStart.DayOfWeek;
+        // HARDENED DATE LOGIC: Use the date part of the targetStart in the clinician's timezone context
+        var targetDate = targetStart.Date;
+        var dayOfWeek = targetDate.DayOfWeek;
+        
+        // If hour is 0 (midnight), scan the WHOLE day. Otherwise, scan the specific AM/PM window.
+        var scanWholeDay = targetStart.Hour == 0;
+        var isAm = targetStart.Hour < 13;
+        var slotWindowStart = new DateTimeOffset(targetDate.AddHours(scanWholeDay ? 8 : (isAm ? 8 : 13)), TimeSpan.Zero);
+        var slotWindowEnd = new DateTimeOffset(targetDate.AddHours(scanWholeDay ? 18 : (isAm ? 13 : 18)), TimeSpan.Zero);
+
+        _logger.LogInformation(">>> GEOSPATIAL RADAR: Scanning for {Day} (Range: {Start} - {End})", 
+            dayOfWeek, slotWindowStart.ToString("t"), slotWindowEnd.ToString("t"));
 
         // 1. Fetch Target Patient Coordinates
         var patient = await _context.Patients
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.PatientId == patientId, cancellationToken);
-
-        if (patient == null || !patient.Latitude.HasValue || !patient.Longitude.HasValue)
-        {
-            _logger.LogWarning("Patient {Id} has no geocoded location. Defaulting to base distance.", patientId);
+        
+        if (patient == null) {
+            _logger.LogWarning("!!! PATIENT NOT FOUND: {Id}", patientId);
         }
 
-        // 2. Get all active practitioners with shifts on this day
-        var activePractitioners = await _context.Practitioners
-            .Where(p => p.IsActive)
-            .Where(p => _context.ProviderShifts.Any(s => s.PractitionerId == p.PractitionerId && s.DayOfWeek == dayOfWeek))
+        // 2. Batch Fetch all clinical staff and their shifts
+        var staffData = await _context.Practitioners
+            .AsNoTracking()
+            .Where(p => p.IsActive && (p.IsCareNavigator || p.IsSupportingClinician))
+            .Select(p => new {
+                p.PractitionerId,
+                p.LastName,
+                p.BaseLatitude,
+                p.BaseLongitude,
+                Shifts = _context.ProviderShifts
+                    .Where(s => s.PractitionerId == p.PractitionerId && s.DayOfWeek == dayOfWeek)
+                    .Select(s => new { s.StartTime, s.EndTime })
+                    .ToList()
+            })
             .ToListAsync(cancellationToken);
 
-        var results = new List<ProviderDistance>();
-        var tasks = activePractitioners.Select(async practitioner =>
+        // 3. Batch Fetch all appointments for the day to avoid N+1 inside the loop
+        var startOfToday = new DateTimeOffset(targetDate, TimeSpan.Zero); // Force UTC for PG
+        var endOfToday = startOfToday.AddDays(1);
+
+        var existingAppointments = await _context.Appointments
+            .AsNoTracking()
+            .Include(a => a.Patient)
+            .Where(a => a.ScheduledStart >= startOfToday && a.ScheduledStart < endOfToday)
+            .ToListAsync(cancellationToken);
+
+        _logger.LogInformation(">>> DISCOVERY: Processing {StaffCount} clinicians with {ApptCount} existing appointments.", staffData.Count, existingAppointments.Count);
+
+        var allSlots = new List<ClinicalSlot>();
+        
+        foreach (var staff in staffData)
         {
-            await _semaphore.WaitAsync(cancellationToken);
-            try
+            var shift = staff.Shifts.FirstOrDefault();
+            if (shift == null) {
+                _logger.LogWarning(">>> SKIP: {Name} has no shift defined for {Day}", staff.LastName, dayOfWeek);
+                continue;
+            }
+
+            var shiftStart = new DateTimeOffset(targetDate.Add(shift.StartTime), TimeSpan.Zero);
+            var shiftEnd = new DateTimeOffset(targetDate.Add(shift.EndTime), TimeSpan.Zero);
+            
+            _logger.LogDebug(">>> WINDOW: {Name} | Shift: {S}-{E} | Scan: {SS}-{SE}", 
+                staff.LastName, shiftStart.ToString("t"), shiftEnd.ToString("t"), slotWindowStart.ToString("t"), slotWindowEnd.ToString("t"));
+
+            // Effective window is intersection of Slot and Shift
+            var effectiveStart = slotWindowStart > shiftStart ? slotWindowStart : shiftStart;
+            var effectiveEnd = slotWindowEnd < shiftEnd ? slotWindowEnd : shiftEnd;
+
+            // Get this clinician's appointments for today
+            var staffAppts = existingAppointments
+                .Where(a => a.PractitionerId == staff.PractitionerId)
+                .OrderBy(a => a.ScheduledStart)
+                .ToList();
+
+            // SCAN THE WINDOW
+            for (var time = effectiveStart; time.Add(duration) <= effectiveEnd; time = time.AddMinutes(15))
             {
-                var shift = await _context.ProviderShifts
-                    .FirstOrDefaultAsync(s => s.PractitionerId == practitioner.PractitionerId && s.DayOfWeek == dayOfWeek, cancellationToken);
+                // 1. Conflict Check (In Memory)
+                var hasConflict = staffAppts.Any(a => 
+                    time < a.ScheduledEnd && time.Add(duration) > a.ScheduledStart);
                 
-                if (shift == null) return;
+                if (hasConflict) continue;
 
-                var shiftStart = targetStart.Date.Add(shift.StartTime);
-                var shiftEnd = targetStart.Date.Add(shift.EndTime);
+                // 2. Geospatial Logic
+                var anchor = staffAppts
+                    .Where(a => a.ScheduledEnd <= time)
+                    .OrderByDescending(a => a.ScheduledEnd)
+                    .FirstOrDefault();
 
-                if (targetStart < shiftStart || targetEnd > shiftEnd) return;
+                double startLat = staff.BaseLatitude ?? 14.5995;
+                double startLon = staff.BaseLongitude ?? 120.9842;
 
-                var hasConflict = await _context.Appointments
-                    .AnyAsync(a => a.PractitionerId == practitioner.PractitionerId &&
-                                   a.ScheduledStart < targetEnd &&
-                                   a.ScheduledEnd > targetStart, cancellationToken);
-                
-                if (hasConflict) return;
-
-                double distance = 0;
-                double travelTime = 0;
-
-                if (modality == AppointmentModality.InPersonHomeVisit || modality == AppointmentModality.InPersonFacility)
+                if (anchor?.Patient != null && anchor.Patient.Latitude.HasValue)
                 {
-                    // Senior Chaining: Find the latest appointment
-                    var latestAppt = await _context.Appointments
-                        .Include(a => a.Patient)
-                        .Where(a => a.PractitionerId == practitioner.PractitionerId && a.ScheduledEnd <= targetStart && a.ScheduledStart.Date == targetStart.Date)
-                        .OrderByDescending(a => a.ScheduledEnd)
-                        .FirstOrDefaultAsync(cancellationToken);
-
-                    double startLat = practitioner.BaseLatitude ?? 14.5995; // Default to Manila Center if not set
-                    double startLon = practitioner.BaseLongitude ?? 120.9842;
-
-                    if (latestAppt?.Patient != null && latestAppt.Patient.Latitude.HasValue)
-                    {
-                        startLat = latestAppt.Patient.Latitude.Value;
-                        startLon = latestAppt.Patient.Longitude.Value;
-                    }
-
-                    if (patient?.Latitude.HasValue == true)
-                    {
-                        // REAL-TIME GEOSPATIAL CALCULATION
-                        distance = GeoUtils.CalculateDistance(startLat, startLon, patient.Latitude.Value, patient.Longitude.Value);
-                        travelTime = GeoUtils.EstimateTravelTimeMinutes(distance);
-                    }
+                    startLat = anchor.Patient.Latitude.Value;
+                    startLon = anchor.Patient.Longitude.Value;
                 }
 
-                lock (results)
+                double distance = 0;
+                double travelTime = 15; // Buffer
+
+                if (patient?.Latitude.HasValue == true)
                 {
-                    results.Add(new ProviderDistance
+                    distance = GeoUtils.CalculateDistance(startLat, startLon, patient.Latitude.Value, patient.Longitude.Value);
+                    travelTime = GeoUtils.EstimateTravelTimeMinutes(distance);
+                }
+
+                var earliestArrival = anchor != null ? anchor.ScheduledEnd.AddMinutes(travelTime) : shiftStart;
+
+                if (time >= earliestArrival)
+                {
+                    allSlots.Add(new ClinicalSlot
                     {
-                        ProviderId = practitioner.PractitionerId,
+                        PractitionerId = staff.PractitionerId,
+                        StartTime = time,
+                        EndTime = time.Add(duration),
                         DistanceInMiles = Math.Round(distance, 2),
-                        TravelTimeInMinutes = Math.Round(travelTime, 0),
-                        FromTime = targetStart
+                        TravelTimeInMinutes = Math.Round(travelTime, 0)
                     });
                 }
             }
-            finally
-            {
-                _semaphore.Release();
-            }
-        });
+        }
 
-        await Task.WhenAll(tasks);
-
-        return results.OrderBy(r => r.TravelTimeInMinutes).ToList();
+        return allSlots.OrderBy(s => s.StartTime).ThenBy(s => s.TravelTimeInMinutes).ToList();
     }
 }

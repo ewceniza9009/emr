@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260501194216_UpdateAppointmentStatus")]
+    partial class UpdateAppointmentStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1214,9 +1217,6 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("practitioner_id");
 
-                    b.Property<Guid?>("AppointmentId")
-                        .HasColumnType("uuid");
-
                     b.Property<double?>("BaseLatitude")
                         .HasColumnType("double precision");
 
@@ -1234,12 +1234,6 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
-
-                    b.Property<bool>("IsCareNavigator")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsSupportingClinician")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -1265,8 +1259,6 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnName("user_id");
 
                     b.HasKey("PractitionerId");
-
-                    b.HasIndex("AppointmentId");
 
                     b.HasIndex("NpiNumber")
                         .IsUnique();
@@ -2072,7 +2064,7 @@ namespace Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Domain.Entities.Patient", "Patient")
-                        .WithMany("EsasAssessments")
+                        .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2198,13 +2190,6 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Patient");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Practitioner", b =>
-                {
-                    b.HasOne("Domain.Entities.Appointment", null)
-                        .WithMany("SupportingClinicians")
-                        .HasForeignKey("AppointmentId");
                 });
 
             modelBuilder.Entity("Domain.Entities.PractitionerLicensure", b =>
@@ -2384,8 +2369,6 @@ namespace Infrastructure.Data.Migrations
             modelBuilder.Entity("Domain.Entities.Appointment", b =>
                 {
                     b.Navigation("AppointmentResources");
-
-                    b.Navigation("SupportingClinicians");
                 });
 
             modelBuilder.Entity("Domain.Entities.CareNavigationCase", b =>
@@ -2432,8 +2415,6 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("Contacts");
 
                     b.Navigation("Emails");
-
-                    b.Navigation("EsasAssessments");
 
                     b.Navigation("Phones");
                 });

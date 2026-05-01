@@ -60,6 +60,7 @@ builder.Services
     .AddTypeExtension<BillingQuery>()
     .AddMutationType<Mutation>()
     .AddTypeExtension<PatientMutation>()
+    .AddTypeExtension<AppointmentMutation>()
     .AddTypeExtension<ClinicalMutation>()
     .AddTypeExtension<NavigationMutation>()
     .AddTypeExtension<BillingMutation>()
