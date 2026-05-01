@@ -70,7 +70,7 @@ builder.Services
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PalliativeCorsPolicy", builder =>
-        builder.WithOrigins("https://carenavigator.emr.local")
+        builder.WithOrigins("https://carenavigator.emr.local", "http://localhost:3431", "http://localhost:3000")
                .AllowAnyMethod()
                .AllowAnyHeader()
                .AllowCredentials());

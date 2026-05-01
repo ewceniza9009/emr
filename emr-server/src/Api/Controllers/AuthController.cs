@@ -25,9 +25,19 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        Console.WriteLine($"[AUTH] Login attempt for: {request.Email}");
         var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user != null && await _userManager.CheckPasswordAsync(user, request.Password))
+        
+        if (user == null)
         {
+            Console.WriteLine($"[AUTH] User NOT found: {request.Email}");
+            return Unauthorized();
+        }
+
+        var result = await _userManager.CheckPasswordAsync(user, request.Password);
+        if (result)
+        {
+            Console.WriteLine($"[AUTH] Login SUCCESS: {request.Email}");
             var userRoles = await _userManager.GetRolesAsync(user);
 
             var authClaims = new List<Claim>

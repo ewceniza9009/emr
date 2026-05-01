@@ -60,10 +60,11 @@ export default function LoginPage() {
           src="/login_hero_bg_1777643570566.png"
           alt="Login Background"
           fill
-          className="object-cover scale-105 blur-[2px]"
+          style={{ objectFit: 'cover' }}
+          className="scale-105 blur-[2px] opacity-40"
           priority
         />
-        <div className="absolute inset-0 bg-[#0f172a]/80 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" />
       </div>
 
       {/* Login Card */}
