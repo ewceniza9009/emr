@@ -1,8 +1,9 @@
+using Domain.Common;
 using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class Appointment
+public class Appointment : BaseEntity
 {
     public Guid AppointmentId { get; set; } = Guid.NewGuid();
     public Guid PatientId { get; set; }

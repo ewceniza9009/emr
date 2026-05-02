@@ -50,7 +50,8 @@ interface CalendarAppointment {
   status: string;
   travelTimeMinutes: number | null;
   distanceInMiles: number | null;
-  patient: { firstName: string; lastName: string; address: string | null } | null;
+  patient: { firstName: string; lastName: string; addresses: { isPrimary: boolean; address: { street: string } }[] } | null;
+
   practitioner: { practitionerId: string; fullName: string; position: string } | null;
 }
 
@@ -87,7 +88,13 @@ const GET_SCHEDULE_DATA = gql`
       patient { 
         firstName 
         lastName 
-        address
+        addresses {
+          isPrimary
+          address {
+            street
+          }
+        }
+
       }
     }
     practitioners(where: { isActive: { eq: true } }) {
@@ -622,7 +629,8 @@ export default function SchedulingCalendar() {
                                 <div className="space-y-1">
                                   <div className="flex items-center gap-1.5 opacity-60">
                                     <MapPin className="w-2.5 h-2.5 text-slate-400" />
-                                    <p className="text-[9px] font-bold text-slate-300 truncate uppercase">{appt.patient?.address || "No Address"}</p>
+                                    <p className="text-[9px] font-bold text-slate-300 truncate uppercase">{appt.patient?.addresses?.find((a: any) => a.isPrimary)?.address?.street || appt.patient?.addresses?.[0]?.address?.street || "No Address"}</p>
+
                                   </div>
                                   {appt.travelTimeMinutes && (
                                     <div className="flex items-center gap-1.5">

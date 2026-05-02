@@ -1,8 +1,9 @@
+using Domain.Common;
 using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class Allergy
+public class Allergy : BaseEntity
 {
     public Guid AllergyId { get; set; } = Guid.NewGuid();
     public Guid PatientId { get; set; }

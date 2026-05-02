@@ -25,9 +25,25 @@ public class CreatePatientCommandHandler : IRequestHandler<CreatePatientCommand,
             BiologicalSex = request.BiologicalSex,
             GenderIdentity = request.GenderIdentity,
             PhilhealthNumber = request.PhilhealthNumber,
-            Address = request.Address,
-            City = request.City,
+            Addresses = new List<EntityAddress>
+            {
+                new EntityAddress
+                {
+                    Address = new Address
+                    {
+                        Street = request.Street,
+                        City = request.City,
+                        State = request.State,
+                        PostalCode = request.PostalCode,
+                        Latitude = request.Latitude.GetValueOrDefault(),
+                        Longitude = request.Longitude.GetValueOrDefault()
+                    },
+                    Type = Domain.Enums.AddressType.Home,
+                    IsPrimary = true
+                }
+            },
             CreatedAt = DateTime.UtcNow
+
         };
 
         _context.Patients.Add(patient);

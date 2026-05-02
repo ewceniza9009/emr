@@ -12,6 +12,9 @@ import {
   Phone
 } from "lucide-react";
 
+import { useState } from "react";
+import AddPatientDrawer from "@/components/AddPatientDrawer";
+
 const GET_PATIENTS = gql`
   query GetPatients {
     patients {
@@ -20,7 +23,14 @@ const GET_PATIENTS = gql`
       firstName
       lastName
       dob
-      city
+      addresses {
+        type
+        isPrimary
+        address {
+          city
+        }
+      }
+
       phones {
         phoneNumber
         type
@@ -30,7 +40,8 @@ const GET_PATIENTS = gql`
 `;
 
 export default function PatientsPage() {
-  const { data, loading, error } = useQuery(GET_PATIENTS);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const { data, loading, error, refetch } = useQuery(GET_PATIENTS);
 
   const patients = data?.patients || [];
 
@@ -41,11 +52,20 @@ export default function PatientsPage() {
           <h1 className="text-3xl font-bold text-white mb-2">Patient Directory</h1>
           <p className="text-slate-400">Manage your palliative care caseload and medical records.</p>
         </div>
-        <button className="premium-button premium-gradient px-6 py-3 rounded-2xl text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20">
+        <button 
+          onClick={() => setIsAddOpen(true)}
+          className="premium-button premium-gradient px-6 py-3 rounded-2xl text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20"
+        >
           <Plus className="w-5 h-5" />
           Add New Patient
         </button>
       </div>
+
+      <AddPatientDrawer 
+        open={isAddOpen} 
+        onClose={() => setIsAddOpen(false)} 
+        onSuccess={() => refetch()} 
+      />
 
       {/* Search & Filter Bar */}
       <div className="flex gap-4 items-center">
@@ -83,8 +103,23 @@ export default function PatientsPage() {
               ))
             ) : error ? (
               <tr>
-                <td colSpan={5} className="px-8 py-20 text-center text-red-400 bg-red-500/5">
-                   Failed to load patients. Please ensure the backend is running.
+                <td colSpan={5} className="px-8 py-24 text-center bg-red-500/5">
+                   <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
+                     <div className="w-16 h-16 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-400 mb-2">
+                       <Filter className="w-8 h-8 opacity-50 absolute" />
+                       <Search className="w-8 h-8" />
+                     </div>
+                     <h3 className="text-xl font-bold text-white">Connection Error</h3>
+                     <p className="text-slate-400 text-sm leading-relaxed">
+                       We're having trouble connecting to the medical registry. This usually happens when the backend clinical service is offline or restarting.
+                     </p>
+                     <button 
+                        onClick={() => refetch()}
+                        className="mt-4 px-6 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all border border-white/10"
+                     >
+                       Try Reconnecting
+                     </button>
+                   </div>
                 </td>
               </tr>
             ) : patients.map((patient: any) => (
@@ -105,7 +140,8 @@ export default function PatientsPage() {
                     {patient.mrn}
                   </span>
                 </td>
-                <td className="px-8 py-6 text-slate-300 text-sm">{patient.city}</td>
+                <td className="px-8 py-6 text-slate-300 text-sm">{patient.addresses?.find((a: any) => a.isPrimary)?.address?.city ?? patient.addresses?.[0]?.address?.city}</td>
+
                 <td className="px-8 py-6">
                   <div className="flex flex-col gap-1">
                     {patient.phones?.[0] ? (

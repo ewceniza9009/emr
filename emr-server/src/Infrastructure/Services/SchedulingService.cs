@@ -55,8 +55,8 @@ public class SchedulingService : ISchedulingService
             .Select(p => new {
                 p.PractitionerId,
                 p.LastName,
-                p.BaseLatitude,
-                p.BaseLongitude,
+                Latitude = p.Addresses.Where(a => a.IsPrimary).Select(a => a.Address.Latitude).FirstOrDefault(),
+                Longitude = p.Addresses.Where(a => a.IsPrimary).Select(a => a.Address.Longitude).FirstOrDefault(),
                 Shifts = _context.ProviderShifts
                     .Where(s => s.PractitionerId == p.PractitionerId && s.DayOfWeek == dayOfWeek)
                     .Select(s => new { s.StartTime, s.EndTime })
@@ -117,21 +117,23 @@ public class SchedulingService : ISchedulingService
                     .OrderByDescending(a => a.ScheduledEnd)
                     .FirstOrDefault();
 
-                double startLat = staff.BaseLatitude ?? 14.5995;
-                double startLon = staff.BaseLongitude ?? 120.9842;
+                double startLat = staff.Latitude ?? 14.5995;
+                double startLon = staff.Longitude ?? 120.9842;
 
-                if (anchor?.Patient != null && anchor.Patient.Latitude.HasValue)
+                var anchorAddr = anchor?.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+                if (anchorAddr?.Latitude.HasValue == true)
                 {
-                    startLat = anchor.Patient.Latitude.Value;
-                    startLon = anchor.Patient.Longitude.Value;
+                    startLat = anchorAddr.Latitude.Value;
+                    startLon = anchorAddr.Longitude.Value;
                 }
 
                 double distance = 0;
                 double travelTime = 15; // Buffer
 
-                if (patient?.Latitude.HasValue == true)
+                var patientAddr = patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+                if (patientAddr?.Latitude.HasValue == true)
                 {
-                    distance = GeoUtils.CalculateDistance(startLat, startLon, patient.Latitude.Value, patient.Longitude.Value);
+                    distance = GeoUtils.CalculateDistance(startLat, startLon, patientAddr.Latitude.Value, patientAddr.Longitude.Value);
                     travelTime = GeoUtils.EstimateTravelTimeMinutes(distance);
                 }
 

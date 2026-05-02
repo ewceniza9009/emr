@@ -31,9 +31,16 @@ const GET_PATIENT_DETAILS = gql`
       lastName
       dob
       biologicalSex
-      address
-      city
-      postalCode
+      addresses {
+        isPrimary
+        address {
+          street
+          city
+          state
+          postalCode
+        }
+      }
+
       phones {
         phoneNumber
         type
@@ -91,11 +98,13 @@ export default function PatientDetailPage() {
               </div>
               <div className="flex justify-between border-b border-white/5 pb-3">
                 <span className="text-slate-500 text-sm">Postal Code</span>
-                <span className="text-white text-sm font-medium">{patient.postalCode || 'Not Set'}</span>
+                <span className="text-white text-sm font-medium">{patient.addresses?.find((a: any) => a.isPrimary)?.address?.postalCode ?? patient.addresses?.[0]?.address?.postalCode ?? 'Not Set'}</span>
+
               </div>
               <div className="flex justify-between pb-3">
                 <span className="text-slate-500 text-sm">Location</span>
-                <span className="text-white text-sm font-medium text-right">{patient.address}, {patient.city}</span>
+                <span className="text-white text-sm font-medium text-right">{patient.addresses?.find((a: any) => a.isPrimary)?.address?.street ?? patient.addresses?.[0]?.address?.street}, {patient.addresses?.find((a: any) => a.isPrimary)?.address?.city ?? patient.addresses?.[0]?.address?.city}</span>
+
               </div>
             </div>
           </div>

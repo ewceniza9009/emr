@@ -30,9 +30,16 @@ const GET_PATIENTS = gql`
       firstName
       lastName
       mrn
-      address
-      city
-      postalCode
+      addresses {
+        isPrimary
+        address {
+          street
+          city
+          state
+          postalCode
+        }
+      }
+
     }
   }
 `;
@@ -66,7 +73,16 @@ const GET_APPOINTMENT = gql`
       patient {
         firstName
         lastName
-        address
+        addresses {
+          isPrimary
+          address {
+            street
+            city
+            state
+            postalCode
+          }
+        }
+
       }
     }
   }
@@ -107,7 +123,12 @@ interface Props {
 
 export default function BookingDrawer({ open, onClose, onBooked, prefillDate, appointmentId }: Props) {
   const [patientId, setPatientId] = useState("");
-  const [patientAddress, setPatientAddress] = useState("");
+  const [patientAddress, setPatientAddress] = useState({
+    street: "",
+    city: "",
+    state: "",
+    postalCode: ""
+  });
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [practitionerId, setPractitionerId] = useState("");
   const [supportingIds, setSupportingIds] = useState<string[]>([]);
@@ -135,7 +156,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     if (appointmentData?.appointment) {
       const a = appointmentData.appointment;
       setPatientId(a.patientId);
-      setPatientAddress(a.patient?.address || "");
+      setPatientAddress({
+        street: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.street || a.patient?.addresses?.[0]?.address?.street || "",
+        city: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.city || a.patient?.addresses?.[0]?.address?.city || "",
+        state: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.state || a.patient?.addresses?.[0]?.address?.state || "",
+        postalCode: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || a.patient?.addresses?.[0]?.address?.postalCode || ""
+
+      });
       setPractitionerId(a.practitionerId);
       setModality(a.modality);
       const start = new Date(a.scheduledStart);
@@ -331,7 +358,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         <button key={p.patientId} type="button" onClick={() => { 
                           setPatientId(p.patientId); 
                           setPatientSearch(`${p.firstName} ${p.lastName}`); 
-                          setPatientAddress(p.address || "");
+                          setPatientAddress({
+                            street: p.addresses?.find((x: any) => x.isPrimary)?.address?.street || p.addresses?.[0]?.address?.street || "",
+                            city: p.addresses?.find((x: any) => x.isPrimary)?.address?.city || p.addresses?.[0]?.address?.city || "",
+                            state: p.addresses?.find((x: any) => x.isPrimary)?.address?.state || p.addresses?.[0]?.address?.state || "",
+                            postalCode: p.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || p.addresses?.[0]?.address?.postalCode || ""
+
+                          });
                           setShowPatientResults(false); 
                         }}
                           className="w-full px-4 py-2.5 text-left hover:bg-blue-600/10 border-b border-white/5 group">
@@ -343,16 +376,41 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                 </div>
 
                 {patientId && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
-                    <div className="space-y-1 group">
-                      <div className="flex items-center justify-between pl-1">
-                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Address</label>
-                      </div>
-                      <div className="flex items-center bg-white/[0.01] border border-white/5 rounded-lg px-3 py-2.5">
-                        <input value={patientAddress} onChange={e => setPatientAddress(e.target.value)}
-                            className="w-full bg-transparent text-white text-[10px] font-bold focus:outline-none" />
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-1 group">
+                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest pl-1">Street Address</label>
+                        <div className="flex items-center bg-white/[0.01] border border-white/5 rounded-lg px-3 py-2">
+                          <input value={patientAddress.street} onChange={e => setPatientAddress({...patientAddress, street: e.target.value})}
+                              className="w-full bg-transparent text-white text-[10px] font-bold focus:outline-none" />
+                        </div>
                       </div>
                     </div>
+                    
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-1 group">
+                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest pl-1">City</label>
+                        <div className="flex items-center bg-white/[0.01] border border-white/5 rounded-lg px-3 py-2">
+                          <input value={patientAddress.city} onChange={e => setPatientAddress({...patientAddress, city: e.target.value})}
+                              className="w-full bg-transparent text-white text-[10px] font-bold focus:outline-none" />
+                        </div>
+                      </div>
+                      <div className="space-y-1 group">
+                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest pl-1">State</label>
+                        <div className="flex items-center bg-white/[0.01] border border-white/5 rounded-lg px-3 py-2">
+                          <input value={patientAddress.state} onChange={e => setPatientAddress({...patientAddress, state: e.target.value})}
+                              className="w-full bg-transparent text-white text-[10px] font-bold focus:outline-none" />
+                        </div>
+                      </div>
+                      <div className="space-y-1 group">
+                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest pl-1">Zip</label>
+                        <div className="flex items-center bg-white/[0.01] border border-white/5 rounded-lg px-3 py-2">
+                          <input value={patientAddress.postalCode} onChange={e => setPatientAddress({...patientAddress, postalCode: e.target.value})}
+                              className="w-full bg-transparent text-white text-[10px] font-bold focus:outline-none" />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="space-y-1">
                       <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest pl-1">Modality</label>
                       <div className="flex flex-wrap gap-1.5">

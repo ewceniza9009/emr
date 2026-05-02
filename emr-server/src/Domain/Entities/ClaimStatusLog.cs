@@ -1,8 +1,9 @@
+using Domain.Common;
 using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class ClaimStatusLog
+public class ClaimStatusLog : BaseEntity
 {
     public Guid LogId { get; set; } = Guid.NewGuid();
     public Guid ClaimId { get; set; }

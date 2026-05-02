@@ -10,6 +10,10 @@ public record CreatePatientCommand(
     string BiologicalSex,
     string? GenderIdentity,
     string? PhilhealthNumber,
-    string Address,
-    string City
+    string Street,
+    string City,
+    string State,
+    string PostalCode,
+    double? Latitude = null,
+    double? Longitude = null
 ) : IRequest<Guid>;

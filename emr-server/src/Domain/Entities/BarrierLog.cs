@@ -1,6 +1,8 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
-public class BarrierLog
+public class BarrierLog : BaseEntity
 {
     public Guid BarrierId { get; set; } = Guid.NewGuid();
     public Guid CaseId { get; set; }

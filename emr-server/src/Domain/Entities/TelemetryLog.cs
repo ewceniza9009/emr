@@ -1,6 +1,8 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
-public class TelemetryLog
+public class TelemetryLog : BaseEntity
 {
     public Guid LogId { get; set; } = Guid.NewGuid();
     public Guid EquipmentId { get; set; }

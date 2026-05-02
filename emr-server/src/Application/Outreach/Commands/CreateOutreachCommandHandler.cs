@@ -24,9 +24,15 @@ public class CreateOutreachCommandHandler : IRequestHandler<CreateOutreachComman
             ReferralSource = request.ReferralSource,
             PrimaryPhone = request.PrimaryPhone,
             PrimaryEmail = request.PrimaryEmail,
+            MailingAddress = new Address
+            {
+                Street = request.Street ?? string.Empty,
+                City = request.City ?? string.Empty,
+                State = request.State ?? string.Empty,
+                PostalCode = request.PostalCode ?? string.Empty
+            },
             Status = OutreachStatus.Lead,
-            Notes = request.Notes,
-            CreatedAt = DateTimeOffset.UtcNow
+            Notes = request.Notes
         };
 
         _context.PatientOutreaches.Add(outreach);

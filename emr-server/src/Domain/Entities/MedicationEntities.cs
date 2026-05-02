@@ -1,3 +1,4 @@
+using Domain.Common;
 using Domain.Enums;
 
 namespace Domain.Entities;
@@ -9,10 +10,11 @@ public enum MedicationRoute
     Intravenous,
     Transdermal,
     Rectal,
-    Sublingual
+    Sublingual,
+    Inhalation
 }
 
-public class Medication
+public class Medication : BaseEntity
 {
     public Guid MedicationId { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty; // Generic + Brand
@@ -20,7 +22,7 @@ public class Medication
     public MedicationRoute DefaultRoute { get; set; }
 }
 
-public class Prescription
+public class Prescription : BaseEntity
 {
     public Guid PrescriptionId { get; set; } = Guid.NewGuid();
     public Guid PatientId { get; set; }

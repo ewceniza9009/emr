@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Application.Common.Dtos;
+
 namespace Application.Patients.Dtos;
 
 public class PatientDto
@@ -10,10 +13,10 @@ public class PatientDto
     public string BiologicalSex { get; set; } = string.Empty;
     public string? GenderIdentity { get; set; }
     public string? PhilhealthNumber { get; set; }
-    public string Address { get; set; } = string.Empty;
-    public string City { get; set; } = string.Empty;
-    public string PostalCode { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public List<PatientPhoneDto> Phones { get; set; } = new();
-    public List<PatientEmailDto> Emails { get; set; } = new();
+    
+    public ICollection<EntityAddressDto> Addresses { get; set; } = new List<EntityAddressDto>();
+
+    public DateTimeOffset CreatedAt { get; set; }
+    public ICollection<PatientPhoneDto> Phones { get; set; } = new List<PatientPhoneDto>();
+    public ICollection<PatientEmailDto> Emails { get; set; } = new List<PatientEmailDto>();
 }

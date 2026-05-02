@@ -3,20 +3,17 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Infrastructure.Data.Migrations
+namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260501152055_AddMedicationRegistry")]
-    partial class AddMedicationRegistry
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,31 +26,40 @@ namespace Infrastructure.Data.Migrations
                 {
                     b.Property<Guid>("AdvanceDirectiveId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("advance_directive_id");
 
                     b.Property<string>("DocumentUrl")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("document_url");
 
                     b.Property<DateTimeOffset>("EffectiveDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("effective_date");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
 
                     b.Property<Guid>("PatientId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
 
-                    b.HasKey("AdvanceDirectiveId");
+                    b.HasKey("AdvanceDirectiveId")
+                        .HasName("pk_advance_directives");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_advance_directives_patient_id");
 
-                    b.ToTable("AdvanceDirectives");
+                    b.ToTable("advance_directives");
                 });
 
             modelBuilder.Entity("Domain.Entities.Allergy", b =>
@@ -69,9 +75,21 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("allergen");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
                     b.Property<DateTimeOffset>("IdentifiedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("identified_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid")
@@ -89,9 +107,19 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("severity");
 
-                    b.HasKey("AllergyId");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasIndex("PatientId");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("AllergyId")
+                        .HasName("pk_allergies");
+
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_allergies_patient_id");
 
                     b.ToTable("allergies", (string)null);
                 });
@@ -102,6 +130,22 @@ namespace Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("appointment_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<double?>("DistanceInMiles")
+                        .HasColumnType("double precision")
+                        .HasColumnName("distance_in_miles");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("MeetingLink")
                         .HasMaxLength(255)
@@ -117,6 +161,10 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("patient_id");
 
+                    b.Property<Guid?>("PractitionerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("practitioner_id");
+
                     b.Property<DateTimeOffset>("ScheduledEnd")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("scheduled_end");
@@ -125,11 +173,22 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("scheduled_start");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
+                    b.Property<int>("Status")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
+                        .HasColumnType("integer")
                         .HasColumnName("status");
+
+                    b.Property<double?>("TravelTimeMinutes")
+                        .HasColumnType("double precision")
+                        .HasColumnName("travel_time_minutes");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.Property<string>("VisitType")
                         .IsRequired()
@@ -137,9 +196,14 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("visit_type");
 
-                    b.HasKey("AppointmentId");
+                    b.HasKey("AppointmentId")
+                        .HasName("pk_appointments");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_appointments_patient_id");
+
+                    b.HasIndex("PractitionerId")
+                        .HasDatabaseName("ix_appointments_practitioner_id");
 
                     b.ToTable("appointments", (string)null);
                 });
@@ -178,10 +242,30 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("case_id");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("description");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.HasKey("BarrierId");
 
@@ -205,6 +289,14 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("covered_amount");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
                     b.Property<DateTimeOffset>("DueDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("due_date");
@@ -218,6 +310,10 @@ namespace Infrastructure.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("invoice_number");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid")
@@ -237,6 +333,14 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("subtotal_amount");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.HasKey("InvoiceId");
 
                     b.HasIndex("ClaimId");
@@ -244,7 +348,8 @@ namespace Infrastructure.Data.Migrations
                     b.HasIndex("InvoiceNumber")
                         .IsUnique();
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_billing_invoices_patient_id");
 
                     b.ToTable("billing_invoices", (string)null);
                 });
@@ -261,6 +366,18 @@ namespace Infrastructure.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("acuity_level");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<Guid>("NavigatorId")
                         .HasColumnType("uuid")
@@ -280,11 +397,21 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("status");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.HasKey("CaseId");
 
-                    b.HasIndex("NavigatorId");
+                    b.HasIndex("NavigatorId")
+                        .HasDatabaseName("ix_care_navigation_cases_navigator_id");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_care_navigation_cases_patient_id");
 
                     b.ToTable("care_navigation_cases", (string)null);
                 });
@@ -310,6 +437,18 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("claim_id");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
                     b.Property<string>("NewStatus")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -326,6 +465,14 @@ namespace Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("remarks");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.HasKey("LogId");
 
@@ -351,21 +498,36 @@ namespace Infrastructure.Data.Migrations
 
                     b.Property<string>("ChiefComplaint")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("chief_complaint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<DateTimeOffset?>("DischargedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("discharged_at");
 
                     b.Property<DateTimeOffset>("EncounterDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("encounter_date");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid")
                         .HasColumnName("patient_id");
 
                     b.Property<int?>("PpsScore")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("pps_score");
 
                     b.Property<Guid>("PractitionerId")
                         .HasColumnType("uuid")
@@ -378,15 +540,27 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnName("status");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.HasKey("EncounterId");
 
-                    b.HasIndex("AppointmentId");
+                    b.HasIndex("AppointmentId")
+                        .HasDatabaseName("ix_clinical_encounters_appointment_id");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_clinical_encounters_patient_id");
 
-                    b.HasIndex("PractitionerId");
+                    b.HasIndex("PractitionerId")
+                        .HasDatabaseName("ix_clinical_encounters_practitioner_id");
 
                     b.ToTable("clinical_encounters", (string)null);
                 });
@@ -411,9 +585,17 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
                     b.Property<Guid>("EncounterId")
                         .HasColumnType("uuid")
                         .HasColumnName("encounter_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<bool>("IsSigned")
                         .ValueGeneratedOnAdd()
@@ -427,9 +609,18 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("type");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.HasKey("NoteId");
 
-                    b.HasIndex("AuthorId");
+                    b.HasIndex("AuthorId")
+                        .HasDatabaseName("ix_clinical_notes_author_id");
 
                     b.HasIndex("EncounterId");
 
@@ -442,6 +633,14 @@ namespace Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("diagnosis_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -462,6 +661,10 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("icd10_code");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
                     b.Property<bool>("IsPrimary")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -472,11 +675,21 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("patient_id");
 
-                    b.HasKey("DiagnosisId");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("DiagnosisId")
+                        .HasName("pk_diagnoses");
 
                     b.HasIndex("EncounterId");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_diagnoses_patient_id");
 
                     b.ToTable("diagnoses", (string)null);
                 });
@@ -487,6 +700,18 @@ namespace Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("equipment_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<DateTimeOffset>("LastMaintenanceDate")
                         .HasColumnType("timestamp with time zone")
@@ -516,6 +741,14 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("equipment_type");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.HasKey("EquipmentId");
 
                     b.HasIndex("SerialNumber")
@@ -524,12 +757,78 @@ namespace Infrastructure.Data.Migrations
                     b.ToTable("durable_medical_equipment", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.EntityAddress", b =>
+                {
+                    b.Property<Guid>("EntityAddressId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("entity_address_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_primary");
+
+                    b.Property<Guid?>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<Guid?>("PractitionerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("practitioner_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("EntityAddressId")
+                        .HasName("pk_entity_addresses");
+
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_entity_addresses_patient_id");
+
+                    b.HasIndex("PractitionerId")
+                        .HasDatabaseName("ix_entity_addresses_practitioner_id");
+
+                    b.ToTable("entity_addresses", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.EquipmentDelivery", b =>
                 {
                     b.Property<Guid>("DeliveryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("delivery_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<DateTimeOffset?>("DeliveredAt")
                         .HasColumnType("timestamp with time zone")
@@ -548,6 +847,10 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("equipment_id");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid")
                         .HasColumnName("patient_id");
@@ -562,13 +865,22 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("status");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.HasKey("DeliveryId");
 
                     b.HasIndex("EncounterId");
 
                     b.HasIndex("EquipmentId");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_equipment_deliveries_patient_id");
 
                     b.ToTable("equipment_deliveries", (string)null);
                 });
@@ -588,6 +900,14 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("assessed_at");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
                     b.Property<int>("Depression")
                         .HasColumnType("integer")
                         .HasColumnName("depression");
@@ -599,6 +919,10 @@ namespace Infrastructure.Data.Migrations
                     b.Property<Guid?>("EncounterId")
                         .HasColumnType("uuid")
                         .HasColumnName("encounter_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<int>("LackOfAppetite")
                         .HasColumnType("integer")
@@ -624,6 +948,14 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("tiredness");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.Property<int>("Wellbeing")
                         .HasColumnType("integer")
                         .HasColumnName("wellbeing");
@@ -632,7 +964,8 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasIndex("EncounterId");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_esas_assessments_patient_id");
 
                     b.ToTable("esas_assessments", (string)null);
                 });
@@ -641,87 +974,148 @@ namespace Infrastructure.Data.Migrations
                 {
                     b.Property<Guid>("FacilityId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Address")
-                        .HasColumnType("text");
+                        .HasColumnType("uuid")
+                        .HasColumnName("facility_id");
 
                     b.Property<string>("ContactEmail")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("contact_email");
 
                     b.Property<string>("ContactPerson")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("contact_person");
 
                     b.Property<string>("ContactPhone")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("contact_phone");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
 
-                    b.HasKey("FacilityId");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.ToTable("Facilities");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("FacilityId")
+                        .HasName("pk_facilities");
+
+                    b.ToTable("facilities", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.HealthPlan", b =>
                 {
                     b.Property<Guid>("HealthPlanId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("health_plan_id");
 
                     b.Property<string>("Code")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("code");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("description");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
-                    b.HasKey("HealthPlanId");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.ToTable("HealthPlans");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("HealthPlanId")
+                        .HasName("pk_health_plans");
+
+                    b.ToTable("health_plans");
                 });
 
             modelBuilder.Entity("Domain.Entities.IntegrationProfile", b =>
                 {
                     b.Property<Guid>("IntegrationProfileId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("integration_profile_id");
 
                     b.Property<string>("ApiKey")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("api_key");
 
                     b.Property<string>("BaseUrl")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("base_url");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<DateTimeOffset?>("LastSyncAt")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_sync_at");
 
                     b.Property<int>("Partner")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("partner");
 
                     b.Property<string>("SettingsJson")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("settings_json");
 
                     b.Property<string>("WebhookSecret")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("webhook_secret");
 
-                    b.HasKey("IntegrationProfileId");
+                    b.HasKey("IntegrationProfileId")
+                        .HasName("pk_integration_profiles");
 
-                    b.ToTable("IntegrationProfiles");
+                    b.ToTable("integration_profiles");
                 });
 
             modelBuilder.Entity("Domain.Entities.InterventionLog", b =>
@@ -740,9 +1134,29 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("case_id");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
                     b.Property<DateTimeOffset>("LoggedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("logged_at");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.HasKey("InterventionId");
 
@@ -755,22 +1169,47 @@ namespace Infrastructure.Data.Migrations
                 {
                     b.Property<Guid>("MedicationId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("medication_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<int>("DefaultRoute")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("default_route");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.Property<string>("Strength")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("strength");
 
-                    b.HasKey("MedicationId");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.ToTable("Medications");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("MedicationId")
+                        .HasName("pk_medications");
+
+                    b.ToTable("medications");
                 });
 
             modelBuilder.Entity("Domain.Entities.NavigationTask", b =>
@@ -788,6 +1227,14 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("case_id");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text")
@@ -797,15 +1244,28 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("due_date");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("status");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.HasKey("TaskId");
 
-                    b.HasIndex("AssignedToId");
+                    b.HasIndex("AssignedToId")
+                        .HasDatabaseName("ix_navigation_tasks_assigned_to_id");
 
                     b.HasIndex("CaseId");
 
@@ -816,63 +1276,166 @@ namespace Infrastructure.Data.Migrations
                 {
                     b.Property<Guid>("OutreachActivityId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("outreach_activity_id");
 
                     b.Property<DateTimeOffset>("ActivityDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("activity_date");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<int>("Method")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("method");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
 
                     b.Property<string>("Outcome")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("outcome");
 
                     b.Property<Guid>("OutreachId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("outreach_id");
 
                     b.Property<Guid>("PractitionerId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("practitioner_id");
 
-                    b.HasKey("OutreachActivityId");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasIndex("OutreachId");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
-                    b.HasIndex("PractitionerId");
+                    b.HasKey("OutreachActivityId")
+                        .HasName("pk_outreach_activities");
 
-                    b.ToTable("OutreachActivities");
+                    b.HasIndex("OutreachId")
+                        .HasDatabaseName("ix_outreach_activities_outreach_id");
+
+                    b.HasIndex("PractitionerId")
+                        .HasDatabaseName("ix_outreach_activities_practitioner_id");
+
+                    b.ToTable("outreach_activities");
+                });
+
+            modelBuilder.Entity("Domain.Entities.OutreachContact", b =>
+                {
+                    b.Property<Guid>("OutreachContactId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("outreach_contact_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("text")
+                        .HasColumnName("email");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("first_name");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<bool>("IsPrimaryContact")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_primary_contact");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("last_name");
+
+                    b.Property<Guid>("PatientOutreachId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_outreach_id");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text")
+                        .HasColumnName("phone_number");
+
+                    b.Property<int>("Relationship")
+                        .HasColumnType("integer")
+                        .HasColumnName("relationship");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
+                    b.HasKey("OutreachContactId")
+                        .HasName("pk_outreach_contacts");
+
+                    b.HasIndex("PatientOutreachId")
+                        .HasDatabaseName("ix_outreach_contacts_patient_outreach_id");
+
+                    b.ToTable("outreach_contacts");
                 });
 
             modelBuilder.Entity("Domain.Entities.OutreachScript", b =>
                 {
                     b.Property<Guid>("OutreachScriptId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("outreach_script_id");
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("content");
 
                     b.Property<bool>("IsDefault")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_default");
 
                     b.Property<string>("LocationName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("location_name");
 
                     b.Property<string>("PostalCode")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("postal_code");
 
                     b.Property<string>("ScriptTitle")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("script_title");
 
-                    b.HasKey("OutreachScriptId");
+                    b.HasKey("OutreachScriptId")
+                        .HasName("pk_outreach_scripts");
 
-                    b.ToTable("OutreachScripts");
+                    b.ToTable("outreach_scripts");
                 });
 
             modelBuilder.Entity("Domain.Entities.Patient", b =>
@@ -882,13 +1445,9 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("patient_id");
 
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("address");
-
                     b.Property<string>("BarriersToCare")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("barriers_to_care");
 
                     b.Property<string>("BiologicalSex")
                         .IsRequired()
@@ -896,30 +1455,31 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("biological_sex");
 
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("city");
-
                     b.Property<int?>("CommunicationStatus")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("communication_status");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<DateTime>("Dob")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("dob");
 
                     b.Property<string>("ExternalId")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("external_id");
 
                     b.Property<Guid?>("FacilityId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("facility_id");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -933,7 +1493,12 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnName("gender_identity");
 
                     b.Property<Guid?>("HealthPlanId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("health_plan_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -952,20 +1517,26 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("philhealth_number");
 
-                    b.Property<string>("PostalCode")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("postal_code");
-
                     b.Property<int?>("TechAccess")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("tech_access");
 
-                    b.HasKey("PatientId");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasIndex("FacilityId");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
-                    b.HasIndex("HealthPlanId");
+                    b.HasKey("PatientId")
+                        .HasName("pk_patients");
+
+                    b.HasIndex("FacilityId")
+                        .HasDatabaseName("ix_patients_facility_id");
+
+                    b.HasIndex("HealthPlanId")
+                        .HasDatabaseName("ix_patients_health_plan_id");
 
                     b.HasIndex("Mrn")
                         .IsUnique();
@@ -982,6 +1553,14 @@ namespace Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("contact_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -1000,6 +1579,10 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("has_power_of_attorney");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<bool>("IsPrimaryContact")
                         .ValueGeneratedOnAdd()
@@ -1029,9 +1612,18 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("relationship");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.HasKey("ContactId");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_patient_contacts_patient_id");
 
                     b.ToTable("patient_contacts", (string)null);
                 });
@@ -1067,7 +1659,8 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasKey("EmailId");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_patient_emails_patient_id");
 
                     b.ToTable("patient_emails", (string)null);
                 });
@@ -1076,86 +1669,130 @@ namespace Infrastructure.Data.Migrations
                 {
                     b.Property<Guid>("PatientOutreachId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_outreach_id");
 
                     b.Property<Guid?>("AssignedPractitionerId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("assigned_practitioner_id");
 
                     b.Property<string>("BarriersToCare")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("barriers_to_care");
 
                     b.Property<int>("CallAttemptCount")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("integer")
+                        .HasColumnName("call_attempt_count");
 
                     b.Property<int?>("CommunicationStatus")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("communication_status");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<int>("Disposition")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("disposition");
 
                     b.Property<Guid?>("EnrolledPatientId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("enrolled_patient_id");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("first_name");
 
                     b.Property<Guid?>("HealthPlanId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("health_plan_id");
 
                     b.Property<bool>("IsAccepted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_accepted");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<DateTimeOffset?>("LastActivityDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_activity_date");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_name");
 
                     b.Property<DateTimeOffset?>("NextFollowUpDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("next_follow_up_date");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
 
                     b.Property<DateTimeOffset?>("OrientationDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("orientation_date");
 
                     b.Property<string>("PrimaryEmail")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("primary_email");
 
                     b.Property<string>("PrimaryPhone")
-                        .HasColumnType("text");
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("primary_phone");
 
                     b.Property<string>("ReferralSource")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("referral_source");
 
                     b.Property<int?>("SelectedModality")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("selected_modality");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
 
                     b.Property<int?>("TechAccess")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("tech_access");
 
-                    b.HasKey("PatientOutreachId");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasIndex("AssignedPractitionerId");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
-                    b.HasIndex("EnrolledPatientId");
+                    b.HasKey("PatientOutreachId")
+                        .HasName("pk_patient_outreaches");
 
-                    b.HasIndex("HealthPlanId");
+                    b.HasIndex("AssignedPractitionerId")
+                        .HasDatabaseName("ix_patient_outreaches_assigned_practitioner_id");
 
-                    b.ToTable("PatientOutreaches");
+                    b.HasIndex("EnrolledPatientId")
+                        .HasDatabaseName("ix_patient_outreaches_enrolled_patient_id");
+
+                    b.HasIndex("HealthPlanId")
+                        .HasDatabaseName("ix_patient_outreaches_health_plan_id");
+
+                    b.ToTable("patient_outreaches", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.PatientPhone", b =>
@@ -1189,7 +1826,8 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasKey("PhoneId");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_patient_phones_patient_id");
 
                     b.ToTable("patient_phones", (string)null);
                 });
@@ -1200,6 +1838,18 @@ namespace Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("practitioner_id");
+
+                    b.Property<Guid?>("AppointmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("appointment_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -1213,6 +1863,22 @@ namespace Infrastructure.Data.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<bool>("IsCareNavigator")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_care_navigator");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<bool>("IsSupportingClinician")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_supporting_clinician");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1224,16 +1890,33 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("npi_number");
 
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("position");
+
                     b.Property<string>("PrcLicenseNumber")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("prc_license_number");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.HasKey("PractitionerId");
+                    b.HasKey("PractitionerId")
+                        .HasName("pk_practitioners");
+
+                    b.HasIndex("AppointmentId")
+                        .HasDatabaseName("ix_practitioners_appointment_id");
 
                     b.HasIndex("NpiNumber")
                         .IsUnique();
@@ -1282,7 +1965,8 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasKey("LicensureId");
 
-                    b.HasIndex("PractitionerId");
+                    b.HasIndex("PractitionerId")
+                        .HasDatabaseName("ix_practitioner_licensures_practitioner_id");
 
                     b.ToTable("practitioner_licensures", (string)null);
                 });
@@ -1312,7 +1996,8 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasKey("ServiceAreaId");
 
-                    b.HasIndex("PractitionerId");
+                    b.HasIndex("PractitionerId")
+                        .HasDatabaseName("ix_practitioner_service_areas_practitioner_id");
 
                     b.HasIndex("ZipCode");
 
@@ -1323,49 +2008,130 @@ namespace Infrastructure.Data.Migrations
                 {
                     b.Property<Guid>("PrescriptionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("prescription_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("Dose")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("dose");
 
                     b.Property<DateTimeOffset?>("EndDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("end_date");
 
                     b.Property<string>("Frequency")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("frequency");
 
                     b.Property<string>("Indications")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("indications");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<Guid>("MedicationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("medication_id");
 
                     b.Property<Guid>("PatientId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
 
                     b.Property<Guid>("PrescribedById")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("prescribed_by_id");
 
                     b.Property<int>("Route")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("route");
+
+                    b.Property<string>("SignatureHash")
+                        .HasColumnType("text")
+                        .HasColumnName("signature_hash");
+
+                    b.Property<DateTimeOffset?>("SignedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("signed_at");
 
                     b.Property<DateTimeOffset>("StartDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("start_date");
 
-                    b.HasKey("PrescriptionId");
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasIndex("MedicationId");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
-                    b.HasIndex("PatientId");
+                    b.HasKey("PrescriptionId")
+                        .HasName("pk_prescriptions");
 
-                    b.HasIndex("PrescribedById");
+                    b.HasIndex("MedicationId")
+                        .HasDatabaseName("ix_prescriptions_medication_id");
 
-                    b.ToTable("Prescriptions");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_prescriptions_patient_id");
+
+                    b.HasIndex("PrescribedById")
+                        .HasDatabaseName("ix_prescriptions_prescribed_by_id");
+
+                    b.ToTable("prescriptions");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ProviderShift", b =>
+                {
+                    b.Property<Guid>("ProviderShiftId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("provider_shift_id");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer")
+                        .HasColumnName("day_of_week");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("interval")
+                        .HasColumnName("end_time");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<Guid>("PractitionerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("practitioner_id");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("interval")
+                        .HasColumnName("start_time");
+
+                    b.HasKey("ProviderShiftId")
+                        .HasName("pk_provider_shifts");
+
+                    b.HasIndex("PractitionerId")
+                        .HasDatabaseName("ix_provider_shifts_practitioner_id");
+
+                    b.ToTable("provider_shifts", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ScheduleBlock", b =>
@@ -1395,7 +2161,8 @@ namespace Infrastructure.Data.Migrations
 
                     b.HasKey("BlockId");
 
-                    b.HasIndex("PractitionerId");
+                    b.HasIndex("PractitionerId")
+                        .HasDatabaseName("ix_schedule_blocks_practitioner_id");
 
                     b.ToTable("schedule_blocks", (string)null);
                 });
@@ -1419,6 +2186,14 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("case_id");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
                     b.Property<bool>("FinancialToxicity")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -1437,15 +2212,28 @@ namespace Infrastructure.Data.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("housing_instability");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
                     b.Property<bool>("TransportationBarrier")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("transportation_barrier");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.HasKey("SdohId");
 
-                    b.HasIndex("AssessorId");
+                    b.HasIndex("AssessorId")
+                        .HasDatabaseName("ix_sdoh_assessments_assessor_id");
 
                     b.HasIndex("CaseId");
 
@@ -1459,9 +2247,21 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("log_id");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
                     b.Property<Guid>("EquipmentId")
                         .HasColumnType("uuid")
                         .HasColumnName("equipment_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<DateTimeOffset>("RecordedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1478,6 +2278,14 @@ namespace Infrastructure.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("unit");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.Property<decimal>("Value")
                         .HasColumnType("numeric(12,4)")
@@ -1505,6 +2313,14 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("numeric(5,2)")
                         .HasColumnName("blood_pressure_systolic");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
                     b.Property<Guid>("EncounterId")
                         .HasColumnType("uuid")
                         .HasColumnName("encounter_id");
@@ -1512,6 +2328,10 @@ namespace Infrastructure.Data.Migrations
                     b.Property<decimal?>("HeartRate")
                         .HasColumnType("numeric(5,2)")
                         .HasColumnName("heart_rate");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<decimal?>("OxygenSaturation")
                         .HasColumnType("numeric(5,2)")
@@ -1528,6 +2348,14 @@ namespace Infrastructure.Data.Migrations
                     b.Property<decimal?>("Temperature")
                         .HasColumnType("numeric(5,2)")
                         .HasColumnName("temperature");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
 
                     b.HasKey("VitalId");
 
@@ -1546,6 +2374,14 @@ namespace Infrastructure.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("PackageCode")
                         .IsRequired()
@@ -1577,9 +2413,18 @@ namespace Infrastructure.Data.Migrations
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("total_amount");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by");
+
                     b.HasKey("ClaimId");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("ix_z_benefit_claims_patient_id");
 
                     b.ToTable("z_benefit_claims", (string)null);
                 });
@@ -1797,7 +2642,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("AdvanceDirectives")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_advance_directives__patients_patient_id");
 
                     b.Navigation("Patient");
                 });
@@ -1808,7 +2654,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_allergies__patients_patient_id");
 
                     b.Navigation("Patient");
                 });
@@ -1819,9 +2666,18 @@ namespace Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_appointments__patients_patient_id");
+
+                    b.HasOne("Domain.Entities.Practitioner", "Practitioner")
+                        .WithMany()
+                        .HasForeignKey("PractitionerId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_appointments__practitioners_practitioner_id");
 
                     b.Navigation("Patient");
+
+                    b.Navigation("Practitioner");
                 });
 
             modelBuilder.Entity("Domain.Entities.AppointmentResource", b =>
@@ -1830,13 +2686,15 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("AppointmentResources")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_appointment_resources_appointments_appointment_id");
 
                     b.HasOne("Domain.Entities.ScheduleBlock", "ScheduleBlock")
                         .WithMany("AppointmentResources")
                         .HasForeignKey("BlockId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_appointment_resources__schedule_blocks_schedule_block_temp_id");
 
                     b.Navigation("Appointment");
 
@@ -1849,7 +2707,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("BarrierLogs")
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_barrier_logs__care_navigation_cases_care_navigation_case_temp_~");
 
                     b.Navigation("CareNavigationCase");
                 });
@@ -1859,13 +2718,15 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("Domain.Entities.ZBenefitClaim", "Claim")
                         .WithMany()
                         .HasForeignKey("ClaimId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_billing_invoices_z_benefit_claims_claim_temp_id");
 
                     b.HasOne("Domain.Entities.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_billing_invoices__patients_patient_id");
 
                     b.Navigation("Claim");
 
@@ -1878,13 +2739,15 @@ namespace Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("NavigatorId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_care_navigation_cases__practitioners_navigator_id");
 
                     b.HasOne("Domain.Entities.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_care_navigation_cases__patients_patient_id");
 
                     b.Navigation("Navigator");
 
@@ -1897,7 +2760,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("StatusLogs")
                         .HasForeignKey("ClaimId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_claim_status_logs_z_benefit_claims_claim_temp_id1");
 
                     b.Navigation("Claim");
                 });
@@ -1907,19 +2771,22 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("Domain.Entities.Appointment", "Appointment")
                         .WithMany()
                         .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_clinical_encounters_appointments_appointment_id");
 
                     b.HasOne("Domain.Entities.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_encounters__patients_patient_id");
 
                     b.HasOne("Domain.Entities.Practitioner", "Practitioner")
                         .WithMany()
                         .HasForeignKey("PractitionerId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_encounters__practitioners_practitioner_id");
 
                     b.Navigation("Appointment");
 
@@ -1934,13 +2801,15 @@ namespace Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_notes__practitioners_author_id");
 
                     b.HasOne("Domain.Entities.ClinicalEncounter", "Encounter")
                         .WithMany("ClinicalNotes")
                         .HasForeignKey("EncounterId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_clinical_notes_clinical_encounters_encounter_temp_id");
 
                     b.Navigation("Author");
 
@@ -1952,17 +2821,87 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("Domain.Entities.ClinicalEncounter", "Encounter")
                         .WithMany("Diagnoses")
                         .HasForeignKey("EncounterId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_diagnoses_clinical_encounters_encounter_temp_id1");
 
                     b.HasOne("Domain.Entities.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_diagnoses__patients_patient_id");
 
                     b.Navigation("Encounter");
 
                     b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Domain.Entities.EntityAddress", b =>
+                {
+                    b.HasOne("Domain.Entities.Patient", "Patient")
+                        .WithMany("Addresses")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_entity_addresses__patients_patient_id");
+
+                    b.HasOne("Domain.Entities.Practitioner", "Practitioner")
+                        .WithMany("Addresses")
+                        .HasForeignKey("PractitionerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_entity_addresses__practitioners_practitioner_id");
+
+                    b.OwnsOne("Domain.Entities.Address", "Address", b1 =>
+                        {
+                            b1.Property<Guid>("EntityAddressId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("city");
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("country");
+
+                            b1.Property<double?>("Latitude")
+                                .HasColumnType("double precision")
+                                .HasColumnName("latitude");
+
+                            b1.Property<double?>("Longitude")
+                                .HasColumnType("double precision")
+                                .HasColumnName("longitude");
+
+                            b1.Property<string>("PostalCode")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("postal_code");
+
+                            b1.Property<string>("State")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("state");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("street");
+
+                            b1.HasKey("EntityAddressId");
+
+                            b1.ToTable("address");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EntityAddressId");
+                        });
+
+                    b.Navigation("Address")
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("Practitioner");
                 });
 
             modelBuilder.Entity("Domain.Entities.EquipmentDelivery", b =>
@@ -1970,19 +2909,22 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("Domain.Entities.ClinicalEncounter", "Encounter")
                         .WithMany()
                         .HasForeignKey("EncounterId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_equipment_deliveries_clinical_encounters_encounter_temp_id3");
 
                     b.HasOne("Domain.Entities.DurableMedicalEquipment", "Equipment")
                         .WithMany("Deliveries")
                         .HasForeignKey("EquipmentId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_equipment_deliveries_durable_medical_equipment_equipment_te~");
 
                     b.HasOne("Domain.Entities.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_equipment_deliveries__patients_patient_id");
 
                     b.Navigation("Encounter");
 
@@ -1996,17 +2938,71 @@ namespace Infrastructure.Data.Migrations
                     b.HasOne("Domain.Entities.ClinicalEncounter", "Encounter")
                         .WithMany()
                         .HasForeignKey("EncounterId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_esas_assessments_clinical_encounters_encounter_temp_id4");
 
                     b.HasOne("Domain.Entities.Patient", "Patient")
-                        .WithMany()
+                        .WithMany("EsasAssessments")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_esas_assessments__patients_patient_id");
 
                     b.Navigation("Encounter");
 
                     b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Facility", b =>
+                {
+                    b.OwnsOne("Domain.Entities.Address", "FacilityAddress", b1 =>
+                        {
+                            b1.Property<Guid>("FacilityId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("facility_address_city");
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("facility_address_country");
+
+                            b1.Property<double?>("Latitude")
+                                .HasColumnType("double precision")
+                                .HasColumnName("facility_address_latitude");
+
+                            b1.Property<double?>("Longitude")
+                                .HasColumnType("double precision")
+                                .HasColumnName("facility_address_longitude");
+
+                            b1.Property<string>("PostalCode")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("facility_address_postal_code");
+
+                            b1.Property<string>("State")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("facility_address_state");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("facility_address_street");
+
+                            b1.HasKey("FacilityId");
+
+                            b1.ToTable("facilities");
+
+                            b1.WithOwner()
+                                .HasForeignKey("FacilityId");
+                        });
+
+                    b.Navigation("FacilityAddress")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entities.InterventionLog", b =>
@@ -2015,7 +3011,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("InterventionLogs")
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_intervention_logs_care_navigation_cases_care_navigation_cas~");
 
                     b.Navigation("CareNavigationCase");
                 });
@@ -2026,13 +3023,15 @@ namespace Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("AssignedToId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_navigation_tasks__practitioners_assigned_to_id");
 
                     b.HasOne("Domain.Entities.CareNavigationCase", "CareNavigationCase")
                         .WithMany("Tasks")
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_navigation_tasks_care_navigation_cases_care_navigation_case~");
 
                     b.Navigation("AssignedTo");
 
@@ -2045,28 +3044,44 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("Activities")
                         .HasForeignKey("OutreachId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_outreach_activities__patient_outreaches_outreach_id");
 
                     b.HasOne("Domain.Entities.Practitioner", "Practitioner")
                         .WithMany()
                         .HasForeignKey("PractitionerId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_outreach_activities__practitioners_practitioner_id");
 
                     b.Navigation("Outreach");
 
                     b.Navigation("Practitioner");
                 });
 
+            modelBuilder.Entity("Domain.Entities.OutreachContact", b =>
+                {
+                    b.HasOne("Domain.Entities.PatientOutreach", "PatientOutreach")
+                        .WithMany("OtherContacts")
+                        .HasForeignKey("PatientOutreachId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_outreach_contacts__patient_outreaches_patient_outreach_id");
+
+                    b.Navigation("PatientOutreach");
+                });
+
             modelBuilder.Entity("Domain.Entities.Patient", b =>
                 {
                     b.HasOne("Domain.Entities.Facility", "Facility")
                         .WithMany("Residents")
-                        .HasForeignKey("FacilityId");
+                        .HasForeignKey("FacilityId")
+                        .HasConstraintName("fk_patients_facilities_facility_id");
 
                     b.HasOne("Domain.Entities.HealthPlan", "HealthPlan")
                         .WithMany("EnrolledPatients")
-                        .HasForeignKey("HealthPlanId");
+                        .HasForeignKey("HealthPlanId")
+                        .HasConstraintName("fk_patients_health_plans_health_plan_id");
 
                     b.Navigation("Facility");
 
@@ -2079,7 +3094,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("Contacts")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_patient_contacts_patients_patient_id");
 
                     b.Navigation("Patient");
                 });
@@ -2090,7 +3106,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("Emails")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_patient_emails_patients_patient_id");
 
                     b.Navigation("Patient");
                 });
@@ -2099,21 +3116,71 @@ namespace Infrastructure.Data.Migrations
                 {
                     b.HasOne("Domain.Entities.Practitioner", "AssignedPractitioner")
                         .WithMany()
-                        .HasForeignKey("AssignedPractitionerId");
+                        .HasForeignKey("AssignedPractitionerId")
+                        .HasConstraintName("fk_patient_outreaches__practitioners_assigned_practitioner_id");
 
                     b.HasOne("Domain.Entities.Patient", "EnrolledPatient")
                         .WithMany()
-                        .HasForeignKey("EnrolledPatientId");
+                        .HasForeignKey("EnrolledPatientId")
+                        .HasConstraintName("fk_patient_outreaches_patients_enrolled_patient_id");
 
                     b.HasOne("Domain.Entities.HealthPlan", "HealthPlan")
                         .WithMany()
-                        .HasForeignKey("HealthPlanId");
+                        .HasForeignKey("HealthPlanId")
+                        .HasConstraintName("fk_patient_outreaches_health_plans_health_plan_id");
+
+                    b.OwnsOne("Domain.Entities.Address", "MailingAddress", b1 =>
+                        {
+                            b1.Property<Guid>("PatientOutreachId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("mailing_address_city");
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("mailing_address_country");
+
+                            b1.Property<double?>("Latitude")
+                                .HasColumnType("double precision");
+
+                            b1.Property<double?>("Longitude")
+                                .HasColumnType("double precision");
+
+                            b1.Property<string>("PostalCode")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("mailing_address_postal_code");
+
+                            b1.Property<string>("State")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("mailing_address_state");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasColumnType("text")
+                                .HasColumnName("mailing_address_street");
+
+                            b1.HasKey("PatientOutreachId");
+
+                            b1.ToTable("patient_outreaches");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PatientOutreachId");
+                        });
 
                     b.Navigation("AssignedPractitioner");
 
                     b.Navigation("EnrolledPatient");
 
                     b.Navigation("HealthPlan");
+
+                    b.Navigation("MailingAddress")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entities.PatientPhone", b =>
@@ -2122,9 +3189,18 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("Phones")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_patient_phones_patients_patient_id");
 
                     b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Practitioner", b =>
+                {
+                    b.HasOne("Domain.Entities.Appointment", null)
+                        .WithMany("SupportingClinicians")
+                        .HasForeignKey("AppointmentId")
+                        .HasConstraintName("fk_practitioners_appointments_appointment_id");
                 });
 
             modelBuilder.Entity("Domain.Entities.PractitionerLicensure", b =>
@@ -2133,7 +3209,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("Licensures")
                         .HasForeignKey("PractitionerId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_practitioner_licensures_practitioners_practitioner_id");
 
                     b.Navigation("Practitioner");
                 });
@@ -2144,7 +3221,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("ServiceAreas")
                         .HasForeignKey("PractitionerId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_practitioner_service_areas_practitioners_practitioner_id");
 
                     b.Navigation("Practitioner");
                 });
@@ -2155,19 +3233,22 @@ namespace Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("MedicationId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_prescriptions_medications_medication_id");
 
                     b.HasOne("Domain.Entities.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_prescriptions_patients_patient_id");
 
                     b.HasOne("Domain.Entities.Practitioner", "PrescribedBy")
                         .WithMany()
                         .HasForeignKey("PrescribedById")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_prescriptions_practitioners_prescribed_by_id");
 
                     b.Navigation("Medication");
 
@@ -2176,13 +3257,26 @@ namespace Infrastructure.Data.Migrations
                     b.Navigation("PrescribedBy");
                 });
 
+            modelBuilder.Entity("Domain.Entities.ProviderShift", b =>
+                {
+                    b.HasOne("Domain.Entities.Practitioner", "Practitioner")
+                        .WithMany()
+                        .HasForeignKey("PractitionerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_provider_shifts_practitioners_practitioner_id");
+
+                    b.Navigation("Practitioner");
+                });
+
             modelBuilder.Entity("Domain.Entities.ScheduleBlock", b =>
                 {
                     b.HasOne("Domain.Entities.Practitioner", "Practitioner")
                         .WithMany()
                         .HasForeignKey("PractitionerId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_schedule_blocks_practitioners_practitioner_id");
 
                     b.Navigation("Practitioner");
                 });
@@ -2193,13 +3287,15 @@ namespace Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("AssessorId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_sdoh_assessments_practitioners_assessor_id");
 
                     b.HasOne("Domain.Entities.CareNavigationCase", "CareNavigationCase")
                         .WithMany("SdohAssessments")
                         .HasForeignKey("CaseId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_sdoh_assessments_care_navigation_cases_care_navigation_case~");
 
                     b.Navigation("Assessor");
 
@@ -2212,7 +3308,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("TelemetryLogs")
                         .HasForeignKey("EquipmentId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_telemetry_logs_durable_medical_equipment_equipment_temp_id1");
 
                     b.Navigation("Equipment");
                 });
@@ -2223,7 +3320,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany("VitalSigns")
                         .HasForeignKey("EncounterId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_vital_signs_clinical_encounters_encounter_temp_id2");
 
                     b.Navigation("Encounter");
                 });
@@ -2234,7 +3332,8 @@ namespace Infrastructure.Data.Migrations
                         .WithMany()
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_z_benefit_claims_patients_patient_id");
 
                     b.Navigation("Patient");
                 });
@@ -2293,6 +3392,8 @@ namespace Infrastructure.Data.Migrations
             modelBuilder.Entity("Domain.Entities.Appointment", b =>
                 {
                     b.Navigation("AppointmentResources");
+
+                    b.Navigation("SupportingClinicians");
                 });
 
             modelBuilder.Entity("Domain.Entities.CareNavigationCase", b =>
@@ -2334,11 +3435,15 @@ namespace Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Domain.Entities.Patient", b =>
                 {
+                    b.Navigation("Addresses");
+
                     b.Navigation("AdvanceDirectives");
 
                     b.Navigation("Contacts");
 
                     b.Navigation("Emails");
+
+                    b.Navigation("EsasAssessments");
 
                     b.Navigation("Phones");
                 });
@@ -2346,10 +3451,14 @@ namespace Infrastructure.Data.Migrations
             modelBuilder.Entity("Domain.Entities.PatientOutreach", b =>
                 {
                     b.Navigation("Activities");
+
+                    b.Navigation("OtherContacts");
                 });
 
             modelBuilder.Entity("Domain.Entities.Practitioner", b =>
                 {
+                    b.Navigation("Addresses");
+
                     b.Navigation("Licensures");
 
                     b.Navigation("ServiceAreas");

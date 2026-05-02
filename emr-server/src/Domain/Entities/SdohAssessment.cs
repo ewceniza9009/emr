@@ -1,6 +1,8 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
-public class SdohAssessment
+public class SdohAssessment : BaseEntity
 {
     public Guid SdohId { get; set; } = Guid.NewGuid();
     public Guid CaseId { get; set; }

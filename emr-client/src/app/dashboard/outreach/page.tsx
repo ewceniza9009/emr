@@ -17,7 +17,8 @@ import Link from "next/link";
 const GET_OUTREACH_LEADS = gql`
   query GetOutreachLeads {
     outreaches {
-      outreachId
+      patientOutreachId
+
       firstName
       lastName
       referralSource
@@ -31,7 +32,10 @@ const GET_OUTREACH_LEADS = gql`
   }
 `;
 
+import AddReferralDrawer from "@/components/AddReferralDrawer";
+
 export default function OutreachPage() {
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [filters, setFilters] = useState({
     status: "",
     attempts: "",
@@ -40,7 +44,7 @@ export default function OutreachPage() {
     search: ""
   });
 
-  const { data, loading, error } = useQuery(GET_OUTREACH_LEADS);
+  const { data, loading, error, refetch } = useQuery(GET_OUTREACH_LEADS);
   const leads = data?.outreaches || [];
 
   const filteredLeads = leads.filter((lead: any) => {
@@ -70,11 +74,20 @@ export default function OutreachPage() {
           <h1 className="text-3xl font-bold text-white mb-2">Outreach & Enrollment</h1>
           <p className="text-slate-400">Manage the patient referral pipeline and conversion workflow.</p>
         </div>
-        <button className="premium-button premium-gradient px-6 py-3 rounded-2xl text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20">
+        <button 
+          onClick={() => setIsAddOpen(true)}
+          className="premium-button premium-gradient px-6 py-3 rounded-2xl text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20"
+        >
           <UserPlus className="w-5 h-5" />
           Add Referral
         </button>
       </div>
+
+      <AddReferralDrawer 
+        open={isAddOpen} 
+        onClose={() => setIsAddOpen(false)} 
+        onSuccess={() => refetch()} 
+      />
 
       {/* Pipeline Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -175,7 +188,8 @@ export default function OutreachPage() {
               {loading ? (
                 [1, 2, 3].map(i => <tr key={i} className="animate-pulse"><td colSpan={5} className="h-20 bg-white/5" /></tr>)
               ) : filteredLeads.map((lead: any) => (
-                <tr key={lead.outreachId} className="group hover:bg-white/[0.02] transition-colors">
+                <tr key={lead.patientOutreachId} className="group hover:bg-white/[0.02] transition-colors">
+
                   <td className="px-8 py-5">
                     <div>
                       <p className="text-white font-semibold">{lead.firstName} {lead.lastName}</p>
@@ -211,7 +225,7 @@ export default function OutreachPage() {
                        <button className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all">
                          <PhoneCall className="w-4 h-4" />
                        </button>
-                       <Link href={`/dashboard/outreach/${lead.outreachId}/enroll`} className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all">
+                       <Link href={`/dashboard/outreach/${lead.patientOutreachId}/enroll`} className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all">
                          <ArrowRight className="w-4 h-4" />
                        </Link>
                     </div>

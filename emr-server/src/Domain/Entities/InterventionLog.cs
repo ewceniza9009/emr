@@ -1,6 +1,8 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
-public class InterventionLog
+public class InterventionLog : BaseEntity
 {
     public Guid InterventionId { get; set; } = Guid.NewGuid();
     public Guid CaseId { get; set; }

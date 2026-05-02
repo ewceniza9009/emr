@@ -1,3 +1,4 @@
+using Domain.Common;
 using Domain.Enums;
 
 namespace Domain.Entities;
@@ -11,7 +12,7 @@ public enum OutreachMethod
     Sms
 }
 
-public class OutreachActivity
+public class OutreachActivity : BaseEntity
 {
     public Guid OutreachActivityId { get; set; } = Guid.NewGuid();
     public Guid OutreachId { get; set; }

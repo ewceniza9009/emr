@@ -18,8 +18,11 @@ public class GetPatientByIdQueryHandler : IRequestHandler<GetPatientByIdQuery, P
     public async Task<PatientDto?> Handle(GetPatientByIdQuery request, CancellationToken cancellationToken)
     {
         var patient = await _context.Patients
-            .AsNoTracking()
+            .Include(p => p.Addresses)
+            .Include(p => p.Phones)
+            .Include(p => p.Emails)
             .FirstOrDefaultAsync(p => p.PatientId == request.PatientId, cancellationToken);
+
 
         if (patient is null) return null;
 

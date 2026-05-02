@@ -1,8 +1,9 @@
+using Domain.Common;
 using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class NavigationTask
+public class NavigationTask : BaseEntity
 {
     public Guid TaskId { get; set; } = Guid.NewGuid();
     public Guid CaseId { get; set; }

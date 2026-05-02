@@ -65,6 +65,12 @@ h1, h2, h3, h4 {
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
+/* Ensure dropdown options are readable in dark mode */
+option {
+  background-color: #0f172a; /* matches --background */
+  color: white;
+}
+
 /* Premium Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;

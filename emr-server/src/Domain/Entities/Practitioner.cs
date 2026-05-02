@@ -1,9 +1,9 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
 public enum PractitionerPosition
 {
-    CareNavigator,
-    SupportingClinician,
     Nurse,
     Physician,
     Admin,
@@ -11,7 +11,7 @@ public enum PractitionerPosition
     Chaplain
 }
 
-public class Practitioner
+public class Practitioner : BaseEntity
 {
     public Guid PractitionerId { get; set; } = Guid.NewGuid();
     public Guid UserId { get; set; }          // Links to the system user account
@@ -20,7 +20,7 @@ public class Practitioner
     public string? PrcLicenseNumber { get; set; }
     public string? NpiNumber { get; set; }
     public bool IsActive { get; set; } = true;
-    public PractitionerPosition Position { get; set; } = PractitionerPosition.CareNavigator;
+    public PractitionerPosition Position { get; set; } = PractitionerPosition.Nurse;
     public bool IsCareNavigator { get; set; }
     public bool IsSupportingClinician { get; set; }
 
@@ -28,8 +28,11 @@ public class Practitioner
     public string FullName => $"{FirstName} {LastName}".Trim();
     
     // Geospatial Coordinates (Clinician Base)
-    public double? BaseLatitude { get; set; }
-    public double? BaseLongitude { get; set; }
+    // Navigation Properties
+    public ICollection<EntityAddress> Addresses { get; set; } = new List<EntityAddress>();
+
+
+
 
     // Navigation Properties
     public ICollection<PractitionerLicensure> Licensures { get; set; } = new List<PractitionerLicensure>();

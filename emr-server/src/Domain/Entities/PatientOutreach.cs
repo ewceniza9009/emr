@@ -1,13 +1,14 @@
+using Domain.Common;
 using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class PatientOutreach
+public class PatientOutreach : BaseEntity
 {
     public Guid PatientOutreachId { get; set; } = Guid.NewGuid();
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
-    public string City { get; set; } = string.Empty;
+    public Address MailingAddress { get; set; } = new Address();
     public string? ReferralSource { get; set; }
     public string? PrimaryPhone { get; set; }
     public string? PrimaryEmail { get; set; }
@@ -24,10 +25,11 @@ public class PatientOutreach
     public string? Notes { get; set; }
     public DateTimeOffset? LastActivityDate { get; set; }
     public int CallAttemptCount { get; set; }
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public HealthPlan? HealthPlan { get; set; }
     public ICollection<OutreachActivity> Activities { get; set; } = new List<OutreachActivity>();
+    public ICollection<OutreachContact> OtherContacts { get; set; } = new List<OutreachContact>();
+
     public Guid? AssignedPractitionerId { get; set; }
     
     // Once enrolled, link to the actual patient record

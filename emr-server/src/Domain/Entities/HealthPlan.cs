@@ -1,6 +1,8 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
-public class HealthPlan
+public class HealthPlan : BaseEntity
 {
     public Guid HealthPlanId { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty; // e.g., PhilHealth, Maxicare

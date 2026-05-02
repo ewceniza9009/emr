@@ -48,6 +48,9 @@ public class NavigationQuery
     public IQueryable<Practitioner> GetPractitioners(
         [Service] IApplicationDbContext context)
     {
-        return context.Practitioners.AsNoTracking();
+        return context.Practitioners
+            .Include(p => p.Addresses)
+            .AsNoTracking();
+
     }
 }

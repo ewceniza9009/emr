@@ -17,9 +17,15 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, IEnumer
 
     public async Task<IEnumerable<PatientDto>> Handle(GetPatientsQuery request, CancellationToken cancellationToken)
     {
-        return await _context.Patients
-            .AsNoTracking()
-            .ProjectToType<PatientDto>()
+        var patients = await _context.Patients
+            .Include(p => p.Addresses)
+            .Include(p => p.Phones)
+            .Include(p => p.Emails)
             .ToListAsync(cancellationToken);
+
+
+        return patients.Adapt<List<PatientDto>>();
     }
 }
+
+

@@ -1,8 +1,9 @@
+using Domain.Common;
 using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class Diagnosis
+public class Diagnosis : BaseEntity
 {
     public Guid DiagnosisId { get; set; } = Guid.NewGuid();
     public Guid PatientId { get; set; }

@@ -22,7 +22,6 @@ public class SubmitZBenefitClaimCommandHandler : IRequestHandler<SubmitZBenefitC
         var claim = request.Adapt<ZBenefitClaim>();
         claim.ClaimId = Guid.NewGuid();
         claim.Status = ClaimStatus.Submitted;
-        claim.CreatedAt = _dateTime.UtcNow;
         claim.SubmittedAt = _dateTime.UtcNow;
 
         _context.ZBenefitClaims.Add(claim);

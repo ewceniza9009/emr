@@ -1,8 +1,9 @@
+using Domain.Common;
 using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class BillingInvoice
+public class BillingInvoice : BaseEntity
 {
     public Guid InvoiceId { get; set; } = Guid.NewGuid();
     public Guid PatientId { get; set; }

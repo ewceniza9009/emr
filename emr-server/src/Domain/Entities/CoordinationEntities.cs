@@ -1,6 +1,7 @@
-namespace Domain.Entities;
-
+using Domain.Common;
 using Domain.Enums;
+
+namespace Domain.Entities;
 
 public class AdvanceDirective
 {
@@ -15,19 +16,17 @@ public class AdvanceDirective
     public Patient Patient { get; set; } = null!;
 }
 
-public class Facility
+public class Facility : BaseEntity
 {
     public Guid FacilityId { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
     public FacilityType Type { get; set; }
-    public string? Address { get; set; }
+    public Address FacilityAddress { get; set; } = new Address();
+    
+
     public string? ContactPerson { get; set; }
     public string? ContactPhone { get; set; }
     public string? ContactEmail { get; set; }
-    
-    // Geospatial Coordinates
-    public double? Latitude { get; set; }
-    public double? Longitude { get; set; }
     
     public ICollection<Patient> Residents { get; set; } = new List<Patient>();
 }

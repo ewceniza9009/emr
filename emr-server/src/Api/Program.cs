@@ -58,6 +58,8 @@ builder.Services
     .AddTypeExtension<ClinicalQuery>()
     .AddTypeExtension<NavigationQuery>()
     .AddTypeExtension<BillingQuery>()
+    .AddTypeExtension<DashboardQuery>()
+    .AddTypeExtension<OutreachQuery>()
     .AddMutationType<Mutation>()
     .AddTypeExtension<PatientMutation>()
     .AddTypeExtension<AppointmentMutation>()
@@ -65,6 +67,7 @@ builder.Services
     .AddTypeExtension<NavigationMutation>()
     .AddTypeExtension<BillingMutation>()
     .AddTypeExtension<IntegrationMutation>()
+    .AddTypeExtension<OutreachMutation>()
     .AddProjections()
     .AddFiltering()
     .AddSorting();

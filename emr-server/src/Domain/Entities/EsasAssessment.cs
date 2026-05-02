@@ -1,6 +1,8 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
-public class EsasAssessment
+public class EsasAssessment : BaseEntity
 {
     public Guid AssessmentId { get; set; } = Guid.NewGuid();
     public Guid PatientId { get; set; }

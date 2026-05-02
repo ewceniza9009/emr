@@ -1,6 +1,8 @@
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Metadata;
+
 
 namespace Infrastructure.Data.Configurations;
 
@@ -51,18 +53,12 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
 
         builder.HasIndex(p => p.PhilhealthNumber).IsUnique();
 
-        builder.Property(p => p.Address)
-               .HasColumnName("address")
-               .IsRequired();
+        builder.HasMany(p => p.Addresses)
+               .WithOne(a => a.Patient)
+               .HasForeignKey(a => a.PatientId)
+               .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Property(p => p.City)
-               .HasColumnName("city")
-               .HasMaxLength(100)
-               .IsRequired();
 
-        builder.Property(p => p.PostalCode)
-               .HasColumnName("postal_code")
-               .HasMaxLength(20);
 
         builder.Property(p => p.CreatedAt)
                .HasColumnName("created_at")

@@ -1,6 +1,8 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
-public class VitalSign
+public class VitalSign : BaseEntity
 {
     public Guid VitalId { get; set; } = Guid.NewGuid();
     public Guid EncounterId { get; set; }

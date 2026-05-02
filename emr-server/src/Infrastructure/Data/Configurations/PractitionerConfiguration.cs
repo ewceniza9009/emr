@@ -1,6 +1,8 @@
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Metadata;
+
 
 namespace Infrastructure.Data.Configurations;
 
@@ -59,10 +61,12 @@ public class PractitionerConfiguration : IEntityTypeConfiguration<Practitioner>
                .HasColumnName("is_supporting_clinician")
                .HasDefaultValue(false);
 
-        builder.Property(p => p.BaseLatitude)
-               .HasColumnName("base_latitude");
 
-        builder.Property(p => p.BaseLongitude)
-               .HasColumnName("base_longitude");
+        builder.HasMany(p => p.Addresses)
+               .WithOne(a => a.Practitioner)
+               .HasForeignKey(a => a.PractitionerId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+
     }
 }

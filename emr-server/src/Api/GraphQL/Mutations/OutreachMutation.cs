@@ -12,4 +12,11 @@ public class OutreachMutation
     {
         return await mediator.Send(command);
     }
+
+    public async Task<Guid> CreateOutreach(
+        CreateOutreachCommand command,
+        [Service] IMediator mediator)
+    {
+        return await mediator.Send(command);
+    }
 }

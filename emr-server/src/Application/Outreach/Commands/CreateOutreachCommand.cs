@@ -9,5 +9,9 @@ public record CreateOutreachCommand(
     string? ReferralSource,
     string? PrimaryPhone,
     string? PrimaryEmail,
+    string? Street,
+    string? City,
+    string? State,
+    string? PostalCode,
     string? Notes
 ) : IRequest<Guid>;

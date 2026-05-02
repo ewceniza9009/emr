@@ -1,3 +1,6 @@
+"use client";
+
+import { useQuery, gql } from "@apollo/client";
 import { 
   Users, 
   Activity, 
@@ -7,14 +10,26 @@ import {
   TrendingUp
 } from "lucide-react";
 
-const stats = [
-  { label: "Active Patients", value: "1,284", icon: Users, color: "blue", trend: "+12%" },
-  { label: "New Encounters", value: "48", icon: Activity, color: "green", trend: "+5%" },
-  { label: "Pending Reviews", value: "12", icon: Clock, color: "purple", trend: "-2%" },
-  { label: "Critical Alerts", value: "3", icon: AlertTriangle, color: "red", trend: "0%" },
-];
+const GET_DASHBOARD_STATS = gql`
+  query GetDashboardStats {
+    dashboardStats {
+      activePatients
+      newEncounters
+      pendingReviews
+      criticalAlerts
+    }
+  }
+`;
 
 export default function MissionControl() {
+  const { data, loading } = useQuery(GET_DASHBOARD_STATS);
+
+  const stats = [
+    { label: "Active Patients", value: loading ? "..." : data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, color: "blue", trend: "+12%" },
+    { label: "New Encounters", value: loading ? "..." : data?.dashboardStats?.newEncounters.toString(), icon: Activity, color: "green", trend: "+5%" },
+    { label: "Pending Reviews", value: loading ? "..." : data?.dashboardStats?.pendingReviews.toString(), icon: Clock, color: "purple", trend: "-2%" },
+    { label: "Critical Alerts", value: loading ? "..." : data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, color: "red", trend: "0%" },
+  ];
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-end justify-between">
