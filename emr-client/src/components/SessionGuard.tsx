@@ -2,22 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { ShieldAlert, RefreshCcw, LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 import { useToast } from "./ToastProvider";
 
 export default function SessionGuard({ children }: { children: React.ReactNode }) {
   const { showToast } = useToast();
   const [isExpiring, setIsExpiring] = useState(false);
   
-  // Simulation: Clinical sessions usually last 12-24 hours, 
-  // but we'll simulate an expiry check for the demo.
+  const resetTimer = () => {
+    setIsExpiring(false);
+  };
+
   useEffect(() => {
+    // INCREASED: Now triggers after 2 hours instead of 5 minutes
     const timer = setTimeout(() => {
       setIsExpiring(true);
       showToast("Security Alert: Clinical session nearing expiry.", "error");
-    }, 300000); // 5 minutes for demo purposes
+    }, 7200000); 
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [isExpiring]);
 
   if (isExpiring) {
     return (
@@ -34,12 +38,13 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
             </div>
             <div className="flex flex-col gap-4">
                <button 
-                 onClick={() => setIsExpiring(false)}
+                 onClick={resetTimer}
                  className="w-full py-4 rounded-2xl premium-gradient text-white font-bold shadow-xl shadow-blue-500/20 flex items-center justify-center gap-2"
                >
                  <RefreshCcw className="w-4 h-4" /> Extend Session
                </button>
                <button 
+                 onClick={() => signOut({ callbackUrl: "/login" })}
                  className="w-full py-4 rounded-2xl bg-white/5 text-slate-400 font-bold hover:text-white transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest"
                >
                  <LogOut className="w-4 h-4" /> Secure Logout

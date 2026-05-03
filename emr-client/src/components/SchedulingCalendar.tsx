@@ -167,7 +167,7 @@ export default function SchedulingCalendar() {
       const userPractitionerId = (session?.user as any)?.practitionerId;
       const userName = session?.user?.name?.toLowerCase() || "";
 
-      let targetPractitioner = practitioners.find((p: any) => 
+      let targetPractitioner = practitioners.find((p: any) =>
         (userPractitionerId && p.practitionerId?.toLowerCase() === userPractitionerId?.toLowerCase()) ||
         (userName && (
           `${p.firstName} ${p.lastName}`.toLowerCase().trim() === userName.trim() ||
@@ -176,7 +176,7 @@ export default function SchedulingCalendar() {
           userName.trim().includes(p.lastName?.toLowerCase().trim())
         ))
       );
-      
+
       if (targetPractitioner) {
         setSelectedPositions(new Set([targetPractitioner.position.toLowerCase()]));
         setSelectedPractitioners(new Set([targetPractitioner.practitionerId]));
