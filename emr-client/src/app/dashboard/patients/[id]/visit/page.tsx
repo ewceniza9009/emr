@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { 
   Stethoscope, 
   Activity, 
@@ -17,12 +17,17 @@ import {
   Heart,
   Droplets,
   ShieldCheck,
-  Save
+  Save,
+  Search,
+  Plus
 } from "lucide-react";
+import ProblemList from "@/components/ProblemList";
+import MedicationRegistry from "@/components/MedicationRegistry";
+import { ToastProvider } from "@/components/ToastProvider";
 
 const START_ENCOUNTER = gql`
-  mutation StartEncounter($patientId: UUID!, $practitionerId: UUID!) {
-    createClinicalEncounter(command: { patientId: $patientId, practitionerId: $practitionerId, chiefComplaint: "Scheduled Visit" })
+  mutation StartEncounter($input: CreateClinicalEncounterCommandInput!) {
+    createClinicalEncounter(command: $input)
   }
 `;
 
@@ -44,9 +49,31 @@ const LOG_ESAS = gql`
   }
 `;
 
+const GET_APPOINTMENT_DETAILS = gql`
+  query GetAppointmentDetails($id: UUID!) {
+    appointment(id: $id) {
+      appointmentId
+      scheduledStart
+      practitioner {
+        firstName
+        lastName
+      }
+    }
+  }
+`;
+
 export default function GuidedVisitPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const appointmentId = searchParams.get("appointmentId");
+  
+  const { data: apptData } = useQuery(GET_APPOINTMENT_DETAILS, {
+    variables: { id: appointmentId },
+    skip: !appointmentId
+  });
+
+  const appointment = apptData?.appointment;
   const [step, setStep] = useState(1);
   const [encounterId, setEncounterId] = useState<string | null>(null);
 
@@ -67,8 +94,13 @@ export default function GuidedVisitPage() {
     try {
       const { data } = await startEncounter({
         variables: { 
-          patientId: params.id, 
-          practitionerId: "00000000-0000-0000-0000-000000000000" // Fallback or context provider needed
+          input: {
+            patientId: params.id, 
+            practitionerId: "00000000-0000-0000-0000-000000000000", // Fallback or context provider needed
+            appointmentId: appointmentId || null,
+            chiefComplaint: appointmentId ? "Scheduled Visit Assessment" : "Ad-hoc Assessment",
+            notes: ""
+          }
         }
       });
       setEncounterId(data.createClinicalEncounter);
@@ -139,8 +171,9 @@ export default function GuidedVisitPage() {
     { id: 1, label: "Initialization", icon: Stethoscope },
     { id: 2, label: "Vitals", icon: Activity },
     { id: 3, label: "Symptom Assessment", icon: AlertCircle },
-    { id: 4, label: "SOAP Documentation", icon: ClipboardList },
-    { id: 5, label: "Finish", icon: ShieldCheck },
+    { id: 4, label: "Clinical Profile", icon: Pill },
+    { id: 5, label: "SOAP Documentation", icon: ClipboardList },
+    { id: 6, label: "Finish", icon: ShieldCheck },
   ];
 
   return (
@@ -152,13 +185,21 @@ export default function GuidedVisitPage() {
             <Stethoscope className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Clinical Encounter</h1>
-            <p className="text-slate-500 text-xs font-mono uppercase tracking-widest">Guided Palliative Assessment Workflow</p>
+            <h1 className="text-2xl font-bold text-white uppercase tracking-tight">
+              {appointment ? "Scheduled Encounter" : "Clinical Encounter"}
+            </h1>
+            <p className="text-slate-500 text-xs font-mono uppercase tracking-widest">
+              {appointment 
+                ? `Visit for ${new Date(appointment.scheduledStart).toLocaleDateString()} with ${appointment.practitioner?.firstName} ${appointment.practitioner?.lastName}`
+                : "Guided Palliative Assessment Workflow"}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10">
-           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-           <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Live Session</span>
+           <div className={`w-2 h-2 rounded-full ${appointmentId ? 'bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]' : 'bg-emerald-500 animate-pulse'} `} />
+           <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+             {appointmentId ? `Linked: ${appointmentId.slice(0, 8)}` : 'Live Session'}
+           </span>
         </div>
       </div>
 
@@ -299,7 +340,7 @@ export default function GuidedVisitPage() {
             <div className="pt-10 flex gap-4">
                <button onClick={() => setStep(2)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
                <button onClick={() => setStep(4)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
-                  Continue to SOAP Note <ChevronRight className="w-5 h-5" />
+                  Continue to Clinical Profile <ChevronRight className="w-5 h-5" />
                </button>
             </div>
           </div>
@@ -308,7 +349,30 @@ export default function GuidedVisitPage() {
         {step === 4 && (
           <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Step 04: SOAP Documentation</h2>
+              <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Step 04: Clinical Profile Review</h2>
+              <p className="text-slate-500 text-sm">Review active diagnoses and medications. Note any interventions required.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-8">
+               <ToastProvider>
+                  <ProblemList patientId={params.id as string} />
+                  <MedicationRegistry patientId={params.id as string} />
+               </ToastProvider>
+            </div>
+
+            <div className="pt-10 flex gap-4">
+               <button onClick={() => setStep(3)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
+               <button onClick={() => setStep(5)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+                  Continue to SOAP Note <ChevronRight className="w-5 h-5" />
+               </button>
+            </div>
+          </div>
+        )}
+
+        {step === 5 && (
+          <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Step 05: SOAP Documentation</h2>
               <p className="text-slate-500 text-sm">Document your clinical findings and care plan.</p>
             </div>
             <div className="space-y-8">
@@ -347,7 +411,7 @@ export default function GuidedVisitPage() {
                </div>
             </div>
             <div className="pt-4 flex gap-4">
-               <button onClick={() => setStep(3)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
+               <button onClick={() => setStep(4)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
                <button 
                  onClick={handleFinish}
                  disabled={savingNote || !note.signature}

@@ -128,6 +128,10 @@ export default function PatientDetailPage() {
     a.status?.toUpperCase().includes('PROGRESS') || a.status?.toUpperCase() === 'LIVE'
   );
 
+  const nextScheduledAppointment = appointments
+    .filter((a: any) => a.status?.toUpperCase() === 'SCHEDULED')
+    .sort((a: any, b: any) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime())[0];
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
       {/* Header Section */}
@@ -427,30 +431,71 @@ export default function PatientDetailPage() {
 
            {/* Intervention Action Area */}
            {!activeAppointment && (
-             <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] border-dashed flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-6 text-[var(--primary)]">
+             <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] border-dashed flex flex-col items-center justify-center text-center relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-b from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                
+                <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-6 text-[var(--primary)] relative z-10">
                   <ClipboardList className="w-8 h-8" />
                 </div>
-                <h3 className="text-[var(--text-primary)] font-black text-xl uppercase tracking-tighter">Clinical Interventions</h3>
-                <p className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest mt-2 max-w-xs leading-relaxed">No active visit detected. Start a guided assessment or log a retrospective encounter.</p>
-                <div className="flex gap-4 mt-10">
-                  <Link 
-                    href={`/dashboard/patients/${params.id}/visit`}
-                    className="px-8 py-4 rounded-2xl bg-[var(--primary)] text-white font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-[var(--primary-glow)]"
-                  >
-                    <Stethoscope className="w-5 h-5" />
-                    Start Guided Visit
-                  </Link>
-                  <button 
-                    onClick={() => {
-                      setSelectedAppointmentId(undefined);
-                      setDrawerOpen(true);
-                    }}
-                    className="px-8 py-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-primary)] font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 hover:bg-[var(--primary-glow)] transition-all">
-                    <Plus className="w-4 h-4" />
-                    Log Encounter
-                  </button>
-                </div>
+
+                {nextScheduledAppointment ? (
+                  <div className="relative z-10 space-y-2">
+                    <h3 className="text-[var(--text-primary)] font-black text-xl uppercase tracking-tighter">Next Scheduled Visit</h3>
+                    <div className="flex items-center justify-center gap-4 py-2">
+                      <div className="flex items-center gap-2 px-3 py-1 bg-[var(--input-bg)] rounded-lg border border-[var(--card-border)]">
+                        <Calendar className="w-3.5 h-3.5 text-[var(--primary)]" />
+                        <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">
+                          {new Date(nextScheduledAppointment.scheduledStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-1 bg-[var(--input-bg)] rounded-lg border border-[var(--card-border)]">
+                        <Clock className="w-3.5 h-3.5 text-[var(--primary)]" />
+                        <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">
+                          {new Date(nextScheduledAppointment.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mt-2">
+                      Provider: {nextScheduledAppointment.practitioner?.firstName} {nextScheduledAppointment.practitioner?.lastName}
+                    </p>
+                    
+                    <div className="flex gap-4 mt-8">
+                      <Link 
+                        href={`/dashboard/patients/${params.id}/visit?appointmentId=${nextScheduledAppointment.appointmentId}`}
+                        className="px-8 py-4 rounded-2xl bg-[var(--primary)] text-white font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-[var(--primary-glow)]"
+                      >
+                        <Zap className="w-5 h-5" />
+                        Start Scheduled Visit
+                      </Link>
+                      <button 
+                        onClick={() => {
+                          setSelectedAppointmentId(nextScheduledAppointment.appointmentId);
+                          setDrawerOpen(true);
+                        }}
+                        className="px-8 py-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-primary)] font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 hover:bg-[var(--primary-glow)] transition-all">
+                        <Edit3 className="w-4 h-4" />
+                        Adjust Schedule
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative z-10">
+                    <h3 className="text-[var(--text-primary)] font-black text-xl uppercase tracking-tighter">Encounter Registry</h3>
+                    <p className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest mt-2 max-w-xs leading-relaxed">No upcoming visits detected in the registry. Schedule a new encounter to begin assessment.</p>
+                    <div className="flex gap-4 mt-10">
+                      <button 
+                        onClick={() => {
+                          setSelectedAppointmentId(undefined);
+                          setDrawerOpen(true);
+                        }}
+                        className="px-10 py-4 rounded-2xl bg-[var(--primary)] text-white font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-[var(--primary-glow)]"
+                      >
+                        <Plus className="w-5 h-5" />
+                        Schedule & Start Visit
+                      </button>
+                    </div>
+                  </div>
+                )}
              </div>
            )}
         </div>

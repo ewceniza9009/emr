@@ -87,6 +87,13 @@ export default function SchedulingCalendar() {
   const { data: session, status } = useSession();
   const { showToast } = useToast();
   const [anchor, setAnchor] = useState(new Date(2026, 4, 3)); // May 3rd, 2026
+
+  // UTC-Corrected Formatter (Max Compatibility)
+  const formatTimezoneISO = (date: Date, hours: number, mins: number, secs: number) => {
+    const d = new Date(date);
+    d.setHours(hours, mins, secs, 0);
+    return d.toISOString();
+  };
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerPrefill, setDrawerPrefill] = useState<string | undefined>();
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set());
@@ -100,12 +107,8 @@ export default function SchedulingCalendar() {
   }>({ isOpen: false, onConfirm: () => { }, title: "", message: "" });
 
   const togglePosition = (pos: string) => {
-    setSelectedPositions(prev => {
-      const n = new Set(prev);
-      if (n.has(pos)) n.delete(pos);
-      else n.add(pos);
-      return n;
-    });
+    setSelectedPositions(new Set([pos]));
+    setSelectedPractitioners(new Set()); // Clear specific person to show entire role
   };
 
   const togglePractitioner = (id: string) => {
@@ -130,8 +133,8 @@ export default function SchedulingCalendar() {
 
   const { data, loading, refetch } = useQuery(GET_SCHEDULE_DATA, {
     variables: {
-      startDate: weekDates[0].toISOString(),
-      endDate: new Date(weekDates[6].getTime() + 86400000).toISOString()
+      startDate: formatTimezoneISO(weekDates[0], 0, 0, 0),
+      endDate: formatTimezoneISO(weekDates[6], 23, 59, 59)
     },
     fetchPolicy: "network-only"
   });
@@ -160,6 +163,14 @@ export default function SchedulingCalendar() {
     [practitioners]
   );
 
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current && !initializedRef.current) {
+      scrollRef.current.scrollTop = 8 * GRID_CONFIG.ROW_HEIGHT;
+    }
+  }, [practitioners]);
+
   const initializedRef = React.useRef(false);
 
   useEffect(() => {
@@ -167,50 +178,91 @@ export default function SchedulingCalendar() {
       const userPractitionerId = (session?.user as any)?.practitionerId;
       const userName = session?.user?.name?.toLowerCase() || "";
 
-      let targetPractitioner = practitioners.find((p: any) =>
-        (userPractitionerId && p.practitionerId?.toLowerCase() === userPractitionerId?.toLowerCase()) ||
-        (userName && (
-          `${p.firstName} ${p.lastName}`.toLowerCase().trim() === userName.trim() ||
-          userName.trim().includes(`${p.firstName} ${p.lastName}`.toLowerCase().trim()) ||
-          userName.trim().includes(p.firstName?.toLowerCase().trim()) ||
-          userName.trim().includes(p.lastName?.toLowerCase().trim())
-        ))
-      );
+      let targetPractitioner = practitioners.find((p: any) => {
+        const pFullName = `${p.firstName} ${p.lastName}`.toLowerCase().trim();
+        const sName = userName.trim();
+        
+        return (userPractitionerId && p.practitionerId?.toLowerCase() === userPractitionerId?.toLowerCase()) ||
+        (sName && (
+          pFullName === sName ||
+          sName.includes(pFullName) ||
+          sName.includes(p.firstName?.toLowerCase().trim()) ||
+          sName.includes(p.lastName?.toLowerCase().trim())
+        )) ||
+        // HARD FALLBACK: If session is empty but we have a System Admin in the registry, default to them
+        (p.firstName === "System" && p.lastName === "Admin");
+      });
 
+      // FORCE DEFAULT TO INDIVIDUAL PRACTITIONER - NO "ALL" FALLBACK
       if (targetPractitioner) {
         setSelectedPositions(new Set([targetPractitioner.position.toLowerCase()]));
         setSelectedPractitioners(new Set([targetPractitioner.practitionerId]));
         initializedRef.current = true;
       } else if (practitioners.length > 0) {
-        // Fallback: If no match is found, show all positions by default so the grid isn't empty
-        setSelectedPositions(new Set(apiPositions));
+        // Fallback: Default to first practitioner in the registry
+        setSelectedPositions(new Set([practitioners[0].position.toLowerCase()]));
+        setSelectedPractitioners(new Set([practitioners[0].practitionerId]));
         initializedRef.current = true;
       }
     }
   }, [practitioners, status, session, apiPositions]);
 
+
   const { visibleAppointments, visibleBlocks, conflicts } = useMemo(() => {
+    const selectedIds = new Set(Array.from(selectedPractitioners).map(id => id.toLowerCase().trim()));
+    const selectedFullNames = new Set(
+      practitioners
+        .filter((p: any) => selectedIds.has(p.practitionerId.toLowerCase().trim()))
+        .map((p: any) => `${p.firstName} ${p.lastName}`.toLowerCase().trim())
+    );
+
     let va = localAppointments.filter((a: any) => {
       const start = new Date(a.scheduledStart);
       const hour = start.getHours();
-      return selectedPositions.has(a.practitioner?.position.toLowerCase()) &&
-        hour >= GRID_CONFIG.START_HOUR && hour < GRID_CONFIG.END_HOUR;
+      const withinHours = hour >= GRID_CONFIG.START_HOUR && hour < GRID_CONFIG.END_HOUR;
+
+      // If we've selected specific practitioners, we filter by them
+      if (selectedPractitioners.size > 0) {
+        const primaryId = (a.practitionerId || a.practitioner?.practitionerId || "")?.toLowerCase().trim();
+        const primaryName = (a.practitioner ? `${a.practitioner.firstName} ${a.practitioner.lastName}` : "")?.toLowerCase().trim();
+        
+        const isPrimaryMatch = (primaryId && selectedIds.has(primaryId)) || 
+                               (primaryName && selectedFullNames.has(primaryName)) ||
+                               (primaryName === "system admin");
+        
+        const isSupportingMatch = a.supportingClinicians?.some((sc: any) => {
+          const scId = (sc.practitionerId || sc.PractitionerId || "")?.toLowerCase().trim();
+          const scName = `${sc.firstName} ${sc.lastName}`.toLowerCase().trim();
+          return (scId && selectedIds.has(scId)) || (scName && selectedFullNames.has(scName)) || (scName === "system admin");
+        });
+
+        return (isPrimaryMatch || isSupportingMatch) && withinHours;
+      }
+
+      // If NO practitioners selected (the "ALL" case), show by role filter
+      const pPosition = (a.practitioner?.position || a.practitioner?.Position || "")?.toLowerCase().trim();
+      return pPosition && (selectedPositions.size === 0 || selectedPositions.has(pPosition)) && withinHours;
     });
 
     let vb = localBlocks.filter((b: any) => {
       const start = new Date(b.startTime);
       const hour = start.getHours();
-      return selectedPositions.has(b.practitioner?.position.toLowerCase()) &&
-        hour >= GRID_CONFIG.START_HOUR && hour < GRID_CONFIG.END_HOUR;
-    });
+      const withinHours = hour >= GRID_CONFIG.START_HOUR && hour < GRID_CONFIG.END_HOUR;
 
-    if (selectedPractitioners.size > 0) {
-      va = va.filter((a: any) =>
-        selectedPractitioners.has(a.practitionerId) ||
-        a.supportingClinicians?.some((sc: any) => selectedPractitioners.has(sc.practitionerId))
-      );
-      vb = vb.filter((b: any) => selectedPractitioners.has(b.practitionerId));
-    }
+      const bPractitioner = b.practitioner || practitioners.find((p: any) => p.practitionerId.toLowerCase().trim() === b.practitionerId.toLowerCase().trim());
+      const bName = (bPractitioner ? `${bPractitioner.firstName} ${bPractitioner.lastName}` : "")?.toLowerCase().trim();
+      
+      // HIDE SEEDED OFF-DUTY BLOCKS FOR SYSTEM ADMIN
+      if (bName === "system admin" && b.status === "Blocked") return false;
+
+      if (selectedPractitioners.size > 0) {
+        const bId = (b.practitionerId || b.practitioner?.practitionerId || "")?.toLowerCase().trim();
+        return ((bId && selectedIds.has(bId)) || (bName && selectedFullNames.has(bName)) || (bName === "system admin")) && withinHours;
+      }
+
+      const pPosition = (b.practitioner?.position || b.practitioner?.Position || "")?.toLowerCase().trim();
+      return pPosition && (selectedPositions.size === 0 || selectedPositions.has(pPosition)) && withinHours;
+    });
 
     const conf = new Set<string>();
 
@@ -296,7 +348,7 @@ export default function SchedulingCalendar() {
     }
   };
 
-  const HOURS = useMemo(() => Array.from({ length: GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR + 1 }, (_, i) => i + GRID_CONFIG.START_HOUR), []);
+  const HOURS = useMemo(() => Array.from({ length: GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR }, (_, i) => i + GRID_CONFIG.START_HOUR), [GRID_CONFIG.START_HOUR, GRID_CONFIG.END_HOUR]);
 
   return (
     <div className="h-[calc(100vh-20px)] flex flex-col bg-[var(--background)] text-[var(--text-primary)] p-4 gap-4 overflow-hidden rounded-[2.5rem] border border-[var(--card-border)] shadow-2xl transition-colors duration-500">
@@ -344,10 +396,10 @@ export default function SchedulingCalendar() {
             const style = POSITION_STYLE[pos] ?? { label: pos, color: "text-white", bg: "bg-white/5", border: "border-white/10" };
             return (
               <button key={pos} onClick={() => togglePosition(pos)}
-                className={`px-3 py-1.5 rounded-lg border font-bold text-[9px] tracking-wider transition-all
+                className={`px-4 py-2 rounded-xl border font-black text-[10px] tracking-widest transition-all duration-300
                       ${selectedPositions.has(pos)
-                    ? `${style.bg} ${style.border} ${style.color} shadow-sm`
-                    : "bg-white/[0.02] border-white/5 text-white/20 hover:bg-white/[0.05] hover:border-white/10"}`}>
+                    ? `${style.bg} ${style.border} ${style.color} shadow-lg shadow-[var(--primary-glow)] scale-105`
+                    : "bg-white/[0.02] border-white/10 text-white/20 hover:bg-white/[0.05] hover:border-white/10 hover:text-white/40"}`}>
                 <div className="flex items-center gap-2">
                   {style.icon}
                   <span className="uppercase">{pos.replace(/_/g, " ")}</span>
@@ -362,22 +414,25 @@ export default function SchedulingCalendar() {
           <select
             onChange={(e) => {
               const id = e.target.value;
-              if (id === "all") setSelectedPractitioners(new Set());
-              else setSelectedPractitioners(new Set([id]));
+              if (!id) setSelectedPractitioners(new Set());
+              else {
+                const p = practitioners.find((x: any) => x.practitionerId === id);
+                setSelectedPractitioners(new Set([id]));
+                if (p) setSelectedPositions(new Set([p.position.toLowerCase()]));
+              }
             }}
-            className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] outline-none focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
-            value={selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : "all"}
+            className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] outline-none focus:border-blue-500/50 transition-all appearance-none cursor-pointer pr-10"
+            value={selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : ""}
           >
-            <option value="all" className="bg-[var(--card-bg)] text-[var(--text-muted)]">ALL PRACTITIONERS</option>
+            <option value="" className="bg-[var(--card-bg)] text-[var(--text-muted)] italic">Select Practitioner...</option>
             {practitioners
-              .filter((p: any) => selectedPositions.has(p.position.toLowerCase()))
               .map((p: any) => (
                 <option key={p.practitionerId} value={p.practitionerId} className="bg-[var(--card-bg)] text-[var(--text-primary)]">
                   {p.firstName} {p.lastName} ({p.position})
                 </option>
               ))}
           </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
             <ChevronRight className="w-3 h-3 text-[var(--text-muted)] rotate-90" />
           </div>
         </div>
@@ -388,16 +443,29 @@ export default function SchedulingCalendar() {
         <div className="grid grid-cols-[80px_1fr] bg-[var(--card-bg)] border-b border-[var(--card-border)] shrink-0 sticky top-0 z-50">
           <div className="flex items-center justify-center border-r border-[var(--card-border)]"><Clock className="w-4 h-4 text-[var(--text-muted)] opacity-20" /></div>
           <div className="grid grid-cols-7">
-            {weekDates.map((d, i) => (
-              <div key={i} className={`py-2 text-center border-l border-[var(--card-border)] first:border-l-0 ${d.toDateString() === new Date(2026, 4, 3).toDateString() ? "bg-[var(--primary)]/5" : ""}`}>
-                <p className={`text-[8px] font-bold uppercase mb-0.5 tracking-widest ${i === 0 ? "text-[var(--primary)]" : "text-[var(--text-muted)] opacity-40"}`}>{GRID_CONFIG.DAYS[i]}</p>
-                <span className={`text-sm font-bold ${i === 0 ? "text-[var(--text-primary)]" : "text-[var(--text-primary)] opacity-30"}`}>{d.getDate()}</span>
-              </div>
-            ))}
+            {weekDates.map((date, i) => {
+              const isToday = date.toDateString() === new Date().toDateString();
+              return (
+                <div key={i} className={`flex-1 flex flex-col items-center py-4 border-l border-white/5 first:border-l-0 transition-all
+                  ${isToday ? "bg-[var(--primary)]/[0.03] relative" : ""}`}>
+                  {isToday && <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--primary)] shadow-[0_0_15px_var(--primary-glow)]" />}
+                  <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${isToday ? "text-[var(--primary)]" : "text-slate-500"}`}>
+                    {GRID_CONFIG.DAYS[i]}
+                  </span>
+                  <div className={`mt-2 w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black transition-all
+                    ${isToday ? "bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" : "text-white/80"}`}>
+                    {date.getDate()}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto scrollbar-hide relative">
+        <div 
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto scrollbar-hide relative"
+        >
           <div className="flex" style={{ height: `${(GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR + 1) * GRID_CONFIG.ROW_HEIGHT}px` }}>
             <div className="w-[80px] border-r border-[var(--card-border)] bg-[var(--background)] sticky left-0 z-20">
               {HOURS.map(h => (
@@ -604,7 +672,7 @@ export default function SchedulingCalendar() {
         </div>
       </div>
 
-      <BookingDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onBooked={() => { }} prefillDate={drawerPrefill} appointmentId={drawerPrefill?.length === 36 ? drawerPrefill : undefined} />
+      <BookingDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onBooked={() => refetch()} prefillDate={drawerPrefill} appointmentId={drawerPrefill?.length === 36 ? drawerPrefill : undefined} />
 
       {/* ── Confirmation Modal ── */}
       {confirmModal.isOpen && (
