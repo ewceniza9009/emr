@@ -299,16 +299,16 @@ export default function SchedulingCalendar() {
   const HOURS = useMemo(() => Array.from({ length: GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR + 1 }, (_, i) => i + GRID_CONFIG.START_HOUR), []);
 
   return (
-    <div className="h-[calc(100vh-20px)] flex flex-col bg-[#050608] text-white p-4 gap-4 overflow-hidden rounded-[2.5rem] border border-white/5 shadow-2xl">
+    <div className="h-[calc(100vh-20px)] flex flex-col bg-[var(--background)] text-[var(--text-primary)] p-4 gap-4 overflow-hidden rounded-[2.5rem] border border-[var(--card-border)] shadow-2xl transition-colors duration-500">
 
       {/* ── HEADER ── */}
-      <div className="shrink-0 flex items-center justify-between bg-[#0a0b10]/60 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/5 shadow-xl">
+      <div className="shrink-0 flex items-center justify-between bg-[var(--card-bg)] backdrop-blur-md px-6 py-3 rounded-2xl border border-[var(--card-border)] shadow-xl">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <div className="w-10 h-10 bg-[var(--primary)] rounded-xl flex items-center justify-center shadow-lg shadow-[var(--primary-glow)]">
             <Zap className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white tracking-tight">Clinical Schedule</h1>
+            <h1 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">Clinical Schedule</h1>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-2 py-0.5 bg-emerald-500/10 rounded-full border border-emerald-500/10">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -318,26 +318,26 @@ export default function SchedulingCalendar() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => refetch()} className="p-2.5 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 active:scale-95 transition-all">
+          <button onClick={() => refetch()} className="p-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)] hover:bg-[var(--primary-glow)] active:scale-95 transition-all">
             <RefreshCw className="w-5 h-5 text-blue-400" />
           </button>
-          <div className="flex items-center bg-white/5 px-2 py-1 rounded-xl border border-white/5">
-            <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))} className="p-1.5 hover:bg-white/10 rounded-lg transition-all"><ChevronLeft className="w-4 h-4 text-white/40" /></button>
-            <span className="px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">MAY 2026</span>
-            <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() + 7)))} className="p-1.5 hover:bg-white/10 rounded-lg transition-all"><ChevronRight className="w-4 h-4 text-white/40" /></button>
+          <div className="flex items-center bg-[var(--input-bg)] px-2 py-1 rounded-xl border border-[var(--card-border)]">
+            <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))} className="p-1.5 hover:bg-[var(--primary-glow)] rounded-lg transition-all"><ChevronLeft className="w-4 h-4 text-[var(--text-muted)]" /></button>
+            <span className="px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-secondary)]">MAY 2026</span>
+            <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() + 7)))} className="p-1.5 hover:bg-[var(--primary-glow)] rounded-lg transition-all"><ChevronRight className="w-4 h-4 text-[var(--text-muted)]" /></button>
           </div>
           <button onClick={() => { setDrawerPrefill(undefined); setDrawerOpen(true); }}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg transition-all">
+            className="px-6 py-2.5 bg-[var(--primary)] hover:opacity-90 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg transition-all text-white">
             New Encounter
           </button>
         </div>
       </div>
 
       {/* ── FILTERS ── */}
-      <div className="shrink-0 flex items-center gap-4 bg-[#0a0b10]/40 px-4 py-2 rounded-xl border border-white/5">
-        <div className="px-4 py-1.5 bg-white/5 rounded-lg border border-white/5 flex items-center gap-2">
-          <Filter className="w-3 h-3 text-white/20" />
-          <span className="text-[9px] font-bold uppercase tracking-wider text-white/20">Clinical Roles</span>
+      <div className="shrink-0 flex items-center gap-4 bg-[var(--card-bg)] px-4 py-2 rounded-xl border border-[var(--card-border)]">
+        <div className="px-4 py-1.5 bg-[var(--input-bg)] rounded-lg border border-[var(--card-border)] flex items-center gap-2">
+          <Filter className="w-3 h-3 text-[var(--text-muted)]" />
+          <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Clinical Roles</span>
         </div>
         <div className="flex items-center gap-1">
           {apiPositions.map(pos => {
@@ -358,40 +358,40 @@ export default function SchedulingCalendar() {
         </div>
 
         {/* ── Practitioner Combo Box ── */}
-        <div className="flex-1 relative max-w-xs border-l border-white/10 ml-4 pl-4">
+        <div className="flex-1 relative max-w-xs border-l border-[var(--card-border)] ml-4 pl-4">
           <select
             onChange={(e) => {
               const id = e.target.value;
               if (id === "all") setSelectedPractitioners(new Set());
               else setSelectedPractitioners(new Set([id]));
             }}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white/70 outline-none focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
+            className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] outline-none focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
             value={selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : "all"}
           >
-            <option value="all" className="bg-[#0a0b10] text-white/50">ALL PRACTITIONERS</option>
+            <option value="all" className="bg-[var(--card-bg)] text-[var(--text-muted)]">ALL PRACTITIONERS</option>
             {practitioners
               .filter((p: any) => selectedPositions.has(p.position.toLowerCase()))
               .map((p: any) => (
-                <option key={p.practitionerId} value={p.practitionerId} className="bg-[#0a0b10] text-white">
+                <option key={p.practitionerId} value={p.practitionerId} className="bg-[var(--card-bg)] text-[var(--text-primary)]">
                   {p.firstName} {p.lastName} ({p.position})
                 </option>
               ))}
           </select>
           <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-            <ChevronRight className="w-3 h-3 text-white/30 rotate-90" />
+            <ChevronRight className="w-3 h-3 text-[var(--text-muted)] rotate-90" />
           </div>
         </div>
       </div>
 
       {/* ── GRID ── */}
-      <div className="flex-1 min-h-0 bg-[#0a0b10] rounded-2xl border border-white/5 flex flex-col overflow-hidden">
-        <div className="grid grid-cols-[80px_1fr] bg-[#0c0d15] border-b border-white/5 shrink-0 sticky top-0 z-50">
-          <div className="flex items-center justify-center border-r border-white/5"><Clock className="w-4 h-4 text-white/10" /></div>
+      <div className="flex-1 min-h-0 bg-[var(--background)] rounded-2xl border border-[var(--card-border)] flex flex-col overflow-hidden">
+        <div className="grid grid-cols-[80px_1fr] bg-[var(--card-bg)] border-b border-[var(--card-border)] shrink-0 sticky top-0 z-50">
+          <div className="flex items-center justify-center border-r border-[var(--card-border)]"><Clock className="w-4 h-4 text-[var(--text-muted)] opacity-20" /></div>
           <div className="grid grid-cols-7">
             {weekDates.map((d, i) => (
-              <div key={i} className={`py-2 text-center border-l border-white/5 first:border-l-0 ${d.toDateString() === new Date(2026, 4, 3).toDateString() ? "bg-blue-600/5" : ""}`}>
-                <p className={`text-[8px] font-bold uppercase mb-0.5 tracking-widest ${i === 0 ? "text-blue-400" : "text-white/20"}`}>{GRID_CONFIG.DAYS[i]}</p>
-                <span className={`text-sm font-bold ${i === 0 ? "text-white" : "text-white/30"}`}>{d.getDate()}</span>
+              <div key={i} className={`py-2 text-center border-l border-[var(--card-border)] first:border-l-0 ${d.toDateString() === new Date(2026, 4, 3).toDateString() ? "bg-[var(--primary)]/5" : ""}`}>
+                <p className={`text-[8px] font-bold uppercase mb-0.5 tracking-widest ${i === 0 ? "text-[var(--primary)]" : "text-[var(--text-muted)] opacity-40"}`}>{GRID_CONFIG.DAYS[i]}</p>
+                <span className={`text-sm font-bold ${i === 0 ? "text-[var(--text-primary)]" : "text-[var(--text-primary)] opacity-30"}`}>{d.getDate()}</span>
               </div>
             ))}
           </div>
@@ -399,10 +399,10 @@ export default function SchedulingCalendar() {
 
         <div className="flex-1 overflow-y-auto scrollbar-hide relative">
           <div className="flex" style={{ height: `${(GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR + 1) * GRID_CONFIG.ROW_HEIGHT}px` }}>
-            <div className="w-[80px] border-r border-white/5 bg-[#0a0b10]/40 sticky left-0 z-20">
+            <div className="w-[80px] border-r border-[var(--card-border)] bg-[var(--background)] sticky left-0 z-20">
               {HOURS.map(h => (
-                <div key={h} className="h-[80px] flex items-start justify-center pt-3 border-b border-white/[0.02]">
-                  <span className="text-[10px] text-white/30 font-bold uppercase tracking-wider">{h % 12 || 12} {h < 12 ? "AM" : "PM"}</span>
+                <div key={h} className="h-[80px] flex items-start justify-center pt-3 border-b border-[var(--card-border)] opacity-20">
+                  <span className="text-[10px] text-[var(--text-primary)] font-bold uppercase tracking-wider">{h % 12 || 12} {h < 12 ? "AM" : "PM"}</span>
                 </div>
               ))}
             </div>
@@ -414,11 +414,11 @@ export default function SchedulingCalendar() {
 
                 return (
                   <div key={dayIdx}
-                    className="relative border-l border-white/10 first:border-l-0 transition-colors hover:bg-white/[0.02]"
+                    className="relative border-l border-[var(--card-border)] first:border-l-0 transition-colors hover:bg-[var(--primary-glow)]"
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => handleDrop(e, d)}
                   >
-                    {HOURS.map(h => <div key={h} className="h-[80px] border-b border-white/[0.04]" />)}
+                    {HOURS.map(h => <div key={h} className="h-[80px] border-b border-[var(--card-border)] opacity-20" />)}
 
                     {/* Schedule Blocks (Busy) */}
                     {dayBlocks.map((block: any) => {
@@ -436,21 +436,21 @@ export default function SchedulingCalendar() {
                             e.dataTransfer.setData("blockId", block.blockId);
                             e.dataTransfer.setData("duration", durMin.toString());
                           }}
-                          className="absolute left-1.5 right-1.5 z-0 rounded-xl bg-slate-950/40 border border-slate-800/30 backdrop-blur-sm p-3 flex flex-col gap-2 overflow-hidden cursor-grab active:cursor-grabbing hover:border-slate-500 transition-all"
+                          className="absolute left-1.5 right-1.5 z-0 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] backdrop-blur-sm p-3 flex flex-col gap-2 overflow-hidden cursor-grab active:cursor-grabbing hover:border-slate-500 transition-all"
                           style={{ top: `${top}%`, height: `${height}%` }}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Clock className="w-3 h-3 text-slate-500" />
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">BUSY BLOCK</span>
+                              <Clock className="w-3 h-3 text-[var(--text-muted)]" />
+                              <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">BUSY BLOCK</span>
                             </div>
-                            <span className="text-[8px] font-black text-slate-600 bg-black/20 px-1.5 py-0.5 rounded border border-white/5 uppercase">
+                            <span className="text-[8px] font-black text-[var(--text-muted)] bg-[var(--card-bg)] px-1.5 py-0.5 rounded border border-[var(--card-border)] uppercase">
                               {start.getHours() % 12 || 12}:{start.getMinutes().toString().padStart(2, '0')} - {end.getHours() % 12 || 12}:{end.getMinutes().toString().padStart(2, '0')}
                             </span>
                           </div>
-                          <p className="text-[10px] font-black text-slate-200 uppercase truncate tracking-wide">OFF-DUTY / BLOCKED</p>
+                          <p className="text-[10px] font-black text-[var(--text-primary)] uppercase truncate tracking-wide">OFF-DUTY / BLOCKED</p>
                           <div className="mt-auto flex items-center gap-2">
                             <div className="w-4 h-4 rounded-full bg-slate-700 flex items-center justify-center text-[7px] font-black text-white">{block.practitioner?.firstName?.[0]}{block.practitioner?.lastName?.[0]}</div>
-                            <span className="text-[8px] font-bold text-slate-500 uppercase truncate">{block.practitioner?.firstName} {block.practitioner?.lastName}</span>
+                            <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase truncate">{block.practitioner?.firstName} {block.practitioner?.lastName}</span>
                           </div>
                         </div>
                       );
@@ -512,13 +512,13 @@ export default function SchedulingCalendar() {
                               e.dataTransfer.setData("duration", durMin.toString());
                             }}
                               onClick={() => { setDrawerPrefill(appt.appointmentId); setDrawerOpen(true); }}
-                              className={`absolute top-0 left-0 right-0 min-h-full max-h-full group-hover/appt:max-h-[400px] rounded-lg p-1.5 border shadow-lg transition-all duration-300 flex flex-col cursor-grab active:cursor-grabbing overflow-hidden bg-[#0c0d15] z-10 group-hover/appt:z-50
+                              className={`absolute top-0 left-0 right-0 min-h-full max-h-full group-hover/appt:max-h-[400px] rounded-lg p-1.5 border shadow-lg transition-all duration-300 flex flex-col cursor-grab active:cursor-grabbing overflow-hidden bg-[var(--card-bg)] z-10 group-hover/appt:z-50
                                     ${style.bg} backdrop-blur-xl ${hasConflict ? "border-rose-500/50 bg-rose-500/10 shadow-[0_0_20px_rgba(244,63,94,0.1)]" : style.border}`}>
 
                               {/* Header: Modality & Time */}
                               <div className="flex items-center justify-between shrink-0 mb-0.5">
                                 <div className="flex items-center gap-1.5">
-                                  <div className={`px-1 py-0.5 rounded text-[7px] font-black uppercase tracking-widest flex items-center gap-1 ${style.color} bg-black/40 border border-white/10 shadow-sm`}>
+                                  <div className={`px-1 py-0.5 rounded text-[7px] font-black uppercase tracking-widest flex items-center gap-1 ${style.color} bg-[var(--card-bg)] border border-[var(--card-border)] shadow-sm`}>
                                     {modality.icon}
                                     <span className="truncate">{modality.label}</span>
                                   </div>
@@ -526,7 +526,7 @@ export default function SchedulingCalendar() {
                                     <div className={`w-1 h-1 rounded-full ${statusConfig.dot}`} /> {statusConfig.label}
                                   </div>
                                 </div>
-                                <span className="text-[8px] font-black text-white/40 bg-black/20 px-1 py-0.5 rounded border border-white/5">
+                                <span className="text-[8px] font-black text-[var(--text-muted)] bg-[var(--input-bg)] px-1 py-0.5 rounded border border-[var(--card-border)]">
                                   {start.getHours() % 12 || 12}:{start.getMinutes().toString().padStart(2, '0')}
                                 </span>
                               </div>
@@ -534,9 +534,9 @@ export default function SchedulingCalendar() {
                               {/* Patient Identity & Micro Avatars (Always Visible) */}
                               <div className="flex items-center justify-between shrink-0 mb-0.5">
                                 <div className="flex flex-col truncate">
-                                  <span className="text-[10px] leading-tight font-black text-white uppercase truncate" title={`${appt.patient?.firstName} ${appt.patient?.lastName}`}>{appt.patient?.firstName} {appt.patient?.lastName}</span>
+                                  <span className="text-[10px] leading-tight font-black text-[var(--text-primary)] uppercase truncate" title={`${appt.patient?.firstName} ${appt.patient?.lastName}`}>{appt.patient?.firstName} {appt.patient?.lastName}</span>
                                   {modality.label !== "TELEHEALTH" && appt.patient?.addresses?.[0]?.address?.street && (
-                                    <span className="text-[8px] font-bold text-white/40 truncate mt-0.5" title={appt.patient.addresses[0].address.street}>
+                                    <span className="text-[8px] font-bold text-[var(--text-muted)] truncate mt-0.5" title={appt.patient.addresses[0].address.street}>
                                       {appt.patient.addresses[0].address.street}
                                     </span>
                                   )}
@@ -629,7 +629,7 @@ export default function SchedulingCalendar() {
                   confirmModal.onConfirm();
                   setConfirmModal(prev => ({ ...prev, isOpen: false }));
                 }}
-                className="py-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 uppercase text-[10px] tracking-widest"
+                className="py-4 rounded-xl bg-[var(--primary)] text-white font-bold hover:opacity-90 transition-all shadow-xl shadow-[var(--primary-glow)] uppercase text-[10px] tracking-widest"
               >
                 Confirm Move
               </button>

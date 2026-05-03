@@ -61,7 +61,7 @@ export function Sidebar() {
         ) : (
           <button 
             onClick={toggle}
-            className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg border border-white/10 hover:bg-blue-500 transition-all z-50"
+            className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[var(--primary)] rounded-full flex items-center justify-center text-white shadow-lg border border-white/10 hover:opacity-90 transition-all z-50"
           >
             <Menu className="w-3 h-3" />
           </button>
