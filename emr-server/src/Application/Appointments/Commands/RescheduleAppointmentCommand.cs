@@ -10,7 +10,7 @@ public record RescheduleAppointmentCommand(
     DateTimeOffset NewStart,
     DateTimeOffset NewEnd) : IRequest<Appointment>;
 
-public class RescheduleAppointmentCommandHandler(IApplicationDbContext context) : IRequestHandler<RescheduleAppointmentCommand, Appointment>
+public class RescheduleAppointmentCommandHandler(IApplicationDbContext context, ISchedulingService schedulingService) : IRequestHandler<RescheduleAppointmentCommand, Appointment>
 {
     public async Task<Appointment> Handle(RescheduleAppointmentCommand request, CancellationToken cancellationToken)
     {
@@ -24,6 +24,13 @@ public class RescheduleAppointmentCommandHandler(IApplicationDbContext context) 
 
         appointment.ScheduledStart = request.NewStart;
         appointment.ScheduledEnd = request.NewEnd;
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        // Recalculate stats after saving the new time
+        var stats = await schedulingService.RecalculateAppointmentStatsAsync(appointment.AppointmentId, cancellationToken);
+        appointment.DistanceInMiles = stats.distance;
+        appointment.TravelTimeMinutes = stats.travelTime;
 
         await context.SaveChangesAsync(cancellationToken);
 

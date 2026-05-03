@@ -11,4 +11,8 @@ public interface ISchedulingService
         AppointmentModality modality, 
         Guid patientId,
         CancellationToken cancellationToken = default);
+
+    Task<(double distance, double travelTime)> RecalculateAppointmentStatsAsync(
+        Guid appointmentId,
+        CancellationToken cancellationToken = default);
 }

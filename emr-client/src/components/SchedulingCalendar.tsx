@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
+import { useSession } from "next-auth/react";
 import BookingDrawer from "./BookingDrawer";
 import {
   ChevronLeft, ChevronRight, Calendar, User, Stethoscope, Shield,
@@ -55,23 +56,54 @@ const GET_SCHEDULE_DATA = gql`
       supportingClinicians { practitionerId firstName lastName position }
       patient { firstName lastName mrn addresses { isPrimary address { street } } }
     }
+    scheduleBlocks(where: { startTime: { gte: $startDate }, endTime: { lte: $endDate } }) {
+      blockId startTime endTime status practitionerId
+      practitioner { practitionerId firstName lastName position }
+    }
     practitioners {
       practitionerId firstName lastName position
     }
   }
 `;
 
+const RESCHEDULE_APPOINTMENT = gql`
+  mutation RescheduleAppointment($id: UUID!, $newStart: DateTime!, $newEnd: DateTime!) {
+    rescheduleAppointment(appointmentId: $id, newStart: $newStart, newEnd: $newEnd) {
+      appointmentId scheduledStart scheduledEnd travelTimeMinutes distanceInMiles
+    }
+  }
+`;
+
+const UPDATE_SCHEDULE_BLOCK = gql`
+  mutation UpdateScheduleBlock($id: UUID!, $newStart: DateTime!, $newEnd: DateTime!) {
+    updateScheduleBlock(blockId: $id, newStart: $newStart, newEnd: $newEnd) {
+      blockId startTime endTime
+    }
+  }
+`;
+
 export default function SchedulingCalendar() {
+  const { data: session } = useSession();
   const [anchor, setAnchor] = useState(new Date(2026, 4, 3)); // May 3rd, 2026
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerPrefill, setDrawerPrefill] = useState<string | undefined>();
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set());
+  const [selectedPractitioners, setSelectedPractitioners] = useState<Set<string>>(new Set());
 
   const togglePosition = (pos: string) => {
     setSelectedPositions(prev => {
         const n = new Set(prev);
         if (n.has(pos)) n.delete(pos);
         else n.add(pos);
+        return n;
+    });
+  };
+
+  const togglePractitioner = (id: string) => {
+    setSelectedPractitioners(prev => {
+        const n = new Set(prev);
+        if (n.has(id)) n.delete(id);
+        else n.add(id);
         return n;
     });
   };
@@ -97,11 +129,14 @@ export default function SchedulingCalendar() {
 
   const practitioners = data?.practitioners ?? [];
   const [localAppointments, setLocalAppointments] = useState<any[]>([]);
+  const [localBlocks, setLocalBlocks] = useState<any[]>([]);
+
+  const [reschedule] = useMutation(RESCHEDULE_APPOINTMENT, { onCompleted: () => refetch() });
+  const [updateBlock] = useMutation(UPDATE_SCHEDULE_BLOCK, { onCompleted: () => refetch() });
 
   useEffect(() => {
-    if (data?.appointments) {
-        setLocalAppointments(data.appointments);
-    }
+    if (data?.appointments) setLocalAppointments(data.appointments);
+    if (data?.scheduleBlocks) setLocalBlocks(data.scheduleBlocks);
   }, [data]);
 
   const apiPositions = useMemo(() => 
@@ -109,14 +144,61 @@ export default function SchedulingCalendar() {
     [practitioners]
   );
 
-  useEffect(() => {
-    if (apiPositions.length > 0 && selectedPositions.size === 0) {
-      setSelectedPositions(new Set(apiPositions));
-    }
-  }, [apiPositions]);
+  const initializedRef = React.useRef(false);
 
-  const { visibleAppointments, conflicts } = useMemo(() => {
-    const va = localAppointments.filter((a: any) => selectedPositions.has(a.practitioner?.position.toLowerCase()));
+  useEffect(() => {
+    // Wait for BOTH practitioners data AND session status to be ready
+    if (practitioners.length > 0 && status !== "loading" && !initializedRef.current) {
+      const userPractitionerId = (session?.user as any)?.practitionerId;
+      const userName = session?.user?.name?.toLowerCase();
+      
+      let targetPractitioner = null;
+
+      if (userPractitionerId) {
+        targetPractitioner = practitioners.find((p: any) => p.practitionerId === userPractitionerId);
+      } else if (userName) {
+        // Fallback: match by name if ID is missing
+        targetPractitioner = practitioners.find((p: any) => 
+            `${p.firstName} ${p.lastName}`.toLowerCase() === userName ||
+            p.lastName.toLowerCase() === userName
+        );
+      }
+      
+      if (targetPractitioner) {
+        setSelectedPositions(new Set([targetPractitioner.position.toLowerCase()]));
+        setSelectedPractitioners(new Set([targetPractitioner.practitionerId]));
+        initializedRef.current = true;
+        return;
+      }
+      
+      // Fallback: show all if no session practitioner found
+      if (apiPositions.length > 0) {
+        setSelectedPositions(new Set(apiPositions));
+        initializedRef.current = true;
+      }
+    }
+  }, [practitioners, status, session, apiPositions]);
+
+  const { visibleAppointments, visibleBlocks, conflicts } = useMemo(() => {
+    let va = localAppointments.filter((a: any) => {
+        const start = new Date(a.scheduledStart);
+        const hour = start.getHours();
+        return selectedPositions.has(a.practitioner?.position.toLowerCase()) && 
+               hour >= GRID_CONFIG.START_HOUR && hour < GRID_CONFIG.END_HOUR;
+    });
+
+    let vb = localBlocks.filter((b: any) => {
+        const start = new Date(b.startTime);
+        const hour = start.getHours();
+        return selectedPositions.has(b.practitioner?.position.toLowerCase()) && 
+               hour >= GRID_CONFIG.START_HOUR && hour < GRID_CONFIG.END_HOUR;
+    });
+    
+    if (selectedPractitioners.size > 0) {
+      va = va.filter((a: any) => selectedPractitioners.has(a.practitionerId));
+      vb = vb.filter((b: any) => selectedPractitioners.has(b.practitionerId));
+    }
+
     const conf = new Set<string>();
     va.forEach((a1: any) => {
       va.forEach((a2: any) => {
@@ -127,35 +209,52 @@ export default function SchedulingCalendar() {
         }
       });
     });
-    return { visibleAppointments: va, conflicts: conf };
-  }, [localAppointments, selectedPositions]);
+    return { visibleAppointments: va, visibleBlocks: vb, conflicts: conf };
+  }, [localAppointments, localBlocks, selectedPositions, selectedPractitioners]);
 
   const handleDrop = (e: React.DragEvent, targetDate: Date) => {
     e.preventDefault();
     const apptId = e.dataTransfer.getData("appointmentId");
+    const blockId = e.dataTransfer.getData("blockId");
     const duration = parseInt(e.dataTransfer.getData("duration"));
-    if (!apptId || isNaN(duration)) return;
+    if ((!apptId && !blockId) || isNaN(duration)) return;
 
     const columnRect = e.currentTarget.getBoundingClientRect();
     const dropY = e.clientY - columnRect.top;
     
-    // Calculate new start time based on vertical pixel drop position
     const pct = dropY / columnRect.height;
     const startMin = pct * GRID_CONFIG.TOTAL_MINUTES;
-    
-    // Snap to 15-minute grid intervals
     const snappedMin = Math.round(startMin / 15) * 15;
     
     const newStart = new Date(targetDate);
     newStart.setHours(GRID_CONFIG.START_HOUR, snappedMin, 0, 0);
     const newEnd = new Date(newStart.getTime() + duration * 60000);
 
-    // Optimistically update the UI instantly
-    setLocalAppointments(prev => prev.map(a => 
-      a.appointmentId === apptId 
-        ? { ...a, scheduledStart: newStart.toISOString(), scheduledEnd: newEnd.toISOString() }
-        : a
-    ));
+    const maxEnd = new Date(newStart);
+    maxEnd.setHours(GRID_CONFIG.END_HOUR, 0, 0, 0);
+
+    if (newEnd > maxEnd) {
+      alert("Events cannot extend beyond working hours (6 PM).");
+      return;
+    }
+
+    if (apptId) {
+        // Optimistic update
+        setLocalAppointments(prev => prev.map(a => 
+          a.appointmentId === apptId 
+            ? { ...a, scheduledStart: newStart.toISOString(), scheduledEnd: newEnd.toISOString() }
+            : a
+        ));
+        reschedule({ variables: { id: apptId, newStart: newStart.toISOString(), newEnd: newEnd.toISOString() } });
+    } else if (blockId) {
+        // Optimistic update
+        setLocalBlocks(prev => prev.map(b => 
+          b.blockId === blockId 
+            ? { ...b, startTime: newStart.toISOString(), endTime: newEnd.toISOString() }
+            : b
+        ));
+        updateBlock({ variables: { id: blockId, newStart: newStart.toISOString(), newEnd: newEnd.toISOString() } });
+    }
   };
 
   const HOURS = useMemo(() => Array.from({ length: GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR + 1 }, (_, i) => i + GRID_CONFIG.START_HOUR), []);
@@ -216,7 +315,32 @@ export default function SchedulingCalendar() {
                 </button>
             );
         })}
+
+      {/* ── Practitioner Combo Box ── */}
+      <div className="flex-1 relative max-w-xs border-l border-white/10 ml-4 pl-4">
+        <select 
+          onChange={(e) => {
+            const id = e.target.value;
+            if (id === "all") setSelectedPractitioners(new Set());
+            else setSelectedPractitioners(new Set([id]));
+          }}
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white/70 outline-none focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
+          value={selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : "all"}
+        >
+          <option value="all" className="bg-[#0a0b10] text-white/50">ALL SELECTED PROVIDERS</option>
+          {practitioners
+            .filter((p: any) => selectedPositions.has(p.position.toLowerCase()))
+            .map((p: any) => (
+              <option key={p.practitionerId} value={p.practitionerId} className="bg-[#0a0b10] text-white">
+                {p.firstName} {p.lastName} ({p.position})
+              </option>
+            ))}
+        </select>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+          <ChevronRight className="w-3 h-3 text-white/30 rotate-90" />
+        </div>
       </div>
+    </div>
 
       {/* ── GRID ── */}
       <div className="flex-1 min-h-0 bg-[#0a0b10] rounded-[3rem] border border-white/10 flex flex-col overflow-hidden">
@@ -245,7 +369,8 @@ export default function SchedulingCalendar() {
             <div className="flex-1 grid grid-cols-7 relative">
               {weekDates.map((d, dayIdx) => {
                 const dayAppts = visibleAppointments.filter((a: any) => new Date(a.scheduledStart).toDateString() === d.toDateString());
-                
+                const dayBlocks = visibleBlocks.filter((b: any) => new Date(b.startTime).toDateString() === d.toDateString());
+
                 return (
                   <div key={dayIdx} 
                     className="relative border-l border-white/10 first:border-l-0 transition-colors hover:bg-white/[0.02]"
@@ -253,6 +378,42 @@ export default function SchedulingCalendar() {
                     onDrop={(e) => handleDrop(e, d)}
                   >
                     {HOURS.map(h => <div key={h} className="h-[80px] border-b border-white/[0.04]" />)}
+
+                    {/* Schedule Blocks (Busy) */}
+                    {dayBlocks.map((block: any) => {
+                      const start = new Date(block.startTime), end = new Date(block.endTime);
+                      const startMin = (start.getHours() - GRID_CONFIG.START_HOUR) * 60 + start.getMinutes();
+                      const durMin = (end.getTime() - start.getTime()) / 60000;
+                      
+                      const top = (startMin / GRID_CONFIG.TOTAL_MINUTES) * 100;
+                      // Clamp height so it doesn't spill over the grid
+                      const height = Math.min(durMin / GRID_CONFIG.TOTAL_MINUTES * 100, 100 - top);
+
+                      return (
+                        <div key={block.blockId} draggable 
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("blockId", block.blockId);
+                            e.dataTransfer.setData("duration", durMin.toString());
+                          }}
+                          className="absolute left-1.5 right-1.5 z-20 rounded-xl bg-slate-900/80 border border-slate-700/50 backdrop-blur-md p-3 flex flex-col gap-2 overflow-hidden cursor-grab active:cursor-grabbing hover:border-slate-500 transition-all shadow-2xl"
+                          style={{ top: `${top}%`, height: `${height}%` }}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-3 h-3 text-slate-500" />
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">BUSY BLOCK</span>
+                            </div>
+                            <span className="text-[8px] font-black text-slate-600 bg-black/20 px-1.5 py-0.5 rounded border border-white/5 uppercase">
+                                {start.getHours() % 12 || 12}:{start.getMinutes().toString().padStart(2, '0')} - {end.getHours() % 12 || 12}:{end.getMinutes().toString().padStart(2, '0')}
+                            </span>
+                          </div>
+                          <p className="text-[10px] font-black text-slate-200 uppercase truncate tracking-wide">OFF-DUTY / BLOCKED</p>
+                          <div className="mt-auto flex items-center gap-2">
+                             <div className="w-4 h-4 rounded-full bg-slate-700 flex items-center justify-center text-[7px] font-black text-white">{block.practitioner?.firstName?.[0]}{block.practitioner?.lastName?.[0]}</div>
+                             <span className="text-[8px] font-bold text-slate-500 uppercase truncate">{block.practitioner?.firstName} {block.practitioner?.lastName}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
 
                     {dayAppts.map((appt: any) => {
                         const style = POSITION_STYLE[appt.practitioner?.position.toLowerCase() || "nurse"] ?? POSITION_STYLE.nurse;
@@ -272,7 +433,8 @@ export default function SchedulingCalendar() {
                         if (startMin < 0 || startMin >= GRID_CONFIG.TOTAL_MINUTES) return null;
 
                         const top = (startMin / GRID_CONFIG.TOTAL_MINUTES) * 100;
-                        const height = (durMin / GRID_CONFIG.TOTAL_MINUTES) * 100;
+                        // Clamp height so it doesn't spill over the grid
+                        const height = Math.min(durMin / GRID_CONFIG.TOTAL_MINUTES * 100, 100 - top);
 
                         if (durMin <= 0) return null;
 

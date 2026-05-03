@@ -506,4 +506,150 @@ public class SchedulingServiceTests
         result.Should().NotBeEmpty();
         result.First().TravelTimeInMinutes.Should().Be(15);
     }
+
+    [Fact]
+    public async Task RecalculateAppointmentStatsAsync_ShouldCalculateFromHome_ForFirstAppointment()
+    {
+        var practitionerId = Guid.NewGuid();
+        var patientId = Guid.NewGuid();
+        var appointmentId = Guid.NewGuid();
+        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero);
+
+        var patients = new List<Patient>
+        {
+            new Patient
+            {
+                PatientId = patientId,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address { Latitude = BaseLat, Longitude = BaseLon }
+                    }
+                }
+            }
+        }.BuildMockDbSet();
+
+        var practitioners = new List<Practitioner>
+        {
+            new Practitioner
+            {
+                PractitionerId = practitionerId,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address { Latitude = NearLat, Longitude = NearLon }
+                    }
+                }
+            }
+        }.BuildMockDbSet();
+
+        var appointments = new List<Appointment>
+        {
+            new Appointment
+            {
+                AppointmentId = appointmentId,
+                PatientId = patientId,
+                PractitionerId = practitionerId,
+                ScheduledStart = targetStart,
+                Modality = AppointmentModality.InPersonHomeVisit,
+                Patient = patients.Object.First()
+            }
+        }.BuildMockDbSet();
+
+        _mockContext.Setup(c => c.Patients).Returns(patients.Object);
+        _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
+        _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
+
+        var (distance, travelTime) = await _service.RecalculateAppointmentStatsAsync(appointmentId);
+
+        distance.Should().BeGreaterThan(0);
+        travelTime.Should().BeGreaterThan(0);
+        distance.Should().BeApproximately(9.74, 0.1); 
+    }
+
+    [Fact]
+    public async Task RecalculateAppointmentStatsAsync_ShouldCalculateFromPreviousAppointment()
+    {
+        var practitionerId = Guid.NewGuid();
+        var patientId1 = Guid.NewGuid();
+        var patientId2 = Guid.NewGuid();
+        var appointmentId2 = Guid.NewGuid();
+        var targetDate = new DateTime(2026, 5, 4);
+
+        var patientList = new List<Patient>
+        {
+            new Patient
+            {
+                PatientId = patientId1,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress { IsPrimary = true, Address = new Address { Latitude = NearLat, Longitude = NearLon } }
+                }
+            },
+            new Patient
+            {
+                PatientId = patientId2,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress { IsPrimary = true, Address = new Address { Latitude = BaseLat, Longitude = BaseLon } }
+                }
+            }
+        };
+        var patients = patientList.BuildMockDbSet();
+
+        var appointments = new List<Appointment>
+        {
+            new Appointment
+            {
+                AppointmentId = Guid.NewGuid(),
+                PatientId = patientId1,
+                PractitionerId = practitionerId,
+                ScheduledStart = new DateTimeOffset(targetDate.AddHours(9), TimeSpan.Zero),
+                ScheduledEnd = new DateTimeOffset(targetDate.AddHours(10), TimeSpan.Zero),
+                Patient = patientList[0]
+            },
+            new Appointment
+            {
+                AppointmentId = appointmentId2,
+                PatientId = patientId2,
+                PractitionerId = practitionerId,
+                ScheduledStart = new DateTimeOffset(targetDate.AddHours(11), TimeSpan.Zero),
+                Modality = AppointmentModality.InPersonHomeVisit,
+                Patient = patientList[1]
+            }
+        }.BuildMockDbSet();
+
+        _mockContext.Setup(c => c.Patients).Returns(patients.Object);
+        _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
+
+        var (distance, travelTime) = await _service.RecalculateAppointmentStatsAsync(appointmentId2);
+
+        distance.Should().BeApproximately(9.74, 0.1);
+        travelTime.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task RecalculateAppointmentStatsAsync_ShouldReturnZero_ForTelehealth()
+    {
+        var appointmentId = Guid.NewGuid();
+        var appointments = new List<Appointment>
+        {
+            new Appointment
+            {
+                AppointmentId = appointmentId,
+                Modality = AppointmentModality.TelehealthVideo
+            }
+        }.BuildMockDbSet();
+
+        _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
+
+        var (distance, travelTime) = await _service.RecalculateAppointmentStatsAsync(appointmentId);
+
+        distance.Should().Be(0);
+        travelTime.Should().Be(0);
+    }
 }

@@ -37,6 +37,17 @@ public class AppointmentQuery
 
     }
 
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<ScheduleBlock> GetScheduleBlocks(
+        [Service] IApplicationDbContext context)
+    {
+        return context.ScheduleBlocks
+            .Include(b => b.Practitioner)
+            .AsNoTracking();
+    }
+
     [UseFirstOrDefault]
     [UseProjection]
     public IQueryable<Appointment> GetAppointment(

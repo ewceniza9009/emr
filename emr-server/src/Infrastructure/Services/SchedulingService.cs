@@ -268,4 +268,87 @@ public class SchedulingService : ISchedulingService
             return new List<ClinicalSlot>();
         }
     }
+
+    public async Task<(double distance, double travelTime)> RecalculateAppointmentStatsAsync(
+        Guid appointmentId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var appt = await _context
+            .Appointments.Include(a => a.Patient)
+            .ThenInclude(p => p.Addresses)
+            .ThenInclude(a => a.Address)
+            .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId, cancellationToken);
+
+        if (
+            appt == null
+            || appt.Modality == AppointmentModality.TelehealthVideo
+            || appt.Modality == AppointmentModality.Telephone
+        )
+            return (0, 0);
+
+        var patientAddr = appt.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+        if (patientAddr == null || !patientAddr.Latitude.HasValue || !patientAddr.Longitude.HasValue)
+            return (0, 0);
+
+        // Find previous appointment on the same day for this practitioner
+        var startOfDay = new DateTimeOffset(appt.ScheduledStart.Date, TimeSpan.Zero);
+        var prevAppt = await _context
+            .Appointments.Include(a => a.Patient)
+            .ThenInclude(p => p.Addresses)
+            .ThenInclude(a => a.Address)
+            .Where(a =>
+                a.PractitionerId == appt.PractitionerId
+                && a.ScheduledStart < appt.ScheduledStart
+                && a.ScheduledStart >= startOfDay
+                && a.AppointmentId != appt.AppointmentId
+            )
+            .OrderByDescending(a => a.ScheduledStart)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        double startLat,
+            startLon;
+
+        if (prevAppt != null)
+        {
+            var prevAddr = prevAppt.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+            if (prevAddr != null && prevAddr.Latitude.HasValue && prevAddr.Longitude.HasValue)
+            {
+                startLat = prevAddr.Latitude.Value;
+                startLon = prevAddr.Longitude.Value;
+            }
+            else
+            {
+                // Fallback to practitioner home if prev appt has no address
+                var practitioner = await _context
+                    .Practitioners.Include(p => p.Addresses)
+                    .ThenInclude(a => a.Address)
+                    .FirstOrDefaultAsync(p => p.PractitionerId == appt.PractitionerId, cancellationToken);
+                var home = practitioner?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+                startLat = home?.Latitude ?? 14.5995;
+                startLon = home?.Longitude ?? 120.9842;
+            }
+        }
+        else
+        {
+            // First appointment of the day, use practitioner home
+            var practitioner = await _context
+                .Practitioners.Include(p => p.Addresses)
+                .ThenInclude(a => a.Address)
+                .FirstOrDefaultAsync(p => p.PractitionerId == appt.PractitionerId, cancellationToken);
+            var home = practitioner?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+            startLat = home?.Latitude ?? 14.5995;
+            startLon = home?.Longitude ?? 120.9842;
+        }
+
+        double distance = GeoUtils.CalculateDistance(
+            startLat,
+            startLon,
+            patientAddr.Latitude.Value,
+            patientAddr.Longitude.Value
+        );
+        double travelTime = GeoUtils.EstimateTravelTimeMinutes(distance);
+
+        return (Math.Round(distance, 2), Math.Round(travelTime, 0));
+    }
 }
