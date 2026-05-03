@@ -9,6 +9,8 @@ import {
   ArrowUpRight,
   TrendingUp
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ToastProvider";
 
 const GET_DASHBOARD_STATS = gql`
   query GetDashboardStats {
@@ -22,6 +24,8 @@ const GET_DASHBOARD_STATS = gql`
 `;
 
 export default function MissionControl() {
+  const router = useRouter();
+  const { showToast } = useToast();
   const { data, loading } = useQuery(GET_DASHBOARD_STATS);
 
   const stats = [
@@ -31,17 +35,23 @@ export default function MissionControl() {
     { label: "Critical Alerts", value: loading ? "..." : data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, color: "red", trend: "0%" },
   ];
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-end justify-between">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-2">Mission Control</h1>
-          <p className="text-slate-400">Welcome back, Dr. House. Here is what's happening today.</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Mission Control</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Welcome back, Dr. House. Clinical operations are stable.</p>
         </div>
-        <div className="flex gap-4">
-           <button className="px-6 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-medium hover:bg-white/10 transition-all">
+        <div className="flex gap-3">
+           <button 
+             onClick={() => showToast("Preparing clinical data report...", "info")}
+             className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-slate-300 text-xs font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all"
+           >
              Generate Report
            </button>
-           <button className="px-6 py-2.5 rounded-xl premium-gradient text-white font-semibold shadow-lg shadow-blue-500/20">
+           <button 
+             onClick={() => router.push("/dashboard/schedule?action=new")}
+             className="px-5 py-2 rounded-xl premium-gradient text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+           >
              New Encounter
            </button>
         </div>

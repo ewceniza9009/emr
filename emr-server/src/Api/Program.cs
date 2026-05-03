@@ -1,3 +1,4 @@
+using Api;
 using Api.GraphQL.Mutations;
 using Api.GraphQL.Queries;
 using Api.Hubs;
@@ -30,6 +31,7 @@ builder.Services.AddSingleton(typeAdapterConfig);
 builder.Services.AddScoped<IMapper, ServiceMapper>();
 
 builder.Services.AddSignalR();
+builder.Services.AddHostedService<TelemetrySimulatorService>();
 
 // JWT Authentication
 builder.Services.AddAuthentication(options =>
