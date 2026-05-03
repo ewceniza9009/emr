@@ -71,8 +71,8 @@ export default function OutreachPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Outreach & Enrollment</h1>
-          <p className="text-slate-400">Manage the patient referral pipeline and conversion workflow.</p>
+          <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">Outreach & Enrollment</h1>
+          <p className="text-[var(--text-secondary)]">Manage the patient referral pipeline and conversion workflow.</p>
         </div>
         <button 
           onClick={() => setIsAddOpen(true)}
@@ -102,17 +102,17 @@ export default function OutreachPage() {
                <div className={`p-2 rounded-xl bg-${stat.color}-500/10 text-${stat.color}-400`}>
                  <stat.icon className="w-5 h-5" />
                </div>
-               <span className="text-2xl font-bold text-white">{stat.count}</span>
+               <span className="text-2xl font-bold text-[var(--text-primary)]">{stat.count}</span>
             </div>
-            <p className="text-slate-500 text-sm font-medium">{stat.label}</p>
+            <p className="text-[var(--text-secondary)] text-sm font-medium">{stat.label}</p>
           </div>
         ))}
       </div>
 
       {/* Advanced Filter Bar */}
-      <div className="flex flex-wrap gap-4 items-center bg-slate-900/50 p-6 rounded-3xl border border-white/5">
+      <div className="flex flex-wrap gap-4 items-center bg-[var(--card-bg)] p-6 rounded-3xl border border-[var(--card-border)]">
         <div className="flex-1 min-w-[200px] relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input 
             type="text" 
             placeholder="Search by name, phone..." 
@@ -168,20 +168,20 @@ export default function OutreachPage() {
 
       {/* Active Worklist */}
       <div className="glass-morphism rounded-3xl overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-          <h2 className="text-lg font-bold text-white">Clinical Outreach Worklist</h2>
+        <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-white/5">
+          <h2 className="text-lg font-bold text-[var(--text-primary)]">Clinical Outreach Worklist</h2>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-white/5 border-b border-white/5">
-                <th className="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Prospect</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Attempts</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Last Outreach</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Follow-up Due</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-center">Status</th>
-                <th className="px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Actions</th>
+              <tr className="bg-white/5 border-b border-[var(--card-border)]">
+                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Prospect</th>
+                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest text-center">Attempts</th>
+                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Last Outreach</th>
+                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Follow-up Due</th>
+                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest text-center">Status</th>
+                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -192,8 +192,8 @@ export default function OutreachPage() {
 
                   <td className="px-8 py-5">
                     <div>
-                      <p className="text-white font-semibold">{lead.firstName} {lead.lastName}</p>
-                      <p className="text-slate-500 text-[10px] uppercase tracking-wider">{lead.referralSource || "Self-Referral"}</p>
+                      <p className="text-[var(--text-primary)] font-semibold">{lead.firstName} {lead.lastName}</p>
+                      <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider">{lead.referralSource || "Self-Referral"}</p>
                     </div>
                   </td>
                   <td className="px-8 py-5 text-center">

@@ -38,13 +38,13 @@ export default function MissionControl() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Mission Control</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Welcome back, Dr. House. Clinical operations are stable.</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">Mission Control</h1>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">Welcome back, Dr. House. Clinical operations are stable.</p>
         </div>
         <div className="flex gap-3">
            <button 
              onClick={() => showToast("Preparing clinical data report...", "info")}
-             className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-slate-300 text-xs font-bold uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all"
+             className="px-4 py-2 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--primary-glow)] hover:text-[var(--text-primary)] transition-all"
            >
              Generate Report
            </button>
@@ -70,9 +70,9 @@ export default function MissionControl() {
               <stat.icon className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-slate-400 text-sm mb-1">{stat.label}</p>
+              <p className="text-[var(--text-muted)] text-sm mb-1">{stat.label}</p>
               <div className="flex items-baseline gap-3">
-                <h3 className="text-3xl font-bold text-white">{stat.value}</h3>
+                <h3 className="text-3xl font-bold text-[var(--text-primary)]">{stat.value}</h3>
                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full 
                   ${stat.trend.startsWith('+') ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}
                 `}>
@@ -92,7 +92,7 @@ export default function MissionControl() {
         {/* Recent Activity List */}
         <div className="lg:col-span-2 glass-morphism rounded-3xl p-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold text-white">Recent Activity</h2>
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">Recent Activity</h2>
             <button className="text-blue-400 text-sm font-medium hover:underline flex items-center gap-1">
               View All Activity <ArrowUpRight className="w-4 h-4" />
             </button>
@@ -105,11 +105,11 @@ export default function MissionControl() {
                    <Activity className="text-blue-400 w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-white font-medium">New Assessment for John Doe</p>
-                  <p className="text-slate-400 text-sm">Pain Management Assessment • 2 hours ago</p>
+                  <p className="text-[var(--text-primary)] font-medium">New Assessment for John Doe</p>
+                  <p className="text-[var(--text-secondary)] text-sm">Pain Management Assessment • 2 hours ago</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-slate-500">By Dr. Gregory House</p>
+                  <p className="text-xs text-[var(--text-muted)]">By Dr. Gregory House</p>
                   <span className="text-[10px] uppercase tracking-wider font-bold text-blue-400">Validated</span>
                 </div>
               </div>
@@ -119,18 +119,18 @@ export default function MissionControl() {
 
         {/* Critical Alerts / Secondary area */}
         <div className="glass-morphism rounded-3xl p-8 bg-red-500/5 border-red-500/10">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
+          <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-3">
             <AlertTriangle className="text-red-500 w-6 h-6" />
             Priority Alerts
           </h2>
           <div className="space-y-4">
             <div className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20">
-               <p className="text-white text-sm font-semibold mb-1">Telemetry Interrupted</p>
+               <p className="text-[var(--text-primary)] text-sm font-semibold mb-1">Telemetry Interrupted</p>
                <p className="text-red-400/80 text-xs">Patient MRN-4829 has lost IoT connectivity in Area 4.</p>
                <button className="mt-4 text-xs font-bold text-red-400 uppercase tracking-widest hover:underline">Troubleshoot Now</button>
             </div>
             <div className="p-5 rounded-2xl bg-orange-500/10 border border-orange-500/20">
-               <p className="text-white text-sm font-semibold mb-1">Upcoming Compliance Deadline</p>
+               <p className="text-[var(--text-primary)] text-sm font-semibold mb-1">Upcoming Compliance Deadline</p>
                <p className="text-orange-400/80 text-xs">Practitioner licensure for NJ expires in 14 days.</p>
                <button className="mt-4 text-xs font-bold text-orange-400 uppercase tracking-widest hover:underline">Renew License</button>
             </div>

@@ -42,8 +42,8 @@ export default function TriageDashboard() {
       {/* Header & Stats */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Clinical Triage Command</h1>
-          <p className="text-slate-400">Prioritizing patients by symptom burden and urgency.</p>
+          <h1 className="text-3xl font-bold text-[var(--text-primary)]">Clinical Triage Command</h1>
+          <p className="text-[var(--text-secondary)]">Prioritizing patients by symptom burden and urgency.</p>
         </div>
         <div className="flex gap-4">
           <div className="px-6 py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400">
@@ -63,8 +63,8 @@ export default function TriageDashboard() {
         {/* Triage Worklist */}
         <div className="lg:col-span-2 space-y-6">
           <div className="glass-morphism rounded-3xl overflow-hidden border border-white/5">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-white/5">
+              <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-red-400" />
                 Symptom Triage Worklist
               </h2>
@@ -77,7 +77,7 @@ export default function TriageDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-white/5 text-slate-500 text-[10px] uppercase font-bold tracking-widest">
+                  <tr className="bg-white/5 text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-widest">
                     <th className="px-8 py-4">Patient</th>
                     <th className="px-8 py-4 text-center">Burden</th>
                     <th className="px-8 py-4 text-center">Directive</th>
@@ -92,8 +92,8 @@ export default function TriageDashboard() {
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 rounded-full ${p.isAlert ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
                           <div>
-                            <p className="text-white font-semibold">{p.firstName} {p.lastName}</p>
-                            <p className="text-slate-500 text-[10px] font-mono">{p.mrn}</p>
+                            <p className="text-[var(--text-primary)] font-semibold">{p.firstName} {p.lastName}</p>
+                            <p className="text-[var(--text-muted)] text-[10px] font-mono">{p.mrn}</p>
                           </div>
                         </div>
                       </td>
@@ -129,8 +129,8 @@ export default function TriageDashboard() {
 
         {/* Facility Outreach Side Panel */}
         <div className="space-y-6">
-          <div className="glass-morphism rounded-3xl p-6 border border-white/5">
-            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <div className="glass-morphism rounded-3xl p-6 border border-[var(--card-border)]">
+            <h2 className="text-lg font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
               <Building2 className="w-5 h-5 text-emerald-400" />
               Facility Outreach
             </h2>
@@ -140,10 +140,10 @@ export default function TriageDashboard() {
                 { name: "QC Care Home", patients: 8, crisis: 0 },
                 { name: "St. Lukes Hospital", patients: 5, crisis: 1 },
               ].map((f) => (
-                <div key={f.name} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-all cursor-pointer group">
+                <div key={f.name} className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-emerald-500/30 transition-all cursor-pointer group">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-white font-bold text-sm group-hover:text-emerald-400 transition-colors">{f.name}</h3>
-                    <TrendingUp className="w-4 h-4 text-slate-600" />
+                    <h3 className="text-[var(--text-primary)] font-bold text-sm group-hover:text-emerald-400 transition-colors">{f.name}</h3>
+                    <TrendingUp className="w-4 h-4 text-[var(--text-muted)]" />
                   </div>
                   <div className="flex gap-3">
                     <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{f.patients} Patients</div>

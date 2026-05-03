@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useSidebar } from "@/lib/SidebarContext";
+import { ThemeToggle } from "./ThemeToggle";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Mission Control", href: "/dashboard" },
@@ -36,18 +37,18 @@ export function Sidebar() {
 
   return (
     <aside 
-      className={`bg-[#0c1220]/80 backdrop-blur-xl border-r border-white/5 h-screen flex flex-col sticky top-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] z-[100] ${
+      className={`bg-[var(--sidebar-bg)] backdrop-blur-xl border-r border-[var(--card-border)] h-screen flex flex-col sticky top-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] z-[100] ${
         isCollapsed ? "w-20" : "w-64"
       }`}
     >
       {/* Brand Section */}
-      <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-4 h-16 border-b border-white/5 relative`}>
+      <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-4 h-16 border-b border-[var(--card-border)] relative`}>
         <div className={`flex items-center gap-3 ${isCollapsed ? "" : "overflow-hidden"}`}>
           <div className="w-9 h-9 premium-gradient rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
             <Stethoscope className="text-white w-5 h-5" />
           </div>
           {!isCollapsed && (
-            <h2 className="text-xl font-bold text-white tracking-tight animate-in fade-in zoom-in-95 duration-500">Aura</h2>
+            <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight animate-in fade-in zoom-in-95 duration-500">Aura</h2>
           )}
         </div>
         {!isCollapsed ? (
@@ -79,7 +80,7 @@ export function Sidebar() {
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${
                 isActive 
                   ? "bg-blue-500/10 text-blue-400 shadow-[inset_0_0_12px_rgba(59,130,246,0.1)]" 
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+                  : "text-[var(--text-secondary)] hover:bg-[var(--primary-glow)] hover:text-[var(--text-primary)]"
               }`}
             >
               <item.icon className={`w-5 h-5 shrink-0 ${isActive ? "text-blue-400" : "group-hover:text-blue-400 transition-colors"}`} />
@@ -99,10 +100,11 @@ export function Sidebar() {
       </nav>
 
       {/* Footer Section */}
-      <div className="p-3 border-t border-white/5">
+      <div className="p-3 border-t border-[var(--card-border)] space-y-1">
+        <ThemeToggle isCollapsed={isCollapsed} />
         <button 
           onClick={() => signOut()}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all group"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[var(--text-secondary)] hover:bg-red-500/10 hover:text-red-400 transition-all group"
           title={isCollapsed ? "Sign Out" : ""}
         >
           <LogOut className="w-5 h-5 shrink-0" />
