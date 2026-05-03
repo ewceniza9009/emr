@@ -74,7 +74,13 @@ public class SchedulingService : ISchedulingService
             .Where(a => a.ScheduledStart >= startOfToday && a.ScheduledStart < endOfToday)
             .ToListAsync(cancellationToken);
 
-        _logger.LogInformation(">>> DISCOVERY: Processing {StaffCount} clinicians with {ApptCount} existing appointments.", staffData.Count, existingAppointments.Count);
+        var scheduleBlocks = await _context.ScheduleBlocks
+            .AsNoTracking()
+            .Where(b => b.StartTime >= startOfToday && b.StartTime < endOfToday && b.Status == ScheduleBlockStatus.Blocked)
+            .ToListAsync(cancellationToken);
+
+        _logger.LogInformation(">>> DISCOVERY: Processing {StaffCount} clinicians with {ApptCount} appointments and {BlockCount} OOF blocks.", 
+            staffData.Count, existingAppointments.Count, scheduleBlocks.Count);
 
         var allSlots = new List<ClinicalSlot>();
         
@@ -105,9 +111,16 @@ public class SchedulingService : ISchedulingService
             // SCAN THE WINDOW
             for (var time = effectiveStart; time.Add(duration) <= effectiveEnd; time = time.AddMinutes(15))
             {
-                // 1. Conflict Check (In Memory)
+                // 1. Conflict Check (In Memory) - Appointments & OOF Blocks
                 var hasConflict = staffAppts.Any(a => 
                     time < a.ScheduledEnd && time.Add(duration) > a.ScheduledStart);
+                
+                if (!hasConflict)
+                {
+                    hasConflict = scheduleBlocks.Any(b => 
+                        b.PractitionerId == staff.PractitionerId &&
+                        time < b.EndTime && time.Add(duration) > b.StartTime);
+                }
                 
                 if (hasConflict) continue;
 
@@ -137,19 +150,46 @@ public class SchedulingService : ISchedulingService
                     travelTime = GeoUtils.EstimateTravelTimeMinutes(distance);
                 }
 
-                var earliestArrival = anchor != null ? anchor.ScheduledEnd.AddMinutes(travelTime) : shiftStart;
+                // EDGE CASE: Nonsense distance filter (e.g. > 150 miles / 5 hours)
+                if (distance > 150) continue;
 
-                if (time >= earliestArrival)
+                // EDGE CASE: First appointment travel
+                // If it's the first appointment, travel time starts from shiftStart
+                var earliestArrival = anchor != null 
+                    ? anchor.ScheduledEnd.AddMinutes(travelTime) 
+                    : shiftStart.AddMinutes(travelTime);
+
+                if (time < earliestArrival) continue;
+
+                // EDGE CASE: Return trip stretching past office hours
+                // Ensure they can get back home by shift end
+                var appointmentEnd = time.Add(duration);
+                double returnDistance = 0;
+                if (patientAddr?.Latitude.HasValue == true && staff.Latitude.HasValue)
                 {
-                    allSlots.Add(new ClinicalSlot
-                    {
-                        PractitionerId = staff.PractitionerId,
-                        StartTime = time,
-                        EndTime = time.Add(duration),
-                        DistanceInMiles = Math.Round(distance, 2),
-                        TravelTimeInMinutes = Math.Round(travelTime, 0)
-                    });
+                    returnDistance = GeoUtils.CalculateDistance(
+                        patientAddr.Latitude.Value, 
+                        patientAddr.Longitude.Value, 
+                        staff.Latitude.Value, 
+                        staff.Longitude.Value);
                 }
+                double returnTravelTime = GeoUtils.EstimateTravelTimeMinutes(returnDistance);
+
+                if (appointmentEnd.AddMinutes(returnTravelTime) > shiftEnd)
+                {
+                    _logger.LogDebug(">>> REJECT: {Name} slot at {Time} would stretch return trip past {End}", 
+                        staff.LastName, time.ToString("t"), shiftEnd.ToString("t"));
+                    continue;
+                }
+
+                allSlots.Add(new ClinicalSlot
+                {
+                    PractitionerId = staff.PractitionerId,
+                    StartTime = time,
+                    EndTime = appointmentEnd,
+                    DistanceInMiles = Math.Round(distance, 2),
+                    TravelTimeInMinutes = Math.Round(travelTime, 0)
+                });
             }
         }
 
