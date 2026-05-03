@@ -66,32 +66,91 @@ export default function CareNavigationPage() {
   return (
     <div className="flex h-full gap-4 overflow-hidden animate-in fade-in duration-700">
       {/* Map Placeholder Area */}
-      <div className="flex-1 bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--card-border)] shadow-2xl relative overflow-hidden group">
-        <div className="absolute inset-0 bg-[#0f172a] opacity-50 pattern-grid" />
-        
-        {/* Simulated Map UI */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="relative w-full h-full">
-             {/* Radial Pulses for Real Providers */}
-             {providers.slice(0, 5).map((p: any, i: number) => (
-               <div key={p.id} 
-                 className={`absolute w-4 h-4 rounded-full animate-pulse`}
-                 style={{ 
-                   top: `${20 + (i * 15)}%`, 
-                   left: `${30 + (i * 10)}%`,
-                   backgroundColor: p.status === 'On Site' ? '#10b981' : p.status === 'In Transit' ? 'var(--primary)' : '#94a3b8',
-                   boxShadow: `0 0 20px ${p.status === 'On Site' ? 'rgba(16,185,129,0.5)' : 'var(--primary-glow)'}`
-                 }} 
-               />
-             ))}
+      {/* Tactical Geospatial Radar Grid */}
+      <div className="flex-1 bg-slate-950 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden group">
+        {/* Vector Grid Layer */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.05)_0%,transparent_70%)]" />
+        <div className="absolute inset-0" style={{ 
+          backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px), 
+                            linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px)`,
+          backgroundSize: '40px 40px' 
+        }} />
+        <div className="absolute inset-0" style={{ 
+          backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), 
+                            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)`,
+          backgroundSize: '200px 200px' 
+        }} />
+
+        {/* Sector Boundaries */}
+        <div className="absolute inset-0 border-[0.5px] border-white/[0.03] pointer-events-none">
+          <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-white/[0.05] shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
+          <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-white/[0.05] shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-[400px] h-[400px] border border-white/[0.03] rounded-full" />
+            <div className="w-[800px] h-[800px] border border-white/[0.02] rounded-full" />
           </div>
         </div>
 
-        {/* Map Controls */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-[var(--sidebar-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-2xl p-2 shadow-2xl">
-          <button className="p-3 bg-[var(--primary)] text-white rounded-xl shadow-lg shadow-[var(--primary-glow)]"><Navigation2 className="w-5 h-5" /></button>
-          <button className="p-3 text-[var(--text-muted)] hover:text-[var(--text-primary)]"><Layers className="w-5 h-5" /></button>
-          <button className="p-3 text-[var(--text-muted)] hover:text-[var(--text-primary)]"><Activity className="w-5 h-5" /></button>
+        {/* Sonar Sweep Animation */}
+        <div className="absolute top-1/2 left-1/2 w-[1000px] h-[1000px] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          <div className="w-full h-full bg-[conic-gradient(from_0deg,transparent_0deg,rgba(16,185,129,0.1)_360deg)] animate-[spin_10s_linear_infinite]" />
+        </div>
+        
+        {/* Tactical Provider Signals */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="relative w-full h-full">
+             {providers.map((p: any, i: number) => {
+               const angle = (i * (360 / providers.length)) * (Math.PI / 180);
+               const radius = 20 + (i * 5); // Varying distances
+               const top = 50 + Math.sin(angle) * radius;
+               const left = 50 + Math.cos(angle) * radius;
+               
+               return (
+                <div key={p.id} 
+                  className="absolute -translate-x-1/2 -translate-y-1/2 group/sig"
+                  style={{ top: `${top}%`, left: `${left}%` }}
+                >
+                  {/* Signal Pulse */}
+                  <div className={`absolute -inset-4 rounded-full animate-ping opacity-20
+                    ${p.status === 'On Site' ? 'bg-emerald-500' : p.status === 'In Transit' ? 'bg-[var(--primary)]' : 'bg-slate-500'}`} />
+                  
+                  {/* Signal Blip */}
+                  <div className={`w-3 h-3 rounded-full relative shadow-lg transition-transform hover:scale-150 cursor-pointer pointer-events-auto
+                    ${p.status === 'On Site' ? 'bg-emerald-500 shadow-emerald-500/50' : 
+                      p.status === 'In Transit' ? 'bg-[var(--primary)] shadow-[var(--primary-glow)]' : 
+                      'bg-slate-700 shadow-black'}`}
+                  >
+                    {/* Direction Vector for Motion */}
+                    {p.status === 'In Transit' && (
+                      <div className="absolute top-1/2 left-full w-8 h-[2px] bg-gradient-to-r from-[var(--primary)] to-transparent origin-left rotate-45" />
+                    )}
+                  </div>
+
+                  {/* Signal Label (Visible on Hover) */}
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/80 backdrop-blur-md px-2 py-1 rounded border border-white/10 opacity-0 group-hover/sig:opacity-100 transition-opacity">
+                    <p className="text-[7px] font-black text-white uppercase tracking-tighter">{p.name}</p>
+                  </div>
+                </div>
+               );
+             })}
+          </div>
+        </div>
+
+        {/* Tactical HUD Overlay */}
+        <div className="absolute inset-x-10 bottom-10 flex items-end justify-between">
+          <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-xl border border-white/5 rounded-2xl p-2 shadow-2xl">
+            <button className="p-3 bg-[var(--primary)] text-white rounded-xl shadow-lg shadow-[var(--primary-glow)]"><Navigation2 className="w-5 h-5" /></button>
+            <button className="p-3 text-slate-500 hover:text-white transition-colors"><Layers className="w-5 h-5" /></button>
+            <button className="p-3 text-slate-500 hover:text-white transition-colors"><Activity className="w-5 h-5" /></button>
+          </div>
+
+          <div className="flex flex-col items-end gap-2 text-right">
+             <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Live Engine Feed</span>
+             </div>
+             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Coord: 40.7128° N, 74.0060° W</p>
+          </div>
         </div>
 
         {/* Overlay Stats */}
