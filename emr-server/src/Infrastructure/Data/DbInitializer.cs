@@ -47,8 +47,8 @@ namespace Infrastructure.Data
 
         public static async Task SeedDatabaseAsync(ApplicationDbContext context)
         {
-            // Force re-seed to apply new clinician and address logic
-            // if (await context.Patients.AnyAsync()) return; 
+            // Only seed if the database is empty to prevent unique constraint violations
+            if (await context.Practitioners.AnyAsync()) return; 
 
             Randomizer.Seed = new Random(8675309); // Deterministic test data
 

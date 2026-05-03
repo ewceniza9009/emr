@@ -59,7 +59,7 @@ public class BookAppointmentCommandTests
         {
             AppointmentId = appointmentId,
             PatientId = Guid.NewGuid(),
-            PractitionerId = Guid.NewGuid()
+            PractitionerId = Guid.NewGuid(),
         };
 
         var command = new BookAppointmentCommand(

@@ -29,10 +29,18 @@ public class SchedulingServiceTests
 
         // Default empty setups to avoid NullReferenceExceptions
         _mockContext.Setup(c => c.Patients).Returns(new List<Patient>().BuildMockDbSet().Object);
-        _mockContext.Setup(c => c.Practitioners).Returns(new List<Practitioner>().BuildMockDbSet().Object);
-        _mockContext.Setup(c => c.ProviderShifts).Returns(new List<ProviderShift>().BuildMockDbSet().Object);
-        _mockContext.Setup(c => c.Appointments).Returns(new List<Appointment>().BuildMockDbSet().Object);
-        _mockContext.Setup(c => c.ScheduleBlocks).Returns(new List<ScheduleBlock>().BuildMockDbSet().Object);
+        _mockContext
+            .Setup(c => c.Practitioners)
+            .Returns(new List<Practitioner>().BuildMockDbSet().Object);
+        _mockContext
+            .Setup(c => c.ProviderShifts)
+            .Returns(new List<ProviderShift>().BuildMockDbSet().Object);
+        _mockContext
+            .Setup(c => c.Appointments)
+            .Returns(new List<Appointment>().BuildMockDbSet().Object);
+        _mockContext
+            .Setup(c => c.ScheduleBlocks)
+            .Returns(new List<ScheduleBlock>().BuildMockDbSet().Object);
     }
 
     [Fact]
@@ -44,14 +52,26 @@ public class SchedulingServiceTests
         var modality = AppointmentModality.InPersonHomeVisit;
 
         var patients = new List<Patient> { new Patient { PatientId = patientId } }.BuildMockDbSet();
-        var practitioners = new List<Practitioner> {
-            new Practitioner { PractitionerId = Guid.NewGuid(), LastName = "NoShift", IsActive = true, IsCareNavigator = true }
+        var practitioners = new List<Practitioner>
+        {
+            new Practitioner
+            {
+                PractitionerId = Guid.NewGuid(),
+                LastName = "NoShift",
+                IsActive = true,
+                IsCareNavigator = true,
+            },
         }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
 
-        var result = await _service.GetAvailableProvidersAsync(targetStart, duration, modality, patientId);
+        var result = await _service.GetAvailableProvidersAsync(
+            targetStart,
+            duration,
+            modality,
+            patientId
+        );
         result.Should().BeEmpty();
     }
 
@@ -65,19 +85,35 @@ public class SchedulingServiceTests
         var modality = AppointmentModality.InPersonHomeVisit;
 
         var patients = new List<Patient> { new Patient { PatientId = patientId } }.BuildMockDbSet();
-        var practitioners = new List<Practitioner> {
-            new Practitioner { PractitionerId = practitionerId, LastName = "Busy", IsActive = true, IsCareNavigator = true }
+        var practitioners = new List<Practitioner>
+        {
+            new Practitioner
+            {
+                PractitionerId = practitionerId,
+                LastName = "Busy",
+                IsActive = true,
+                IsCareNavigator = true,
+            },
         }.BuildMockDbSet();
-        var shifts = new List<ProviderShift> {
-            new ProviderShift { PractitionerId = practitionerId, DayOfWeek = DayOfWeek.Monday, StartTime = new TimeSpan(8, 0, 0), EndTime = new TimeSpan(17, 0, 0) }
+        var shifts = new List<ProviderShift>
+        {
+            new ProviderShift
+            {
+                PractitionerId = practitionerId,
+                DayOfWeek = DayOfWeek.Monday,
+                StartTime = new TimeSpan(8, 0, 0),
+                EndTime = new TimeSpan(17, 0, 0),
+            },
         }.BuildMockDbSet();
 
-        var appointments = new List<Appointment> {
-            new Appointment {
+        var appointments = new List<Appointment>
+        {
+            new Appointment
+            {
                 PractitionerId = practitionerId,
                 ScheduledStart = new DateTimeOffset(2026, 5, 4, 10, 30, 0, TimeSpan.Zero),
-                ScheduledEnd = new DateTimeOffset(2026, 5, 4, 11, 30, 0, TimeSpan.Zero)
-            }
+                ScheduledEnd = new DateTimeOffset(2026, 5, 4, 11, 30, 0, TimeSpan.Zero),
+            },
         }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
@@ -85,7 +121,12 @@ public class SchedulingServiceTests
         _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
 
-        var result = await _service.GetAvailableProvidersAsync(targetStart, duration, modality, patientId);
+        var result = await _service.GetAvailableProvidersAsync(
+            targetStart,
+            duration,
+            modality,
+            patientId
+        );
         result.Any(s => s.StartTime == targetStart).Should().BeFalse();
     }
 
@@ -98,23 +139,70 @@ public class SchedulingServiceTests
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
-        var patients = new List<Patient> {
-            new Patient { PatientId = patientId, Addresses = new List<EntityAddress> { new EntityAddress { IsPrimary = true, Address = new Address { Latitude = BaseLat, Longitude = BaseLon } } } }
+        var patients = new List<Patient>
+        {
+            new Patient
+            {
+                PatientId = patientId,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address { Latitude = BaseLat, Longitude = BaseLon },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
-        var practitioners = new List<Practitioner> {
-            new Practitioner { PractitionerId = practitionerId, IsActive = true, IsCareNavigator = true, Addresses = new List<EntityAddress> { new EntityAddress { IsPrimary = true, Address = new Address { Latitude = NearLat, Longitude = NearLon } } } }
+        var practitioners = new List<Practitioner>
+        {
+            new Practitioner
+            {
+                PractitionerId = practitionerId,
+                IsActive = true,
+                IsCareNavigator = true,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address { Latitude = NearLat, Longitude = NearLon },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
-        var shifts = new List<ProviderShift> { new ProviderShift { PractitionerId = practitionerId, DayOfWeek = DayOfWeek.Monday, StartTime = new TimeSpan(8, 0, 0), EndTime = new TimeSpan(17, 0, 0) } }.BuildMockDbSet();
+        var shifts = new List<ProviderShift>
+        {
+            new ProviderShift
+            {
+                PractitionerId = practitionerId,
+                DayOfWeek = DayOfWeek.Monday,
+                StartTime = new TimeSpan(8, 0, 0),
+                EndTime = new TimeSpan(17, 0, 0),
+            },
+        }.BuildMockDbSet();
 
-        var appointments = new List<Appointment> {
-            new Appointment {
+        var appointments = new List<Appointment>
+        {
+            new Appointment
+            {
                 PractitionerId = practitionerId,
                 ScheduledStart = new DateTimeOffset(2026, 5, 4, 8, 30, 0, TimeSpan.Zero),
                 ScheduledEnd = new DateTimeOffset(2026, 5, 4, 9, 30, 0, TimeSpan.Zero),
-                Patient = new Patient { Addresses = new List<EntityAddress> { new EntityAddress { IsPrimary = true, Address = new Address { Latitude = NearLat, Longitude = NearLon } } } }
-            }
+                Patient = new Patient
+                {
+                    Addresses = new List<EntityAddress>
+                    {
+                        new EntityAddress
+                        {
+                            IsPrimary = true,
+                            Address = new Address { Latitude = NearLat, Longitude = NearLon },
+                        },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
@@ -122,7 +210,12 @@ public class SchedulingServiceTests
         _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
 
-        var result = await _service.GetAvailableProvidersAsync(targetStart, duration, modality, patientId);
+        var result = await _service.GetAvailableProvidersAsync(
+            targetStart,
+            duration,
+            modality,
+            patientId
+        );
         result.Any(s => s.StartTime == targetStart).Should().BeTrue();
     }
 
@@ -136,21 +229,65 @@ public class SchedulingServiceTests
         var duration = TimeSpan.FromMinutes(30);
         var modality = AppointmentModality.InPersonHomeVisit;
 
-        var patients = new List<Patient> {
-            new Patient { PatientId = patientId, Addresses = new List<EntityAddress> { new EntityAddress { IsPrimary = true, Address = new Address { Latitude = BaseLat, Longitude = BaseLon } } } }
+        var patients = new List<Patient>
+        {
+            new Patient
+            {
+                PatientId = patientId,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address { Latitude = BaseLat, Longitude = BaseLon },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
-        var practitioners = new List<Practitioner> {
-            new Practitioner { PractitionerId = practitionerId, IsActive = true, IsCareNavigator = true, Addresses = new List<EntityAddress> { new EntityAddress { IsPrimary = true, Address = new Address { Latitude = BaseLat + 0.5, Longitude = BaseLon + 0.5 } } } }
+        var practitioners = new List<Practitioner>
+        {
+            new Practitioner
+            {
+                PractitionerId = practitionerId,
+                IsActive = true,
+                IsCareNavigator = true,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address
+                        {
+                            Latitude = BaseLat + 0.5,
+                            Longitude = BaseLon + 0.5,
+                        },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
-        var shifts = new List<ProviderShift> { new ProviderShift { PractitionerId = practitionerId, DayOfWeek = DayOfWeek.Monday, StartTime = new TimeSpan(8, 0, 0), EndTime = shiftEnd } }.BuildMockDbSet();
+        var shifts = new List<ProviderShift>
+        {
+            new ProviderShift
+            {
+                PractitionerId = practitionerId,
+                DayOfWeek = DayOfWeek.Monday,
+                StartTime = new TimeSpan(8, 0, 0),
+                EndTime = shiftEnd,
+            },
+        }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
 
-        var result = await _service.GetAvailableProvidersAsync(targetStart, duration, modality, patientId);
+        var result = await _service.GetAvailableProvidersAsync(
+            targetStart,
+            duration,
+            modality,
+            patientId
+        );
         result.Any(s => s.StartTime == targetStart).Should().BeFalse();
     }
 
@@ -163,21 +300,65 @@ public class SchedulingServiceTests
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
-        var patients = new List<Patient> {
-            new Patient { PatientId = patientId, Addresses = new List<EntityAddress> { new EntityAddress { IsPrimary = true, Address = new Address { Latitude = BaseLat, Longitude = BaseLon } } } }
+        var patients = new List<Patient>
+        {
+            new Patient
+            {
+                PatientId = patientId,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address { Latitude = BaseLat, Longitude = BaseLon },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
-        var practitioners = new List<Practitioner> {
-            new Practitioner { PractitionerId = practitionerId, IsActive = true, IsCareNavigator = true, Addresses = new List<EntityAddress> { new EntityAddress { IsPrimary = true, Address = new Address { Latitude = BaseLat + 5.0, Longitude = BaseLon + 5.0 } } } }
+        var practitioners = new List<Practitioner>
+        {
+            new Practitioner
+            {
+                PractitionerId = practitionerId,
+                IsActive = true,
+                IsCareNavigator = true,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address
+                        {
+                            Latitude = BaseLat + 5.0,
+                            Longitude = BaseLon + 5.0,
+                        },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
-        var shifts = new List<ProviderShift> { new ProviderShift { PractitionerId = practitionerId, DayOfWeek = DayOfWeek.Monday, StartTime = new TimeSpan(8, 0, 0), EndTime = new TimeSpan(17, 0, 0) } }.BuildMockDbSet();
+        var shifts = new List<ProviderShift>
+        {
+            new ProviderShift
+            {
+                PractitionerId = practitionerId,
+                DayOfWeek = DayOfWeek.Monday,
+                StartTime = new TimeSpan(8, 0, 0),
+                EndTime = new TimeSpan(17, 0, 0),
+            },
+        }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
 
-        var result = await _service.GetAvailableProvidersAsync(targetStart, duration, modality, patientId);
+        var result = await _service.GetAvailableProvidersAsync(
+            targetStart,
+            duration,
+            modality,
+            patientId
+        );
         result.Should().BeEmpty();
     }
 
@@ -191,16 +372,47 @@ public class SchedulingServiceTests
         var modality = AppointmentModality.InPersonHomeVisit;
 
         var patients = new List<Patient> { new Patient { PatientId = patientId } }.BuildMockDbSet();
-        var practitioners = new List<Practitioner> { new Practitioner { PractitionerId = practitionerId, IsActive = true, IsCareNavigator = true } }.BuildMockDbSet();
-        var shifts = new List<ProviderShift> { new ProviderShift { PractitionerId = practitionerId, DayOfWeek = DayOfWeek.Monday, StartTime = new TimeSpan(8, 0, 0), EndTime = new TimeSpan(17, 0, 0) } }.BuildMockDbSet();
-        var blocks = new List<ScheduleBlock> { new ScheduleBlock { PractitionerId = practitionerId, StartTime = new DateTimeOffset(2026, 5, 4, 10, 30, 0, TimeSpan.Zero), EndTime = new DateTimeOffset(2026, 5, 4, 11, 30, 0, TimeSpan.Zero), Status = ScheduleBlockStatus.Blocked } }.BuildMockDbSet();
+        var practitioners = new List<Practitioner>
+        {
+            new Practitioner
+            {
+                PractitionerId = practitionerId,
+                IsActive = true,
+                IsCareNavigator = true,
+            },
+        }.BuildMockDbSet();
+        var shifts = new List<ProviderShift>
+        {
+            new ProviderShift
+            {
+                PractitionerId = practitionerId,
+                DayOfWeek = DayOfWeek.Monday,
+                StartTime = new TimeSpan(8, 0, 0),
+                EndTime = new TimeSpan(17, 0, 0),
+            },
+        }.BuildMockDbSet();
+        var blocks = new List<ScheduleBlock>
+        {
+            new ScheduleBlock
+            {
+                PractitionerId = practitionerId,
+                StartTime = new DateTimeOffset(2026, 5, 4, 10, 30, 0, TimeSpan.Zero),
+                EndTime = new DateTimeOffset(2026, 5, 4, 11, 30, 0, TimeSpan.Zero),
+                Status = ScheduleBlockStatus.Blocked,
+            },
+        }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
         _mockContext.Setup(c => c.ScheduleBlocks).Returns(blocks.Object);
 
-        var result = await _service.GetAvailableProvidersAsync(targetStart, duration, modality, patientId);
+        var result = await _service.GetAvailableProvidersAsync(
+            targetStart,
+            duration,
+            modality,
+            patientId
+        );
         result.Any(s => s.StartTime == targetStart).Should().BeFalse();
     }
 
@@ -214,14 +426,36 @@ public class SchedulingServiceTests
         var modality = AppointmentModality.InPersonHomeVisit;
 
         var patients = new List<Patient> { new Patient { PatientId = patientId } }.BuildMockDbSet();
-        var practitioners = new List<Practitioner> { new Practitioner { PractitionerId = practitionerId, IsActive = true, IsCareNavigator = true } }.BuildMockDbSet();
-        var shifts = new List<ProviderShift> { new ProviderShift { PractitionerId = practitionerId, DayOfWeek = DayOfWeek.Monday, StartTime = new TimeSpan(8, 0, 0), EndTime = new TimeSpan(17, 0, 0) } }.BuildMockDbSet();
+        var practitioners = new List<Practitioner>
+        {
+            new Practitioner
+            {
+                PractitionerId = practitionerId,
+                IsActive = true,
+                IsCareNavigator = true,
+            },
+        }.BuildMockDbSet();
+        var shifts = new List<ProviderShift>
+        {
+            new ProviderShift
+            {
+                PractitionerId = practitionerId,
+                DayOfWeek = DayOfWeek.Monday,
+                StartTime = new TimeSpan(8, 0, 0),
+                EndTime = new TimeSpan(17, 0, 0),
+            },
+        }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
 
-        var result = await _service.GetAvailableProvidersAsync(targetStart, duration, modality, patientId);
+        var result = await _service.GetAvailableProvidersAsync(
+            targetStart,
+            duration,
+            modality,
+            patientId
+        );
         result.Any(s => s.StartTime.Hour == 9).Should().BeTrue(); // Accounts for travel from home at 8:00
     }
 
@@ -234,15 +468,41 @@ public class SchedulingServiceTests
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
-        var patients = new List<Patient> { new Patient { PatientId = patientId, Addresses = new List<EntityAddress>() } }.BuildMockDbSet();
-        var practitioners = new List<Practitioner> { new Practitioner { PractitionerId = practitionerId, IsActive = true, IsCareNavigator = true, Addresses = new List<EntityAddress>() } }.BuildMockDbSet();
-        var shifts = new List<ProviderShift> { new ProviderShift { PractitionerId = practitionerId, DayOfWeek = DayOfWeek.Monday, StartTime = new TimeSpan(8, 0, 0), EndTime = new TimeSpan(17, 0, 0) } }.BuildMockDbSet();
+        var patients = new List<Patient>
+        {
+            new Patient { PatientId = patientId, Addresses = new List<EntityAddress>() },
+        }.BuildMockDbSet();
+        var practitioners = new List<Practitioner>
+        {
+            new Practitioner
+            {
+                PractitionerId = practitionerId,
+                IsActive = true,
+                IsCareNavigator = true,
+                Addresses = new List<EntityAddress>(),
+            },
+        }.BuildMockDbSet();
+        var shifts = new List<ProviderShift>
+        {
+            new ProviderShift
+            {
+                PractitionerId = practitionerId,
+                DayOfWeek = DayOfWeek.Monday,
+                StartTime = new TimeSpan(8, 0, 0),
+                EndTime = new TimeSpan(17, 0, 0),
+            },
+        }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
 
-        var result = await _service.GetAvailableProvidersAsync(targetStart, duration, modality, patientId);
+        var result = await _service.GetAvailableProvidersAsync(
+            targetStart,
+            duration,
+            modality,
+            patientId
+        );
         result.Should().NotBeEmpty();
         result.First().TravelTimeInMinutes.Should().Be(15);
     }
