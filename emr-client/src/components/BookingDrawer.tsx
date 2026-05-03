@@ -143,6 +143,20 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const [modality, setModality] = useState("IN_PERSON_HOME_VISIT");
   const [booked, setBooked] = useState(false);
 
+  // DEBOUNCE ENGINE: Prevent hammer-firing the backend during rapid UI changes
+  const [debouncedDuration, setDebouncedDuration] = useState(duration);
+  const [debouncedDate, setDebouncedDate] = useState(selectedDate);
+  const [debouncedModality, setDebouncedModality] = useState(modality);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedDuration(duration);
+      setDebouncedDate(selectedDate);
+      setDebouncedModality(modality);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [duration, selectedDate, modality]);
+
   const { data: patientData } = useQuery(GET_PATIENTS, { skip: !open });
   const { data: practitionerData } = useQuery(GET_PRACTITIONERS, { skip: !open });
 
@@ -163,10 +177,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
         postalCode: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || a.patient?.addresses?.[0]?.address?.postalCode || ""
       });
       setPractitionerId(a.practitionerId || "");
-      // Data Integrity: Ensure no clinicians with the CareNavigator role leak into the supporting list on load
-      const cnIds = new Set(displayCns.map(cn => cn.practitionerId?.toLowerCase()));
+      // Data Integrity: Load all supporting clinicians regardless of their primary role title
       const rawSupporting = a.supportingClinicians?.map((s: any) => s.practitionerId) || [];
-      setSupportingIds(rawSupporting.filter((id: string) => !cnIds.has(id?.toLowerCase())));
+      setSupportingIds(rawSupporting);
       setModality(a.modality);
       const start = new Date(a.scheduledStart);
       setSelectedDate(start);
@@ -179,9 +192,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const { data: amData, loading: amLoading } = useQuery(GET_GEOSPATIAL_AVAILABILITY, {
     variables: {
       patientId,
-      targetStart: new Date(new Date(selectedDate).setHours(8, 0, 0, 0)).toISOString(),
-      modality,
-      durationMinutes: duration
+      targetStart: new Date(new Date(debouncedDate).setHours(8, 0, 0, 0)).toISOString(),
+      modality: debouncedModality,
+      durationMinutes: debouncedDuration
     },
     skip: !patientId || !open
   });
@@ -189,9 +202,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const { data: pmData, loading: pmLoading } = useQuery(GET_GEOSPATIAL_AVAILABILITY, {
     variables: {
       patientId,
-      targetStart: new Date(new Date(selectedDate).setHours(13, 0, 0, 0)).toISOString(),
-      modality,
-      durationMinutes: duration
+      targetStart: new Date(new Date(debouncedDate).setHours(13, 0, 0, 0)).toISOString(),
+      modality: debouncedModality,
+      durationMinutes: debouncedDuration
     },
     skip: !patientId || !open
   });
@@ -201,10 +214,17 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   // Auto-select best supporting clinician when slot is chosen
   useEffect(() => {
     if (currentGeoData?.availableProviders?.length > 0 && !practitionerId) {
+      // ENGINE PROPOSAL: Prioritize CareNavigators for the Primary (CN) slot
       const best = [...currentGeoData.availableProviders]
-        .filter(p => p.role !== "CareNavigator")
+        .filter(p => p.role === "CareNavigator")
         .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
       if (best) setPractitionerId(best.practitionerId);
+      else {
+        // Fallback to any available provider if no specific CN is found
+        const fallback = [...currentGeoData.availableProviders]
+          .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
+        if (fallback) setPractitionerId(fallback.practitionerId);
+      }
     }
   }, [currentGeoData, practitionerId]);
 
@@ -218,26 +238,50 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   }, [currentGeoData]);
 
   const displayCns = useMemo(() => {
-    const geoCns = currentGeoData?.availableProviders?.filter((p: any) => p.role === "CareNavigator") || [];
-    const allCns = practitionerData?.practitioners?.filter((p: any) => p.position?.toLowerCase() === "nurse" || p.isCareNavigator) || [];
-    // Prioritize allCns for full profile data, but keep geoCns availability
-    const combined = Array.from(new Map([...allCns, ...geoCns].map(p => {
-        const profile = allCns.find((x: any) => x.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
-        return [p.practitionerId?.toLowerCase(), { ...profile, ...p }];
-    })).values());
-    return combined;
-  }, [currentGeoData, practitionerData]);
+    const geoProviders = currentGeoData?.availableProviders || [];
+    const allPractitioners = practitionerData?.practitioners || [];
+    
+    // 1. Get the current Primary Practitioner (regardless of their base role)
+    const primary = allPractitioners.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId?.toLowerCase());
+    
+    // 2. Get all others who are CareNavigators by default (and not currently assigned as SC)
+    const baseCns = allPractitioners.filter((p: any) => 
+        p.isCareNavigator && 
+        p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase() &&
+        !supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())
+    );
+
+    const combined = primary ? [primary, ...baseCns] : baseCns;
+
+    return combined.map((p: any) => {
+        const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
+        return { ...p, ...geo };
+    });
+  }, [currentGeoData, practitionerData, practitionerId, supportingIds]);
 
   const displayScs = useMemo(() => {
-    const geoScs = currentGeoData?.availableProviders?.filter((p: any) => p.role !== "CareNavigator") || [];
-    const allScs = practitionerData?.practitioners?.filter((p: any) => p.position?.toLowerCase() !== "nurse" || p.isSupportingClinician) || [];
-    // Prioritize allScs for full profile data, but keep geoScs availability
-    const combined = Array.from(new Map([...allScs, ...geoScs].map(p => {
-        const profile = allScs.find((x: any) => x.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
-        return [p.practitionerId?.toLowerCase(), { ...profile, ...p }];
-    })).values());
-    return combined;
-  }, [currentGeoData, practitionerData]);
+    const geoProviders = currentGeoData?.availableProviders || [];
+    const allPractitioners = practitionerData?.practitioners || [];
+    
+    // 1. Get all practitioners currently assigned as Supporting (regardless of their base role)
+    const assignedScs = allPractitioners.filter((p: any) => 
+        supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())
+    );
+    
+    // 2. Get all others who are SupportingClinicians by default (and not currently assigned as Primary)
+    const baseScs = allPractitioners.filter((p: any) => 
+        p.isSupportingClinician && 
+        p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase() &&
+        !supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())
+    );
+
+    const combined = [...assignedScs, ...baseScs];
+
+    return combined.map((p: any) => {
+        const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
+        return { ...p, ...geo };
+    });
+  }, [currentGeoData, practitionerData, practitionerId, supportingIds]);
 
   const selectedSlot = useMemo(() => {
     if (appointmentId && !practitionerId && appointmentData?.appointment) {
@@ -476,18 +520,25 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {displayCns.map((p: any) => {
-                          const isPrimary = practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
-                          const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === p.practitionerId?.toLowerCase());
+                          const pid = p.practitionerId;
+                          const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
+                          const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
                           return (
-                            <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
+                            <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                               ${isPrimary ? "bg-purple-600/10 border-purple-500 shadow-xl shadow-purple-500/10" : isSupporting ? "bg-blue-600/10 border-blue-500 shadow-xl shadow-blue-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
                             onClick={() => {
-                              const pid = p.practitionerId;
                               if (!pid) return;
-                              setPractitionerId(pid);
-                              // Strictly remove ANY navigator from the supporting list to prevent double highlights
-                              const allCnIds = new Set(displayCns.map(cn => cn.practitionerId?.toLowerCase()));
-                              setSupportingIds(prev => prev.filter(id => !allCnIds.has(id?.toLowerCase())));
+                              if (isSupporting) {
+                                // If they were supporting, make them primary
+                                setPractitionerId(pid);
+                                setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                              } else if (isPrimary) {
+                                // Toggle off primary
+                                setPractitionerId("");
+                              } else {
+                                setPractitionerId(pid);
+                                setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                              }
                             }}>
                             <div className="flex items-center gap-3 min-w-0">
                               <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary ? "bg-purple-500 text-white" : isSupporting ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
@@ -498,7 +549,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                    title={p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}>
                                   {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}
                                 </p>
-                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5 truncate whitespace-nowrap">{isSupporting ? "Helping as SC" : "Care Navigator"}</p>
+                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5 truncate whitespace-nowrap">
+                                    {isPrimary ? "Primary (CN)" : isSupporting ? "Supporting (SC)" : "Care Navigator"}
+                                </p>
                               </div>
                             </div>
                              <div className="text-right">
@@ -534,31 +587,40 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {displayScs.map((p: any) => {
-                        const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === p.practitionerId?.toLowerCase());
-                        const isSelected = isSupporting; // In SC section, only highlight if they are supporting
+                        const pid = p.practitionerId;
+                        const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
+                        const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
+                        const isSelected = isPrimary || isSupporting;
                         return (
-                          <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
-                            ${isSelected ? "bg-blue-600/10 border-blue-500 shadow-xl shadow-blue-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
+                          <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
+                            ${isPrimary ? "bg-purple-600/10 border-purple-500 shadow-xl shadow-purple-500/10" : isSupporting ? "bg-blue-600/10 border-blue-500 shadow-xl shadow-blue-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
                              onClick={() => {
-                               const pid = p.practitionerId;
-                               if (!pid || practitionerId?.toLowerCase() === pid.toLowerCase()) return;
-                               
-                               if (isSupporting) {
-                                 setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                               if (!pid) return;
+                               if (isPrimary) {
+                                  // Switch from primary to supporting
+                                  setPractitionerId("");
+                                  setSupportingIds(prev => [...prev, pid]);
+                               } else if (isSupporting) {
+                                  // Toggle off supporting
+                                  setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
                                } else {
-                                 setSupportingIds(prev => [...prev, pid]);
+                                  // Toggle on supporting
+                                  setSupportingIds(prev => [...prev, pid]);
+                                  if (practitionerId?.toLowerCase() === pid.toLowerCase()) setPractitionerId("");
                                }
                              }}>
                             <div className="flex items-center gap-3 min-w-0">
-                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary ? "bg-purple-500 text-white" : isSupporting ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
                                 <Stethoscope className="w-4 h-4" />
                               </div>
                               <div className="min-w-0">
-                                <p className={`text-xs font-black uppercase truncate whitespace-nowrap ${isSelected ? "text-white" : "text-slate-400"}`}
+                                <p className={`text-xs font-black uppercase truncate whitespace-nowrap ${isPrimary ? "text-white" : isSupporting ? "text-blue-400" : "text-slate-400"}`}
                                    title={p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}>
                                   {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}
                                 </p>
-                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5 truncate whitespace-nowrap">Supporting Clinician</p>
+                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5 truncate whitespace-nowrap">
+                                    {isPrimary ? "Primary (CN)" : isSupporting ? "Supporting (SC)" : "Supporting Clinician"}
+                                </p>
                               </div>
                             </div>
                           </div>
