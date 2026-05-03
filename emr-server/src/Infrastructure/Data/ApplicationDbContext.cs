@@ -89,7 +89,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
+        // Define sequence for MRN generation
+        modelBuilder.HasSequence<long>("patient_mrn_seq")
+            .StartsAt(10000)
+            .IncrementsBy(1);
         // Global naming convention: snake_case for all tables and columns
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
@@ -126,6 +130,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
         // Configuration mapped via separate Configuration files.
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        // Explicitly map Practitioner -> ProviderShift relationship to avoid shadow properties
+        modelBuilder.Entity<ProviderShift>(entity =>
+        {
+            entity.HasOne(d => d.Practitioner)
+                .WithMany(p => p.Shifts)
+                .HasForeignKey(d => d.PractitionerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
 

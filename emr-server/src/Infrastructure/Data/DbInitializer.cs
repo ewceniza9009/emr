@@ -1,320 +1,376 @@
-using Domain.Entities;
-using Domain.Enums;
-using Infrastructure.Identity;
-using Microsoft.AspNetCore.Identity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Domain.Entities;
+using Domain.Enums;
+using Infrastructure.Data;
+using Bogus;
 
-namespace Infrastructure.Data;
-
-public static class DbInitializer
+namespace Infrastructure.Data
 {
-    public static async Task InitializeAsync(IServiceProvider serviceProvider)
+    public static class DbInitializer
     {
-        using var scope = serviceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-        // 1. Ensure Database is created and migrations are applied
-        try {
-            await context.Database.MigrateAsync();
-        } catch (Exception ex) {
-            Console.WriteLine($"[Seeding Warning] Migration failed: {ex.Message}");
-        }
-
-        // 2. WIPE RECORDS (Except Identity)
-        try {
-            // Re-fetch context to ensure it has latest model if needed
-            var wipeSql = @"
-                TRUNCATE TABLE 
-                    appointments, 
-                    clinical_encounters,
-                    prescriptions, 
-                    patient_outreaches, 
-                    patients, 
-                    practitioners, 
-                    provider_shifts, 
-                    facilities, 
-                    health_plans, 
-                    medications,
-                    clinical_notes,
-                    allergies,
-                    vital_signs,
-                    sdoh_assessments,
-                    navigation_tasks,
-                    intervention_logs,
-                    barrier_logs,
-                    z_benefit_claims,
-                    claim_status_logs,
-                    billing_invoices,
-                    durable_medical_equipment,
-                    equipment_deliveries,
-                    telemetry_logs,
-                    practitioner_licensures,
-                    practitioner_service_areas,
-                    patient_contacts,
-                    patient_phones,
-                    patient_emails,
-                    advance_directives
-                CASCADE;
-            ";
-            await context.Database.ExecuteSqlRawAsync(wipeSql);
-            Console.WriteLine("[Seeding] Database wiped (excluding Identity tables).");
-        } catch (Exception ex) {
-            Console.WriteLine($"[Seeding Warning] Wipe failed: {ex.Message}. This is expected if tables don't exist yet.");
-        }
-
-        // 4. Seed Roles
-        string[] roles = { "Admin", "Practitioner", "CareNavigator" };
-        foreach (var role in roles)
+        public static async Task InitializeAsync(IServiceProvider serviceProvider, bool wipeDb = true, bool seedDb = true)
         {
-            if (!await roleManager.RoleExistsAsync(role))
-                await roleManager.CreateAsync(new IdentityRole(role));
-        }
+            using var scope = serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        // 5. Seed Staff & Practitioners (Re-linking to existing Users if they exist)
-        var clinicalStaff = new[] {
-            new { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), Email = "dr.house@palliative.emr", First = "Gregory", Last = "House", Role = "CareNavigator", City = "Manila", Lat = 14.5995, Lon = 120.9842 },
-            new { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Email = "dr.wilson@palliative.emr", First = "James", Last = "Wilson", Role = "Practitioner", City = "Quezon City", Lat = 14.6760, Lon = 121.0437 },
-            new { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), Email = "nurse.ratched@palliative.emr", First = "Mildred", Last = "Ratched", Role = "CareNavigator", City = "Pasig", Lat = 14.5733, Lon = 121.0567 },
-            new { Id = Guid.Parse("44444444-4444-4444-4444-444444444444"), Email = "dr.strange@palliative.emr", First = "Stephen", Last = "Strange", Role = "Practitioner", City = "Makati", Lat = 14.5547, Lon = 121.0244 },
-            new { Id = Guid.Parse("55555555-5555-5555-5555-555555555555"), Email = "dr.grey@palliative.emr", First = "Meredith", Last = "Grey", Role = "Practitioner", City = "Taguig", Lat = 14.5176, Lon = 121.0509 }
-        };
-
-        foreach (var staff in clinicalStaff)
-        {
-            var user = await userManager.FindByEmailAsync(staff.Email);
-            if (user == null)
+            if (wipeDb)
             {
-                user = new ApplicationUser { UserName = staff.Email, Email = staff.Email, FirstName = staff.First, LastName = staff.Last, EmailConfirmed = true };
-                await userManager.CreateAsync(user, "Practitioner@123!");
-                await userManager.AddToRoleAsync(user, staff.Role);
+                await WipeDatabaseAsync(context);
             }
-
-            var practitioner = new Practitioner 
-            { 
-                PractitionerId = staff.Id, 
-                UserId = Guid.Parse(user.Id),
-                FirstName = staff.First,
-                LastName = staff.Last,
-                IsActive = true,
-                IsCareNavigator = staff.Role == "CareNavigator",
-                IsSupportingClinician = staff.Role == "Practitioner",
-                Position = staff.Role == "CareNavigator" ? PractitionerPosition.Nurse : PractitionerPosition.Physician,
-                Addresses = new List<EntityAddress>
-                {
-                    new EntityAddress
-                    {
-                        Address = new Address { Street = "Main Office Base", City = staff.City, Latitude = staff.Lat, Longitude = staff.Lon },
-                        Type = AddressType.Work,
-                        IsPrimary = true
-                    }
-                }
-            };
-            context.Practitioners.Add(practitioner);
-
-            // Seed Shifts for all staff
-            foreach (DayOfWeek day in Enum.GetValues(typeof(DayOfWeek)))
+            
+            if (seedDb)
             {
-                if (day == DayOfWeek.Saturday || day == DayOfWeek.Sunday) continue;
-                context.ProviderShifts.Add(new ProviderShift { 
-                    ProviderShiftId = Guid.NewGuid(),
-                    PractitionerId = practitioner.PractitionerId, 
-                    DayOfWeek = day, 
-                    StartTime = new TimeSpan(8, 0, 0), 
-                    EndTime = new TimeSpan(17, 0, 0) 
-                });
+                await SeedDatabaseAsync(context);
             }
         }
-        await context.SaveChangesAsync();
 
-        // 6. Seed Health Plans (5 records)
-        var plans = new List<HealthPlan> {
-            new() { Name = "CareSource Gold", Code = "CS-G", Description = "Premium Palliative Coverage" },
-            new() { Name = "PhilHealth National", Code = "PH-NAT", Description = "National Health Insurance" },
-            new() { Name = "Maxicare Plus", Code = "MX-P", Description = "Private Health Partner" },
-            new() { Name = "Intellicare Elite", Code = "IC-E", Description = "Corporate Managed Care" },
-            new() { Name = "Medicard Direct", Code = "MC-D", Description = "Specialized Hospice Plan" }
-        };
-        context.HealthPlans.AddRange(plans);
-        await context.SaveChangesAsync();
-
-        // 7. Seed Facilities (5 records)
-        var facilities = new List<Facility> {
-            new() { Name = "Manila Medical Center", Type = FacilityType.Hospital, FacilityAddress = new Address { Street = "UN Ave", City = "Manila", Latitude = 14.5800, Longitude = 120.9800 } },
-            new() { Name = "St. Lukes BGC", Type = FacilityType.Hospital, FacilityAddress = new Address { Street = "32nd St", City = "Taguig", Latitude = 14.5500, Longitude = 121.0500 } },
-            new() { Name = "Makati Med", Type = FacilityType.Hospital, FacilityAddress = new Address { Street = "Amorsolo St", City = "Makati", Latitude = 14.5600, Longitude = 121.0100 } },
-            new() { Name = "Cebu Doctors Hospital", Type = FacilityType.Hospital, FacilityAddress = new Address { Street = "Osmena Blvd", City = "Cebu", Latitude = 10.3100, Longitude = 123.8900 } },
-            new() { Name = "Davao Medical School", Type = FacilityType.Hospital, FacilityAddress = new Address { Street = "Bajada", City = "Davao", Latitude = 7.0700, Longitude = 125.6100 } }
-        };
-        context.Facilities.AddRange(facilities);
-        await context.SaveChangesAsync();
-
-        // 8. Seed Medications (8 records)
-        var medications = new List<Medication> {
-            new() { Name = "Morphine Sulfate", Strength = "5mg/ml", DefaultRoute = MedicationRoute.Sublingual },
-            new() { Name = "Lorazepam (Ativan)", Strength = "1mg", DefaultRoute = MedicationRoute.Oral },
-            new() { Name = "Oxygen", Strength = "2L/min", DefaultRoute = MedicationRoute.Inhalation },
-            new() { Name = "Haloperidol", Strength = "2mg/ml", DefaultRoute = MedicationRoute.Oral },
-            new() { Name = "Fentanyl Patch", Strength = "25mcg/hr", DefaultRoute = MedicationRoute.Transdermal },
-            new() { Name = "Hyoscine", Strength = "20mg", DefaultRoute = MedicationRoute.Subcutaneous },
-            new() { Name = "Metoclopramide", Strength = "10mg", DefaultRoute = MedicationRoute.Oral },
-            new() { Name = "Dexamethasone", Strength = "4mg", DefaultRoute = MedicationRoute.Oral }
-        };
-        context.Medications.AddRange(medications);
-        await context.SaveChangesAsync();
-
-        // 9. Seed Patients (10 records)
-        var random = new Random();
-        var patientNames = new[] { 
-            ("Jane", "Smith"), ("John", "Doe"), ("Maria", "Santos"), ("Juan", "Rizal"), 
-            ("Antonio", "Luna"), ("Teresa", "Magbanua"), ("Melchora", "Aquino"), 
-            ("Andres", "Bonifacio"), ("Jose", "Pilar"), ("Gabriela", "Silang") 
-        };
-
-        var practitioners = await context.Practitioners.ToListAsync();
-        var seededPatients = new List<Patient>();
-
-        foreach (var (first, last) in patientNames)
+        public static async Task WipeDatabaseAsync(ApplicationDbContext context)
         {
-            var p = new Patient
+            var tableNames = context.Model.GetEntityTypes()
+                .Select(t => t.GetTableName())
+                .Distinct()
+                .Where(t => !string.IsNullOrEmpty(t) && !t.StartsWith("AspNet", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (tableNames.Any())
             {
-                PatientId = Guid.NewGuid(),
-                Mrn = $"MRN-{random.Next(10000, 99999)}",
-                FirstName = first,
-                LastName = last,
-                Dob = new DateTime(random.Next(1940, 1970), random.Next(1, 13), random.Next(1, 28), 0, 0, 0, DateTimeKind.Utc),
-                BiologicalSex = random.Next(2) == 0 ? "Female" : "Male",
-                Addresses = new List<EntityAddress>
-                {
-                    new EntityAddress
-                    {
-                        Address = new Address {
-                            Street = $"{random.Next(1, 999)} Residential St",
-                            City = facilities[random.Next(facilities.Count)].FacilityAddress.City,
-                            State = "NCR",
-                            PostalCode = $"{random.Next(1000, 9999)}",
-                            Latitude = facilities[0].FacilityAddress.Latitude + (random.NextDouble() - 0.5) * 0.1,
-                            Longitude = facilities[0].FacilityAddress.Longitude + (random.NextDouble() - 0.5) * 0.1
-                        },
-                        Type = AddressType.Home,
-                        IsPrimary = true
-                    }
-                },
-                HealthPlanId = plans[random.Next(plans.Count)].HealthPlanId,
-                FacilityId = facilities[random.Next(facilities.Count)].FacilityId,
-            };
-            context.Patients.Add(p);
-            seededPatients.Add(p);
-        }
-        await context.SaveChangesAsync();
-
-        // 10. Seed Clinical Data for first 5 patients
-        for (int i = 0; i < 5; i++)
-        {
-            var patient = seededPatients[i];
-            var practitioner = practitioners[random.Next(practitioners.Count)];
-
-            // Seed Appointment
-            var appointment = new Appointment
-            {
-                PatientId = patient.PatientId,
-                PractitionerId = practitioner.PractitionerId,
-                ScheduledStart = DateTimeOffset.UtcNow.AddDays(random.Next(-5, 5)).AddHours(random.Next(8, 16)),
-                ScheduledEnd = DateTimeOffset.UtcNow.AddDays(random.Next(-5, 5)).AddHours(17),
-                Status = AppointmentStatus.Scheduled,
-                Modality = AppointmentModality.InPersonHomeVisit,
-                VisitType = VisitType.RoutineSymptomManagement
-            };
-            context.Appointments.Add(appointment);
-
-            // Seed Clinical Encounter
-            var encounter = new ClinicalEncounter
-            {
-                PatientId = patient.PatientId,
-                PractitionerId = practitioner.PractitionerId,
-                EncounterDate = appointment.ScheduledStart,
-                Type = EncounterType.RoutineFollowUp,
-                Status = EncounterStatus.Completed,
-                ChiefComplaint = "Follow up on palliative care plan."
-            };
-            context.ClinicalEncounters.Add(encounter);
-
-            // Seed Prescription
-            var med = medications[random.Next(medications.Count)];
-            context.Prescriptions.Add(new Prescription
-            {
-                PatientId = patient.PatientId,
-                MedicationId = med.MedicationId,
-                PrescribedById = practitioner.PractitionerId,
-                Dose = "As needed",
-                Frequency = "Q4H",
-                Route = med.DefaultRoute,
-                StartDate = DateTimeOffset.UtcNow,
-                IsActive = true
-            });
-
-            // Seed Allergy
-            context.Allergies.Add(new Allergy
-            {
-                PatientId = patient.PatientId,
-                Allergen = "Peanuts",
-                Severity = SeverityLevel.Severe,
-                Reaction = "Anaphylaxis",
-                IdentifiedAt = DateTimeOffset.UtcNow.AddYears(-1)
-            });
-        }
-        await context.SaveChangesAsync();
-
-        // 11. Seed Outreach Leads (15 records)
-        var outreachNames = new[] {
-            ("Michael", "Abad"), ("Sarah", "Belmonte"), ("Robert", "Castillo"), ("Elena", "Dizon"),
-            ("David", "Esguerra"), ("Maria", "Ferrer"), ("Juan", "Guevarra"), ("Grace", "Hernandez"),
-            ("Antonio", "Ilagan"), ("Corazon", "Jimenez"), ("Benigno", "Katigbak"), ("Imelda", "Ledesma"),
-            ("Ferdinand", "Mendoza"), ("Cory", "Navarro"), ("Ramon", "Ortega")
-        };
-
-        foreach (var (first, last) in outreachNames)
-        {
-            context.PatientOutreaches.Add(new PatientOutreach { 
-                FirstName = first, 
-                LastName = last, 
-                MailingAddress = new Address { 
-                    Street = $"{random.Next(1, 999)} Prospect Way", 
-                    City = "Manila", 
-                    State = "NCR",
-                    PostalCode = "1000"
-                }, 
-                PrimaryPhone = $"+63 9{random.Next(100, 999)} {random.Next(100, 999)} {random.Next(1000, 9999)}",
-                PrimaryEmail = $"{first.ToLower()}.{last.ToLower()}@example.com",
-                ReferralSource = "Community Agency", 
-                Status = OutreachStatus.Lead,
-                OtherContacts = new List<OutreachContact>
-                {
-                    new OutreachContact
-                    {
-                        FirstName = "Maria",
-                        LastName = last,
-                        Relationship = RelationshipType.Spouse,
-                        PhoneNumber = $"+63 9{random.Next(100, 999)} {random.Next(100, 999)} {random.Next(1000, 9999)}",
-                        Email = $"maria.{last.ToLower()}@example.com",
-                        IsPrimaryContact = false
-                    },
-                    new OutreachContact
-                    {
-                        FirstName = "Junior",
-                        LastName = last,
-                        Relationship = RelationshipType.Child,
-                        PhoneNumber = $"+63 9{random.Next(100, 999)} {random.Next(100, 999)} {random.Next(1000, 9999)}",
-                        IsPrimaryContact = false
-                    }
-                }
-            });
+                var tablesToTruncate = string.Join(", ", tableNames.Select(t => $"\"{t}\""));
+                var sql = $"TRUNCATE TABLE {tablesToTruncate} CASCADE;";
+                await context.Database.ExecuteSqlRawAsync(sql);
+            }
         }
 
-        await context.SaveChangesAsync();
+        public static async Task SeedDatabaseAsync(ApplicationDbContext context)
+        {
+            if (await context.Patients.AnyAsync()) return; // Protect against double-seeding
 
-        Console.WriteLine("[Seeding Overhaul Complete] 5 Practitioners, 5 Plans, 5 Facilities, 8 Medications, 10 Patients, 5 Appointments/Encounters, 15 Outreach Leads.");
+            Randomizer.Seed = new Random(8675309); // Deterministic test data
+
+            // ==========================================
+            // SETUP TABLES (5 Records Each)
+            // ==========================================
+            var healthPlans = new Faker<HealthPlan>()
+                .RuleFor(x => x.HealthPlanId, Guid.NewGuid)
+                .RuleFor(x => x.Name, f => f.Company.CompanyName() + " Health")
+                .RuleFor(x => x.Code, f => f.Random.String2(5))
+                .Generate(5);
+            context.Set<HealthPlan>().AddRange(healthPlans);
+
+            var facilities = new Faker<Facility>()
+                .RuleFor(x => x.FacilityId, Guid.NewGuid)
+                .RuleFor(x => x.Name, f => f.Company.CompanyName() + " Medical Center")
+                .RuleFor(x => x.Type, f => f.PickRandom<FacilityType>())
+                .Generate(5);
+            context.Set<Facility>().AddRange(facilities);
+
+            var outreachScripts = new Faker<OutreachScript>()
+                .RuleFor(x => x.OutreachScriptId, Guid.NewGuid)
+                .RuleFor(x => x.LocationName, f => f.Address.City())
+                .RuleFor(x => x.ScriptTitle, f => f.Lorem.Word())
+                .RuleFor(x => x.Content, f => f.Lorem.Paragraph())
+                .Generate(5);
+            context.Set<OutreachScript>().AddRange(outreachScripts);
+
+            var dme = new Faker<DurableMedicalEquipment>()
+                .RuleFor(x => x.EquipmentId, Guid.NewGuid)
+                .RuleFor(x => x.SerialNumber, f => $"SN-{f.IndexGlobal}-{f.Random.AlphaNumeric(5)}")
+                .RuleFor(x => x.ModelName, f => f.Commerce.ProductName())
+                .RuleFor(x => x.Type, f => f.PickRandom<EquipmentType>())
+                .RuleFor(x => x.Status, f => f.PickRandom<EquipmentStatus>())
+                .Generate(5);
+            context.Set<DurableMedicalEquipment>().AddRange(dme);
+
+            var practitioners = new Faker<Practitioner>()
+                .RuleFor(p => p.PractitionerId, Guid.NewGuid)
+                .RuleFor(p => p.UserId, Guid.NewGuid) // FIX: Strict unique constraint
+                .RuleFor(p => p.FirstName, f => f.Name.FirstName())
+                .RuleFor(p => p.LastName, f => f.Name.LastName())
+                .RuleFor(p => p.FullName, (f, p) => $"{p.FirstName} {p.LastName}")
+                .RuleFor(p => p.Position, f => f.PickRandom<PractitionerPosition>())
+                .RuleFor(p => p.IsActive, true)
+                .Generate(5);
+            context.Practitioners.AddRange(practitioners);
+
+            await context.SaveChangesAsync();
+
+            // ==========================================
+            // TRANSACTIONAL TABLES (10 Records Each)
+            // ==========================================
+            var patients = new Faker<Patient>()
+                .RuleFor(p => p.PatientId, Guid.NewGuid)
+                .RuleFor(p => p.FirstName, f => f.Name.FirstName())
+                .RuleFor(p => p.LastName, f => f.Name.LastName())
+                .RuleFor(p => p.Mrn, f => $"MRN-{f.IndexGlobal + 50000}") // FIX: Guarantee uniqueness
+                .RuleFor(p => p.Dob, f => f.Date.Past(80, DateTime.UtcNow.AddYears(-20)).ToUniversalTime())
+                .RuleFor(p => p.BiologicalSex, f => f.PickRandom("Male", "Female"))
+                .RuleFor(p => p.HealthPlanId, f => f.PickRandom(healthPlans).HealthPlanId)
+                .RuleFor(p => p.FacilityId, f => f.PickRandom(facilities).FacilityId)
+                .RuleFor(p => p.PhilhealthNumber, f => $"PH-{f.IndexGlobal}-{f.Random.Number(1000, 9999)}")
+                .Generate(10);
+            context.Patients.AddRange(patients);
+            await context.SaveChangesAsync();
+
+            var patientOutreaches = new Faker<PatientOutreach>()
+                .RuleFor(x => x.PatientOutreachId, Guid.NewGuid)
+                .RuleFor(x => x.FirstName, f => f.Name.FirstName())
+                .RuleFor(x => x.LastName, f => f.Name.LastName())
+                .RuleFor(x => x.Status, f => f.PickRandom<OutreachStatus>())
+                .RuleFor(x => x.Disposition, f => f.PickRandom<EnrollmentDisposition>())
+                .RuleFor(x => x.HealthPlanId, f => f.PickRandom(healthPlans).HealthPlanId)
+                .Generate(10);
+            context.Set<PatientOutreach>().AddRange(patientOutreaches);
+            await context.SaveChangesAsync();
+
+            var outreachContacts = new Faker<OutreachContact>()
+                .RuleFor(x => x.OutreachContactId, Guid.NewGuid)
+                .RuleFor(x => x.PatientOutreachId, f => f.PickRandom(patientOutreaches).PatientOutreachId)
+                .RuleFor(x => x.FirstName, f => f.Name.FirstName())
+                .RuleFor(x => x.LastName, f => f.Name.LastName())
+                .RuleFor(x => x.Relationship, f => f.PickRandom<RelationshipType>())
+                .Generate(10);
+            context.Set<OutreachContact>().AddRange(outreachContacts);
+
+            var outreachActivities = new Faker<OutreachActivity>()
+                .RuleFor(x => x.OutreachActivityId, Guid.NewGuid)
+                .RuleFor(x => x.OutreachId, f => f.PickRandom(patientOutreaches).PatientOutreachId)
+                .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(x => x.Method, f => f.PickRandom<OutreachMethod>())
+                .Generate(10);
+            context.Set<OutreachActivity>().AddRange(outreachActivities);
+
+            var patientContacts = new Faker<PatientContact>()
+                .RuleFor(x => x.ContactId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.FirstName, f => f.Name.FirstName())
+                .RuleFor(x => x.LastName, f => f.Name.LastName())
+                .RuleFor(x => x.Relationship, f => f.PickRandom<RelationshipType>())
+                .Generate(10);
+            context.Set<PatientContact>().AddRange(patientContacts);
+
+            var patientPhones = new Faker<PatientPhone>()
+                .RuleFor(x => x.PhoneId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.PhoneNumber, f => f.Phone.PhoneNumber())
+                .Generate(10);
+            context.Set<PatientPhone>().AddRange(patientPhones);
+
+            var patientEmails = new Faker<PatientEmail>()
+                .RuleFor(x => x.EmailId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.EmailAddress, f => f.Internet.Email())
+                .Generate(10);
+            context.Set<PatientEmail>().AddRange(patientEmails);
+
+            var advanceDirectives = new Faker<AdvanceDirective>()
+                .RuleFor(x => x.AdvanceDirectiveId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.Type, f => f.PickRandom<DirectiveType>())
+                .RuleFor(x => x.EffectiveDate, f => f.Date.PastOffset().ToUniversalTime())
+                .Generate(10);
+            context.Set<AdvanceDirective>().AddRange(advanceDirectives);
+
+            var diagnoses = new Faker<Diagnosis>()
+                .RuleFor(x => x.DiagnosisId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.Icd10Code, f => f.Random.AlphaNumeric(5))
+                .RuleFor(x => x.Description, f => f.Lorem.Sentence())
+                .Generate(10);
+            context.Set<Diagnosis>().AddRange(diagnoses);
+
+            var allergies = new Faker<Allergy>()
+                .RuleFor(x => x.AllergyId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.Allergen, f => f.Lorem.Word())
+                .RuleFor(x => x.Severity, f => f.PickRandom<SeverityLevel>())
+                .RuleFor(x => x.Reaction, f => f.Lorem.Word())
+                .Generate(10);
+            context.Set<Allergy>().AddRange(allergies);
+
+            // Anchor perfectly to the user's Local Time Zone to prevent UTC shifting past 6 PM
+            var baseDate = new DateTime(2026, 5, 4, 8, 0, 0, DateTimeKind.Local).ToUniversalTime(); 
+            var modalities = Enum.GetValues<AppointmentModality>();
+
+            var appointments = new Faker<Appointment>()
+                .RuleFor(a => a.AppointmentId, Guid.NewGuid)
+                .RuleFor(a => a.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(a => a.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
+                .RuleFor(a => a.Status, f => f.PickRandom<AppointmentStatus>())
+                // Force absolute variety: rotate perfectly through every single Modality enum
+                .RuleFor(a => a.Modality, f => modalities[f.IndexFaker % modalities.Length])
+                // Sequential spacing: 4 appointments per day, exactly 2 hours apart (8AM, 10AM, 12PM, 2PM Local Time)
+                .RuleFor(a => a.ScheduledStart, f => baseDate.AddDays(f.IndexFaker / 4).AddHours((f.IndexFaker % 4) * 2))
+                .RuleFor(a => a.ScheduledEnd, (f, a) => a.ScheduledStart.AddHours(1))
+                // Hardened Geospatial Seeding: Telehealth = 0, others = 15-45m
+                .RuleFor(a => a.TravelTimeMinutes, (f, a) => 
+                    (a.Modality == AppointmentModality.TelehealthVideo || a.Modality == AppointmentModality.TelehealthAudioOnly || a.Modality == AppointmentModality.Telephone) ? 0 : f.PickRandom(15, 30, 45))
+                .Generate(12); // Generate 12 to perfectly fill 3 days (4 per day)
+            context.Appointments.AddRange(appointments);
+            await context.SaveChangesAsync();
+
+            var encounters = new Faker<ClinicalEncounter>()
+                .RuleFor(e => e.EncounterId, Guid.NewGuid)
+                .RuleFor(e => e.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(e => e.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(e => e.AppointmentId, (f, u) => f.PickRandom(appointments).AppointmentId)
+                .RuleFor(e => e.Type, f => f.PickRandom<EncounterType>())
+                .RuleFor(e => e.Status, f => f.PickRandom<EncounterStatus>())
+                .RuleFor(e => e.PpsScore, f => f.Random.Number(30, 100))
+                .Generate(10);
+            context.Set<ClinicalEncounter>().AddRange(encounters);
+            await context.SaveChangesAsync();
+
+            var vitals = new Faker<VitalSign>()
+                .RuleFor(v => v.VitalId, Guid.NewGuid)
+                .RuleFor(v => v.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
+                .RuleFor(v => v.HeartRate, f => f.Random.Decimal(60, 110))
+                .RuleFor(v => v.BloodPressureSystolic, f => f.Random.Decimal(100, 160))
+                .RuleFor(v => v.RecordedAt, f => f.Date.RecentOffset(5).ToUniversalTime())
+                .Generate(10);
+            context.Set<VitalSign>().AddRange(vitals);
+
+            var notes = new Faker<ClinicalNote>()
+                .RuleFor(n => n.NoteId, Guid.NewGuid)
+                .RuleFor(n => n.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
+                .RuleFor(n => n.AuthorId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(n => n.Type, f => f.PickRandom<NoteType>())
+                .RuleFor(n => n.Subjective, f => f.Lorem.Paragraph())
+                .Generate(10);
+            context.Set<ClinicalNote>().AddRange(notes);
+
+            var esas = new Faker<EsasAssessment>()
+                .RuleFor(x => x.AssessmentId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
+                .RuleFor(x => x.Pain, f => f.Random.Number(0, 10))
+                .Generate(10);
+            context.Set<EsasAssessment>().AddRange(esas);
+
+            var deliveries = new Faker<EquipmentDelivery>()
+                .RuleFor(x => x.DeliveryId, Guid.NewGuid)
+                .RuleFor(x => x.EquipmentId, f => f.PickRandom(dme).EquipmentId)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.Status, f => f.PickRandom<DeliveryStatus>())
+                .Generate(10);
+            context.Set<EquipmentDelivery>().AddRange(deliveries);
+
+            var telemetry = new Faker<TelemetryLog>()
+                .RuleFor(x => x.LogId, Guid.NewGuid)
+                .RuleFor(x => x.EquipmentId, f => f.PickRandom(dme).EquipmentId)
+                .RuleFor(x => x.Value, f => f.Random.Decimal(1, 100))
+                .RuleFor(x => x.RecordedAt, f => f.Date.RecentOffset().ToUniversalTime())
+                .Generate(10);
+            context.Set<TelemetryLog>().AddRange(telemetry);
+
+            var cases = new Faker<CareNavigationCase>()
+                .RuleFor(x => x.CaseId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.NavigatorId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(x => x.Status, f => f.PickRandom<CaseStatus>())
+                .RuleFor(x => x.AcuityLevel, f => f.PickRandom<AcuityLevel>())
+                .Generate(10);
+            context.Set<CareNavigationCase>().AddRange(cases);
+            await context.SaveChangesAsync();
+
+            var barriers = new Faker<BarrierLog>()
+                .RuleFor(x => x.BarrierId, Guid.NewGuid)
+                .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
+                .RuleFor(x => x.BarrierCategory, f => f.Lorem.Word())
+                .Generate(10);
+            context.Set<BarrierLog>().AddRange(barriers);
+
+            var navTasks = new Faker<NavigationTask>()
+                .RuleFor(x => x.TaskId, Guid.NewGuid)
+                .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
+                .RuleFor(x => x.AssignedToId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(x => x.Status, f => f.PickRandom<NavigationTaskStatus>())
+                .Generate(10);
+            context.Set<NavigationTask>().AddRange(navTasks);
+
+            var interventions = new Faker<InterventionLog>()
+                .RuleFor(x => x.InterventionId, Guid.NewGuid)
+                .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
+                .RuleFor(x => x.ActionTaken, f => f.Lorem.Sentence())
+                .Generate(10);
+            context.Set<InterventionLog>().AddRange(interventions);
+
+            var sdoh = new Faker<SdohAssessment>()
+                .RuleFor(x => x.SdohId, Guid.NewGuid)
+                .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
+                .RuleFor(x => x.AssessorId, f => f.PickRandom(practitioners).PractitionerId)
+                .Generate(10);
+            context.Set<SdohAssessment>().AddRange(sdoh);
+
+            var blocks = new Faker<ScheduleBlock>()
+                .RuleFor(x => x.BlockId, Guid.NewGuid)
+                .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(x => x.StartTime, f => baseDate.AddHours(f.Random.Number(1, 48)))
+                .RuleFor(x => x.EndTime, (f, b) => b.StartTime.AddHours(4))
+                .Generate(10);
+            context.Set<ScheduleBlock>().AddRange(blocks);
+            await context.SaveChangesAsync();
+
+            var resources = new Faker<AppointmentResource>()
+                .RuleFor(x => x.AppointmentId, (f, u) => f.PickRandom(appointments).AppointmentId)
+                .RuleFor(x => x.BlockId, (f, u) => f.PickRandom(blocks).BlockId)
+                .Generate(10);
+            
+            var distinctResources = resources.GroupBy(x => new { x.AppointmentId, x.BlockId }).Select(g => g.First()).ToList();
+            context.Set<AppointmentResource>().AddRange(distinctResources);
+
+            var shifts = new Faker<ProviderShift>()
+                .RuleFor(x => x.ProviderShiftId, Guid.NewGuid)
+                .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(x => x.DayOfWeek, f => f.PickRandom<DayOfWeek>())
+                .Generate(10);
+            context.Set<ProviderShift>().AddRange(shifts);
+
+            var licenses = new Faker<PractitionerLicensure>()
+                .RuleFor(x => x.LicensureId, Guid.NewGuid)
+                .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(x => x.LicenseNumber, f => f.Random.AlphaNumeric(8))
+                .Generate(10);
+            context.Set<PractitionerLicensure>().AddRange(licenses);
+
+            var areas = new Faker<PractitionerServiceArea>()
+                .RuleFor(x => x.ServiceAreaId, Guid.NewGuid)
+                .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(x => x.ZipCode, f => f.Address.ZipCode())
+                .Generate(10);
+            context.Set<PractitionerServiceArea>().AddRange(areas);
+
+            var claims = new Faker<ZBenefitClaim>()
+                .RuleFor(x => x.ClaimId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.PhilhealthNumber, f => f.Random.AlphaNumeric(10))
+                .RuleFor(x => x.Status, f => f.PickRandom<ClaimStatus>())
+                .Generate(10);
+            context.Set<ZBenefitClaim>().AddRange(claims);
+            await context.SaveChangesAsync();
+
+            var claimLogs = new Faker<ClaimStatusLog>()
+                .RuleFor(x => x.LogId, Guid.NewGuid)
+                .RuleFor(x => x.ClaimId, f => f.PickRandom(claims).ClaimId)
+                .RuleFor(x => x.PreviousStatus, f => f.PickRandom<ClaimStatus>())
+                .RuleFor(x => x.NewStatus, f => f.PickRandom<ClaimStatus>())
+                .Generate(10);
+            context.Set<ClaimStatusLog>().AddRange(claimLogs);
+
+            var invoices = new Faker<BillingInvoice>()
+                .RuleFor(x => x.InvoiceId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                .RuleFor(x => x.ClaimId, f => f.PickRandom(claims).ClaimId)
+                .RuleFor(x => x.InvoiceNumber, f => $"INV-{f.IndexGlobal}-{f.Random.AlphaNumeric(5)}") // FIX
+                .RuleFor(x => x.Status, f => f.PickRandom<InvoiceStatus>())
+                .Generate(10);
+            context.Set<BillingInvoice>().AddRange(invoices);
+
+            await context.SaveChangesAsync();
+        }
     }
 }

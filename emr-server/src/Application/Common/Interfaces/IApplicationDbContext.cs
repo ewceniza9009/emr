@@ -43,5 +43,7 @@ public interface IApplicationDbContext
     DbSet<Prescription> Prescriptions { get; }
     DbSet<ProviderShift> ProviderShifts { get; }
 
+    Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

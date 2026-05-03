@@ -1,4 +1,5 @@
 using Application.Clinical.Dtos;
+using Application.Clinical.Queries;
 using Application.Clinical.Services;
 using Application.Common.Interfaces;
 using Domain.Entities;
@@ -79,6 +80,14 @@ public class ClinicalQuery
         CancellationToken cancellationToken)
     {
         return await conflictEngine.CheckConflictsAsync(patientId, medicationName, cancellationToken);
+    }
+
+    public async Task<PatientClinicalSummaryDto> GetPatientClinicalSummary(
+        Guid patientId,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        return await mediator.Send(new GetPatientClinicalSummaryQuery(patientId), cancellationToken);
     }
 }
 

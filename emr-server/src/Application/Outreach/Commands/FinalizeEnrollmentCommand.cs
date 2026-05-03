@@ -1,8 +1,10 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Outreach.Commands;
 
@@ -20,69 +22,45 @@ public record FinalizeEnrollmentCommand : IRequest<Guid>
 public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollmentCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IMrnGenerator _mrnGenerator;
+    private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ILogger<FinalizeEnrollmentCommandHandler> _logger;
 
-    public FinalizeEnrollmentCommandHandler(IApplicationDbContext context)
+    public FinalizeEnrollmentCommandHandler(
+        IApplicationDbContext context, 
+        IMrnGenerator mrnGenerator, 
+        IDateTimeProvider dateTimeProvider,
+        ILogger<FinalizeEnrollmentCommandHandler> logger)
     {
         _context = context;
+        _mrnGenerator = mrnGenerator;
+        _dateTimeProvider = dateTimeProvider;
+        _logger = logger;
     }
 
     public async Task<Guid> Handle(FinalizeEnrollmentCommand request, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Finalizing enrollment for Outreach ID: {OutreachId}", request.PatientOutreachId);
+
         var outreach = await _context.PatientOutreaches
             .Include(x => x.OtherContacts)
             .FirstOrDefaultAsync(x => x.PatientOutreachId == request.PatientOutreachId, cancellationToken);
 
-        if (outreach == null) throw new Exception("Outreach lead not found");
+        if (outreach == null)
+        {
+            throw new NotFoundException(nameof(PatientOutreach), request.PatientOutreachId);
+        }
 
-        // 1. Generate MRN (Simplified for demo: PN-YYYY-RANDOM)
-        var mrn = $"PN-{DateTime.Now.Year}-{new Random().Next(1000, 9999)}";
+        // 1. Generate MRN
+        var mrn = await _mrnGenerator.GenerateMrnAsync(cancellationToken);
 
         // 2. Create Patient Record
-        var patient = new Patient
-        {
-            Mrn = mrn,
-            FirstName = outreach.FirstName,
-            LastName = outreach.LastName,
-            Addresses = new List<EntityAddress>
-            {
-                new EntityAddress
-                {
-                    Address = new Address
-                    {
-                        Street = outreach.MailingAddress.Street,
-                        City = outreach.MailingAddress.City,
-                        State = outreach.MailingAddress.State,
-                        PostalCode = outreach.MailingAddress.PostalCode,
-                        Country = outreach.MailingAddress.Country
-                    },
-                    Type = AddressType.Home,
-                    IsPrimary = true
-                }
-            },
+        var patient = Patient.CreateFromOutreach(outreach, mrn, request.HealthPlanId, _dateTimeProvider.UtcNow);
 
-            HealthPlanId = request.HealthPlanId,
-            CommunicationStatus = Enum.Parse<CommunicationAbility>(request.CommunicationStatus, true),
-            TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess, true),
-            BarriersToCare = request.BarriersToCare,
-            CreatedAt = DateTime.UtcNow,
-            Phones = outreach.PrimaryPhone != null ? new List<PatientPhone> 
-            { 
-                new PatientPhone { PhoneNumber = outreach.PrimaryPhone, Type = AddressType.Mobile, IsPrimary = true } 
-            } : new List<PatientPhone>(),
-            Emails = outreach.PrimaryEmail != null ? new List<PatientEmail> 
-            { 
-                new PatientEmail { EmailAddress = outreach.PrimaryEmail, Type = AddressType.Home, IsPrimary = true } 
-            } : new List<PatientEmail>(),
-            Contacts = outreach.OtherContacts.Select(c => new PatientContact
-            {
-                FirstName = c.FirstName,
-                LastName = c.LastName,
-                Relationship = c.Relationship,
-                PhoneNumber = c.PhoneNumber ?? string.Empty,
-                Email = c.Email ?? string.Empty,
-                IsPrimaryContact = c.IsPrimaryContact
-            }).ToList()
-        };
+        // Map remaining command-specific fields
+        patient.CommunicationStatus = Enum.Parse<CommunicationAbility>(request.CommunicationStatus, true);
+        patient.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess, true);
+        patient.BarriersToCare = request.BarriersToCare;
 
         _context.Patients.Add(patient);
 
@@ -95,8 +73,11 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         outreach.CommunicationStatus = Enum.Parse<CommunicationAbility>(request.CommunicationStatus, true);
         outreach.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess, true);
         outreach.BarriersToCare = request.BarriersToCare;
+        outreach.UpdatedAt = _dateTimeProvider.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Successfully enrolled patient. MRN: {MRN}, Patient ID: {PatientId}", mrn, patient.PatientId);
 
         return patient.PatientId;
     }

@@ -37,4 +37,5 @@ public class Practitioner : BaseEntity
     // Navigation Properties
     public ICollection<PractitionerLicensure> Licensures { get; set; } = new List<PractitionerLicensure>();
     public ICollection<PractitionerServiceArea> ServiceAreas { get; set; } = new List<PractitionerServiceArea>();
+    public ICollection<ProviderShift> Shifts { get; set; } = new List<ProviderShift>();
 }

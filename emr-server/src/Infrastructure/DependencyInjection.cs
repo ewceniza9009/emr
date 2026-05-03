@@ -40,6 +40,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ISchedulingService, Infrastructure.Services.SchedulingService>();
+        services.AddScoped<IMrnGenerator, Infrastructure.Services.MrnGenerator>();
 
         return services;
     }

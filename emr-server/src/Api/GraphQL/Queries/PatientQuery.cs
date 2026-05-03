@@ -40,4 +40,16 @@ public class PatientQuery
             .AsNoTracking()
             .Where(x => x.PatientId == patientId);
     }
+
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<Diagnosis> GetDiagnosesByPatient(
+        Guid patientId,
+        [Service] IApplicationDbContext context)
+    {
+        return context.Diagnoses
+            .AsNoTracking()
+            .Where(x => x.PatientId == patientId);
+    }
 }

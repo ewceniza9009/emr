@@ -1,12 +1,11 @@
-using Mapster;
-using MapsterMapper;
-using System.Reflection;
-using Api.GraphQL.Queries;
 using Api.GraphQL.Mutations;
+using Api.GraphQL.Queries;
 using Api.Hubs;
 using Application;
 using Infrastructure;
 using Infrastructure.Data;
+using Mapster;
+using MapsterMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +13,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Palliative EMR API", Version = "v1" });
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "EMR API", Version = "v1" });
 });
 
 builder.Services.AddMemoryCache();
@@ -22,7 +21,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.Services.AddMediatR(cfg => 
+builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(ApplicationAssemblyReference).Assembly));
 
 var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
@@ -96,7 +95,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Redirect root to GraphQL IDE
-app.MapGet("/", context => 
+app.MapGet("/", context =>
 {
     context.Response.Redirect("/graphql");
     return Task.CompletedTask;
@@ -109,6 +108,9 @@ app.MapGraphQL("/graphql");
 app.MapHub<TelemetryHub>("/hubs/telemetry");
 
 // Seed the database
-await DbInitializer.InitializeAsync(app.Services);
+var wipeDb = true; //builder.Configuration.GetValue<bool>("EMR_WIPE_DB", true);
+var seedDb = true; //builder.Configuration.GetValue<bool>("EMR_SEED_DB", true);
+
+await DbInitializer.InitializeAsync(app.Services, wipeDb, seedDb);
 
 app.Run();

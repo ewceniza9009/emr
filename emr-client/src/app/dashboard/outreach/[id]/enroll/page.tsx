@@ -172,14 +172,18 @@ export default function EnrollmentWizard() {
       <div className="flex items-center justify-between px-2">
         {steps.map((step, idx) => (
           <div key={step.id} className="flex items-center flex-1 last:flex-none">
-            <div className={`flex flex-col items-center gap-2 transition-all ${currentStep >= step.id ? 'text-blue-400' : 'text-slate-600'}`}>
+            <button 
+              onClick={() => currentStep > step.id && setCurrentStep(step.id)}
+              disabled={currentStep <= step.id}
+              className={`flex flex-col items-center gap-2 transition-all group ${currentStep >= step.id ? 'text-blue-400' : 'text-slate-600'}`}
+            >
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all border-2 
                 ${currentStep === step.id ? 'bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/20 scale-110' : 
-                  currentStep > step.id ? 'bg-blue-500/20 border-blue-500/40 text-blue-400' : 'bg-white/5 border-white/5'}`}>
+                  currentStep > step.id ? 'bg-blue-500/20 border-blue-500/40 text-blue-400 group-hover:bg-blue-500/30' : 'bg-white/5 border-white/5'}`}>
                 <step.icon className="w-5 h-5" />
               </div>
               <span className="text-[10px] font-bold uppercase tracking-wider">{step.label}</span>
-            </div>
+            </button>
             {idx < steps.length - 1 && (
               <div className={`h-[2px] flex-1 mx-4 transition-all ${currentStep > step.id ? 'bg-blue-500/40' : 'bg-white/5'}`} />
             )}
@@ -512,14 +516,22 @@ export default function EnrollmentWizard() {
               <h2 className="text-3xl font-bold text-white">Enrollment Ready</h2>
               <p className="text-slate-400 max-w-sm">All mandatory steps are complete. Click below to generate the MRN and create the clinical record.</p>
             </div>
-            <button 
-              onClick={handleFinalize}
-              disabled={finalizing || !selectedPlan}
-              className="px-10 py-4 rounded-2xl bg-blue-500 text-white font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-500/20 flex items-center gap-2 disabled:opacity-50"
-            >
-              {finalizing ? "Generating MRN..." : "Finalize & Generate MRN"}
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button 
+                onClick={() => setCurrentStep(5)}
+                className="px-10 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all"
+              >
+                Go Back
+              </button>
+              <button 
+                onClick={handleFinalize}
+                disabled={finalizing || !selectedPlan}
+                className="px-10 py-4 rounded-2xl bg-blue-500 text-white font-bold hover:bg-blue-600 transition-all shadow-xl shadow-blue-500/20 flex items-center gap-2 disabled:opacity-50"
+              >
+                {finalizing ? "Generating MRN..." : "Finalize & Generate MRN"}
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         )}
       </div>

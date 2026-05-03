@@ -21,6 +21,7 @@ import SymptomTrendChart from "@/components/SymptomTrendChart";
 import MedicationRegistry from "@/components/MedicationRegistry";
 import VitalSignTimeline from "@/components/VitalSignTimeline";
 import LiveHeartbeat from "@/components/LiveHeartbeat";
+import ProblemList from "@/components/ProblemList";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -142,8 +143,46 @@ export default function PatientDetailPage() {
         </div>
 
         {/* Center Column: Clinical Timeline */}
-        <div className="lg:col-span-2 space-y-6">
-           {/* Vital Signs */}
+        <div className="lg:col-span-2 space-y-8">
+           {/* Quick Vitals */}
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="glass-morphism rounded-3xl p-5 border border-white/5 space-y-1">
+                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pain Level</p>
+                 <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-white">4</span>
+                    <span className="text-xs text-slate-500">/ 10</span>
+                 </div>
+              </div>
+              <div className="glass-morphism rounded-3xl p-5 border border-white/5 space-y-1">
+                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Anxiety</p>
+                 <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-white">2</span>
+                    <span className="text-xs text-slate-500">/ 10</span>
+                 </div>
+              </div>
+              <div className="glass-morphism rounded-3xl p-5 border border-white/5 space-y-1">
+                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">BP</p>
+                 <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-white">128/82</span>
+                    <span className="text-xs text-slate-500">mmHg</span>
+                 </div>
+              </div>
+              <div className="glass-morphism rounded-3xl p-5 border border-white/5 space-y-1">
+                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">SpO2</p>
+                 <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-emerald-400">98</span>
+                    <span className="text-xs text-slate-500">%</span>
+                 </div>
+              </div>
+           </div>
+
+           {/* Medications */}
+           <MedicationRegistry patientId={params.id as string} />
+
+           {/* Problem List */}
+           <ProblemList patientId={params.id as string} />
+
+           {/* Vital Signs Timeline */}
            <VitalSignTimeline patientId={params.id as string} />
 
            {/* Symptom Trends */}
@@ -165,27 +204,28 @@ export default function PatientDetailPage() {
               <SymptomTrendChart patientId={params.id as string} />
            </div>
 
-           <div className="glass-morphism rounded-3xl p-8 min-h-[400px] flex flex-col items-center justify-center text-center">
+           {/* Actions / New Note */}
+           <div className="glass-morphism rounded-3xl p-8 min-h-[300px] flex flex-col items-center justify-center text-center">
               <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 text-slate-500">
                 <ClipboardList className="w-8 h-8" />
               </div>
-              <h3 className="text-white font-bold text-lg">Clinical Timeline</h3>
-              <p className="text-slate-500 text-sm max-w-xs mt-2">Start a new assessment to begin tracking clinical progress.</p>
+              <h3 className="text-white font-bold text-lg">Clinical Notes & Assessments</h3>
+              <p className="text-slate-500 text-sm max-w-xs mt-2">Start a new assessment to begin tracking clinical progress or document a visit.</p>
               <div className="flex gap-4 mt-8">
-            <Link 
-              href={`/dashboard/patients/${params.id}/visit`}
-              className="px-6 py-3 rounded-2xl bg-blue-500 text-white font-bold flex items-center gap-2 hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20"
-            >
-              <Stethoscope className="w-5 h-5" />
-              Start Guided Visit
-            </Link>
-            <button className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-white font-bold flex items-center gap-2 hover:bg-white/10 transition-all">
-              <Plus className="w-5 h-5" />
-              Log Encounter
-            </button>
-          </div>
+                <Link 
+                  href={`/dashboard/patients/${params.id}/visit`}
+                  className="px-6 py-3 rounded-2xl bg-blue-500 text-white font-bold flex items-center gap-2 hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20"
+                >
+                  <Stethoscope className="w-5 h-5" />
+                  Start Guided Visit
+                </Link>
+                <button className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-white font-bold flex items-center gap-2 hover:bg-white/10 transition-all">
+                  <Plus className="w-5 h-5" />
+                  Log Encounter
+                </button>
+              </div>
+           </div>
         </div>
-      </div>
     </div>
   </div>
   );
