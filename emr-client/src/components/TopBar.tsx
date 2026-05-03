@@ -10,11 +10,11 @@ export function TopBar() {
     <header className="h-14 flex items-center justify-between px-6 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)] sticky top-0 z-40 transition-colors duration-500">
       <div className="flex-1 max-w-md">
         <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-blue-400 transition-colors" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
           <input 
             type="text" 
             placeholder="Search patients, MRNs, or cases..."
-            className="w-full premium-input rounded-xl py-1.5 pl-10 pr-4 text-xs"
+            className="w-full premium-input rounded-xl py-1.5 pl-10 pr-4 text-xs focus:ring-4 focus:ring-[var(--primary-glow)] focus:border-[var(--primary)] transition-all"
           />
         </div>
       </div>

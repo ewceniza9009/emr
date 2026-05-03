@@ -44,11 +44,19 @@ export function Sidebar() {
       {/* Brand Section */}
       <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-4 h-16 border-b border-[var(--card-border)] relative`}>
         <div className={`flex items-center gap-3 ${isCollapsed ? "" : "overflow-hidden"}`}>
-          <div className="w-9 h-9 premium-gradient rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
-            <Stethoscope className="text-white w-5 h-5" />
+          <div className="w-10 h-10 premium-gradient rounded-[0.9rem] flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)] group cursor-pointer relative overflow-hidden">
+            {/* Custom SVG Logo */}
+            <svg viewBox="0 0 24 24" className="w-6 h-6 text-white relative z-10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z" />
+              <path d="M8 12h3l1-3 2 6 1-3h2" className="animate-[pulse_2s_infinite]" />
+            </svg>
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
           </div>
           {!isCollapsed && (
-            <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight animate-in fade-in zoom-in-95 duration-500">Aura</h2>
+            <div className="flex flex-col">
+              <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Aura</h2>
+              <span className="text-[8px] font-black text-[var(--primary)] tracking-[0.3em] mt-1 uppercase">Clinical OS</span>
+            </div>
           )}
         </div>
         {!isCollapsed ? (
@@ -79,20 +87,25 @@ export function Sidebar() {
               title={isCollapsed ? item.label : ""}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${
                 isActive 
-                  ? "bg-blue-500/10 text-blue-400 shadow-[inset_0_0_12px_rgba(59,130,246,0.1)]" 
+                  ? "bg-[var(--primary)]/10 text-[var(--primary)] shadow-[inset_0_0_12px_var(--primary-glow)]" 
                   : "text-[var(--text-secondary)] hover:bg-[var(--primary-glow)] hover:text-[var(--text-primary)]"
               }`}
             >
-              <item.icon className={`w-5 h-5 shrink-0 ${isActive ? "text-blue-400" : "group-hover:text-blue-400 transition-colors"}`} />
+              <div className="relative">
+                <item.icon className={`w-5 h-5 shrink-0 ${isActive ? "text-[var(--primary)]" : "group-hover:text-[var(--primary)] transition-colors"}`} />
+                {item.label === "Vitals & IoT" && (
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-[var(--sidebar-bg)] animate-pulse" />
+                )}
+              </div>
               {!isCollapsed && (
-                <span className="text-sm font-medium whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">
+                <span className="text-sm font-black uppercase tracking-widest whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">
                   {item.label}
                 </span>
               )}
               
               {/* Active Indicator Glow */}
               {isActive && (
-                <div className="absolute left-0 w-1 h-6 bg-blue-500 rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                <div className="absolute left-0 w-1 h-6 bg-[var(--primary)] rounded-r-full shadow-[0_0_12px_var(--primary)]" />
               )}
             </Link>
           );

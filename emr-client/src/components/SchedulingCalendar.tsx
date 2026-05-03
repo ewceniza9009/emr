@@ -318,8 +318,8 @@ export default function SchedulingCalendar() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => refetch()} className="p-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)] hover:bg-[var(--primary-glow)] active:scale-95 transition-all">
-            <RefreshCw className="w-5 h-5 text-blue-400" />
+          <button onClick={() => refetch()} className="p-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)] hover:bg-[var(--primary-glow)] active:scale-95 transition-all group">
+            <RefreshCw className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors" />
           </button>
           <div className="flex items-center bg-[var(--input-bg)] px-2 py-1 rounded-xl border border-[var(--card-border)]">
             <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))} className="p-1.5 hover:bg-[var(--primary-glow)] rounded-lg transition-all"><ChevronLeft className="w-4 h-4 text-[var(--text-muted)]" /></button>

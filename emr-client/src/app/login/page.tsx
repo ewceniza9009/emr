@@ -61,21 +61,25 @@ export default function LoginPage() {
           alt="Login Background"
           fill
           style={{ objectFit: 'cover' }}
-          className="opacity-20"
+          className="opacity-10 scale-105"
           priority
         />
-        <div className="absolute inset-0 bg-slate-950" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-[var(--background)] to-teal-950/20" />
       </div>
 
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in duration-500">
         <div className="glass-morphism rounded-3xl p-8 shadow-2xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl premium-gradient mb-4 shadow-lg shadow-blue-500/20">
-              <Lock className="text-white w-8 h-8" />
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-[1.5rem] premium-gradient mb-6 shadow-xl shadow-[var(--primary-glow)] relative group cursor-pointer overflow-hidden">
+              <svg viewBox="0 0 24 24" className="w-10 h-10 text-white relative z-10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z" />
+                <path d="M8 12h3l1-3 2 6 1-3h2" className="animate-[pulse_2s_infinite]" />
+              </svg>
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Aura</h1>
-            <p className="text-slate-400 font-medium tracking-widest uppercase text-[10px]">Clinical EMR Portal</p>
+            <h1 className="text-4xl font-black text-white mb-2 tracking-tighter uppercase">Aura</h1>
+            <p className="text-[var(--primary)] font-black tracking-[0.4em] uppercase text-[10px]">Clinical OS // Authorized Portal</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -116,14 +120,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full premium-button premium-gradient rounded-xl py-4 text-white font-semibold flex items-center justify-center group"
+              className="w-full premium-button premium-gradient rounded-xl py-5 text-white font-black uppercase tracking-[0.2em] flex items-center justify-center group shadow-xl shadow-[var(--primary-glow)]"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  Sign In to System
-                  <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  INITIALIZE SESSION
+                  <ChevronRight className="w-5 h-5 ml-3 group-hover:translate-x-2 transition-transform" />
                 </>
               )}
             </button>
