@@ -478,6 +478,21 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
           <div className="w-[380px] flex flex-col bg-[#08090d] p-10 space-y-10 overflow-y-auto scrollbar-hide border-l border-white/5">
               <section className="space-y-6">
+                  <div className="grid grid-cols-3 gap-4 pb-6 border-b border-white/5">
+                      <div className="space-y-1">
+                          <p className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Transit</p>
+                          <p className="text-sm font-black text-white uppercase">{selectedSlot?.travelTimeInMinutes || "--"}M</p>
+                      </div>
+                      <div className="space-y-1 border-l border-white/5 pl-4">
+                          <p className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Radius</p>
+                          <p className="text-sm font-black text-white uppercase">{selectedSlot?.distanceInMiles?.toFixed(1) || "--"}M</p>
+                      </div>
+                      <div className="space-y-1 border-l border-white/5 pl-4">
+                          <p className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Duration</p>
+                          <p className="text-sm font-black text-white uppercase">{duration}M</p>
+                      </div>
+                  </div>
+
                   <h3 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">Temporal Selection</h3>
                   <div className="bg-white/[0.02] rounded-[2rem] border border-white/5 p-6 space-y-6">
                       <div className="flex items-center justify-between px-2">

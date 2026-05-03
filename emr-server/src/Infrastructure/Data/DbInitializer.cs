@@ -158,6 +158,19 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.PhoneNumber, f => f.Phone.PhoneNumber())
                 .Generate(10);
             context.Set<PatientPhone>().AddRange(patientPhones);
+            
+            var entityAddresses = new Faker<EntityAddress>()
+                .RuleFor(x => x.EntityAddressId, Guid.NewGuid)
+                .RuleFor(x => x.PatientId, (f, u) => patients[f.IndexFaker % patients.Count].PatientId)
+                .RuleFor(x => x.IsPrimary, true)
+                .RuleFor(x => x.Address, f => new Address {
+                    Street = f.Address.StreetAddress(),
+                    City = f.Address.City(),
+                    State = f.Address.State(),
+                    PostalCode = f.Address.ZipCode()
+                })
+                .Generate(5);
+            context.Set<EntityAddress>().AddRange(entityAddresses);
 
             var patientEmails = new Faker<PatientEmail>()
                 .RuleFor(x => x.EmailId, Guid.NewGuid)
@@ -206,9 +219,14 @@ namespace Infrastructure.Data
                 // Sequential spacing: 4 appointments per day, exactly 2 hours apart (8AM, 10AM, 12PM, 2PM Local Time)
                 .RuleFor(a => a.ScheduledStart, f => baseDate.AddDays(f.IndexFaker / 4).AddHours((f.IndexFaker % 4) * 2))
                 .RuleFor(a => a.ScheduledEnd, (f, a) => a.ScheduledStart.AddHours(1))
+                // Seed secondary clinicians (Care Navigators)
+                .RuleFor(a => a.SupportingClinicians, (f, a) => {
+                    var p = practitioners.Where(pr => pr.PractitionerId != a.PractitionerId).OrderBy(x => Guid.NewGuid()).Take(1).ToList();
+                    return p;
+                })
                 // Hardened Geospatial Seeding: Telehealth = 0, others = 15-45m
                 .RuleFor(a => a.TravelTimeMinutes, (f, a) => 
-                    (a.Modality == AppointmentModality.TelehealthVideo || a.Modality == AppointmentModality.TelehealthAudioOnly || a.Modality == AppointmentModality.Telephone) ? 0 : f.PickRandom(15, 30, 45))
+                    (a.Modality == AppointmentModality.TelehealthVideo || a.Modality == AppointmentModality.TelehealthAudioOnly || a.Modality == AppointmentModality.Telephone) ? 0 : f.PickRandom(15.0, 30.0, 45.0))
                 .Generate(12); // Generate 12 to perfectly fill 3 days (4 per day)
             context.Appointments.AddRange(appointments);
             await context.SaveChangesAsync();

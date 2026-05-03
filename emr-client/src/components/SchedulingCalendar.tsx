@@ -50,12 +50,13 @@ const getStatusConfig = (statusStr: string) => {
 const GET_SCHEDULE_DATA = gql`
   query GetScheduleData($startDate: DateTime!, $endDate: DateTime!) {
     appointments(where: { scheduledStart: { gte: $startDate }, scheduledEnd: { lte: $endDate } }) {
-      appointmentId scheduledStart scheduledEnd modality status travelTimeMinutes distanceInMiles
+      appointmentId scheduledStart scheduledEnd modality status travelTimeMinutes distanceInMiles practitionerId
       practitioner { practitionerId fullName position }
+      supportingClinicians { practitionerId fullName position }
       patient { firstName lastName mrn addresses { isPrimary address { street } } }
     }
-    practitioners(where: { isActive: { eq: true } }) {
-      practitionerId fullName position isActive
+    practitioners {
+      practitionerId fullName position
     }
   }
 `;
@@ -65,6 +66,15 @@ export default function SchedulingCalendar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerPrefill, setDrawerPrefill] = useState<string | undefined>();
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set());
+
+  const togglePosition = (pos: string) => {
+    setSelectedPositions(prev => {
+        const n = new Set(prev);
+        if (n.has(pos)) n.delete(pos);
+        else n.add(pos);
+        return n;
+    });
+  };
 
   const weekDates = useMemo(() => {
     const start = new Date(anchor);
@@ -192,13 +202,16 @@ export default function SchedulingCalendar() {
         </div>
         {apiPositions.map(pos => {
             const style = POSITION_STYLE[pos] ?? { label: pos, color: "text-white", bg: "bg-white/5", border: "border-white/10" };
-            const active = selectedPositions.has(pos);
             return (
-                <button key={pos} onClick={() => setSelectedPositions(prev => {
-                    const n = new Set(prev); n.has(pos) ? n.delete(pos) : n.add(pos); return n;
-                })} className={`flex items-center gap-4 px-10 py-4 rounded-2xl border-2 text-xs font-black uppercase tracking-[0.2em] transition-all
-                    ${active ? `${style.bg} ${style.border} ${style.color}` : "bg-white/[0.02] border-white/5 text-white/20"}`}>
-                    {style.icon} {style.label}
+                <button key={pos} onClick={() => togglePosition(pos)}
+                  className={`px-4 py-1.5 rounded-lg border font-bold text-[10px] tracking-widest transition-all
+                    ${selectedPositions.has(pos) 
+                      ? `${style.bg} ${style.border} ${style.color} shadow-[0_0_15px_rgba(0,0,0,0.3)]` 
+                      : "bg-white/[0.02] border-white/5 text-white/30 hover:bg-white/[0.05] hover:border-white/10"}`}>
+                  <div className="flex items-center gap-2">
+                    {style.icon}
+                    <span className="uppercase">{pos.replace(/_/g, " ")}</span>
+                  </div>
                 </button>
             );
         })}
@@ -210,9 +223,9 @@ export default function SchedulingCalendar() {
           <div className="flex items-center justify-center border-r border-white/10"><Clock className="w-5 h-5 text-white/10" /></div>
           <div className="grid grid-cols-7">
             {weekDates.map((d, i) => (
-                <div key={i} className={`py-8 text-center border-l border-white/10 first:border-l-0 ${d.toDateString() === new Date(2026, 4, 3).toDateString() ? "bg-blue-600/10" : ""}`}>
-                    <p className={`text-[11px] font-black uppercase mb-2 tracking-[0.2em] ${i === 0 ? "text-blue-400" : "text-white/20"}`}>{GRID_CONFIG.DAYS[i]}</p>
-                    <span className={`text-4xl font-black ${i === 0 ? "text-white" : "text-white/40"}`}>{d.getDate()}</span>
+                <div key={i} className={`py-4 text-center border-l border-white/10 first:border-l-0 ${d.toDateString() === new Date(2026, 4, 3).toDateString() ? "bg-blue-600/10" : ""}`}>
+                    <p className={`text-[9px] font-black uppercase mb-1 tracking-[0.2em] ${i === 0 ? "text-blue-400" : "text-white/20"}`}>{GRID_CONFIG.DAYS[i]}</p>
+                    <span className={`text-2xl font-black ${i === 0 ? "text-white" : "text-white/40"}`}>{d.getDate()}</span>
                 </div>
             ))}
           </div>
@@ -327,15 +340,25 @@ export default function SchedulingCalendar() {
                                     <div className="flex flex-col gap-1 mt-1 bg-black/20 p-1.5 rounded border border-white/5">
                                         <div className="flex items-center gap-1.5">
                                             <div className="w-3 h-3 rounded-full bg-blue-600 border border-white/10 flex items-center justify-center text-[5px] font-black text-white shrink-0">SC</div>
-                                            <span className={`text-[8px] font-black uppercase truncate ${appt.practitioner?.fullName ? "text-white/90" : "text-white/50"}`}>
-                                                {appt.practitioner?.fullName || "UNASSIGNED"}
-                                            </span>
+                                            {(() => {
+                                                const p = appt.practitioner || practitioners.find((pr: any) => pr.practitionerId === appt.practitionerId);
+                                                return (
+                                                    <span className={`text-[8px] font-black uppercase truncate ${p?.fullName ? "text-white/90" : "text-white/50"}`}>
+                                                        {p?.fullName || "UNASSIGNED"}
+                                                    </span>
+                                                );
+                                            })()}
                                         </div>
                                         <div className="flex items-center gap-1.5">
                                             <div className="w-3 h-3 rounded-full bg-purple-600 border border-white/10 flex items-center justify-center text-[5px] font-black text-white shrink-0">CN</div>
-                                            <span className="text-[8px] font-black text-white/50 uppercase truncate">
-                                                UNASSIGNED
-                                            </span>
+                                            {(() => {
+                                                const cn = appt.supportingClinicians?.[0];
+                                                return (
+                                                    <span className={`text-[8px] font-black uppercase truncate ${cn?.fullName ? "text-white/90" : "text-white/50"}`}>
+                                                        {cn?.fullName || "UNASSIGNED"}
+                                                    </span>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 </div>
