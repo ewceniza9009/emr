@@ -121,9 +121,10 @@ interface Props {
   onBooked: () => void;
   prefillDate?: string;
   appointmentId?: string;
+  patientId?: string;
 }
 
-export default function BookingDrawer({ open, onClose, onBooked, prefillDate, appointmentId }: Props) {
+export default function BookingDrawer({ open, onClose, onBooked, prefillDate, appointmentId, patientId: propPatientId }: Props) {
   const [patientId, setPatientId] = useState("");
   const [patientAddress, setPatientAddress] = useState({
     street: "",
@@ -142,6 +143,12 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const [duration, setDuration] = useState(60);
   const [modality, setModality] = useState("IN_PERSON_HOME_VISIT");
   const [booked, setBooked] = useState(false);
+
+  useEffect(() => {
+    if (open && propPatientId && !appointmentId) {
+      setPatientId(propPatientId);
+    }
+  }, [open, propPatientId, appointmentId]);
 
   // DEBOUNCE ENGINE: Prevent hammer-firing the backend during rapid UI changes
   const [debouncedDuration, setDebouncedDuration] = useState(duration);
@@ -353,14 +360,14 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
           <div className="flex items-center gap-6">
             <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
             <div className="flex flex-col">
-              <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">CLINICAL DISPATCH</h2>
-              <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Provider Sync // Geospatial Scheduler</span>
+              <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Encounter Orchestration</h2>
+              <span className="text-[10px] font-black text-[var(--primary)] tracking-[0.2em] mt-1 uppercase">Clinical Staff Sync // Geospatial Assessment</span>
             </div>
           </div>
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 rounded-full border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Real-Time Sync Active</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)]/10 rounded-full border border-[var(--primary)]/20 shadow-[0_0_15px_rgba(var(--primary-rgb),0.1)]">
+              <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
+              <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">Live Engine Connected</span>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-white">
               <X className="w-6 h-6" />
@@ -373,9 +380,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
             <form id="appointment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 pt-4 space-y-6 scrollbar-hide">
               <section className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <span className="text-xs font-black text-blue-500 bg-blue-500/10 w-8 h-8 rounded-lg flex items-center justify-center">01</span>
                   <span className="text-xs font-black text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">01</span>
-                  <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Patient Search</h3>
+                  <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Bedside Identification</h3>
                   <div className="flex-1 h-px bg-[var(--card-border)]" />
                 </div>
 
@@ -515,7 +521,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                   <section className="space-y-6">
                     <div className="flex items-center gap-4">
                       <span className="text-xs font-black text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">02</span>
-                      <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Care Navigator (CN)</h3>
+                      <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Care Navigator Assignment</h3>
                       <div className="flex-1 h-px bg-[var(--card-border)]" />
                     </div>
 
@@ -582,7 +588,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                   <section className="space-y-6">
                     <div className="flex items-center gap-4">
                       <span className="text-xs font-black text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">03</span>
-                      <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Supporting Clinician (SC)</h3>
+                      <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Supporting Clinical Lane</h3>
                       <div className="flex-1 h-px bg-[var(--card-border)]" />
                     </div>
 

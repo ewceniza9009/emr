@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
 import { 
@@ -14,14 +15,21 @@ import {
   AlertCircle,
   Plus,
   UserCircle,
-  TrendingUp
+  TrendingUp,
+  Calendar,
+  Zap,
+  ChevronRight,
+  Clock,
+  CheckCircle2,
+  Loader2,
+  Edit3
 } from "lucide-react";
-import Link from "next/link";
 import SymptomTrendChart from "@/components/SymptomTrendChart";
 import MedicationRegistry from "@/components/MedicationRegistry";
 import VitalSignTimeline from "@/components/VitalSignTimeline";
 import LiveHeartbeat from "@/components/LiveHeartbeat";
 import ProblemList from "@/components/ProblemList";
+import BookingDrawer from "@/components/BookingDrawer";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -41,7 +49,6 @@ const GET_PATIENT_DETAILS = gql`
           postalCode
         }
       }
-
       phones {
         phoneNumber
         type
@@ -56,85 +63,142 @@ const GET_PATIENT_DETAILS = gql`
   }
 `;
 
+// Separate query for appointments to prevent primary query failure
+const GET_PATIENT_APPOINTMENTS = gql`
+  query GetPatientAppointments($id: UUID!) {
+    appointments(where: { patientId: { eq: $id } }) {
+      appointmentId
+      scheduledStart
+      scheduledEnd
+      status
+      modality
+      practitioner {
+        firstName
+        lastName
+      }
+    }
+  }
+`;
+
 export default function PatientDetailPage() {
   const params = useParams();
-  const { data, loading, error } = useQuery(GET_PATIENT_DETAILS, {
+  const [activeTab, setActiveTab] = useState("snapshot");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
+  
+  const { data, loading, error, refetch } = useQuery(GET_PATIENT_DETAILS, {
     variables: { id: params.id },
   });
 
-  if (loading) return <div className="p-10 text-white">Loading Clinical Profile...</div>;
-  if (error) return <div className="p-10 text-red-400">Error loading patient record.</div>;
+  const { data: apptData, loading: apptLoading, refetch: refetchAppts } = useQuery(GET_PATIENT_APPOINTMENTS, {
+    variables: { id: params.id },
+    skip: !params.id
+  });
+
+  if (loading) return (
+    <div className="p-20 flex flex-col items-center justify-center space-y-4">
+      <Zap className="w-12 h-12 text-[var(--primary)] animate-pulse" />
+      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Initializing Clinical Profile...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-10 space-y-4">
+      <div className="text-rose-500 font-black uppercase tracking-widest flex items-center gap-2">
+        <AlertCircle className="w-5 h-5" />
+        Clinical Access Error
+      </div>
+      <pre className="p-4 bg-rose-500/5 border border-rose-500/20 rounded-xl text-rose-400 text-xs font-mono overflow-auto max-w-2xl">
+        {error.message}
+      </pre>
+      <button 
+        onClick={() => window.location.reload()}
+        className="px-6 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10"
+      >
+        Retry Connection
+      </button>
+    </div>
+  );
 
   const patient = data?.patientById;
+  if (!patient) return <div className="p-10 text-white font-black uppercase tracking-widest">Patient record not found in registry.</div>;
+
+  const appointments = apptData?.appointments || [];
+  const activeAppointment = appointments.find((a: any) => 
+    a.status?.toUpperCase().includes('PROGRESS') || a.status?.toUpperCase() === 'LIVE'
+  );
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
+      {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/patients" className="p-2 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-all">
+        <div className="flex items-center gap-6">
+          <Link href="/dashboard/patients" className="p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all active:scale-95">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-white">{patient.firstName} {patient.lastName}</h1>
-            <p className="text-slate-400 text-sm font-mono tracking-widest uppercase mt-0.5">{patient.mrn} • {patient.biologicalSex}</p>
+            <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">{patient.firstName} {patient.lastName}</h1>
+            <div className="flex items-center gap-4 mt-2">
+              <p className="text-[var(--text-muted)] text-[10px] font-black tracking-[0.2em] uppercase">{patient.mrn} // {patient.biologicalSex}</p>
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--card-border)]" />
+              <p className="text-[var(--primary)] text-[10px] font-black tracking-[0.2em] uppercase">Status: Stable</p>
+            </div>
           </div>
         </div>
-        <div className="w-full md:w-64">
+        <div className="w-full md:w-80">
            <LiveHeartbeat patientId={params.id as string} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Patient Snapshot */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Left Column: Bio Snapshot */}
         <div className="space-y-6">
-          <div className="glass-morphism rounded-3xl p-6">
-            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <UserCircle className="w-5 h-5 text-blue-400" />
-              Bio Profile
+          <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 premium-gradient" />
+            <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+              <UserCircle className="w-4 h-4 text-[var(--primary)]" />
+              Core Identity
             </h2>
-            <div className="space-y-4">
-              <div className="flex justify-between border-b border-white/5 pb-3">
-                <span className="text-slate-500 text-sm">Date of Birth</span>
-                <span className="text-white text-sm font-medium">{new Date(patient.dob).toLocaleDateString()}</span>
+            <div className="space-y-6">
+              <div className="space-y-1">
+                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Date of Birth</p>
+                <p className="text-sm font-black text-[var(--text-primary)]">{new Date(patient.dob).toLocaleDateString()}</p>
               </div>
-              <div className="flex justify-between border-b border-white/5 pb-3">
-                <span className="text-slate-500 text-sm">Postal Code</span>
-                <span className="text-white text-sm font-medium">{patient.addresses?.find((a: any) => a.isPrimary)?.address?.postalCode ?? patient.addresses?.[0]?.address?.postalCode ?? 'Not Set'}</span>
-
-              </div>
-              <div className="flex justify-between pb-3">
-                <span className="text-slate-500 text-sm">Location</span>
-                <span className="text-white text-sm font-medium text-right">{patient.addresses?.find((a: any) => a.isPrimary)?.address?.street ?? patient.addresses?.[0]?.address?.street}, {patient.addresses?.find((a: any) => a.isPrimary)?.address?.city ?? patient.addresses?.[0]?.address?.city}</span>
-
+              <div className="space-y-1">
+                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Clinical Address</p>
+                <p className="text-sm font-black text-[var(--text-primary)] leading-tight">
+                  {patient.addresses?.[0]?.address?.street}<br/>
+                  {patient.addresses?.[0]?.address?.city}, {patient.addresses?.[0]?.address?.postalCode}
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="glass-morphism rounded-3xl p-6">
-            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <Phone className="w-5 h-5 text-emerald-400" />
-              Communication Registry
+          <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 border border-[var(--card-border)] shadow-xl">
+            <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+              <Phone className="w-4 h-4 text-[var(--primary)]" />
+              Communications
             </h2>
-            <div className="space-y-4">
-              {patient.phones.map((phone: any, idx: number) => (
-                <div key={idx} className="flex items-center gap-3">
-                   <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+            <div className="space-y-5">
+              {patient.phones?.map((phone: any, idx: number) => (
+                <div key={idx} className="flex items-center gap-4 group">
+                   <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                      <Phone className="w-4 h-4" />
                    </div>
                    <div>
-                     <p className="text-white text-sm font-medium">{phone.phoneNumber}</p>
-                     <p className="text-slate-500 text-[10px] uppercase tracking-wider">{phone.type}</p>
+                     <p className="text-xs font-black text-[var(--text-primary)]">{phone.phoneNumber}</p>
+                     <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">{phone.type}</p>
                    </div>
                 </div>
               ))}
-              {patient.emails.map((email: any, idx: number) => (
-                <div key={idx} className="flex items-center gap-3">
-                   <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+              {patient.emails?.map((email: any, idx: number) => (
+                <div key={idx} className="flex items-center gap-4 group">
+                   <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                      <Mail className="w-4 h-4" />
                    </div>
                    <div>
-                     <p className="text-white text-sm font-medium">{email.emailAddress}</p>
-                     <p className="text-slate-500 text-[10px] uppercase tracking-wider">{email.type}</p>
+                     <p className="text-xs font-black text-[var(--text-primary)]">{email.emailAddress}</p>
+                     <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">{email.type}</p>
                    </div>
                 </div>
               ))}
@@ -142,91 +206,274 @@ export default function PatientDetailPage() {
           </div>
         </div>
 
-        {/* Center Column: Clinical Timeline */}
-        <div className="lg:col-span-2 space-y-8">
-           {/* Quick Vitals */}
-           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="glass-morphism rounded-3xl p-5 border border-white/5 space-y-1">
-                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pain Level</p>
-                 <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-white">4</span>
-                    <span className="text-xs text-slate-500">/ 10</span>
-                 </div>
-              </div>
-              <div className="glass-morphism rounded-3xl p-5 border border-white/5 space-y-1">
-                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Anxiety</p>
-                 <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-white">2</span>
-                    <span className="text-xs text-slate-500">/ 10</span>
-                 </div>
-              </div>
-              <div className="glass-morphism rounded-3xl p-5 border border-white/5 space-y-1">
-                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">BP</p>
-                 <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-white">128/82</span>
-                    <span className="text-xs text-slate-500">mmHg</span>
-                 </div>
-              </div>
-              <div className="glass-morphism rounded-3xl p-5 border border-white/5 space-y-1">
-                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">SpO2</p>
-                 <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-emerald-400">98</span>
-                    <span className="text-xs text-slate-500">%</span>
-                 </div>
-              </div>
+        {/* Center/Right Column: High-Density Clinical Tabs */}
+        <div className="lg:col-span-3 space-y-8">
+           {/* Tab Navigation */}
+           <div className="flex items-center gap-2 p-1.5 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl w-fit">
+              <button 
+                onClick={() => setActiveTab("snapshot")}
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                           ${activeTab === "snapshot" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+                Clinical Snapshot
+              </button>
+              <button 
+                onClick={() => setActiveTab("history")}
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                           ${activeTab === "history" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+                Historical Activity
+              </button>
+              <button 
+                onClick={() => setActiveTab("activity")}
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                           ${activeTab === "activity" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+                Visit Schedule
+              </button>
            </div>
 
-           {/* Medications */}
-           <MedicationRegistry patientId={params.id as string} />
-
-           {/* Problem List */}
-           <ProblemList patientId={params.id as string} />
-
-           {/* Vital Signs Timeline */}
-           <VitalSignTimeline patientId={params.id as string} />
-
-           {/* Symptom Trends */}
-           <div className="glass-morphism rounded-3xl p-8 border border-white/5">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-blue-400" />
-                    Symptom Trajectory
-                  </h2>
-                  <p className="text-slate-500 text-xs">ESAS-R Standardized Tracking (Pain, Anxiety, Fatigue)</p>
+           {/* Tab Content */}
+           {activeTab === "snapshot" && (
+             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+                {/* Quick Vitals */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { label: "Pain Level", val: "4", unit: "/ 10", color: "text-[var(--text-primary)]" },
+                    { label: "Anxiety", val: "2", unit: "/ 10", color: "text-[var(--text-primary)]" },
+                    { label: "BP", val: "128/82", unit: "mmHg", color: "text-[var(--text-primary)]" },
+                    { label: "SpO2", val: "98", unit: "%", color: "text-emerald-500" },
+                  ].map((v, i) => (
+                    <div key={i} className="bg-[var(--card-bg)] rounded-[2rem] p-6 border border-[var(--card-border)] shadow-md">
+                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2">{v.label}</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className={`text-2xl font-black ${v.color}`}>{v.val}</span>
+                        <span className="text-[10px] font-black text-[var(--text-muted)]">{v.unit}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex gap-2">
-                   <button className="px-3 py-1 rounded-lg bg-white/5 text-slate-400 text-[10px] font-bold border border-white/5 hover:text-white transition-all">Last 30 Days</button>
-                   <button className="px-3 py-1 rounded-lg bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">All Time</button>
-                </div>
-              </div>
-              
-              <SymptomTrendChart patientId={params.id as string} />
-           </div>
 
-           {/* Actions / New Note */}
-           <div className="glass-morphism rounded-3xl p-8 min-h-[300px] flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 text-slate-500">
-                <ClipboardList className="w-8 h-8" />
-              </div>
-              <h3 className="text-white font-bold text-lg">Clinical Notes & Assessments</h3>
-              <p className="text-slate-500 text-sm max-w-xs mt-2">Start a new assessment to begin tracking clinical progress or document a visit.</p>
-              <div className="flex gap-4 mt-8">
-                <Link 
-                  href={`/dashboard/patients/${params.id}/visit`}
-                  className="px-6 py-3 rounded-2xl bg-blue-500 text-white font-bold flex items-center gap-2 hover:bg-blue-600 transition-all shadow-lg shadow-blue-500/20"
-                >
-                  <Stethoscope className="w-5 h-5" />
-                  Start Guided Visit
-                </Link>
-                <button className="px-6 py-3 rounded-2xl bg-white/5 border border-white/10 text-white font-bold flex items-center gap-2 hover:bg-white/10 transition-all">
-                  <Plus className="w-5 h-5" />
-                  Log Encounter
-                </button>
-              </div>
-           </div>
+                <MedicationRegistry patientId={params.id as string} />
+                <ProblemList patientId={params.id as string} />
+                <VitalSignTimeline patientId={params.id as string} />
+
+                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl">
+                   <div className="flex items-center justify-between mb-10">
+                     <div>
+                       <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+                         <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
+                         Symptom Trajectory
+                       </h2>
+                       <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mt-1">ESAS-R Standardized Trends</p>
+                     </div>
+                   </div>
+                   <SymptomTrendChart patientId={params.id as string} />
+                </div>
+             </div>
+           )}
+
+           {activeTab === "history" && (
+             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl min-h-[500px]">
+                   <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
+                     <Activity className="w-4 h-4 text-[var(--primary)]" />
+                     Clinical Activity Log
+                   </h2>
+                   
+                   <div className="space-y-8 relative">
+                      <div className="absolute left-[21px] top-0 w-px h-full bg-[var(--card-border)]" />
+                      
+                      {[
+                        { date: "2026-05-01", time: "14:20", event: "Progress Note Finalized", provider: "Sarah Chen", icon: <CheckCircle2 className="w-4 h-4" /> },
+                        { date: "2026-04-28", time: "09:45", event: "Medication Reconciliation", provider: "Marcus Wright", icon: <ClipboardList className="w-4 h-4" /> },
+                        { date: "2026-04-15", time: "11:00", event: "Home Visit Completed", provider: "Elena Rodriguez", icon: <MapPin className="w-4 h-4" /> },
+                      ].map((evt, i) => (
+                        <div key={i} className="flex gap-8 relative z-10 group cursor-pointer">
+                           <div className="w-11 h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--primary)] group-hover:text-[var(--primary)] transition-all">
+                             {evt.icon}
+                           </div>
+                           <div className="pt-1 flex-1">
+                              <div className="flex items-center justify-between">
+                                 <h4 className="text-sm font-black uppercase text-[var(--text-primary)]">{evt.event}</h4>
+                                 <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{evt.date} // {evt.time}</span>
+                              </div>
+                              <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">Provider: {evt.provider}</p>
+                              <div className="mt-4 p-4 rounded-xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] group-hover:bg-[var(--primary)]/5 transition-all">
+                                 <p className="text-xs text-[var(--text-secondary)] italic">Patient reports improved pain management following dosage adjustment. Vital signs stable.</p>
+                              </div>
+                           </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+             </div>
+           )}
+
+           {activeTab === "activity" && (
+             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl min-h-[500px]">
+                   <div className="flex items-center justify-between mb-10">
+                     <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-3">
+                       <Calendar className="w-4 h-4 text-[var(--primary)]" />
+                       Patient Visit Registry
+                     </h2>
+                     <button 
+                       onClick={() => {
+                         setSelectedAppointmentId(undefined);
+                         setDrawerOpen(true);
+                       }}
+                       className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)]">
+                       <Plus className="w-4 h-4" /> Schedule visit
+                     </button>
+                   </div>
+
+                   <div className="space-y-4">
+                      {apptLoading ? (
+                        <div className="flex items-center justify-center py-20">
+                          <Loader2 className="w-8 h-8 text-[var(--primary)] animate-spin" />
+                        </div>
+                      ) : appointments.length > 0 ? (
+                        appointments.map((appt: any) => (
+                          <div 
+                            key={appt.appointmentId} 
+                            className="p-6 rounded-[2rem] border border-[var(--card-border)] bg-[var(--input-bg)]/50 flex items-center justify-between hover:border-[var(--primary)]/30 transition-all group cursor-pointer active:scale-[0.99]"
+                          >
+                             <Link 
+                                href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
+                                className="flex-1 flex items-center gap-6"
+                             >
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors
+                                             ${appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE' ? 'bg-[var(--primary)] text-white animate-pulse' : 'bg-[var(--card-border)] text-[var(--text-muted)]'}`}>
+                                   <Calendar className="w-6 h-6" />
+                                </div>
+                                <div>
+                                   <div className="flex items-center gap-3 mb-1">
+                                      <h4 className="text-sm font-black uppercase">{new Date(appt.scheduledStart).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h4>
+                                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest
+                                                    ${appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE' ? 'bg-emerald-500 text-white' : 'bg-[var(--card-border)] text-[var(--text-muted)]'}`}>
+                                         {appt.status}
+                                      </span>
+                                   </div>
+                                   <div className="flex items-center gap-4">
+                                      <span className="flex items-center gap-1.5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                                         <Clock className="w-3.5 h-3.5" />
+                                         {new Date(appt.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                      <span className="flex items-center gap-1.5 text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">
+                                         <UserCircle className="w-3.5 h-3.5" />
+                                         {appt.practitioner?.firstName} {appt.practitioner?.lastName}
+                                      </span>
+                                   </div>
+                                </div>
+                             </Link>
+
+                             <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 pr-4 border-r border-[var(--card-border)]">
+                                   <button 
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       setSelectedAppointmentId(appt.appointmentId);
+                                       setDrawerOpen(true);
+                                     }}
+                                     className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/30 transition-all"
+                                     title="Edit Schedule"
+                                   >
+                                      <Edit3 className="w-4 h-4" />
+                                   </button>
+                                </div>
+                                
+                                {appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE' ? (
+                                  <Link 
+                                    href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
+                                    className="px-6 py-3 rounded-xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                                  >
+                                    <Zap className="w-4 h-4" /> Join Visit
+                                  </Link>
+                                ) : appt.status?.toUpperCase().includes('SCHEDULED') ? (
+                                  <>
+                                    <Link 
+                                      href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
+                                      className="px-6 py-3 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-[var(--primary-glow)] flex items-center gap-2"
+                                    >
+                                      <Stethoscope className="w-4 h-4" /> Start Visit
+                                    </Link>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedAppointmentId(appt.appointmentId);
+                                        setDrawerOpen(true);
+                                      }}
+                                      className="px-4 py-3 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/20 transition-all"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button className="px-6 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest hover:text-[var(--text-primary)] transition-all">
+                                    View Summary
+                                  </button>
+                                )}
+                             </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="py-20 text-center opacity-30">
+                          <Calendar className="w-12 h-12 mx-auto mb-4 text-[var(--text-muted)]" />
+                          <p className="text-xs font-black uppercase tracking-widest">No Historical Appointments Found</p>
+                        </div>
+                      )}
+                   </div>
+                </div>
+             </div>
+           )}
+
+           {/* Intervention Action Area */}
+           {!activeAppointment && (
+             <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] border-dashed flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-6 text-[var(--primary)]">
+                  <ClipboardList className="w-8 h-8" />
+                </div>
+                <h3 className="text-[var(--text-primary)] font-black text-xl uppercase tracking-tighter">Clinical Interventions</h3>
+                <p className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest mt-2 max-w-xs leading-relaxed">No active visit detected. Start a guided assessment or log a retrospective encounter.</p>
+                <div className="flex gap-4 mt-10">
+                  <Link 
+                    href={`/dashboard/patients/${params.id}/visit`}
+                    className="px-8 py-4 rounded-2xl bg-[var(--primary)] text-white font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-[var(--primary-glow)]"
+                  >
+                    <Stethoscope className="w-5 h-5" />
+                    Start Guided Visit
+                  </Link>
+                  <button 
+                    onClick={() => {
+                      setSelectedAppointmentId(undefined);
+                      setDrawerOpen(true);
+                    }}
+                    className="px-8 py-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-primary)] font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 hover:bg-[var(--primary-glow)] transition-all">
+                    <Plus className="w-4 h-4" />
+                    Log Encounter
+                  </button>
+                </div>
+             </div>
+           )}
         </div>
+      </div>
+
+      <BookingDrawer 
+        open={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false);
+          refetch();
+          refetchAppts();
+        }}
+        onBooked={() => {
+          setDrawerOpen(false);
+          refetch();
+          refetchAppts();
+        }}
+        appointmentId={selectedAppointmentId}
+        patientId={params.id as string}
+      />
     </div>
-  </div>
   );
 }
+
+// Added back missing import
+import Link from "next/link";
