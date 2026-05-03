@@ -134,6 +134,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const [practitionerId, setPractitionerId] = useState("");
   const [supportingIds, setSupportingIds] = useState<string[]>([]);
   const [patientSearch, setPatientSearch] = useState("");
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [showPatientResults, setShowPatientResults] = useState(false);
   const [period, setPeriod] = useState<"AM" | "PM" | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date(prefillDate || Date.now()));
@@ -359,10 +360,20 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         <Target className="w-4 h-4 text-emerald-500" />
                         <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Location Verified</span>
                       </div>
-                      <div className="bg-white/[0.01] border border-white/5 rounded-xl p-4">
+                      <div className="bg-white/[0.01] border border-white/5 rounded-xl p-4 relative group/addr">
+                        <button type="button" onClick={() => setIsEditingAddress(!isEditingAddress)}
+                          className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-blue-600/20 rounded-lg border border-white/5 hover:border-blue-500/30 transition-all opacity-0 group-hover/addr:opacity-100">
+                          <Edit3 className="w-3.5 h-3.5 text-blue-400" />
+                        </button>
                         <div className="space-y-1">
                           <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Street Address</label>
-                          <p className="text-xs font-bold text-white uppercase">{patientAddress.street || "Unknown"}</p>
+                          {isEditingAddress ? (
+                            <input autoFocus value={patientAddress.street} onChange={e => setPatientAddress({ ...patientAddress, street: e.target.value })}
+                                onBlur={() => setIsEditingAddress(false)}
+                                className="w-full bg-blue-600/10 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-bold text-white uppercase outline-none" />
+                          ) : (
+                            <p className="text-xs font-bold text-white uppercase">{patientAddress.street || "Unknown"}</p>
+                          )}
                         </div>
                         <div className="grid grid-cols-2 gap-4 pt-2">
                           <div className="space-y-1"><label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">City</label><p className="text-[10px] font-bold text-slate-300 uppercase">{patientAddress.city}</p></div>

@@ -170,7 +170,7 @@ namespace Infrastructure.Data
                     State = f.Address.State(),
                     PostalCode = f.Address.ZipCode()
                 })
-                .Generate(5);
+                .Generate(10);
             context.Set<EntityAddress>().AddRange(entityAddresses);
 
             var patientEmails = new Faker<PatientEmail>()
@@ -226,11 +226,16 @@ namespace Infrastructure.Data
                     var p = practitioners.Where(pr => pr.PractitionerId != a.PractitionerId).OrderBy(x => Guid.NewGuid()).Take(1).ToList();
                     return p;
                 })
-                // Hardened Geospatial Seeding: Travel time ONLY if CN is assigned and it's In-Person
+                // Hardened Geospatial Seeding: Travel time ONLY if CN is assigned, it's In-Person, AND patient has a verified address
                 .RuleFor(a => a.TravelTimeMinutes, (f, a) => {
                     var isTele = a.Modality == AppointmentModality.TelehealthVideo || a.Modality == AppointmentModality.TelehealthAudioOnly || a.Modality == AppointmentModality.Telephone;
                     if (isTele) return 0;
                     if (a.SupportingClinicians == null || !a.SupportingClinicians.Any()) return 0;
+                    
+                    // Root Cause Fix: Only generate travel time if the patient has a registered address in the seeder
+                    var patientAddr = entityAddresses.FirstOrDefault(ea => ea.PatientId == a.PatientId);
+                    if (patientAddr == null || string.IsNullOrWhiteSpace(patientAddr.Address?.Street) || patientAddr.Address.Street.ToUpper() == "UNKNOWN") return 0;
+                    
                     return f.PickRandom(15.0, 30.0, 45.0);
                 })
                 .Generate(12); // Generate 12 to perfectly fill 3 days (4 per day)
