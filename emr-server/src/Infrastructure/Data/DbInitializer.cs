@@ -127,7 +127,7 @@ namespace Infrastructure.Data
             var practitioners = careNavigators.Concat(supportingClinicians).Append(adminPractitioner).ToList();
             
             var faker = new Faker();
-            // Seed coordinates for practitioners around Utah area
+            // Seed coordinates for practitioners around a tight SLC cluster (approx 10-15 mile radius)
             foreach (var p in practitioners)
             {
                 var entityAddr = new EntityAddress
@@ -139,11 +139,11 @@ namespace Infrastructure.Data
                     Address = new Address
                     {
                         Street = faker.Address.StreetAddress(),
-                        City = faker.Address.City(),
+                        City = "Salt Lake City",
                         State = "Utah",
                         PostalCode = faker.Address.ZipCode(),
-                        Latitude = faker.Address.Latitude(39.0, 41.0),
-                        Longitude = faker.Address.Longitude(-113.0, -111.0)
+                        Latitude = faker.Address.Latitude(40.70, 40.80),
+                        Longitude = faker.Address.Longitude(-111.95, -111.85)
                     }
                 };
                 context.EntityAddresses.Add(entityAddr);
@@ -330,18 +330,22 @@ namespace Infrastructure.Data
                         if (a.SupportingClinicians == null || !a.SupportingClinicians.Any())
                             return 0;
 
-                        // Root Cause Fix: Only generate travel time if the patient has a registered address in the seeder
-                        var patientAddr = entityAddresses.FirstOrDefault(ea =>
-                            ea.PatientId == a.PatientId
-                        );
-                        if (
-                            patientAddr == null
-                            || string.IsNullOrWhiteSpace(patientAddr.Address?.Street)
-                            || patientAddr.Address.Street.ToUpper() == "UNKNOWN"
-                        )
-                            return 0;
+                        var patientAddr = context.EntityAddresses.Local
+                            .FirstOrDefault(ea => ea.PatientId == a.PatientId);
 
-                        return f.PickRandom(15.0, 30.0, 45.0);
+                        // Final Consistency Fix: Use the actual GeoUtils math in the seeder
+                        var pAddress = context.EntityAddresses.Local
+                            .FirstOrDefault(ea => ea.PractitionerId == a.PractitionerId)?.Address;
+                        
+                        if (pAddress == null || !pAddress.Latitude.HasValue || patientAddr?.Address?.Latitude.HasValue != true)
+                            return 15; // Minimum buffer fallback
+
+                        var dist = Application.Common.Utils.GeoUtils.CalculateDistance(
+                            pAddress.Latitude.Value, pAddress.Longitude.Value,
+                            patientAddr.Address.Latitude.Value, patientAddr.Address.Longitude.Value);
+                        
+                        var time = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(dist);
+                        return (int)Math.Max(15, Math.Round(time, 0));
                     }
                 )
                 .Generate(12); // Generate 12 to perfectly fill 3 days (4 per day)

@@ -182,13 +182,12 @@ public class SchedulingService : ISchedulingService
                         .OrderByDescending(a => a.ScheduledEnd)
                         .FirstOrDefault();
 
-                    double startLat = staff.Latitude ?? 14.5995;
-                    double startLon = staff.Longitude ?? 120.9842;
+                    // Fallback to localized Utah center (Salt Lake City) instead of Manila to avoid 8000-mile errors
+                    double startLat = staff.Latitude ?? 40.7608; 
+                    double startLon = staff.Longitude ?? -111.8910;
 
-                    var anchorAddr = anchor
-                        ?.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)
-                        ?.Address;
-                    if (anchorAddr?.Latitude.HasValue == true)
+                    var anchorAddr = anchor?.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+                    if (anchorAddr != null && anchorAddr.Latitude.HasValue && anchorAddr.Longitude.HasValue)
                     {
                         startLat = anchorAddr.Latitude.Value;
                         startLon = anchorAddr.Longitude.Value;
@@ -256,7 +255,7 @@ public class SchedulingService : ISchedulingService
                             StartTime = time,
                             EndTime = appointmentEnd,
                             DistanceInMiles = Math.Round(distance, 2),
-                            TravelTimeInMinutes = Math.Round(travelTime, 0),
+                            TravelTimeInMinutes = Math.Max(15, Math.Round(travelTime, 0)),
                         }
                     );
                 }
@@ -327,8 +326,9 @@ public class SchedulingService : ISchedulingService
                     .ThenInclude(a => a.Address)
                     .FirstOrDefaultAsync(p => p.PractitionerId == appt.PractitionerId, cancellationToken);
                 var home = practitioner?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
-                startLat = home?.Latitude ?? 14.5995;
-                startLon = home?.Longitude ?? 120.9842;
+                // Fallback to localized Utah center (Salt Lake City)
+                startLat = home?.Latitude ?? 40.7608;
+                startLon = home?.Longitude ?? -111.8910;
             }
         }
         else
@@ -339,8 +339,9 @@ public class SchedulingService : ISchedulingService
                 .ThenInclude(a => a.Address)
                 .FirstOrDefaultAsync(p => p.PractitionerId == appt.PractitionerId, cancellationToken);
             var home = practitioner?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
-            startLat = home?.Latitude ?? 14.5995;
-            startLon = home?.Longitude ?? 120.9842;
+            // Fallback to localized Utah center (Salt Lake City)
+            startLat = home?.Latitude ?? 40.7608;
+            startLon = home?.Longitude ?? -111.8910;
         }
 
         double distance = GeoUtils.CalculateDistance(
@@ -349,8 +350,8 @@ public class SchedulingService : ISchedulingService
             patientAddr.Latitude.Value,
             patientAddr.Longitude.Value
         );
-        double travelTime = GeoUtils.EstimateTravelTimeMinutes(distance);
-
+        double travelTime = Math.Max(15, GeoUtils.EstimateTravelTimeMinutes(distance));
+ 
         return (Math.Round(distance, 2), Math.Round(travelTime, 0));
     }
 }

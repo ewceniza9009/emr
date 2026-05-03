@@ -162,8 +162,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
         state: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.state || a.patient?.addresses?.[0]?.address?.state || "",
         postalCode: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || a.patient?.addresses?.[0]?.address?.postalCode || ""
       });
-      setPractitionerId(a.practitionerId);
-      setSupportingIds(a.supportingClinicians?.map((s: any) => s.practitionerId) || []);
+      setPractitionerId(a.practitionerId || "");
+      // Data Integrity: Ensure no clinicians with the CareNavigator role leak into the supporting list on load
+      const cnIds = new Set(displayCns.map(cn => cn.practitionerId?.toLowerCase()));
+      const rawSupporting = a.supportingClinicians?.map((s: any) => s.practitionerId) || [];
+      setSupportingIds(rawSupporting.filter((id: string) => !cnIds.has(id?.toLowerCase())));
       setModality(a.modality);
       const start = new Date(a.scheduledStart);
       setSelectedDate(start);
@@ -473,36 +476,38 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {displayCns.map((p: any) => {
-                        const isPrimary = practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
-                        const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === p.practitionerId?.toLowerCase());
-                        const isSelected = isPrimary || isSupporting;
-                        return (
-                          <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
-                            ${isSelected ? "bg-purple-600/10 border-purple-500 shadow-xl shadow-purple-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
+                          const isPrimary = practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
+                          const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === p.practitionerId?.toLowerCase());
+                          return (
+                            <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
+                              ${isPrimary ? "bg-purple-600/10 border-purple-500 shadow-xl shadow-purple-500/10" : isSupporting ? "bg-blue-600/10 border-blue-500 shadow-xl shadow-blue-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
                             onClick={() => {
-                              setPractitionerId(p.practitionerId);
-                              // Ensure this practitioner is not also in supportingIds to avoid visual duplication
-                              setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== p.practitionerId?.toLowerCase()));
+                              const pid = p.practitionerId;
+                              if (!pid) return;
+                              setPractitionerId(pid);
+                              // Strictly remove ANY navigator from the supporting list to prevent double highlights
+                              const allCnIds = new Set(displayCns.map(cn => cn.practitionerId?.toLowerCase()));
+                              setSupportingIds(prev => prev.filter(id => !allCnIds.has(id?.toLowerCase())));
                             }}>
                             <div className="flex items-center gap-3 min-w-0">
-                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-purple-500 text-white" : "bg-white/5 text-slate-600"}`}>
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary ? "bg-purple-500 text-white" : isSupporting ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
                                 <User className="w-4 h-4" />
                               </div>
                               <div className="min-w-0">
-                                <p className={`text-xs font-black uppercase truncate whitespace-nowrap ${isSelected ? "text-white" : "text-slate-400"}`}
+                                <p className={`text-xs font-black uppercase truncate whitespace-nowrap ${isPrimary ? "text-white" : isSupporting ? "text-blue-400" : "text-slate-400"}`}
                                    title={p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}>
                                   {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}
                                 </p>
-                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5 truncate whitespace-nowrap">Care Navigator</p>
+                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5 truncate whitespace-nowrap">{isSupporting ? "Helping as SC" : "Care Navigator"}</p>
                               </div>
                             </div>
                              <div className="text-right">
                                 <div className="flex items-center gap-1.5 justify-end">
                                     {p.travelTimeInMinutes !== undefined ? (
                                       <>
-                                        <Car className={`w-3 h-3 ${isSelected ? "text-purple-400" : "text-slate-700"}`} />
-                                        <span className={`text-xs font-black ${isSelected ? "text-white" : "text-slate-600"}`}>
-                                          {isSelected 
+                                        <Car className={`w-3 h-3 ${isPrimary ? "text-purple-400" : isSupporting ? "text-blue-400" : "text-slate-700"}`} />
+                                        <span className={`text-xs font-black ${isPrimary || isSupporting ? "text-white" : "text-slate-600"}`}>
+                                          {isPrimary || isSupporting 
                                             ? (selectedSlot?.travelTimeInMinutes !== undefined ? `${selectedSlot.travelTimeInMinutes}m` : "--")
                                             : (p.travelTimeInMinutes !== undefined ? `${p.travelTimeInMinutes}m` : "--")}
                                         </span>
@@ -529,18 +534,21 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {displayScs.map((p: any) => {
-                        const isPrimary = practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
                         const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === p.practitionerId?.toLowerCase());
-                        const isSelected = isPrimary || isSupporting;
+                        const isSelected = isSupporting; // In SC section, only highlight if they are supporting
                         return (
                           <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                             ${isSelected ? "bg-blue-600/10 border-blue-500 shadow-xl shadow-blue-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
-                            onClick={() => {
-                              if (isSelected) setPractitionerId("");
-                              else {
-                                setPractitionerId(p.practitionerId);
-                              }
-                            }}>
+                             onClick={() => {
+                               const pid = p.practitionerId;
+                               if (!pid || practitionerId?.toLowerCase() === pid.toLowerCase()) return;
+                               
+                               if (isSupporting) {
+                                 setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                               } else {
+                                 setSupportingIds(prev => [...prev, pid]);
+                               }
+                             }}>
                             <div className="flex items-center gap-3 min-w-0">
                               <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
                                 <Stethoscope className="w-4 h-4" />
