@@ -195,11 +195,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
   const currentGeoData = period === "AM" ? amData : pmData;
 
-  // Auto-select best practitioner when slot is chosen
+  // Auto-select best supporting clinician when slot is chosen
   useEffect(() => {
     if (currentGeoData?.availableProviders?.length > 0 && !practitionerId) {
       const best = [...currentGeoData.availableProviders]
-        .filter(p => p.role === "CareNavigator")
+        .filter(p => p.role !== "CareNavigator")
         .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
       if (best) setPractitionerId(best.practitionerId);
     }
@@ -368,25 +368,65 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         <Target className="w-4 h-4 text-emerald-500" />
                         <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Location Verified</span>
                       </div>
-                      <div className="bg-white/[0.01] border border-white/5 rounded-xl p-4 relative group/addr">
-                        <button type="button" onClick={() => setIsEditingAddress(!isEditingAddress)}
-                          className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-blue-600/20 rounded-lg border border-white/5 hover:border-blue-500/30 transition-all opacity-0 group-hover/addr:opacity-100">
-                          <Edit3 className="w-3.5 h-3.5 text-blue-400" />
-                        </button>
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Street Address</label>
-                          {isEditingAddress ? (
-                            <input autoFocus value={patientAddress.street} onChange={e => setPatientAddress({ ...patientAddress, street: e.target.value })}
-                              onBlur={() => setIsEditingAddress(false)}
-                              className="w-full bg-blue-600/10 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-bold text-white uppercase outline-none" />
-                          ) : (
-                            <p className="text-xs font-bold text-white uppercase">{patientAddress.street || "Unknown"}</p>
-                          )}
+                      <div className="bg-white/[0.01] border border-white/5 rounded-xl p-5 relative group/addr space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <MapPin className="w-3.5 h-3.5 text-slate-500" />
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Patient Site Data</span>
+                            </div>
+                            <button type="button" onClick={() => setIsEditingAddress(!isEditingAddress)}
+                                className={`p-2 rounded-lg border transition-all ${isEditingAddress ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400" : "bg-white/5 hover:bg-blue-600/20 border-white/5 hover:border-blue-500/30 text-blue-400 opacity-0 group-hover/addr:opacity-100"}`}>
+                                {isEditingAddress ? <Check className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
+                            </button>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 pt-2">
-                          <div className="space-y-1"><label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">City</label><p className="text-[10px] font-bold text-slate-300 uppercase">{patientAddress.city}</p></div>
-                          <div className="space-y-1"><label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Region</label><p className="text-[10px] font-bold text-slate-300 uppercase">{patientAddress.state}</p></div>
-                        </div>
+                        
+                        {isEditingAddress ? (
+                          <div className="space-y-4 animate-in fade-in duration-300">
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Street Address</label>
+                              <input autoFocus value={patientAddress.street} onChange={e => setPatientAddress({ ...patientAddress, street: e.target.value })}
+                                className="w-full bg-blue-600/10 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-bold text-white uppercase outline-none focus:border-blue-400 transition-colors" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1">
+                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">City</label>
+                                <input value={patientAddress.city} onChange={e => setPatientAddress({ ...patientAddress, city: e.target.value })}
+                                  className="w-full bg-blue-600/10 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-bold text-white uppercase outline-none focus:border-blue-400 transition-colors" />
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Region</label>
+                                <input value={patientAddress.state} onChange={e => setPatientAddress({ ...patientAddress, state: e.target.value })}
+                                  className="w-full bg-blue-600/10 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-bold text-white uppercase outline-none focus:border-blue-400 transition-colors" />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Postal Code</label>
+                              <input value={patientAddress.postalCode} onChange={e => setPatientAddress({ ...patientAddress, postalCode: e.target.value })}
+                                className="w-full bg-blue-600/10 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-bold text-white uppercase outline-none focus:border-blue-400 transition-colors" />
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="space-y-1">
+                              <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Street Address</label>
+                              <p className="text-xs font-bold text-white uppercase">{patientAddress.street || "Unknown"}</p>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4 pt-2">
+                              <div className="space-y-1">
+                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">City</label>
+                                <p className="text-[10px] font-bold text-slate-300 uppercase truncate">{patientAddress.city || "--"}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Region</label>
+                                <p className="text-[10px] font-bold text-slate-300 uppercase truncate">{patientAddress.state || "--"}</p>
+                              </div>
+                              <div className="space-y-1">
+                                <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Zip</label>
+                                <p className="text-[10px] font-bold text-slate-300 uppercase truncate">{patientAddress.postalCode || "--"}</p>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -433,7 +473,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {displayCns.map((p: any) => {
-                        const isSelected = supportingIds.some((id: string) => id?.toLowerCase() === p.practitionerId?.toLowerCase());
+                        const isPrimary = practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
+                        const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === p.practitionerId?.toLowerCase());
+                        const isSelected = isPrimary || isSupporting;
                         return (
                           <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                             ${isSelected ? "bg-purple-600/10 border-purple-500 shadow-xl shadow-purple-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
@@ -441,15 +483,16 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                               if (isSelected) setSupportingIds(supportingIds.filter((id: string) => id?.toLowerCase() !== p.practitionerId?.toLowerCase()));
                               else setSupportingIds([p.practitionerId]);
                             }}>
-                            <div className="flex items-center gap-3">
-                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${isSelected ? "bg-purple-500 text-white" : "bg-white/5 text-slate-600"}`}>
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-purple-500 text-white" : "bg-white/5 text-slate-600"}`}>
                                 <User className="w-4 h-4" />
                               </div>
-                              <div>
-                                <p className={`text-xs font-black uppercase ${isSelected ? "text-white" : "text-slate-400"}`}>
+                              <div className="min-w-0">
+                                <p className={`text-xs font-black uppercase truncate whitespace-nowrap ${isSelected ? "text-white" : "text-slate-400"}`}
+                                   title={p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}>
                                   {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}
                                 </p>
-                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5">Care Navigator</p>
+                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5 truncate whitespace-nowrap">Care Navigator</p>
                               </div>
                             </div>
                              <div className="text-right">
@@ -485,7 +528,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {displayScs.map((p: any) => {
-                        const isSelected = practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
+                        const isPrimary = practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
+                        const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === p.practitionerId?.toLowerCase());
+                        const isSelected = isPrimary || isSupporting;
                         return (
                           <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                             ${isSelected ? "bg-blue-600/10 border-blue-500 shadow-xl shadow-blue-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
@@ -495,15 +540,16 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                 setPractitionerId(p.practitionerId);
                               }
                             }}>
-                            <div className="flex items-center gap-3">
-                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${isSelected ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
                                 <Stethoscope className="w-4 h-4" />
                               </div>
-                              <div>
-                                <p className={`text-xs font-black uppercase ${isSelected ? "text-white" : "text-slate-400"}`}>
+                              <div className="min-w-0">
+                                <p className={`text-xs font-black uppercase truncate whitespace-nowrap ${isSelected ? "text-white" : "text-slate-400"}`}
+                                   title={p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}>
                                   {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}
                                 </p>
-                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5">Supporting Clinician</p>
+                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5 truncate whitespace-nowrap">Supporting Clinician</p>
                               </div>
                             </div>
                           </div>
@@ -595,8 +641,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                 )}
               </div>
 
-              <div className={`p-10 rounded-[3rem] border-2 transition-all duration-1000 relative overflow-hidden group
-                      ${selectedSlot?.shiftStart ? "bg-blue-600 border-transparent shadow-[0_20px_60px_rgba(37,99,235,0.3)]" : "bg-white/[0.01] border-white/5 opacity-20"}`}>
+              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-1000 relative overflow-hidden group
+                      ${selectedSlot?.shiftStart ? "bg-blue-600 border-transparent shadow-[0_15px_40px_rgba(37,99,235,0.2)]" : "bg-white/[0.01] border-white/5 opacity-20"}`}>
 
                 {/* Simulated Deployment Radar Map */}
                 <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -632,7 +678,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       </div>
                       <p className="text-[8px] font-black text-blue-100/50 uppercase tracking-widest">Target Connection Time</p>
                     </div>
-                    <div className="pt-8 flex items-center justify-between border-t border-white/20 mt-6">
+                    <div className="pt-4 flex items-center justify-between border-t border-white/20 mt-4">
                       {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? (
                         <div className="w-full text-center">
                           <p className="text-[10px] font-black text-blue-100/40 uppercase tracking-widest mb-1">Link Latency</p>
@@ -663,34 +709,34 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
             <div className="mt-auto pt-10">
               {appointmentId && (
-                <div className="grid grid-cols-4 gap-2 mb-6">
-                  <button type="button" onClick={() => alert("Marked as Completed")} className="p-4 bg-white/[0.02] hover:bg-blue-500/10 rounded-2xl border border-white/5 hover:border-blue-500/30 flex flex-col items-center justify-center gap-2 group transition-all">
-                    <CheckCircle className="w-5 h-5 text-blue-500 group-hover:scale-110 transition-transform" />
-                    <span className="text-[8px] font-black uppercase tracking-widest text-white/50 group-hover:text-blue-400">Done</span>
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  <button type="button" onClick={() => alert("Marked as Completed")} className="p-3 bg-white/[0.02] hover:bg-blue-500/10 rounded-xl border border-white/5 hover:border-blue-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                    <CheckCircle className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform" />
+                    <span className="text-[7px] font-black uppercase tracking-widest text-white/50 group-hover:text-blue-400">Done</span>
                   </button>
-                  <button type="button" onClick={() => alert("Placed on Hold")} className="p-4 bg-white/[0.02] hover:bg-amber-500/10 rounded-2xl border border-white/5 hover:border-amber-500/30 flex flex-col items-center justify-center gap-2 group transition-all">
-                    <Clock className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform" />
-                    <span className="text-[8px] font-black uppercase tracking-widest text-white/50 group-hover:text-amber-400">Hold</span>
+                  <button type="button" onClick={() => alert("Placed on Hold")} className="p-3 bg-white/[0.02] hover:bg-amber-500/10 rounded-xl border border-white/5 hover:border-amber-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                    <Clock className="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" />
+                    <span className="text-[7px] font-black uppercase tracking-widest text-white/50 group-hover:text-amber-400">Hold</span>
                   </button>
-                  <button type="button" onClick={() => alert("Appointment Cancelled")} className="p-4 bg-white/[0.02] hover:bg-rose-500/10 rounded-2xl border border-white/5 hover:border-rose-500/30 flex flex-col items-center justify-center gap-2 group transition-all">
-                    <X className="w-5 h-5 text-rose-500 group-hover:scale-110 transition-transform" />
-                    <span className="text-[8px] font-black uppercase tracking-widest text-white/50 group-hover:text-rose-400">Cancel</span>
+                  <button type="button" onClick={() => alert("Appointment Cancelled")} className="p-3 bg-white/[0.02] hover:bg-rose-500/10 rounded-xl border border-white/5 hover:border-rose-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                    <X className="w-4 h-4 text-rose-500 group-hover:scale-110 transition-transform" />
+                    <span className="text-[7px] font-black uppercase tracking-widest text-white/50 group-hover:text-rose-400">Cancel</span>
                   </button>
-                  <button type="button" onClick={() => alert("Permanent Delete")} className="p-4 bg-white/[0.02] hover:bg-red-600/20 rounded-2xl border border-white/5 hover:border-red-600/50 flex flex-col items-center justify-center gap-2 group transition-all">
-                    <AlertCircle className="w-5 h-5 text-red-600 group-hover:scale-110 transition-transform" />
-                    <span className="text-[8px] font-black uppercase tracking-widest text-white/50 group-hover:text-red-500">Delete</span>
+                  <button type="button" onClick={() => alert("Permanent Delete")} className="p-3 bg-white/[0.02] hover:bg-red-600/20 rounded-xl border border-white/5 hover:border-red-600/50 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                    <AlertCircle className="w-4 h-4 text-red-600 group-hover:scale-110 transition-transform" />
+                    <span className="text-[7px] font-black uppercase tracking-widest text-white/50 group-hover:text-red-500">Delete</span>
                   </button>
                 </div>
               )}
 
               <button type="submit" form="appointment-form" disabled={bookingLoading || !selectedSlot?.shiftStart}
-                className="group w-full py-5 rounded-[2rem] bg-blue-600 hover:bg-blue-500 disabled:opacity-10 disabled:cursor-not-allowed
-                          text-white font-black text-sm uppercase tracking-[0.4em] transition-all shadow-[0_20px_50px_rgba(37,99,235,0.4)] flex items-center justify-center gap-4 active:scale-[0.98]">
+                className="group w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-10 disabled:cursor-not-allowed
+                          text-white font-black text-xs uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_rgba(37,99,235,0.2)] flex items-center justify-center gap-3 active:scale-[0.98]">
                 {bookingLoading ? (
-                  <Activity className="w-5 h-5 animate-spin" />
+                  <Activity className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    <Navigation className="w-5 h-5 group-hover:translate-x-1.5 group-hover:-translate-y-1.5 transition-transform duration-500" />
+                    <Navigation className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-500" />
                     <span>{appointmentId ? "UPDATE SCHEDULE" : "CONFIRM SCHEDULE"}</span>
                   </>
                 )}

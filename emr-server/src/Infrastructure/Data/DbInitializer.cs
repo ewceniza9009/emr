@@ -1,19 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+using Bogus;
 using Domain.Entities;
 using Domain.Enums;
-using Infrastructure.Data;
-using Bogus;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Data
 {
     public static class DbInitializer
     {
-        public static async Task InitializeAsync(IServiceProvider serviceProvider, bool wipeDb = true, bool seedDb = true)
+        public static async Task InitializeAsync(
+            IServiceProvider serviceProvider,
+            bool wipeDb = true,
+            bool seedDb = true
+        )
         {
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -22,7 +21,7 @@ namespace Infrastructure.Data
             {
                 await WipeDatabaseAsync(context);
             }
-            
+
             if (seedDb)
             {
                 await SeedDatabaseAsync(context);
@@ -31,10 +30,14 @@ namespace Infrastructure.Data
 
         public static async Task WipeDatabaseAsync(ApplicationDbContext context)
         {
-            var tableNames = context.Model.GetEntityTypes()
+            var tableNames = context
+                .Model.GetEntityTypes()
                 .Select(t => t.GetTableName())
                 .Distinct()
-                .Where(t => !string.IsNullOrEmpty(t) && !t.StartsWith("AspNet", StringComparison.OrdinalIgnoreCase))
+                .Where(t =>
+                    !string.IsNullOrEmpty(t)
+                    && !t.StartsWith("AspNet", StringComparison.OrdinalIgnoreCase)
+                )
                 .ToList();
 
             if (tableNames.Any())
@@ -48,7 +51,8 @@ namespace Infrastructure.Data
         public static async Task SeedDatabaseAsync(ApplicationDbContext context)
         {
             // Only seed if the database is empty to prevent unique constraint violations
-            if (await context.Practitioners.AnyAsync()) return; 
+            if (await context.Practitioners.AnyAsync())
+                return;
 
             Randomizer.Seed = new Random(8675309); // Deterministic test data
 
@@ -122,11 +126,17 @@ namespace Infrastructure.Data
                 .RuleFor(p => p.FirstName, f => f.Name.FirstName())
                 .RuleFor(p => p.LastName, f => f.Name.LastName())
                 .RuleFor(p => p.Mrn, f => $"MRN-{f.IndexGlobal + 50000}") // FIX: Guarantee uniqueness
-                .RuleFor(p => p.Dob, f => f.Date.Past(80, DateTime.UtcNow.AddYears(-20)).ToUniversalTime())
+                .RuleFor(
+                    p => p.Dob,
+                    f => f.Date.Past(80, DateTime.UtcNow.AddYears(-20)).ToUniversalTime()
+                )
                 .RuleFor(p => p.BiologicalSex, f => f.PickRandom("Male", "Female"))
                 .RuleFor(p => p.HealthPlanId, f => f.PickRandom(healthPlans).HealthPlanId)
                 .RuleFor(p => p.FacilityId, f => f.PickRandom(facilities).FacilityId)
-                .RuleFor(p => p.PhilhealthNumber, f => $"PH-{f.IndexGlobal}-{f.Random.Number(1000, 9999)}")
+                .RuleFor(
+                    p => p.PhilhealthNumber,
+                    f => $"PH-{f.IndexGlobal}-{f.Random.Number(1000, 9999)}"
+                )
                 .Generate(10);
             context.Patients.AddRange(patients);
             await context.SaveChangesAsync();
@@ -144,7 +154,10 @@ namespace Infrastructure.Data
 
             var outreachContacts = new Faker<OutreachContact>()
                 .RuleFor(x => x.OutreachContactId, Guid.NewGuid)
-                .RuleFor(x => x.PatientOutreachId, f => f.PickRandom(patientOutreaches).PatientOutreachId)
+                .RuleFor(
+                    x => x.PatientOutreachId,
+                    f => f.PickRandom(patientOutreaches).PatientOutreachId
+                )
                 .RuleFor(x => x.FirstName, f => f.Name.FirstName())
                 .RuleFor(x => x.LastName, f => f.Name.LastName())
                 .RuleFor(x => x.Relationship, f => f.PickRandom<RelationshipType>())
@@ -174,17 +187,24 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.PhoneNumber, f => f.Phone.PhoneNumber())
                 .Generate(10);
             context.Set<PatientPhone>().AddRange(patientPhones);
-            
+
             var entityAddresses = new Faker<EntityAddress>()
                 .RuleFor(x => x.EntityAddressId, Guid.NewGuid)
-                .RuleFor(x => x.PatientId, (f, u) => patients[f.IndexFaker % patients.Count].PatientId)
+                .RuleFor(
+                    x => x.PatientId,
+                    (f, u) => patients[f.IndexFaker % patients.Count].PatientId
+                )
                 .RuleFor(x => x.IsPrimary, true)
-                .RuleFor(x => x.Address, f => new Address {
-                    Street = f.Address.StreetAddress(),
-                    City = f.Address.City(),
-                    State = f.Address.State(),
-                    PostalCode = f.Address.ZipCode()
-                })
+                .RuleFor(
+                    x => x.Address,
+                    f => new Address
+                    {
+                        Street = f.Address.StreetAddress(),
+                        City = f.Address.City(),
+                        State = f.Address.State(),
+                        PostalCode = f.Address.ZipCode(),
+                    }
+                )
                 .Generate(10);
             context.Set<EntityAddress>().AddRange(entityAddresses);
 
@@ -221,7 +241,7 @@ namespace Infrastructure.Data
             context.Set<Allergy>().AddRange(allergies);
 
             // Anchor perfectly to the user's Local Time Zone to prevent UTC shifting past 6 PM
-            var baseDate = new DateTime(2026, 5, 4, 8, 0, 0, DateTimeKind.Local).ToUniversalTime(); 
+            var baseDate = new DateTime(2026, 5, 4, 8, 0, 0, DateTimeKind.Local).ToUniversalTime();
             var modalities = Enum.GetValues<AppointmentModality>();
 
             var appointments = new Faker<Appointment>()
@@ -233,26 +253,54 @@ namespace Infrastructure.Data
                 // Force absolute variety: rotate perfectly through every single Modality enum
                 .RuleFor(a => a.Modality, f => modalities[f.IndexFaker % modalities.Length])
                 // Sequential spacing: 4 appointments per day, exactly 2 hours apart (8AM, 10AM, 12PM, 2PM Local Time)
-                .RuleFor(a => a.ScheduledStart, f => baseDate.AddDays(f.IndexFaker / 4).AddHours((f.IndexFaker % 4) * 2))
+                .RuleFor(
+                    a => a.ScheduledStart,
+                    f => baseDate.AddDays(f.IndexFaker / 4).AddHours((f.IndexFaker % 4) * 2)
+                )
                 .RuleFor(a => a.ScheduledEnd, (f, a) => a.ScheduledStart.AddHours(1))
                 // Seed secondary clinicians (Care Navigators) - Ensure 80% assignment rate for realistic data
-                .RuleFor(a => a.SupportingClinicians, (f, a) => {
-                    if (f.Random.Bool(0.2f)) return new List<Practitioner>();
-                    var p = practitioners.Where(pr => pr.PractitionerId != a.PractitionerId).OrderBy(x => Guid.NewGuid()).Take(1).ToList();
-                    return p;
-                })
+                .RuleFor(
+                    a => a.SupportingClinicians,
+                    (f, a) =>
+                    {
+                        if (f.Random.Bool(0.2f))
+                            return new List<Practitioner>();
+                        var p = practitioners
+                            .Where(pr => pr.PractitionerId != a.PractitionerId)
+                            .OrderBy(x => Guid.NewGuid())
+                            .Take(1)
+                            .ToList();
+                        return p;
+                    }
+                )
                 // Hardened Geospatial Seeding: Travel time ONLY if CN is assigned, it's In-Person, AND patient has a verified address
-                .RuleFor(a => a.TravelTimeMinutes, (f, a) => {
-                    var isTele = a.Modality == AppointmentModality.TelehealthVideo || a.Modality == AppointmentModality.TelehealthAudioOnly || a.Modality == AppointmentModality.Telephone;
-                    if (isTele) return 0;
-                    if (a.SupportingClinicians == null || !a.SupportingClinicians.Any()) return 0;
-                    
-                    // Root Cause Fix: Only generate travel time if the patient has a registered address in the seeder
-                    var patientAddr = entityAddresses.FirstOrDefault(ea => ea.PatientId == a.PatientId);
-                    if (patientAddr == null || string.IsNullOrWhiteSpace(patientAddr.Address?.Street) || patientAddr.Address.Street.ToUpper() == "UNKNOWN") return 0;
-                    
-                    return f.PickRandom(15.0, 30.0, 45.0);
-                })
+                .RuleFor(
+                    a => a.TravelTimeMinutes,
+                    (f, a) =>
+                    {
+                        var isTele =
+                            a.Modality == AppointmentModality.TelehealthVideo
+                            || a.Modality == AppointmentModality.TelehealthAudioOnly
+                            || a.Modality == AppointmentModality.Telephone;
+                        if (isTele)
+                            return 0;
+                        if (a.SupportingClinicians == null || !a.SupportingClinicians.Any())
+                            return 0;
+
+                        // Root Cause Fix: Only generate travel time if the patient has a registered address in the seeder
+                        var patientAddr = entityAddresses.FirstOrDefault(ea =>
+                            ea.PatientId == a.PatientId
+                        );
+                        if (
+                            patientAddr == null
+                            || string.IsNullOrWhiteSpace(patientAddr.Address?.Street)
+                            || patientAddr.Address.Street.ToUpper() == "UNKNOWN"
+                        )
+                            return 0;
+
+                        return f.PickRandom(15.0, 30.0, 45.0);
+                    }
+                )
                 .Generate(12); // Generate 12 to perfectly fill 3 days (4 per day)
             context.Appointments.AddRange(appointments);
             await context.SaveChangesAsync();
@@ -363,8 +411,11 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.AppointmentId, (f, u) => f.PickRandom(appointments).AppointmentId)
                 .RuleFor(x => x.BlockId, (f, u) => f.PickRandom(blocks).BlockId)
                 .Generate(10);
-            
-            var distinctResources = resources.GroupBy(x => new { x.AppointmentId, x.BlockId }).Select(g => g.First()).ToList();
+
+            var distinctResources = resources
+                .GroupBy(x => new { x.AppointmentId, x.BlockId })
+                .Select(g => g.First())
+                .ToList();
             context.Set<AppointmentResource>().AddRange(distinctResources);
 
             var shifts = new List<ProviderShift>();
@@ -372,14 +423,16 @@ namespace Infrastructure.Data
             {
                 for (int day = 1; day <= 5; day++) // Mon-Fri
                 {
-                    shifts.Add(new ProviderShift
-                    {
-                        ProviderShiftId = Guid.NewGuid(),
-                        PractitionerId = p.PractitionerId,
-                        DayOfWeek = (DayOfWeek)day,
-                        StartTime = new TimeSpan(8, 0, 0),
-                        EndTime = new TimeSpan(18, 0, 0)
-                    });
+                    shifts.Add(
+                        new ProviderShift
+                        {
+                            ProviderShiftId = Guid.NewGuid(),
+                            PractitionerId = p.PractitionerId,
+                            DayOfWeek = (DayOfWeek)day,
+                            StartTime = new TimeSpan(8, 0, 0),
+                            EndTime = new TimeSpan(18, 0, 0),
+                        }
+                    );
                 }
             }
             context.Set<ProviderShift>().AddRange(shifts);
@@ -419,7 +472,10 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.InvoiceId, Guid.NewGuid)
                 .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                 .RuleFor(x => x.ClaimId, f => f.PickRandom(claims).ClaimId)
-                .RuleFor(x => x.InvoiceNumber, f => $"INV-{f.IndexGlobal}-{f.Random.AlphaNumeric(5)}") // FIX
+                .RuleFor(
+                    x => x.InvoiceNumber,
+                    f => $"INV-{f.IndexGlobal}-{f.Random.AlphaNumeric(5)}"
+                ) // FIX
                 .RuleFor(x => x.Status, f => f.PickRandom<InvoiceStatus>())
                 .Generate(10);
             context.Set<BillingInvoice>().AddRange(invoices);

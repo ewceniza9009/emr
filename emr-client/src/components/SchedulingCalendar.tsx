@@ -319,13 +319,22 @@ export default function SchedulingCalendar() {
 
                                 {/* Patient Identity & Micro Avatars (Always Visible) */}
                                 <div className="flex items-center justify-between shrink-0 mb-0.5">
-                                    <div className="flex items-center gap-1.5 truncate">
-                                        <span className="text-[10px] leading-tight font-black text-white uppercase truncate">{appt.patient?.firstName} {appt.patient?.lastName}</span>
+                                    <div className="flex flex-col truncate">
+                                        <span className="text-[10px] leading-tight font-black text-white uppercase truncate" title={`${appt.patient?.firstName} ${appt.patient?.lastName}`}>{appt.patient?.firstName} {appt.patient?.lastName}</span>
+                                        {modality.label !== "TELEHEALTH" && appt.patient?.addresses?.[0]?.address?.street && (
+                                            <span className="text-[8px] font-bold text-white/40 truncate mt-0.5" title={appt.patient.addresses[0].address.street}>
+                                                {appt.patient.addresses[0].address.street}
+                                            </span>
+                                        )}
                                     </div>
                                     {/* The "Hint" of CN and SC */}
                                     <div className="flex -space-x-1 shrink-0 ml-1">
-                                        <div className="w-3.5 h-3.5 rounded-full bg-purple-600 border border-[#0a0b10] flex items-center justify-center text-[5px] font-black text-white shadow-md">CN</div>
-                                        <div className="w-3.5 h-3.5 rounded-full bg-blue-600 border border-[#0a0b10] flex items-center justify-center text-[5px] font-black text-white shadow-md">SC</div>
+                                        {appt.supportingClinicians?.length > 0 && (
+                                            <div className="w-3.5 h-3.5 rounded-full bg-purple-600 border border-[#0a0b10] flex items-center justify-center text-[5px] font-black text-white shadow-md">CN</div>
+                                        )}
+                                        {appt.practitioner && (
+                                            <div className="w-3.5 h-3.5 rounded-full bg-blue-600 border border-[#0a0b10] flex items-center justify-center text-[5px] font-black text-white shadow-md">SC</div>
+                                        )}
                                     </div>
                                 </div>
 
