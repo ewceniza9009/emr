@@ -9,6 +9,7 @@ import {
   Users, Filter, Plus, Video, Home, Building2, Activity,
   Navigation, Clock, AlertCircle, Zap, Database, RefreshCw
 } from "lucide-react";
+import { useToast } from "./ToastProvider";
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
@@ -83,12 +84,20 @@ const UPDATE_SCHEDULE_BLOCK = gql`
 `;
 
 export default function SchedulingCalendar() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const { showToast } = useToast();
   const [anchor, setAnchor] = useState(new Date(2026, 4, 3)); // May 3rd, 2026
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerPrefill, setDrawerPrefill] = useState<string | undefined>();
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set());
   const [selectedPractitioners, setSelectedPractitioners] = useState<Set<string>>(new Set());
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    onConfirm: () => void;
+    title: string;
+    message: string;
+  }>({ isOpen: false, onConfirm: () => {}, title: "", message: "" });
 
   const togglePosition = (pos: string) => {
     setSelectedPositions(prev => {
@@ -131,8 +140,15 @@ export default function SchedulingCalendar() {
   const [localAppointments, setLocalAppointments] = useState<any[]>([]);
   const [localBlocks, setLocalBlocks] = useState<any[]>([]);
 
-  const [reschedule] = useMutation(RESCHEDULE_APPOINTMENT, { onCompleted: () => refetch() });
-  const [updateBlock] = useMutation(UPDATE_SCHEDULE_BLOCK, { onCompleted: () => refetch() });
+  const [reschedule] = useMutation(RESCHEDULE_APPOINTMENT, { 
+    onCompleted: () => { refetch(); showToast("Appointment rescheduled successfully", "success"); },
+    onError: (err) => { refetch(); showToast(`Failed to reschedule: ${err.message}`, "error"); }
+  });
+  
+  const [updateBlock] = useMutation(UPDATE_SCHEDULE_BLOCK, { 
+    onCompleted: () => { refetch(); showToast("Busy block updated successfully", "success"); },
+    onError: (err) => { refetch(); showToast(`Failed to update block: ${err.message}`, "error"); }
+  });
 
   useEffect(() => {
     if (data?.appointments) setLocalAppointments(data.appointments);
@@ -147,32 +163,25 @@ export default function SchedulingCalendar() {
   const initializedRef = React.useRef(false);
 
   useEffect(() => {
-    // Wait for BOTH practitioners data AND session status to be ready
-    if (practitioners.length > 0 && status !== "loading" && !initializedRef.current) {
+    if (practitioners.length > 0 && status === "authenticated" && !initializedRef.current) {
       const userPractitionerId = (session?.user as any)?.practitionerId;
-      const userName = session?.user?.name?.toLowerCase();
+      const userName = session?.user?.name?.toLowerCase() || "";
       
-      let targetPractitioner = null;
-
-      if (userPractitionerId) {
-        targetPractitioner = practitioners.find((p: any) => p.practitionerId === userPractitionerId);
-      } else if (userName) {
-        // Fallback: match by name if ID is missing
-        targetPractitioner = practitioners.find((p: any) => 
-            `${p.firstName} ${p.lastName}`.toLowerCase() === userName ||
-            p.lastName.toLowerCase() === userName
-        );
-      }
+      let targetPractitioner = practitioners.find((p: any) => 
+        (userPractitionerId && p.practitionerId === userPractitionerId) ||
+        (userName && (
+          `${p.firstName} ${p.lastName}`.toLowerCase().includes(userName) ||
+          userName.includes(p.firstName.toLowerCase()) ||
+          userName.includes(p.lastName.toLowerCase())
+        ))
+      );
       
       if (targetPractitioner) {
         setSelectedPositions(new Set([targetPractitioner.position.toLowerCase()]));
         setSelectedPractitioners(new Set([targetPractitioner.practitionerId]));
         initializedRef.current = true;
-        return;
-      }
-      
-      // Fallback: show all if no session practitioner found
-      if (apiPositions.length > 0) {
+      } else if (practitioners.length > 5) { 
+        // Only fallback to "All" if we have a significant list and still no match
         setSelectedPositions(new Set(apiPositions));
         initializedRef.current = true;
       }
@@ -200,6 +209,8 @@ export default function SchedulingCalendar() {
     }
 
     const conf = new Set<string>();
+    
+    // 1. Appointment vs Appointment Conflicts
     va.forEach((a1: any) => {
       va.forEach((a2: any) => {
         if (a1.appointmentId !== a2.appointmentId && a1.practitioner?.practitionerId === a2.practitioner?.practitionerId) {
@@ -209,8 +220,20 @@ export default function SchedulingCalendar() {
         }
       });
     });
+
+    // 2. Appointment vs Busy Block Conflicts
+    va.forEach((a: any) => {
+      localBlocks.forEach((b: any) => {
+        if (a.practitioner?.practitionerId === b.practitioner?.practitionerId) {
+          const as = new Date(a.scheduledStart).getTime(), ae = new Date(a.scheduledEnd).getTime();
+          const bs = new Date(b.startTime).getTime(), be = new Date(b.endTime).getTime();
+          if (as < be && bs < ae) conf.add(a.appointmentId);
+        }
+      });
+    });
+
     return { visibleAppointments: va, visibleBlocks: vb, conflicts: conf };
-  }, [localAppointments, localBlocks, selectedPositions, selectedPractitioners]);
+  }, [localAppointments, localBlocks, selectedPositions, selectedPractitioners, practitioners]);
 
   const handleDrop = (e: React.DragEvent, targetDate: Date) => {
     e.preventDefault();
@@ -226,7 +249,7 @@ export default function SchedulingCalendar() {
     const startMin = pct * GRID_CONFIG.TOTAL_MINUTES;
     const snappedMin = Math.round(startMin / 15) * 15;
     
-    const newStart = new Date(targetDate);
+    const newStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
     newStart.setHours(GRID_CONFIG.START_HOUR, snappedMin, 0, 0);
     const newEnd = new Date(newStart.getTime() + duration * 60000);
 
@@ -239,21 +262,33 @@ export default function SchedulingCalendar() {
     }
 
     if (apptId) {
-        // Optimistic update
-        setLocalAppointments(prev => prev.map(a => 
-          a.appointmentId === apptId 
-            ? { ...a, scheduledStart: newStart.toISOString(), scheduledEnd: newEnd.toISOString() }
-            : a
-        ));
-        reschedule({ variables: { id: apptId, newStart: newStart.toISOString(), newEnd: newEnd.toISOString() } });
+        setConfirmModal({
+            isOpen: true,
+            title: "Confirm Reschedule",
+            message: "Are you sure you want to move this appointment?",
+            onConfirm: () => {
+                setLocalAppointments(prev => prev.map(a => 
+                  a.appointmentId === apptId 
+                    ? { ...a, scheduledStart: newStart.toISOString(), scheduledEnd: newEnd.toISOString() }
+                    : a
+                ));
+                reschedule({ variables: { id: apptId, newStart: newStart.toISOString(), newEnd: newEnd.toISOString() } });
+            }
+        });
     } else if (blockId) {
-        // Optimistic update
-        setLocalBlocks(prev => prev.map(b => 
-          b.blockId === blockId 
-            ? { ...b, startTime: newStart.toISOString(), endTime: newEnd.toISOString() }
-            : b
-        ));
-        updateBlock({ variables: { id: blockId, newStart: newStart.toISOString(), newEnd: newEnd.toISOString() } });
+        setConfirmModal({
+            isOpen: true,
+            title: "Confirm Block Update",
+            message: "Are you sure you want to reschedule this busy block?",
+            onConfirm: () => {
+                setLocalBlocks(prev => prev.map(b => 
+                  b.blockId === blockId 
+                    ? { ...b, startTime: newStart.toISOString(), endTime: newEnd.toISOString() }
+                    : b
+                ));
+                updateBlock({ variables: { id: blockId, newStart: newStart.toISOString(), newEnd: newEnd.toISOString() } });
+            }
+        });
     }
   };
 
@@ -395,7 +430,7 @@ export default function SchedulingCalendar() {
                             e.dataTransfer.setData("blockId", block.blockId);
                             e.dataTransfer.setData("duration", durMin.toString());
                           }}
-                          className="absolute left-1.5 right-1.5 z-20 rounded-xl bg-slate-900/80 border border-slate-700/50 backdrop-blur-md p-3 flex flex-col gap-2 overflow-hidden cursor-grab active:cursor-grabbing hover:border-slate-500 transition-all shadow-2xl"
+                          className="absolute left-1.5 right-1.5 z-0 rounded-xl bg-slate-950/40 border border-slate-800/30 backdrop-blur-sm p-3 flex flex-col gap-2 overflow-hidden cursor-grab active:cursor-grabbing hover:border-slate-500 transition-all"
                           style={{ top: `${top}%`, height: `${height}%` }}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -451,7 +486,7 @@ export default function SchedulingCalendar() {
                             )}
 
                             {/* Appointment Card Wrapper - Dictates Grid Position */}
-                            <div className="absolute left-1 right-1 z-10 group/appt"
+                            <div className={`absolute left-1 right-1 z-20 group/appt ${hasConflict ? "ring-2 ring-rose-500 rounded-xl" : ""}`}
                                  style={{ top: `${top}%`, height: `${height}%` }}>
                                  
                               {/* Expandable Inner Card */}
@@ -553,6 +588,38 @@ export default function SchedulingCalendar() {
       </div>
 
       <BookingDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onBooked={() => {}} prefillDate={drawerPrefill} appointmentId={drawerPrefill?.length === 36 ? drawerPrefill : undefined} />
+
+      {/* ── Confirmation Modal ── */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="bg-[#0c0d15] border border-white/10 rounded-[2rem] p-8 max-w-sm w-full space-y-6 shadow-2xl scale-in-center">
+            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mx-auto border border-blue-500/20">
+               <AlertCircle className="w-8 h-8" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="text-xl font-bold text-white uppercase tracking-tight">{confirmModal.title}</h3>
+              <p className="text-slate-400 text-sm">{confirmModal.message}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <button 
+                onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                className="py-4 rounded-xl bg-white/5 text-slate-400 font-bold hover:bg-white/10 transition-all uppercase text-[10px] tracking-widest"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  confirmModal.onConfirm();
+                  setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                className="py-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 uppercase text-[10px] tracking-widest"
+              >
+                Confirm Move
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

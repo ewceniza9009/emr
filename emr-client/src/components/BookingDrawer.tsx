@@ -480,8 +480,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                             ${isSelected ? "bg-purple-600/10 border-purple-500 shadow-xl shadow-purple-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
                             onClick={() => {
-                              if (isSelected) setSupportingIds(supportingIds.filter((id: string) => id?.toLowerCase() !== p.practitionerId?.toLowerCase()));
-                              else setSupportingIds([p.practitionerId]);
+                              setPractitionerId(p.practitionerId);
+                              // Ensure this practitioner is not also in supportingIds to avoid visual duplication
+                              setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== p.practitionerId?.toLowerCase()));
                             }}>
                             <div className="flex items-center gap-3 min-w-0">
                               <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-purple-500 text-white" : "bg-white/5 text-slate-600"}`}>
@@ -502,8 +503,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                         <Car className={`w-3 h-3 ${isSelected ? "text-purple-400" : "text-slate-700"}`} />
                                         <span className={`text-xs font-black ${isSelected ? "text-white" : "text-slate-600"}`}>
                                           {isSelected 
-                                            ? (appointmentData?.appointment?.travelTimeMinutes ? `${appointmentData.appointment.travelTimeMinutes}m` : "--")
-                                            : (p.travelTimeInMinutes ? `${p.travelTimeInMinutes}m` : "--")}
+                                            ? (selectedSlot?.travelTimeInMinutes !== undefined ? `${selectedSlot.travelTimeInMinutes}m` : "--")
+                                            : (p.travelTimeInMinutes !== undefined ? `${p.travelTimeInMinutes}m` : "--")}
                                         </span>
                                       </>
                                     ) : (

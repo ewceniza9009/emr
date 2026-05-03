@@ -55,6 +55,8 @@ public class SchedulingService : ISchedulingService
             // 1. Fetch Target Patient Coordinates
             var patient = await _context
                 .Patients.AsNoTracking()
+                .Include(p => p.Addresses)
+                .ThenInclude(a => a.Address)
                 .FirstOrDefaultAsync(p => p.PatientId == patientId, cancellationToken);
 
             if (patient == null)

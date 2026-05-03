@@ -7,8 +7,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
-  title: "CareNavigator | Palliative EMR",
-  description: "Enterprise-grade Palliative Care Electronic Medical Record system.",
+  title: "Aura",
+  description: "Enterprise-grade Clinical Electronic Medical Record system.",
 };
 
 export default function RootLayout({

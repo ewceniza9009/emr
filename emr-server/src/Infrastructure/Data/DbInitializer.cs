@@ -113,9 +113,43 @@ namespace Infrastructure.Data
                 .RuleFor(p => p.Position, PractitionerPosition.Physician)
                 .Generate(5);
 
-            var practitioners = careNavigators.Concat(supportingClinicians).ToList();
-            context.Practitioners.AddRange(practitioners);
+            // Add the System Admin explicitly as a practitioner for testing
+            var adminPractitioner = new Practitioner
+            {
+                PractitionerId = Guid.NewGuid(),
+                FirstName = "System",
+                LastName = "Admin",
+                IsActive = true,
+                IsCareNavigator = true,
+                Position = PractitionerPosition.Nurse
+            };
 
+            var practitioners = careNavigators.Concat(supportingClinicians).Append(adminPractitioner).ToList();
+            
+            var faker = new Faker();
+            // Seed coordinates for practitioners around Utah area
+            foreach (var p in practitioners)
+            {
+                var entityAddr = new EntityAddress
+                {
+                    EntityAddressId = Guid.NewGuid(),
+                    PractitionerId = p.PractitionerId,
+                    IsPrimary = true,
+                    Type = AddressType.Home,
+                    Address = new Address
+                    {
+                        Street = faker.Address.StreetAddress(),
+                        City = faker.Address.City(),
+                        State = "Utah",
+                        PostalCode = faker.Address.ZipCode(),
+                        Latitude = faker.Address.Latitude(39.0, 41.0),
+                        Longitude = faker.Address.Longitude(-113.0, -111.0)
+                    }
+                };
+                context.EntityAddresses.Add(entityAddr);
+            }
+
+            context.Practitioners.AddRange(practitioners);
             await context.SaveChangesAsync();
 
             // ==========================================
@@ -201,8 +235,10 @@ namespace Infrastructure.Data
                     {
                         Street = f.Address.StreetAddress(),
                         City = f.Address.City(),
-                        State = f.Address.State(),
+                        State = "Utah",
                         PostalCode = f.Address.ZipCode(),
+                        Latitude = f.Address.Latitude(39.0, 41.0),
+                        Longitude = f.Address.Longitude(-113.0, -111.0)
                     }
                 )
                 .Generate(10);
@@ -250,8 +286,15 @@ namespace Infrastructure.Data
                 .RuleFor(a => a.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
                 .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
                 .RuleFor(a => a.Status, f => f.PickRandom<AppointmentStatus>())
-                // Force absolute variety: rotate perfectly through every single Modality enum
-                .RuleFor(a => a.Modality, f => modalities[f.IndexFaker % modalities.Length])
+                // Weighted variety: favor In-Person modalities (60% In-Person, 40% Remote)
+                .RuleFor(a => a.Modality, f => {
+                    var p = f.Random.Number(1, 100);
+                    if (p <= 35) return AppointmentModality.InPersonFacility;
+                    if (p <= 65) return AppointmentModality.InPersonHomeVisit;
+                    if (p <= 80) return AppointmentModality.TelehealthVideo;
+                    if (p <= 90) return AppointmentModality.TelehealthAudioOnly;
+                    return AppointmentModality.Telephone;
+                })
                 // Sequential spacing: 4 appointments per day, exactly 2 hours apart (8AM, 10AM, 12PM, 2PM Local Time)
                 .RuleFor(
                     a => a.ScheduledStart,
@@ -398,12 +441,21 @@ namespace Infrastructure.Data
                 .Generate(10);
             context.Set<SdohAssessment>().AddRange(sdoh);
 
-            var blocks = new Faker<ScheduleBlock>()
-                .RuleFor(x => x.BlockId, Guid.NewGuid)
-                .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
-                .RuleFor(x => x.StartTime, f => baseDate.AddHours(f.Random.Number(1, 48)))
-                .RuleFor(x => x.EndTime, (f, b) => b.StartTime.AddHours(4))
-                .Generate(10);
+            var blocks = new List<ScheduleBlock>();
+            // Generate clean, conflict-free busy blocks for each practitioner
+            for (int i = 0; i < practitioners.Count; i++)
+            {
+                var p = practitioners[i];
+                blocks.Add(new ScheduleBlock
+                {
+                    BlockId = Guid.NewGuid(),
+                    PractitionerId = p.PractitionerId,
+                    Status = ScheduleBlockStatus.Blocked,
+                    // Place blocks late in the day (4PM-6PM) so they never overlap with the 8AM-2PM appointment slots
+                    StartTime = baseDate.AddDays(i % 5).AddHours(16), 
+                    EndTime = baseDate.AddDays(i % 5).AddHours(18)
+                });
+            }
             context.Set<ScheduleBlock>().AddRange(blocks);
             await context.SaveChangesAsync();
 

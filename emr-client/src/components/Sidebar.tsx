@@ -37,7 +37,7 @@ export function Sidebar() {
         <div className="w-10 h-10 premium-gradient rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
           <Stethoscope className="text-white w-6 h-6" />
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">CareNavigator</h2>
+        <h2 className="text-xl font-bold text-white tracking-tight">Aura</h2>
       </div>
 
       <nav className="flex-1 space-y-2">
