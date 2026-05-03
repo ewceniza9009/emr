@@ -64,8 +64,8 @@ export default function PatientsPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Patient Directory</h1>
-          <p className="text-slate-400">Manage your palliative care caseload and medical records.</p>
+          <h1 className="text-2xl font-bold text-white mb-1">Patient Directory</h1>
+          <p className="text-xs text-slate-400">Manage your palliative care caseload and medical records.</p>
         </div>
         <button 
           onClick={() => setIsAddOpen(true)}
@@ -104,11 +104,11 @@ export default function PatientsPage() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-white/5 border-b border-white/5">
-              <th className="px-8 py-5 text-xs uppercase tracking-widest font-bold text-slate-400">Patient Details</th>
-              <th className="px-8 py-5 text-xs uppercase tracking-widest font-bold text-slate-400">MRN</th>
-              <th className="px-8 py-5 text-xs uppercase tracking-widest font-bold text-slate-400">Location</th>
-              <th className="px-8 py-5 text-xs uppercase tracking-widest font-bold text-slate-400">Contact</th>
-              <th className="px-8 py-5 text-xs uppercase tracking-widest font-bold text-slate-400">Actions</th>
+              <th className="px-6 py-3 text-[10px] uppercase tracking-widest font-bold text-slate-400">Patient Details</th>
+              <th className="px-6 py-3 text-[10px] uppercase tracking-widest font-bold text-slate-400">MRN</th>
+              <th className="px-6 py-3 text-[10px] uppercase tracking-widest font-bold text-slate-400">Location</th>
+              <th className="px-6 py-3 text-[10px] uppercase tracking-widest font-bold text-slate-400">Contact</th>
+              <th className="px-6 py-3 text-[10px] uppercase tracking-widest font-bold text-slate-400">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -141,37 +141,37 @@ export default function PatientsPage() {
               </tr>
             ) : filteredPatients.map((patient: any) => (
               <tr key={patient.patientId} className="group hover:bg-white/[0.02] transition-colors relative">
-                <td className="px-8 py-6">
+                <td className="px-6 py-3">
                   <Link href={`/dashboard/patients/${patient.patientId}`} className="flex items-center gap-4 group/row cursor-pointer">
-                    <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-blue-400 group-hover/row:scale-110 group-hover/row:bg-blue-500/10 transition-all">
-                      <UserCircle className="w-6 h-6" />
+                    <div className="w-8 h-8 rounded-lg bg-slate-800 border border-white/5 flex items-center justify-center text-blue-400 group-hover/row:scale-110 group-hover/row:bg-blue-500/10 transition-all">
+                      <UserCircle className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-white font-semibold group-hover/row:text-blue-400 transition-colors">{patient.firstName} {patient.lastName}</p>
-                      <p className="text-slate-500 text-xs">DOB: {new Date(patient.dob).toLocaleDateString()}</p>
+                      <p className="text-sm text-white font-semibold group-hover/row:text-blue-400 transition-colors">{patient.firstName} {patient.lastName}</p>
+                      <p className="text-slate-500 text-[10px]">DOB: {new Date(patient.dob).toLocaleDateString()}</p>
                     </div>
                   </Link>
                 </td>
-                <td className="px-8 py-6">
-                  <span className="px-3 py-1 rounded-lg bg-blue-500/10 text-blue-400 text-xs font-mono font-bold border border-blue-500/10">
+                <td className="px-6 py-3">
+                  <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-mono font-bold border border-blue-500/10">
                     {patient.mrn}
                   </span>
                 </td>
-                <td className="px-8 py-6 text-slate-300 text-sm">{patient.addresses?.find((a: any) => a.isPrimary)?.address?.city ?? patient.addresses?.[0]?.address?.city}</td>
+                <td className="px-6 py-3 text-slate-300 text-xs">{patient.addresses?.find((a: any) => a.isPrimary)?.address?.city ?? patient.addresses?.[0]?.address?.city}</td>
 
-                <td className="px-8 py-6">
+                <td className="px-6 py-3">
                   <div className="flex flex-col gap-1">
                     {patient.phones?.[0] ? (
-                      <div className="flex items-center gap-2 text-xs text-slate-400">
-                        <Phone className="w-3 h-3" />
+                      <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                        <Phone className="w-2.5 h-2.5" />
                         {patient.phones[0].phoneNumber}
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-600 italic">No contact</span>
+                      <span className="text-[10px] text-slate-600 italic">No contact</span>
                     )}
                   </div>
                 </td>
-                <td className="px-8 py-6 relative">
+                <td className="px-6 py-3 relative">
                    <button 
                     onClick={() => setOpenMenuId(openMenuId === patient.patientId ? null : patient.patientId)}
                     className={`p-2 rounded-xl transition-all ${openMenuId === patient.patientId ? "bg-blue-500 text-white" : "hover:bg-white/10 text-slate-400 hover:text-white"}`}

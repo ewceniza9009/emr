@@ -22,9 +22,9 @@ const GRID_CONFIG = {
 };
 
 const POSITION_STYLE: Record<string, any> = {
-  nurse: { label: "Nurse", color: "text-[#00F2FF]", bg: "bg-sky-500/20", border: "border-sky-400/50", icon: <Users className="w-4 h-4" /> },
-  physician: { label: "Physician", color: "text-[#FFB800]", bg: "bg-amber-500/20", border: "border-amber-400/50", icon: <Shield className="w-4 h-4" /> },
-  practitioner: { label: "Practitioner", color: "text-[#B066FF]", bg: "bg-purple-500/20", border: "border-purple-400/50", icon: <Stethoscope className="w-4 h-4" /> },
+  nurse: { label: "Nurse", color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", icon: <Users className="w-3.5 h-3.5" /> },
+  physician: { label: "Physician", color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20", icon: <Shield className="w-3.5 h-3.5" /> },
+  practitioner: { label: "Practitioner", color: "text-purple-400", bg: "bg-purple-500/10", border: "border-purple-500/20", icon: <Stethoscope className="w-3.5 h-3.5" /> },
 };
 
 const getModalityConfig = (modalityStr: string) => {
@@ -299,61 +299,63 @@ export default function SchedulingCalendar() {
   const HOURS = useMemo(() => Array.from({ length: GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR + 1 }, (_, i) => i + GRID_CONFIG.START_HOUR), []);
 
   return (
-    <div className="h-[calc(100vh-40px)] flex flex-col bg-[#050608] text-white p-6 gap-6 overflow-hidden">
+    <div className="h-[calc(100vh-20px)] flex flex-col bg-[#050608] text-white p-4 gap-4 overflow-hidden rounded-[2.5rem] border border-white/5 shadow-2xl">
 
       {/* ── HEADER ── */}
-      <div className="shrink-0 flex items-center justify-between bg-[#0a0b10] p-4 rounded-[2rem] border border-white/10 shadow-2xl">
+      <div className="shrink-0 flex items-center justify-between bg-[#0a0b10]/60 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/5 shadow-xl">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-blue-500/20">
-            <Zap className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <Zap className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-black uppercase tracking-tighter text-white">Clinical Grid</h1>
-            <div className="flex items-center gap-4 mt-2">
-              <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
-                <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="text-[10px] font-black text-emerald-500 uppercase">{localAppointments.length} Records In-Memory</span>
+            <h1 className="text-lg font-bold text-white tracking-tight">Clinical Schedule</h1>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-2 py-0.5 bg-emerald-500/10 rounded-full border border-emerald-500/10">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">{localAppointments.length} Active Encounters</span>
               </div>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <button onClick={() => refetch()} className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 active:scale-95 transition-all">
-            <RefreshCw className="w-6 h-6 text-blue-400" />
+        <div className="flex items-center gap-3">
+          <button onClick={() => refetch()} className="p-2.5 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 active:scale-95 transition-all">
+            <RefreshCw className="w-5 h-5 text-blue-400" />
           </button>
-          <div className="flex items-center bg-white/5 p-2 rounded-[1.5rem] border border-white/10">
-            <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))} className="p-3 hover:bg-white/10 rounded-xl transition-all"><ChevronLeft className="w-6 h-6 text-white/50" /></button>
-            <span className="px-8 text-xs font-black uppercase tracking-[0.3em] text-white">MAY 2026</span>
-            <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() + 7)))} className="p-3 hover:bg-white/10 rounded-xl transition-all"><ChevronRight className="w-6 h-6 text-white/50" /></button>
+          <div className="flex items-center bg-white/5 px-2 py-1 rounded-xl border border-white/5">
+            <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))} className="p-1.5 hover:bg-white/10 rounded-lg transition-all"><ChevronLeft className="w-4 h-4 text-white/40" /></button>
+            <span className="px-4 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80">MAY 2026</span>
+            <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() + 7)))} className="p-1.5 hover:bg-white/10 rounded-lg transition-all"><ChevronRight className="w-4 h-4 text-white/40" /></button>
           </div>
           <button onClick={() => { setDrawerPrefill(undefined); setDrawerOpen(true); }}
-            className="px-12 py-5 bg-blue-600 hover:bg-blue-500 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all">
+            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg transition-all">
             New Encounter
           </button>
         </div>
       </div>
 
       {/* ── FILTERS ── */}
-      <div className="shrink-0 flex items-center gap-4 bg-[#0a0b10] p-4 rounded-[2rem] border border-white/10">
-        <div className="px-6 py-3 bg-white/5 rounded-2xl border border-white/10 flex items-center gap-3">
-          <Filter className="w-4 h-4 text-white/30" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Active Units</span>
+      <div className="shrink-0 flex items-center gap-4 bg-[#0a0b10]/40 px-4 py-2 rounded-xl border border-white/5">
+        <div className="px-4 py-1.5 bg-white/5 rounded-lg border border-white/5 flex items-center gap-2">
+          <Filter className="w-3 h-3 text-white/20" />
+          <span className="text-[9px] font-bold uppercase tracking-wider text-white/20">Clinical Roles</span>
         </div>
-        {apiPositions.map(pos => {
-          const style = POSITION_STYLE[pos] ?? { label: pos, color: "text-white", bg: "bg-white/5", border: "border-white/10" };
-          return (
-            <button key={pos} onClick={() => togglePosition(pos)}
-              className={`px-4 py-1.5 rounded-lg border font-bold text-[10px] tracking-widest transition-all
-                    ${selectedPositions.has(pos)
-                  ? `${style.bg} ${style.border} ${style.color} shadow-[0_0_15px_rgba(0,0,0,0.3)]`
-                  : "bg-white/[0.02] border-white/5 text-white/30 hover:bg-white/[0.05] hover:border-white/10"}`}>
-              <div className="flex items-center gap-2">
-                {style.icon}
-                <span className="uppercase">{pos.replace(/_/g, " ")}</span>
-              </div>
-            </button>
-          );
-        })}
+        <div className="flex items-center gap-1">
+          {apiPositions.map(pos => {
+            const style = POSITION_STYLE[pos] ?? { label: pos, color: "text-white", bg: "bg-white/5", border: "border-white/10" };
+            return (
+              <button key={pos} onClick={() => togglePosition(pos)}
+                className={`px-3 py-1.5 rounded-lg border font-bold text-[9px] tracking-wider transition-all
+                      ${selectedPositions.has(pos)
+                    ? `${style.bg} ${style.border} ${style.color} shadow-sm`
+                    : "bg-white/[0.02] border-white/5 text-white/20 hover:bg-white/[0.05] hover:border-white/10"}`}>
+                <div className="flex items-center gap-2">
+                  {style.icon}
+                  <span className="uppercase">{pos.replace(/_/g, " ")}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
 
         {/* ── Practitioner Combo Box ── */}
         <div className="flex-1 relative max-w-xs border-l border-white/10 ml-4 pl-4">
@@ -366,7 +368,7 @@ export default function SchedulingCalendar() {
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white/70 outline-none focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
             value={selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : "all"}
           >
-            <option value="all" className="bg-[#0a0b10] text-white/50">ALL SELECTED PROVIDERS</option>
+            <option value="all" className="bg-[#0a0b10] text-white/50">ALL PRACTITIONERS</option>
             {practitioners
               .filter((p: any) => selectedPositions.has(p.position.toLowerCase()))
               .map((p: any) => (
@@ -382,14 +384,14 @@ export default function SchedulingCalendar() {
       </div>
 
       {/* ── GRID ── */}
-      <div className="flex-1 min-h-0 bg-[#0a0b10] rounded-[3rem] border border-white/10 flex flex-col overflow-hidden">
-        <div className="grid grid-cols-[100px_1fr] bg-[#0c0d15] border-b border-white/10 shrink-0 sticky top-0 z-50">
-          <div className="flex items-center justify-center border-r border-white/10"><Clock className="w-5 h-5 text-white/10" /></div>
+      <div className="flex-1 min-h-0 bg-[#0a0b10] rounded-2xl border border-white/5 flex flex-col overflow-hidden">
+        <div className="grid grid-cols-[80px_1fr] bg-[#0c0d15] border-b border-white/5 shrink-0 sticky top-0 z-50">
+          <div className="flex items-center justify-center border-r border-white/5"><Clock className="w-4 h-4 text-white/10" /></div>
           <div className="grid grid-cols-7">
             {weekDates.map((d, i) => (
-              <div key={i} className={`py-4 text-center border-l border-white/10 first:border-l-0 ${d.toDateString() === new Date(2026, 4, 3).toDateString() ? "bg-blue-600/10" : ""}`}>
-                <p className={`text-[9px] font-black uppercase mb-1 tracking-[0.2em] ${i === 0 ? "text-blue-400" : "text-white/20"}`}>{GRID_CONFIG.DAYS[i]}</p>
-                <span className={`text-2xl font-black ${i === 0 ? "text-white" : "text-white/40"}`}>{d.getDate()}</span>
+              <div key={i} className={`py-2 text-center border-l border-white/5 first:border-l-0 ${d.toDateString() === new Date(2026, 4, 3).toDateString() ? "bg-blue-600/5" : ""}`}>
+                <p className={`text-[8px] font-bold uppercase mb-0.5 tracking-widest ${i === 0 ? "text-blue-400" : "text-white/20"}`}>{GRID_CONFIG.DAYS[i]}</p>
+                <span className={`text-sm font-bold ${i === 0 ? "text-white" : "text-white/30"}`}>{d.getDate()}</span>
               </div>
             ))}
           </div>
@@ -397,10 +399,10 @@ export default function SchedulingCalendar() {
 
         <div className="flex-1 overflow-y-auto scrollbar-hide relative">
           <div className="flex" style={{ height: `${(GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR + 1) * GRID_CONFIG.ROW_HEIGHT}px` }}>
-            <div className="w-[100px] border-r border-white/10 bg-[#0a0b10]/40 sticky left-0 z-20">
+            <div className="w-[80px] border-r border-white/5 bg-[#0a0b10]/40 sticky left-0 z-20">
               {HOURS.map(h => (
-                <div key={h} className="h-[80px] flex items-start justify-center pt-4 border-b border-white/[0.04]">
-                  <span className="text-[11px] text-white/40 font-black uppercase tracking-widest">{h % 12 || 12} {h < 12 ? "AM" : "PM"}</span>
+                <div key={h} className="h-[80px] flex items-start justify-center pt-3 border-b border-white/[0.02]">
+                  <span className="text-[10px] text-white/30 font-bold uppercase tracking-wider">{h % 12 || 12} {h < 12 ? "AM" : "PM"}</span>
                 </div>
               ))}
             </div>
@@ -490,8 +492,8 @@ export default function SchedulingCalendar() {
 
                       return (
                         <React.Fragment key={appt.appointmentId}>
-                          {/* Drive Time Visualization */}
-                          {driveMin > 0 && modality.label !== "TELEHEALTH" && hasCn && (
+                          {/* Drive Time Visualization (Hide for SCs) */}
+                          {driveMin > 0 && modality.label !== "TELEHEALTH" && hasCn && !isViewedAsSc && (
                             <div className="absolute left-4 right-4 border-l-2 border-dashed border-blue-500/50 bg-[repeating-linear-gradient(45deg,transparent,transparent_4px,rgba(59,130,246,0.1)_4px,rgba(59,130,246,0.1)_8px)] flex items-start justify-end p-1 z-0 rounded-t-lg"
                               style={{ top: `${((startMin - driveMin) / GRID_CONFIG.TOTAL_MINUTES) * 100}%`, height: `${(driveMin / GRID_CONFIG.TOTAL_MINUTES) * 100}%` }}>
                               <span className="text-[8px] font-black uppercase text-blue-400 tracking-widest bg-[#0a0b10] px-1 py-0.5 rounded shadow-xl -mt-1 border border-blue-500/20">

@@ -7,15 +7,17 @@ import {
   Users, 
   Calendar, 
   FileText, 
-  Settings, 
   LogOut,
   Stethoscope,
   HeartPulse,
   Navigation2,
   PhoneCall,
-  AlertTriangle
+  AlertTriangle,
+  ChevronLeft,
+  Menu
 } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { useSidebar } from "@/lib/SidebarContext";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Mission Control", href: "/dashboard" },
@@ -30,43 +32,81 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { isCollapsed, toggle } = useSidebar();
 
   return (
-    <aside className="w-72 glass-morphism h-screen flex flex-col p-6 sticky top-0">
-      <div className="flex items-center gap-3 px-2 mb-10">
-        <div className="w-10 h-10 premium-gradient rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-          <Stethoscope className="text-white w-6 h-6" />
+    <aside 
+      className={`bg-[#0c1220]/80 backdrop-blur-xl border-r border-white/5 h-screen flex flex-col sticky top-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] z-[100] ${
+        isCollapsed ? "w-20" : "w-64"
+      }`}
+    >
+      {/* Brand Section */}
+      <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-4 h-16 border-b border-white/5 relative`}>
+        <div className={`flex items-center gap-3 ${isCollapsed ? "" : "overflow-hidden"}`}>
+          <div className="w-9 h-9 premium-gradient rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
+            <Stethoscope className="text-white w-5 h-5" />
+          </div>
+          {!isCollapsed && (
+            <h2 className="text-xl font-bold text-white tracking-tight animate-in fade-in zoom-in-95 duration-500">Aura</h2>
+          )}
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Aura</h2>
+        {!isCollapsed ? (
+          <button 
+            onClick={toggle}
+            className="p-2 rounded-lg hover:bg-white/5 text-slate-500 hover:text-white transition-all"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        ) : (
+          <button 
+            onClick={toggle}
+            className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg border border-white/10 hover:bg-blue-500 transition-all z-50"
+          >
+            <Menu className="w-3 h-3" />
+          </button>
+        )}
       </div>
 
-      <nav className="flex-1 space-y-2">
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${
+              title={isCollapsed ? item.label : ""}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${
                 isActive 
-                  ? "premium-gradient text-white shadow-lg shadow-blue-500/10" 
+                  ? "bg-blue-500/10 text-blue-400 shadow-[inset_0_0_12px_rgba(59,130,246,0.1)]" 
                   : "text-slate-400 hover:bg-white/5 hover:text-white"
               }`}
             >
-              <item.icon className={`w-5 h-5 ${isActive ? "text-white" : "group-hover:text-blue-400 transition-colors"}`} />
-              <span className="font-medium">{item.label}</span>
+              <item.icon className={`w-5 h-5 shrink-0 ${isActive ? "text-blue-400" : "group-hover:text-blue-400 transition-colors"}`} />
+              {!isCollapsed && (
+                <span className="text-sm font-medium whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">
+                  {item.label}
+                </span>
+              )}
+              
+              {/* Active Indicator Glow */}
+              {isActive && (
+                <div className="absolute left-0 w-1 h-6 bg-blue-500 rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      <div className="pt-6 border-t border-white/5">
+      {/* Footer Section */}
+      <div className="p-3 border-t border-white/5">
         <button 
           onClick={() => signOut()}
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all group"
+          title={isCollapsed ? "Sign Out" : ""}
         >
-          <LogOut className="w-5 h-5" />
-          <span className="font-medium">Sign Out</span>
+          <LogOut className="w-5 h-5 shrink-0" />
+          {!isCollapsed && <span className="text-sm font-medium">Sign Out</span>}
         </button>
       </div>
     </aside>
