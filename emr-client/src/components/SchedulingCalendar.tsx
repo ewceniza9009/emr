@@ -167,21 +167,22 @@ export default function SchedulingCalendar() {
       const userPractitionerId = (session?.user as any)?.practitionerId;
       const userName = session?.user?.name?.toLowerCase() || "";
 
-      let targetPractitioner = practitioners.find((p: any) =>
-        (userPractitionerId && p.practitionerId === userPractitionerId) ||
+      let targetPractitioner = practitioners.find((p: any) => 
+        (userPractitionerId && p.practitionerId?.toLowerCase() === userPractitionerId?.toLowerCase()) ||
         (userName && (
-          `${p.firstName} ${p.lastName}`.toLowerCase().includes(userName) ||
-          userName.includes(p.firstName.toLowerCase()) ||
-          userName.includes(p.lastName.toLowerCase())
+          `${p.firstName} ${p.lastName}`.toLowerCase().trim() === userName.trim() ||
+          userName.trim().includes(`${p.firstName} ${p.lastName}`.toLowerCase().trim()) ||
+          userName.trim().includes(p.firstName?.toLowerCase().trim()) ||
+          userName.trim().includes(p.lastName?.toLowerCase().trim())
         ))
       );
-
+      
       if (targetPractitioner) {
         setSelectedPositions(new Set([targetPractitioner.position.toLowerCase()]));
         setSelectedPractitioners(new Set([targetPractitioner.practitionerId]));
         initializedRef.current = true;
-      } else if (practitioners.length > 5) {
-        // Only fallback to "All" if we have a significant list and still no match
+      } else if (practitioners.length > 0) {
+        // Fallback: If no match is found, show all positions by default so the grid isn't empty
         setSelectedPositions(new Set(apiPositions));
         initializedRef.current = true;
       }

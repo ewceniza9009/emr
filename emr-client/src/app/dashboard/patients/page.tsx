@@ -12,7 +12,8 @@ import {
   Phone
 } from "lucide-react";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import AddPatientDrawer from "@/components/AddPatientDrawer";
 
 const GET_PATIENTS = gql`
@@ -40,10 +41,24 @@ const GET_PATIENTS = gql`
 `;
 
 export default function PatientsPage() {
+  const router = useRouter();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  
   const { data, loading, error, refetch } = useQuery(GET_PATIENTS);
 
   const patients = data?.patients || [];
+
+  const filteredPatients = useMemo(() => {
+    if (!searchQuery) return patients;
+    const query = searchQuery.toLowerCase();
+    return patients.filter((p: any) => 
+      `${p.firstName} ${p.lastName}`.toLowerCase().includes(query) ||
+      p.mrn.toLowerCase().includes(query) ||
+      p.addresses?.some((a: any) => a.address?.city?.toLowerCase().includes(query))
+    );
+  }, [patients, searchQuery]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -75,6 +90,8 @@ export default function PatientsPage() {
             type="text" 
             placeholder="Search by Name, MRN, or City..."
             className="w-full premium-input rounded-2xl py-3 pl-12 pr-4"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <button className="p-3 rounded-2xl bg-white/5 border border-white/10 text-slate-400 hover:text-white transition-all">
@@ -122,8 +139,8 @@ export default function PatientsPage() {
                    </div>
                 </td>
               </tr>
-            ) : patients.map((patient: any) => (
-              <tr key={patient.patientId} className="group hover:bg-white/[0.02] transition-colors">
+            ) : filteredPatients.map((patient: any) => (
+              <tr key={patient.patientId} className="group hover:bg-white/[0.02] transition-colors relative">
                 <td className="px-8 py-6">
                   <Link href={`/dashboard/patients/${patient.patientId}`} className="flex items-center gap-4 group/row cursor-pointer">
                     <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-blue-400 group-hover/row:scale-110 group-hover/row:bg-blue-500/10 transition-all">
@@ -154,10 +171,62 @@ export default function PatientsPage() {
                     )}
                   </div>
                 </td>
-                <td className="px-8 py-6">
-                   <button className="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-all">
+                <td className="px-8 py-6 relative">
+                   <button 
+                    onClick={() => setOpenMenuId(openMenuId === patient.patientId ? null : patient.patientId)}
+                    className={`p-2 rounded-xl transition-all ${openMenuId === patient.patientId ? "bg-blue-500 text-white" : "hover:bg-white/10 text-slate-400 hover:text-white"}`}
+                   >
                      <MoreHorizontal className="w-5 h-5" />
                    </button>
+
+                   {/* Context Dropdown */}
+                   {openMenuId === patient.patientId && (
+                     <>
+                      <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                      <div className="absolute right-8 top-16 w-56 bg-[#0c0e12] border border-white/10 rounded-2xl shadow-2xl z-20 py-2 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="px-4 py-2 border-b border-white/5 mb-1">
+                           <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Patient Actions</p>
+                        </div>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(null);
+                            router.push(`/dashboard/patients/${patient.patientId}`);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-all text-left"
+                        >
+                          <UserCircle className="w-4 h-4 text-blue-400" />
+                          View Clinical Profile
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenMenuId(null);
+                            router.push(`/dashboard/schedule?patientId=${patient.patientId}`);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-all text-left"
+                        >
+                          <Filter className="w-4 h-4 text-purple-400" />
+                          Schedule Encounter
+                        </button>
+                        <div className="h-px bg-white/5 my-1" />
+                        <button 
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-all font-semibold text-left"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm(`Are you sure you want to archive ${patient.firstName} ${patient.lastName}?`)) {
+                              setOpenMenuId(null);
+                              // Success simulation
+                              alert("Patient archived successfully.");
+                            }
+                          }}
+                        >
+                          <Plus className="w-4 h-4 rotate-45" />
+                          Archive Patient
+                        </button>
+                      </div>
+                     </>
+                   )}
                 </td>
               </tr>
             ))}
