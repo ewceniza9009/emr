@@ -164,13 +164,13 @@ export default function SchedulingCalendar() {
     <div className="h-[calc(100vh-40px)] flex flex-col bg-[#050608] text-white p-6 gap-6 overflow-hidden">
       
       {/* ── HEADER ── */}
-      <div className="shrink-0 flex items-center justify-between bg-[#0a0b10] p-6 rounded-[2.5rem] border border-white/10 shadow-2xl">
-        <div className="flex items-center gap-6">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/40 animate-pulse">
-                <Zap className="w-8 h-8 text-white" />
+      <div className="shrink-0 flex items-center justify-between bg-[#0a0b10] p-4 rounded-[2rem] border border-white/10 shadow-2xl">
+        <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-2xl shadow-blue-500/20">
+                <Zap className="w-6 h-6 text-white" />
             </div>
             <div>
-                <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Deployment Grid</h1>
+                <h1 className="text-xl font-black uppercase tracking-tighter text-white">Clinical Grid</h1>
                 <div className="flex items-center gap-4 mt-2">
                     <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
                         <div className="w-2 h-2 rounded-full bg-emerald-500" />

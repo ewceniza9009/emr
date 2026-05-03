@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
 import {
   X, Calendar, Clock, User, MapPin, Video, Home,
@@ -289,7 +289,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     <div className="fixed inset-0 !m-0 !p-0 z-[999999] flex justify-end overflow-hidden">
       <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl" onClick={onClose} />
 
-      <div className={`relative h-full w-full max-w-[1200px] bg-[#050608] shadow-[-50px_0_150px_rgba(0,0,0,1)] 
+      <div className={`relative h-full w-full max-w-[900px] bg-[#050608] shadow-[-50px_0_150px_rgba(0,0,0,1)] 
         flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) 
         ${open ? "translate-x-0" : "translate-x-full"}`}>
 
@@ -297,14 +297,14 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
           <div className="flex items-center gap-6">
             <div className="w-1.5 h-10 bg-blue-600 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.5)]" />
             <div className="flex flex-col">
-              <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">GEOSPATIAL SCHEDULER</h2>
-              <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Mission Control // Deployment Engine</span>
+              <h2 className="text-xl font-black text-white tracking-tighter uppercase leading-none">CLINICAL DISPATCH</h2>
+              <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Provider Sync // Geospatial Scheduler</span>
             </div>
           </div>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 rounded-full border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Quantum Engine Active</span>
+              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Real-Time Sync Active</span>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-white">
               <X className="w-6 h-6" />
@@ -314,19 +314,19 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
         <div className="flex-1 flex flex-row overflow-hidden">
           <div className="flex-1 flex flex-col border-r border-white/5 bg-[#050608] overflow-hidden">
-            <form id="appointment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-10 pt-6 space-y-10 scrollbar-hide">
+            <form id="appointment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 pt-4 space-y-6 scrollbar-hide">
               <section className="space-y-6">
                 <div className="flex items-center gap-4">
                   <span className="text-xs font-black text-blue-500 bg-blue-500/10 w-8 h-8 rounded-lg flex items-center justify-center">01</span>
-                  <h3 className="text-xs font-black text-white tracking-[0.3em] uppercase">Target Lookup</h3>
+                  <h3 className="text-xs font-black text-white tracking-[0.3em] uppercase">Patient Search</h3>
                   <div className="flex-1 h-px bg-white/5" />
                 </div>
 
                 <div className="relative group">
                   <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-blue-500 transition-colors" />
                   <input required value={patientSearch} onChange={e => { setPatientSearch(e.target.value); setShowPatientResults(true); }}
-                    placeholder="SCANNING FOR MRN OR NAME..."
-                    className="w-full bg-white/[0.02] border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white text-sm font-black placeholder:text-slate-800
+                    placeholder="SEARCH FOR MRN OR NAME..."
+                    className="w-full bg-white/[0.02] border border-white/10 rounded-xl pl-14 pr-6 py-3 text-white text-xs font-black placeholder:text-slate-800
                       focus:outline-none focus:border-blue-500/50 focus:bg-blue-500/5 transition-all uppercase tracking-wider"
                   />
                   {showPatientResults && patientSearch && (
@@ -353,20 +353,20 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                 </div>
 
                 {patientId && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-4 duration-700">
+                  <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-700">
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 mb-2">
                         <Target className="w-4 h-4 text-emerald-500" />
-                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Coordinates Locked</span>
+                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">Location Verified</span>
                       </div>
-                      <div className="space-y-4 bg-white/[0.01] border border-white/5 rounded-2xl p-6">
+                      <div className="bg-white/[0.01] border border-white/5 rounded-xl p-4">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Street Address</label>
-                          <p className="text-sm font-bold text-white uppercase">{patientAddress.street || "Unknown"}</p>
+                          <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Street Address</label>
+                          <p className="text-xs font-bold text-white uppercase">{patientAddress.street || "Unknown"}</p>
                         </div>
                         <div className="grid grid-cols-2 gap-4 pt-2">
-                          <div className="space-y-1"><label className="text-[10px] font-black text-slate-600 uppercase tracking-widest">City</label><p className="text-xs font-bold text-slate-300 uppercase">{patientAddress.city}</p></div>
-                          <div className="space-y-1"><label className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Region</label><p className="text-xs font-bold text-slate-300 uppercase">{patientAddress.state}</p></div>
+                          <div className="space-y-1"><label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">City</label><p className="text-[10px] font-bold text-slate-300 uppercase">{patientAddress.city}</p></div>
+                          <div className="space-y-1"><label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Region</label><p className="text-[10px] font-bold text-slate-300 uppercase">{patientAddress.state}</p></div>
                         </div>
                       </div>
                     </div>
@@ -374,9 +374,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 mb-2">
                         <Activity className="w-4 h-4 text-blue-500" />
-                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Deployment Modality</span>
+                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">Visit Modality</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-4 gap-2">
                         {[
                           { id: "IN_PERSON_HOME_VISIT", label: "HOME VISIT", icon: <Home className="w-4 h-4" /> },
                           { id: "IN_PERSON_FACILITY", label: "FACILITY", icon: <Building2 className="w-4 h-4" /> },
@@ -384,9 +384,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           { id: "TELEPHONE", label: "AUDIO ONLY", icon: <Phone className="w-4 h-4" /> },
                         ].map((m) => (
                           <button key={m.id} type="button" onClick={() => { setModality(m.id); setPeriod(null); }}
-                            className={`flex items-center gap-3 px-4 py-4 rounded-xl border text-[10px] font-black transition-all
+                            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl border text-[8px] font-black transition-all whitespace-nowrap
                                     ${modality === m.id ? "bg-blue-600 border-transparent text-white shadow-lg shadow-blue-600/20" : "bg-white/[0.02] border-white/10 text-slate-500 hover:text-slate-300"}`}>
-                            {m.icon}
+                            {React.cloneElement(m.icon as React.ReactElement, { className: "w-3 h-3 shrink-0" })}
                             {m.label}
                           </button>
                         ))}
@@ -412,29 +412,29 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       <div className="flex-1 h-px bg-white/5" />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {displayCns.map((p: any) => {
                         const isSelected = supportingIds.some((id: string) => id?.toLowerCase() === p.practitionerId?.toLowerCase());
                         return (
-                          <div key={p.practitionerId} className={`p-6 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between group
+                          <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                             ${isSelected ? "bg-purple-600/10 border-purple-500 shadow-xl shadow-purple-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
                             onClick={() => {
                                 if (isSelected) setSupportingIds(supportingIds.filter((id: string) => id?.toLowerCase() !== p.practitionerId?.toLowerCase()));
                                 else setSupportingIds([p.practitionerId]);
                             }}>
-                            <div className="flex items-center gap-4">
-                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isSelected ? "bg-purple-500 text-white" : "bg-white/5 text-slate-600"}`}>
-                                <User className="w-6 h-6" />
+                            <div className="flex items-center gap-3">
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${isSelected ? "bg-purple-500 text-white" : "bg-white/5 text-slate-600"}`}>
+                                <User className="w-4 h-4" />
                               </div>
                               <div>
-                                <p className={`text-sm font-black uppercase ${isSelected ? "text-white" : "text-slate-400"}`}>{p.firstName} {p.lastName}</p>
-                                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-1">Care Navigator</p>
+                                <p className={`text-xs font-black uppercase ${isSelected ? "text-white" : "text-slate-400"}`}>{p.firstName} {p.lastName}</p>
+                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5">Care Navigator</p>
                               </div>
                             </div>
                             <div className="text-right">
-                                <div className="flex items-center gap-2 justify-end">
-                                    <Car className={`w-3.5 h-3.5 ${isSelected ? "text-purple-400" : "text-slate-700"}`} />
-                                    <span className={`text-sm font-black ${isSelected ? "text-white" : "text-slate-600"}`}>
+                                <div className="flex items-center gap-1.5 justify-end">
+                                    <Car className={`w-3 h-3 ${isSelected ? "text-purple-400" : "text-slate-700"}`} />
+                                    <span className={`text-xs font-black ${isSelected ? "text-white" : "text-slate-600"}`}>
                                         {isSelected 
                                           ? (appointmentData?.appointment?.travelTimeMinutes ? `${appointmentData.appointment.travelTimeMinutes}m` : "--")
                                           : (p.travelTimeInMinutes ? `${p.travelTimeInMinutes}m` : "--")}
@@ -454,23 +454,23 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       <div className="flex-1 h-px bg-white/5" />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {displayScs.map((p: any) => {
                         const isSelected = practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
                         return (
-                          <div key={p.practitionerId} className={`p-6 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between group
+                          <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                             ${isSelected ? "bg-blue-600/10 border-blue-500 shadow-xl shadow-blue-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
                             onClick={() => {
                               setPractitionerId(p.practitionerId);
                               setDuration(15);
                             }}>
-                            <div className="flex items-center gap-4">
-                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isSelected ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
-                                <Stethoscope className="w-6 h-6" />
-                              </div>
+                            <div className="flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${isSelected ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
+                                    <Stethoscope className="w-4 h-4" />
+                                </div>
                                 <div>
-                                    <p className={`text-sm font-black uppercase ${isSelected ? "text-white" : "text-slate-400"}`}>{p.firstName} {p.lastName}</p>
-                                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-1">Supporting Clinician</p>
+                                    <p className={`text-xs font-black uppercase ${isSelected ? "text-white" : "text-slate-400"}`}>{p.firstName} {p.lastName}</p>
+                                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5">Supporting Clinician</p>
                                 </div>
                             </div>
                           </div>
@@ -500,13 +500,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                 </div>
               </div>
 
-              <h3 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">Temporal Selection</h3>
-              <div className="bg-white/[0.02] rounded-[2rem] border border-white/5 p-6 space-y-6">
+              <h3 className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Temporal Selection</h3>
+              <div className="bg-white/[0.02] rounded-2xl border border-white/5 p-4 space-y-4">
                 <div className="flex items-center justify-between px-2">
-                  <span className="text-[11px] font-black text-white uppercase tracking-widest">{monthNames[viewDate.getMonth()]} // {viewDate.getFullYear()}</span>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="p-2 hover:bg-white/5 rounded-xl border border-white/5 transition-colors"><ChevronLeft className="w-4 h-4 text-slate-500" /></button>
-                    <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="p-2 hover:bg-white/5 rounded-xl border border-white/5 transition-colors"><ChevronRight className="w-4 h-4 text-slate-500" /></button>
+                  <span className="text-[10px] font-black text-white uppercase tracking-widest">{monthNames[viewDate.getMonth()]} // {viewDate.getFullYear()}</span>
+                  <div className="flex gap-1.5">
+                    <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="p-1.5 hover:bg-white/5 rounded-lg border border-white/5 transition-colors"><ChevronLeft className="w-3.5 h-3.5 text-slate-500" /></button>
+                    <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="p-1.5 hover:bg-white/5 rounded-lg border border-white/5 transition-colors"><ChevronRight className="w-3.5 h-3.5 text-slate-500" /></button>
                   </div>
                 </div>
                 <div className="grid grid-cols-7 gap-1">
@@ -515,16 +515,16 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               </div>
 
               {patientId && (
-                <div className="flex bg-white/[0.02] rounded-2xl p-1.5 border border-white/10 gap-1.5">
+                <div className="flex bg-white/[0.02] rounded-xl p-1 border border-white/10 gap-1">
                   <button type="button" onClick={() => { setPeriod("AM"); setPractitionerId(""); }}
-                    className={`flex-1 py-4 rounded-xl text-[10px] font-black tracking-[0.3em] transition-all
+                    className={`flex-1 py-3 rounded-lg text-[9px] font-black tracking-[0.3em] transition-all
                                 ${period === "AM" ? "bg-blue-600 text-white shadow-xl shadow-blue-600/30" : "text-slate-600 hover:text-slate-400"}`}>
-                    {amLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "AM SLOT"}
+                    {amLoading ? <Activity className="w-3 h-3 animate-spin mx-auto" /> : "AM SLOT"}
                   </button>
                   <button type="button" onClick={() => { setPeriod("PM"); setPractitionerId(""); }}
-                    className={`flex-1 py-4 rounded-xl text-[10px] font-black tracking-[0.3em] transition-all
+                    className={`flex-1 py-3 rounded-lg text-[9px] font-black tracking-[0.3em] transition-all
                                 ${period === "PM" ? "bg-blue-600 text-white shadow-xl shadow-blue-600/30" : "text-slate-600 hover:text-slate-400"}`}>
-                    {pmLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "PM SLOT"}
+                    {pmLoading ? <Activity className="w-3 h-3 animate-spin mx-auto" /> : "PM SLOT"}
                   </button>
                 </div>
               )}
@@ -548,19 +548,19 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               </div>
             </section>
 
-            <section className="space-y-6">
+            <section className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">Engine Proposal</h3>
+                <h3 className="text-[9px] font-black text-slate-600 uppercase tracking-[0.3em]">Engine Proposal</h3>
                 {selectedSlot?.shiftStart && (
-                  <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[8px] font-black uppercase tracking-widest
+                  <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[7px] font-black uppercase tracking-widest
                               ${(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-500" :
                       selectedSlot.travelTimeInMinutes < 15 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" :
                         selectedSlot.travelTimeInMinutes < 30 ? "bg-amber-500/10 border-amber-500/20 text-amber-500" :
                           "bg-rose-500/10 border-rose-500/20 text-rose-500"}`}>
-                    {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? <Activity className="w-2.5 h-2.5" /> : <Navigation className="w-2.5 h-2.5" />}
-                    {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? "Network Stability: High" :
-                      selectedSlot.travelTimeInMinutes < 15 ? "High Confidence" :
-                        selectedSlot.travelTimeInMinutes < 30 ? "Moderate Traffic" : "Heavy Congestion"}
+                    {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? <Activity className="w-2 h-2" /> : <Navigation className="w-2 h-2" />}
+                    {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? "Network: High" :
+                      selectedSlot.travelTimeInMinutes < 15 ? "Confidence: High" :
+                        selectedSlot.travelTimeInMinutes < 30 ? "Traffic: Moderate" : "Congestion: Heavy"}
                   </div>
                 )}
               </div>
@@ -586,21 +586,21 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                 </div>
 
                 {selectedSlot?.shiftStart ? (
-                  <div className="space-y-6 relative z-10">
-                    <div className="flex items-center gap-3">
-                      {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? <Video className="w-4 h-4 text-cyan-100" /> : <Zap className="w-4 h-4 text-blue-100 animate-pulse" />}
-                      <p className="text-[10px] font-black text-blue-100 uppercase tracking-[0.2em]">
+                  <div className="space-y-4 relative z-10">
+                    <div className="flex items-center gap-2">
+                      {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? <Video className="w-3 h-3 text-cyan-100" /> : <Zap className="w-3 h-3 text-blue-100 animate-pulse" />}
+                      <p className="text-[8px] font-black text-blue-100 uppercase tracking-[0.2em]">
                         {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? "Virtual Deployment" : "Optimized Deployment"}
                       </p>
                     </div>
                     <div className="flex flex-col">
-                      <div className="flex items-baseline gap-1.5 mb-1.5">
-                        <h4 className="text-3xl font-black text-white tracking-tighter leading-none">
+                      <div className="flex items-baseline gap-1 mb-1">
+                        <h4 className="text-2xl font-black text-white tracking-tighter leading-none">
                           {new Date(selectedSlot.shiftStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).split(' ')[0]}
                         </h4>
-                        <span className="text-xs font-black text-blue-400 uppercase tracking-widest">{new Date(selectedSlot.shiftStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).split(' ')[1]}</span>
+                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{new Date(selectedSlot.shiftStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).split(' ')[1]}</span>
                       </div>
-                      <p className="text-[9px] font-black text-blue-100/50 uppercase tracking-widest">Target Connection Time</p>
+                      <p className="text-[8px] font-black text-blue-100/50 uppercase tracking-widest">Target Connection Time</p>
                     </div>
                     <div className="pt-8 flex items-center justify-between border-t border-white/20 mt-6">
                       {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? (
@@ -611,11 +611,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       ) : (
                         <>
                           <div className="text-left">
-                            <p className="text-[10px] font-black text-blue-100/40 uppercase tracking-widest mb-1">Transit</p>
+                            <p className="text-[10px] font-black text-blue-100/40 uppercase tracking-widest mb-1">Travel</p>
                             <p className="text-2xl font-black text-white leading-none">{selectedSlot.travelTimeInMinutes}<span className="text-xs ml-1 opacity-60">M</span></p>
                           </div>
                           <div className="text-right">
-                            <p className="text-[10px] font-black text-blue-100/40 uppercase tracking-widest mb-1">Radius</p>
+                            <p className="text-[10px] font-black text-blue-100/40 uppercase tracking-widest mb-1">Range</p>
                             <p className="text-2xl font-black text-white leading-none">{selectedSlot.distanceInMiles.toFixed(1)}<span className="text-xs ml-1 opacity-60">M</span></p>
                           </div>
                         </>
@@ -654,14 +654,14 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               )}
 
               <button type="submit" form="appointment-form" disabled={bookingLoading || !selectedSlot?.shiftStart}
-                className="group w-full py-8 rounded-[2.5rem] bg-blue-600 hover:bg-blue-500 disabled:opacity-10 disabled:cursor-not-allowed
-                          text-white font-black text-base uppercase tracking-[0.5em] transition-all shadow-[0_20px_50px_rgba(37,99,235,0.4)] flex items-center justify-center gap-6 active:scale-[0.98]">
+                className="group w-full py-5 rounded-[2rem] bg-blue-600 hover:bg-blue-500 disabled:opacity-10 disabled:cursor-not-allowed
+                          text-white font-black text-sm uppercase tracking-[0.4em] transition-all shadow-[0_20px_50px_rgba(37,99,235,0.4)] flex items-center justify-center gap-4 active:scale-[0.98]">
                 {bookingLoading ? (
-                  <Activity className="w-6 h-6 animate-spin" />
+                  <Activity className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
-                    <Navigation className="w-6 h-6 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform duration-500" />
-                    <span>{appointmentId ? "RE-DEPLOY" : "DEPLOY"}</span>
+                    <Navigation className="w-5 h-5 group-hover:translate-x-1.5 group-hover:-translate-y-1.5 transition-transform duration-500" />
+                    <span>{appointmentId ? "UPDATE SCHEDULE" : "CONFIRM SCHEDULE"}</span>
                   </>
                 )}
               </button>
