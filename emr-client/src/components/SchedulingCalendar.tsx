@@ -267,7 +267,8 @@ export default function SchedulingCalendar() {
                         
                         // Strictly mapped to backend routing data. 0 means 0.
                         const driveMin = appt.travelTimeMinutes || 0;
-                        
+                        const hasCn = (appt.supportingClinicians?.length > 0) || (appt.supportingPractitionerIds?.length > 0);
+
                         if (startMin < 0 || startMin >= GRID_CONFIG.TOTAL_MINUTES) return null;
 
                         const top = (startMin / GRID_CONFIG.TOTAL_MINUTES) * 100;
@@ -278,7 +279,7 @@ export default function SchedulingCalendar() {
                         return (
                           <React.Fragment key={appt.appointmentId}>
                             {/* Drive Time Visualization */}
-                            {driveMin > 0 && modality.label !== "TELEHEALTH" && (
+                            {driveMin > 0 && modality.label !== "TELEHEALTH" && hasCn && (
                                 <div className="absolute left-4 right-4 border-l-2 border-dashed border-blue-500/50 bg-[repeating-linear-gradient(45deg,transparent,transparent_4px,rgba(59,130,246,0.1)_4px,rgba(59,130,246,0.1)_8px)] flex items-start justify-end p-1 z-0 rounded-t-lg"
                                      style={{ top: `${((startMin - driveMin) / GRID_CONFIG.TOTAL_MINUTES) * 100}%`, height: `${(driveMin / GRID_CONFIG.TOTAL_MINUTES) * 100}%` }}>
                                      <span className="text-[8px] font-black uppercase text-blue-400 tracking-widest bg-[#0a0b10] px-1 py-0.5 rounded shadow-xl -mt-1 border border-blue-500/20">

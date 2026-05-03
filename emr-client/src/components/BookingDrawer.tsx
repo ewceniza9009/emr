@@ -435,7 +435,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                 <div className="flex items-center gap-2 justify-end">
                                     <Car className={`w-3.5 h-3.5 ${isSelected ? "text-purple-400" : "text-slate-700"}`} />
                                     <span className={`text-sm font-black ${isSelected ? "text-white" : "text-slate-600"}`}>
-                                        {p.travelTimeInMinutes ? `${p.travelTimeInMinutes}m` : "--"}
+                                        {isSelected 
+                                          ? (appointmentData?.appointment?.travelTimeMinutes ? `${appointmentData.appointment.travelTimeMinutes}m` : "--")
+                                          : (p.travelTimeInMinutes ? `${p.travelTimeInMinutes}m` : "--")}
                                     </span>
                                 </div>
                             </div>

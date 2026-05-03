@@ -220,14 +220,19 @@ namespace Infrastructure.Data
                 // Sequential spacing: 4 appointments per day, exactly 2 hours apart (8AM, 10AM, 12PM, 2PM Local Time)
                 .RuleFor(a => a.ScheduledStart, f => baseDate.AddDays(f.IndexFaker / 4).AddHours((f.IndexFaker % 4) * 2))
                 .RuleFor(a => a.ScheduledEnd, (f, a) => a.ScheduledStart.AddHours(1))
-                // Seed secondary clinicians (Care Navigators)
+                // Seed secondary clinicians (Care Navigators) - Ensure 80% assignment rate for realistic data
                 .RuleFor(a => a.SupportingClinicians, (f, a) => {
+                    if (f.Random.Bool(0.2f)) return new List<Practitioner>();
                     var p = practitioners.Where(pr => pr.PractitionerId != a.PractitionerId).OrderBy(x => Guid.NewGuid()).Take(1).ToList();
                     return p;
                 })
-                // Hardened Geospatial Seeding: Telehealth = 0, others = 15-45m
-                .RuleFor(a => a.TravelTimeMinutes, (f, a) => 
-                    (a.Modality == AppointmentModality.TelehealthVideo || a.Modality == AppointmentModality.TelehealthAudioOnly || a.Modality == AppointmentModality.Telephone) ? 0 : f.PickRandom(15.0, 30.0, 45.0))
+                // Hardened Geospatial Seeding: Travel time ONLY if CN is assigned and it's In-Person
+                .RuleFor(a => a.TravelTimeMinutes, (f, a) => {
+                    var isTele = a.Modality == AppointmentModality.TelehealthVideo || a.Modality == AppointmentModality.TelehealthAudioOnly || a.Modality == AppointmentModality.Telephone;
+                    if (isTele) return 0;
+                    if (a.SupportingClinicians == null || !a.SupportingClinicians.Any()) return 0;
+                    return f.PickRandom(15.0, 30.0, 45.0);
+                })
                 .Generate(12); // Generate 12 to perfectly fill 3 days (4 per day)
             context.Appointments.AddRange(appointments);
             await context.SaveChangesAsync();
