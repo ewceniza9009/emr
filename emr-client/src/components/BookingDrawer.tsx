@@ -150,8 +150,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [showPatientResults, setShowPatientResults] = useState(false);
   const [period, setPeriod] = useState<"AM" | "PM" | null>(null);
-  const [selectedDate, setSelectedDate] = useState(new Date(prefillDate || Date.now()));
-  const [viewDate, setViewDate] = useState(new Date(selectedDate));
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date(prefillDate || Date.now());
+    return isNaN(d.getTime()) ? new Date() : d;
+  });
+  const [viewDate, setViewDate] = useState(() => {
+    return isNaN(selectedDate.getTime()) ? new Date() : new Date(selectedDate);
+  });
   const [duration, setDuration] = useState(60);
   const [modality, setModality] = useState("IN_PERSON_HOME_VISIT");
   const [booked, setBooked] = useState(false);
@@ -780,7 +785,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               <h3 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Temporal Selection</h3>
               <div className="bg-[var(--input-bg)] rounded-2xl border border-[var(--card-border)] p-4 space-y-4">
                 <div className="flex items-center justify-between px-2">
-                  <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">{monthNames[viewDate.getMonth()]} // {viewDate.getFullYear()}</span>
+                  <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">
+                    {isNaN(viewDate.getTime()) ? "SELECT DATE" : `${monthNames[viewDate.getMonth()]} // ${viewDate.getFullYear()}`}
+                  </span>
                   <div className="flex gap-1.5">
                     <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="p-1.5 hover:bg-[var(--primary-glow)] rounded-lg border border-[var(--card-border)] transition-colors"><ChevronLeft className="w-3.5 h-3.5 text-[var(--text-muted)]" /></button>
                     <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="p-1.5 hover:bg-[var(--primary-glow)] rounded-lg border border-[var(--card-border)] transition-colors"><ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" /></button>
