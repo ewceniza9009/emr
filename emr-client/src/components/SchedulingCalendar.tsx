@@ -51,12 +51,12 @@ const GET_SCHEDULE_DATA = gql`
   query GetScheduleData($startDate: DateTime!, $endDate: DateTime!) {
     appointments(where: { scheduledStart: { gte: $startDate }, scheduledEnd: { lte: $endDate } }) {
       appointmentId scheduledStart scheduledEnd modality status travelTimeMinutes distanceInMiles practitionerId
-      practitioner { practitionerId fullName position }
-      supportingClinicians { practitionerId fullName position }
+      practitioner { practitionerId firstName lastName position }
+      supportingClinicians { practitionerId firstName lastName position }
       patient { firstName lastName mrn addresses { isPrimary address { street } } }
     }
     practitioners {
-      practitionerId fullName position
+      practitionerId firstName lastName position
     }
   }
 `;
@@ -91,7 +91,8 @@ export default function SchedulingCalendar() {
     variables: { 
         startDate: weekDates[0].toISOString(), 
         endDate: new Date(weekDates[6].getTime() + 86400000).toISOString() 
-    } 
+    },
+    fetchPolicy: "network-only"
   });
 
   const practitioners = data?.practitioners ?? [];
@@ -322,8 +323,8 @@ export default function SchedulingCalendar() {
                                     </div>
                                     {/* The "Hint" of CN and SC */}
                                     <div className="flex -space-x-1 shrink-0 ml-1">
-                                        <div className="w-3.5 h-3.5 rounded-full bg-blue-600 border border-[#0a0b10] flex items-center justify-center text-[5px] font-black text-white shadow-md">SC</div>
                                         <div className="w-3.5 h-3.5 rounded-full bg-purple-600 border border-[#0a0b10] flex items-center justify-center text-[5px] font-black text-white shadow-md">CN</div>
+                                        <div className="w-3.5 h-3.5 rounded-full bg-blue-600 border border-[#0a0b10] flex items-center justify-center text-[5px] font-black text-white shadow-md">SC</div>
                                     </div>
                                 </div>
 
@@ -339,23 +340,25 @@ export default function SchedulingCalendar() {
                                     )}
                                     <div className="flex flex-col gap-1 mt-1 bg-black/20 p-1.5 rounded border border-white/5">
                                         <div className="flex items-center gap-1.5">
-                                            <div className="w-3 h-3 rounded-full bg-blue-600 border border-white/10 flex items-center justify-center text-[5px] font-black text-white shrink-0">SC</div>
+                                            <div className="w-3 h-3 rounded-full bg-purple-600 border border-white/10 flex items-center justify-center text-[5px] font-black text-white shrink-0">CN</div>
                                             {(() => {
-                                                const p = appt.practitioner || practitioners.find((pr: any) => pr.practitionerId === appt.practitionerId);
+                                                const cn = appt.supportingClinicians?.[0] || practitioners.find((pr: any) => appt.supportingPractitionerIds?.some((id: string) => id?.toLowerCase() === pr.practitionerId?.toLowerCase()));
+                                                const name = cn ? `${cn.firstName} ${cn.lastName}`.trim() : "";
                                                 return (
-                                                    <span className={`text-[8px] font-black uppercase truncate ${p?.fullName ? "text-white/90" : "text-white/50"}`}>
-                                                        {p?.fullName || "UNASSIGNED"}
+                                                    <span className={`text-[8px] font-black uppercase truncate ${name ? "text-white/90" : "text-white/50"}`}>
+                                                        {name || "UNASSIGNED"}
                                                     </span>
                                                 );
                                             })()}
                                         </div>
                                         <div className="flex items-center gap-1.5">
-                                            <div className="w-3 h-3 rounded-full bg-purple-600 border border-white/10 flex items-center justify-center text-[5px] font-black text-white shrink-0">CN</div>
+                                            <div className="w-3 h-3 rounded-full bg-blue-600 border border-white/10 flex items-center justify-center text-[5px] font-black text-white shrink-0">SC</div>
                                             {(() => {
-                                                const cn = appt.supportingClinicians?.[0];
+                                                const p = appt.practitioner || practitioners.find((pr: any) => pr.practitionerId?.toLowerCase() === appt.practitionerId?.toLowerCase());
+                                                const name = p ? `${p.firstName} ${p.lastName}`.trim() : "";
                                                 return (
-                                                    <span className={`text-[8px] font-black uppercase truncate ${cn?.fullName ? "text-white/90" : "text-white/50"}`}>
-                                                        {cn?.fullName || "UNASSIGNED"}
+                                                    <span className={`text-[8px] font-black uppercase truncate ${name ? "text-white/90" : "text-white/50"}`}>
+                                                        {name || "UNASSIGNED"}
                                                     </span>
                                                 );
                                             })()}

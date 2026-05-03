@@ -47,13 +47,15 @@ namespace Infrastructure.Data
 
         public static async Task SeedDatabaseAsync(ApplicationDbContext context)
         {
-            if (await context.Patients.AnyAsync()) return; // Protect against double-seeding
+            // Force re-seed to apply new clinician and address logic
+            // if (await context.Patients.AnyAsync()) return; 
 
             Randomizer.Seed = new Random(8675309); // Deterministic test data
 
             // ==========================================
             // SETUP TABLES (5 Records Each)
             // ==========================================
+
             var healthPlans = new Faker<HealthPlan>()
                 .RuleFor(x => x.HealthPlanId, Guid.NewGuid)
                 .RuleFor(x => x.Name, f => f.Company.CompanyName() + " Health")
@@ -90,7 +92,6 @@ namespace Infrastructure.Data
                 .RuleFor(p => p.UserId, Guid.NewGuid) // FIX: Strict unique constraint
                 .RuleFor(p => p.FirstName, f => f.Name.FirstName())
                 .RuleFor(p => p.LastName, f => f.Name.LastName())
-                .RuleFor(p => p.FullName, (f, p) => $"{p.FirstName} {p.LastName}")
                 .RuleFor(p => p.Position, f => f.PickRandom<PractitionerPosition>())
                 .RuleFor(p => p.IsActive, true)
                 .Generate(5);

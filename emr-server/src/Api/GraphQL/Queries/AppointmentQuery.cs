@@ -31,7 +31,8 @@ public class AppointmentQuery
     {
         return context.Appointments
             .Include(a => a.Patient).ThenInclude(p => p!.Addresses)
-            .Include(a => a.Practitioner).ThenInclude(p => p!.Addresses)
+            .Include(a => a.Practitioner)
+            .Include(a => a.SupportingClinicians)
             .AsNoTracking();
 
     }
@@ -45,7 +46,8 @@ public class AppointmentQuery
         return context.Appointments
             .Where(a => a.AppointmentId == id)
             .Include(a => a.Patient).ThenInclude(p => p!.Addresses)
-            .Include(a => a.Practitioner).ThenInclude(p => p!.Addresses)
+            .Include(a => a.Practitioner)
+            .Include(a => a.SupportingClinicians)
             .AsNoTracking();
 
     }
