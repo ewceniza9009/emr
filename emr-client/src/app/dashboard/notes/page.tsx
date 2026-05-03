@@ -40,6 +40,7 @@ const GET_NOTES_DATA = gql`
 export default function ClinicalNotesPage() {
   const { data, loading, error } = useQuery(GET_NOTES_DATA);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [narrative, setNarrative] = useState("");
 
   if (loading) return (
     <div className="h-full flex items-center justify-center">
@@ -73,7 +74,7 @@ export default function ClinicalNotesPage() {
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-hide">
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 pb-10 custom-scrollbar">
             {appointments.map((n: any) => (
               <div 
                 key={n.appointmentId} 
@@ -153,11 +154,27 @@ export default function ClinicalNotesPage() {
                </div>
 
                <div className="space-y-4">
-                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Clinical Narrative</label>
-                  <div className="w-full min-h-[400px] bg-[var(--input-bg)] border border-[var(--card-border)] rounded-[2.5rem] p-10 focus-within:border-[var(--primary)]/50 transition-all">
-                     <p className="text-sm leading-relaxed text-[var(--text-secondary)] font-medium italic opacity-50">
-                       Begin typing clinical documentation for {selectedNote.patient?.firstName}... use / for smart templates.
-                     </p>
+                  <div className="flex items-center justify-between ml-1">
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Clinical Narrative</label>
+                    <div className="flex items-center gap-2">
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                       <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Live Documentation Active</span>
+                    </div>
+                  </div>
+                  <div className="group relative">
+                    <textarea 
+                      value={narrative}
+                      onChange={(e) => setNarrative(e.target.value)}
+                      placeholder={`Begin typing clinical documentation for ${selectedNote.patient?.firstName}... use / for smart templates.`}
+                      className="w-full min-h-[500px] bg-[var(--input-bg)] border border-[var(--card-border)] rounded-[2.5rem] p-10 text-sm leading-relaxed text-[var(--text-primary)] placeholder:text-[var(--text-muted)] placeholder:italic placeholder:opacity-30 outline-none focus:border-[var(--primary)]/50 focus:shadow-[0_0_30px_var(--primary-glow)] transition-all resize-none scrollbar-hide"
+                    />
+                    
+                    {/* Floating Formatting Helper */}
+                    <div className="absolute bottom-6 right-10 flex items-center gap-4 text-[9px] font-black text-slate-500 uppercase tracking-widest pointer-events-none opacity-40 group-focus-within:opacity-100 transition-opacity">
+                      <span>Press <span className="text-[var(--primary)]">/</span> for Smart Phrases</span>
+                      <span className="w-1 h-1 rounded-full bg-slate-700" />
+                      <span>Auto-Saving enabled</span>
+                    </div>
                   </div>
                </div>
             </div>
