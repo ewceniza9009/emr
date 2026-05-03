@@ -214,25 +214,27 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     return map;
   }, [currentGeoData]);
 
-  // Backend-Driven Geospatial Data with Dynamic Fallback (NO FAKE DATA)
-  // Backend-Driven Geospatial Data with Dynamic Fallback (NO FAKE DATA)
   const displayCns = useMemo(() => {
     const geoCns = currentGeoData?.availableProviders?.filter((p: any) => p.role === "CareNavigator") || [];
     const allCns = practitionerData?.practitioners?.filter((p: any) => p.position?.toLowerCase() === "nurse" || p.isCareNavigator) || [];
-    // Force-inject assigned clinicians from appointment data
-    const assignedFromAppt = appointmentData?.appointment?.supportingClinicians || [];
-    const combined = Array.from(new Map([...allCns, ...geoCns, ...assignedFromAppt].map(p => [p.practitionerId?.toLowerCase(), p])).values());
+    // Prioritize allCns for full profile data, but keep geoCns availability
+    const combined = Array.from(new Map([...allCns, ...geoCns].map(p => {
+        const profile = allCns.find((x: any) => x.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
+        return [p.practitionerId?.toLowerCase(), { ...profile, ...p }];
+    })).values());
     return combined;
-  }, [currentGeoData, practitionerData, appointmentData]);
+  }, [currentGeoData, practitionerData]);
 
   const displayScs = useMemo(() => {
     const geoScs = currentGeoData?.availableProviders?.filter((p: any) => p.role !== "CareNavigator") || [];
     const allScs = practitionerData?.practitioners?.filter((p: any) => p.position?.toLowerCase() !== "nurse" || p.isSupportingClinician) || [];
-    // Force-inject assigned clinician from appointment data
-    const assignedFromAppt = appointmentData?.appointment?.practitioner ? [appointmentData.appointment.practitioner] : [];
-    const combined = Array.from(new Map([...allScs, ...geoScs, ...assignedFromAppt].map(p => [p.practitionerId?.toLowerCase(), p])).values());
+    // Prioritize allScs for full profile data, but keep geoScs availability
+    const combined = Array.from(new Map([...allScs, ...geoScs].map(p => {
+        const profile = allScs.find((x: any) => x.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
+        return [p.practitionerId?.toLowerCase(), { ...profile, ...p }];
+    })).values());
     return combined;
-  }, [currentGeoData, practitionerData, appointmentData]);
+  }, [currentGeoData, practitionerData]);
 
   const selectedSlot = useMemo(() => {
     if (appointmentId && !practitionerId && appointmentData?.appointment) {
@@ -258,9 +260,15 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     book({
       variables: {
         input: {
-          appointmentId, patientId, practitionerId, supportingPractitionerIds: supportingIds,
-          scheduledStart: selectedSlot.shiftStart, scheduledEnd: selectedSlot.shiftEnd,
-          modality, travelTimeMinutes: selectedSlot.travelTimeInMinutes, distanceInMiles: selectedSlot.distanceInMiles
+          appointmentId: appointmentId || null, 
+          patientId, 
+          practitionerId, 
+          supportingPractitionerIds: supportingIds,
+          scheduledStart: selectedSlot.shiftStart, 
+          scheduledEnd: selectedSlot.shiftEnd,
+          modality, 
+          travelTimeMinutes: selectedSlot.travelTimeInMinutes, 
+          distanceInMiles: selectedSlot.distanceInMiles
         }
       }
     });
@@ -369,8 +377,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Street Address</label>
                           {isEditingAddress ? (
                             <input autoFocus value={patientAddress.street} onChange={e => setPatientAddress({ ...patientAddress, street: e.target.value })}
-                                onBlur={() => setIsEditingAddress(false)}
-                                className="w-full bg-blue-600/10 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-bold text-white uppercase outline-none" />
+                              onBlur={() => setIsEditingAddress(false)}
+                              className="w-full bg-blue-600/10 border border-blue-500/30 rounded-lg px-3 py-1.5 text-xs font-bold text-white uppercase outline-none" />
                           ) : (
                             <p className="text-xs font-bold text-white uppercase">{patientAddress.street || "Unknown"}</p>
                           )}
@@ -430,26 +438,36 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                             ${isSelected ? "bg-purple-600/10 border-purple-500 shadow-xl shadow-purple-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
                             onClick={() => {
-                                if (isSelected) setSupportingIds(supportingIds.filter((id: string) => id?.toLowerCase() !== p.practitionerId?.toLowerCase()));
-                                else setSupportingIds([p.practitionerId]);
+                              if (isSelected) setSupportingIds(supportingIds.filter((id: string) => id?.toLowerCase() !== p.practitionerId?.toLowerCase()));
+                              else setSupportingIds([p.practitionerId]);
                             }}>
                             <div className="flex items-center gap-3">
                               <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${isSelected ? "bg-purple-500 text-white" : "bg-white/5 text-slate-600"}`}>
                                 <User className="w-4 h-4" />
                               </div>
                               <div>
-                                <p className={`text-xs font-black uppercase ${isSelected ? "text-white" : "text-slate-400"}`}>{p.firstName} {p.lastName}</p>
+                                <p className={`text-xs font-black uppercase ${isSelected ? "text-white" : "text-slate-400"}`}>
+                                  {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}
+                                </p>
                                 <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5">Care Navigator</p>
                               </div>
                             </div>
-                            <div className="text-right">
+                             <div className="text-right">
                                 <div className="flex items-center gap-1.5 justify-end">
-                                    <Car className={`w-3 h-3 ${isSelected ? "text-purple-400" : "text-slate-700"}`} />
-                                    <span className={`text-xs font-black ${isSelected ? "text-white" : "text-slate-600"}`}>
-                                        {isSelected 
-                                          ? (appointmentData?.appointment?.travelTimeMinutes ? `${appointmentData.appointment.travelTimeMinutes}m` : "--")
-                                          : (p.travelTimeInMinutes ? `${p.travelTimeInMinutes}m` : "--")}
-                                    </span>
+                                    {p.travelTimeInMinutes !== undefined ? (
+                                      <>
+                                        <Car className={`w-3 h-3 ${isSelected ? "text-purple-400" : "text-slate-700"}`} />
+                                        <span className={`text-xs font-black ${isSelected ? "text-white" : "text-slate-600"}`}>
+                                          {isSelected 
+                                            ? (appointmentData?.appointment?.travelTimeMinutes ? `${appointmentData.appointment.travelTimeMinutes}m` : "--")
+                                            : (p.travelTimeInMinutes ? `${p.travelTimeInMinutes}m` : "--")}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="text-[8px] font-black text-rose-500/60 uppercase tracking-tighter bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
+                                        Busy / Off-Duty
+                                      </span>
+                                    )}
                                 </div>
                             </div>
                           </div>
@@ -472,17 +490,21 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           <div key={p.practitionerId} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                             ${isSelected ? "bg-blue-600/10 border-blue-500 shadow-xl shadow-blue-500/10" : "bg-white/[0.01] border-white/5 hover:border-white/20"}`}
                             onClick={() => {
-                              setPractitionerId(p.practitionerId);
-                              setDuration(15);
+                              if (isSelected) setPractitionerId("");
+                              else {
+                                setPractitionerId(p.practitionerId);
+                              }
                             }}>
                             <div className="flex items-center gap-3">
-                                <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${isSelected ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
-                                    <Stethoscope className="w-4 h-4" />
-                                </div>
-                                <div>
-                                    <p className={`text-xs font-black uppercase ${isSelected ? "text-white" : "text-slate-400"}`}>{p.firstName} {p.lastName}</p>
-                                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5">Supporting Clinician</p>
-                                </div>
+                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${isSelected ? "bg-blue-500 text-white" : "bg-white/5 text-slate-600"}`}>
+                                <Stethoscope className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <p className={`text-xs font-black uppercase ${isSelected ? "text-white" : "text-slate-400"}`}>
+                                  {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}
+                                </p>
+                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-0.5">Supporting Clinician</p>
+                              </div>
                             </div>
                           </div>
                         );
@@ -545,16 +567,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                   <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Duration Profile</label>
                   <span className="text-lg font-black text-blue-500">{duration} <span className="text-[10px] text-slate-600">MINS</span></span>
                 </div>
-                <input type="range" min="15" max={supportingIds.length > 0 ? "15" : "120"} step="15" value={duration}
-                  onChange={e => {
-                    if (supportingIds.length > 0 && parseInt(e.target.value) > 15) setDuration(15);
-                    else setDuration(parseInt(e.target.value));
-                  }}
-                  className={`w-full h-1.5 rounded-full appearance-none transition-colors ${supportingIds.length > 0 ? "accent-rose-500 bg-rose-500/20 cursor-not-allowed" : "accent-blue-600 bg-white/5 cursor-pointer hover:bg-white/10"}`} />
+                <input type="range" min="15" max="60" step="15" value={duration}
+                  onChange={e => setDuration(parseInt(e.target.value))}
+                  className="w-full h-1.5 rounded-full appearance-none transition-colors accent-blue-600 bg-white/5 cursor-pointer hover:bg-white/10" />
                 <div className="flex justify-between mt-3 text-[9px] font-black text-slate-700 tracking-widest uppercase">
-                  <span>15m {supportingIds.length > 0 && <span className="text-rose-500 ml-1">(SC MAX LOCKED)</span>}</span>
-                  {supportingIds.length === 0 && <span>Clinical Norm</span>}
-                  {supportingIds.length === 0 && <span>120m</span>}
+                  <span>15m</span>
+                  <span>Clinical Norm</span>
+                  <span>60m</span>
                 </div>
               </div>
             </section>

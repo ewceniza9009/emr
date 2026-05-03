@@ -87,14 +87,29 @@ namespace Infrastructure.Data
                 .Generate(5);
             context.Set<DurableMedicalEquipment>().AddRange(dme);
 
-            var practitioners = new Faker<Practitioner>()
+            var careNavigators = new Faker<Practitioner>()
                 .RuleFor(p => p.PractitionerId, Guid.NewGuid)
-                .RuleFor(p => p.UserId, Guid.NewGuid) // FIX: Strict unique constraint
+                .RuleFor(p => p.UserId, Guid.NewGuid)
                 .RuleFor(p => p.FirstName, f => f.Name.FirstName())
                 .RuleFor(p => p.LastName, f => f.Name.LastName())
-                .RuleFor(p => p.Position, f => f.PickRandom<PractitionerPosition>())
                 .RuleFor(p => p.IsActive, true)
+                .RuleFor(p => p.IsCareNavigator, true)
+                .RuleFor(p => p.IsSupportingClinician, false)
+                .RuleFor(p => p.Position, PractitionerPosition.Nurse)
                 .Generate(5);
+
+            var supportingClinicians = new Faker<Practitioner>()
+                .RuleFor(p => p.PractitionerId, Guid.NewGuid)
+                .RuleFor(p => p.UserId, Guid.NewGuid)
+                .RuleFor(p => p.FirstName, f => f.Name.FirstName())
+                .RuleFor(p => p.LastName, f => f.Name.LastName())
+                .RuleFor(p => p.IsActive, true)
+                .RuleFor(p => p.IsCareNavigator, false)
+                .RuleFor(p => p.IsSupportingClinician, true)
+                .RuleFor(p => p.Position, PractitionerPosition.Physician)
+                .Generate(5);
+
+            var practitioners = careNavigators.Concat(supportingClinicians).ToList();
             context.Practitioners.AddRange(practitioners);
 
             await context.SaveChangesAsync();
@@ -352,11 +367,21 @@ namespace Infrastructure.Data
             var distinctResources = resources.GroupBy(x => new { x.AppointmentId, x.BlockId }).Select(g => g.First()).ToList();
             context.Set<AppointmentResource>().AddRange(distinctResources);
 
-            var shifts = new Faker<ProviderShift>()
-                .RuleFor(x => x.ProviderShiftId, Guid.NewGuid)
-                .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
-                .RuleFor(x => x.DayOfWeek, f => f.PickRandom<DayOfWeek>())
-                .Generate(10);
+            var shifts = new List<ProviderShift>();
+            foreach (var p in practitioners)
+            {
+                for (int day = 1; day <= 5; day++) // Mon-Fri
+                {
+                    shifts.Add(new ProviderShift
+                    {
+                        ProviderShiftId = Guid.NewGuid(),
+                        PractitionerId = p.PractitionerId,
+                        DayOfWeek = (DayOfWeek)day,
+                        StartTime = new TimeSpan(8, 0, 0),
+                        EndTime = new TimeSpan(18, 0, 0)
+                    });
+                }
+            }
             context.Set<ProviderShift>().AddRange(shifts);
 
             var licenses = new Faker<PractitionerLicensure>()

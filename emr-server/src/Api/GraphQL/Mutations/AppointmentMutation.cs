@@ -19,7 +19,10 @@ public class AppointmentMutation
             input.SupportingPractitionerIds,
             input.ScheduledStart,
             input.ScheduledEnd,
-            input.Modality), cancellationToken);
+            input.Modality,
+            null, // TravelTimeMinutes
+            null, // DistanceInMiles
+            input.AppointmentId), cancellationToken);
     }
 
     public async Task<Appointment> RescheduleAppointment(
@@ -42,4 +45,5 @@ public record BookAppointmentInput(
     List<Guid> SupportingPractitionerIds,
     DateTimeOffset ScheduledStart,
     DateTimeOffset ScheduledEnd,
-    AppointmentModality Modality);
+    AppointmentModality Modality,
+    Guid? AppointmentId = null);

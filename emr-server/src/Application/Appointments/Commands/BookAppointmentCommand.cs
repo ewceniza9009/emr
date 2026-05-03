@@ -14,7 +14,8 @@ public record BookAppointmentCommand(
     DateTimeOffset ScheduledEnd,
     AppointmentModality Modality,
     double? TravelTimeMinutes = null,
-    double? DistanceInMiles = null) : IRequest<Appointment>;
+    double? DistanceInMiles = null,
+    Guid? AppointmentId = null) : IRequest<Appointment>;
 
 public class BookAppointmentCommandHandler(IApplicationDbContext context) : IRequestHandler<BookAppointmentCommand, Appointment>
 {
@@ -24,23 +25,42 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context) : IReq
             .Where(p => request.SupportingPractitionerIds.Contains(p.PractitionerId))
             .ToListAsync(cancellationToken);
 
-        var appointment = new Appointment
+        Appointment appointment;
+        if (request.AppointmentId.HasValue && request.AppointmentId.Value != Guid.Empty)
         {
-            AppointmentId = Guid.NewGuid(),
-            PatientId = request.PatientId,
-            PractitionerId = request.PractitionerId,
-            ScheduledStart = request.ScheduledStart,
-            ScheduledEnd = request.ScheduledEnd,
-            Modality = request.Modality,
-            Status = AppointmentStatus.Scheduled,
-            SupportingClinicians = supporting,
-            TravelTimeMinutes = request.TravelTimeMinutes,
-            DistanceInMiles = request.DistanceInMiles
-        };
+            appointment = await context.Appointments
+                .Include(a => a.SupportingClinicians)
+                .FirstOrDefaultAsync(a => a.AppointmentId == request.AppointmentId.Value, cancellationToken)
+                ?? throw new KeyNotFoundException($"Appointment {request.AppointmentId} not found");
 
-        context.Appointments.Add(appointment);
+            appointment.PatientId = request.PatientId;
+            appointment.PractitionerId = request.PractitionerId;
+            appointment.ScheduledStart = request.ScheduledStart;
+            appointment.ScheduledEnd = request.ScheduledEnd;
+            appointment.Modality = request.Modality;
+            appointment.SupportingClinicians = supporting;
+            appointment.TravelTimeMinutes = request.TravelTimeMinutes;
+            appointment.DistanceInMiles = request.DistanceInMiles;
+        }
+        else
+        {
+            appointment = new Appointment
+            {
+                AppointmentId = Guid.NewGuid(),
+                PatientId = request.PatientId,
+                PractitionerId = request.PractitionerId,
+                ScheduledStart = request.ScheduledStart,
+                ScheduledEnd = request.ScheduledEnd,
+                Modality = request.Modality,
+                Status = AppointmentStatus.Scheduled,
+                SupportingClinicians = supporting,
+                TravelTimeMinutes = request.TravelTimeMinutes,
+                DistanceInMiles = request.DistanceInMiles
+            };
+            context.Appointments.Add(appointment);
+        }
+
         await context.SaveChangesAsync(cancellationToken);
-
         return appointment;
     }
 }
