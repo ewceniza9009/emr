@@ -10,7 +10,8 @@ import {
   Stethoscope, 
   ArrowRight,
   ChevronRight,
-  ClipboardCheck,
+  ChevronLeft,
+  ClipboardCheck, 
   ShieldCheck,
   Activity,
   User,
@@ -20,7 +21,12 @@ import {
   Users,
   Heart,
   AlertCircle,
-  ChevronLeft
+  UserPlus,
+  Hash,
+  Target,
+  Zap,
+  PhoneOff,
+  PhoneForwarded
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -92,12 +98,23 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const [selectedPlan, setSelectedPlan] = useState("");
   const [selectedModality, setSelectedModality] = useState("HOME_CARE");
   
+  // Dialer State
+  const [activeCall, setActiveCall] = useState<any>(null);
+  const [isDialPadOpen, setIsDialPadOpen] = useState(false);
+  const [dialedNumber, setDialedNumber] = useState("");
+
   // Wizard State
   const [disposition, setDisposition] = useState("COOPERATIVE");
   const [communicationStatus, setCommunicationStatus] = useState("VERBAL");
   const [techAccess, setTechAccess] = useState("SMARTPHONE_ONLY");
   const [barriersToCare, setBarriersToCare] = useState("");
   const [orientationDate, setOrientationDate] = useState("");
+
+  // Missing Data Handling
+  const [tempNumbers, setTempNumbers] = useState<Record<string, string>>({});
+  const [addedRelatives, setAddedRelatives] = useState<any[]>([]);
+  const [isAddingRelative, setIsAddingRelative] = useState(false);
+  const [newRelativeForm, setNewRelativeForm] = useState({ firstName: '', lastName: '', relationship: 'Other', phoneNumber: '' });
 
   const [finalize, { loading: finalizing }] = useMutation(FINALIZE_ENROLLMENT);
 
@@ -119,6 +136,11 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
       setTechAccess("SMARTPHONE_ONLY");
       setBarriersToCare("");
       setOrientationDate("");
+      setTempNumbers({});
+      setAddedRelatives([]);
+      setIsDialPadOpen(false);
+      setDialedNumber("");
+      setActiveCall(null);
     }
   }, [open, outreachId]);
 
@@ -146,300 +168,243 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     }
   };
 
+  const handleAddRelative = () => {
+    if (!newRelativeForm.firstName || !newRelativeForm.phoneNumber) return;
+    setAddedRelatives([...addedRelatives, { ...newRelativeForm, outreachContactId: `temp-${Date.now()}` }]);
+    setNewRelativeForm({ firstName: '', lastName: '', relationship: 'Other', phoneNumber: '' });
+    setIsAddingRelative(false);
+  };
+
+  const handleTempNumberChange = (id: string, val: string) => {
+    setTempNumbers(prev => ({ ...prev, [id]: val }));
+  };
+
+  const handleCall = (contact: any) => {
+    setActiveCall({
+      ...contact,
+      status: 'Connecting...'
+    });
+    setTimeout(() => {
+      setActiveCall((prev: any) => prev ? { ...prev, status: 'Active' } : null);
+    }, 1500);
+  };
+
   const lead = leadData?.outreachById;
   const plans = planData?.healthPlans || [];
 
-  const steps = [
-    { id: 1, label: "Contact", icon: PhoneCall },
-    { id: 2, label: "Disposition", icon: ShieldCheck },
-    { id: 3, label: "Readiness", icon: Activity },
-    { id: 4, label: "Orientation", icon: Calendar },
-    { id: 5, label: "Modality", icon: Stethoscope },
-    { id: 6, label: "Finalize", icon: ClipboardCheck },
-  ];
-
   if (!open) return null;
 
+  const hasNoContacts = lead && !lead.primaryPhone && (!lead.otherContacts || lead.otherContacts.length === 0);
+
   return (
-    <div className="fixed inset-0 !m-0 !p-0 z-[999999] flex justify-end overflow-hidden">
-      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl" onClick={onClose} />
+    <div className="fixed inset-0 z-[999999] flex justify-end">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className={`relative h-full w-full max-w-[800px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
-        flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) 
-        ${open ? "translate-x-0" : "translate-x-full"}`}>
-
-        {/* Header */}
-        <div className="h-20 w-full flex items-center justify-between px-8 bg-[var(--sidebar-bg)] border-b border-[var(--card-border)] shrink-0">
-          <div className="flex items-center gap-6">
-            <div className="w-1.5 h-10 bg-blue-500 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.5)]" />
-            <div className="flex flex-col">
-              <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Patient Enrollment</h2>
-              {lead && (
-                <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">
-                  Enrolling: {lead.firstName} {lead.lastName}
-                </span>
-              )}
-            </div>
+      <div className="relative h-full w-full max-w-[500px] bg-[var(--sidebar-bg)] border-l border-white/5 flex flex-col shadow-2xl animate-in slide-in-from-right duration-500">
+        
+        {/* Compact Header */}
+        <div className="h-14 flex items-center justify-between px-6 border-b border-white/5 shrink-0">
+          <div className="flex items-center gap-3">
+             <div className="w-6 h-6 rounded bg-blue-500 flex items-center justify-center text-white font-black text-[10px]">E</div>
+             <h2 className="text-[10px] font-black text-white uppercase tracking-widest">Enrollment Control</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-            <X className="w-6 h-6" />
+          <button onClick={onClose} className="p-2 text-slate-500 hover:text-white transition-colors">
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Step Tracker */}
-        <div className="px-8 py-6 border-b border-[var(--card-border)] bg-[var(--input-bg)]">
-          <div className="flex items-center justify-between">
-            {steps.map((step, idx) => (
-              <React.Fragment key={step.id}>
-                <button 
-                  onClick={() => currentStep > step.id && setCurrentStep(step.id)}
-                  disabled={currentStep <= step.id}
-                  className={`flex flex-col items-center gap-2 transition-all group ${currentStep >= step.id ? 'text-blue-500' : 'text-[var(--text-muted)]'}`}
-                >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border-2 
-                    ${currentStep === step.id ? 'bg-blue-500 border-blue-400 text-white shadow-lg shadow-blue-500/20 scale-105' : 
-                      currentStep > step.id ? 'bg-blue-500/20 border-blue-500/40 text-blue-500 group-hover:bg-blue-500/30' : 'bg-[var(--card-bg)] border-[var(--card-border)]'}`}>
-                    <step.icon className="w-4 h-4" />
-                  </div>
-                  <span className="text-[8px] font-black uppercase tracking-widest">{step.label}</span>
-                </button>
-                {idx < steps.length - 1 && (
-                  <div className={`h-[1px] flex-1 mx-2 transition-all ${currentStep > step.id ? 'bg-blue-500/40' : 'bg-[var(--card-border)]'}`} />
-                )}
-              </React.Fragment>
-            ))}
+        {/* Lead Identity Bar */}
+        {lead && (
+          <div className="px-6 py-3 bg-blue-500/5 border-b border-blue-500/10 flex items-center justify-between shrink-0">
+             <div className="flex items-center gap-3">
+                <Target className="w-3 h-3 text-blue-500" />
+                <span className="text-[10px] font-black text-white uppercase tracking-tighter">{lead.firstName} {lead.lastName}</span>
+             </div>
+             <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Status: Ready</span>
           </div>
-        </div>
+        )}
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
+        {/* Tactical Content Area */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
           {leadLoading ? (
-            <div className="h-full flex flex-col items-center justify-center space-y-4">
-              <div className="animate-spin w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full" />
-              <p className="text-[var(--text-muted)] font-bold uppercase tracking-widest text-[10px]">Synchronizing Clinical Data...</p>
-            </div>
-          ) : leadError ? (
-            <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
-              <AlertCircle className="w-12 h-12 text-rose-500" />
-              <p className="text-[var(--text-primary)] font-bold">Failed to load lead details</p>
-              <button onClick={onClose} className="px-6 py-2 rounded-xl bg-[var(--input-bg)] text-[var(--text-primary)] text-xs font-bold uppercase border border-[var(--card-border)]">Close Drawer</button>
-            </div>
+            <div className="h-full flex items-center justify-center"><div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" /></div>
           ) : lead && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-6">
               {currentStep === 1 && (
-                <div className="space-y-8">
-                  <div className="bg-gradient-to-br from-blue-500/10 to-indigo-500/5 border border-[var(--card-border)] rounded-3xl p-8 space-y-6 shadow-sm">
-                    <div className="flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-2xl bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                        <User className="w-7 h-7 text-white" />
+                <div className="space-y-6 animate-in fade-in duration-300">
+                   <div className="flex items-center justify-between">
+                      <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Contact Command</h3>
+                      <div className="flex gap-2">
+                         <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`p-2 rounded border transition-all ${isDialPadOpen ? 'bg-blue-500 border-blue-400 text-white' : 'bg-white/5 border-white/10 text-slate-500'}`}><Hash className="w-4 h-4" /></button>
+                         <button onClick={() => setIsAddingRelative(true)} className="flex items-center gap-2 px-3 py-1.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[9px] font-black uppercase tracking-widest"><UserPlus className="w-3 h-3" /> Add Contact</button>
                       </div>
-                      <div>
-                        <p className="text-[var(--text-primary)] font-black text-2xl tracking-tight uppercase">{lead.firstName} {lead.lastName}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-500 text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Active Outreach</span>
-                          <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase">SOURCE: {lead.referralSource || "DIRECT"}</span>
+                   </div>
+
+                   {/* Active HUD */}
+                   {activeCall && (
+                     <div className="bg-blue-600 rounded-lg p-3 flex items-center justify-between shadow-lg animate-pulse-primary">
+                        <div className="flex items-center gap-3">
+                           <PhoneForwarded className="w-4 h-4 text-white" />
+                           <div>
+                              <p className="text-white font-black text-[10px] uppercase leading-none">{activeCall.status}</p>
+                              <p className="text-blue-100 text-[8px] font-bold mt-1 uppercase tracking-widest">{activeCall.phone}</p>
+                           </div>
                         </div>
-                      </div>
-                    </div>
+                        <button onClick={() => setActiveCall(null)} className="p-2 rounded bg-red-500 text-white"><PhoneOff className="w-4 h-4" /></button>
+                     </div>
+                   )}
 
-                    <div className="grid grid-cols-2 gap-8 pt-6 border-t border-[var(--card-border)]">
-                      <div className="space-y-1.5">
-                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                          <MapPin className="w-3 h-3" /> Mailing Address
-                        </p>
-                        <p className="text-[var(--text-secondary)] text-xs font-bold leading-relaxed uppercase">
-                          {lead.mailingAddress?.street || "No Street"}<br/>
-                          {lead.mailingAddress?.city}, {lead.mailingAddress?.state} {lead.mailingAddress?.postalCode}
-                        </p>
-                      </div>
-                      <div className="space-y-1.5">
-                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                          <Phone className="w-3 h-3" /> Communication
-                        </p>
-                        <div className="space-y-1">
-                          <p className="text-[var(--text-primary)] font-black text-sm font-mono">{lead.primaryPhone || "NO PHONE"}</p>
-                          <p className="text-[var(--text-muted)] text-[10px] font-bold truncate">{lead.primaryEmail || "NO EMAIL"}</p>
+                   {/* Dialer */}
+                   {isDialPadOpen && (
+                     <div className="bg-black/40 border border-blue-500/20 rounded-lg p-3 animate-in slide-in-from-top-2">
+                        <div className="flex gap-3">
+                           <input placeholder="Dial Number..." className="flex-1 bg-transparent text-lg font-black text-white outline-none" value={dialedNumber} onChange={e => setDialedNumber(e.target.value)} autoFocus />
+                           <button onClick={() => handleCall({phone: dialedNumber})} className="p-3 rounded bg-emerald-500 text-white"><PhoneCall className="w-4 h-4" /></button>
                         </div>
-                      </div>
-                    </div>
-                  </div>
+                     </div>
+                   )}
 
-                  <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-6 italic text-[var(--text-secondary)] text-sm leading-relaxed border-l-4 border-l-blue-500">
-                    "Hello, I'm calling from the **Palliative Care Team** regarding a referral. We'd like to discuss how we can support you..."
-                  </div>
+                   {/* Grid */}
+                   <div className="space-y-2">
+                      {hasNoContacts && !isAddingRelative && (
+                        <div className="p-6 border-2 border-dashed border-rose-500/20 rounded-lg bg-rose-500/5 text-center space-y-3">
+                           <PhoneOff className="w-6 h-6 text-rose-500 mx-auto" />
+                           <p className="text-[9px] font-black text-white uppercase tracking-widest">No Contacts Found</p>
+                           <button onClick={() => setIsAddingRelative(true)} className="w-full py-2 rounded bg-rose-500 text-white text-[8px] font-black uppercase tracking-widest">Add Primary Contact</button>
+                        </div>
+                      )}
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <button onClick={() => setCurrentStep(2)} className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-left hover:bg-emerald-500/20 transition-all group">
-                      <CheckCircle2 className="w-6 h-6 text-emerald-500 mb-4" />
-                      <h3 className="text-[var(--text-primary)] font-black text-sm uppercase mb-1">Successful Contact</h3>
-                      <p className="text-[var(--text-muted)] text-[10px]">Patient agreed to proceed.</p>
-                    </button>
-                    <button className="p-6 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-left hover:bg-black/5 dark:hover:bg-white/10 transition-all opacity-50">
-                      <PhoneCall className="w-6 h-6 text-[var(--text-muted)] mb-4" />
-                      <h3 className="text-[var(--text-primary)] font-black text-sm uppercase mb-1">No Answer</h3>
-                      <p className="text-[var(--text-muted)] text-[10px]">Schedule follow-up.</p>
-                    </button>
-                  </div>
-                </div>
-              )}
+                      {/* Patient */}
+                      {(lead.primaryPhone || tempNumbers['patient'] || !hasNoContacts) && (
+                        <div className={`p-3 rounded-lg border flex items-center justify-between ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
+                           <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded flex items-center justify-center text-white ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-blue-500' : 'bg-amber-500 animate-pulse'}`}><User className="w-4 h-4" /></div>
+                              <div className="space-y-0.5">
+                                 <p className="text-white font-black text-[10px] uppercase leading-none">{lead.firstName}</p>
+                                 <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{lead.primaryPhone || tempNumbers['patient'] || "No Phone"}</p>
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              {!lead.primaryPhone && !tempNumbers['patient'] && <input placeholder="Add Phone..." className="w-24 bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[9px] text-white outline-none" value={tempNumbers['patient'] || ""} onChange={e => handleTempNumberChange('patient', e.target.value)} />}
+                              <button onClick={() => handleCall({phone: lead.primaryPhone || tempNumbers['patient']})} disabled={!(lead.primaryPhone || tempNumbers['patient'])} className={`p-2.5 rounded transition-all ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-blue-500 text-white shadow-lg' : 'bg-slate-800 text-slate-600'}`}><PhoneCall className="w-3.5 h-3.5" /></button>
+                           </div>
+                        </div>
+                      )}
 
-              {currentStep === 2 && (
-                <div className="space-y-6">
-                  <h3 className="text-xs font-black text-[var(--text-muted)] tracking-[0.3em] uppercase">Step 2: Enrollment Disposition</h3>
-                  <div className="grid grid-cols-1 gap-3">
-                    {[
-                      { label: "Eager & Cooperative", val: "EAGER" },
-                      { label: "Generally Cooperative", val: "COOPERATIVE" },
-                      { label: "Hesitant / Unsure", val: "HESITANT" },
-                      { label: "Resistant / Hostile", val: "RESISTANT" },
-                      { label: "Refused Enrollment", val: "REFUSED" },
-                    ].map((disp) => (
-                      <button 
-                          key={disp.val} 
-                          onClick={() => { setDisposition(disp.val); setCurrentStep(3); }} 
-                          className={`p-5 rounded-2xl border transition-all text-left flex items-center justify-between group ${disposition === disp.val ? 'bg-blue-500/10 border-blue-500/50' : 'bg-[var(--card-bg)] border-[var(--card-border)] hover:bg-[var(--input-bg)]'}`}
-                      >
-                        <span className={`font-black text-xs uppercase tracking-widest ${disposition === disp.val ? 'text-blue-500' : 'text-[var(--text-secondary)]'}`}>{disp.label}</span>
-                        <ChevronRight className={`w-4 h-4 ${disposition === disp.val ? 'text-blue-500' : 'text-[var(--text-muted)]'}`} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 3 && (
-                <div className="space-y-8">
-                  <h3 className="text-xs font-black text-[var(--text-muted)] tracking-[0.3em] uppercase">Step 3: Clinical Readiness</h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Communication</label>
-                      <div className="space-y-2">
-                        {["VERBAL", "NON_VERBAL", "APHASIC", "COGNITIVE_IMPAIRMENT"].map(c => (
-                          <button key={c} onClick={() => setCommunicationStatus(c)}
-                            className={`w-full p-3 rounded-xl border text-left text-[10px] font-black tracking-widest transition-all ${communicationStatus === c ? 'bg-blue-500/20 border-blue-500/50 text-blue-500' : 'bg-[var(--card-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--primary)]/30'}`}>
-                            {c.replace('_', ' ')}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Digital Access</label>
-                      <div className="space-y-2">
-                        {["SMARTPHONE_ONLY", "TABLET_COMPUTER", "HIGH_LITERACY", "NONE"].map(t => (
-                          <button key={t} onClick={() => setTechAccess(t)}
-                            className={`w-full p-3 rounded-xl border text-left text-[10px] font-black tracking-widest transition-all ${techAccess === t ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500' : 'bg-[var(--card-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-emerald-500/30'}`}>
-                            {t.replace('_', ' ')}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-4 pt-4 border-t border-[var(--card-border)]">
-                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Barriers to Care</label>
-                    <textarea 
-                      value={barriersToCare} onChange={(e) => setBarriersToCare(e.target.value)}
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-6 text-[var(--text-primary)] text-xs font-bold min-h-[100px] focus:border-blue-500/50 outline-none transition-all"
-                      placeholder="ENTER CLINICAL BARRIERS..."
-                    />
-                  </div>
-                  <button onClick={() => setCurrentStep(4)} className="w-full bg-blue-500 py-4 rounded-2xl text-white font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3">
-                    Assessment Complete <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-              {currentStep === 4 && (
-                <div className="space-y-8">
-                  <h3 className="text-xs font-black text-[var(--text-muted)] tracking-[0.3em] uppercase">Step 4: Orientation Scheduling</h3>
-                  <div className="space-y-6">
-                    <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-10 space-y-6">
-                      <Calendar className="w-12 h-12 text-blue-500 mx-auto" />
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest text-center block">Set Orientation Window</label>
-                        <input 
-                            type="datetime-local" 
-                            value={orientationDate} onChange={(e) => setOrientationDate(e.target.value)}
-                            className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-2xl py-4 px-6 text-[var(--text-primary)] font-black uppercase tracking-widest text-center outline-none focus:border-blue-500/50" 
-                        />
-                      </div>
-                    </div>
-                    <button onClick={() => setCurrentStep(5)} className="w-full bg-blue-500 py-4 rounded-2xl text-white font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20">
-                      Confirm Orientation Window
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 5 && (
-                <div className="space-y-8">
-                  <h3 className="text-xs font-black text-[var(--text-muted)] tracking-[0.3em] uppercase">Step 5: Care Modality & Payor</h3>
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Health Plan / Payor</label>
-                      <select 
-                        value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)}
-                        className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl py-4 px-6 text-[var(--text-primary)] font-black uppercase tracking-widest outline-none focus:border-blue-500/50 appearance-none"
-                      >
-                        <option value="" className="bg-[var(--card-bg)]">SELECT HEALTH PLAN...</option>
-                        {plans.map((p: any) => (
-                          <option key={p.healthPlanId} value={p.healthPlanId} className="bg-[var(--card-bg)]">{p.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      {["HOME_CARE", "IN_PATIENT_HOSPICE", "OUTPATIENT_CLINIC", "VIRTUAL_CARE"].map((m) => (
-                        <button key={m} onClick={() => { setSelectedModality(m); setCurrentStep(6); }} 
-                          className={`p-5 rounded-2xl border transition-all text-left flex items-center justify-between group ${selectedModality === m ? 'bg-blue-500/10 border-blue-500/50 text-blue-500' : 'bg-[var(--card-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-blue-400/50'}`}>
-                          <span className="font-black text-[10px] uppercase tracking-widest">{m.replace('_', ' ')}</span>
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                      {/* Relatives */}
+                      {[...(lead.otherContacts || []), ...addedRelatives].map((contact: any) => (
+                        <div key={contact.outreachContactId} className="p-3 rounded-lg border border-white/5 bg-white/[0.02] flex items-center justify-between">
+                           <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded bg-white/5 flex items-center justify-center text-slate-500"><Users className="w-4 h-4" /></div>
+                              <div className="space-y-0.5">
+                                 <p className="text-white font-black text-[10px] uppercase leading-none">{contact.firstName}</p>
+                                 <p className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">{RELATIONSHIP_LABELS[contact.relationship] || contact.relationship} // {contact.phoneNumber || tempNumbers[contact.outreachContactId] || "No Phone"}</p>
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              {!contact.phoneNumber && !tempNumbers[contact.outreachContactId] && <input placeholder="Add Phone..." className="w-24 bg-white/5 border border-white/10 rounded px-2 py-1.5 text-[9px] text-white outline-none" value={tempNumbers[contact.outreachContactId] || ""} onChange={e => handleTempNumberChange(contact.outreachContactId, e.target.value)} />}
+                              <button onClick={() => handleCall({phone: contact.phoneNumber || tempNumbers[contact.outreachContactId]})} disabled={!(contact.phoneNumber || tempNumbers[contact.outreachContactId])} className={`p-2.5 rounded transition-all ${contact.phoneNumber || tempNumbers[contact.outreachContactId] ? 'bg-white/10 text-white hover:bg-blue-500' : 'bg-slate-900 text-slate-700'}`}><PhoneCall className="w-3.5 h-3.5" /></button>
+                           </div>
+                        </div>
                       ))}
-                    </div>
-                  </div>
+
+                      {/* Form */}
+                      {isAddingRelative && (
+                        <div className="p-3 rounded-lg border border-blue-500/20 bg-blue-500/5 space-y-3">
+                           <div className="grid grid-cols-2 gap-2">
+                              <input placeholder="First Name" className="bg-black/40 border border-white/10 rounded px-3 py-2 text-[10px] text-white outline-none" value={newRelativeForm.firstName} onChange={e => setNewRelativeForm({...newRelativeForm, firstName: e.target.value})} />
+                              <input placeholder="Phone Number" className="bg-black/40 border border-white/10 rounded px-3 py-2 text-[10px] text-white outline-none" value={newRelativeForm.phoneNumber} onChange={e => setNewRelativeForm({...newRelativeForm, phoneNumber: e.target.value})} />
+                           </div>
+                           <button onClick={handleAddRelative} className="w-full bg-blue-500 py-2 rounded text-white text-[9px] font-black uppercase tracking-widest">Add to Contact Queue</button>
+                        </div>
+                      )}
+                   </div>
+
+                   <div className="grid grid-cols-2 gap-2">
+                      <button onClick={() => setCurrentStep(2)} className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-left hover:bg-emerald-500/20 transition-all">
+                         <CheckCircle2 className="w-4 h-4 text-emerald-500 mb-2" />
+                         <p className="text-[10px] font-black text-white uppercase">Contact Success</p>
+                      </button>
+                      <button className="p-4 rounded-lg bg-white/5 border border-white/10 text-left opacity-50">
+                         <PhoneOff className="w-4 h-4 text-slate-500 mb-2" />
+                         <p className="text-[10px] font-black text-white uppercase">No Answer</p>
+                      </button>
+                   </div>
                 </div>
               )}
 
-              {currentStep === 6 && (
-                <div className="h-full flex flex-col items-center justify-center text-center space-y-8 py-10">
-                  <div className="w-24 h-24 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 animate-pulse">
-                    <ClipboardCheck className="w-12 h-12" />
-                  </div>
-                  <div className="space-y-3">
-                    <h2 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase">Protocol Validated</h2>
-                    <p className="text-[var(--text-muted)] text-sm font-bold max-w-sm uppercase tracking-wide">Mandatory assessment complete. System ready to generate Clinical MRN.</p>
-                  </div>
-                  <div className="flex flex-col w-full gap-4 max-w-sm">
-                    <button 
-                      onClick={handleFinalize}
-                      disabled={finalizing || !selectedPlan}
-                      className="w-full py-5 rounded-2xl bg-blue-500 text-white font-black text-xs uppercase tracking-[0.3em] hover:bg-blue-600 transition-all shadow-2xl shadow-blue-500/30 flex items-center justify-center gap-3 disabled:opacity-50"
-                    >
-                      {finalizing ? "GENERATING RECORD..." : "FINALISE ENROLLMENT"}
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                    <button onClick={() => setCurrentStep(5)} className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest hover:text-[var(--text-primary)] transition-colors">
-                      Review Parameters
-                    </button>
-                  </div>
+              {currentStep > 1 && (
+                <div className="space-y-6 animate-in fade-in duration-300">
+                   {currentStep === 2 && (
+                     <div className="grid grid-cols-1 gap-2">
+                        {["EAGER", "COOPERATIVE", "HESITANT", "RESISTANT", "REFUSED"].map(v => (
+                           <button key={v} onClick={() => { setDisposition(v); setCurrentStep(3); }} className={`p-4 rounded-lg border text-left flex items-center justify-between ${disposition === v ? 'bg-blue-500/10 border-blue-500/50 text-blue-500' : 'bg-white/5 border-white/10 text-slate-400'}`}>
+                              <span className="text-[9px] font-black uppercase tracking-widest">{v}</span>
+                              <ChevronRight className="w-3 h-3" />
+                           </button>
+                        ))}
+                     </div>
+                   )}
+                   {currentStep === 3 && (
+                     <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="space-y-2">
+                              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Comm</p>
+                              {["VERBAL", "APHASIC"].map(v => <button key={v} onClick={() => setCommunicationStatus(v)} className={`w-full p-2 rounded border text-[8px] font-black tracking-widest transition-all ${communicationStatus === v ? 'bg-blue-500/20 border-blue-500/50 text-blue-500' : 'bg-white/5 border-white/10 text-slate-500'}`}>{v}</button>)}
+                           </div>
+                           <div className="space-y-2">
+                              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Tech</p>
+                              {["SMARTPHONE", "NONE"].map(v => <button key={v} onClick={() => setTechAccess(v)} className={`w-full p-2 rounded border text-[8px] font-black tracking-widest transition-all ${techAccess === v ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500' : 'bg-white/5 border-white/10 text-slate-500'}`}>{v}</button>)}
+                           </div>
+                        </div>
+                        <textarea value={barriersToCare} onChange={e => setBarriersToCare(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-[9px] font-black text-white outline-none min-h-[80px]" placeholder="BARRIERS..." />
+                        <button onClick={() => setCurrentStep(4)} className="w-full bg-blue-500 py-3 rounded text-white text-[10px] font-black uppercase tracking-widest">Next</button>
+                     </div>
+                   )}
+                   {currentStep === 4 && (
+                     <div className="space-y-6 text-center">
+                        <Calendar className="w-10 h-10 text-blue-500 mx-auto" />
+                        <input type="datetime-local" value={orientationDate} onChange={e => setOrientationDate(e.target.value)} className="bg-black/40 border border-white/10 rounded py-2 px-4 text-[10px] text-white font-black outline-none" />
+                        <button onClick={() => setCurrentStep(5)} className="w-full bg-blue-500 py-3 rounded text-white text-[10px] font-black uppercase tracking-widest">Schedule</button>
+                     </div>
+                   )}
+                   {currentStep === 5 && (
+                     <div className="space-y-4">
+                        <select value={selectedPlan} onChange={e => setSelectedPlan(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded py-3 px-4 text-[9px] font-black text-white uppercase outline-none">
+                           <option value="">PAYOR...</option>
+                           {plans.map((p: any) => <option key={p.healthPlanId} value={p.healthPlanId}>{p.name}</option>)}
+                        </select>
+                        <div className="grid grid-cols-2 gap-2">
+                           {["HOME", "FACILITY", "VIRTUAL"].map(v => <button key={v} onClick={() => { setSelectedModality(v); setCurrentStep(6); }} className="p-3 rounded border border-white/10 text-[9px] font-black text-slate-400 uppercase tracking-widest hover:bg-white/5">{v}</button>)}
+                        </div>
+                     </div>
+                   )}
+                   {currentStep === 6 && (
+                     <div className="text-center space-y-6 animate-in zoom-in">
+                        <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 mx-auto"><ClipboardCheck className="w-6 h-6" /></div>
+                        <button onClick={handleFinalize} disabled={finalizing || !selectedPlan} className="w-full bg-blue-500 py-4 rounded text-white font-black text-[10px] uppercase tracking-widest shadow-lg">{finalizing ? "GENERATING..." : "FINALIZE"}</button>
+                     </div>
+                   )}
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="h-20 px-8 border-t border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
+        {/* Global Action Footer */}
+        <div className="h-14 px-6 border-t border-white/5 flex items-center justify-between bg-black/20 shrink-0">
           {currentStep > 1 && (
-            <button onClick={() => setCurrentStep(prev => prev - 1)} className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
-              <ChevronLeft className="w-4 h-4" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Back</span>
+            <button onClick={() => setCurrentStep(prev => prev - 1)} className="flex items-center gap-2 text-slate-500 hover:text-white transition-all">
+              <ChevronLeft className="w-3 h-3" />
+              <span className="text-[8px] font-black uppercase tracking-widest">Back</span>
             </button>
           )}
           <div className="flex-1" />
-          <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] opacity-40">
-            Aura OS // Enrollment Core v4.2
-          </span>
+          <div className="flex gap-1 opacity-20">
+             {[1,2,3,4,5,6].map(i => <div key={i} className={`w-1 h-1 rounded-full ${currentStep === i ? 'bg-blue-500' : 'bg-white'}`} />)}
+          </div>
         </div>
+
       </div>
     </div>
   );

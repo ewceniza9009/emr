@@ -185,6 +185,16 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.Status, f => f.PickRandom<OutreachStatus>())
                 .RuleFor(x => x.Disposition, f => f.PickRandom<EnrollmentDisposition>())
                 .RuleFor(x => x.HealthPlanId, f => f.PickRandom(healthPlans).HealthPlanId)
+                .RuleFor(x => x.PrimaryPhone, f => f.Phone.PhoneNumber())
+                .RuleFor(x => x.PrimaryEmail, f => f.Internet.Email())
+                .RuleFor(x => x.MailingAddress, f => new Address {
+                    Street = f.Address.StreetAddress(),
+                    City = "Salt Lake City",
+                    State = "Utah",
+                    PostalCode = f.Address.ZipCode(),
+                    Latitude = f.Address.Latitude(40.70, 40.80),
+                    Longitude = f.Address.Longitude(-111.95, -111.85)
+                })
                 .Generate(10);
             context.Set<PatientOutreach>().AddRange(patientOutreaches);
             await context.SaveChangesAsync();
@@ -198,6 +208,7 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.FirstName, f => f.Name.FirstName())
                 .RuleFor(x => x.LastName, f => f.Name.LastName())
                 .RuleFor(x => x.Relationship, f => f.PickRandom<RelationshipType>())
+                .RuleFor(x => x.PhoneNumber, f => f.Phone.PhoneNumber())
                 .Generate(10);
             context.Set<OutreachContact>().AddRange(outreachContacts);
 

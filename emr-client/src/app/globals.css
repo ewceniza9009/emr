@@ -134,3 +134,13 @@ option {
   background: var(--primary);
   opacity: 1;
 }
+
+@keyframes pulse-primary {
+  0% { box-shadow: 0 0 0 0 var(--primary-glow); }
+  70% { box-shadow: 0 0 0 10px rgba(13, 148, 136, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0); }
+}
+
+.animate-pulse-primary {
+  animation: pulse-primary 2s infinite;
+}
