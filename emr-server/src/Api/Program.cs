@@ -14,7 +14,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "EMR API", Version = "v1" });
+    c.SwaggerDoc(
+        "v1",
+        new Microsoft.OpenApi.Models.OpenApiInfo { Title = "EMR API", Version = "v1" }
+    );
 });
 
 builder.Services.AddMemoryCache();
@@ -23,7 +26,8 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(ApplicationAssemblyReference).Assembly));
+    cfg.RegisterServicesFromAssembly(typeof(ApplicationAssemblyReference).Assembly)
+);
 
 var typeAdapterConfig = TypeAdapterConfig.GlobalSettings;
 typeAdapterConfig.Scan(typeof(ApplicationAssemblyReference).Assembly);
@@ -34,24 +38,29 @@ builder.Services.AddSignalR();
 builder.Services.AddHostedService<TelemetrySimulatorService>();
 
 // JWT Authentication
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = "Bearer";
-    options.DefaultChallengeScheme = "Bearer";
-})
-.AddJwtBearer("Bearer", options =>
-{
-    options.Authority = builder.Configuration["Jwt:Authority"];
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+builder
+    .Services.AddAuthentication(options =>
     {
-        ValidateAudience = false
-    };
-});
+        options.DefaultAuthenticateScheme = "Bearer";
+        options.DefaultChallengeScheme = "Bearer";
+    })
+    .AddJwtBearer(
+        "Bearer",
+        options =>
+        {
+            options.Authority = builder.Configuration["Jwt:Authority"];
+            options.TokenValidationParameters =
+                new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateAudience = false,
+                };
+        }
+    );
 
 builder.Services.AddAuthorization();
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .Services.AddGraphQLServer()
     .AddApolloFederation()
     .AddQueryType<Query>()
     .AddTypeExtension<PatientQuery>()
@@ -75,11 +84,19 @@ builder.Services
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("PalliativeCorsPolicy", builder =>
-        builder.WithOrigins("https://carenavigator.emr.local", "http://localhost:3431", "http://localhost:3000")
-               .AllowAnyMethod()
-               .AllowAnyHeader()
-               .AllowCredentials());
+    options.AddPolicy(
+        "PalliativeCorsPolicy",
+        builder =>
+            builder
+                .WithOrigins(
+                    "https://carenavigator.emr.local",
+                    "http://localhost:3431",
+                    "http://localhost:3000"
+                )
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials()
+    );
 });
 
 var app = builder.Build();
@@ -97,11 +114,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // Redirect root to GraphQL IDE
-app.MapGet("/", context =>
-{
-    context.Response.Redirect("/graphql");
-    return Task.CompletedTask;
-});
+app.MapGet(
+    "/",
+    context =>
+    {
+        context.Response.Redirect("/graphql");
+        return Task.CompletedTask;
+    }
+);
 
 app.MapControllers();
 
@@ -110,7 +130,7 @@ app.MapGraphQL("/graphql");
 app.MapHub<TelemetryHub>("/hubs/telemetry");
 
 // Seed the database
-var wipeDb = builder.Configuration.GetValue<bool>("EMR_WIPE_DB", true); 
+var wipeDb = builder.Configuration.GetValue<bool>("EMR_WIPE_DB", true);
 var seedDb = builder.Configuration.GetValue<bool>("EMR_SEED_DB", true);
 
 await DbInitializer.InitializeAsync(app.Services, wipeDb, seedDb);

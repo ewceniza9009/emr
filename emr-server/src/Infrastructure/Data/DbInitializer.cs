@@ -190,14 +190,18 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.HealthPlanId, f => f.PickRandom(healthPlans).HealthPlanId)
                 .RuleFor(x => x.PrimaryPhone, f => f.Phone.PhoneNumber("###-###-####"))
                 .RuleFor(x => x.PrimaryEmail, f => f.Internet.Email())
-                .RuleFor(x => x.MailingAddress, f => new Address {
-                    Street = f.Address.StreetAddress(),
-                    City = "Salt Lake City",
-                    State = "Utah",
-                    PostalCode = f.Address.ZipCode(),
-                    Latitude = f.Address.Latitude(40.70, 40.80),
-                    Longitude = f.Address.Longitude(-111.95, -111.85)
-                })
+                .RuleFor(
+                    x => x.MailingAddress,
+                    f => new Address
+                    {
+                        Street = f.Address.StreetAddress(),
+                        City = "Salt Lake City",
+                        State = "Utah",
+                        PostalCode = f.Address.ZipCode(),
+                        Latitude = f.Address.Latitude(40.70, 40.80),
+                        Longitude = f.Address.Longitude(-111.95, -111.85),
+                    }
+                )
                 .Generate(10);
             context.Set<PatientOutreach>().AddRange(patientOutreaches);
             await context.SaveChangesAsync();
@@ -220,7 +224,10 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.OutreachId, f => f.PickRandom(patientOutreaches).PatientOutreachId)
                 .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
                 .RuleFor(x => x.Method, f => f.PickRandom<OutreachMethod>())
-                .RuleFor(x => x.Outcome, f => f.PickRandom("NO_ANSWER", "INTERESTED", "LEFT_VOICEMAIL", "WRONG_NUMBER"))
+                .RuleFor(
+                    x => x.Outcome,
+                    f => f.PickRandom("NO_ANSWER", "INTERESTED", "LEFT_VOICEMAIL", "WRONG_NUMBER")
+                )
                 .RuleFor(x => x.Notes, f => f.Lorem.Sentence())
                 .RuleFor(x => x.ActivityDate, f => f.Date.RecentOffset(5).ToUniversalTime())
                 .Generate(10);
@@ -328,7 +335,10 @@ namespace Infrastructure.Data
                     a => a.ScheduledStart,
                     f => baseDate.AddDays(f.IndexFaker / 4).AddHours((f.IndexFaker % 4) * 2)
                 )
-                .RuleFor(a => a.ScheduledEnd, (f, a) => a.ScheduledStart.AddHours(1))
+                .RuleFor(
+                    a => a.ScheduledEnd,
+                    (f, a) => a.ScheduledStart.AddMinutes(f.PickRandom(30, 45, 60))
+                )
                 // Seed secondary clinicians (Care Navigators) - Ensure 80% assignment rate for realistic data
                 .RuleFor(
                     a => a.SupportingClinicians,
@@ -583,20 +593,24 @@ namespace Infrastructure.Data
             await context.SaveChangesAsync();
             var scripts = new List<OutreachScript>
             {
-                new OutreachScript {
+                new OutreachScript
+                {
                     ScriptTitle = "Standard Orientation Script",
                     LocationName = "Salt Lake City",
                     PostalCode = "84101",
-                    Content = "Hello, I am calling from the Aura Clinical Logistics Team. We've identified you as a candidate for our specialized health support services in the Salt Lake region. Our goal is to verify your eligibility and schedule a diagnostic orientation at your convenience.",
-                    IsDefault = true
+                    Content =
+                        "Hello, I am calling from the Aura Clinical Logistics Team. We've identified you as a candidate for our specialized health support services in the Salt Lake region. Our goal is to verify your eligibility and schedule a diagnostic orientation at your convenience.",
+                    IsDefault = true,
                 },
-                new OutreachScript {
+                new OutreachScript
+                {
                     ScriptTitle = "Urgent Follow-up Protocol",
                     LocationName = "Salt Lake City",
                     PostalCode = "84111",
-                    Content = "This is a priority follow-up regarding your recent health inquiry. We need to finalize your clinical orientation to ensure uninterrupted access to your care navigator and supporting clinical staff.",
-                    IsDefault = false
-                }
+                    Content =
+                        "This is a priority follow-up regarding your recent health inquiry. We need to finalize your clinical orientation to ensure uninterrupted access to your care navigator and supporting clinical staff.",
+                    IsDefault = false,
+                },
             };
             context.Set<OutreachScript>().AddRange(scripts);
             await context.SaveChangesAsync();

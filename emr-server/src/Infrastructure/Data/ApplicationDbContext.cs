@@ -17,7 +17,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
-        // Suppress the warning about pending model changes to avoid crash on MigrateAsync in dev
         optionsBuilder.ConfigureWarnings(w =>
             w.Ignore(
                 Microsoft
@@ -80,12 +79,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
             {
                 case EntityState.Added:
                     entry.Entity.CreatedAt = DateTimeOffset.UtcNow;
-                    // entry.Entity.CreatedBy = _currentUserService.UserId; // If we had a user service
                     break;
 
                 case EntityState.Modified:
                     entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
-                    // entry.Entity.UpdatedBy = _currentUserService.UserId;
                     break;
             }
         }
@@ -97,12 +94,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     {
         base.OnModelCreating(modelBuilder);
 
-        // Define sequence for MRN generation
         modelBuilder.HasSequence<long>("patient_mrn_seq").StartsAt(10000).IncrementsBy(1);
-        // Global naming convention: snake_case for all tables and columns
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
-            // Table names (exclude identity tables which have their own naming)
             var tableName = entity.GetTableName();
             if (tableName != null && tableName.StartsWith("AspNet"))
             {
@@ -113,7 +107,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
             foreach (var property in entity.GetProperties())
             {
-                // Column names
                 property.SetColumnName(property.GetColumnName().ToSnakeCase());
             }
 
@@ -133,10 +126,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
             }
         }
 
-        // Configuration mapped via separate Configuration files.
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-        // Explicitly map Practitioner -> ProviderShift relationship to avoid shadow properties
         modelBuilder.Entity<ProviderShift>(entity =>
         {
             entity
@@ -146,7 +137,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Explicitly map Patient -> Appointment relationship to avoid shadow properties
         modelBuilder.Entity<Appointment>(entity =>
         {
             entity
@@ -154,6 +144,17 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
                 .WithMany(p => p.Appointments)
                 .HasForeignKey(a => a.PatientId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(a => a.Practitioner)
+                .WithMany()
+                .HasForeignKey(a => a.PractitionerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasMany(a => a.SupportingClinicians)
+                .WithMany()
+                .UsingEntity(j => j.ToTable("appointment_supporting_clinicians"));
         });
     }
 }

@@ -18,7 +18,7 @@ const GRID_CONFIG = {
   START_HOUR: 8,
   END_HOUR: 18,
   TOTAL_MINUTES: 600,
-  ROW_HEIGHT: 75,
+  ROW_HEIGHT: 80,
   DAYS: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 };
 
@@ -551,7 +551,7 @@ export default function SchedulingCalendar() {
                             </div>
                           )}
 
-                          <div className={`absolute z-20 group/appt ${hasConflict ? "ring-2 ring-red-500" : ""}`}
+                          <div className={`absolute z-20 hover:z-[100] group ${hasConflict ? "ring-2 ring-red-500" : ""}`}
                             style={{ 
                               top: `${topPx}px`, 
                               height: `${heightPx}px`,
@@ -561,8 +561,8 @@ export default function SchedulingCalendar() {
 
                             <div draggable onDragStart={(e) => { e.dataTransfer.setData("appointmentId", appt.appointmentId); e.dataTransfer.setData("duration", durMin.toString()); }}
                               onClick={() => { setDrawerPrefill(appt.appointmentId); setDrawerOpen(true); }}
-                              className={`absolute top-0 left-0 right-0 h-full group-hover/appt:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden backdrop-blur-lg z-10 group-hover/appt:z-[70] group-hover/appt:shadow-2xl group-hover/appt:translate-y-[-4px]
-                                    ${isViewedAsSc ? "bg-indigo-500/10 border-indigo-500/40" : style.bg + " " + style.border} group-hover/appt:border-[var(--primary)]/40`}>
+                              className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden backdrop-blur-lg z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px]
+                                    ${isViewedAsSc ? "bg-indigo-500/10 border-indigo-500/40 group-hover:bg-slate-900" : style.bg + " " + style.border + " group-hover:bg-[var(--card-bg)]"} group-hover:border-[var(--primary)]/40`}>
 
                               {/* Header Section */}
                               <div className="flex flex-nowrap items-center justify-between shrink-0 mb-1 gap-1">
@@ -582,12 +582,12 @@ export default function SchedulingCalendar() {
 
                               {/* Patient Data */}
                               <div className="flex flex-col mb-1">
-                                <h4 className="text-sm font-bold text-[var(--text-primary)] tracking-tight group-hover/appt:text-[var(--primary)] transition-colors leading-tight">{appt.patient?.firstName} {appt.patient?.lastName}</h4>
+                                <h4 className="text-sm font-bold text-[var(--text-primary)] tracking-tight group-hover:text-[var(--primary)] transition-colors leading-tight">{appt.patient?.firstName} {appt.patient?.lastName}</h4>
                                 <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium leading-tight line-clamp-1">{appt.patient?.addresses?.[0]?.address?.street || "No address provided"}</p>
                               </div>
 
                               {/* Detailed Hover Info */}
-                              <div className="hidden group-hover/appt:flex flex-col gap-4 mt-2 pb-4 border-t border-[var(--card-border)] pt-4 animate-in fade-in slide-in-from-top-1 duration-300">
+                              <div className="hidden group-hover:flex flex-col gap-4 mt-2 pb-4 border-t border-[var(--card-border)] pt-4 animate-in fade-in slide-in-from-top-1 duration-300">
                                 <div className="flex flex-col gap-1">
                                   <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Clinical Lead</p>
                                   <p className="text-xs font-semibold text-[var(--text-primary)]">{appt.practitioner?.firstName} {appt.practitioner?.lastName}</p>
@@ -614,7 +614,7 @@ export default function SchedulingCalendar() {
                                       <div className="w-7 h-7 bg-blue-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="Supporting Staff">SS</div>
                                   )}
                                 </div>
-                                <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover/appt:text-[var(--primary)] transition-colors" />
+                                <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors" />
                               </div>
 
                               {hasConflict && <div className="absolute inset-0 bg-red-500/10 pointer-events-none animate-pulse" />}
