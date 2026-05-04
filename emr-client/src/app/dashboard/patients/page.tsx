@@ -36,6 +36,7 @@ const GET_PATIENTS = gql`
         phoneNumber
         type
       }
+      visitStatus
     }
   }
 `;
@@ -110,6 +111,7 @@ export default function PatientsPage() {
               <tr className="bg-[var(--input-bg)] border-b border-[var(--card-border)]">
                 <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Patient Details</th>
                 <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest text-center">MRN</th>
+                <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest text-center">Visit Status</th>
                 <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Location</th>
                 <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Contact</th>
                 <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Actions</th>
@@ -160,6 +162,25 @@ export default function PatientsPage() {
                     <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 text-[10px] font-mono font-bold border border-blue-500/20">
                       {patient.mrn}
                     </span>
+                  </td>
+                  <td className="px-8 py-5 text-center">
+                    {patient.visitStatus === "InProgress" ? (
+                      <span className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 text-[9px] font-black uppercase tracking-tighter border border-emerald-500/20 animate-pulse">
+                        In Progress
+                      </span>
+                    ) : patient.visitStatus === "Completed" ? (
+                      <span className="px-2 py-1 rounded-lg bg-blue-500/10 text-blue-500 text-[9px] font-black uppercase tracking-tighter border border-blue-500/20">
+                        Completed
+                      </span>
+                    ) : patient.visitStatus === "Scheduled" ? (
+                      <span className="px-2 py-1 rounded-lg bg-amber-500/10 text-amber-600 text-[9px] font-black uppercase tracking-tighter border border-amber-500/20">
+                        Scheduled
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 rounded-lg bg-slate-500/10 text-slate-500 text-[9px] font-black uppercase tracking-tighter border border-slate-500/20 opacity-50">
+                        {patient.visitStatus || "No Visit"}
+                      </span>
+                    )}
                   </td>
                   <td className="px-8 py-5 text-[var(--text-secondary)] text-sm">
                     {patient.addresses?.find((a: any) => a.isPrimary)?.address?.city ?? patient.addresses?.[0]?.address?.city}

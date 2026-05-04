@@ -19,4 +19,5 @@ public class PatientDto
     public DateTimeOffset CreatedAt { get; set; }
     public ICollection<PatientPhoneDto> Phones { get; set; } = new List<PatientPhoneDto>();
     public ICollection<PatientEmailDto> Emails { get; set; } = new List<PatientEmailDto>();
+    public string? VisitStatus { get; set; }
 }

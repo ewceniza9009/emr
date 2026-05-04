@@ -145,6 +145,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
                 .HasForeignKey(d => d.PractitionerId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
+        // Explicitly map Patient -> Appointment relationship to avoid shadow properties
+        modelBuilder.Entity<Appointment>(entity =>
+        {
+            entity
+                .HasOne(a => a.Patient)
+                .WithMany(p => p.Appointments)
+                .HasForeignKey(a => a.PatientId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
 

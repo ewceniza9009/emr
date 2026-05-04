@@ -24,8 +24,21 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, IEnumer
             .Patients.Include(p => p.Addresses)
             .Include(p => p.Phones)
             .Include(p => p.Emails)
+            .Include(p => p.Appointments)
             .ToListAsync(cancellationToken);
 
-        return patients.Adapt<List<PatientDto>>();
+        var dtos = patients.Adapt<List<PatientDto>>();
+        
+        foreach (var dto in dtos)
+        {
+            var patient = patients.First(p => p.PatientId == dto.PatientId);
+            var latestAppt = patient.Appointments
+                .OrderByDescending(a => a.ScheduledStart)
+                .FirstOrDefault();
+            
+            dto.VisitStatus = latestAppt?.Status.ToString() ?? "No Visit";
+        }
+
+        return dtos;
     }
 }
