@@ -45,14 +45,23 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
 
         builder
             .HasOne(a => a.Patient)
-            .WithMany()
+            .WithMany(p => p.Appointments)
             .HasForeignKey(a => a.PatientId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder
             .HasOne(a => a.Practitioner)
             .WithMany()
             .HasForeignKey(a => a.PractitionerId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasMany(a => a.SupportingClinicians)
+            .WithMany()
+            .UsingEntity<Dictionary<string, object>>(
+                "appointment_supporting_clinicians",
+                j => j.HasOne<Practitioner>().WithMany().HasForeignKey("practitioner_id"),
+                j => j.HasOne<Appointment>().WithMany().HasForeignKey("appointment_id")
+            );
     }
 }

@@ -127,35 +127,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         }
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-
-        modelBuilder.Entity<ProviderShift>(entity =>
-        {
-            entity
-                .HasOne(d => d.Practitioner)
-                .WithMany(p => p.Shifts)
-                .HasForeignKey(d => d.PractitionerId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        modelBuilder.Entity<Appointment>(entity =>
-        {
-            entity
-                .HasOne(a => a.Patient)
-                .WithMany(p => p.Appointments)
-                .HasForeignKey(a => a.PatientId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity
-                .HasOne(a => a.Practitioner)
-                .WithMany()
-                .HasForeignKey(a => a.PractitionerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity
-                .HasMany(a => a.SupportingClinicians)
-                .WithMany()
-                .UsingEntity(j => j.ToTable("appointment_supporting_clinicians"));
-        });
     }
 }
 

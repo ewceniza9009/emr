@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260504225105_HardenJoinTableMapping")]
+    partial class HardenJoinTableMapping
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -3351,12 +3354,10 @@ namespace Infrastructure.Migrations
                                 .HasColumnName("mailing_address_country");
 
                             b1.Property<double?>("Latitude")
-                                .HasColumnType("double precision")
-                                .HasColumnName("mailing_address_latitude");
+                                .HasColumnType("double precision");
 
                             b1.Property<double?>("Longitude")
-                                .HasColumnType("double precision")
-                                .HasColumnName("mailing_address_longitude");
+                                .HasColumnType("double precision");
 
                             b1.Property<string>("PostalCode")
                                 .IsRequired()

@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260504224202_ConsolidateAppointmentRelationships")]
+    partial class ConsolidateAppointmentRelationships
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -24,6 +27,21 @@ namespace Infrastructure.Migrations
 
             modelBuilder.HasSequence("patient_mrn_seq")
                 .StartsAt(10000L);
+
+            modelBuilder.Entity("AppointmentPractitioner", b =>
+                {
+                    b.Property<Guid>("AppointmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SupportingCliniciansPractitionerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("AppointmentId", "SupportingCliniciansPractitionerId");
+
+                    b.HasIndex("SupportingCliniciansPractitionerId");
+
+                    b.ToTable("appointment_supporting_clinicians", (string)null);
+                });
 
             modelBuilder.Entity("Domain.Entities.AdvanceDirective", b =>
                 {
@@ -2808,19 +2826,19 @@ namespace Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("appointment_supporting_clinicians", b =>
+            modelBuilder.Entity("AppointmentPractitioner", b =>
                 {
-                    b.Property<Guid>("appointment_id")
-                        .HasColumnType("uuid");
+                    b.HasOne("Domain.Entities.Appointment", null)
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Property<Guid>("practitioner_id")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("appointment_id", "practitioner_id");
-
-                    b.HasIndex("practitioner_id");
-
-                    b.ToTable("appointment_supporting_clinicians");
+                    b.HasOne("Domain.Entities.Practitioner", null)
+                        .WithMany()
+                        .HasForeignKey("SupportingCliniciansPractitionerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain.Entities.AdvanceDirective", b =>
@@ -3351,12 +3369,10 @@ namespace Infrastructure.Migrations
                                 .HasColumnName("mailing_address_country");
 
                             b1.Property<double?>("Latitude")
-                                .HasColumnType("double precision")
-                                .HasColumnName("mailing_address_latitude");
+                                .HasColumnType("double precision");
 
                             b1.Property<double?>("Longitude")
-                                .HasColumnType("double precision")
-                                .HasColumnName("mailing_address_longitude");
+                                .HasColumnType("double precision");
 
                             b1.Property<string>("PostalCode")
                                 .IsRequired()
@@ -3606,21 +3622,6 @@ namespace Infrastructure.Migrations
                     b.HasOne("Infrastructure.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("appointment_supporting_clinicians", b =>
-                {
-                    b.HasOne("Domain.Entities.Appointment", null)
-                        .WithMany()
-                        .HasForeignKey("appointment_id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Practitioner", null)
-                        .WithMany()
-                        .HasForeignKey("practitioner_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

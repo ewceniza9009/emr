@@ -26,7 +26,7 @@ public class ProviderShiftConfiguration : IEntityTypeConfiguration<ProviderShift
 
         builder
             .HasOne(ps => ps.Practitioner)
-            .WithMany()
+            .WithMany(p => p.Shifts)
             .HasForeignKey(ps => ps.PractitionerId)
             .OnDelete(DeleteBehavior.Cascade);
     }
