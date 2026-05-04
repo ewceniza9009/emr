@@ -32,10 +32,10 @@ export default function ProblemList({ patientId }: { patientId: string }) {
   if (loading) return <div className="p-8 text-slate-500 animate-pulse">Loading Problem List...</div>;
 
   return (
-    <div className="glass-morphism rounded-3xl overflow-hidden border border-white/5">
-      <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <ClipboardList className="w-5 h-5 text-blue-400" />
+    <div className="glass-morphism rounded-2xl overflow-hidden border border-[var(--card-border)]">
+      <div className="px-6 py-2 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
+        <h2 className="text-base font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tighter">
+          <ClipboardList className="w-4 h-4 text-blue-400" />
           Problem List (Diagnoses)
         </h2>
         <button className="flex items-center gap-1 text-blue-400 text-xs font-bold uppercase tracking-widest hover:text-blue-300 transition-colors">
@@ -44,22 +44,22 @@ export default function ProblemList({ patientId }: { patientId: string }) {
         </button>
       </div>
 
-      <div className="divide-y divide-white/5">
+      <div className="divide-y divide-[var(--card-border)]">
         {problems.length === 0 ? (
-           <div className="p-10 text-center text-slate-600 text-sm italic">
+           <div className="p-10 text-center text-[var(--text-muted)] text-sm italic">
               No active diagnoses recorded for this patient.
            </div>
         ) : (
           problems.map((p: any) => (
-            <div key={p.diagnosisId} className="p-6 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
+            <div key={p.diagnosisId} className="px-6 py-2.5 flex items-center justify-between group hover:bg-[var(--primary)]/5 transition-colors">
               <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${p.isPrimary ? 'bg-blue-500/10 text-blue-400' : 'bg-white/5 text-slate-500'}`}>
-                  <AlertCircle className="w-5 h-5" />
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${p.isPrimary ? 'bg-blue-500/10 text-blue-400' : 'bg-[var(--input-bg)] text-[var(--text-muted)]'}`}>
+                  <AlertCircle className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-white font-bold text-sm">
+                  <h3 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-tight">
                     {p.description} 
-                    {p.isPrimary && <span className="ml-2 px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Primary</span>}
+                    {p.isPrimary && <span className="ml-2 px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[7px] font-black uppercase tracking-widest border border-blue-500/20">Primary</span>}
                   </h3>
                   <div className="flex gap-3 mt-1">
                      <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{p.icd10Code}</span>

@@ -120,7 +120,7 @@ export default function PatientDetailPage() {
       </pre>
       <button 
         onClick={() => window.location.reload()}
-        className="px-6 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10"
+        className="px-6 py-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5"
       >
         Retry Connection
       </button>
@@ -128,7 +128,7 @@ export default function PatientDetailPage() {
   );
 
   const patient = data?.patientById;
-  if (!patient) return <div className="p-10 text-white font-black uppercase tracking-widest">Patient record not found in registry.</div>;
+  if (!patient) return <div className="p-10 text-[var(--text-primary)] font-black uppercase tracking-widest">Patient record not found in registry.</div>;
 
   const appointments = apptData?.appointments || [];
   const activeAppointment = appointments.find((a: any) => 
@@ -140,44 +140,65 @@ export default function PatientDetailPage() {
     .sort((a: any, b: any) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime())[0];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
+    <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-700">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
-          <Link href="/dashboard/patients" className="p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all active:scale-95">
-            <ArrowLeft className="w-5 h-5" />
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--card-border)] pb-4">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/patients" className="p-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all active:scale-95">
+            <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-4xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">{patient.firstName} {patient.lastName}</h1>
-            <div className="flex items-center gap-4 mt-2">
-              <p className="text-[var(--text-muted)] text-[10px] font-black tracking-[0.2em] uppercase">{patient.mrn} // {patient.biologicalSex}</p>
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--card-border)]" />
-              <p className="text-[var(--primary)] text-[10px] font-black tracking-[0.2em] uppercase">Status: Stable</p>
+            <h1 className="text-2xl font-black text-[var(--text-primary)] tracking-tight uppercase leading-none">{patient.firstName} {patient.lastName}</h1>
+            <div className="flex items-center gap-3 mt-2">
+              <p className="text-[var(--text-muted)] text-[9px] font-black tracking-[0.2em] uppercase">{patient.mrn} // {patient.biologicalSex}</p>
+              <span className="w-1 h-1 rounded-full bg-[var(--card-border)]" />
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/5 border border-rose-500/10">
+                  <Activity className="w-3 h-3 text-rose-500" />
+                  <span className="text-[9px] font-black text-rose-500 uppercase">72 BPM</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/5 border border-emerald-500/10">
+                  <Wind className="w-3 h-3 text-emerald-500" />
+                  <span className="text-[9px] font-black text-emerald-500 uppercase">98% SpO2</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/5 border border-amber-500/10">
+                  <Loader2 className="w-3 h-3 text-amber-500 animate-spin" />
+                  <span className="text-[9px] font-black text-amber-500 uppercase">98.6°F</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="w-full md:w-80">
-           <LiveHeartbeat patientId={params.id as string} />
+        <div className="flex items-center gap-3">
+           <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Status: Stable</span>
+           </div>
+           <button className="px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all">
+             Emergency Action
+           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Left Column: Bio Snapshot */}
-        <div className="space-y-6">
-          <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
+        <div className="space-y-4">
+          <LiveHeartbeat patientId={params.id as string} />
+          
+          <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 premium-gradient" />
-            <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-              <UserCircle className="w-4 h-4 text-[var(--primary)]" />
+            <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+              <UserCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
               Core Identity
             </h2>
-            <div className="space-y-6">
-              <div className="space-y-1">
-                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Date of Birth</p>
-                <p className="text-sm font-black text-[var(--text-primary)]">{new Date(patient.dob).toLocaleDateString()}</p>
+            <div className="space-y-4">
+              <div className="space-y-0.5">
+                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Date of Birth</p>
+                <p className="text-xs font-black text-[var(--text-primary)]">{new Date(patient.dob).toLocaleDateString()}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Clinical Address</p>
-                <p className="text-sm font-black text-[var(--text-primary)] leading-tight">
+              <div className="space-y-0.5">
+                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Clinical Address</p>
+                <p className="text-xs font-black text-[var(--text-primary)] leading-tight">
                   {patient.addresses?.[0]?.address?.street}<br/>
                   {patient.addresses?.[0]?.address?.city}, {patient.addresses?.[0]?.address?.postalCode}
                 </p>
@@ -185,30 +206,30 @@ export default function PatientDetailPage() {
             </div>
           </div>
 
-          <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 border border-[var(--card-border)] shadow-xl">
-            <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-              <Phone className="w-4 h-4 text-[var(--primary)]" />
+          <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl">
+            <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+              <Phone className="w-3.5 h-3.5 text-[var(--primary)]" />
               Communications
             </h2>
-            <div className="space-y-5">
+            <div className="space-y-3">
               {patient.phones?.map((phone: any, idx: number) => (
-                <div key={idx} className="flex items-center gap-4 group">
-                   <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                     <Phone className="w-4 h-4" />
+                <div key={idx} className="flex items-center gap-3 group">
+                   <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                     <Phone className="w-3.5 h-3.5" />
                    </div>
                    <div>
-                     <p className="text-xs font-black text-[var(--text-primary)]">{phone.phoneNumber}</p>
+                     <p className="text-[11px] font-black text-[var(--text-primary)]">{phone.phoneNumber}</p>
                      <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">{phone.type}</p>
                    </div>
                 </div>
               ))}
               {patient.emails?.map((email: any, idx: number) => (
-                <div key={idx} className="flex items-center gap-4 group">
-                   <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                     <Mail className="w-4 h-4" />
+                <div key={idx} className="flex items-center gap-3 group">
+                   <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                     <Mail className="w-3.5 h-3.5" />
                    </div>
                    <div>
-                     <p className="text-xs font-black text-[var(--text-primary)]">{email.emailAddress}</p>
+                     <p className="text-[11px] font-black text-[var(--text-primary)]">{email.emailAddress}</p>
                      <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">{email.type}</p>
                    </div>
                 </div>
@@ -218,36 +239,36 @@ export default function PatientDetailPage() {
         </div>
 
         {/* Center/Right Column: High-Density Clinical Tabs */}
-        <div className="lg:col-span-3 space-y-8">
+        <div className="lg:col-span-3 space-y-4">
            {/* Tab Navigation */}
-           <div className="flex items-center gap-2 p-1.5 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl w-fit">
+           <div className="flex items-center gap-1 p-1 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl w-fit">
               <button 
                 onClick={() => setActiveTab("snapshot")}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2
                            ${activeTab === "snapshot" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
                 <Activity className="w-3.5 h-3.5" /> Clinical Snapshot
               </button>
               <button 
                 onClick={() => setActiveTab("history")}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2
                            ${activeTab === "history" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
                 <History className="w-3.5 h-3.5" /> Historical Activity
               </button>
               <button 
                 onClick={() => setActiveTab("activity")}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2
                            ${activeTab === "activity" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
                 <Calendar className="w-3.5 h-3.5" /> Visit Schedule
               </button>
               <button 
                 onClick={() => setActiveTab("logistics")}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2
                            ${activeTab === "logistics" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
                 <Truck className="w-3.5 h-3.5" /> Logistics & Fleet
               </button>
               <button 
                 onClick={() => setActiveTab("coordination")}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2
                            ${activeTab === "coordination" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
                 <CheckCircle2 className="w-3.5 h-3.5" /> Coordination & Records
               </button>
@@ -255,20 +276,20 @@ export default function PatientDetailPage() {
 
            {/* Tab Content */}
            {activeTab === "snapshot" && (
-             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+             <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
                 {/* Quick Vitals */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {[
                     { label: "Pain Level", val: "4", unit: "/ 10", color: "text-[var(--text-primary)]" },
                     { label: "Anxiety", val: "2", unit: "/ 10", color: "text-[var(--text-primary)]" },
                     { label: "BP", val: "128/82", unit: "mmHg", color: "text-[var(--text-primary)]" },
                     { label: "SpO2", val: "98", unit: "%", color: "text-emerald-500" },
                   ].map((v, i) => (
-                    <div key={i} className="bg-[var(--card-bg)] rounded-[2rem] p-6 border border-[var(--card-border)] shadow-md">
-                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2">{v.label}</p>
+                    <div key={i} className="bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--card-border)] shadow-md">
+                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{v.label}</p>
                       <div className="flex items-baseline gap-1">
-                        <span className={`text-2xl font-black ${v.color}`}>{v.val}</span>
-                        <span className="text-[10px] font-black text-[var(--text-muted)]">{v.unit}</span>
+                        <span className={`text-lg font-black ${v.color}`}>{v.val}</span>
+                        <span className="text-[9px] font-black text-[var(--text-muted)]">{v.unit}</span>
                       </div>
                     </div>
                   ))}
@@ -279,14 +300,14 @@ export default function PatientDetailPage() {
                 <ProblemList patientId={params.id as string} />
                 <VitalSignTimeline patientId={params.id as string} />
 
-                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl">
-                   <div className="flex items-center justify-between mb-10">
+                <div className="bg-[var(--card-bg)] rounded-2xl p-6 border border-[var(--card-border)] shadow-xl">
+                   <div className="flex items-center justify-between mb-4">
                      <div>
-                       <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
-                         <TrendingUp className="w-5 h-5 text-[var(--primary)]" />
+                       <h2 className="text-base font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tighter">
+                         <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
                          Symptom Trajectory
                        </h2>
-                       <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mt-1">ESAS-R Standardized Trends</p>
+                       <p className="text-[var(--text-muted)] text-[9px] font-black uppercase tracking-widest mt-1">ESAS-R Standardized Trends</p>
                      </div>
                    </div>
                    <SymptomTrendChart patientId={params.id as string} />
@@ -501,11 +522,11 @@ export default function PatientDetailPage() {
 
            {/* Intervention Action Area */}
            {!activeAppointment && (
-             <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] border-dashed flex flex-col items-center justify-center text-center relative overflow-hidden group">
+             <div className="bg-[var(--card-bg)] rounded-2xl p-6 border border-[var(--card-border)] border-dashed flex flex-col items-center justify-center text-center relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-b from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 
-                <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mb-6 text-[var(--primary)] relative z-10">
-                  <ClipboardList className="w-8 h-8" />
+                <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center mb-4 text-[var(--primary)] relative z-10">
+                  <ClipboardList className="w-6 h-6" />
                 </div>
 
                 {nextScheduledAppointment ? (

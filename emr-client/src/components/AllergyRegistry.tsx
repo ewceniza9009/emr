@@ -67,10 +67,10 @@ export default function AllergyRegistry({ patientId }: { patientId: string }) {
   if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse">Scanning Allergies...</div>;
 
   return (
-    <div className="glass-morphism rounded-3xl overflow-hidden border border-[var(--card-border)]">
-      <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
-        <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
-          <ShieldAlert className="w-5 h-5 text-rose-500" />
+    <div className="glass-morphism rounded-2xl overflow-hidden border border-[var(--card-border)]">
+      <div className="px-6 py-2 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
+        <h2 className="text-base font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tighter">
+          <ShieldAlert className="w-4 h-4 text-rose-500" />
           Allergy Registry
         </h2>
         <button 
@@ -89,17 +89,17 @@ export default function AllergyRegistry({ patientId }: { patientId: string }) {
            </div>
         ) : (
           allergies.map((a: any) => (
-            <div key={a.allergyId} className="p-6 flex items-center justify-between group hover:bg-[var(--primary-glow)] transition-colors">
+            <div key={a.allergyId} className="px-6 py-2.5 flex items-center justify-between group hover:bg-[var(--primary-glow)] transition-colors">
               <div className="flex items-center gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${
                   a.severity === 'SEVERE' || a.severity === 'LIFETHREATENING' 
                     ? 'bg-rose-500/10 text-rose-600 border-rose-500/20' 
                     : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
                 }`}>
-                  <AlertCircle className="w-5 h-5" />
+                  <AlertCircle className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-[var(--text-primary)] font-bold text-sm">{a.allergen}</h3>
+                  <h3 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-tight">{a.allergen}</h3>
                   <div className="flex gap-3 mt-1">
                      <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">{a.severity}</span>
                      {a.reaction && (

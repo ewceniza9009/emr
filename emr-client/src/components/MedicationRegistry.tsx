@@ -92,10 +92,10 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
   if (loading) return <div className="p-8 text-slate-500 animate-pulse">Loading Medications...</div>;
 
   return (
-    <div className="glass-morphism rounded-3xl overflow-hidden border border-[var(--card-border)]">
-      <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
-        <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
-          <Pill className="w-5 h-5 text-emerald-500" />
+    <div className="glass-morphism rounded-2xl overflow-hidden border border-[var(--card-border)]">
+      <div className="px-6 py-2 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
+        <h2 className="text-base font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tighter">
+          <Pill className="w-4 h-4 text-emerald-500" />
           Active Medications
         </h2>
         <button 
@@ -109,13 +109,13 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
 
       <div className="divide-y divide-[var(--card-border)]">
         {prescriptions.map((p: any) => (
-          <div key={p.prescriptionId} className="p-6 flex items-center justify-between group hover:bg-[var(--primary-glow)] transition-colors">
+          <div key={p.prescriptionId} className="px-6 py-2.5 flex items-center justify-between group hover:bg-[var(--primary-glow)] transition-colors">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 border border-emerald-500/20">
-                <Pill className="w-5 h-5" />
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 border border-emerald-500/20">
+                <Pill className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-[var(--text-primary)] font-bold text-sm">{p.medication.name} <span className="text-[var(--text-muted)] font-normal ml-1">({p.medication.strength})</span></h3>
+                <h3 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-tight">{p.medication.name} <span className="text-[var(--text-muted)] font-bold ml-1">({p.medication.strength})</span></h3>
                 <div className="flex gap-3 mt-1">
                    <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">{p.dose} • {p.route}</span>
                    <span className="text-[10px] text-blue-600 uppercase font-bold tracking-wider flex items-center gap-1">
@@ -125,10 +125,10 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
               </div>
             </div>
             <div className="flex items-center gap-4">
-               <span className={`px-2 py-1 rounded-md text-[10px] font-bold border ${p.isActive ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-white/5 text-slate-500 border-white/10'}`}>
+               <span className={`px-2 py-1 rounded-md text-[10px] font-bold border ${p.isActive ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--card-border)]'}`}>
                   {p.isActive ? 'Active' : 'Inactive'}
                </span>
-               <button className="p-2 text-slate-600 hover:text-white transition-colors">
+               <button className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
                   <MoreVertical className="w-4 h-4" />
                </button>
             </div>
@@ -136,7 +136,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
         ))}
       </div>
 
-      <div className="p-4 bg-emerald-500/5 border-t border-[var(--card-border)] flex items-center gap-2 text-emerald-600/60 text-[10px] font-bold uppercase tracking-widest">
+      <div className="px-6 py-1.5 bg-emerald-500/5 border-t border-[var(--card-border)] flex items-center gap-2 text-emerald-600/60 text-[9px] font-black uppercase tracking-widest">
          <History className="w-3 h-3" />
          View Medication History (12 Archive)
       </div>
@@ -144,16 +144,16 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
       {/* Add Medication Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-           <div className="glass-morphism w-full max-w-lg rounded-[2rem] border border-white/10 p-10 space-y-8 shadow-2xl">
+           <div className="glass-morphism w-full max-w-lg rounded-2xl border border-[var(--card-border)] p-10 space-y-8 shadow-2xl bg-[var(--card-bg)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <h2 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-3">
                     <Pill className="w-6 h-6 text-emerald-400" />
                     New Prescription
                   </h2>
-                  <p className="text-slate-500 text-xs mt-1">Ordering symptom management medication.</p>
+                  <p className="text-[var(--text-muted)] text-xs mt-1">Ordering symptom management medication.</p>
                 </div>
-                <button onClick={() => setShowAddModal(false)} className="p-2 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-all">
+                <button onClick={() => setShowAddModal(false)} className="p-2 rounded-xl bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all">
                    <ChevronRight className="w-5 h-5 rotate-90" />
                 </button>
               </div>
@@ -161,21 +161,21 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
               <div className="space-y-6">
                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Medication Name</label>
+                       <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Medication Name</label>
                        <input 
                          value={newMed.name}
                          onChange={(e) => handleNameChange(e.target.value)}
                          placeholder="e.g. Morphine" 
-                         className="w-full premium-input rounded-xl py-3 px-4 text-white text-sm" 
+                         className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] text-sm" 
                        />
                     </div>
                     <div className="space-y-2">
-                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Strength</label>
+                       <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Strength</label>
                        <input 
                          value={newMed.strength}
                          onChange={(e) => setNewMed({...newMed, strength: e.target.value})}
                          placeholder="e.g. 5mg/ml" 
-                         className="w-full premium-input rounded-xl py-3 px-4 text-white text-sm" 
+                         className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] text-sm" 
                        />
                     </div>
                  </div>
@@ -188,36 +188,36 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                          Clinical Conflict Detected
                       </div>
                       {conflicts.map((c: string, i: number) => (
-                        <p key={i} className="text-white text-xs font-medium leading-relaxed">{c}</p>
+                        <p key={i} className="text-[var(--text-primary)] text-xs font-medium leading-relaxed">{c}</p>
                       ))}
                    </div>
                  )}
 
                  <div className="grid grid-cols-3 gap-4">
                     <div className="space-y-2">
-                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dose</label>
+                       <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Dose</label>
                        <input 
                          value={newMed.dose}
                          onChange={(e) => setNewMed({...newMed, dose: e.target.value})}
                          placeholder="0.5ml" 
-                         className="w-full premium-input rounded-xl py-3 px-4 text-white text-sm" 
+                         className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] text-sm" 
                        />
                     </div>
                     <div className="space-y-2">
-                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Freq</label>
+                       <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Freq</label>
                        <input 
                          value={newMed.frequency}
                          onChange={(e) => setNewMed({...newMed, frequency: e.target.value})}
                          placeholder="Q4H PRN" 
-                         className="w-full premium-input rounded-xl py-3 px-4 text-white text-sm" 
+                         className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] text-sm" 
                        />
                     </div>
                     <div className="space-y-2">
-                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Route</label>
+                       <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Route</label>
                        <select 
                          value={newMed.route}
                          onChange={(e) => setNewMed({...newMed, route: e.target.value})}
-                         className="w-full premium-input rounded-xl py-3 px-4 text-white text-sm appearance-none bg-slate-900"
+                         className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] text-sm appearance-none bg-[var(--input-bg)]"
                        >
                           <option value="Oral">Oral</option>
                           <option value="Sublingual">Sublingual</option>
@@ -228,12 +228,12 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                  </div>
 
                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Indications / Notes</label>
+                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Indications / Notes</label>
                     <textarea 
                       value={newMed.indications}
                       onChange={(e) => setNewMed({...newMed, indications: e.target.value})}
                       placeholder="For breakthrough pain or dyspnea..." 
-                      className="w-full premium-input rounded-xl py-4 px-4 text-white text-sm min-h-[80px]" 
+                      className="w-full premium-input rounded-xl py-4 px-4 text-[var(--text-primary)] text-sm min-h-[80px]" 
                     />
                  </div>
 
@@ -247,9 +247,9 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                       value={newMed.signature}
                       onChange={(e) => setNewMed({...newMed, signature: e.target.value})}
                       placeholder="Type Full Name to Sign" 
-                      className="w-full premium-input rounded-xl py-3 px-4 text-white text-sm italic font-serif" 
+                      className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] text-sm italic font-serif" 
                     />
-                    <p className="text-[10px] text-slate-500 italic">By signing, you confirm this pharmacological order is clinically indicated and you have reviewed the patient's allergy and conflict profile.</p>
+                    <p className="text-[10px] text-[var(--text-muted)] italic">By signing, you confirm this pharmacological order is clinically indicated and you have reviewed the patient's allergy and conflict profile.</p>
                  </div>
               </div>
 

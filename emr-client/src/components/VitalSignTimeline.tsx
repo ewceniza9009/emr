@@ -37,46 +37,46 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
   if (loading) return <div className="p-8 text-slate-500 animate-pulse text-xs uppercase font-bold tracking-widest">Scanning Vitals...</div>;
 
   return (
-    <div className="glass-morphism rounded-3xl p-8 border border-white/5 space-y-6">
-       <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-400" />
+    <div className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] space-y-3">
+       <div className="flex items-center justify-between mb-1">
+          <h2 className="text-base font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tighter">
+            <Activity className="w-4 h-4 text-blue-400" />
             Vital Sign History
           </h2>
-          <button className="text-blue-400 text-[10px] font-bold uppercase tracking-widest hover:underline">Full Log</button>
+          <button className="text-blue-400 text-[9px] font-black uppercase tracking-widest hover:underline">Full Log</button>
        </div>
 
-       <div className="space-y-4">
+       <div className="space-y-2">
           {mockVitals.map((v, i) => (
-            <div key={i} className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-4 group hover:border-blue-500/30 transition-all">
-               <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  <div className="flex items-center gap-2">
+            <div key={i} className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex flex-col gap-3 group hover:border-[var(--primary)]/30 transition-all">
+               <div className="flex items-center justify-between text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                  <div className="flex items-center gap-1.5">
                      <Calendar className="w-3 h-3" />
                      {v.date}
                   </div>
                   <span className="text-blue-400/60">Routine Visit</span>
                </div>
                
-               <div className="grid grid-cols-4 gap-4">
-                  <div className="text-center p-2 rounded-xl bg-white/5">
-                     <Heart className="w-4 h-4 text-red-400 mx-auto mb-1" />
-                     <div className="text-white font-bold text-sm">{v.hr}</div>
-                     <div className="text-[8px] text-slate-500 uppercase font-bold">BPM</div>
+               <div className="grid grid-cols-4 gap-3">
+                  <div className="text-center p-1.5 rounded-lg bg-[var(--background)]/50">
+                     <Heart className="w-3.5 h-3.5 text-red-400 mx-auto mb-1" />
+                     <div className="text-[var(--text-primary)] font-black text-xs">{v.hr}</div>
+                     <div className="text-[7px] text-[var(--text-muted)] uppercase font-black">BPM</div>
                   </div>
-                  <div className="text-center p-2 rounded-xl bg-white/5">
-                     <Activity className="w-4 h-4 text-blue-400 mx-auto mb-1" />
-                     <div className="text-white font-bold text-sm">{v.bp}</div>
-                     <div className="text-[8px] text-slate-500 uppercase font-bold">mmHg</div>
+                  <div className="text-center p-1.5 rounded-lg bg-[var(--background)]/50">
+                     <Activity className="w-3.5 h-3.5 text-blue-400 mx-auto mb-1" />
+                     <div className="text-[var(--text-primary)] font-black text-xs">{v.bp}</div>
+                     <div className="text-[7px] text-[var(--text-muted)] uppercase font-black">mmHg</div>
                   </div>
-                  <div className="text-center p-2 rounded-xl bg-white/5">
-                     <Wind className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
-                     <div className="text-white font-bold text-sm">{v.rr}</div>
-                     <div className="text-[8px] text-slate-500 uppercase font-bold">RR</div>
+                  <div className="text-center p-1.5 rounded-lg bg-[var(--background)]/50">
+                     <Wind className="w-3.5 h-3.5 text-emerald-400 mx-auto mb-1" />
+                     <div className="text-[var(--text-primary)] font-black text-xs">{v.rr}</div>
+                     <div className="text-[7px] text-[var(--text-muted)] uppercase font-black">RR</div>
                   </div>
-                  <div className="text-center p-2 rounded-xl bg-white/5">
-                     <Droplets className="w-4 h-4 text-cyan-400 mx-auto mb-1" />
-                     <div className="text-white font-bold text-sm">{v.spo2}%</div>
-                     <div className="text-[8px] text-slate-500 uppercase font-bold">SpO2</div>
+                  <div className="text-center p-1.5 rounded-lg bg-[var(--background)]/50">
+                     <Droplets className="w-3.5 h-3.5 text-cyan-400 mx-auto mb-1" />
+                     <div className="text-[var(--text-primary)] font-black text-xs">{v.spo2}%</div>
+                     <div className="text-[7px] text-[var(--text-muted)] uppercase font-black">SpO2</div>
                   </div>
                </div>
             </div>
