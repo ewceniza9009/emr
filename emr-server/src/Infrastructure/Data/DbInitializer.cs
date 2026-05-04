@@ -386,7 +386,7 @@ namespace Infrastructure.Data
                         var time = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(
                             dist
                         );
-                        return (int)Math.Max(15, Math.Round(time, 0));
+                        return (int)Math.Clamp(Math.Round(time, 0), 15, 45);
                     }
                 )
                 .Generate(12); // Generate 12 to perfectly fill 3 days (4 per day)

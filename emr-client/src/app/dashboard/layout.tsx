@@ -14,9 +14,9 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-[var(--background)] selection:bg-blue-500/30 text-[var(--text-primary)]">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar">
         <TopBar />
-        <main className="flex-1 overflow-y-auto p-3 custom-scrollbar">
+        <main className="flex-1 p-3">
           {children}
         </main>
       </div>

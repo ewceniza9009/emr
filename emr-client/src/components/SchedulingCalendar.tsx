@@ -308,7 +308,7 @@ export default function SchedulingCalendar() {
   const HOURS = useMemo(() => Array.from({ length: GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR }, (_, i) => i + GRID_CONFIG.START_HOUR), [GRID_CONFIG.START_HOUR, GRID_CONFIG.END_HOUR]);
 
   return (
-    <div className="h-[calc(100vh-40px)] flex flex-col bg-[var(--background)] text-[var(--text-primary)] p-4 gap-3 overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col text-[var(--text-primary)] gap-3 overflow-hidden">
 
       {/* Ultra-Compact Tactical Header */}
       <div className="shrink-0 flex flex-col gap-2 bg-[var(--card-bg)] px-4 py-2 rounded-xl border border-[var(--card-border)] shadow-sm">
@@ -404,7 +404,7 @@ export default function SchedulingCalendar() {
             <div className="w-[80px] border-r border-[var(--card-border)] bg-[var(--input-bg)] sticky left-0 z-50">
               {HOURS.map(h => (
                 <div key={h} className="h-[80px] relative border-t border-[var(--card-border)] first:border-t-0">
-                  <span className="absolute top-0 -translate-y-1/2 left-0 right-0 text-center text-[10px] text-[var(--text-muted)] font-bold tracking-tight">
+                  <span className="absolute top-0 left-0 right-0 text-center text-[10px] text-[var(--text-muted)] font-bold tracking-tight pt-1.5">
                     {h % 12 || 12} {h < 12 ? "AM" : "PM"}
                   </span>
                 </div>

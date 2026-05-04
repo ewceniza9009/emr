@@ -61,17 +61,17 @@ export default function PatientsPage() {
   }, [patients, searchQuery]);
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--text-primary)]">Patient Registry</h1>
-          <p className="text-[var(--text-secondary)]">Master record of all patients under clinical supervision.</p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Patient Registry</h1>
+          <p className="text-sm text-[var(--text-secondary)]">Master record of all patients under clinical supervision.</p>
         </div>
         <button 
           onClick={() => setIsAddOpen(true)}
-          className="premium-button premium-gradient px-6 py-3 rounded-2xl text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20"
+          className="premium-button premium-gradient px-5 h-10 rounded-xl text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-4 h-4" />
           Add New Patient
         </button>
       </div>
@@ -83,36 +83,36 @@ export default function PatientsPage() {
       />
 
       {/* Search & Filter Bar */}
-      <div className="flex flex-wrap gap-4 items-center bg-[var(--card-bg)] p-6 rounded-3xl border border-[var(--card-border)]">
+      <div className="flex flex-wrap gap-3 items-center bg-[var(--card-bg)] p-3 rounded-2xl border border-[var(--card-border)]">
         <div className="flex-1 min-w-[300px] relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input 
             type="text" 
             placeholder="Search by name, MRN, or phone..." 
-            className="w-full premium-input rounded-xl py-2.5 pl-10 pr-4 text-sm"
+            className="w-full premium-input rounded-xl py-2 pl-10 pr-4 text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <button className="p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all">
-          <Filter className="w-5 h-5" />
+        <button className="h-10 px-4 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all">
+          <Filter className="w-4 h-4" />
         </button>
       </div>
 
       {/* Patient Table */}
-      <div className="glass-morphism rounded-3xl overflow-hidden shadow-2xl border border-[var(--card-border)]">
-        <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
-          <h2 className="text-lg font-bold text-[var(--text-primary)]">Active Clinical Roster</h2>
+      <div className="glass-morphism rounded-2xl overflow-hidden shadow-2xl border border-[var(--card-border)]">
+        <div className="px-6 py-3 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
+          <h2 className="text-base font-bold text-[var(--text-primary)]">Active Clinical Roster</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-[var(--input-bg)] border-b border-[var(--card-border)]">
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Patient Details</th>
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest text-center">MRN</th>
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Location</th>
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Contact</th>
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Actions</th>
+                <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Patient Details</th>
+                <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest text-center">MRN</th>
+                <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Location</th>
+                <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Contact</th>
+                <th className="px-8 py-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--card-border)]">
@@ -145,7 +145,7 @@ export default function PatientsPage() {
                 </tr>
               ) : filteredPatients.map((patient: any) => (
                 <tr key={patient.patientId} className="group hover:bg-[var(--primary-glow)] transition-colors relative">
-                  <td className="px-8 py-5">
+                  <td className="px-8 py-2.5">
                     <Link href={`/dashboard/patients/${patient.patientId}`} className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-xs font-bold text-[var(--text-muted)]">
                         {patient.firstName[0]}{patient.lastName[0]}
@@ -164,7 +164,7 @@ export default function PatientsPage() {
                   <td className="px-8 py-5 text-[var(--text-secondary)] text-sm">
                     {patient.addresses?.find((a: any) => a.isPrimary)?.address?.city ?? patient.addresses?.[0]?.address?.city}
                   </td>
-                  <td className="px-8 py-5">
+                  <td className="px-8 py-2.5">
                     {patient.phones?.[0] ? (
                       <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)]">
                         <Phone className="w-3 h-3" />
