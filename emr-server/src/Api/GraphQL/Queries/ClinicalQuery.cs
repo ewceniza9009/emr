@@ -100,6 +100,20 @@ public class ClinicalQuery
             cancellationToken
         );
     }
+
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<EquipmentDelivery> GetEquipmentDeliveriesByPatient(
+        Guid patientId,
+        [Service] IApplicationDbContext context
+    )
+    {
+        return context
+            .EquipmentDeliveries.Include(x => x.Equipment)
+            .AsNoTracking()
+            .Where(x => x.PatientId == patientId);
+    }
 }
 
 public class TriageItemDto

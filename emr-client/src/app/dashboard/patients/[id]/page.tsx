@@ -22,13 +22,18 @@ import {
   Clock,
   CheckCircle2,
   Loader2,
-  Edit3
+  Edit3,
+  Wind,
+  Truck,
+  Package
 } from "lucide-react";
 import SymptomTrendChart from "@/components/SymptomTrendChart";
 import MedicationRegistry from "@/components/MedicationRegistry";
 import VitalSignTimeline from "@/components/VitalSignTimeline";
 import LiveHeartbeat from "@/components/LiveHeartbeat";
 import ProblemList from "@/components/ProblemList";
+import AllergyRegistry from "@/components/AllergyRegistry";
+import EquipmentRegistry from "@/components/EquipmentRegistry";
 import BookingDrawer from "@/components/BookingDrawer";
 
 const GET_PATIENT_DETAILS = gql`
@@ -216,21 +221,27 @@ export default function PatientDetailPage() {
            <div className="flex items-center gap-2 p-1.5 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl w-fit">
               <button 
                 onClick={() => setActiveTab("snapshot")}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
                            ${activeTab === "snapshot" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
-                Clinical Snapshot
+                <Activity className="w-3.5 h-3.5" /> Clinical Snapshot
               </button>
               <button 
                 onClick={() => setActiveTab("history")}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
                            ${activeTab === "history" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
-                Historical Activity
+                <History className="w-3.5 h-3.5" /> Historical Activity
               </button>
               <button 
                 onClick={() => setActiveTab("activity")}
-                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
                            ${activeTab === "activity" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
-                Visit Schedule
+                <Calendar className="w-3.5 h-3.5" /> Visit Schedule
+              </button>
+              <button 
+                onClick={() => setActiveTab("logistics")}
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
+                           ${activeTab === "logistics" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+                <Truck className="w-3.5 h-3.5" /> Logistics & Fleet
               </button>
            </div>
 
@@ -255,6 +266,7 @@ export default function PatientDetailPage() {
                   ))}
                 </div>
 
+                <AllergyRegistry patientId={params.id as string} />
                 <MedicationRegistry patientId={params.id as string} />
                 <ProblemList patientId={params.id as string} />
                 <VitalSignTimeline patientId={params.id as string} />
@@ -424,6 +436,49 @@ export default function PatientDetailPage() {
                           <p className="text-xs font-black uppercase tracking-widest">No Historical Appointments Found</p>
                         </div>
                       )}
+                   </div>
+                </div>
+             </div>
+           )}
+
+           {activeTab === "logistics" && (
+             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <EquipmentRegistry patientId={params.id as string} />
+                
+                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
+                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-[var(--primary)]" />
+                   <div className="flex items-center justify-between mb-8">
+                     <div>
+                       <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+                         <Activity className="w-5 h-5 text-emerald-500" />
+                         IoT Telemetry Stream
+                       </h2>
+                       <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mt-1">Live Sensor Network (Oxygen/Vitals)</p>
+                     </div>
+                   </div>
+                   
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-4">
+                         <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
+                            <div className="flex items-center gap-3">
+                               <Wind className="w-5 h-5 text-blue-400" />
+                               <span className="text-xs font-black uppercase tracking-tighter">O2 Saturation Feed</span>
+                            </div>
+                            <span className="text-xl font-black text-emerald-500">98%</span>
+                         </div>
+                         <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
+                            <div className="flex items-center gap-3">
+                               <Activity className="w-5 h-5 text-rose-400" />
+                               <span className="text-xs font-black uppercase tracking-tighter">Cardiac Pulse Rate</span>
+                            </div>
+                            <span className="text-xl font-black text-rose-500">72 <span className="text-[10px]">BPM</span></span>
+                         </div>
+                      </div>
+                      <div className="bg-black/5 rounded-3xl border border-[var(--card-border)] flex items-center justify-center p-8">
+                         <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] text-center">
+                            Waiting for active IoT Handshake...
+                         </p>
+                      </div>
                    </div>
                 </div>
              </div>

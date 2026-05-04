@@ -115,9 +115,22 @@ export default function TriageDashboard() {
                         </span>
                       </td>
                       <td className="px-8 py-5 text-right">
-                        <Link href={`/dashboard/patients/${p.patientId}`} className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all inline-block">
-                          <ChevronRight className="w-4 h-4" />
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          <Link 
+                            href={`/dashboard/patients/${p.patientId}/visit`} 
+                            className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all inline-block"
+                            title="Start Guided Visit"
+                          >
+                            <Stethoscope className="w-4 h-4" />
+                          </Link>
+                          <Link 
+                            href={`/dashboard/patients/${p.patientId}`} 
+                            className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all inline-block"
+                            title="View Profile"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}

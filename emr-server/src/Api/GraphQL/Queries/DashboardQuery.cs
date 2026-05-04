@@ -26,12 +26,18 @@ public class DashboardQuery
         // 4. Critical Alerts (Placeholder for IoT/Telemetry)
         var criticalAlerts = 3;
 
+        // 5. Deployed Equipment
+        var equipmentCount = await context.EquipmentDeliveries
+            .Where(d => d.Status == Domain.Enums.DeliveryStatus.Delivered)
+            .CountAsync();
+
         return new DashboardStatsDto
         {
             ActivePatients = patientCount,
             NewEncounters = appointmentCount,
             PendingReviews = pendingReviews,
             CriticalAlerts = criticalAlerts,
+            DeployedEquipmentCount = equipmentCount
         };
     }
 }
@@ -42,4 +48,5 @@ public class DashboardStatsDto
     public int NewEncounters { get; set; }
     public int PendingReviews { get; set; }
     public int CriticalAlerts { get; set; }
+    public int DeployedEquipmentCount { get; set; }
 }

@@ -14,4 +14,13 @@ public class PatientMutation
     {
         return await mediator.Send(input, cancellationToken);
     }
+
+    public async Task<Guid> AddAllergy(
+        AddAllergyCommand input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(input, cancellationToken);
+    }
 }

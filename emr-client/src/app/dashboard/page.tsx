@@ -7,7 +7,8 @@ import {
   Clock, 
   AlertTriangle,
   ArrowUpRight,
-  TrendingUp
+  TrendingUp,
+  Truck
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
@@ -19,6 +20,7 @@ const GET_DASHBOARD_STATS = gql`
       newEncounters
       pendingReviews
       criticalAlerts
+      deployedEquipmentCount
     }
   }
 `;
@@ -33,6 +35,7 @@ export default function MissionControl() {
     { label: "New Encounters", value: loading ? "..." : data?.dashboardStats?.newEncounters.toString(), icon: Activity, color: "green", trend: "+5%" },
     { label: "Pending Reviews", value: loading ? "..." : data?.dashboardStats?.pendingReviews.toString(), icon: Clock, color: "purple", trend: "-2%" },
     { label: "Critical Alerts", value: loading ? "..." : data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, color: "red", trend: "0%" },
+    { label: "Deployed Equipment", value: loading ? "..." : data?.dashboardStats?.deployedEquipmentCount.toString(), icon: Truck, color: "emerald", trend: "+3" },
   ];
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -58,12 +61,13 @@ export default function MissionControl() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {stats.map((stat) => (
           <div key={stat.label} className="glass-morphism rounded-3xl p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
             <div className={`w-12 h-12 rounded-2xl mb-4 flex items-center justify-center 
               ${stat.color === 'blue' ? 'bg-blue-500/10 text-blue-400' : ''}
               ${stat.color === 'green' ? 'bg-emerald-500/10 text-emerald-400' : ''}
+              ${stat.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' : ''}
               ${stat.color === 'purple' ? 'bg-purple-500/10 text-purple-400' : ''}
               ${stat.color === 'red' ? 'bg-red-500/10 text-red-400' : ''}
             `}>
