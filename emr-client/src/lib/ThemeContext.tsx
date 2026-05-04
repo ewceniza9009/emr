@@ -13,25 +13,25 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Initial mount: load theme from localStorage
     const savedTheme = localStorage.getItem("aura-theme") as Theme;
     if (savedTheme) {
       setTheme(savedTheme);
-      // Apply immediately to prevent flash
       document.documentElement.classList.remove("light", "dark");
       document.documentElement.classList.add(savedTheme);
     }
+    setMounted(true);
   }, []);
 
   useEffect(() => {
-    // Sync theme changes to localStorage and DOM
+    if (!mounted) return;
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
     localStorage.setItem("aura-theme", theme);
-  }, [theme]);
+  }, [theme, mounted]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));

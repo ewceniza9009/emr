@@ -69,12 +69,12 @@ export default function OutreachPage() {
   });
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
       {/* Refined Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Outreach & Enrollment</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">Manage patient referral pipeline and clinical conversions.</p>
+          <p className="text-sm text-[var(--text-secondary)]">Manage patient referral pipeline and clinical conversions.</p>
         </div>
         <button 
           onClick={() => setIsAddOpen(true)}
@@ -92,14 +92,14 @@ export default function OutreachPage() {
       />
 
       {/* Minimalist Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         {[
           { label: "New Leads", count: "14", icon: Target },
           { label: "In Contact", count: "08", icon: PhoneCall },
           { label: "Interested", count: "05", icon: Zap },
           { label: "Enrolled", count: "12", icon: CheckCircle2 },
         ].map((stat) => (
-          <div key={stat.label} className="glass-morphism rounded-2xl p-5 border border-[var(--card-border)] flex flex-col gap-3">
+          <div key={stat.label} className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] flex flex-col gap-2">
             <div className="flex items-center justify-between">
                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
                  <stat.icon className="w-5 h-5" />
@@ -112,7 +112,7 @@ export default function OutreachPage() {
       </div>
 
       {/* Clean Filter Bar */}
-      <div className="flex flex-wrap gap-3 items-center bg-[var(--card-bg)] p-4 rounded-2xl border border-[var(--card-border)]">
+      <div className="flex flex-wrap gap-3 items-center bg-[var(--card-bg)] p-2.5 rounded-2xl border border-[var(--card-border)]">
         <div className="flex-1 min-w-[240px] relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
           <input 
@@ -153,12 +153,12 @@ export default function OutreachPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="bg-white/[0.01] border-b border-[var(--card-border)]">
-                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Patient Name</th>
-                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-center">Attempts</th>
-                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Last Activity</th>
-                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Next Follow-up</th>
-                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-center">Status</th>
-                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Actions</th>
+                <th className="px-6 py-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Patient Name</th>
+                <th className="px-6 py-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-center">Attempts</th>
+                <th className="px-6 py-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Last Activity</th>
+                <th className="px-6 py-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Next Follow-up</th>
+                <th className="px-6 py-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-center">Status</th>
+                <th className="px-6 py-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--card-border)]">
@@ -166,7 +166,7 @@ export default function OutreachPage() {
                 [1, 2, 3].map(i => <tr key={i} className="animate-pulse"><td colSpan={6} className="h-16" /></tr>)
               ) : filteredLeads.map((lead: any) => (
                 <tr key={lead.patientOutreachId} className="group hover:bg-white/[0.01] transition-colors">
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-2.5">
                     <div className="flex flex-col">
                       <p className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">{lead.firstName} {lead.lastName}</p>
                       <p className="text-xs text-[var(--text-muted)] mt-0.5">{lead.referralSource || "Intake Source"}</p>
@@ -196,7 +196,7 @@ export default function OutreachPage() {
                       {lead.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-2.5">
                     <div className="flex justify-end gap-2">
                        <button className="w-8 h-8 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all flex items-center justify-center border border-white/5">
                          <PhoneCall className="w-3.5 h-3.5" />

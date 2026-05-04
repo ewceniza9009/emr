@@ -45,27 +45,21 @@ export function Sidebar() {
       }`}
     >
       {/* Brand Section */}
-      <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-16 border-b border-[var(--card-border)] shrink-0`}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)]">
-            <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-14 border-b border-[var(--card-border)] shrink-0`}>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)] animate-aura-pulse">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z" />
               <path d="M8 12h3l1-3 2 6 1-3h2" />
             </svg>
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <h2 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">Aura</h2>
-              <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider -mt-1">Clinical OS</span>
+              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">Aura</h2>
+              <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-0.5">Clinical OS</span>
             </div>
           )}
         </div>
-        <button 
-          onClick={toggle}
-          className={`p-1.5 rounded-lg hover:bg-[var(--primary)]/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all ${isCollapsed ? "mx-auto" : ""}`}
-        >
-          {isCollapsed ? <Menu className="w-5 h-5" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
       </div>
 
       {/* Navigation */}
@@ -106,7 +100,17 @@ export function Sidebar() {
 
       {/* Footer Actions */}
       <div className="p-3 border-t border-[var(--card-border)] space-y-1">
-        <ThemeToggle isCollapsed={isCollapsed} />
+        <button 
+          onClick={toggle}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[var(--text-muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--text-primary)] transition-all group"
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          <div className={`transition-transform duration-500 ${isCollapsed ? "rotate-180" : ""}`}>
+            <ChevronLeft className="w-5 h-5" />
+          </div>
+          {!isCollapsed && <span className="text-[13px] font-medium">Collapse Sidebar</span>}
+        </button>
+
         
         <button 
           onClick={() => signOut()}

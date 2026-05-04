@@ -44,9 +44,9 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="w-full space-y-10 animate-fade-in">
+    <div className="w-full space-y-6 animate-fade-in">
       {/* Refined Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[var(--card-border)]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[var(--card-border)]">
         <div className="flex items-center gap-4">
           <div className="w-1 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_15px_var(--primary-glow)]" />
           <div>
@@ -74,10 +74,10 @@ export default function Dashboard() {
       </div>
 
       {stats.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {stats.map((stat) => (
-            <div key={stat.label} className="glass-morphism rounded-2xl p-6 border border-[var(--card-border)] hover:bg-white/[0.02] transition-all">
-              <div className="flex items-center justify-between mb-4">
+            <div key={stat.label} className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] hover:bg-white/[0.02] transition-all">
+              <div className="flex items-center justify-between mb-2">
                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
                   <stat.icon className="w-5 h-5" />
                 </div>
@@ -101,10 +101,10 @@ export default function Dashboard() {
       )}
 
       {/* Main Content Areas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Recent Activity */}
-        <div className="lg:col-span-2 glass-morphism rounded-3xl p-8 border border-[var(--card-border)]">
-          <div className="flex items-center justify-between mb-8">
+        <div className="lg:col-span-2 glass-morphism rounded-3xl p-5 border border-[var(--card-border)]">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-1 h-5 bg-[var(--primary)] rounded-full" />
               <h2 className="text-lg font-semibold text-[var(--text-primary)]">Activity Log</h2>
@@ -114,10 +114,10 @@ export default function Dashboard() {
             </button>
           </div>
           
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center gap-6 p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 transition-all">
-                <div className="w-12 h-12 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0">
+              <div key={i} className="flex items-center gap-4 p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0">
                    <Zap className="text-[var(--primary)] w-5 h-5" />
                 </div>
                 <div className="flex-1">
@@ -137,8 +137,8 @@ export default function Dashboard() {
         </div>
 
         {/* Priority Alerts */}
-        <div className="glass-morphism rounded-3xl p-8 border border-red-500/10">
-          <div className="flex items-center gap-3 mb-8">
+        <div className="glass-morphism rounded-3xl p-5 border border-red-500/10">
+          <div className="flex items-center gap-3 mb-4">
             <div className="w-1 h-5 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.3)]" />
             <h2 className="text-lg font-semibold text-[var(--text-primary)]">Priority Alerts</h2>
           </div>
@@ -176,7 +176,7 @@ export default function Dashboard() {
       </div>
       
       {/* Footer Branding */}
-      <div className="pt-10 flex flex-col items-center gap-4 opacity-30">
+      <div className="pt-6 flex flex-col items-center gap-3 opacity-30">
         <div className="w-px h-10 bg-slate-500" />
         <p className="text-[10px] font-medium text-slate-500 tracking-[0.4em] uppercase">Aura Clinical Operations Group</p>
       </div>
