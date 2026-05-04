@@ -49,6 +49,18 @@ const LOG_ESAS = gql`
   }
 `;
 
+const LOG_SPIRITUAL = gql`
+  mutation LogSpiritual($input: LogSpiritualAssessmentCommandInput!) {
+    logSpiritualAssessment(command: $input)
+  }
+`;
+
+const ADD_DIRECTIVE = gql`
+  mutation AddDirective($input: AddAdvanceDirectiveCommandInput!) {
+    addAdvanceDirective(command: $input)
+  }
+`;
+
 const GET_APPOINTMENT_DETAILS = gql`
   query GetAppointmentDetails($id: UUID!) {
     appointment(id: $id) {
@@ -83,12 +95,19 @@ export default function GuidedVisitPage() {
     pain: 0, tiredness: 0, drowsiness: 0, nausea: 0, 
     appetite: 0, sob: 0, depression: 0, anxiety: 0, wellbeing: 0
   });
+  const [spiritual, setSpiritual] = useState({
+    faith: "", importance: "", community: "", addressInCare: "",
+    religiousPreference: "", clergyContact: ""
+  });
+  const [directives, setDirectives] = useState<{type: string, notes: string}[]>([]);
   const [note, setNote] = useState({ s: "", o: "", a: "", p: "", signature: "" });
 
   const [startEncounter, { loading: starting }] = useMutation(START_ENCOUNTER);
   const [saveNote, { loading: savingNote }] = useMutation(SAVE_NOTE);
   const [saveVitals] = useMutation(LOG_VITALS);
   const [saveEsas] = useMutation(LOG_ESAS);
+  const [saveSpiritual] = useMutation(LOG_SPIRITUAL);
+  const [addDirective] = useMutation(ADD_DIRECTIVE);
 
   const handleStart = async () => {
     try {
@@ -146,7 +165,34 @@ export default function GuidedVisitPage() {
         }
       });
 
-      // 3. Save & Sign Note
+      // 3. Save Spiritual
+      if (spiritual.faith) {
+        await saveSpiritual({
+          variables: {
+            input: {
+              encounterId,
+              patientId: params.id,
+              ...spiritual
+            }
+          }
+        });
+      }
+
+      // 4. Save Directives
+      for (const d of directives) {
+        await addDirective({
+          variables: {
+            input: {
+              patientId: params.id,
+              type: d.type,
+              notes: d.notes,
+              effectiveDate: new Date().toISOString()
+            }
+          }
+        });
+      }
+
+      // 5. Save & Sign Note
       await saveNote({
         variables: {
           input: {
@@ -169,11 +215,13 @@ export default function GuidedVisitPage() {
 
   const steps = [
     { id: 1, label: "Initialization", icon: Stethoscope },
-    { id: 2, label: "Vitals", icon: Activity },
-    { id: 3, label: "Symptom Assessment", icon: AlertCircle },
-    { id: 4, label: "Clinical Profile", icon: Pill },
-    { id: 5, label: "SOAP Documentation", icon: ClipboardList },
-    { id: 6, label: "Finish", icon: ShieldCheck },
+    { id: 2, label: "Directives", icon: ShieldCheck },
+    { id: 3, label: "Vitals", icon: Activity },
+    { id: 4, label: "Symptoms", icon: AlertCircle },
+    { id: 5, label: "Spiritual", icon: Heart },
+    { id: 6, label: "Clinical", icon: Pill },
+    { id: 7, label: "SOAP Note", icon: ClipboardList },
+    { id: 8, label: "Finish", icon: CheckCircle2 },
   ];
 
   return (
@@ -244,6 +292,40 @@ export default function GuidedVisitPage() {
         {step === 2 && (
           <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Step 02: Health Plan Directives</h2>
+              <p className="text-slate-500 text-sm">Verify or add advance directives, DNR orders, and healthcare proxies.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-4">
+               {['DNR', 'DNI', 'FullCode', 'LivingWill', 'HealthcareProxy'].map(type => (
+                 <button key={type} onClick={() => {
+                   if (directives.some(d => d.type === type)) {
+                     setDirectives(directives.filter(d => d.type !== type));
+                   } else {
+                     setDirectives([...directives, { type, notes: "" }]);
+                   }
+                 }} className={`p-6 rounded-2xl border text-left transition-all flex items-center justify-between group
+                   ${directives.some(d => d.type === type) ? 'bg-blue-600/10 border-blue-500 shadow-lg' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}>
+                   <div>
+                     <p className={`text-sm font-black uppercase ${directives.some(d => d.type === type) ? 'text-blue-400' : 'text-white'}`}>{type}</p>
+                     <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Status: {directives.some(d => d.type === type) ? 'Active Selection' : 'Unverified'}</p>
+                   </div>
+                   {directives.some(d => d.type === type) ? <CheckCircle2 className="w-6 h-6 text-blue-400" /> : <Plus className="w-6 h-6 text-slate-700" />}
+                 </button>
+               ))}
+            </div>
+
+            <div className="pt-10">
+               <button onClick={() => setStep(3)} className="w-full premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+                  Continue to Vitality Check <ChevronRight className="w-5 h-5" />
+               </button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="space-y-2">
               <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Step 02: Vital Signs</h2>
               <p className="text-slate-500 text-sm">Record the patient's physiological baseline for this encounter.</p>
             </div>
@@ -295,15 +377,16 @@ export default function GuidedVisitPage() {
                  </div>
                </div>
             </div>
-            <div className="pt-10">
-               <button onClick={() => setStep(3)} className="w-full premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+            <div className="pt-10 flex gap-4">
+               <button onClick={() => setStep(2)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
+               <button onClick={() => setStep(4)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
                   Continue to ESAS-R Assessment <ChevronRight className="w-5 h-5" />
                </button>
             </div>
           </div>
         )}
 
-        {step === 3 && (
+        {step === 4 && (
           <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Step 03: Symptom Assessment (ESAS-R)</h2>
@@ -338,15 +421,50 @@ export default function GuidedVisitPage() {
                ))}
             </div>
             <div className="pt-10 flex gap-4">
-               <button onClick={() => setStep(2)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
-               <button onClick={() => setStep(4)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+               <button onClick={() => setStep(3)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
+               <button onClick={() => setStep(5)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+                  Continue to Spiritual Care <ChevronRight className="w-5 h-5" />
+               </button>
+            </div>
+          </div>
+        )}
+
+        {step === 5 && (
+          <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Step 05: Spiritual Care (FICA)</h2>
+              <p className="text-slate-500 text-sm">Assess spiritual and religious needs using the FICA framework.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-6">
+               <div className="space-y-3">
+                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">[F] Faith & Belief</label>
+                 <textarea value={spiritual.faith} onChange={e => setSpiritual({...spiritual, faith: e.target.value})} placeholder="What are your spiritual or religious beliefs?" className="w-full premium-input rounded-2xl p-6 text-sm text-white min-h-[100px]" />
+               </div>
+               <div className="space-y-3">
+                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">[I] Importance & Influence</label>
+                 <textarea value={spiritual.importance} onChange={e => setSpiritual({...spiritual, importance: e.target.value})} placeholder="How important are these beliefs to you?" className="w-full premium-input rounded-2xl p-6 text-sm text-white min-h-[100px]" />
+               </div>
+               <div className="space-y-3">
+                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">[C] Community</label>
+                 <textarea value={spiritual.community} onChange={e => setSpiritual({...spiritual, community: e.target.value})} placeholder="Are you part of a spiritual or religious community?" className="w-full premium-input rounded-2xl p-6 text-sm text-white min-h-[100px]" />
+               </div>
+               <div className="space-y-3">
+                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">[A] Address in Care</label>
+                 <textarea value={spiritual.addressInCare} onChange={e => setSpiritual({...spiritual, addressInCare: e.target.value})} placeholder="How would you like me to address these issues in your healthcare?" className="w-full premium-input rounded-2xl p-6 text-sm text-white min-h-[100px]" />
+               </div>
+            </div>
+
+            <div className="pt-10 flex gap-4">
+               <button onClick={() => setStep(4)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
+               <button onClick={() => setStep(6)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
                   Continue to Clinical Profile <ChevronRight className="w-5 h-5" />
                </button>
             </div>
           </div>
         )}
 
-        {step === 4 && (
+        {step === 6 && (
           <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Step 04: Clinical Profile Review</h2>
@@ -361,15 +479,15 @@ export default function GuidedVisitPage() {
             </div>
 
             <div className="pt-10 flex gap-4">
-               <button onClick={() => setStep(3)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
-               <button onClick={() => setStep(5)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+               <button onClick={() => setStep(5)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
+               <button onClick={() => setStep(7)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
                   Continue to SOAP Note <ChevronRight className="w-5 h-5" />
                </button>
             </div>
           </div>
         )}
 
-        {step === 5 && (
+        {step === 7 && (
           <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="space-y-2">
               <h2 className="text-2xl font-bold text-white uppercase tracking-tight">Step 05: SOAP Documentation</h2>
@@ -411,7 +529,7 @@ export default function GuidedVisitPage() {
                </div>
             </div>
             <div className="pt-4 flex gap-4">
-               <button onClick={() => setStep(4)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
+               <button onClick={() => setStep(6)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
                <button 
                  onClick={handleFinish}
                  disabled={savingNote || !note.signature}

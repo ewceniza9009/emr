@@ -41,7 +41,10 @@ public interface IApplicationDbContext
     DbSet<IntegrationProfile> IntegrationProfiles { get; }
     DbSet<Medication> Medications { get; }
     DbSet<Prescription> Prescriptions { get; }
+    DbSet<PatientDocument> PatientDocuments { get; }
     DbSet<ProviderShift> ProviderShifts { get; }
+    DbSet<SpiritualAssessment> SpiritualAssessments { get; }
+    DbSet<OutreachContact> OutreachContacts { get; }
 
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 

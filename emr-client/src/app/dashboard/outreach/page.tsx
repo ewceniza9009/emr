@@ -67,6 +67,11 @@ export default function OutreachPage() {
     if (filters.search && !`${lead.firstName} ${lead.lastName}`.toLowerCase().includes(filters.search.toLowerCase())) return false;
 
     return true;
+  }).sort((a: any, b: any) => {
+    // Stable Alphabetical Sort
+    const nameA = `${a.lastName} ${a.firstName}`.toLowerCase();
+    const nameB = `${b.lastName} ${b.firstName}`.toLowerCase();
+    return nameA.localeCompare(nameB);
   });
 
   return (
@@ -78,9 +83,9 @@ export default function OutreachPage() {
         </div>
         <button 
           onClick={() => setIsAddOpen(true)}
-          className="premium-button premium-gradient px-6 py-3 rounded-2xl text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20"
+          className="premium-button px-6 h-11 rounded-xl premium-gradient text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
         >
-          <UserPlus className="w-5 h-5" />
+          <UserPlus className="w-4 h-4" />
           Add Referral
         </button>
       </div>
@@ -118,13 +123,13 @@ export default function OutreachPage() {
           <input 
             type="text" 
             placeholder="Search by name, phone..." 
-            className="w-full premium-input rounded-xl py-2.5 pl-10 pr-4 text-sm"
+            className="w-full premium-input rounded-xl h-10 pl-10 pr-4 text-sm"
             value={filters.search}
             onChange={(e) => setFilters({...filters, search: e.target.value})}
           />
         </div>
         <select 
-          className="premium-input rounded-xl py-2.5 px-4 text-sm bg-slate-900 appearance-none"
+          className="premium-input rounded-xl h-10 px-4 text-sm bg-slate-900 appearance-none"
           value={filters.status}
           onChange={(e) => setFilters({...filters, status: e.target.value})}
         >
@@ -134,7 +139,7 @@ export default function OutreachPage() {
           <option value="Interested">Interested</option>
         </select>
         <select 
-          className="premium-input rounded-xl py-2.5 px-4 text-sm bg-slate-900 appearance-none"
+          className="premium-input rounded-xl h-10 px-4 text-sm bg-slate-900 appearance-none"
           value={filters.attempts}
           onChange={(e) => setFilters({...filters, attempts: e.target.value})}
         >
@@ -146,7 +151,7 @@ export default function OutreachPage() {
           <option value="15+">15+ Calls (Critical/Review)</option>
         </select>
         <select 
-          className="premium-input rounded-xl py-2.5 px-4 text-sm bg-slate-900 appearance-none"
+          className="premium-input rounded-xl h-10 px-4 text-sm bg-slate-900 appearance-none"
           value={filters.urgency}
           onChange={(e) => setFilters({...filters, urgency: e.target.value})}
         >
@@ -156,13 +161,13 @@ export default function OutreachPage() {
           <option value="tomorrow">Due Tomorrow</option>
           <option value="upcoming">Upcoming (7 Days)</option>
         </select>
-        <select className="premium-input rounded-xl py-2.5 px-4 text-sm bg-slate-900 appearance-none">
+        <select className="premium-input rounded-xl h-10 px-4 text-sm bg-slate-900 appearance-none">
           <option value="">Any Modality</option>
           <option value="Telephone">Telephone</option>
           <option value="InPerson">In-Person</option>
           <option value="Telehealth">Telehealth</option>
         </select>
-        <button className="flex items-center gap-2 px-6 py-2.5 bg-blue-500/10 text-blue-400 rounded-xl font-bold text-sm hover:bg-blue-500/20 transition-all border border-blue-500/20">
+        <button className="flex items-center gap-2 px-6 h-10 bg-blue-500/10 text-blue-400 rounded-xl font-bold text-sm hover:bg-blue-500/20 transition-all border border-blue-500/20 active:scale-95">
           <Filter className="w-4 h-4" />
           Apply Filters
         </button>

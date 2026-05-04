@@ -81,8 +81,38 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         patient.BarriersToCare = request.BarriersToCare;
 
         _context.Patients.Add(patient);
+        await _context.SaveChangesAsync(cancellationToken);
 
-        // 3. Update Outreach Lead
+        // 3. Open Care Navigation Case
+        var navigator = await _context.Practitioners
+            .Where(p => p.IsCareNavigator && p.IsActive)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (navigator != null)
+        {
+            var careCase = new CareNavigationCase
+            {
+                PatientId = patient.PatientId,
+                NavigatorId = navigator.PractitionerId,
+                Status = CaseStatus.Open,
+                OpenedAt = _dateTimeProvider.UtcNow,
+                AcuityLevel = AcuityLevel.Moderate
+            };
+            _context.CareNavigationCases.Add(careCase);
+            
+            // Add initial task: "Initial Clinical Assessment"
+            var task = new NavigationTask
+            {
+                CaseId = careCase.CaseId,
+                AssignedToId = navigator.PractitionerId,
+                Description = "Initial Comprehensive Clinical Assessment & Care Plan",
+                DueDate = _dateTimeProvider.UtcNow.AddDays(2),
+                Status = NavigationTaskStatus.Pending
+            };
+            _context.NavigationTasks.Add(task);
+        }
+
+        // 4. Update Outreach Lead
         outreach.Status = OutreachStatus.Enrolled;
         outreach.EnrolledPatientId = patient.PatientId;
         outreach.SelectedModality = Enum.Parse<CareModality>(request.Modality, true);
@@ -99,7 +129,7 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
-            "Successfully enrolled patient. MRN: {MRN}, Patient ID: {PatientId}",
+            "Successfully enrolled patient and opened care case. MRN: {MRN}, Patient ID: {PatientId}",
             mrn,
             patient.PatientId
         );

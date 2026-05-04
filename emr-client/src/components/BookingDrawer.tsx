@@ -9,6 +9,7 @@ import {
   Stethoscope, Shield, Users, Info, ChevronLeft,
   Timer, Zap, Navigation, Check, Activity, Target, Phone, Edit3, Radar, AlertCircle
 } from "lucide-react";
+import { CLINICAL_CONFIG } from "@/lib/clinical-config";
 
 const BOOK_APPOINTMENT = gql`
   mutation BookAppointment($input: BookAppointmentInput!) {
@@ -117,14 +118,7 @@ const GET_GEOSPATIAL_AVAILABILITY = gql`
 const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-const CLINICAL_CONFIG = {
-  AM_START: 8,
-  PM_START: 13,
-  CUTOFF_HOUR: 12,
-  DAY_END: 18,
-  ENGINE_SAFETY_DRIVE: 15,
-  ENGINE_SAFETY_DIST: 5
-};
+// Now using Global CLINICAL_CONFIG from @/lib/clinical-config
 
 interface Props {
   open: boolean;
@@ -377,8 +371,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
         return { 
             shiftStart: d.toISOString(), 
             shiftEnd: new Date(d.getTime() + duration * 60000).toISOString(),
-            travelTimeInMinutes: CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE,
-            distanceInMiles: CLINICAL_CONFIG.ENGINE_SAFETY_DIST
+            travelTimeInMinutes: CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS,
+            distanceInMiles: CLINICAL_CONFIG.ENGINE_SAFETY_DIST_KM
         };
     }
     return slots[0];
@@ -400,8 +394,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     const slot = selectedSlot || {
         shiftStart: new Date(new Date(selectedDate).setHours(period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START, 0, 0, 0)).toISOString(),
         shiftEnd: new Date(new Date(selectedDate).setHours(period === "AM" ? CLINICAL_CONFIG.AM_START + 1 : CLINICAL_CONFIG.PM_START + 1, 0, 0, 0)).toISOString(),
-        travelTimeInMinutes: CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE,
-        distanceInMiles: CLINICAL_CONFIG.ENGINE_SAFETY_DIST
+        travelTimeInMinutes: CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS,
+        distanceInMiles: CLINICAL_CONFIG.ENGINE_SAFETY_DIST_KM
     };
 
     // FINAL PRODUCTION VALIDATION: Ensure the period hasn't shifted (Timezone-Resilient)
@@ -546,7 +540,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                     const activePractitioner = practitionerId 
                                       ? displayCns.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase()) || displayScs.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase())
                                       : null;
-                                    return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : `${CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE}m`;
+                                    return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : `${CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS}m`;
                                   })()}
                                 </span>
                                 <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Est. Travel</span>

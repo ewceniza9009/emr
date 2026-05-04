@@ -17,6 +17,9 @@ namespace Infrastructure.Data
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+            // Ensure the database is up to date with all migrations before wiping or seeding
+            await context.Database.MigrateAsync();
+
             if (wipeDb)
             {
                 await WipeDatabaseAsync(context);
@@ -185,7 +188,7 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.Status, f => f.PickRandom<OutreachStatus>())
                 .RuleFor(x => x.Disposition, f => f.PickRandom<EnrollmentDisposition>())
                 .RuleFor(x => x.HealthPlanId, f => f.PickRandom(healthPlans).HealthPlanId)
-                .RuleFor(x => x.PrimaryPhone, f => f.Phone.PhoneNumber())
+                .RuleFor(x => x.PrimaryPhone, f => f.Phone.PhoneNumber("###-###-####"))
                 .RuleFor(x => x.PrimaryEmail, f => f.Internet.Email())
                 .RuleFor(x => x.MailingAddress, f => new Address {
                     Street = f.Address.StreetAddress(),
@@ -208,7 +211,7 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.FirstName, f => f.Name.FirstName())
                 .RuleFor(x => x.LastName, f => f.Name.LastName())
                 .RuleFor(x => x.Relationship, f => f.PickRandom<RelationshipType>())
-                .RuleFor(x => x.PhoneNumber, f => f.Phone.PhoneNumber())
+                .RuleFor(x => x.PhoneNumber, f => f.Phone.PhoneNumber("###-###-####"))
                 .Generate(10);
             context.Set<OutreachContact>().AddRange(outreachContacts);
 
@@ -217,6 +220,9 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.OutreachId, f => f.PickRandom(patientOutreaches).PatientOutreachId)
                 .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
                 .RuleFor(x => x.Method, f => f.PickRandom<OutreachMethod>())
+                .RuleFor(x => x.Outcome, f => f.PickRandom("NO_ANSWER", "INTERESTED", "LEFT_VOICEMAIL", "WRONG_NUMBER"))
+                .RuleFor(x => x.Notes, f => f.Lorem.Sentence())
+                .RuleFor(x => x.ActivityDate, f => f.Date.RecentOffset(5).ToUniversalTime())
                 .Generate(10);
             context.Set<OutreachActivity>().AddRange(outreachActivities);
 
@@ -573,6 +579,25 @@ namespace Infrastructure.Data
                 .Generate(10);
             context.Set<BillingInvoice>().AddRange(invoices);
 
+            await context.SaveChangesAsync();
+            var scripts = new List<OutreachScript>
+            {
+                new OutreachScript {
+                    ScriptTitle = "Standard Orientation Script",
+                    LocationName = "Salt Lake City",
+                    PostalCode = "84101",
+                    Content = "Hello, I am calling from the Aura Clinical Logistics Team. We've identified you as a candidate for our specialized health support services in the Salt Lake region. Our goal is to verify your eligibility and schedule a diagnostic orientation at your convenience.",
+                    IsDefault = true
+                },
+                new OutreachScript {
+                    ScriptTitle = "Urgent Follow-up Protocol",
+                    LocationName = "Salt Lake City",
+                    PostalCode = "84111",
+                    Content = "This is a priority follow-up regarding your recent health inquiry. We need to finalize your clinical orientation to ensure uninterrupted access to your care navigator and supporting clinical staff.",
+                    IsDefault = false
+                }
+            };
+            context.Set<OutreachScript>().AddRange(scripts);
             await context.SaveChangesAsync();
         }
     }

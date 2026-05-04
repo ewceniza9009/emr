@@ -65,4 +65,15 @@ public class PatientQuery
     {
         return context.Allergies.AsNoTracking().Where(x => x.PatientId == patientId);
     }
+
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<PatientDocument> GetDocumentsByPatient(
+        Guid patientId,
+        [Service] IApplicationDbContext context
+    )
+    {
+        return context.PatientDocuments.AsNoTracking().Where(x => x.PatientId == patientId);
+    }
 }

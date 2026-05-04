@@ -47,13 +47,13 @@ export default function MissionControl() {
         <div className="flex gap-3">
            <button 
              onClick={() => showToast("Preparing clinical data report...", "info")}
-             className="px-4 py-2 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--primary-glow)] hover:text-[var(--text-primary)] transition-all"
+             className="px-6 h-11 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--primary-glow)] hover:text-[var(--text-primary)] active:scale-95 transition-all"
            >
              Generate Report
            </button>
            <button 
              onClick={() => router.push("/dashboard/schedule?action=new")}
-             className="px-5 py-2 rounded-xl premium-gradient text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+             className="px-6 h-11 rounded-xl premium-gradient text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
            >
              New Encounter
            </button>

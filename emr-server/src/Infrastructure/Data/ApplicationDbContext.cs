@@ -68,6 +68,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<IntegrationProfile> IntegrationProfiles => Set<IntegrationProfile>();
     public DbSet<Medication> Medications => Set<Medication>();
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
+    public DbSet<SpiritualAssessment> SpiritualAssessments => Set<SpiritualAssessment>();
+    public DbSet<PatientDocument> PatientDocuments => Set<PatientDocument>();
     public DbSet<EntityAddress> EntityAddresses => Set<EntityAddress>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

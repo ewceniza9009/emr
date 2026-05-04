@@ -69,77 +69,89 @@ export default function CareNavigationPage() {
   return (
     <div className="flex h-full gap-4 overflow-hidden animate-in fade-in duration-700">
       {/* Map Placeholder Area */}
-      {/* Tactical Geospatial Radar Grid */}
-      <div className="flex-1 bg-[var(--radar-bg)] rounded-[2.5rem] border border-[var(--card-border)] shadow-2xl relative overflow-hidden group">
-        {/* Vector Grid Layer */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--primary-glow)_0%,transparent_70%)]" />
+      {/* Sector Logistics Map */}
+      <div className="flex-1 bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--card-border)] shadow-2xl relative overflow-hidden group">
+        {/* Schematic Map Base */}
+        <div className="absolute inset-0 bg-[var(--background)] opacity-50" />
         <div className="absolute inset-0" style={{ 
-          backgroundImage: `linear-gradient(to right, var(--radar-grid) 1px, transparent 1px), 
-                            linear-gradient(to bottom, var(--radar-grid) 1px, transparent 1px)`,
-          backgroundSize: '40px 40px' 
-        }} />
-        <div className="absolute inset-0" style={{ 
-          backgroundImage: `linear-gradient(to right, var(--radar-grid) 2px, transparent 2px), 
-                            linear-gradient(to bottom, var(--radar-grid) 2px, transparent 2px)`,
-          backgroundSize: '200px 200px' 
+          backgroundImage: `radial-gradient(var(--card-border) 1px, transparent 1px)`,
+          backgroundSize: '30px 30px' 
         }} />
 
-        {/* Sector Boundaries */}
-        <div className="absolute inset-0 border-[0.5px] border-[var(--card-border)] opacity-30 pointer-events-none">
-          <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-[var(--radar-grid)] shadow-[0_0_15px_var(--primary-glow)]" />
-          <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-[var(--radar-grid)] shadow-[0_0_15px_var(--primary-glow)]" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-[400px] h-[400px] border border-[var(--radar-grid)] rounded-full" />
-            <div className="w-[800px] h-[800px] border border-[var(--radar-grid)] rounded-full" />
-          </div>
+        {/* District Sectors */}
+        <div className="absolute inset-0 p-10 grid grid-cols-2 grid-rows-2 gap-4 opacity-20 pointer-events-none">
+          <div className="border border-[var(--card-border)] rounded-3xl flex items-start p-6"><span className="text-[40px] font-black text-[var(--card-border)] uppercase">North Sector</span></div>
+          <div className="border border-[var(--card-border)] rounded-3xl flex items-start justify-end p-6"><span className="text-[40px] font-black text-[var(--card-border)] uppercase">East Sector</span></div>
+          <div className="border border-[var(--card-border)] rounded-3xl flex items-end p-6"><span className="text-[40px] font-black text-[var(--card-border)] uppercase">West Sector</span></div>
+          <div className="border border-[var(--card-border)] rounded-3xl flex items-end justify-end p-6"><span className="text-[40px] font-black text-[var(--card-border)] uppercase">South Sector</span></div>
         </div>
 
-        {/* Sonar Sweep Animation */}
-        <div className="absolute top-1/2 left-1/2 w-[1000px] h-[1000px] -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-          <div className="w-full h-full bg-[conic-gradient(from_0deg,transparent_0deg,rgba(16,185,129,0.1)_360deg)] animate-[spin_10s_linear_infinite]" />
+        {/* Simulated Road Network */}
+        <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 1000 1000">
+          <path d="M0 200 L1000 200 M0 500 L1000 500 M0 800 L1000 800 M200 0 L200 1000 M500 0 L500 1000 M800 0 L800 1000" stroke="var(--primary)" strokeWidth="2" fill="none" />
+          <path d="M100 100 L300 400 L700 200 L900 800" stroke="var(--primary)" strokeWidth="4" fill="none" strokeDasharray="10 10" />
+        </svg>
+
+        {/* Facility Markers */}
+        <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
+           <div className="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+              <Activity className="w-4 h-4" />
+           </div>
+           <span className="text-[8px] font-black text-rose-500 uppercase tracking-widest bg-black/40 px-2 py-0.5 rounded">Central Hospital</span>
+        </div>
+
+        <div className="absolute bottom-1/3 right-1/4 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
+           <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-500">
+              <Activity className="w-4 h-4" />
+           </div>
+           <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest bg-black/40 px-2 py-0.5 rounded">Westside Clinic</span>
         </div>
         
-        {/* Tactical Provider Signals */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="relative w-full h-full">
-             {providers.map((p: any, i: number) => {
-               const angle = (i * (360 / providers.length)) * (Math.PI / 180);
-               const radius = 20 + (i * 5); // Varying distances
-               const top = 50 + Math.sin(angle) * radius;
-               const left = 50 + Math.cos(angle) * radius;
-               
-               return (
-                <div key={p.id} 
-                  className={`absolute -translate-x-1/2 -translate-y-1/2 group/sig transition-all duration-1000
-                    ${selectedProviderId === p.id ? 'scale-150 z-50' : 'scale-100'}`}
-                  style={{ top: `${top}%`, left: `${left}%` }}
-                  onClick={() => setSelectedProviderId(p.id)}
-                >
-                  {/* Signal Pulse */}
-                  <div className={`absolute -inset-4 rounded-full animate-ping opacity-20
-                    ${p.status === 'On Site' ? 'bg-emerald-500' : p.status === 'In Transit' ? 'bg-[var(--primary)]' : 'bg-[var(--text-muted)]'}`} />
-                  
-                  {/* Signal Blip */}
-                  <div className={`w-3 h-3 rounded-full relative shadow-lg transition-transform hover:scale-150 cursor-pointer pointer-events-auto
-                    ${selectedProviderId === p.id ? 'bg-white ring-4 ring-[var(--primary)] shadow-[0_0_20px_var(--primary)]' : 
-                      p.status === 'On Site' ? 'bg-emerald-500 shadow-emerald-500/50' : 
-                      p.status === 'In Transit' ? 'bg-[var(--primary)] shadow-[var(--primary-glow)]' : 
-                      'bg-[var(--text-muted)] shadow-black'}`}
+        {/* Provider Avatars on Map */}
+        <div className="absolute inset-0 pointer-events-none">
+           {providers.map((p: any, i: number) => {
+             // Semi-deterministic positioning based on ID
+             const seed = p.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+             const top = 15 + (seed % 70);
+             const left = 15 + ((seed * 1.3) % 70);
+             
+             return (
+              <div key={p.id} 
+                className={`absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-[2000ms] pointer-events-auto
+                  ${selectedProviderId === p.id ? 'z-50' : 'z-10'}`}
+                style={{ top: `${top}%`, left: `${left}%` }}
+                onClick={() => setSelectedProviderId(p.id)}
+              >
+                {/* Connection Line for Transit */}
+                {p.status === 'In Transit' && (
+                  <div className="absolute top-1/2 left-1/2 w-32 h-[1px] bg-gradient-to-r from-[var(--primary)] to-transparent origin-left -rotate-45 opacity-40" />
+                )}
+
+                {/* Avatar / Marker */}
+                <div className={`relative group/marker cursor-pointer`}>
+                  <div className={`w-10 h-10 rounded-2xl border-2 flex items-center justify-center transition-all shadow-2xl
+                    ${selectedProviderId === p.id ? 'bg-white border-[var(--primary)] scale-125' : 
+                      p.status === 'On Site' ? 'bg-emerald-500/10 border-emerald-500' : 
+                      p.status === 'In Transit' ? 'bg-[var(--primary)]/10 border-[var(--primary)]' : 
+                      'bg-slate-800 border-slate-700 opacity-60'}`}
                   >
-                    {/* Direction Vector for Motion */}
-                    {p.status === 'In Transit' && (
-                      <div className="absolute top-1/2 left-full w-8 h-[2px] bg-gradient-to-r from-[var(--primary)] to-transparent origin-left rotate-45" />
-                    )}
+                    <User className={`w-5 h-5 ${selectedProviderId === p.id ? 'text-[var(--primary)]' : 'text-current'}`} />
+                  </div>
+                  
+                  {/* Tooltip Label */}
+                  <div className={`absolute bottom-full mb-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-2xl whitespace-nowrap transition-all
+                    ${selectedProviderId === p.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 group-hover/marker:opacity-100 group-hover/marker:translate-y-0'}`}>
+                    <p className="text-[10px] font-black uppercase tracking-tight">{p.name}</p>
+                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase">{p.status} • {p.role}</p>
                   </div>
 
-                  {/* Signal Label (Visible on Hover) */}
-                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[var(--card-bg)]/80 backdrop-blur-md px-2 py-1 rounded border border-[var(--card-border)] opacity-0 group-hover/sig:opacity-100 transition-opacity">
-                    <p className="text-[7px] font-black uppercase tracking-tighter">{p.name}</p>
-                  </div>
+                  {/* Status Indicator Dot */}
+                  <div className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[var(--card-bg)] shadow-lg
+                    ${p.status === 'On Site' ? 'bg-emerald-500' : p.status === 'In Transit' ? 'bg-[var(--primary)] animate-pulse' : 'bg-slate-500'}`} />
                 </div>
-               );
-             })}
-          </div>
+              </div>
+             );
+           })}
         </div>
 
         {/* Tactical HUD Overlay */}
@@ -162,12 +174,13 @@ export default function CareNavigationPage() {
             </button>
           </div>
 
-          <div className="flex flex-col items-end gap-2 text-right">
+          <div className="flex flex-col items-end gap-1 text-right">
              <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Live Engine Feed</span>
+                <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Live System Feed</span>
              </div>
-             <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Coord: 14.5995° N, 120.9842° E</p>
+             <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Last Sync: {new Date().toLocaleTimeString()}</p>
+             <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">Region: Metro North-East</p>
           </div>
         </div>
 
@@ -179,8 +192,8 @@ export default function CareNavigationPage() {
                 <Navigation2 className="w-5 h-5 text-[var(--primary)]" />
               </div>
               <div>
-                <h2 className="text-sm font-black uppercase tracking-tighter">Geospatial Ops</h2>
-                <p className="text-[10px] font-black text-[var(--primary)] tracking-widest uppercase">Live Sector Tracking</p>
+                <h2 className="text-sm font-black uppercase tracking-tighter">Clinical Dispatch</h2>
+                <p className="text-[10px] font-black text-[var(--primary)] tracking-widest uppercase">Live Sector Logistics</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-6">

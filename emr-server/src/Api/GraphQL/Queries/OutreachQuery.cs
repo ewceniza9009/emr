@@ -27,4 +27,11 @@ public class OutreachQuery
             .Where(o => o.PatientOutreachId == outreachId)
             .AsNoTracking();
     }
+
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<OutreachScript> GetOutreachScripts([Service] IApplicationDbContext context)
+    {
+        return context.OutreachScripts.AsNoTracking();
+    }
 }

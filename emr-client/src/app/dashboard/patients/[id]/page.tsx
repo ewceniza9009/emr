@@ -35,6 +35,8 @@ import ProblemList from "@/components/ProblemList";
 import AllergyRegistry from "@/components/AllergyRegistry";
 import EquipmentRegistry from "@/components/EquipmentRegistry";
 import BookingDrawer from "@/components/BookingDrawer";
+import TaskManagement from "@/components/TaskManagement";
+import DocumentVault from "@/components/DocumentVault";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -242,6 +244,12 @@ export default function PatientDetailPage() {
                 className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
                            ${activeTab === "logistics" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
                 <Truck className="w-3.5 h-3.5" /> Logistics & Fleet
+              </button>
+              <button 
+                onClick={() => setActiveTab("coordination")}
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
+                           ${activeTab === "coordination" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+                <CheckCircle2 className="w-3.5 h-3.5" /> Coordination & Records
               </button>
            </div>
 
@@ -476,11 +484,18 @@ export default function PatientDetailPage() {
                       </div>
                       <div className="bg-black/5 rounded-3xl border border-[var(--card-border)] flex items-center justify-center p-8">
                          <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] text-center">
-                            Waiting for active IoT Handshake...
-                         </p>
-                      </div>
-                   </div>
-                </div>
+                             Waiting for active IoT Handshake...
+                          </p>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           )}
+
+           {activeTab === "coordination" && (
+             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <TaskManagement patientId={params.id as string} />
+                <DocumentVault patientId={params.id as string} />
              </div>
            )}
 

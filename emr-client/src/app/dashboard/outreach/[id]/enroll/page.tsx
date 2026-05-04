@@ -8,7 +8,6 @@ import {
   CheckCircle2, 
   Calendar, 
   Stethoscope, 
-  ArrowRight,
   ChevronRight,
   ChevronLeft,
   ClipboardCheck, 
@@ -16,22 +15,17 @@ import {
   Activity,
   User,
   MapPin,
-  Mail,
-  Phone,
   Users,
-  Heart,
   AlertCircle,
   PhoneForwarded,
-  Mic,
-  Volume2,
   Hash,
   X,
-  History,
-  PhoneIncoming,
   PhoneOff,
   UserPlus,
   Zap,
-  Target
+  Target,
+  Trash2,
+  Clock
 } from "lucide-react";
 
 const GET_LEAD_DETAILS = gql`
@@ -49,9 +43,13 @@ const GET_LEAD_DETAILS = gql`
       primaryPhone
       primaryEmail
       referralSource
+      status
       communicationStatus
       techAccess
       barriersToCare
+      selectedModality
+      disposition
+      healthPlanId
       otherContacts {
         outreachContactId
         firstName
@@ -60,6 +58,13 @@ const GET_LEAD_DETAILS = gql`
         phoneNumber
         email
         isPrimaryContact
+      }
+      activities {
+        outreachActivityId
+        activityDate
+        outcome
+        method
+        notes
       }
     }
   }
@@ -74,9 +79,44 @@ const GET_ENROLLMENT_DATA = gql`
   }
 `;
 
+const GET_OUTREACH_SCRIPTS = gql`
+  query GetOutreachScripts {
+    outreachScripts {
+      outreachScriptId
+      scriptTitle
+      content
+      isDefault
+    }
+  }
+`;
+
 const FINALIZE_ENROLLMENT = gql`
   mutation FinalizeEnrollment($input: FinalizeEnrollmentCommandInput!) {
     finalizeEnrollment(command: $input)
+  }
+`;
+
+const LOG_OUTREACH_ACTIVITY = gql`
+  mutation LogActivity($command: LogOutreachActivityCommandInput!) {
+    logOutreachActivity(command: $command)
+  }
+`;
+
+const ADD_OUTREACH_CONTACT = gql`
+  mutation AddContact($command: AddOutreachContactCommandInput!) {
+    addOutreachContact(command: $command)
+  }
+`;
+
+const REMOVE_OUTREACH_CONTACT = gql`
+  mutation RemoveContact($command: RemoveOutreachContactCommandInput!) {
+    removeOutreachContact(command: $command)
+  }
+`;
+
+const UPDATE_OUTREACH_LEAD = gql`
+  mutation UpdateLead($command: UpdateOutreachLeadCommandInput!) {
+    updateOutreachLead(command: $command)
   }
 `;
 
@@ -111,11 +151,21 @@ export default function EnrollmentWizard() {
 
   // Missing Data Handling
   const [tempNumbers, setTempNumbers] = useState<Record<string, string>>({});
-  const [addedRelatives, setAddedRelatives] = useState<any[]>([]);
   const [isAddingRelative, setIsAddingRelative] = useState(false);
+  const [isLoggingNoAnswer, setIsLoggingNoAnswer] = useState(false);
   const [newRelativeForm, setNewRelativeForm] = useState({ firstName: '', lastName: '', relationship: 'Other', phoneNumber: '' });
 
   const [finalize, { loading: finalizing }] = useMutation(FINALIZE_ENROLLMENT);
+  const [logActivity] = useMutation(LOG_OUTREACH_ACTIVITY);
+  const [addContact] = useMutation(ADD_OUTREACH_CONTACT);
+  const [removeContact] = useMutation(REMOVE_OUTREACH_CONTACT);
+  const [updateLead] = useMutation(UPDATE_OUTREACH_LEAD);
+
+  const { data: scriptData } = useQuery(GET_OUTREACH_SCRIPTS);
+  const [selectedScriptId, setSelectedScriptId] = useState<string | null>(null);
+  
+  const scripts = scriptData?.outreachScripts || [];
+  const activeScript = scripts.find((s: any) => s.outreachScriptId === selectedScriptId) || scripts.find((s: any) => s.isDefault) || scripts[0];
 
   const { data: leadData, loading: leadLoading, error: leadError } = useQuery(GET_LEAD_DETAILS, {
     variables: { id: params.id },
@@ -147,11 +197,22 @@ export default function EnrollmentWizard() {
     }
   };
 
-  const handleAddRelative = () => {
-    if (!newRelativeForm.firstName || !newRelativeForm.phoneNumber) return;
-    setAddedRelatives([...addedRelatives, { ...newRelativeForm, outreachContactId: `temp-${Date.now()}` }]);
-    setNewRelativeForm({ firstName: '', lastName: '', relationship: 'Other', phoneNumber: '' });
-    setIsAddingRelative(false);
+  const handleAddRelative = async () => {
+    try {
+      await addContact({
+        variables: {
+          command: {
+            patientOutreachId: params.id,
+            ...newRelativeForm
+          }
+        },
+        refetchQueries: ["GetLeadDetails"]
+      });
+      setIsAddingRelative(false);
+      setNewRelativeForm({ firstName: '', lastName: '', relationship: 'Other', phoneNumber: '' });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleTempNumberChange = (id: string, val: string) => {
@@ -173,26 +234,93 @@ export default function EnrollmentWizard() {
     setActiveCall(null);
   };
 
+  const handleRemoveContact = async (id: string) => {
+    try {
+      await removeContact({
+        variables: {
+          command: {
+            outreachContactId: id
+          }
+        },
+        refetchQueries: ["GetLeadDetails"]
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleAbort = () => {
+    router.push('/dashboard/outreach');
+  };
+
+  const handleNoAnswer = async () => {
+    setIsLoggingNoAnswer(true);
+    try {
+      await logActivity({
+        variables: {
+          command: {
+            outreachId: params.id,
+            method: "TELEPHONE",
+            outcome: "NO_ANSWER",
+            notes: "Automated log: Patient did not answer outbound call."
+          }
+        },
+        refetchQueries: ["GetOutreachList"]
+      });
+      router.push('/dashboard/outreach');
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoggingNoAnswer(false);
+    }
+  };
+
   const lead = leadData?.outreachById;
+
+  useEffect(() => {
+    if (lead) {
+      if (lead.selectedModality) setSelectedModality(lead.selectedModality);
+      if (lead.healthPlanId) setSelectedPlan(lead.healthPlanId);
+      if (lead.disposition) setDisposition(lead.disposition);
+      if (lead.communicationStatus) setCommunicationStatus(lead.communicationStatus);
+      if (lead.techAccess) setTechAccess(lead.techAccess);
+      if (lead.barriersToCare) setBarriersToCare(lead.barriersToCare);
+    }
+  }, [lead]);
+
+  const handleUpdateLead = async (fields: any) => {
+    try {
+      await updateLead({
+        variables: {
+          command: {
+            patientOutreachId: params.id,
+            ...fields
+          }
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
   const plans = planData?.healthPlans || [];
 
   const steps = [
-    { id: 1, label: "Contact", icon: PhoneCall },
+    { id: 1, label: "Engagement", icon: PhoneCall },
     { id: 2, label: "Disposition", icon: ShieldCheck },
     { id: 3, label: "Readiness", icon: Activity },
     { id: 4, label: "Orientation", icon: Calendar },
-    { id: 5, label: "Modality", icon: Stethoscope },
-    { id: 6, label: "Finalize", icon: ClipboardCheck },
+    { id: 5, label: "Finalize", icon: ClipboardCheck },
   ];
 
-  if (leadLoading) return <div className="p-20 text-center"><div className="animate-spin w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" /> <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading Enrollment Workflow...</p></div>;
+  if (leadLoading) return <div className="p-20 text-center"><div className="animate-spin w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-4" /> <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Loading Enrollment Engine...</p></div>;
 
   if (leadError || (!lead && !leadLoading)) {
     return (
-        <div className="max-w-md mx-auto mt-20 p-6 glass-morphism rounded-2xl text-center space-y-4 animate-in zoom-in duration-300">
-            <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
-            <h2 className="text-lg font-black text-white uppercase">Lead Not Found</h2>
-            <button onClick={() => router.push('/dashboard/outreach')} className="w-full py-2 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10">Back to Outreach</button>
+        <div className="max-w-md mx-auto mt-20 p-8 glass-morphism rounded-3xl text-center space-y-6 animate-in zoom-in duration-300 border border-rose-500/20">
+            <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
+            <h2 className="text-xl font-black text-white uppercase tracking-tight">Access Protocol Failed</h2>
+            <p className="text-sm text-slate-400 uppercase tracking-widest font-bold">The specified outreach vector could not be identified.</p>
+            <button onClick={() => router.push('/dashboard/outreach')} className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all">Abort & Return</button>
         </div>
     );
   }
@@ -200,205 +328,300 @@ export default function EnrollmentWizard() {
   const hasNoContacts = !lead.primaryPhone && (!lead.otherContacts || lead.otherContacts.length === 0);
 
   return (
-    <div className="max-w-full h-full flex flex-col p-4 space-y-4 overflow-hidden">
-      {/* High-Density Tactical Header */}
-      <div className="flex items-center justify-between bg-black/40 backdrop-blur-md border border-white/5 p-4 rounded-xl shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-             <Target className="w-5 h-5 text-white" />
+    <div className="min-h-screen bg-[#050708] flex flex-col p-6 space-y-6 overflow-hidden">
+      {/* Top Intelligence Header */}
+      <div className="flex items-center justify-between bg-black/40 backdrop-blur-2xl border border-white/5 px-10 py-6 rounded-3xl shrink-0 shadow-2xl">
+        <div className="flex items-center gap-6">
+          <div className="w-16 h-16 rounded-2xl bg-teal-500 flex items-center justify-center shadow-[0_0_30px_rgba(20,184,166,0.3)]">
+             <Target className="w-8 h-8 text-black" />
           </div>
           <div>
-            <h1 className="text-sm font-black text-white uppercase tracking-tighter leading-none">Enrollment Intelligence</h1>
-            <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mt-1">Target: {lead.firstName} {lead.lastName}</p>
+            <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-none">Enrollment Intelligence Hub</h1>
+            <div className="flex items-center gap-3 mt-3">
+               <span className="text-xs font-black text-teal-500 uppercase tracking-[0.2em]">Target Identification:</span>
+               <span className="text-xs font-black text-white uppercase tracking-widest">{lead.firstName} {lead.lastName}</span>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-10">
+          <button onClick={handleAbort} className="px-6 py-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-500/20 transition-all flex items-center gap-2">
+             <X className="w-4 h-4" /> Abort Enrollment
+          </button>
+          <div className="h-10 w-[1px] bg-white/10" />
+          <div className="flex items-center gap-3">
             {steps.map((step) => (
-              <div key={step.id} className={`w-2 h-2 rounded-full transition-all ${currentStep === step.id ? 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] scale-125' : currentStep > step.id ? 'bg-blue-500/40' : 'bg-white/10'}`} />
+              <div key={step.id} className={`h-1.5 rounded-full transition-all duration-500 ${currentStep === step.id ? 'w-12 bg-teal-500 shadow-[0_0_15px_rgba(20,184,166,0.6)]' : currentStep > step.id ? 'w-4 bg-teal-500/30' : 'w-4 bg-white/5'}`} />
             ))}
           </div>
-          <div className="h-8 w-[1px] bg-white/10" />
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">v4.2 // Tactical</span>
+          <div className="h-10 w-[1px] bg-white/10" />
+          <div className="text-right">
+             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Protocol Version</p>
+             <p className="text-xs font-black text-teal-500 uppercase tracking-widest mt-1">AURA-v4.5</p>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 flex gap-4 min-h-0">
-        {/* Left Side: Outbound Operations (Main Focus) */}
-        <div className="flex-[2] flex flex-col space-y-4 min-h-0">
-          <div className="flex-1 glass-morphism rounded-xl border border-white/5 p-6 flex flex-col min-h-0 relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Zap className="w-32 h-32" /></div>
+      <div className="flex-1 flex gap-6 min-h-0">
+        {/* Main Operational Core */}
+        <div className="flex-[2.5] flex flex-col min-h-0">
+          <div className="flex-1 glass-morphism rounded-3xl border border-white/5 p-10 flex flex-col min-h-0 relative overflow-hidden bg-gradient-to-br from-teal-950/10 to-transparent">
+             <div className="absolute -top-10 -right-10 opacity-5 pointer-events-none"><Zap className="w-64 h-64 text-teal-500" /></div>
              
              {currentStep === 1 && (
-               <div className="flex flex-col h-full space-y-6 animate-in fade-in duration-300">
+               <div className="flex flex-col h-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="flex items-center justify-between shrink-0">
                     <div>
-                       <h2 className="text-xl font-black text-white uppercase tracking-tight">Contact Management</h2>
-                       <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Execute clinical engagement protocols.</p>
+                       <h2 className="text-4xl font-black text-white uppercase tracking-tight">Contact Management</h2>
+                       <p className="text-sm font-bold text-slate-500 uppercase tracking-[0.3em] mt-3">Execute clinical engagement and verify contact vectors.</p>
+                       <div className="flex gap-4 mt-4">
+                        {[{id: 'TELEPHONE', label: 'Telephone'}, {id: 'VIDEO', label: 'Video'}].map(m => (
+                          <button 
+                            key={m.id} 
+                            onClick={() => {
+                              setSelectedModality(m.id);
+                              handleUpdateLead({ modality: m.id });
+                            }}
+                            className={`p-6 rounded-2xl border transition-all ${selectedModality === m.id ? 'bg-teal-500 border-teal-400 text-black shadow-xl' : 'bg-white/5 border-white/10 text-slate-400 hover:border-teal-500/50'}`}
+                          >
+                            {m.label}
+                          </button>
+                        ))}
+                       </div>
                     </div>
-                    <div className="flex gap-2">
-                       <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`p-2 rounded-lg border transition-all ${isDialPadOpen ? 'bg-blue-500 border-blue-400 text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}><Hash className="w-4 h-4" /></button>
-                       <button onClick={() => setIsAddingRelative(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[10px] font-black uppercase tracking-widest"><UserPlus className="w-4 h-4" /> Add Contact</button>
+                    <div className="flex gap-4">
+                       <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`w-14 h-14 rounded-2xl border transition-all flex items-center justify-center ${isDialPadOpen ? 'bg-teal-500 border-teal-400 text-black shadow-xl shadow-teal-500/20' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'}`}><Hash className="w-6 h-6" /></button>
+                       <button onClick={() => setIsAddingRelative(true)} className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-teal-500 text-black text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-teal-500/20 hover:bg-teal-600 transition-all"><UserPlus className="w-5 h-5" /> Add New Contact</button>
                     </div>
                   </div>
 
-                  {/* Active HUD */}
+                  {/* Active Call HUD */}
                   {activeCall && (
-                    <div className="bg-blue-600/90 backdrop-blur-md rounded-xl p-4 flex items-center justify-between shadow-xl animate-pulse-primary shrink-0 border border-blue-400/30">
-                       <div className="flex items-center gap-4">
-                          <PhoneForwarded className="w-5 h-5 text-white animate-bounce" />
+                    <div className="bg-teal-600 rounded-3xl p-8 flex items-center justify-between shadow-2xl animate-pulse-primary shrink-0 border border-teal-400/30">
+                       <div className="flex items-center gap-8">
+                          <div className="w-20 h-20 rounded-2xl bg-black/20 flex items-center justify-center text-white">
+                             <PhoneForwarded className="w-10 h-10 animate-bounce" />
+                          </div>
                           <div>
-                            <p className="text-white font-black text-sm uppercase tracking-tighter leading-none">{activeCall.status}</p>
-                            <p className="text-blue-100 text-sm font-bold uppercase tracking-widest opacity-80">Connected: {activeCall.name} // {activeCall.phone}</p>
+                            <p className="text-white font-black text-2xl uppercase tracking-widest leading-none">{activeCall.status}</p>
+                            <p className="text-teal-100 text-base font-bold uppercase tracking-widest mt-4 opacity-90">Vector Identification: {activeCall.phone}</p>
                           </div>
                        </div>
-                       <button onClick={endCall} className="p-3 rounded-lg bg-red-500 text-white shadow-lg active:scale-95"><PhoneOff className="w-4 h-4" /></button>
+                       <button onClick={endCall} className="w-20 h-20 rounded-2xl bg-red-500 text-white shadow-2xl active:scale-90 transition-transform flex items-center justify-center"><PhoneOff className="w-8 h-8" /></button>
                     </div>
                   )}
 
-                  {/* Dialer */}
+                  {/* Manual Dialer */}
                   {isDialPadOpen && (
-                    <div className="bg-black/40 border border-blue-500/20 rounded-xl p-4 animate-in slide-in-from-top-2 shrink-0">
-                       <div className="flex gap-4">
-                          <input type="tel" placeholder="Enter Phone Number..." className="flex-1 bg-transparent text-2xl font-black text-white outline-none placeholder:text-slate-700" value={dialedNumber} onChange={e => setDialedNumber(e.target.value)} autoFocus />
-                          <button onClick={() => handleCall({name: 'Manual', phone: dialedNumber})} disabled={!dialedNumber} className="p-4 rounded-xl bg-emerald-500 text-white shadow-lg disabled:opacity-30"><PhoneCall className="w-5 h-5" /></button>
+                    <div className="bg-white/5 border border-teal-500/20 rounded-3xl p-10 animate-in slide-in-from-top-6 shrink-0 shadow-2xl relative group/dialer">
+                       <button onClick={() => setIsDialPadOpen(false)} className="absolute top-6 right-6 p-2 rounded-lg bg-white/5 text-slate-500 hover:text-white transition-all opacity-0 group-hover/dialer:opacity-100"><X className="w-4 h-4" /></button>
+                       <div className="flex gap-8">
+                          <input type="tel" placeholder="Enter Phone Number..." className="flex-1 bg-transparent text-5xl font-black text-white outline-none placeholder:text-slate-800 tracking-tighter" value={dialedNumber} onChange={e => setDialedNumber(e.target.value)} autoFocus />
+                          <button onClick={() => handleCall({name: 'Manual', phone: dialedNumber})} disabled={!dialedNumber} className="w-20 h-20 rounded-2xl bg-emerald-500 text-black shadow-xl disabled:opacity-30 flex items-center justify-center"><PhoneCall className="w-8 h-8" /></button>
                        </div>
                     </div>
                   )}
 
-                  {/* Tactical Contact Grid */}
-                  <div className="flex-1 overflow-y-auto pr-2 space-y-2 scrollbar-hide">
+                  {/* High-Contrast Contact Grid */}
+                  <div className="flex-1 overflow-y-auto pr-4 space-y-4 scrollbar-hide">
                     {hasNoContacts && !isAddingRelative && (
-                      <div className="h-full flex flex-col items-center justify-center text-center space-y-4 border-2 border-dashed border-rose-500/20 rounded-xl bg-rose-500/5 p-8 animate-in zoom-in">
-                         <div className="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-500"><PhoneOff className="w-6 h-6" /></div>
-                         <div>
-                            <h3 className="text-sm font-black text-white uppercase mb-1">Zero Contacts Found</h3>
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Seeder contains no valid phone or email records for this lead.</p>
+                      <div className="h-full flex flex-col items-center justify-center text-center space-y-8 border-4 border-dashed border-rose-500/10 rounded-3xl bg-rose-500/5 p-16 animate-in zoom-in">
+                         <div className="w-24 h-24 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 shadow-[0_0_50px_rgba(244,63,94,0.1)]"><PhoneOff className="w-12 h-12" /></div>
+                         <div className="space-y-4">
+                            <h3 className="text-2xl font-black text-white uppercase tracking-widest">Zero Contacts Found</h3>
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest leading-relaxed">The database seeder contains no communication vectors for this target.</p>
                          </div>
-                         <button onClick={() => setIsAddingRelative(true)} className="px-6 py-2 rounded-lg bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20">Add Contact Manually</button>
+                         <button onClick={() => setIsAddingRelative(true)} className="px-12 py-5 rounded-2xl bg-rose-500 text-white text-xs font-black uppercase tracking-[0.3em] shadow-2xl shadow-rose-500/30 hover:bg-rose-600 transition-all">Add Primary Contact Manually</button>
                       </div>
                     )}
 
-                    {/* Patient Card */}
-                    {(lead.primaryPhone || tempNumbers['patient'] || !hasNoContacts) && (
-                      <div className={`p-4 rounded-xl border flex items-center justify-between transition-all ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-blue-500/5 border-blue-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
-                         <div className="flex items-center gap-4">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-blue-500' : 'bg-amber-500 animate-pulse'}`}><User className="w-5 h-5" /></div>
+                    {/* Patient Vector */}
+                    {(lead.primaryPhone || !hasNoContacts) && (
+                      <div className={`p-8 rounded-3xl border flex items-center justify-between transition-all ${lead.primaryPhone ? 'bg-teal-500/5 border-teal-500/20' : 'bg-amber-500/5 border-amber-500/20 shadow-xl'}`}>
+                         <div className="flex items-center gap-8">
+                            <div className={`w-20 h-20 rounded-2xl flex items-center justify-center text-black shadow-2xl ${lead.primaryPhone ? 'bg-teal-500 shadow-teal-500/20' : 'bg-amber-500 animate-pulse'}`}><User className="w-10 h-10" /></div>
                             <div>
-                               <p className="text-white font-black text-sm uppercase leading-none">{lead.firstName} {lead.lastName}</p>
-                               <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">Lead Primary // {lead.primaryPhone || tempNumbers['patient'] || "No Phone"}</p>
+                               <p className="text-white font-black text-3xl uppercase tracking-tight leading-none">{lead.firstName} {lead.lastName}</p>
+                               <p className="text-sm font-black text-slate-500 uppercase tracking-[0.3em] mt-4">Primary Target Vector // <span className="text-teal-500">{lead.primaryPhone || "AWAITING INJECTION"}</span></p>
                             </div>
                          </div>
-                         <div className="flex items-center gap-3">
-                            {!lead.primaryPhone && !tempNumbers['patient'] && <input placeholder="Add Phone..." className="w-32 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:border-blue-500 outline-none" value={tempNumbers['patient'] || ""} onChange={e => handleTempNumberChange('patient', e.target.value)} />}
-                            <button onClick={() => handleCall({name: lead.firstName, phone: lead.primaryPhone || tempNumbers['patient']})} disabled={!(lead.primaryPhone || tempNumbers['patient'])} className={`p-3 rounded-lg transition-all ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-blue-500 text-white shadow-lg' : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}><PhoneCall className="w-4 h-4" /></button>
+                         <div className="flex items-center gap-6">
+                            <button onClick={() => handleCall({name: lead.firstName, phone: lead.primaryPhone})} disabled={!lead.primaryPhone} className={`w-20 h-20 rounded-2xl transition-all flex items-center justify-center ${lead.primaryPhone ? 'bg-teal-500 text-black shadow-2xl shadow-teal-500/30 hover:bg-teal-600 active:scale-90' : 'bg-slate-900 text-slate-800 cursor-not-allowed'}`}><PhoneCall className="w-8 h-8" /></button>
                          </div>
                       </div>
                     )}
 
-                    {/* Relatives */}
-                    {[...(lead.otherContacts || []), ...addedRelatives].map((contact: any) => (
-                      <div key={contact.outreachContactId} className="p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-between hover:bg-white/[0.05] transition-all">
-                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-slate-500"><Users className="w-5 h-5" /></div>
-                            <div>
-                               <p className="text-white font-black text-sm uppercase leading-none">{contact.firstName} {contact.lastName}</p>
-                               <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mt-1">{RELATIONSHIP_LABELS[contact.relationship]} // {contact.phoneNumber || tempNumbers[contact.outreachContactId] || "No Phone"}</p>
-                            </div>
-                         </div>
-                         <div className="flex items-center gap-3">
-                            {!contact.phoneNumber && !tempNumbers[contact.outreachContactId] && <input placeholder="Add Phone..." className="w-32 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:border-blue-500 outline-none" value={tempNumbers[contact.outreachContactId] || ""} onChange={e => handleTempNumberChange(contact.outreachContactId, e.target.value)} />}
-                            <button onClick={() => handleCall({name: contact.firstName, phone: contact.phoneNumber || tempNumbers[contact.outreachContactId]})} disabled={!(contact.phoneNumber || tempNumbers[contact.outreachContactId])} className={`p-3 rounded-lg transition-all ${contact.phoneNumber || tempNumbers[contact.outreachContactId] ? 'bg-white/10 text-white hover:bg-blue-500' : 'bg-slate-900 text-slate-700 cursor-not-allowed'}`}><PhoneCall className="w-4 h-4" /></button>
-                         </div>
+                    {/* Existing Contacts from DB */}
+                    {lead.otherContacts?.map((contact: any) => (
+                      <div key={contact.outreachContactId} className="flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-2xl group/contact hover:border-teal-500/30 transition-all">
+                        <div className="flex items-center gap-6">
+                           <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-400 border border-teal-500/20 shadow-lg shadow-teal-500/10">
+                              <User className="w-5 h-5" />
+                           </div>
+                           <div>
+                              <p className="text-sm font-bold text-white uppercase tracking-wider">{contact.firstName} {contact.lastName}</p>
+                              <div className="flex items-center gap-3 mt-1">
+                                 <span className="text-[10px] font-black text-teal-500 uppercase tracking-widest px-2 py-0.5 bg-teal-500/10 rounded-md border border-teal-500/10">{contact.relationship}</span>
+                                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{contact.phoneNumber}</span>
+                              </div>
+                           </div>
+                        </div>
+                        <button 
+                          onClick={() => handleRemoveContact(contact.outreachContactId)}
+                          className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 opacity-0 group-hover/contact:opacity-100 hover:bg-rose-500 transition-all hover:text-white"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     ))}
 
-                    {/* Inject Form */}
+                    {/* Add Contact Form */}
                     {isAddingRelative && (
-                      <div className="p-4 rounded-xl border border-blue-500/30 bg-blue-500/5 space-y-4 animate-in slide-in-from-bottom-2">
-                         <div className="grid grid-cols-3 gap-2">
-                            <input placeholder="First Name" className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none" value={newRelativeForm.firstName} onChange={e => setNewRelativeForm({...newRelativeForm, firstName: e.target.value})} />
-                             <select className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none" value={newRelativeForm.relationship} onChange={e => setNewRelativeForm({...newRelativeForm, relationship: e.target.value})}>
-                               {Object.keys(RELATIONSHIP_LABELS).map(k => <option key={k} value={k}>{k}</option>)}
-                            </select>
-                            <input placeholder="Phone Number" className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none" value={newRelativeForm.phoneNumber} onChange={e => setNewRelativeForm({...newRelativeForm, phoneNumber: e.target.value})} />
+                      <div className="p-10 rounded-3xl border border-teal-500/30 bg-teal-500/5 space-y-6 animate-in slide-in-from-bottom-6 shadow-2xl">
+                         <div className="grid grid-cols-3 gap-6">
+                            <div className="space-y-3">
+                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal Name</label>
+                               <input placeholder="First Name" className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white font-black outline-none focus:border-teal-500" value={newRelativeForm.firstName} onChange={e => setNewRelativeForm({...newRelativeForm, firstName: e.target.value})} />
+                            </div>
+                            <div className="space-y-3">
+                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Kinship Type</label>
+                               <select className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white font-black outline-none focus:border-teal-500 cursor-pointer" value={newRelativeForm.relationship} onChange={e => setNewRelativeForm({...newRelativeForm, relationship: e.target.value})}>
+                                  {Object.keys(RELATIONSHIP_LABELS).map(k => <option key={k} value={k}>{k}</option>)}
+                               </select>
+                            </div>
+                            <div className="space-y-3">
+                               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Communication Phone</label>
+                               <input placeholder="Phone Number" className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white font-black outline-none focus:border-teal-500" value={newRelativeForm.phoneNumber} onChange={e => setNewRelativeForm({...newRelativeForm, phoneNumber: e.target.value})} />
+                            </div>
                          </div>
-                         <div className="flex gap-2">
-                            <button onClick={() => setIsAddingRelative(false)} className="flex-1 py-2 rounded-lg bg-white/5 text-[10px] font-black uppercase tracking-widest text-slate-500">Abort</button>
-                            <button onClick={handleAddRelative} className="flex-1 py-2 rounded-lg bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20">Add to Contact Queue</button>
+                         <div className="flex gap-4">
+                            <button onClick={() => setIsAddingRelative(false)} className="flex-1 py-5 rounded-2xl bg-white/5 text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-white/10 transition-all">Cancel Operation</button>
+                            <button onClick={handleAddRelative} className="flex-1 py-5 rounded-2xl bg-teal-500 text-black text-xs font-black uppercase tracking-widest shadow-2xl shadow-teal-500/30 hover:bg-teal-600 transition-all">Add to Queue</button>
                          </div>
                       </div>
                     )}
-                  </div>
-               </div>
-             )}
+                   </div>
+
+                   {/* Action Cluster */}
+                   <div className="grid grid-cols-2 gap-8 shrink-0">
+                      <button 
+                        onClick={() => setCurrentStep(2)}
+                        className="group p-10 rounded-3xl bg-teal-500/5 border border-teal-500/20 text-left hover:bg-teal-500 hover:border-teal-500 transition-all shadow-2xl"
+                      >
+                         <div className="w-16 h-16 rounded-2xl bg-teal-500 flex items-center justify-center text-black mb-6 group-hover:bg-black group-hover:text-teal-500 transition-all">
+                            <CheckCircle2 className="w-8 h-8" />
+                         </div>
+                         <p className="text-xl font-black text-white uppercase tracking-widest group-hover:text-black">Contact Verified</p>
+                         <p className="text-xs font-black text-teal-600 uppercase mt-4 tracking-wider group-hover:text-black/60">Proceed to lead dispositioning.</p>
+                      </button>
+
+                      <button 
+                        onClick={handleNoAnswer}
+                        disabled={isLoggingNoAnswer}
+                        className="group p-10 rounded-3xl bg-white/5 border border-white/10 text-left hover:bg-rose-500/10 hover:border-rose-500/20 transition-all shadow-2xl"
+                      >
+                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all ${isLoggingNoAnswer ? 'bg-rose-500 animate-spin' : 'bg-slate-800 text-white group-hover:bg-rose-500 group-hover:scale-110'}`}>
+                            {isLoggingNoAnswer ? <Activity className="w-8 h-8" /> : <PhoneOff className="w-8 h-8" />}
+                         </div>
+                         <p className="text-xl font-black text-white uppercase tracking-widest">{isLoggingNoAnswer ? "LOGGING..." : "NO ANSWER"}</p>
+                         <p className="text-xs font-black text-slate-500 uppercase mt-4 tracking-wider">{isLoggingNoAnswer ? "RECORDING FAILED ATTEMPT IN HISTORY." : "LOG FAILED ATTEMPT."}</p>
+                      </button>
+                   </div>
+                </div>
+              )}
 
              {currentStep > 1 && (
-               <div className="flex flex-col h-full space-y-6 animate-in fade-in duration-300">
+               <div className="flex flex-col h-full space-y-10 animate-in fade-in duration-500">
                   {currentStep === 2 && (
-                    <div className="space-y-4">
-                       <h2 className="text-xl font-black text-white uppercase tracking-tight">Step 2: Disposition</h2>
-                       <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-8">
+                       <h2 className="text-4xl font-black text-white uppercase tracking-tight">Lead Disposition</h2>
+                       <div className="grid grid-cols-2 gap-4">
                           {["EAGER", "COOPERATIVE", "HESITANT", "RESISTANT", "REFUSED"].map(v => (
-                             <button key={v} onClick={() => { setDisposition(v); setCurrentStep(3); }} className={`p-4 rounded-lg border text-left transition-all ${disposition === v ? 'bg-blue-500/20 border-blue-500/50 text-blue-500' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'}`}>
-                                <span className="text-[10px] font-black uppercase tracking-widest">{v}</span>
+                             <button key={v} onClick={() => { 
+                                 setDisposition(v); 
+                                 handleUpdateLead({ disposition: v });
+                                 setCurrentStep(3); 
+                               }} className={`p-8 rounded-3xl border text-left flex items-center justify-between group transition-all ${disposition === v ? 'bg-teal-500/10 border-teal-500/50 text-teal-500 shadow-2xl shadow-teal-500/10' : 'bg-white/5 border-white/10 text-slate-500 hover:bg-white/10'}`}>
+                                <span className="text-xl font-black uppercase tracking-widest">{v}</span>
+                                <ChevronRight className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0" />
                              </button>
                           ))}
                        </div>
                     </div>
                   )}
                   {currentStep === 3 && (
-                    <div className="space-y-6">
-                       <h2 className="text-xl font-black text-white uppercase tracking-tight">Step 3: Clinical Readiness</h2>
-                       <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                             <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Comm Protocol</label>
-                             {["VERBAL", "APHASIC", "COGNITIVE"].map(v => (
-                               <button key={v} onClick={() => setCommunicationStatus(v)} className={`w-full p-2 rounded-lg border text-left text-[9px] font-black tracking-widest transition-all ${communicationStatus === v ? 'bg-blue-500/20 border-blue-500/50 text-blue-500' : 'bg-white/5 border-white/10 text-slate-500'}`}>{v}</button>
-                             ))}
+                    <div className="space-y-10">
+                       <h2 className="text-4xl font-black text-white uppercase tracking-tight">Clinical Readiness</h2>
+                       <div className="grid grid-cols-2 gap-10">
+                          <div className="space-y-6">
+                             <label className="text-xs font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Communication Status</label>
+                             <div className="space-y-2">
+                                {["VERBAL", "APHASIC", "COGNITIVE"].map(v => (
+                                  <button key={v} onClick={() => { setCommunicationStatus(v); handleUpdateLead({ communicationStatus: v }); }} className={`w-full p-5 rounded-2xl border text-left text-xs font-black tracking-[0.2em] transition-all ${communicationStatus === v ? 'bg-teal-500/20 border-teal-500/50 text-teal-500' : 'bg-white/5 border-white/10 text-slate-600 hover:bg-white/5'}`}>{v}</button>
+                                ))}
+                             </div>
                           </div>
-                          <div className="space-y-2">
-                             <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Tech Tier</label>
-                             {["SMARTPHONE", "TABLET", "NONE"].map(v => (
-                               <button key={v} onClick={() => setTechAccess(v)} className={`w-full p-2 rounded-lg border text-left text-[9px] font-black tracking-widest transition-all ${techAccess === v ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500' : 'bg-white/5 border-white/10 text-slate-500'}`}>{v}</button>
-                             ))}
+                          <div className="space-y-6">
+                             <label className="text-xs font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Technology access</label>
+                             <div className="space-y-2">
+                                {["SMARTPHONE", "TABLET", "NONE"].map(v => (
+                                  <button key={v} onClick={() => { setTechAccess(v); handleUpdateLead({ techAccess: v }); }} className={`w-full p-5 rounded-2xl border text-left text-xs font-black tracking-[0.2em] transition-all ${techAccess === v ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500' : 'bg-white/5 border-white/10 text-slate-600 hover:bg-white/5'}`}>{v}</button>
+                                ))}
+                             </div>
                           </div>
                        </div>
-                       <textarea value={barriersToCare} onChange={e => setBarriersToCare(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg p-4 text-[10px] font-black text-white outline-none min-h-[100px]" placeholder="LOG CLINICAL BARRIERS..." />
-                       <button onClick={() => setCurrentStep(4)} className="w-full bg-blue-500 py-3 rounded-lg text-white text-[10px] font-black uppercase tracking-widest">Next Step</button>
+                       <div className="space-y-4">
+                          <label className="text-xs font-black text-slate-500 uppercase tracking-[0.3em] ml-2">Clinical Barriers / Observations</label>
+                          <textarea 
+                             value={barriersToCare} 
+                             onChange={e => setBarriersToCare(e.target.value)} 
+                             onBlur={() => handleUpdateLead({ barriersToCare })}
+                             className="w-full bg-black/40 border border-white/10 rounded-3xl p-10 text-base font-medium text-white outline-none min-h-[200px] focus:border-teal-500 transition-all placeholder:text-slate-900 shadow-inner" 
+                             placeholder="Log clinical barriers or logistical obstacles..." 
+                          />
+                       </div>
+                       <button onClick={() => setCurrentStep(4)} className="w-full bg-teal-500 py-6 rounded-3xl text-black text-sm font-black uppercase tracking-[0.4em] shadow-2xl shadow-teal-500/30 hover:bg-teal-600 transition-all">Proceed to Scheduling</button>
                     </div>
                   )}
                   {currentStep === 4 && (
-                    <div className="space-y-6 text-center">
-                       <h2 className="text-xl font-black text-white uppercase tracking-tight">Step 4: Orientation</h2>
-                       <div className="bg-white/5 border border-white/10 rounded-xl p-8 space-y-4">
-                          <Calendar className="w-8 h-8 text-blue-500 mx-auto" />
-                          <input type="datetime-local" value={orientationDate} onChange={e => setOrientationDate(e.target.value)} className="bg-black/40 border border-white/10 rounded-lg py-2 px-4 text-xs text-white font-black outline-none focus:border-blue-500" />
+                    <div className="space-y-12 text-center py-10">
+                       <h2 className="text-4xl font-black text-white uppercase tracking-tight">Orientation Scheduling</h2>
+                       <div className="bg-white/5 border border-white/10 rounded-[3rem] p-16 space-y-10 shadow-2xl">
+                          <div className="w-32 h-32 rounded-[2rem] bg-teal-500/10 flex items-center justify-center text-teal-500 mx-auto shadow-inner">
+                             <Calendar className="w-16 h-16" />
+                          </div>
+                          <div className="space-y-4">
+                             <p className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">Select Appointment Timestamp</p>
+                             <input type="datetime-local" value={orientationDate} onChange={e => setOrientationDate(e.target.value)} className="bg-black/60 border border-white/10 rounded-2xl py-6 px-10 text-2xl text-white font-black outline-none focus:border-teal-500 shadow-2xl text-center" />
+                          </div>
                        </div>
-                       <button onClick={() => setCurrentStep(5)} className="w-full bg-blue-500 py-3 rounded-lg text-white text-[10px] font-black uppercase tracking-widest">Confirm Schedule</button>
+                       <button onClick={() => setCurrentStep(5)} className="w-full bg-teal-500 py-6 rounded-3xl text-black text-sm font-black uppercase tracking-[0.4em] shadow-2xl shadow-teal-500/30 hover:bg-teal-600 transition-all">Confirm Appointment Slot</button>
                     </div>
                   )}
                   {currentStep === 5 && (
-                    <div className="space-y-6">
-                       <h2 className="text-xl font-black text-white uppercase tracking-tight">Step 5: Payor & Modality</h2>
-                       <select value={selectedPlan} onChange={e => setSelectedPlan(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-lg py-3 px-4 text-[10px] font-black text-white uppercase tracking-widest outline-none">
-                          <option value="">SELECT PAYOR...</option>
-                          {plans.map((p: any) => <option key={p.healthPlanId} value={p.healthPlanId}>{p.name}</option>)}
-                       </select>
-                       <div className="grid grid-cols-2 gap-2">
-                          {["HOME", "FACILITY", "CLINIC", "VIRTUAL"].map(v => (
-                             <button key={v} onClick={() => { setSelectedModality(v); setCurrentStep(6); }} className={`p-4 rounded-lg border text-left transition-all ${selectedModality === v ? 'bg-blue-500/20 border-blue-500/50 text-blue-500' : 'bg-white/5 border-white/10 text-slate-400'}`}>
-                                <span className="text-[10px] font-black uppercase tracking-widest">{v}</span>
-                             </button>
-                          ))}
+                    <div className="flex-1 flex flex-col items-center justify-center text-center space-y-10 animate-in zoom-in duration-500">
+                       <div className="w-32 h-32 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-500 shadow-2xl shadow-teal-500/10"><ClipboardCheck className="w-16 h-16" /></div>
+                       <div className="space-y-4">
+                          <h2 className="text-5xl font-black text-white uppercase tracking-tighter leading-tight">Final Validation</h2>
+                          <p className="text-base text-slate-500 font-bold uppercase tracking-widest max-w-lg mx-auto">Ready to transition lead into clinical active status.</p>
                        </div>
-                    </div>
-                  )}
-                  {currentStep === 6 && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 animate-in zoom-in">
-                       <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 shadow-xl shadow-emerald-500/10"><ClipboardCheck className="w-8 h-8" /></div>
-                       <h2 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight">Ready for Deployment</h2>
-                       <button onClick={handleFinalize} disabled={finalizing || !selectedPlan} className="w-full bg-blue-500 py-4 rounded-xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-500/30">{finalizing ? "GENERATING..." : "FINALIZE ENROLLMENT"}</button>
+                       <div className="w-full space-y-4">
+                          <p className="text-xs font-black text-slate-600 uppercase tracking-[0.4em] mb-4">Assigned Health Plan</p>
+                          <div className="grid grid-cols-2 gap-4">
+                             {plans.map((p: any) => (
+                               <button 
+                                 key={p.healthPlanId} 
+                                 onClick={() => {
+                                   setSelectedPlan(p.healthPlanId);
+                                   handleUpdateLead({ healthPlanId: p.healthPlanId });
+                                 }}
+                                 className={`p-6 rounded-2xl border text-left transition-all ${selectedPlan === p.healthPlanId ? 'bg-teal-500 border-teal-400 text-black shadow-xl' : 'bg-white/5 border-white/10 text-white hover:border-teal-500/50'}`}
+                               >
+                                 {p.name}
+                               </button>
+                             ))}
+                          </div>
+                       </div>
+                       <button onClick={handleFinalize} disabled={finalizing || !selectedPlan} className="w-full bg-teal-500 py-8 rounded-[2.5rem] text-black font-black text-lg uppercase tracking-[0.5em] shadow-2xl shadow-teal-500/40 hover:bg-teal-600 transition-all active:scale-95 disabled:opacity-30">{finalizing ? "PROVISIONING..." : "FINALIZE ENROLLMENT"}</button>
                     </div>
                   )}
                </div>
@@ -406,51 +629,101 @@ export default function EnrollmentWizard() {
           </div>
         </div>
 
-        {/* Right Side: Data Intelligence (Sidebar) */}
-        <div className="flex-1 flex flex-col space-y-4 min-h-0">
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4 shrink-0 space-y-4">
-             <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2"><Target className="w-3 h-3" /> Profile Vector</h3>
-             <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                   <div className="w-8 h-8 rounded bg-blue-500 flex items-center justify-center text-white font-black text-[10px]">{lead.firstName[0]}{lead.lastName[0]}</div>
-                   <p className="text-xs font-black text-white uppercase">{lead.firstName} {lead.lastName}</p>
+        {/* Intelligence Side-Deck */}
+        <div className="flex-1 flex flex-col space-y-6 min-h-0">
+          <div className="bg-black/40 border border-white/5 rounded-3xl p-8 shrink-0 space-y-6 shadow-2xl">
+             <h3 className="text-xs font-black text-teal-500 uppercase tracking-[0.4em] flex items-center gap-3"><Target className="w-5 h-5" /> Target Profile</h3>
+             <div className="space-y-6">
+                <div className="flex items-center gap-5">
+                   <div className="w-16 h-16 rounded-2xl bg-teal-500 flex items-center justify-center text-black font-black text-xl shadow-lg">{lead.firstName[0]}{lead.lastName[0]}</div>
+                   <div>
+                      <p className="text-xl font-black text-white uppercase tracking-tight">{lead.firstName} {lead.lastName}</p>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-2">{lead.primaryEmail || "NO SECURE EMAIL"}</p>
+                   </div>
                 </div>
                 <div className="h-[1px] bg-white/5" />
-                <div className="space-y-1">
-                   <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Source Protocol</p>
-                   <p className="text-[9px] font-black text-white uppercase">{lead.referralSource || "DIRECT INTAKE"}</p>
+                <div className="space-y-2">
+                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Acquisition Source</p>
+                   <p className="text-xs font-black text-white uppercase tracking-wider">{lead.referralSource || "DIRECT CLINICAL INTAKE"}</p>
                 </div>
              </div>
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-xl p-4 shrink-0 space-y-4">
-             <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2"><MapPin className="w-3 h-3" /> Geospatial Context</h3>
-             <div className="space-y-1">
-                <p className="text-[9px] font-black text-slate-300 uppercase leading-relaxed">
-                   {lead.mailingAddress?.street || "NO STREET"}<br/>
-                   {lead.mailingAddress?.city}, {lead.mailingAddress?.state} {lead.mailingAddress?.postalCode}
+          <div className="bg-black/40 border border-white/5 rounded-3xl p-8 shrink-0 space-y-6 shadow-2xl">
+             <h3 className="text-xs font-black text-teal-500 uppercase tracking-[0.4em] flex items-center gap-3"><MapPin className="w-5 h-5" /> Geospatial Context</h3>
+             <div className="space-y-4">
+                <p className="text-sm font-black text-slate-300 uppercase leading-relaxed tracking-wider">
+                   {lead.mailingAddress?.street || "STREET REDACTED"}<br/>
+                   <span className="text-white">{lead.mailingAddress?.city}, {lead.mailingAddress?.state} {lead.mailingAddress?.postalCode}</span>
                 </p>
              </div>
           </div>
 
-          <div className="flex-1 bg-blue-500/5 border border-blue-500/10 rounded-xl p-4 overflow-y-auto space-y-3 scrollbar-hide">
-             <h3 className="text-[9px] font-black text-blue-500 uppercase tracking-[0.3em] flex items-center gap-2"><ShieldCheck className="w-3 h-3" /> Clinical Script</h3>
-             <p className="text-[10px] font-medium text-slate-400 italic leading-relaxed">
-                "Hello, I am calling from the **Palliative Care Team** regarding your health profile. We'd like to discuss the specialized support services we have active in **{lead.mailingAddress?.city || "your area"}**..."
-             </p>
+          <div className="flex-1 bg-black/40 border border-white/5 rounded-3xl p-8 overflow-y-auto space-y-6 shadow-2xl relative">
+             <div className="absolute top-8 right-8"><Activity className="w-4 h-4 text-teal-500 animate-pulse" /></div>
+             <h3 className="text-xs font-black text-teal-500 uppercase tracking-[0.4em]">Activity Timeline</h3>
+             <div className="space-y-6">
+                {lead.activities?.length === 0 ? (
+                  <div className="py-10 text-center space-y-4">
+                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-800 mx-auto"><Clock className="w-6 h-6" /></div>
+                    <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">No historical vectors</p>
+                  </div>
+                ) : (
+                  [...lead.activities].sort((a, b) => new Date(b.activityDate).getTime() - new Date(a.activityDate).getTime()).map((activity: any) => (
+                    <div key={activity.outreachActivityId} className="flex gap-4 group/item">
+                       <div className="flex flex-col items-center">
+                          <div className={`w-2 h-2 rounded-full mt-1 ${activity.outcome === 'NO_ANSWER' ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]'}`} />
+                          <div className="w-[1px] flex-1 bg-white/5 my-2 group-last/item:hidden" />
+                       </div>
+                       <div className="space-y-1 pb-4">
+                          <div className="flex items-center gap-3">
+                             <p className="text-[11px] font-black text-white uppercase tracking-wider">{activity.outcome.replace('_', ' ')}</p>
+                             <span className="text-[9px] font-bold text-slate-600 uppercase">{new Date(activity.activityDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                          <p className="text-[9px] font-bold text-slate-500 uppercase leading-relaxed">{activity.notes}</p>
+                       </div>
+                    </div>
+                  ))
+                )}
+             </div>
           </div>
 
-          <div className="h-14 bg-black/40 border border-white/5 rounded-xl px-4 flex items-center justify-between shrink-0">
+          <div className="flex-1 bg-teal-500/5 border border-teal-500/10 rounded-3xl p-8 overflow-y-auto space-y-6 shadow-inner flex flex-col min-h-0">
+             <div className="flex items-center justify-between shrink-0">
+                <h3 className="text-xs font-black text-teal-500 uppercase tracking-[0.4em] flex items-center gap-3"><ShieldCheck className="w-5 h-5" /> Clinical Guidance</h3>
+                <select 
+                  className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-[10px] font-black text-teal-500 uppercase tracking-widest outline-none focus:border-teal-500"
+                  value={selectedScriptId || ""}
+                  onChange={e => setSelectedScriptId(e.target.value)}
+                >
+                   {scripts.map((s: any) => <option key={s.outreachScriptId} value={s.outreachScriptId}>{s.scriptTitle}</option>)}
+                </select>
+             </div>
+             
+             <div className="flex-1 bg-black/20 rounded-2xl p-8 overflow-y-auto border border-white/5">
+                <p className="text-sm font-medium text-slate-300 italic leading-loose">
+                   "{activeScript?.content || "Protocol initialization pending. Please select a guidance vector."}"
+                </p>
+             </div>
+             
+             <div className="shrink-0 p-4 rounded-xl bg-teal-500/10 border border-teal-500/20">
+                <p className="text-[9px] font-black text-teal-500 uppercase tracking-[0.2em] leading-relaxed">
+                   CRITICAL: Ensure identity verification via full legal name and date of birth before proceeding to modality selection.
+                </p>
+             </div>
+          </div>
+
+          <div className="h-20 bg-black/40 border border-white/5 rounded-3xl px-8 flex items-center justify-between shrink-0 shadow-2xl">
              {currentStep > 1 && (
-               <button onClick={() => setCurrentStep(prev => prev - 1)} className="flex items-center gap-2 text-slate-500 hover:text-white transition-all">
-                  <ChevronLeft className="w-4 h-4" />
-                  <span className="text-[8px] font-black uppercase tracking-widest">Abort Step</span>
+               <button onClick={() => setCurrentStep(prev => prev - 1)} className="flex items-center gap-4 text-slate-500 hover:text-white transition-all group">
+                  <ChevronLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+                  <span className="text-xs font-black uppercase tracking-[0.3em]">Abort Step</span>
                </button>
              )}
              <div className="flex-1" />
-             <div className="flex gap-1">
-                {[1,2,3,4,5,6].map(i => (
-                  <div key={i} className={`w-1 h-1 rounded-full ${currentStep === i ? 'bg-blue-500' : 'bg-white/10'}`} />
+             <div className="flex gap-2">
+                {[1,2,3,4,5].map(i => (
+                  <div key={i} className={`h-2 rounded-full transition-all duration-300 ${currentStep === i ? 'w-10 bg-teal-500 shadow-[0_0_15px_rgba(20,184,166,0.5)]' : 'w-2 bg-white/10'}`} />
                 ))}
              </div>
           </div>
