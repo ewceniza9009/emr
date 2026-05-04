@@ -1,5 +1,5 @@
-using MediatR;
 using Domain.Enums;
+using MediatR;
 
 namespace Application.Outreach.Commands;
 

@@ -6,5 +6,5 @@ public enum ClaimStatus
     Submitted,
     Approved,
     Rejected,
-    Paid
+    Paid,
 }

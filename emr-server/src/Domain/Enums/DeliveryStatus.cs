@@ -6,5 +6,5 @@ public enum DeliveryStatus
     OutForDelivery,
     Delivered,
     Returned,
-    Failed
+    Failed,
 }

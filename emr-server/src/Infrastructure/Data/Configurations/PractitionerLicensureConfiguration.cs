@@ -12,34 +12,26 @@ public class PractitionerLicensureConfiguration : IEntityTypeConfiguration<Pract
 
         builder.HasKey(l => l.LicensureId);
 
-        builder.Property(l => l.LicensureId)
-               .HasColumnName("licensure_id");
+        builder.Property(l => l.LicensureId).HasColumnName("licensure_id");
 
-        builder.Property(l => l.PractitionerId)
-               .HasColumnName("practitioner_id")
-               .IsRequired();
+        builder.Property(l => l.PractitionerId).HasColumnName("practitioner_id").IsRequired();
 
-        builder.Property(l => l.LicenseNumber)
-               .HasColumnName("license_number")
-               .HasMaxLength(100)
-               .IsRequired();
+        builder
+            .Property(l => l.LicenseNumber)
+            .HasColumnName("license_number")
+            .HasMaxLength(100)
+            .IsRequired();
 
-        builder.Property(l => l.State)
-               .HasColumnName("state")
-               .HasMaxLength(50)
-               .IsRequired();
+        builder.Property(l => l.State).HasColumnName("state").HasMaxLength(50).IsRequired();
 
-        builder.Property(l => l.ExpiryDate)
-               .HasColumnName("expiry_date")
-               .IsRequired();
+        builder.Property(l => l.ExpiryDate).HasColumnName("expiry_date").IsRequired();
 
-        builder.Property(l => l.IsActive)
-               .HasColumnName("is_active")
-               .HasDefaultValue(true);
+        builder.Property(l => l.IsActive).HasColumnName("is_active").HasDefaultValue(true);
 
-        builder.HasOne(l => l.Practitioner)
-               .WithMany(p => p.Licensures)
-               .HasForeignKey(l => l.PractitionerId)
-               .OnDelete(DeleteBehavior.Cascade);
+        builder
+            .HasOne(l => l.Practitioner)
+            .WithMany(p => p.Licensures)
+            .HasForeignKey(l => l.PractitionerId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -6,5 +6,5 @@ public enum EquipmentStatus
     InUse,
     UnderMaintenance,
     Retired,
-    Lost
+    Lost,
 }

@@ -14,7 +14,8 @@ public class DateTimeProvider : IDateTimeProvider
             var timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(clientTimeZoneId);
             return TimeZoneInfo.ConvertTime(utcDateTime, timeZoneInfo);
         }
-        catch (Exception ex) when (ex is TimeZoneNotFoundException || ex is InvalidTimeZoneException)
+        catch (Exception ex)
+            when (ex is TimeZoneNotFoundException || ex is InvalidTimeZoneException)
         {
             // If the client's timezone payload is corrupted or missing, fallback to UTC safely
             return utcDateTime;
@@ -29,7 +30,8 @@ public class DateTimeProvider : IDateTimeProvider
             var utcTime = TimeZoneInfo.ConvertTimeToUtc(clientDateTime, timeZoneInfo);
             return new DateTimeOffset(utcTime, TimeSpan.Zero);
         }
-        catch (Exception ex) when (ex is TimeZoneNotFoundException || ex is InvalidTimeZoneException)
+        catch (Exception ex)
+            when (ex is TimeZoneNotFoundException || ex is InvalidTimeZoneException)
         {
             // Fallback: Assume the datetime was already intended as UTC
             return new DateTimeOffset(clientDateTime, TimeSpan.Zero);

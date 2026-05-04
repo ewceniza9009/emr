@@ -15,7 +15,8 @@ public record UpdateAdvanceDirectiveCommand : IRequest<Guid>
     public DateTimeOffset EffectiveDate { get; init; } = DateTimeOffset.UtcNow;
 }
 
-public class UpdateAdvanceDirectiveCommandHandler : IRequestHandler<UpdateAdvanceDirectiveCommand, Guid>
+public class UpdateAdvanceDirectiveCommandHandler
+    : IRequestHandler<UpdateAdvanceDirectiveCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
 
@@ -24,11 +25,16 @@ public class UpdateAdvanceDirectiveCommandHandler : IRequestHandler<UpdateAdvanc
         _context = context;
     }
 
-    public async Task<Guid> Handle(UpdateAdvanceDirectiveCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        UpdateAdvanceDirectiveCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // 1. Mark existing directive of the same type as inactive
-        var existing = await _context.AdvanceDirectives
-            .Where(x => x.PatientId == request.PatientId && x.Type == request.Type && x.IsActive)
+        var existing = await _context
+            .AdvanceDirectives.Where(x =>
+                x.PatientId == request.PatientId && x.Type == request.Type && x.IsActive
+            )
             .ToListAsync(cancellationToken);
 
         foreach (var directive in existing)
@@ -43,7 +49,7 @@ public class UpdateAdvanceDirectiveCommandHandler : IRequestHandler<UpdateAdvanc
             Type = request.Type,
             IsActive = request.IsActive,
             Notes = request.Notes,
-            EffectiveDate = request.EffectiveDate
+            EffectiveDate = request.EffectiveDate,
         };
 
         _context.AdvanceDirectives.Add(newDirective);

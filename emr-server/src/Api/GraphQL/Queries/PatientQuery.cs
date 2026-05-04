@@ -1,6 +1,6 @@
+using Application.Common.Interfaces;
 using Application.Patients.Dtos;
 using Application.Patients.Queries;
-using Application.Common.Interfaces;
 using Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +13,8 @@ public class PatientQuery
     public async Task<PatientDto?> GetPatientById(
         Guid patientId,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return await mediator.Send(new GetPatientByIdQuery(patientId), cancellationToken);
     }
@@ -23,7 +24,8 @@ public class PatientQuery
     [UseSorting]
     public async Task<IEnumerable<PatientDto>> GetPatients(
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return await mediator.Send(new GetPatientsQuery(), cancellationToken);
     }
@@ -33,10 +35,11 @@ public class PatientQuery
     [UseSorting]
     public IQueryable<Prescription> GetPrescriptionsByPatient(
         Guid patientId,
-        [Service] IApplicationDbContext context)
+        [Service] IApplicationDbContext context
+    )
     {
-        return context.Prescriptions
-            .Include(x => x.Medication)
+        return context
+            .Prescriptions.Include(x => x.Medication)
             .AsNoTracking()
             .Where(x => x.PatientId == patientId);
     }
@@ -46,10 +49,9 @@ public class PatientQuery
     [UseSorting]
     public IQueryable<Diagnosis> GetDiagnosesByPatient(
         Guid patientId,
-        [Service] IApplicationDbContext context)
+        [Service] IApplicationDbContext context
+    )
     {
-        return context.Diagnoses
-            .AsNoTracking()
-            .Where(x => x.PatientId == patientId);
+        return context.Diagnoses.AsNoTracking().Where(x => x.PatientId == patientId);
     }
 }

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Application.Common.Interfaces;
 using Domain.Common;
 using Domain.Entities;
@@ -5,21 +6,27 @@ using Domain.Enums;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 
 namespace Infrastructure.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-    {
-    }
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options) { }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
         // Suppress the warning about pending model changes to avoid crash on MigrateAsync in dev
-        optionsBuilder.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+        optionsBuilder.ConfigureWarnings(w =>
+            w.Ignore(
+                Microsoft
+                    .EntityFrameworkCore
+                    .Diagnostics
+                    .RelationalEventId
+                    .PendingModelChangesWarning
+            )
+        );
     }
 
     public DbSet<Patient> Patients { get; set; } = null!;
@@ -63,8 +70,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
     public DbSet<EntityAddress> EntityAddresses => Set<EntityAddress>();
 
-
-
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
@@ -91,9 +96,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         base.OnModelCreating(modelBuilder);
 
         // Define sequence for MRN generation
-        modelBuilder.HasSequence<long>("patient_mrn_seq")
-            .StartsAt(10000)
-            .IncrementsBy(1);
+        modelBuilder.HasSequence<long>("patient_mrn_seq").StartsAt(10000).IncrementsBy(1);
         // Global naming convention: snake_case for all tables and columns
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
@@ -134,7 +137,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         // Explicitly map Practitioner -> ProviderShift relationship to avoid shadow properties
         modelBuilder.Entity<ProviderShift>(entity =>
         {
-            entity.HasOne(d => d.Practitioner)
+            entity
+                .HasOne(d => d.Practitioner)
                 .WithMany(p => p.Shifts)
                 .HasForeignKey(d => d.PractitionerId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -146,11 +150,19 @@ public static class StringExtensions
 {
     public static string ToSnakeCase(this string input)
     {
-        if (string.IsNullOrEmpty(input)) return input;
+        if (string.IsNullOrEmpty(input))
+            return input;
         var startUnderscore = input.StartsWith("_");
-        if (startUnderscore) input = input.Substring(1);
-        
-        var result = System.Text.RegularExpressions.Regex.Replace(input, "(?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z])", "_$1").ToLower();
+        if (startUnderscore)
+            input = input.Substring(1);
+
+        var result = System
+            .Text.RegularExpressions.Regex.Replace(
+                input,
+                "(?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z])",
+                "_$1"
+            )
+            .ToLower();
         return startUnderscore ? "_" + result : result;
     }
 }

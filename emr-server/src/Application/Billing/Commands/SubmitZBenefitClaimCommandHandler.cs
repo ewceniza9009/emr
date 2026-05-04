@@ -11,13 +11,19 @@ public class SubmitZBenefitClaimCommandHandler : IRequestHandler<SubmitZBenefitC
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTime;
 
-    public SubmitZBenefitClaimCommandHandler(IApplicationDbContext context, IDateTimeProvider dateTime)
+    public SubmitZBenefitClaimCommandHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTime
+    )
     {
         _context = context;
         _dateTime = dateTime;
     }
 
-    public async Task<Guid> Handle(SubmitZBenefitClaimCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        SubmitZBenefitClaimCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var claim = request.Adapt<ZBenefitClaim>();
         claim.ClaimId = Guid.NewGuid();
@@ -25,18 +31,20 @@ public class SubmitZBenefitClaimCommandHandler : IRequestHandler<SubmitZBenefitC
         claim.SubmittedAt = _dateTime.UtcNow;
 
         _context.ZBenefitClaims.Add(claim);
-        
+
         // Log the status change
-        _context.ClaimStatusLogs.Add(new ClaimStatusLog
-        {
-            LogId = Guid.NewGuid(),
-            ClaimId = claim.ClaimId,
-            PreviousStatus = ClaimStatus.Pending,
-            NewStatus = ClaimStatus.Submitted,
-            ChangedBy = "System",
-            Remarks = "Initial submission",
-            ChangedAt = _dateTime.UtcNow
-        });
+        _context.ClaimStatusLogs.Add(
+            new ClaimStatusLog
+            {
+                LogId = Guid.NewGuid(),
+                ClaimId = claim.ClaimId,
+                PreviousStatus = ClaimStatus.Pending,
+                NewStatus = ClaimStatus.Submitted,
+                ChangedBy = "System",
+                Remarks = "Initial submission",
+                ChangedAt = _dateTime.UtcNow,
+            }
+        );
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -4,5 +4,5 @@ public enum ScheduleBlockStatus
 {
     Available,
     Booked,
-    Blocked
+    Blocked,
 }

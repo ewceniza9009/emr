@@ -525,10 +525,10 @@ public class SchedulingServiceTests
                     new EntityAddress
                     {
                         IsPrimary = true,
-                        Address = new Address { Latitude = BaseLat, Longitude = BaseLon }
-                    }
-                }
-            }
+                        Address = new Address { Latitude = BaseLat, Longitude = BaseLon },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
         var practitioners = new List<Practitioner>
@@ -541,10 +541,10 @@ public class SchedulingServiceTests
                     new EntityAddress
                     {
                         IsPrimary = true,
-                        Address = new Address { Latitude = NearLat, Longitude = NearLon }
-                    }
-                }
-            }
+                        Address = new Address { Latitude = NearLat, Longitude = NearLon },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
         var appointments = new List<Appointment>
@@ -556,8 +556,8 @@ public class SchedulingServiceTests
                 PractitionerId = practitionerId,
                 ScheduledStart = targetStart,
                 Modality = AppointmentModality.InPersonHomeVisit,
-                Patient = patients.Object.First()
-            }
+                Patient = patients.Object.First(),
+            },
         }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
@@ -568,7 +568,7 @@ public class SchedulingServiceTests
 
         distance.Should().BeGreaterThan(0);
         travelTime.Should().BeGreaterThan(0);
-        distance.Should().BeApproximately(9.74, 0.1); 
+        distance.Should().BeApproximately(9.74, 0.1);
     }
 
     [Fact]
@@ -587,17 +587,25 @@ public class SchedulingServiceTests
                 PatientId = patientId1,
                 Addresses = new List<EntityAddress>
                 {
-                    new EntityAddress { IsPrimary = true, Address = new Address { Latitude = NearLat, Longitude = NearLon } }
-                }
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address { Latitude = NearLat, Longitude = NearLon },
+                    },
+                },
             },
             new Patient
             {
                 PatientId = patientId2,
                 Addresses = new List<EntityAddress>
                 {
-                    new EntityAddress { IsPrimary = true, Address = new Address { Latitude = BaseLat, Longitude = BaseLon } }
-                }
-            }
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address { Latitude = BaseLat, Longitude = BaseLon },
+                    },
+                },
+            },
         };
         var patients = patientList.BuildMockDbSet();
 
@@ -610,7 +618,7 @@ public class SchedulingServiceTests
                 PractitionerId = practitionerId,
                 ScheduledStart = new DateTimeOffset(targetDate.AddHours(9), TimeSpan.Zero),
                 ScheduledEnd = new DateTimeOffset(targetDate.AddHours(10), TimeSpan.Zero),
-                Patient = patientList[0]
+                Patient = patientList[0],
             },
             new Appointment
             {
@@ -619,14 +627,16 @@ public class SchedulingServiceTests
                 PractitionerId = practitionerId,
                 ScheduledStart = new DateTimeOffset(targetDate.AddHours(11), TimeSpan.Zero),
                 Modality = AppointmentModality.InPersonHomeVisit,
-                Patient = patientList[1]
-            }
+                Patient = patientList[1],
+            },
         }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
 
-        var (distance, travelTime) = await _service.RecalculateAppointmentStatsAsync(appointmentId2);
+        var (distance, travelTime) = await _service.RecalculateAppointmentStatsAsync(
+            appointmentId2
+        );
 
         distance.Should().BeApproximately(9.74, 0.1);
         travelTime.Should().BeGreaterThan(0);
@@ -641,8 +651,8 @@ public class SchedulingServiceTests
             new Appointment
             {
                 AppointmentId = appointmentId,
-                Modality = AppointmentModality.TelehealthVideo
-            }
+                Modality = AppointmentModality.TelehealthVideo,
+            },
         }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);

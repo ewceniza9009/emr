@@ -12,15 +12,11 @@ public class EsasAssessmentConfiguration : IEntityTypeConfiguration<EsasAssessme
 
         builder.HasKey(e => e.AssessmentId);
 
-        builder.Property(e => e.AssessmentId)
-               .HasColumnName("assessment_id");
+        builder.Property(e => e.AssessmentId).HasColumnName("assessment_id");
 
-        builder.Property(e => e.PatientId)
-               .HasColumnName("patient_id")
-               .IsRequired();
+        builder.Property(e => e.PatientId).HasColumnName("patient_id").IsRequired();
 
-        builder.Property(e => e.EncounterId)
-               .HasColumnName("encounter_id");
+        builder.Property(e => e.EncounterId).HasColumnName("encounter_id");
 
         // The 0-10 symptom scores
         builder.Property(e => e.Pain).HasColumnName("pain");
@@ -33,18 +29,18 @@ public class EsasAssessmentConfiguration : IEntityTypeConfiguration<EsasAssessme
         builder.Property(e => e.Anxiety).HasColumnName("anxiety");
         builder.Property(e => e.Wellbeing).HasColumnName("wellbeing");
 
-        builder.Property(e => e.AssessedAt)
-               .HasColumnName("assessed_at")
-               .IsRequired();
+        builder.Property(e => e.AssessedAt).HasColumnName("assessed_at").IsRequired();
 
-        builder.HasOne(e => e.Patient)
-               .WithMany(p => p.EsasAssessments)
-               .HasForeignKey(e => e.PatientId)
-               .OnDelete(DeleteBehavior.Cascade);
+        builder
+            .HasOne(e => e.Patient)
+            .WithMany(p => p.EsasAssessments)
+            .HasForeignKey(e => e.PatientId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(e => e.Encounter)
-               .WithMany()
-               .HasForeignKey(e => e.EncounterId)
-               .OnDelete(DeleteBehavior.SetNull);
+        builder
+            .HasOne(e => e.Encounter)
+            .WithMany()
+            .HasForeignKey(e => e.EncounterId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

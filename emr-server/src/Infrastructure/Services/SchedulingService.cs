@@ -56,7 +56,7 @@ public class SchedulingService : ISchedulingService
             var patient = await _context
                 .Patients.AsNoTracking()
                 .Include(p => p.Addresses)
-                .ThenInclude(a => a.Address)
+                    .ThenInclude(a => a.Address)
                 .FirstOrDefaultAsync(p => p.PatientId == patientId, cancellationToken);
 
             if (patient == null)
@@ -183,11 +183,17 @@ public class SchedulingService : ISchedulingService
                         .FirstOrDefault();
 
                     // Fallback to localized Utah center (Salt Lake City) instead of Manila to avoid 8000-mile errors
-                    double startLat = staff.Latitude ?? 40.7608; 
+                    double startLat = staff.Latitude ?? 40.7608;
                     double startLon = staff.Longitude ?? -111.8910;
 
-                    var anchorAddr = anchor?.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
-                    if (anchorAddr != null && anchorAddr.Latitude.HasValue && anchorAddr.Longitude.HasValue)
+                    var anchorAddr = anchor
+                        ?.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)
+                        ?.Address;
+                    if (
+                        anchorAddr != null
+                        && anchorAddr.Latitude.HasValue
+                        && anchorAddr.Longitude.HasValue
+                    )
                     {
                         startLat = anchorAddr.Latitude.Value;
                         startLon = anchorAddr.Longitude.Value;
@@ -277,8 +283,8 @@ public class SchedulingService : ISchedulingService
     {
         var appt = await _context
             .Appointments.Include(a => a.Patient)
-            .ThenInclude(p => p.Addresses)
-            .ThenInclude(a => a.Address)
+                .ThenInclude(p => p.Addresses)
+                    .ThenInclude(a => a.Address)
             .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId, cancellationToken);
 
         if (
@@ -289,15 +295,19 @@ public class SchedulingService : ISchedulingService
             return (0, 0);
 
         var patientAddr = appt.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
-        if (patientAddr == null || !patientAddr.Latitude.HasValue || !patientAddr.Longitude.HasValue)
+        if (
+            patientAddr == null
+            || !patientAddr.Latitude.HasValue
+            || !patientAddr.Longitude.HasValue
+        )
             return (0, 0);
 
         // Find previous appointment on the same day for this practitioner
         var startOfDay = new DateTimeOffset(appt.ScheduledStart.Date, TimeSpan.Zero);
         var prevAppt = await _context
             .Appointments.Include(a => a.Patient)
-            .ThenInclude(p => p.Addresses)
-            .ThenInclude(a => a.Address)
+                .ThenInclude(p => p.Addresses)
+                    .ThenInclude(a => a.Address)
             .Where(a =>
                 a.PractitionerId == appt.PractitionerId
                 && a.ScheduledStart < appt.ScheduledStart
@@ -323,8 +333,11 @@ public class SchedulingService : ISchedulingService
                 // Fallback to practitioner home if prev appt has no address
                 var practitioner = await _context
                     .Practitioners.Include(p => p.Addresses)
-                    .ThenInclude(a => a.Address)
-                    .FirstOrDefaultAsync(p => p.PractitionerId == appt.PractitionerId, cancellationToken);
+                        .ThenInclude(a => a.Address)
+                    .FirstOrDefaultAsync(
+                        p => p.PractitionerId == appt.PractitionerId,
+                        cancellationToken
+                    );
                 var home = practitioner?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
                 // Fallback to localized Utah center (Salt Lake City)
                 startLat = home?.Latitude ?? 40.7608;
@@ -336,8 +349,11 @@ public class SchedulingService : ISchedulingService
             // First appointment of the day, use practitioner home
             var practitioner = await _context
                 .Practitioners.Include(p => p.Addresses)
-                .ThenInclude(a => a.Address)
-                .FirstOrDefaultAsync(p => p.PractitionerId == appt.PractitionerId, cancellationToken);
+                    .ThenInclude(a => a.Address)
+                .FirstOrDefaultAsync(
+                    p => p.PractitionerId == appt.PractitionerId,
+                    cancellationToken
+                );
             var home = practitioner?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
             // Fallback to localized Utah center (Salt Lake City)
             startLat = home?.Latitude ?? 40.7608;
@@ -351,7 +367,7 @@ public class SchedulingService : ISchedulingService
             patientAddr.Longitude.Value
         );
         double travelTime = Math.Max(15, GeoUtils.EstimateTravelTimeMinutes(distance));
- 
+
         return (Math.Round(distance, 2), Math.Round(travelTime, 0));
     }
 }

@@ -12,20 +12,20 @@ public class AppointmentResourceConfiguration : IEntityTypeConfiguration<Appoint
 
         builder.HasKey(ar => new { ar.AppointmentId, ar.BlockId });
 
-        builder.Property(ar => ar.AppointmentId)
-               .HasColumnName("appointment_id");
+        builder.Property(ar => ar.AppointmentId).HasColumnName("appointment_id");
 
-        builder.Property(ar => ar.BlockId)
-               .HasColumnName("block_id");
+        builder.Property(ar => ar.BlockId).HasColumnName("block_id");
 
-        builder.HasOne(ar => ar.Appointment)
-               .WithMany(a => a.AppointmentResources)
-               .HasForeignKey(ar => ar.AppointmentId)
-               .OnDelete(DeleteBehavior.Cascade);
+        builder
+            .HasOne(ar => ar.Appointment)
+            .WithMany(a => a.AppointmentResources)
+            .HasForeignKey(ar => ar.AppointmentId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(ar => ar.ScheduleBlock)
-               .WithMany(s => s.AppointmentResources)
-               .HasForeignKey(ar => ar.BlockId)
-               .OnDelete(DeleteBehavior.Cascade);
+        builder
+            .HasOne(ar => ar.ScheduleBlock)
+            .WithMany(s => s.AppointmentResources)
+            .HasForeignKey(ar => ar.BlockId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

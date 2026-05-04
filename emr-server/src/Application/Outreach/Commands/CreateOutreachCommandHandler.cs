@@ -14,7 +14,10 @@ public class CreateOutreachCommandHandler : IRequestHandler<CreateOutreachComman
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreateOutreachCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        CreateOutreachCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var outreach = new PatientOutreach
         {
@@ -29,10 +32,10 @@ public class CreateOutreachCommandHandler : IRequestHandler<CreateOutreachComman
                 Street = request.Street ?? string.Empty,
                 City = request.City ?? string.Empty,
                 State = request.State ?? string.Empty,
-                PostalCode = request.PostalCode ?? string.Empty
+                PostalCode = request.PostalCode ?? string.Empty,
             },
             Status = OutreachStatus.Lead,
-            Notes = request.Notes
+            Notes = request.Notes,
         };
 
         _context.PatientOutreaches.Add(outreach);

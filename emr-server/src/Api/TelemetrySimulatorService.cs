@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.SignalR;
 using Api.Hubs;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api;
@@ -15,7 +15,8 @@ public class TelemetrySimulatorService : BackgroundService
     public TelemetrySimulatorService(
         IHubContext<TelemetryHub> hubContext,
         IServiceScopeFactory scopeFactory,
-        ILogger<TelemetrySimulatorService> logger)
+        ILogger<TelemetrySimulatorService> logger
+    )
     {
         _hubContext = hubContext;
         _scopeFactory = scopeFactory;
@@ -32,10 +33,10 @@ public class TelemetrySimulatorService : BackgroundService
             {
                 using var scope = _scopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                
+
                 // Get all patients to simulate data for
-                var patientIds = await dbContext.Patients
-                    .Select(p => p.PatientId)
+                var patientIds = await dbContext
+                    .Patients.Select(p => p.PatientId)
                     .ToListAsync(stoppingToken);
 
                 foreach (var patientId in patientIds)
@@ -45,11 +46,13 @@ public class TelemetrySimulatorService : BackgroundService
                     {
                         HeartRate = _random.Next(65, 86),
                         SpO2 = _random.Next(94, 100),
-                        Temperature = Math.Round(97.0 + (_random.NextDouble() * 2.5), 1)
+                        Temperature = Math.Round(97.0 + (_random.NextDouble() * 2.5), 1),
                     };
-                    
+
                     // Broadcast the full vitals packet
-                    await _hubContext.Clients.Group(patientId.ToString()).SendAsync("ReceiveVitals", vitals, stoppingToken);
+                    await _hubContext
+                        .Clients.Group(patientId.ToString())
+                        .SendAsync("ReceiveVitals", vitals, stoppingToken);
                 }
             }
             catch (Exception ex)

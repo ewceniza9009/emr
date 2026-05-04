@@ -5,5 +5,5 @@ public enum NavigationTaskStatus
     Pending,
     InProgress,
     Completed,
-    Cancelled
+    Cancelled,
 }

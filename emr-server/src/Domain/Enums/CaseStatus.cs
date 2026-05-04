@@ -5,5 +5,5 @@ public enum CaseStatus
     Open,
     InProgress,
     Closed,
-    Escalated
+    Escalated,
 }

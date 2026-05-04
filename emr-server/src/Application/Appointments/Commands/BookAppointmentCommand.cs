@@ -15,22 +15,31 @@ public record BookAppointmentCommand(
     AppointmentModality Modality,
     double? TravelTimeMinutes = null,
     double? DistanceInMiles = null,
-    Guid? AppointmentId = null) : IRequest<Appointment>;
+    Guid? AppointmentId = null
+) : IRequest<Appointment>;
 
-public class BookAppointmentCommandHandler(IApplicationDbContext context) : IRequestHandler<BookAppointmentCommand, Appointment>
+public class BookAppointmentCommandHandler(IApplicationDbContext context)
+    : IRequestHandler<BookAppointmentCommand, Appointment>
 {
-    public async Task<Appointment> Handle(BookAppointmentCommand request, CancellationToken cancellationToken)
+    public async Task<Appointment> Handle(
+        BookAppointmentCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        var supporting = await context.Practitioners
-            .Where(p => request.SupportingPractitionerIds.Contains(p.PractitionerId))
+        var supporting = await context
+            .Practitioners.Where(p => request.SupportingPractitionerIds.Contains(p.PractitionerId))
             .ToListAsync(cancellationToken);
 
         Appointment appointment;
         if (request.AppointmentId.HasValue && request.AppointmentId.Value != Guid.Empty)
         {
-            appointment = await context.Appointments
-                .Include(a => a.SupportingClinicians)
-                .FirstOrDefaultAsync(a => a.AppointmentId == request.AppointmentId.Value, cancellationToken)
+            appointment =
+                await context
+                    .Appointments.Include(a => a.SupportingClinicians)
+                    .FirstOrDefaultAsync(
+                        a => a.AppointmentId == request.AppointmentId.Value,
+                        cancellationToken
+                    )
                 ?? throw new KeyNotFoundException($"Appointment {request.AppointmentId} not found");
 
             appointment.PatientId = request.PatientId;
@@ -55,7 +64,7 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context) : IReq
                 Status = AppointmentStatus.Scheduled,
                 SupportingClinicians = supporting,
                 TravelTimeMinutes = request.TravelTimeMinutes,
-                DistanceInMiles = request.DistanceInMiles
+                DistanceInMiles = request.DistanceInMiles,
             };
             context.Appointments.Add(appointment);
         }

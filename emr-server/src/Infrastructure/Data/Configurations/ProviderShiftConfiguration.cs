@@ -12,32 +12,22 @@ public class ProviderShiftConfiguration : IEntityTypeConfiguration<ProviderShift
 
         builder.HasKey(ps => ps.ProviderShiftId);
 
-        builder.Property(ps => ps.ProviderShiftId)
-               .HasColumnName("provider_shift_id");
+        builder.Property(ps => ps.ProviderShiftId).HasColumnName("provider_shift_id");
 
-        builder.Property(ps => ps.PractitionerId)
-               .HasColumnName("practitioner_id")
-               .IsRequired();
+        builder.Property(ps => ps.PractitionerId).HasColumnName("practitioner_id").IsRequired();
 
-        builder.Property(ps => ps.DayOfWeek)
-               .HasColumnName("day_of_week")
-               .IsRequired();
+        builder.Property(ps => ps.DayOfWeek).HasColumnName("day_of_week").IsRequired();
 
-        builder.Property(ps => ps.StartTime)
-               .HasColumnName("start_time")
-               .IsRequired();
+        builder.Property(ps => ps.StartTime).HasColumnName("start_time").IsRequired();
 
-        builder.Property(ps => ps.EndTime)
-               .HasColumnName("end_time")
-               .IsRequired();
+        builder.Property(ps => ps.EndTime).HasColumnName("end_time").IsRequired();
 
-        builder.Property(ps => ps.IsActive)
-               .HasColumnName("is_active")
-               .HasDefaultValue(true);
+        builder.Property(ps => ps.IsActive).HasColumnName("is_active").HasDefaultValue(true);
 
-        builder.HasOne(ps => ps.Practitioner)
-               .WithMany()
-               .HasForeignKey(ps => ps.PractitionerId)
-               .OnDelete(DeleteBehavior.Cascade);
+        builder
+            .HasOne(ps => ps.Practitioner)
+            .WithMany()
+            .HasForeignKey(ps => ps.PractitionerId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

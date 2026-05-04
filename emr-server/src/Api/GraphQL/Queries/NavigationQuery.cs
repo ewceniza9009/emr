@@ -13,18 +13,16 @@ public class NavigationQuery
     [UseFiltering]
     [UseSorting]
     public IQueryable<CareNavigationCaseDto> GetCareNavigationCases(
-        [Service] IApplicationDbContext context)
+        [Service] IApplicationDbContext context
+    )
     {
-        return context.CareNavigationCases
-            .AsNoTracking()
-            .ProjectToType<CareNavigationCaseDto>();
+        return context.CareNavigationCases.AsNoTracking().ProjectToType<CareNavigationCaseDto>();
     }
 
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<HealthPlan> GetHealthPlans(
-        [Service] IApplicationDbContext context)
+    public IQueryable<HealthPlan> GetHealthPlans([Service] IApplicationDbContext context)
     {
         return context.HealthPlans.AsNoTracking();
     }
@@ -32,8 +30,7 @@ public class NavigationQuery
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<Facility> GetFacilities(
-        [Service] IApplicationDbContext context)
+    public IQueryable<Facility> GetFacilities([Service] IApplicationDbContext context)
     {
         return context.Facilities.AsNoTracking();
     }
@@ -45,12 +42,8 @@ public class NavigationQuery
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<Practitioner> GetPractitioners(
-        [Service] IApplicationDbContext context)
+    public IQueryable<Practitioner> GetPractitioners([Service] IApplicationDbContext context)
     {
-        return context.Practitioners
-            .Include(p => p.Addresses)
-            .AsNoTracking();
-
+        return context.Practitioners.Include(p => p.Addresses).AsNoTracking();
     }
 }

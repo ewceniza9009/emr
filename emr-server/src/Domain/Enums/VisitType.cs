@@ -8,5 +8,5 @@ public enum VisitType
     AdvanceCarePlanning,
     EmergencyTriage,
     SpiritualAssessment,
-    PsychosocialAssessment
+    PsychosocialAssessment,
 }

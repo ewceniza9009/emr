@@ -10,10 +10,11 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<IConflictEngine, ConflictEngine>();
-        
+
         services.AddValidatorsFromAssembly(typeof(ApplicationAssemblyReference).Assembly);
 
-        services.AddMediatR(cfg => {
+        services.AddMediatR(cfg =>
+        {
             cfg.RegisterServicesFromAssembly(typeof(ApplicationAssemblyReference).Assembly);
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });

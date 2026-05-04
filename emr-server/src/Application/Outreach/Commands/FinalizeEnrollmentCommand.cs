@@ -27,10 +27,11 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
     private readonly ILogger<FinalizeEnrollmentCommandHandler> _logger;
 
     public FinalizeEnrollmentCommandHandler(
-        IApplicationDbContext context, 
-        IMrnGenerator mrnGenerator, 
+        IApplicationDbContext context,
+        IMrnGenerator mrnGenerator,
         IDateTimeProvider dateTimeProvider,
-        ILogger<FinalizeEnrollmentCommandHandler> logger)
+        ILogger<FinalizeEnrollmentCommandHandler> logger
+    )
     {
         _context = context;
         _mrnGenerator = mrnGenerator;
@@ -38,13 +39,22 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         _logger = logger;
     }
 
-    public async Task<Guid> Handle(FinalizeEnrollmentCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        FinalizeEnrollmentCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        _logger.LogInformation("Finalizing enrollment for Outreach ID: {OutreachId}", request.PatientOutreachId);
+        _logger.LogInformation(
+            "Finalizing enrollment for Outreach ID: {OutreachId}",
+            request.PatientOutreachId
+        );
 
-        var outreach = await _context.PatientOutreaches
-            .Include(x => x.OtherContacts)
-            .FirstOrDefaultAsync(x => x.PatientOutreachId == request.PatientOutreachId, cancellationToken);
+        var outreach = await _context
+            .PatientOutreaches.Include(x => x.OtherContacts)
+            .FirstOrDefaultAsync(
+                x => x.PatientOutreachId == request.PatientOutreachId,
+                cancellationToken
+            );
 
         if (outreach == null)
         {
@@ -55,10 +65,18 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         var mrn = await _mrnGenerator.GenerateMrnAsync(cancellationToken);
 
         // 2. Create Patient Record
-        var patient = Patient.CreateFromOutreach(outreach, mrn, request.HealthPlanId, _dateTimeProvider.UtcNow);
+        var patient = Patient.CreateFromOutreach(
+            outreach,
+            mrn,
+            request.HealthPlanId,
+            _dateTimeProvider.UtcNow
+        );
 
         // Map remaining command-specific fields
-        patient.CommunicationStatus = Enum.Parse<CommunicationAbility>(request.CommunicationStatus, true);
+        patient.CommunicationStatus = Enum.Parse<CommunicationAbility>(
+            request.CommunicationStatus,
+            true
+        );
         patient.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess, true);
         patient.BarriersToCare = request.BarriersToCare;
 
@@ -70,14 +88,21 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         outreach.SelectedModality = Enum.Parse<CareModality>(request.Modality, true);
         outreach.HealthPlanId = request.HealthPlanId;
         outreach.Disposition = Enum.Parse<EnrollmentDisposition>(request.Disposition, true);
-        outreach.CommunicationStatus = Enum.Parse<CommunicationAbility>(request.CommunicationStatus, true);
+        outreach.CommunicationStatus = Enum.Parse<CommunicationAbility>(
+            request.CommunicationStatus,
+            true
+        );
         outreach.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess, true);
         outreach.BarriersToCare = request.BarriersToCare;
         outreach.UpdatedAt = _dateTimeProvider.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Successfully enrolled patient. MRN: {MRN}, Patient ID: {PatientId}", mrn, patient.PatientId);
+        _logger.LogInformation(
+            "Successfully enrolled patient. MRN: {MRN}, Patient ID: {PatientId}",
+            mrn,
+            patient.PatientId
+        );
 
         return patient.PatientId;
     }

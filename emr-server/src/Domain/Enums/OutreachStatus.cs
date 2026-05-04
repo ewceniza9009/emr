@@ -8,5 +8,5 @@ public enum OutreachStatus
     Interested = 3,
     Enrolled = 4,
     Refused = 5,
-    OnHold = 6
+    OnHold = 6,
 }

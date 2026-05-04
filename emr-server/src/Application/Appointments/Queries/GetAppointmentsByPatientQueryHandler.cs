@@ -6,7 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Appointments.Queries;
 
-public class GetAppointmentsByPatientQueryHandler : IRequestHandler<GetAppointmentsByPatientQuery, List<AppointmentDto>>
+public class GetAppointmentsByPatientQueryHandler
+    : IRequestHandler<GetAppointmentsByPatientQuery, List<AppointmentDto>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -15,10 +16,13 @@ public class GetAppointmentsByPatientQueryHandler : IRequestHandler<GetAppointme
         _context = context;
     }
 
-    public async Task<List<AppointmentDto>> Handle(GetAppointmentsByPatientQuery request, CancellationToken cancellationToken)
+    public async Task<List<AppointmentDto>> Handle(
+        GetAppointmentsByPatientQuery request,
+        CancellationToken cancellationToken
+    )
     {
-        var appointments = await _context.Appointments
-            .AsNoTracking()
+        var appointments = await _context
+            .Appointments.AsNoTracking()
             .Where(a => a.PatientId == request.PatientId)
             .OrderBy(a => a.ScheduledStart)
             .ToListAsync(cancellationToken);

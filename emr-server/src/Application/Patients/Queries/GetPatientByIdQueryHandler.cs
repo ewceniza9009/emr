@@ -15,16 +15,19 @@ public class GetPatientByIdQueryHandler : IRequestHandler<GetPatientByIdQuery, P
         _context = context;
     }
 
-    public async Task<PatientDto?> Handle(GetPatientByIdQuery request, CancellationToken cancellationToken)
+    public async Task<PatientDto?> Handle(
+        GetPatientByIdQuery request,
+        CancellationToken cancellationToken
+    )
     {
-        var patient = await _context.Patients
-            .Include(p => p.Addresses)
+        var patient = await _context
+            .Patients.Include(p => p.Addresses)
             .Include(p => p.Phones)
             .Include(p => p.Emails)
             .FirstOrDefaultAsync(p => p.PatientId == request.PatientId, cancellationToken);
 
-
-        if (patient is null) return null;
+        if (patient is null)
+            return null;
 
         return patient.Adapt<PatientDto>();
     }

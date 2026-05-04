@@ -1,9 +1,9 @@
+using System.Text.Json;
 using Application.Common.Interfaces;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace Infrastructure.Integrations.Elation;
 
@@ -15,7 +15,12 @@ public class ElationClient : IElationClient
 
     private readonly IConfiguration _configuration;
 
-    public ElationClient(HttpClient httpClient, IApplicationDbContext context, ILogger<ElationClient> logger, IConfiguration configuration)
+    public ElationClient(
+        HttpClient httpClient,
+        IApplicationDbContext context,
+        ILogger<ElationClient> logger,
+        IConfiguration configuration
+    )
     {
         _httpClient = httpClient;
         _context = context;
@@ -29,25 +34,34 @@ public class ElationClient : IElationClient
         }
     }
 
-    public async Task<bool> PushSoapNoteAsync(Guid encounterId, CancellationToken cancellationToken = default)
+    public async Task<bool> PushSoapNoteAsync(
+        Guid encounterId,
+        CancellationToken cancellationToken = default
+    )
     {
-        var encounter = await _context.ClinicalEncounters
-            .Include(x => x.Patient)
+        var encounter = await _context
+            .ClinicalEncounters.Include(x => x.Patient)
             .Include(x => x.ClinicalNotes)
             .FirstOrDefaultAsync(x => x.EncounterId == encounterId, cancellationToken);
 
-        if (encounter == null) return false;
+        if (encounter == null)
+            return false;
 
-        _logger.LogInformation("Pushing SOAP Note to Elation for Patient {PatientName} (MRN: {Mrn})", 
-            $"{encounter.Patient.FirstName} {encounter.Patient.LastName}", 
-            encounter.Patient.Mrn);
+        _logger.LogInformation(
+            "Pushing SOAP Note to Elation for Patient {PatientName} (MRN: {Mrn})",
+            $"{encounter.Patient.FirstName} {encounter.Patient.LastName}",
+            encounter.Patient.Mrn
+        );
 
         // Simulation of Elation API Payload
         var payload = new
         {
             patient_id = encounter.Patient.ExternalId ?? "EL-EXT-001",
             note_type = "Palliative SOAP",
-            content = string.Join("\n", encounter.ClinicalNotes.Select(n => $"{n.Type}: {n.Content}"))
+            content = string.Join(
+                "\n",
+                encounter.ClinicalNotes.Select(n => $"{n.Type}: {n.Content}")
+            ),
         };
 
         _logger.LogDebug("Elation Payload: {Payload}", JsonSerializer.Serialize(payload));
@@ -59,12 +73,22 @@ public class ElationClient : IElationClient
         return true; // Mock success for now
     }
 
-    public async Task<bool> SyncPatientDemographicsAsync(Guid patientId, CancellationToken cancellationToken = default)
+    public async Task<bool> SyncPatientDemographicsAsync(
+        Guid patientId,
+        CancellationToken cancellationToken = default
+    )
     {
-        var patient = await _context.Patients.FirstOrDefaultAsync(x => x.PatientId == patientId, cancellationToken);
-        if (patient == null) return false;
+        var patient = await _context.Patients.FirstOrDefaultAsync(
+            x => x.PatientId == patientId,
+            cancellationToken
+        );
+        if (patient == null)
+            return false;
 
-        _logger.LogInformation("Syncing Demographics from Elation for Patient ID: {PatientId}", patientId);
+        _logger.LogInformation(
+            "Syncing Demographics from Elation for Patient ID: {PatientId}",
+            patientId
+        );
 
         // Actual implementation would pull from Elation and update local patient record
         // patient.FirstName = elationData.FirstName;

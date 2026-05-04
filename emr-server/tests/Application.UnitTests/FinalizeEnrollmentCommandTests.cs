@@ -1,3 +1,4 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Outreach.Commands;
 using Domain.Entities;
@@ -7,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using MockQueryable.Moq;
 using Moq;
 using Xunit;
-using Application.Common.Exceptions;
 
 namespace Application.UnitTests.Outreach.Commands;
 
@@ -25,13 +25,14 @@ public class FinalizeEnrollmentCommandTests
         _mockMrnGenerator = new Mock<IMrnGenerator>();
         _mockDateTimeProvider = new Mock<IDateTimeProvider>();
         _mockLogger = new Mock<ILogger<FinalizeEnrollmentCommandHandler>>();
-        
+
         _handler = new FinalizeEnrollmentCommandHandler(
-            _mockContext.Object, 
-            _mockMrnGenerator.Object, 
-            _mockDateTimeProvider.Object, 
-            _mockLogger.Object);
-            
+            _mockContext.Object,
+            _mockMrnGenerator.Object,
+            _mockDateTimeProvider.Object,
+            _mockLogger.Object
+        );
+
         _mockDateTimeProvider.Setup(d => d.UtcNow).Returns(DateTimeOffset.UtcNow);
     }
 
@@ -40,12 +41,12 @@ public class FinalizeEnrollmentCommandTests
     {
         // Arrange
         var outreachId = Guid.NewGuid();
-        var outreach = new PatientOutreach 
-        { 
+        var outreach = new PatientOutreach
+        {
             PatientOutreachId = outreachId,
             FirstName = "John",
             LastName = "Doe",
-            Status = OutreachStatus.Lead
+            Status = OutreachStatus.Lead,
         };
 
         var command = new FinalizeEnrollmentCommand
@@ -55,11 +56,13 @@ public class FinalizeEnrollmentCommandTests
             HealthPlanId = Guid.NewGuid(),
             Disposition = "Cooperative",
             CommunicationStatus = "Verbal",
-            TechAccess = "HighLiteracy"
+            TechAccess = "HighLiteracy",
         };
 
         var mrn = "MRN12345";
-        _mockMrnGenerator.Setup(g => g.GenerateMrnAsync(It.IsAny<CancellationToken>())).ReturnsAsync(mrn);
+        _mockMrnGenerator
+            .Setup(g => g.GenerateMrnAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mrn);
 
         var outreaches = new List<PatientOutreach> { outreach }.BuildMockDbSet();
         var patients = new List<Patient>().BuildMockDbSet();
@@ -74,7 +77,7 @@ public class FinalizeEnrollmentCommandTests
         result.Should().NotBeEmpty();
         outreach.Status.Should().Be(OutreachStatus.Enrolled);
         outreach.EnrolledPatientId.Should().Be(result);
-        
+
         _mockContext.Verify(c => c.Patients.Add(It.IsAny<Patient>()), Times.Once);
         _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }

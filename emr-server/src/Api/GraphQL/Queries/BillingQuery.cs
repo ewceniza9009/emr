@@ -1,5 +1,5 @@
-using Application.Common.Interfaces;
 using Application.Billing.Dtos;
+using Application.Common.Interfaces;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,11 +11,8 @@ public class BillingQuery
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<ZBenefitClaimDto> GetZBenefitClaims(
-        [Service] IApplicationDbContext context)
+    public IQueryable<ZBenefitClaimDto> GetZBenefitClaims([Service] IApplicationDbContext context)
     {
-        return context.ZBenefitClaims
-            .AsNoTracking()
-            .ProjectToType<ZBenefitClaimDto>();
+        return context.ZBenefitClaims.AsNoTracking().ProjectToType<ZBenefitClaimDto>();
     }
 }

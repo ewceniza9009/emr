@@ -13,7 +13,7 @@ public class PatientDto
     public string BiologicalSex { get; set; } = string.Empty;
     public string? GenderIdentity { get; set; }
     public string? PhilhealthNumber { get; set; }
-    
+
     public ICollection<EntityAddressDto> Addresses { get; set; } = new List<EntityAddressDto>();
 
     public DateTimeOffset CreatedAt { get; set; }

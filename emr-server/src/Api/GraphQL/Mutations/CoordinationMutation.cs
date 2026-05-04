@@ -8,7 +8,8 @@ public class CoordinationMutation
 {
     public async Task<Guid> UpdateAdvanceDirective(
         UpdateAdvanceDirectiveCommand command,
-        [Service] IMediator mediator)
+        [Service] IMediator mediator
+    )
     {
         return await mediator.Send(command);
     }

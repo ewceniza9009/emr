@@ -1,6 +1,5 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
-using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,10 +27,15 @@ public class SaveClinicalNoteCommandHandler : IRequestHandler<SaveClinicalNoteCo
         _dateTime = dateTime;
     }
 
-    public async Task<Guid> Handle(SaveClinicalNoteCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        SaveClinicalNoteCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        var note = await _context.ClinicalNotes
-            .FirstOrDefaultAsync(n => n.EncounterId == request.EncounterId, cancellationToken);
+        var note = await _context.ClinicalNotes.FirstOrDefaultAsync(
+            n => n.EncounterId == request.EncounterId,
+            cancellationToken
+        );
 
         if (note == null)
         {
@@ -39,7 +43,7 @@ public class SaveClinicalNoteCommandHandler : IRequestHandler<SaveClinicalNoteCo
             {
                 EncounterId = request.EncounterId,
                 AuthorId = request.AuthorId,
-                CreatedAt = _dateTime.UtcNow
+                CreatedAt = _dateTime.UtcNow,
             };
             _context.ClinicalNotes.Add(note);
         }
@@ -58,7 +62,8 @@ public class SaveClinicalNoteCommandHandler : IRequestHandler<SaveClinicalNoteCo
         }
 
         // Render full content for search/legacy display
-        note.Content = $"S: {note.Subjective}\nO: {note.Objective}\nA: {note.Assessment}\nP: {note.Plan}";
+        note.Content =
+            $"S: {note.Subjective}\nO: {note.Objective}\nA: {note.Assessment}\nP: {note.Plan}";
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -5,5 +5,5 @@ public enum AcuityLevel
     Low,
     Moderate,
     High,
-    Critical
+    Critical,
 }

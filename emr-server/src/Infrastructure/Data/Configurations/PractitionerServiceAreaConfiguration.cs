@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Data.Configurations;
 
-public class PractitionerServiceAreaConfiguration : IEntityTypeConfiguration<PractitionerServiceArea>
+public class PractitionerServiceAreaConfiguration
+    : IEntityTypeConfiguration<PractitionerServiceArea>
 {
     public void Configure(EntityTypeBuilder<PractitionerServiceArea> builder)
     {
@@ -12,27 +13,20 @@ public class PractitionerServiceAreaConfiguration : IEntityTypeConfiguration<Pra
 
         builder.HasKey(s => s.ServiceAreaId);
 
-        builder.Property(s => s.ServiceAreaId)
-               .HasColumnName("service_area_id");
+        builder.Property(s => s.ServiceAreaId).HasColumnName("service_area_id");
 
-        builder.Property(s => s.PractitionerId)
-               .HasColumnName("practitioner_id")
-               .IsRequired();
+        builder.Property(s => s.PractitionerId).HasColumnName("practitioner_id").IsRequired();
 
-        builder.Property(s => s.ZipCode)
-               .HasColumnName("zip_code")
-               .HasMaxLength(20)
-               .IsRequired();
+        builder.Property(s => s.ZipCode).HasColumnName("zip_code").HasMaxLength(20).IsRequired();
 
-        builder.Property(s => s.County)
-               .HasColumnName("county")
-               .HasMaxLength(100);
+        builder.Property(s => s.County).HasColumnName("county").HasMaxLength(100);
 
-        builder.HasOne(s => s.Practitioner)
-               .WithMany(p => p.ServiceAreas)
-               .HasForeignKey(s => s.PractitionerId)
-               .OnDelete(DeleteBehavior.Cascade);
-               
+        builder
+            .HasOne(s => s.Practitioner)
+            .WithMany(p => p.ServiceAreas)
+            .HasForeignKey(s => s.PractitionerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Index for fast zip code lookups
         builder.HasIndex(s => s.ZipCode);
     }

@@ -1,8 +1,8 @@
+using System.Text.Json;
 using Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace Infrastructure.Integrations.CareSource;
 
@@ -13,7 +13,12 @@ public class CareSourceClient : ICareSourceClient
     private readonly ILogger<CareSourceClient> _logger;
     private readonly IConfiguration _configuration;
 
-    public CareSourceClient(HttpClient httpClient, IApplicationDbContext context, ILogger<CareSourceClient> logger, IConfiguration configuration)
+    public CareSourceClient(
+        HttpClient httpClient,
+        IApplicationDbContext context,
+        ILogger<CareSourceClient> logger,
+        IConfiguration configuration
+    )
     {
         _httpClient = httpClient;
         _context = context;
@@ -27,16 +32,28 @@ public class CareSourceClient : ICareSourceClient
         }
     }
 
-    public async Task<bool> ReportPalliativeMetricsAsync(Guid patientId, DateTimeOffset startDate, DateTimeOffset endDate, CancellationToken cancellationToken = default)
+    public async Task<bool> ReportPalliativeMetricsAsync(
+        Guid patientId,
+        DateTimeOffset startDate,
+        DateTimeOffset endDate,
+        CancellationToken cancellationToken = default
+    )
     {
         // Aggregate ESAS and PPS data for the period
-        var assessments = await _context.EsasAssessments
-            .Where(x => x.PatientId == patientId && x.AssessedAt >= startDate && x.AssessedAt <= endDate)
+        var assessments = await _context
+            .EsasAssessments.Where(x =>
+                x.PatientId == patientId && x.AssessedAt >= startDate && x.AssessedAt <= endDate
+            )
             .ToListAsync(cancellationToken);
 
-        if (!assessments.Any()) 
+        if (!assessments.Any())
         {
-            _logger.LogWarning("No assessments found for CareSource reporting for Patient {PatientId} in period {Start} to {End}", patientId, startDate, endDate);
+            _logger.LogWarning(
+                "No assessments found for CareSource reporting for Patient {PatientId} in period {Start} to {End}",
+                patientId,
+                startDate,
+                endDate
+            );
             return false;
         }
 
@@ -48,10 +65,13 @@ public class CareSourceClient : ICareSourceClient
             avg_pain = assessments.Average(x => x.Pain),
             avg_wellbeing = assessments.Average(x => x.Wellbeing),
             assessment_count = assessments.Count,
-            submission_type = "Monthly Palliative Summary"
+            submission_type = "Monthly Palliative Summary",
         };
 
-        _logger.LogInformation("Submitting CareSource Palliative Report: {Report}", JsonSerializer.Serialize(report));
+        _logger.LogInformation(
+            "Submitting CareSource Palliative Report: {Report}",
+            JsonSerializer.Serialize(report)
+        );
 
         // Actual implementation would be:
         // await _httpClient.PostAsJsonAsync("/reporting/palliative", report, cancellationToken);

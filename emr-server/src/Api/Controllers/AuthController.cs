@@ -27,7 +27,7 @@ public class AuthController : ControllerBase
     {
         Console.WriteLine($"[AUTH] Login attempt for: {request.Email}");
         var user = await _userManager.FindByEmailAsync(request.Email);
-        
+
         if (user == null)
         {
             Console.WriteLine($"[AUTH] User NOT found: {request.Email}");
@@ -44,7 +44,7 @@ public class AuthController : ControllerBase
             {
                 new Claim(ClaimTypes.Name, user.Email!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("userId", user.Id)
+                new Claim("userId", user.Id),
             };
 
             if (user.PractitionerId.HasValue)
@@ -57,22 +57,37 @@ public class AuthController : ControllerBase
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
             }
 
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? "SUPER_SECRET_KEY_FOR_DEVELOPMENT_ONLY_123!"));
+            var authSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(
+                    _configuration["Jwt:Key"] ?? "SUPER_SECRET_KEY_FOR_DEVELOPMENT_ONLY_123!"
+                )
+            );
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 expires: DateTime.Now.AddHours(3),
                 claims: authClaims,
-                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                );
+                signingCredentials: new SigningCredentials(
+                    authSigningKey,
+                    SecurityAlgorithms.HmacSha256
+                )
+            );
 
-            return Ok(new
-            {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                expiration = token.ValidTo,
-                user = new { user.FirstName, user.LastName, user.Email, Roles = userRoles }
-            });
+            return Ok(
+                new
+                {
+                    token = new JwtSecurityTokenHandler().WriteToken(token),
+                    expiration = token.ValidTo,
+                    user = new
+                    {
+                        user.FirstName,
+                        user.LastName,
+                        user.Email,
+                        Roles = userRoles,
+                    },
+                }
+            );
         }
         return Unauthorized();
     }

@@ -14,7 +14,8 @@ public class AppointmentQuery
     public async Task<List<AppointmentDto>> GetAppointmentsByPatient(
         Guid patientId,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return await mediator.Send(new GetAppointmentsByPatientQuery(patientId), cancellationToken);
     }
@@ -26,41 +27,35 @@ public class AppointmentQuery
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<Appointment> GetAppointments(
-        [Service] IApplicationDbContext context)
+    public IQueryable<Appointment> GetAppointments([Service] IApplicationDbContext context)
     {
-        return context.Appointments
-            .Include(a => a.Patient).ThenInclude(p => p!.Addresses)
+        return context
+            .Appointments.Include(a => a.Patient)
+                .ThenInclude(p => p!.Addresses)
             .Include(a => a.Practitioner)
             .Include(a => a.SupportingClinicians)
             .AsNoTracking();
-
     }
 
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<ScheduleBlock> GetScheduleBlocks(
-        [Service] IApplicationDbContext context)
+    public IQueryable<ScheduleBlock> GetScheduleBlocks([Service] IApplicationDbContext context)
     {
-        return context.ScheduleBlocks
-            .Include(b => b.Practitioner)
-            .AsNoTracking();
+        return context.ScheduleBlocks.Include(b => b.Practitioner).AsNoTracking();
     }
 
     [UseFirstOrDefault]
     [UseProjection]
-    public IQueryable<Appointment> GetAppointment(
-        Guid id,
-        [Service] IApplicationDbContext context)
+    public IQueryable<Appointment> GetAppointment(Guid id, [Service] IApplicationDbContext context)
     {
-        return context.Appointments
-            .Where(a => a.AppointmentId == id)
-            .Include(a => a.Patient).ThenInclude(p => p!.Addresses)
+        return context
+            .Appointments.Where(a => a.AppointmentId == id)
+            .Include(a => a.Patient)
+                .ThenInclude(p => p!.Addresses)
             .Include(a => a.Practitioner)
             .Include(a => a.SupportingClinicians)
             .AsNoTracking();
-
     }
 
     /// <summary>
@@ -73,10 +68,12 @@ public class AppointmentQuery
         int durationMinutes,
         AppointmentModality modality,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return await mediator.Send(
             new GetAvailableProvidersQuery(patientId, targetStart, durationMinutes, modality),
-            cancellationToken);
+            cancellationToken
+        );
     }
 }

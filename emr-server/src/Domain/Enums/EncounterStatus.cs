@@ -8,5 +8,5 @@ public enum EncounterStatus
     InProgress,
     Discharged,
     Completed,
-    Cancelled
+    Cancelled,
 }

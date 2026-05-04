@@ -10,13 +10,19 @@ public class LogEsasAssessmentCommandHandler : IRequestHandler<LogEsasAssessment
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTime;
 
-    public LogEsasAssessmentCommandHandler(IApplicationDbContext context, IDateTimeProvider dateTime)
+    public LogEsasAssessmentCommandHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTime
+    )
     {
         _context = context;
         _dateTime = dateTime;
     }
 
-    public async Task<Guid> Handle(LogEsasAssessmentCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        LogEsasAssessmentCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var assessment = request.Adapt<EsasAssessment>();
         assessment.AssessmentId = Guid.NewGuid();

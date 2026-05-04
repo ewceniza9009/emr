@@ -9,7 +9,8 @@ public class PatientMutation
     public async Task<Guid> CreatePatient(
         CreatePatientCommand input,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return await mediator.Send(input, cancellationToken);
     }

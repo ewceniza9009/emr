@@ -11,18 +11,23 @@ public class AppointmentMutation
     public async Task<Appointment> BookAppointment(
         BookAppointmentInput input,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        return await mediator.Send(new BookAppointmentCommand(
-            input.PatientId,
-            input.PractitionerId,
-            input.SupportingPractitionerIds,
-            input.ScheduledStart,
-            input.ScheduledEnd,
-            input.Modality,
-            null, // TravelTimeMinutes
-            null, // DistanceInMiles
-            input.AppointmentId), cancellationToken);
+        return await mediator.Send(
+            new BookAppointmentCommand(
+                input.PatientId,
+                input.PractitionerId,
+                input.SupportingPractitionerIds,
+                input.ScheduledStart,
+                input.ScheduledEnd,
+                input.Modality,
+                null, // TravelTimeMinutes
+                null, // DistanceInMiles
+                input.AppointmentId
+            ),
+            cancellationToken
+        );
     }
 
     public async Task<Appointment> RescheduleAppointment(
@@ -30,12 +35,13 @@ public class AppointmentMutation
         DateTimeOffset newStart,
         DateTimeOffset newEnd,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        return await mediator.Send(new RescheduleAppointmentCommand(
-            appointmentId,
-            newStart,
-            newEnd), cancellationToken);
+        return await mediator.Send(
+            new RescheduleAppointmentCommand(appointmentId, newStart, newEnd),
+            cancellationToken
+        );
     }
 
     public async Task<ScheduleBlock> UpdateScheduleBlock(
@@ -43,12 +49,13 @@ public class AppointmentMutation
         DateTimeOffset newStart,
         DateTimeOffset newEnd,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        return await mediator.Send(new UpdateScheduleBlockCommand(
-            blockId,
-            newStart,
-            newEnd), cancellationToken);
+        return await mediator.Send(
+            new UpdateScheduleBlockCommand(blockId, newStart, newEnd),
+            cancellationToken
+        );
     }
 }
 
@@ -59,4 +66,5 @@ public record BookAppointmentInput(
     DateTimeOffset ScheduledStart,
     DateTimeOffset ScheduledEnd,
     AppointmentModality Modality,
-    Guid? AppointmentId = null);
+    Guid? AppointmentId = null
+);

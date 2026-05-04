@@ -6,18 +6,25 @@ using MediatR;
 
 namespace Application.Navigation.Commands;
 
-public class CreateCareNavigationCaseCommandHandler : IRequestHandler<CreateCareNavigationCaseCommand, Guid>
+public class CreateCareNavigationCaseCommandHandler
+    : IRequestHandler<CreateCareNavigationCaseCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTime;
 
-    public CreateCareNavigationCaseCommandHandler(IApplicationDbContext context, IDateTimeProvider dateTime)
+    public CreateCareNavigationCaseCommandHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTime
+    )
     {
         _context = context;
         _dateTime = dateTime;
     }
 
-    public async Task<Guid> Handle(CreateCareNavigationCaseCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        CreateCareNavigationCaseCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var navCase = request.Adapt<CareNavigationCase>();
         navCase.CaseId = Guid.NewGuid();

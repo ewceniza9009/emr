@@ -1,23 +1,29 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
-using Mapster;
 using MediatR;
 
 namespace Application.Clinical.Commands;
 
-public class CreateClinicalEncounterCommandHandler : IRequestHandler<CreateClinicalEncounterCommand, Guid>
+public class CreateClinicalEncounterCommandHandler
+    : IRequestHandler<CreateClinicalEncounterCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTime;
 
-    public CreateClinicalEncounterCommandHandler(IApplicationDbContext context, IDateTimeProvider dateTime)
+    public CreateClinicalEncounterCommandHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTime
+    )
     {
         _context = context;
         _dateTime = dateTime;
     }
 
-    public async Task<Guid> Handle(CreateClinicalEncounterCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        CreateClinicalEncounterCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var encounter = new ClinicalEncounter
         {
@@ -27,7 +33,7 @@ public class CreateClinicalEncounterCommandHandler : IRequestHandler<CreateClini
             AppointmentId = request.AppointmentId,
             Status = EncounterStatus.InProgress,
             AdmittedAt = _dateTime.UtcNow,
-            ChiefComplaint = request.ChiefComplaint
+            ChiefComplaint = request.ChiefComplaint,
         };
 
         // Create the initial clinical note
@@ -39,7 +45,7 @@ public class CreateClinicalEncounterCommandHandler : IRequestHandler<CreateClini
             Content = request.Notes,
             CreatedAt = _dateTime.UtcNow,
             IsSigned = false,
-            Type = NoteType.Progress
+            Type = NoteType.Progress,
         };
 
         _context.ClinicalEncounters.Add(encounter);

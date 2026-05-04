@@ -15,7 +15,7 @@ public record CompleteGuidedEncounterCommand : IRequest<Guid>
     public string Objective { get; init; } = string.Empty;
     public string Assessment { get; init; } = string.Empty;
     public string Plan { get; init; } = string.Empty;
-    
+
     // ESAS Scores
     public int Pain { get; init; }
     public int Tiredness { get; init; }
@@ -28,24 +28,32 @@ public record CompleteGuidedEncounterCommand : IRequest<Guid>
     public int Wellbeing { get; init; }
 }
 
-public class CompleteGuidedEncounterCommandHandler : IRequestHandler<CompleteGuidedEncounterCommand, Guid>
+public class CompleteGuidedEncounterCommandHandler
+    : IRequestHandler<CompleteGuidedEncounterCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
     private readonly IElationClient _elationClient;
 
-    public CompleteGuidedEncounterCommandHandler(IApplicationDbContext context, IElationClient elationClient)
+    public CompleteGuidedEncounterCommandHandler(
+        IApplicationDbContext context,
+        IElationClient elationClient
+    )
     {
         _context = context;
         _elationClient = elationClient;
     }
 
-    public async Task<Guid> Handle(CompleteGuidedEncounterCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        CompleteGuidedEncounterCommand request,
+        CancellationToken cancellationToken
+    )
     {
-        var encounter = await _context.ClinicalEncounters
-            .Include(x => x.Patient)
+        var encounter = await _context
+            .ClinicalEncounters.Include(x => x.Patient)
             .FirstOrDefaultAsync(x => x.EncounterId == request.EncounterId, cancellationToken);
 
-        if (encounter == null) throw new Exception("Encounter not found");
+        if (encounter == null)
+            throw new Exception("Encounter not found");
 
         // 1. Update Encounter Header
         encounter.Type = request.Type;
@@ -67,24 +75,44 @@ public class CompleteGuidedEncounterCommandHandler : IRequestHandler<CompleteGui
             Depression = request.Depression,
             Anxiety = request.Anxiety,
             Wellbeing = request.Wellbeing,
-            AssessedAt = DateTimeOffset.UtcNow
+            AssessedAt = DateTimeOffset.UtcNow,
         };
         _context.EsasAssessments.Add(esas);
 
         // 3. Add SOAP Notes as ClinicalNotes
         var notes = new List<ClinicalNote>
         {
-            new ClinicalNote { EncounterId = encounter.EncounterId, Type = NoteType.Subjective, Content = request.Subjective },
-            new ClinicalNote { EncounterId = encounter.EncounterId, Type = NoteType.Objective, Content = request.Objective },
-            new ClinicalNote { EncounterId = encounter.EncounterId, Type = NoteType.Assessment, Content = request.Assessment },
-            new ClinicalNote { EncounterId = encounter.EncounterId, Type = NoteType.Plan, Content = request.Plan }
+            new ClinicalNote
+            {
+                EncounterId = encounter.EncounterId,
+                Type = NoteType.Subjective,
+                Content = request.Subjective,
+            },
+            new ClinicalNote
+            {
+                EncounterId = encounter.EncounterId,
+                Type = NoteType.Objective,
+                Content = request.Objective,
+            },
+            new ClinicalNote
+            {
+                EncounterId = encounter.EncounterId,
+                Type = NoteType.Assessment,
+                Content = request.Assessment,
+            },
+            new ClinicalNote
+            {
+                EncounterId = encounter.EncounterId,
+                Type = NoteType.Plan,
+                Content = request.Plan,
+            },
         };
         _context.ClinicalNotes.AddRange(notes);
 
         await _context.SaveChangesAsync(cancellationToken);
 
         // 4. Trigger External Sync to Elation Health
-        try 
+        try
         {
             await _elationClient.PushSoapNoteAsync(encounter.EncounterId, cancellationToken);
         }

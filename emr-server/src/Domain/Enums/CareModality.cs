@@ -6,5 +6,5 @@ public enum CareModality
     InPatientHospice,
     OutpatientClinic,
     VirtualCare,
-    HybridCare
+    HybridCare,
 }

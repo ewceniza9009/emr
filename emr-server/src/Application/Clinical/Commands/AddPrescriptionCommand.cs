@@ -1,6 +1,5 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
-using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,11 +27,16 @@ public class AddPrescriptionCommandHandler : IRequestHandler<AddPrescriptionComm
         _context = context;
     }
 
-    public async Task<Guid> Handle(AddPrescriptionCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        AddPrescriptionCommand request,
+        CancellationToken cancellationToken
+    )
     {
         // 1. Find or Create Medication in Catalog
-        var medication = await _context.Medications
-            .FirstOrDefaultAsync(x => x.Name == request.MedicationName && x.Strength == request.Strength, cancellationToken);
+        var medication = await _context.Medications.FirstOrDefaultAsync(
+            x => x.Name == request.MedicationName && x.Strength == request.Strength,
+            cancellationToken
+        );
 
         if (medication == null)
         {
@@ -40,7 +44,7 @@ public class AddPrescriptionCommandHandler : IRequestHandler<AddPrescriptionComm
             {
                 Name = request.MedicationName,
                 Strength = request.Strength,
-                DefaultRoute = request.Route
+                DefaultRoute = request.Route,
             };
             _context.Medications.Add(medication);
         }
@@ -58,7 +62,7 @@ public class AddPrescriptionCommandHandler : IRequestHandler<AddPrescriptionComm
             StartDate = request.StartDate,
             IsActive = true,
             SignatureHash = request.DigitalSignature,
-            SignedAt = DateTimeOffset.UtcNow
+            SignedAt = DateTimeOffset.UtcNow,
         };
 
         _context.Prescriptions.Add(prescription);

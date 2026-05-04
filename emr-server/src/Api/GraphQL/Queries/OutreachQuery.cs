@@ -10,8 +10,7 @@ public class OutreachQuery
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<PatientOutreach> GetOutreaches(
-        [Service] IApplicationDbContext context)
+    public IQueryable<PatientOutreach> GetOutreaches([Service] IApplicationDbContext context)
     {
         return context.PatientOutreaches.AsNoTracking();
     }
@@ -20,12 +19,12 @@ public class OutreachQuery
     [UseProjection]
     public IQueryable<PatientOutreach> GetOutreachById(
         Guid outreachId,
-        [Service] IApplicationDbContext context)
+        [Service] IApplicationDbContext context
+    )
     {
-        return context.PatientOutreaches
-            .Include(o => o.OtherContacts)
+        return context
+            .PatientOutreaches.Include(o => o.OtherContacts)
             .Where(o => o.PatientOutreachId == outreachId)
             .AsNoTracking();
-
     }
 }

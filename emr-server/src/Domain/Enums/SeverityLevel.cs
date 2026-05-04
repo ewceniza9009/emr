@@ -5,5 +5,5 @@ public enum SeverityLevel
     Mild,
     Moderate,
     Severe,
-    LifeThreatening
+    LifeThreatening,
 }

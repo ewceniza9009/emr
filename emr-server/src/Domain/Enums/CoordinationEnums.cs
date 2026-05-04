@@ -7,7 +7,7 @@ public enum DirectiveType
     FullCode,
     LivingWill,
     HealthcareProxy,
-    ComfortMeasuresOnly
+    ComfortMeasuresOnly,
 }
 
 public enum FacilityType
@@ -16,5 +16,5 @@ public enum FacilityType
     NursingHome,
     AssistedLiving,
     HospiceHouse,
-    Clinic
+    Clinic,
 }

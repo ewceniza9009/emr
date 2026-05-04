@@ -6,5 +6,5 @@ public enum InvoiceStatus
     Issued,
     Paid,
     Overdue,
-    Cancelled
+    Cancelled,
 }

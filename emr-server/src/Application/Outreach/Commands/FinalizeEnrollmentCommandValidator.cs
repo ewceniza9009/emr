@@ -6,16 +6,12 @@ public class FinalizeEnrollmentCommandValidator : AbstractValidator<FinalizeEnro
 {
     public FinalizeEnrollmentCommandValidator()
     {
-        RuleFor(v => v.PatientOutreachId)
-            .NotEmpty();
+        RuleFor(v => v.PatientOutreachId).NotEmpty();
 
-        RuleFor(v => v.Modality)
-            .NotEmpty();
+        RuleFor(v => v.Modality).NotEmpty();
 
-        RuleFor(v => v.Disposition)
-            .NotEmpty();
+        RuleFor(v => v.Disposition).NotEmpty();
 
-        RuleFor(v => v.HealthPlanId)
-            .NotEmpty();
+        RuleFor(v => v.HealthPlanId).NotEmpty();
     }
 }

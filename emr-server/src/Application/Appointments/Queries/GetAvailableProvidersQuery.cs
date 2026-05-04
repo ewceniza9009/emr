@@ -20,7 +20,8 @@ public class GetAvailableProvidersQueryHandler(
 {
     public async Task<List<AvailableProviderDto>> Handle(
         GetAvailableProvidersQuery request,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var duration = TimeSpan.FromMinutes(request.DurationMinutes);
 
@@ -29,31 +30,37 @@ public class GetAvailableProvidersQueryHandler(
             duration,
             request.Modality,
             request.PatientId,
-            cancellationToken);
+            cancellationToken
+        );
 
-        if (slots.Count == 0) return [];
+        if (slots.Count == 0)
+            return [];
 
         var practitionerIds = slots.Select(d => d.PractitionerId).Distinct().ToList();
 
-        var practitioners = await context.Practitioners
-            .Where(p => practitionerIds.Contains(p.PractitionerId))
+        var practitioners = await context
+            .Practitioners.Where(p => practitionerIds.Contains(p.PractitionerId))
             .ToListAsync(cancellationToken);
 
-        return slots.Select(s =>
-        {
-            var p = practitioners.First(x => x.PractitionerId == s.PractitionerId);
-
-            return new AvailableProviderDto
+        return slots
+            .Select(s =>
             {
-                PractitionerId = s.PractitionerId,
-                FullName = $"{p.FirstName} {p.LastName}",
-                Role = p.IsCareNavigator ? "CareNavigator" : "Physician",
-                Position = p.Position.ToString(),
-                DistanceInMiles = s.DistanceInMiles,
-                TravelTimeInMinutes = s.TravelTimeInMinutes,
-                ShiftStart = s.StartTime,
-                ShiftEnd = s.EndTime,
-            };
-        }).OrderBy(x => x.ShiftStart).ThenBy(x => x.TravelTimeInMinutes).ToList();
+                var p = practitioners.First(x => x.PractitionerId == s.PractitionerId);
+
+                return new AvailableProviderDto
+                {
+                    PractitionerId = s.PractitionerId,
+                    FullName = $"{p.FirstName} {p.LastName}",
+                    Role = p.IsCareNavigator ? "CareNavigator" : "Physician",
+                    Position = p.Position.ToString(),
+                    DistanceInMiles = s.DistanceInMiles,
+                    TravelTimeInMinutes = s.TravelTimeInMinutes,
+                    ShiftStart = s.StartTime,
+                    ShiftEnd = s.EndTime,
+                };
+            })
+            .OrderBy(x => x.ShiftStart)
+            .ThenBy(x => x.TravelTimeInMinutes)
+            .ToList();
     }
 }

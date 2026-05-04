@@ -9,5 +9,5 @@ public enum RelationshipType
     Relative,
     Friend,
     LegalRepresentative,
-    Other
+    Other,
 }

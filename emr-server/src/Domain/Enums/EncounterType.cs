@@ -7,7 +7,7 @@ public enum EncounterType
     CrisisIntervention,
     BereavementVisit,
     TelehealthConsult,
-    MultidisciplinaryTeamMeeting
+    MultidisciplinaryTeamMeeting,
 }
 
 public enum SymptomSeverity
@@ -16,5 +16,5 @@ public enum SymptomSeverity
     Mild,
     Moderate,
     Severe,
-    Unbearable
+    Unbearable,
 }

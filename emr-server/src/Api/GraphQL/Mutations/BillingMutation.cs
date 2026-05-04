@@ -9,7 +9,8 @@ public class BillingMutation
     public async Task<Guid> SubmitZBenefitClaim(
         SubmitZBenefitClaimCommand input,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         return await mediator.Send(input, cancellationToken);
     }

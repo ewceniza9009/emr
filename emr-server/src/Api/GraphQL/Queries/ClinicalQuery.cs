@@ -12,7 +12,7 @@ namespace Api.GraphQL.Queries;
 [ExtendObjectType("Query")]
 public class ClinicalQuery
 {
-    // A direct EF Core query inside the GraphQL endpoint. 
+    // A direct EF Core query inside the GraphQL endpoint.
     // In a fully scaled system, this should also be moved to MediatR, but here we demonstrate
     // HotChocolate's direct IQueryable integration for high-performance projections.
     [UseProjection]
@@ -20,10 +20,11 @@ public class ClinicalQuery
     [UseSorting]
     public IQueryable<ClinicalEncounterDto> GetEncountersByPatient(
         Guid patientId,
-        [Service] IApplicationDbContext context)
+        [Service] IApplicationDbContext context
+    )
     {
-        return context.ClinicalEncounters
-            .AsNoTracking()
+        return context
+            .ClinicalEncounters.AsNoTracking()
             .Where(e => e.PatientId == patientId)
             .ProjectToType<ClinicalEncounterDto>();
     }
@@ -33,40 +34,41 @@ public class ClinicalQuery
     [UseSorting]
     public IQueryable<EsasAssessment> GetEsasHistoryByPatient(
         Guid patientId,
-        [Service] IApplicationDbContext context)
+        [Service] IApplicationDbContext context
+    )
     {
-        return context.EsasAssessments
-            .AsNoTracking()
-            .Where(e => e.PatientId == patientId);
+        return context.EsasAssessments.AsNoTracking().Where(e => e.PatientId == patientId);
     }
 
     public async Task<List<TriageItemDto>> GetTriageWorklist(
-        [Service] IApplicationDbContext context)
+        [Service] IApplicationDbContext context
+    )
     {
         // Fetch all patients and their latest ESAS using navigation properties
-        var triageItems = await context.Patients
-            .AsNoTracking()
+        var triageItems = await context
+            .Patients.AsNoTracking()
             .Select(p => new TriageItemDto
             {
                 PatientId = p.PatientId,
                 Mrn = p.Mrn,
                 FirstName = p.FirstName,
                 LastName = p.LastName,
-                LatestPainScore = p.EsasAssessments
-                    .OrderByDescending(e => e.AssessedAt)
+                LatestPainScore = p
+                    .EsasAssessments.OrderByDescending(e => e.AssessedAt)
                     .Select(e => e.Pain)
                     .FirstOrDefault(),
-                LatestWellbeingScore = p.EsasAssessments
-                    .OrderByDescending(e => e.AssessedAt)
+                LatestWellbeingScore = p
+                    .EsasAssessments.OrderByDescending(e => e.AssessedAt)
                     .Select(e => e.Wellbeing)
                     .FirstOrDefault(),
-                AdvanceDirectiveType = p.AdvanceDirectives
-                    .Where(ad => ad.IsActive)
-                    .Select(ad => ad.Type.ToString())
-                    .FirstOrDefault() ?? "None",
-                IsAlert = p.EsasAssessments
-                    .OrderByDescending(e => e.AssessedAt)
-                    .Any(e => e.Pain > 7 || e.Wellbeing > 7)
+                AdvanceDirectiveType =
+                    p.AdvanceDirectives.Where(ad => ad.IsActive)
+                        .Select(ad => ad.Type.ToString())
+                        .FirstOrDefault()
+                    ?? "None",
+                IsAlert = p
+                    .EsasAssessments.OrderByDescending(e => e.AssessedAt)
+                    .Any(e => e.Pain > 7 || e.Wellbeing > 7),
             })
             .ToListAsync();
 
@@ -77,17 +79,26 @@ public class ClinicalQuery
         Guid patientId,
         string medicationName,
         [Service] IConflictEngine conflictEngine,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        return await conflictEngine.CheckConflictsAsync(patientId, medicationName, cancellationToken);
+        return await conflictEngine.CheckConflictsAsync(
+            patientId,
+            medicationName,
+            cancellationToken
+        );
     }
 
     public async Task<PatientClinicalSummaryDto> GetPatientClinicalSummary(
         Guid patientId,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        return await mediator.Send(new GetPatientClinicalSummaryQuery(patientId), cancellationToken);
+        return await mediator.Send(
+            new GetPatientClinicalSummaryQuery(patientId),
+            cancellationToken
+        );
     }
 }
 

@@ -121,11 +121,14 @@ namespace Infrastructure.Data
                 LastName = "Admin",
                 IsActive = true,
                 IsCareNavigator = true,
-                Position = PractitionerPosition.Nurse
+                Position = PractitionerPosition.Nurse,
             };
 
-            var practitioners = careNavigators.Concat(supportingClinicians).Append(adminPractitioner).ToList();
-            
+            var practitioners = careNavigators
+                .Concat(supportingClinicians)
+                .Append(adminPractitioner)
+                .ToList();
+
             var faker = new Faker();
             // Seed coordinates for practitioners around a tight SLC cluster (approx 10-15 mile radius)
             foreach (var p in practitioners)
@@ -143,8 +146,8 @@ namespace Infrastructure.Data
                         State = "Utah",
                         PostalCode = faker.Address.ZipCode(),
                         Latitude = faker.Address.Latitude(40.70, 40.80),
-                        Longitude = faker.Address.Longitude(-111.95, -111.85)
-                    }
+                        Longitude = faker.Address.Longitude(-111.95, -111.85),
+                    },
                 };
                 context.EntityAddresses.Add(entityAddr);
             }
@@ -238,7 +241,7 @@ namespace Infrastructure.Data
                         State = "Utah",
                         PostalCode = f.Address.ZipCode(),
                         Latitude = f.Address.Latitude(39.0, 41.0),
-                        Longitude = f.Address.Longitude(-113.0, -111.0)
+                        Longitude = f.Address.Longitude(-113.0, -111.0),
                     }
                 )
                 .Generate(10);
@@ -287,14 +290,22 @@ namespace Infrastructure.Data
                 .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
                 .RuleFor(a => a.Status, f => f.PickRandom<AppointmentStatus>())
                 // Weighted variety: favor In-Person modalities (60% In-Person, 40% Remote)
-                .RuleFor(a => a.Modality, f => {
-                    var p = f.Random.Number(1, 100);
-                    if (p <= 35) return AppointmentModality.InPersonFacility;
-                    if (p <= 65) return AppointmentModality.InPersonHomeVisit;
-                    if (p <= 80) return AppointmentModality.TelehealthVideo;
-                    if (p <= 90) return AppointmentModality.TelehealthAudioOnly;
-                    return AppointmentModality.Telephone;
-                })
+                .RuleFor(
+                    a => a.Modality,
+                    f =>
+                    {
+                        var p = f.Random.Number(1, 100);
+                        if (p <= 35)
+                            return AppointmentModality.InPersonFacility;
+                        if (p <= 65)
+                            return AppointmentModality.InPersonHomeVisit;
+                        if (p <= 80)
+                            return AppointmentModality.TelehealthVideo;
+                        if (p <= 90)
+                            return AppointmentModality.TelehealthAudioOnly;
+                        return AppointmentModality.Telephone;
+                    }
+                )
                 // Sequential spacing: 4 appointments per day, exactly 2 hours apart (8AM, 10AM, 12PM, 2PM Local Time)
                 .RuleFor(
                     a => a.ScheduledStart,
@@ -330,21 +341,34 @@ namespace Infrastructure.Data
                         if (a.SupportingClinicians == null || !a.SupportingClinicians.Any())
                             return 0;
 
-                        var patientAddr = context.EntityAddresses.Local
-                            .FirstOrDefault(ea => ea.PatientId == a.PatientId);
+                        var patientAddr = context.EntityAddresses.Local.FirstOrDefault(ea =>
+                            ea.PatientId == a.PatientId
+                        );
 
                         // Final Consistency Fix: Use the actual GeoUtils math in the seeder
-                        var pAddress = context.EntityAddresses.Local
-                            .FirstOrDefault(ea => ea.PractitionerId == a.PractitionerId)?.Address;
-                        
-                        if (pAddress == null || !pAddress.Latitude.HasValue || patientAddr?.Address?.Latitude.HasValue != true)
+                        var pAddress = context
+                            .EntityAddresses.Local.FirstOrDefault(ea =>
+                                ea.PractitionerId == a.PractitionerId
+                            )
+                            ?.Address;
+
+                        if (
+                            pAddress == null
+                            || !pAddress.Latitude.HasValue
+                            || patientAddr?.Address?.Latitude.HasValue != true
+                        )
                             return 15; // Minimum buffer fallback
 
                         var dist = Application.Common.Utils.GeoUtils.CalculateDistance(
-                            pAddress.Latitude.Value, pAddress.Longitude.Value,
-                            patientAddr.Address.Latitude.Value, patientAddr.Address.Longitude.Value);
-                        
-                        var time = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(dist);
+                            pAddress.Latitude.Value,
+                            pAddress.Longitude.Value,
+                            patientAddr.Address.Latitude.Value,
+                            patientAddr.Address.Longitude.Value
+                        );
+
+                        var time = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(
+                            dist
+                        );
                         return (int)Math.Max(15, Math.Round(time, 0));
                     }
                 )
@@ -450,15 +474,17 @@ namespace Infrastructure.Data
             for (int i = 0; i < practitioners.Count; i++)
             {
                 var p = practitioners[i];
-                blocks.Add(new ScheduleBlock
-                {
-                    BlockId = Guid.NewGuid(),
-                    PractitionerId = p.PractitionerId,
-                    Status = ScheduleBlockStatus.Blocked,
-                    // Place blocks late in the day (4PM-6PM) so they never overlap with the 8AM-2PM appointment slots
-                    StartTime = baseDate.AddDays(i % 5).AddHours(16), 
-                    EndTime = baseDate.AddDays(i % 5).AddHours(18)
-                });
+                blocks.Add(
+                    new ScheduleBlock
+                    {
+                        BlockId = Guid.NewGuid(),
+                        PractitionerId = p.PractitionerId,
+                        Status = ScheduleBlockStatus.Blocked,
+                        // Place blocks late in the day (4PM-6PM) so they never overlap with the 8AM-2PM appointment slots
+                        StartTime = baseDate.AddDays(i % 5).AddHours(16),
+                        EndTime = baseDate.AddDays(i % 5).AddHours(18),
+                    }
+                );
             }
             context.Set<ScheduleBlock>().AddRange(blocks);
             await context.SaveChangesAsync();

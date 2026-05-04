@@ -6,5 +6,5 @@ public enum AddressType
     Work,
     Mobile,
     Other,
-    Temporary
+    Temporary,
 }

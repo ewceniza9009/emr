@@ -12,40 +12,38 @@ public class ClaimStatusLogConfiguration : IEntityTypeConfiguration<ClaimStatusL
 
         builder.HasKey(l => l.LogId);
 
-        builder.Property(l => l.LogId)
-               .HasColumnName("log_id");
+        builder.Property(l => l.LogId).HasColumnName("log_id");
 
-        builder.Property(l => l.ClaimId)
-               .HasColumnName("claim_id")
-               .IsRequired();
+        builder.Property(l => l.ClaimId).HasColumnName("claim_id").IsRequired();
 
-        builder.Property(l => l.PreviousStatus)
-               .HasColumnName("previous_status")
-               .HasConversion<string>()
-               .HasMaxLength(50)
-               .IsRequired();
+        builder
+            .Property(l => l.PreviousStatus)
+            .HasColumnName("previous_status")
+            .HasConversion<string>()
+            .HasMaxLength(50)
+            .IsRequired();
 
-        builder.Property(l => l.NewStatus)
-               .HasColumnName("new_status")
-               .HasConversion<string>()
-               .HasMaxLength(50)
-               .IsRequired();
+        builder
+            .Property(l => l.NewStatus)
+            .HasColumnName("new_status")
+            .HasConversion<string>()
+            .HasMaxLength(50)
+            .IsRequired();
 
-        builder.Property(l => l.ChangedBy)
-               .HasColumnName("changed_by")
-               .HasMaxLength(100)
-               .IsRequired();
+        builder
+            .Property(l => l.ChangedBy)
+            .HasColumnName("changed_by")
+            .HasMaxLength(100)
+            .IsRequired();
 
-        builder.Property(l => l.Remarks)
-               .HasColumnName("remarks");
+        builder.Property(l => l.Remarks).HasColumnName("remarks");
 
-        builder.Property(l => l.ChangedAt)
-               .HasColumnName("changed_at")
-               .IsRequired();
+        builder.Property(l => l.ChangedAt).HasColumnName("changed_at").IsRequired();
 
-        builder.HasOne(l => l.Claim)
-               .WithMany(c => c.StatusLogs)
-               .HasForeignKey(l => l.ClaimId)
-               .OnDelete(DeleteBehavior.Cascade);
+        builder
+            .HasOne(l => l.Claim)
+            .WithMany(c => c.StatusLogs)
+            .HasForeignKey(l => l.ClaimId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

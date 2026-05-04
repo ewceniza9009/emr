@@ -8,5 +8,5 @@ public enum EquipmentType
     Wheelchair,
     InfusionPump,
     SuctionMachine,
-    Nebulizer
+    Nebulizer,
 }

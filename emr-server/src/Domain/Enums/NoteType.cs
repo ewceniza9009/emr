@@ -10,5 +10,5 @@ public enum NoteType
     Subjective,
     Objective,
     Assessment,
-    Plan
+    Plan,
 }

@@ -6,7 +6,7 @@ public enum CommunicationAbility
     NonVerbal,
     Aphasic,
     SpeechImpaired,
-    CognitiveImpairment
+    CognitiveImpairment,
 }
 
 public enum TechAccessLevel
@@ -15,7 +15,7 @@ public enum TechAccessLevel
     SmartphoneOnly,
     TabletComputer,
     HighLiteracy,
-    NeedsAssistance
+    NeedsAssistance,
 }
 
 public enum EnrollmentDisposition
@@ -24,5 +24,5 @@ public enum EnrollmentDisposition
     Cooperative,
     Hesitant,
     Resistant,
-    Refused
+    Refused,
 }

@@ -13,7 +13,10 @@ public class CreatePatientCommandHandler : IRequestHandler<CreatePatientCommand,
         _context = context;
     }
 
-    public async Task<Guid> Handle(CreatePatientCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(
+        CreatePatientCommand request,
+        CancellationToken cancellationToken
+    )
     {
         var patient = new Patient
         {
@@ -36,14 +39,13 @@ public class CreatePatientCommandHandler : IRequestHandler<CreatePatientCommand,
                         State = request.State,
                         PostalCode = request.PostalCode,
                         Latitude = request.Latitude.GetValueOrDefault(),
-                        Longitude = request.Longitude.GetValueOrDefault()
+                        Longitude = request.Longitude.GetValueOrDefault(),
                     },
                     Type = Domain.Enums.AddressType.Home,
-                    IsPrimary = true
-                }
+                    IsPrimary = true,
+                },
             },
-            CreatedAt = DateTime.UtcNow
-
+            CreatedAt = DateTime.UtcNow,
         };
 
         _context.Patients.Add(patient);
