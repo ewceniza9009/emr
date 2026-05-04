@@ -9,5 +9,6 @@ public record ClinicalEncounterDto(
     Guid? AppointmentId,
     EncounterStatus Status,
     DateTimeOffset? AdmittedAt,
-    DateTimeOffset? DischargedAt
+    DateTimeOffset? DischargedAt,
+    List<VitalSignDto> VitalSigns
 );

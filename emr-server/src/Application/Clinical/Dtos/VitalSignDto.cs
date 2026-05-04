@@ -9,5 +9,6 @@ public record VitalSignDto(
     decimal? RespiratoryRate,
     decimal? Temperature,
     decimal? OxygenSaturation,
+    decimal? Weight,
     DateTimeOffset RecordedAt
 );

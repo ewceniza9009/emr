@@ -87,6 +87,18 @@ const GET_PATIENT_APPOINTMENTS = gql`
   }
 `;
 
+const GET_CLINICAL_SUMMARY = gql`
+  query GetClinicalSummary($patientId: UUID!) {
+    patientClinicalSummary(patientId: $patientId) {
+      recentVitals {
+        type
+        value
+        unit
+      }
+    }
+  }
+`;
+
 export default function PatientDetailPage() {
   const params = useParams();
   const [activeTab, setActiveTab] = useState("snapshot");
@@ -95,6 +107,11 @@ export default function PatientDetailPage() {
   
   const { data, loading, error, refetch } = useQuery(GET_PATIENT_DETAILS, {
     variables: { id: params.id },
+  });
+
+  const { data: summaryData } = useQuery(GET_CLINICAL_SUMMARY, {
+    variables: { patientId: params.id },
+    skip: !params.id
   });
 
   const { data: apptData, loading: apptLoading, refetch: refetchAppts } = useQuery(GET_PATIENT_APPOINTMENTS, {
@@ -276,24 +293,25 @@ export default function PatientDetailPage() {
 
            {/* Tab Content */}
            {activeTab === "snapshot" && (
-             <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
-                {/* Quick Vitals */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { label: "Pain Level", val: "4", unit: "/ 10", color: "text-[var(--text-primary)]" },
-                    { label: "Anxiety", val: "2", unit: "/ 10", color: "text-[var(--text-primary)]" },
-                    { label: "BP", val: "128/82", unit: "mmHg", color: "text-[var(--text-primary)]" },
-                    { label: "SpO2", val: "98", unit: "%", color: "text-emerald-500" },
-                  ].map((v, i) => (
+             <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">                 {/* Quick Vitals */}
+                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                   {(summaryData?.patientClinicalSummary?.recentVitals?.slice(0, 5) || [
+                     { type: "Pain", value: "--", unit: "/10" },
+                     { type: "Anxiety", value: "--", unit: "/10" },
+                     { type: "BP", value: "--", unit: "mmHg" },
+                     { type: "SpO2", value: "--", unit: "%" },
+                     { type: "Weight", value: "--", unit: "kg" },
+                   ]).map((v: any, i: number) => (
                     <div key={i} className="bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--card-border)] shadow-md">
-                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{v.label}</p>
+                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{v.type}</p>
                       <div className="flex items-baseline gap-1">
-                        <span className={`text-lg font-black ${v.color}`}>{v.val}</span>
+                        <span className={`text-lg font-black text-[var(--text-primary)] ${v.type === 'SpO2' ? 'text-emerald-500' : ''}`}>{v.value}</span>
                         <span className="text-[9px] font-black text-[var(--text-muted)]">{v.unit}</span>
                       </div>
                     </div>
                   ))}
                 </div>
+
 
                 <AllergyRegistry patientId={params.id as string} />
                 <MedicationRegistry patientId={params.id as string} />

@@ -410,6 +410,7 @@ namespace Infrastructure.Data
                 .RuleFor(v => v.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
                 .RuleFor(v => v.HeartRate, f => f.Random.Decimal(60, 110))
                 .RuleFor(v => v.BloodPressureSystolic, f => f.Random.Decimal(100, 160))
+                .RuleFor(v => v.Weight, f => f.Random.Decimal(50, 100))
                 .RuleFor(v => v.RecordedAt, f => f.Date.RecentOffset(5).ToUniversalTime())
                 .Generate(10);
             context.Set<VitalSign>().AddRange(vitals);

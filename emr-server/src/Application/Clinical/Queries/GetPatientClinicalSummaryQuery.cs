@@ -51,6 +51,7 @@ public class GetPatientClinicalSummaryQueryHandler : IRequestHandler<GetPatientC
             if (v.HeartRate.HasValue) flattenedVitals.Add(new RecentVitalDto("HR", v.HeartRate.Value.ToString(), "bpm", v.RecordedAt));
             if (v.OxygenSaturation.HasValue) flattenedVitals.Add(new RecentVitalDto("SpO2", v.OxygenSaturation.Value.ToString(), "%", v.RecordedAt));
             if (v.Temperature.HasValue) flattenedVitals.Add(new RecentVitalDto("Temp", v.Temperature.Value.ToString(), "°F", v.RecordedAt));
+            if (v.Weight.HasValue) flattenedVitals.Add(new RecentVitalDto("Weight", v.Weight.Value.ToString(), "kg", v.RecordedAt));
         }
 
         var problems = await _context.Diagnoses

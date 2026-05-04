@@ -46,6 +46,11 @@ public class VitalSignConfiguration : IEntityTypeConfiguration<VitalSign>
             .HasColumnName("oxygen_saturation")
             .HasColumnType("numeric(5,2)");
 
+        builder
+            .Property(v => v.Weight)
+            .HasColumnName("weight")
+            .HasColumnType("numeric(5,2)");
+
         builder.Property(v => v.RecordedAt).HasColumnName("recorded_at").IsRequired();
 
         builder

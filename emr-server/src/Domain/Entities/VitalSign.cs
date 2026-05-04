@@ -12,6 +12,7 @@ public class VitalSign : BaseEntity
     public decimal? RespiratoryRate { get; set; }
     public decimal? Temperature { get; set; }
     public decimal? OxygenSaturation { get; set; }
+    public decimal? Weight { get; set; }
     public DateTimeOffset RecordedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public ClinicalEncounter Encounter { get; set; } = null!;

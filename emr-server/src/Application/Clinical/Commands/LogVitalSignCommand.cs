@@ -9,5 +9,6 @@ public record LogVitalSignCommand(
     decimal? BloodPressureDiastolic,
     decimal? RespiratoryRate,
     decimal? Temperature,
-    decimal? OxygenSaturation
+    decimal? OxygenSaturation,
+    decimal? Weight
 ) : IRequest<Guid>;
