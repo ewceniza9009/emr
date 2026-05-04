@@ -56,7 +56,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
   return (
     <AuraPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden animate-fade-in">
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-xl transition-opacity" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/5 backdrop-blur-sm transition-opacity" onClick={onClose} />
         
         <div className={`relative h-full w-full max-w-[500px] bg-[var(--sidebar-bg)] shadow-[-20px_0_60px_rgba(0,0,0,0.3)] 
           flex flex-col transition-transform duration-300 ease-out border-l border-[var(--card-border)]

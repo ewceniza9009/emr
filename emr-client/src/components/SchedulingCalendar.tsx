@@ -17,8 +17,8 @@ import { useToast } from "./ToastProvider";
 const GRID_CONFIG = {
   START_HOUR: 8,
   END_HOUR: 18,
-  TOTAL_MINUTES: 600, // (18 - 8) * 60
-  ROW_HEIGHT: 100,
+  TOTAL_MINUTES: 600,
+  ROW_HEIGHT: 80,
   DAYS: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 };
 
@@ -116,7 +116,7 @@ export default function SchedulingCalendar() {
 
   const togglePosition = (pos: string) => {
     setSelectedPositions(new Set([pos]));
-    setSelectedPractitioners(new Set()); 
+    setSelectedPractitioners(new Set());
   };
 
   const weekDates = useMemo(() => {
@@ -179,8 +179,8 @@ export default function SchedulingCalendar() {
         const pFullName = `${p.firstName} ${p.lastName}`.toLowerCase().trim();
         const sName = userName.trim();
         return (userPractitionerId && p.practitionerId?.toLowerCase() === userPractitionerId?.toLowerCase()) ||
-        (sName && (pFullName === sName || sName.includes(pFullName))) ||
-        (p.firstName === "System" && p.lastName === "Admin");
+          (sName && (pFullName === sName || sName.includes(pFullName))) ||
+          (p.firstName === "System" && p.lastName === "Admin");
       });
 
       if (targetPractitioner) {
@@ -308,105 +308,89 @@ export default function SchedulingCalendar() {
   const HOURS = useMemo(() => Array.from({ length: GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR }, (_, i) => i + GRID_CONFIG.START_HOUR), [GRID_CONFIG.START_HOUR, GRID_CONFIG.END_HOUR]);
 
   return (
-    <div className="h-[calc(100vh-40px)] flex flex-col bg-[var(--background)] text-[var(--text-primary)] p-6 gap-6 overflow-hidden">
+    <div className="h-[calc(100vh-40px)] flex flex-col bg-[var(--background)] text-[var(--text-primary)] p-4 gap-3 overflow-hidden">
 
-      {/* Professional Header */}
-      <div className="shrink-0 flex items-center justify-between bg-[var(--card-bg)] px-8 py-6 rounded-2xl border border-[var(--card-border)] shadow-sm">
-        <div className="flex items-center gap-6">
-          <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_15px_var(--primary-glow)]" />
-          <div className="flex flex-col">
-            <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight leading-none">Clinical Scheduling</h1>
-            <div className="flex items-center gap-4 mt-2">
-              <span className="text-xs font-semibold text-[var(--primary)] flex items-center gap-1.5">
-                <Activity className="w-4 h-4" />
-                {localAppointments.length} Appointments
-              </span>
-              <span className="text-xs font-medium text-[var(--text-muted)] border-l border-[var(--card-border)] pl-4">{monthLabel} // Clinical Schedule</span>
+      {/* Ultra-Compact Tactical Header */}
+      <div className="shrink-0 flex flex-col gap-2 bg-[var(--card-bg)] px-4 py-2 rounded-xl border border-[var(--card-border)] shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-1 h-6 bg-[var(--primary)] rounded-full" />
+            <h1 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">Clinical Scheduling</h1>
+            <div className="flex items-center gap-3 ml-4 border-l border-[var(--card-border)] pl-4">
+              <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))} className="p-1 hover:bg-[var(--primary)]/10 rounded-lg text-[var(--text-muted)]"><ChevronLeft className="w-4 h-4" /></button>
+              <span className="text-sm font-bold text-[var(--text-primary)] min-w-[120px] text-center">{monthLabel}</span>
+              <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() + 7)))} className="p-1 hover:bg-[var(--primary)]/10 rounded-lg text-[var(--text-muted)]"><ChevronRight className="w-4 h-4" /></button>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <button onClick={() => refetch()} className="p-3 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)] hover:bg-[var(--primary)]/10 transition-all active:scale-95 text-[var(--text-secondary)] hover:text-[var(--primary)]">
-            <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
-          </button>
-          <div className="flex items-center bg-[var(--input-bg)] px-4 py-2 rounded-xl border border-[var(--card-border)]">
-            <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))} className="p-2 hover:bg-[var(--primary)]/10 rounded-lg transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]"><ChevronLeft className="w-5 h-5" /></button>
-            <span className="px-6 text-sm font-semibold text-[var(--text-primary)]">{monthLabel}</span>
-            <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() + 7)))} className="p-2 hover:bg-[var(--primary)]/10 rounded-lg transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]"><ChevronRight className="w-5 h-5" /></button>
+          <div className="flex items-center gap-2">
+            <button onClick={() => refetch()} className="p-2 hover:bg-[var(--primary)]/10 rounded-lg text-[var(--text-secondary)]"><RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /></button>
+            <button onClick={() => { setDrawerPrefill(undefined); setDrawerOpen(true); }}
+              className="px-4 h-9 bg-[var(--primary)] hover:opacity-90 rounded-lg text-xs font-bold text-[var(--text-primary)] transition-all active:scale-95">
+              New Encounter
+            </button>
           </div>
-          <button onClick={() => { setDrawerPrefill(undefined); setDrawerOpen(true); }}
-            className="px-8 h-12 bg-[var(--primary)] hover:opacity-90 rounded-xl text-sm font-bold shadow-lg shadow-[var(--primary-glow)] transition-all text-[var(--text-primary)] active:scale-95">
-            New Encounter
-          </button>
-        </div>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="shrink-0 flex items-center gap-6 bg-[var(--input-bg)] px-6 py-4 rounded-2xl border border-[var(--card-border)]">
-        <div className="flex items-center gap-3 px-5 py-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)]">
-          <Filter className="w-4 h-4 text-[var(--primary)]" />
-          <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">Filter By Role</span>
-        </div>
-        <div className="flex items-center gap-3">
-          {apiPositions.map(pos => {
-            const style = POSITION_STYLE[pos] ?? { label: pos, color: "text-[var(--text-primary)]", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]" };
-            const isActive = selectedPositions.has(pos);
-            return (
-              <button key={pos} onClick={() => togglePosition(pos)}
-                className={`px-5 py-3 rounded-xl border text-xs font-bold transition-all flex items-center gap-2.5
-                       ${isActive 
-                    ? `bg-[var(--primary)]/15 border-[var(--primary)]/30 text-[var(--primary)] shadow-sm` 
-                    : "bg-transparent border-[var(--card-border)] text-[var(--text-muted)] hover:bg-[var(--input-bg)] hover:text-[var(--text-primary)]"}`}>
-                {style.icon}
-                <span className="capitalize">{pos.replace(/_/g, " ")}</span>
-              </button>
-            );
-          })}
         </div>
 
-        <div className="flex-1 relative max-w-sm ml-6 pl-6 border-l border-[var(--card-border)]">
-          <Search className="absolute left-10 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
-          <select
-            onChange={(e) => {
-              const id = e.target.value;
-              if (!id) setSelectedPractitioners(new Set());
-              else {
-                const p = practitioners.find((x: any) => x.practitionerId === id);
-                setSelectedPractitioners(new Set([id]));
-                if (p) setSelectedPositions(new Set([p.position.toLowerCase()]));
-              }
-            }}
-            className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-12 pr-10 py-3 text-sm font-semibold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/40 transition-all appearance-none cursor-pointer shadow-sm"
-            value={selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : ""}
-          >
-            <option value="" className="bg-[var(--sidebar-bg)]">Filter by Clinical Provider...</option>
-            {practitioners.map((p: any) => (
-              <option key={p.practitionerId} value={p.practitionerId} className="bg-[var(--sidebar-bg)]">
-                {p.firstName} {p.lastName}
-              </option>
-            ))}
-          </select>
-          <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] rotate-90 pointer-events-none" />
+        <div className="h-px bg-[var(--card-border)] mx-1" />
+
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            {apiPositions.map(pos => {
+              const style = POSITION_STYLE[pos] ?? { label: pos, icon: <Users className="w-3 h-3" /> };
+              const isActive = selectedPositions.has(pos);
+              return (
+                <button key={pos} onClick={() => togglePosition(pos)}
+                  className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-2
+                         ${isActive ? `bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]` : "bg-transparent border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+                  {style.icon}
+                  <span className="capitalize">{pos}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="h-4 w-px bg-[var(--card-border)]" />
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)]" />
+            <select
+              onChange={(e) => {
+                const id = e.target.value;
+                if (!id) setSelectedPractitioners(new Set());
+                else {
+                  const p = practitioners.find((x: any) => x.practitionerId === id);
+                  setSelectedPractitioners(new Set([id]));
+                  if (p) setSelectedPositions(new Set([p.position.toLowerCase()]));
+                }
+              }}
+              className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-lg pl-8 pr-8 py-1.5 text-[11px] font-semibold text-[var(--text-primary)] outline-none appearance-none cursor-pointer"
+              value={selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : ""}
+            >
+              <option value="">All Practitioners...</option>
+              {practitioners.map((p: any) => (
+                <option key={p.practitionerId} value={p.practitionerId}>{p.firstName} {p.lastName}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Calendar Grid */}
       <div className="flex-1 min-h-0 bg-[var(--background)] rounded-2xl border border-[var(--card-border)] flex flex-col overflow-hidden relative">
         {/* Header Row */}
-        <div className="grid grid-cols-[100px_1fr] bg-[var(--card-bg)] border-b border-[var(--card-border)] shrink-0 sticky top-0 z-[60] backdrop-blur-md">
-          <div className="flex items-center justify-center border-r border-[var(--card-border)]"><Clock className="w-5 h-5 text-[var(--text-muted)] opacity-50" /></div>
+        <div className="grid grid-cols-[80px_1fr] bg-[var(--card-bg)] border-b border-[var(--card-border)] shrink-0 sticky top-0 z-[60] backdrop-blur-md">
+          <div className="flex items-center justify-center border-r border-[var(--card-border)]"><Clock className="w-4 h-4 text-[var(--text-muted)] opacity-50" /></div>
           <div className="grid grid-cols-7 divide-x divide-[var(--card-border)]">
             {weekDates.map((date, i) => {
               const isToday = date.toDateString() === new Date().toDateString();
               return (
-                <div key={i} className={`flex flex-col items-center py-5 transition-all relative ${isToday ? "bg-[var(--primary)]/[0.05]" : ""}`}>
-                  {isToday && <div className="absolute top-0 left-0 right-0 h-1.5 bg-[var(--primary)] shadow-[0_0_15px_var(--primary)]" />}
-                  <span className={`text-[11px] font-bold uppercase tracking-widest ${isToday ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}>
-                    {GRID_CONFIG.DAYS[i]}
-                  </span>
-                  <div className={`mt-3 w-10 h-10 rounded-xl flex items-center justify-center text-base font-bold transition-all
-                    ${isToday ? "bg-[var(--primary)] text-[var(--text-primary)] shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)]"}`}>
-                    {date.getDate()}
+                <div key={i} className={`flex flex-col items-center py-1.5 transition-all relative ${isToday ? "bg-[var(--primary)]/[0.05]" : ""}`}>
+                  {isToday && <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--primary)]" />}
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${isToday ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}>
+                      {GRID_CONFIG.DAYS[i]}
+                    </span>
+                    <span className={`text-sm font-bold ${isToday ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                      {date.getDate()}
+                    </span>
                   </div>
                 </div>
               );
@@ -417,10 +401,10 @@ export default function SchedulingCalendar() {
         {/* Scrollable Body */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hide relative">
           <div className="flex" style={{ height: `${(GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR) * GRID_CONFIG.ROW_HEIGHT}px` }}>
-            <div className="w-[100px] border-r border-[var(--card-border)] bg-[var(--input-bg)] sticky left-0 z-50">
+            <div className="w-[80px] border-r border-[var(--card-border)] bg-[var(--input-bg)] sticky left-0 z-50">
               {HOURS.map(h => (
-                <div key={h} className="h-[100px] relative border-t border-[var(--card-border)] first:border-t-0">
-                  <span className="absolute top-0 -translate-y-1/2 left-0 right-0 text-center text-[11px] text-[var(--text-muted)] font-bold tracking-tight">
+                <div key={h} className="h-[80px] relative border-t border-[var(--card-border)] first:border-t-0">
+                  <span className="absolute top-0 -translate-y-1/2 left-0 right-0 text-center text-[10px] text-[var(--text-muted)] font-bold tracking-tight">
                     {h % 12 || 12} {h < 12 ? "AM" : "PM"}
                   </span>
                 </div>
@@ -442,7 +426,7 @@ export default function SchedulingCalendar() {
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => handleDrop(e, d)}
                   >
-                    {HOURS.map(h => <div key={h} className="h-[100px] border-t border-[var(--card-border)] first:border-t-0" />)}
+                    {HOURS.map(h => <div key={h} className="h-[80px] border-t border-[var(--card-border)] first:border-t-0" />)}
                     {/* Closing line for the last hour */}
                     <div className="h-0 border-t border-[var(--card-border)]" />
 
@@ -504,7 +488,7 @@ export default function SchedulingCalendar() {
                         const s2 = new Date(appt.scheduledStart).getTime(), e2 = new Date(appt.scheduledEnd).getTime();
                         return s1 < e2 && s2 < e1;
                       }).indexOf(appt) : 0;
-                      
+
                       const maxOverlapsInGroup = overlaps.length + 1;
                       const widthPct = 100 / maxOverlapsInGroup;
                       const leftPct = overlapIdx * widthPct;
@@ -514,10 +498,10 @@ export default function SchedulingCalendar() {
                           {/* Drive Time Indicator */}
                           {driveMin > 0 && modality.label !== "TELEHEALTH" && !isViewedAsSc && (
                             <div className="absolute border-l-8 border-[var(--primary)] bg-[var(--primary)]/[0.12] flex items-start justify-end p-2 z-10 rounded-xl shadow-[inset_0_0_20px_rgba(var(--primary-rgb),0.05)]"
-                              style={{ 
+                              style={{
                                 left: `${leftPct}%`,
                                 width: `${widthPct}%`,
-                                top: `${(startMin - driveMin) * (GRID_CONFIG.ROW_HEIGHT / 60)}px`, 
+                                top: `${(startMin - driveMin) * (GRID_CONFIG.ROW_HEIGHT / 60)}px`,
                                 height: `${driveMin * (GRID_CONFIG.ROW_HEIGHT / 60)}px`,
                                 backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(var(--primary-rgb), 0.05) 10px, rgba(var(--primary-rgb), 0.05) 20px)`
                               }}>
@@ -527,7 +511,7 @@ export default function SchedulingCalendar() {
                             </div>
                           )}
 
-                          <div className={`absolute z-20 group/appt ${hasConflict ? "ring-2 ring-red-500 rounded-xl" : ""}`}
+                          <div className={`absolute z-20 group/appt ${hasConflict ? "ring-2 ring-red-500" : ""}`}
                             style={{ 
                               top: `${topPx}px`, 
                               height: `${heightPx}px`,
@@ -537,19 +521,19 @@ export default function SchedulingCalendar() {
 
                             <div draggable onDragStart={(e) => { e.dataTransfer.setData("appointmentId", appt.appointmentId); e.dataTransfer.setData("duration", durMin.toString()); }}
                               onClick={() => { setDrawerPrefill(appt.appointmentId); setDrawerOpen(true); }}
-                              className={`absolute top-0 left-0 right-0 h-full group-hover/appt:h-auto rounded-xl p-3 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden bg-[var(--card-bg)]/90 backdrop-blur-lg z-10 group-hover/appt:z-[70] group-hover/appt:shadow-2xl group-hover/appt:translate-y-[-4px]
-                                    ${style.bg} ${hasConflict ? "border-red-500/50" : style.border} group-hover/appt:border-[var(--primary)]/40`}>
+                              className={`absolute top-0 left-0 right-0 h-full group-hover/appt:h-auto p-3 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden backdrop-blur-lg z-10 group-hover/appt:z-[70] group-hover/appt:shadow-2xl group-hover/appt:translate-y-[-4px]
+                                    ${isViewedAsSc ? "bg-indigo-500/10 border-indigo-500/40" : style.bg + " " + style.border} group-hover/appt:border-[var(--primary)]/40`}>
 
                               {/* Header Section */}
                               <div className="flex flex-wrap items-center justify-between shrink-0 mb-2 gap-1.5">
                                 <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                                  <div className={`px-2 py-1 rounded bg-[var(--input-bg)] border border-[var(--card-border)] text-[10px] font-bold text-[var(--text-secondary)] flex items-center gap-1 shrink-0`}>
-                                    {React.cloneElement(modality.icon as React.ReactElement, { className: "w-3 h-3 text-[var(--primary)]" })}
+                                  <div className={`px-2 py-1 bg-[var(--input-bg)] border border-[var(--card-border)] text-[10px] font-bold text-[var(--text-secondary)] flex items-center gap-1 shrink-0`}>
+                                    {React.cloneElement(modality.icon as React.ReactElement, { className: `w-3 h-3 ${isViewedAsSc ? "text-indigo-400" : "text-[var(--primary)]"}` })}
                                     <span className="whitespace-nowrap">{modality.label}</span>
                                   </div>
-                                  <div className={`px-2 py-1 rounded ${statusConfig.bg} ${statusConfig.border} ${statusConfig.text} text-[10px] font-bold flex items-center gap-1 border shadow-sm shrink-0`}>
-                                    <div className={`w-2 h-2 rounded-full ${statusConfig.dot}`} /> 
-                                    <span className="whitespace-nowrap">{statusConfig.label}</span>
+                                  <div className={`px-2 py-1 ${isViewedAsSc ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300" : statusConfig.bg + " " + statusConfig.border + " " + statusConfig.text} text-[10px] font-bold flex items-center gap-1 border shadow-sm shrink-0`}>
+                                    <div className={`w-2 h-2 rounded-full ${isViewedAsSc ? "bg-indigo-400" : statusConfig.dot}`} /> 
+                                    <span className="whitespace-nowrap">{isViewedAsSc ? "SUPPORT" : statusConfig.label}</span>
                                   </div>
                                 </div>
                                 <span className="text-xs font-bold text-[var(--text-primary)] shrink-0 ml-auto whitespace-nowrap">
@@ -585,10 +569,10 @@ export default function SchedulingCalendar() {
                               <div className="mt-auto pt-2 border-t border-[var(--card-border)] flex items-center justify-between shrink-0">
                                 <div className="flex -space-x-2">
                                   {appt.practitioner && (
-                                    <div className="w-7 h-7 rounded-lg bg-[var(--primary)] border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="Primary Clinician">PC</div>
+                                      <div className="w-7 h-7 bg-[var(--primary)] border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="Primary Clinician">PC</div>
                                   )}
                                   {appt.supportingClinicians?.length > 0 && (
-                                    <div className="w-7 h-7 rounded-lg bg-blue-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="Supporting Staff">SS</div>
+                                      <div className="w-7 h-7 bg-blue-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="Supporting Staff">SS</div>
                                   )}
                                 </div>
                                 <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover/appt:text-[var(--primary)] transition-colors" />

@@ -401,7 +401,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   return (
     <AuraPortal>
       <div className="fixed inset-0 !m-0 !p-0 z-[9999999] flex justify-end overflow-hidden">
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-xl" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/5 backdrop-blur-sm" onClick={onClose} />
 
         <div className={`relative h-full w-full max-w-[900px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
           flex flex-col transition-transform duration-300 ease-out 
