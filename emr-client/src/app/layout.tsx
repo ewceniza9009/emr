@@ -18,6 +18,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            try {
+              const savedTheme = localStorage.getItem("aura-theme");
+              if (savedTheme === "light") {
+                document.documentElement.classList.add("light");
+              } else {
+                document.documentElement.classList.add("dark");
+              }
+            } catch (e) {}
+          })()
+        ` }} />
+      </head>
       <body className={`${inter.variable} ${outfit.variable} antialiased`}>
         <Providers>
           {children}

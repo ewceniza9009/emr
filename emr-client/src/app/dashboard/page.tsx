@@ -8,7 +8,12 @@ import {
   AlertTriangle,
   ArrowUpRight,
   TrendingUp,
-  Truck
+  Truck,
+  Zap,
+  Target,
+  Shield,
+  Search,
+  Bell
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
@@ -25,121 +30,155 @@ const GET_DASHBOARD_STATS = gql`
   }
 `;
 
-export default function MissionControl() {
+export default function Dashboard() {
   const router = useRouter();
   const { showToast } = useToast();
   const { data, loading } = useQuery(GET_DASHBOARD_STATS);
 
   const stats = [
-    { label: "Active Patients", value: loading ? "..." : data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, color: "blue", trend: "+12%" },
-    { label: "New Encounters", value: loading ? "..." : data?.dashboardStats?.newEncounters.toString(), icon: Activity, color: "green", trend: "+5%" },
-    { label: "Pending Reviews", value: loading ? "..." : data?.dashboardStats?.pendingReviews.toString(), icon: Clock, color: "purple", trend: "-2%" },
-    { label: "Critical Alerts", value: loading ? "..." : data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, color: "red", trend: "0%" },
-    { label: "Deployed Equipment", value: loading ? "..." : data?.dashboardStats?.deployedEquipmentCount.toString(), icon: Truck, color: "emerald", trend: "+3" },
+    { label: "Active Patients", value: loading ? "..." : data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, trend: "+12.4%", desc: "Current Caseload" },
+    { label: "New Encounters", value: loading ? "..." : data?.dashboardStats?.newEncounters.toString(), icon: Target, trend: "+5.1%", desc: "Past 24 Hours" },
+    { label: "Pending Reviews", value: loading ? "..." : data?.dashboardStats?.pendingReviews.toString(), icon: Clock, trend: "-2.3%", desc: "Average Latency" },
+    { label: "Critical Alerts", value: loading ? "..." : data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, color: "#f43f5e", trend: "Stable", desc: "System Health" },
+    { label: "Equipment", value: loading ? "..." : data?.dashboardStats?.deployedEquipmentCount.toString(), icon: Truck, trend: "+3", desc: "Active Logistics" },
   ];
+
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">Mission Control</h1>
-          <p className="text-xs text-[var(--text-secondary)] mt-0.5">Welcome back, Dr. House. Clinical operations are stable.</p>
+    <div className="w-full space-y-10 animate-fade-in">
+      {/* Refined Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[var(--card-border)]">
+        <div className="flex items-center gap-4">
+          <div className="w-1 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_15px_var(--primary-glow)]" />
+          <div>
+            <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">Clinical Dashboard</h1>
+            <p className="text-sm text-[var(--text-secondary)] mt-1 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-[var(--primary)]" />
+              Operational Overview // v4.2
+            </p>
+          </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
            <button 
-             onClick={() => showToast("Preparing clinical data report...", "info")}
-             className="px-6 h-11 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-secondary)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--primary-glow)] hover:text-[var(--text-primary)] active:scale-95 transition-all"
+             onClick={() => showToast("Preparing clinical report...", "info")}
+             className="px-5 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--primary)]/5 transition-all active:scale-[0.98]"
            >
              Generate Report
            </button>
            <button 
              onClick={() => router.push("/dashboard/schedule?action=new")}
-             className="px-6 h-11 rounded-xl premium-gradient text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+             className="px-6 h-10 rounded-xl bg-[var(--primary)] text-white text-sm font-medium shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all active:scale-[0.98]"
            >
              New Encounter
            </button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {stats.map((stat) => (
-          <div key={stat.label} className="glass-morphism rounded-3xl p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
-            <div className={`w-12 h-12 rounded-2xl mb-4 flex items-center justify-center 
-              ${stat.color === 'blue' ? 'bg-blue-500/10 text-blue-400' : ''}
-              ${stat.color === 'green' ? 'bg-emerald-500/10 text-emerald-400' : ''}
-              ${stat.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-400' : ''}
-              ${stat.color === 'purple' ? 'bg-purple-500/10 text-purple-400' : ''}
-              ${stat.color === 'red' ? 'bg-red-500/10 text-red-400' : ''}
-            `}>
-              <stat.icon className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-[var(--text-muted)] text-sm mb-1">{stat.label}</p>
-              <div className="flex items-baseline gap-3">
-                <h3 className="text-3xl font-bold text-[var(--text-primary)]">{stat.value}</h3>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full 
-                  ${stat.trend.startsWith('+') ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}
+      {stats.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {stats.map((stat) => (
+            <div key={stat.label} className="glass-morphism rounded-2xl p-6 border border-[var(--card-border)] hover:bg-white/[0.02] transition-all">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
+                  <stat.icon className="w-5 h-5" />
+                </div>
+                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg
+                  ${stat.trend.startsWith('+') ? 'bg-emerald-500/10 text-emerald-500' : 
+                    stat.trend === 'Stable' ? 'bg-blue-500/10 text-blue-500' : 'bg-red-500/10 text-red-500'}
                 `}>
                   {stat.trend}
                 </span>
               </div>
+              <div>
+                <p className="text-sm font-semibold text-[var(--text-muted)] mb-1">{stat.label}</p>
+                <h3 className="text-4xl font-bold text-[var(--text-primary)] tracking-tight">
+                  {stat.value}
+                </h3>
+                <p className="text-xs text-[var(--text-muted)] mt-2 font-medium">{stat.desc}</p>
+              </div>
             </div>
-            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-              <TrendingUp className="w-5 h-5 text-slate-500" />
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Main Content Areas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Activity List */}
-        <div className="lg:col-span-2 glass-morphism rounded-3xl p-8">
+        {/* Recent Activity */}
+        <div className="lg:col-span-2 glass-morphism rounded-3xl p-8 border border-[var(--card-border)]">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold text-[var(--text-primary)]">Recent Activity</h2>
-            <button className="text-blue-400 text-sm font-medium hover:underline flex items-center gap-1">
-              View All Activity <ArrowUpRight className="w-4 h-4" />
+            <div className="flex items-center gap-3">
+              <div className="w-1 h-5 bg-[var(--primary)] rounded-full" />
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">Activity Log</h2>
+            </div>
+            <button className="text-xs font-semibold text-[var(--primary)] hover:opacity-80 flex items-center gap-2 group">
+              View History <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </button>
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center gap-6 p-4 rounded-2xl hover:bg-[var(--input-bg)] transition-colors border border-transparent hover:border-[var(--card-border)] group">
-                <div className="w-12 h-12 rounded-xl bg-[var(--input-bg)] flex items-center justify-center shrink-0 border border-[var(--card-border)]">
-                   <Activity className="text-blue-500 w-5 h-5" />
+              <div key={i} className="flex items-center gap-6 p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 transition-all">
+                <div className="w-12 h-12 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0">
+                   <Zap className="text-[var(--primary)] w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[var(--text-primary)] font-medium">New Assessment for John Doe</p>
-                  <p className="text-[var(--text-secondary)] text-sm">Pain Management Assessment • 2 hours ago</p>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">Patient Assessment: PRN-48291</p>
+                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Clinical Review // Synchronized 2h ago</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-[var(--text-muted)]">By Dr. Gregory House</p>
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-blue-500">Validated</span>
+                <div className="text-right hidden sm:block">
+                  <div className="flex items-center justify-end gap-1.5 mb-1">
+                    <Shield className="w-3 h-3 text-emerald-500" />
+                    <span className="text-[10px] font-semibold text-emerald-500">Validated</span>
+                  </div>
+                  <p className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Dr. Gregory House</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Critical Alerts / Secondary area */}
-        <div className="glass-morphism rounded-3xl p-8 bg-red-500/5 border-red-500/10">
-          <h2 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-3">
-            <AlertTriangle className="text-red-500 w-6 h-6" />
-            Priority Alerts
-          </h2>
+        {/* Priority Alerts */}
+        <div className="glass-morphism rounded-3xl p-8 border border-red-500/10">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-1 h-5 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.3)]" />
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Priority Alerts</h2>
+          </div>
+          
           <div className="space-y-4">
-            <div className="p-5 rounded-2xl bg-red-500/10 border border-red-500/20">
-               <p className="text-[var(--text-primary)] text-sm font-semibold mb-1">Telemetry Interrupted</p>
-               <p className="text-red-400/80 text-xs">Patient MRN-4829 has lost IoT connectivity in Area 4.</p>
-               <button className="mt-4 text-xs font-bold text-red-400 uppercase tracking-widest hover:underline">Troubleshoot Now</button>
+            <div className="p-6 rounded-2xl bg-red-500/[0.02] border border-red-500/10 space-y-3">
+               <div className="flex items-center gap-2 text-red-500">
+                 <AlertTriangle className="w-4 h-4" />
+                 <span className="text-[10px] font-semibold uppercase tracking-wider">Clinical Alert</span>
+               </div>
+               <h4 className="text-sm font-semibold text-[var(--text-primary)]">Telemetry Interrupted</h4>
+               <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                 Patient MRN-4829 has lost device connectivity. Follow-up required immediately.
+               </p>
+               <button className="w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/10 text-red-500 text-[11px] font-semibold hover:bg-red-500/20 transition-all">
+                 Review Status
+               </button>
             </div>
-            <div className="p-5 rounded-2xl bg-orange-500/10 border border-orange-500/20">
-               <p className="text-[var(--text-primary)] text-sm font-semibold mb-1">Upcoming Compliance Deadline</p>
-               <p className="text-orange-400/80 text-xs">Practitioner licensure for NJ expires in 14 days.</p>
-               <button className="mt-4 text-xs font-bold text-orange-400 uppercase tracking-widest hover:underline">Renew License</button>
+
+            <div className="p-6 rounded-2xl bg-orange-500/[0.02] border border-orange-500/10 space-y-3">
+               <div className="flex items-center gap-2 text-orange-500">
+                 <Clock className="w-4 h-4" />
+                 <span className="text-[10px] font-semibold uppercase tracking-wider">Task Warning</span>
+               </div>
+               <h4 className="text-sm font-semibold text-[var(--text-primary)]">Licensure Renewal</h4>
+               <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                 Professional credentials for practitioner group NJ expire in 14 days.
+               </p>
+               <button className="w-full py-2.5 rounded-xl bg-orange-500/10 border border-orange-500/10 text-orange-500 text-[11px] font-semibold hover:bg-orange-500/20 transition-all">
+                 Renew Now
+               </button>
             </div>
           </div>
         </div>
+      </div>
+      
+      {/* Footer Branding */}
+      <div className="pt-10 flex flex-col items-center gap-4 opacity-30">
+        <div className="w-px h-10 bg-slate-500" />
+        <p className="text-[10px] font-medium text-slate-500 tracking-[0.4em] uppercase">Aura Clinical Operations Group</p>
       </div>
     </div>
   );

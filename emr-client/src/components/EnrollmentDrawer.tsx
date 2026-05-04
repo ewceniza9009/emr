@@ -304,38 +304,38 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     <>
       <AuraPortal>
         <div className="fixed inset-0 z-[9999999] flex justify-end">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity" onClick={onClose} />
-          <div className="relative h-full w-full max-w-[460px] bg-[var(--card-bg)] border-l border-[var(--card-border)] flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-xl transition-opacity" onClick={onClose} />
+          <div className="relative h-full w-full max-w-[460px] bg-[var(--card-bg)] border-l border-[var(--card-border)] flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
             
-            {/* High-Density Header */}
-            <div className="h-12 flex items-center justify-between px-5 bg-white/5 border-b border-white/5 shrink-0">
+            {/* Header */}
+            <div className="h-14 flex items-center justify-between px-6 border-b border-[var(--card-border)] shrink-0">
               <div className="flex items-center gap-3">
-                 <div className="w-6 h-6 rounded bg-teal-500 flex items-center justify-center">
-                    <Target className="w-3.5 h-3.5 text-black" />
+                 <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
+                    <Target className="w-4 h-4" />
                  </div>
                  <div>
-                    <h2 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.2em]">Enrollment Workflow</h2>
-                    <p className="text-[9px] font-bold text-teal-500/60 uppercase tracking-widest">Lead Conversion</p>
+                    <h2 className="text-sm font-semibold text-[var(--text-primary)]">Enrollment Workflow</h2>
+                    <p className="text-[10px] font-medium text-[var(--text-muted)]">Lead Conversion</p>
                  </div>
               </div>
-              <button onClick={onClose} className="p-1.5 rounded hover:bg-white/10 transition-all text-slate-500">
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 transition-all text-slate-500 hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Compact Lead Snapshot */}
+            {/* Lead Snapshot */}
             {lead && (
-              <div className="px-5 py-2.5 bg-teal-500/5 border-b border-white/5 flex items-center justify-between shrink-0">
+              <div className="px-6 py-4 bg-white/[0.02] border-b border-[var(--card-border)] flex items-center justify-between shrink-0">
                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-teal-500 flex items-center justify-center text-black font-black text-[9px]">
+                    <div className="w-10 h-10 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white font-semibold text-xs">
                        {lead.firstName[0]}{lead.lastName[0]}
                     </div>
                     <div>
-                       <span className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{lead.firstName} {lead.lastName}</span>
-                       <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{lead.referralSource || "Direct Intake"}</p>
+                       <span className="text-sm font-semibold text-[var(--text-primary)]">{lead.firstName} {lead.lastName}</span>
+                       <p className="text-xs text-[var(--text-muted)]">{lead.referralSource || "Direct Intake"}</p>
                     </div>
                  </div>
-                 <span className="px-2 py-0.5 rounded border border-teal-500/30 text-[8px] font-black text-teal-500 uppercase tracking-widest">Priority</span>
+                 <span className="px-2 py-1 rounded bg-[var(--primary)]/10 text-[10px] font-medium text-[var(--primary)]">Priority Lead</span>
               </div>
             )}
 
@@ -351,12 +351,12 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                   {currentStep === 1 && (
                     <div className="space-y-6 animate-in fade-in duration-500">
                        <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                             <PhoneCall className="w-4 h-4 text-teal-500" /> Outbound Engagement
+                          <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-2">
+                             <PhoneCall className="w-4 h-4 text-[var(--primary)]" /> Outbound Engagement
                           </h3>
                           <div className="flex gap-2">
-                             <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`w-10 h-10 rounded-xl border transition-all flex items-center justify-center ${isDialPadOpen ? 'bg-teal-500 border-teal-400 text-black' : 'bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-secondary)]'}`}><Hash className="w-4 h-4" /></button>
-                             <button onClick={() => setIsAddingRelative(true)} className="flex items-center gap-2 px-4 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-500 text-[10px] font-black uppercase tracking-widest hover:bg-teal-500/20 transition-all"><UserPlus className="w-4 h-4" /> Add Contact</button>
+                             <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`w-10 h-10 rounded-xl border transition-all flex items-center justify-center ${isDialPadOpen ? 'bg-[var(--primary)] border-[var(--primary)] text-white' : 'bg-white/5 border-white/5 text-slate-500 hover:text-white hover:bg-white/10'}`}><Hash className="w-4 h-4" /></button>
+                             <button onClick={() => setIsAddingRelative(true)} className="flex items-center gap-2 px-4 h-10 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-xs font-medium hover:bg-[var(--primary)]/20 transition-all"><UserPlus className="w-4 h-4" /> Add Contact</button>
                           </div>
                        </div>
 
@@ -428,7 +428,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                            {/* Primary Patient */}
                            <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-between group">
                               <div className="flex items-center gap-4">
-                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-black font-black text-xs ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-teal-500' : 'bg-amber-500 animate-pulse'}`}>
+                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-black font-black text-xs ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-teal-500' : 'bg-amber-500'}`}>
                                     <User className="w-5 h-5" />
                                  </div>
                                  <div>
@@ -581,29 +581,29 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                                  onBlur={() => handleUpdateLead({ barriersToCare })}
                                />
                             </div>
-                            <button onClick={() => setCurrentStep(4)} className="w-full bg-teal-500 h-14 rounded-xl text-black text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-teal-500/20 hover:bg-teal-600 transition-all active:scale-95">Next Protocol Step</button>
+                            <button onClick={() => setCurrentStep(4)} className="w-full bg-teal-500 h-14 rounded-xl text-black text-xs font-semibold shadow-xl shadow-teal-500/20 hover:bg-teal-600 transition-all active:scale-95">Next Protocol Step</button>
                          </div>
                        )}
                        {currentStep === 4 && (
-                         <div className="space-y-8 text-center">
-                            <h3 className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] flex items-center gap-2 justify-center">
-                               <Calendar className="w-4 h-4 text-teal-500" /> Orientation Scheduling
-                            </h3>
-                            <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-3xl p-10 space-y-6">
-                               <div className="w-20 h-20 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500 mx-auto">
-                                  <Calendar className="w-10 h-10" />
-                               </div>
-                               <div className="space-y-2">
-                                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Select Orientation Date & Time</label>
-                                  <input type="datetime-local" value={orientationDate} onChange={e => setOrientationDate(e.target.value)} className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-4 px-6 text-base text-[var(--text-primary)] font-black outline-none focus:border-teal-500 text-center" />
-                               </div>
-                            </div>
-                            <button onClick={() => setCurrentStep(5)} className="w-full bg-teal-500 h-14 rounded-xl text-black text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-teal-500/20 hover:bg-teal-600 transition-all">Confirm Appointment</button>
-                         </div>
+                          <div className="space-y-6 text-center">
+                             <h3 className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-2 justify-center">
+                                <Calendar className="w-4 h-4 text-teal-500" /> Orientation Scheduling
+                             </h3>
+                             <div className="bg-white/[0.02] border border-[var(--card-border)] rounded-2xl p-8 space-y-6">
+                                <div className="w-16 h-16 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-500 mx-auto">
+                                   <Calendar className="w-8 h-8" />
+                                </div>
+                                <div className="space-y-2">
+                                   <label className="text-xs font-medium text-[var(--text-muted)]">Select Orientation Date & Time</label>
+                                   <input type="datetime-local" value={orientationDate} onChange={e => setOrientationDate(e.target.value)} className="w-full bg-white/5 border border-white/5 rounded-xl py-3 px-4 text-sm text-[var(--text-primary)] outline-none focus:border-teal-500 text-center" />
+                                </div>
+                             </div>
+                             <button onClick={() => setCurrentStep(5)} className="w-full bg-teal-500 h-12 rounded-xl text-black text-sm font-semibold shadow-lg shadow-teal-500/20 hover:opacity-90 transition-all active:scale-[0.98]">Confirm Appointment</button>
+                          </div>
                        )}
                        {currentStep === 5 && (
                          <div className="space-y-8">
-                            <h3 className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] flex items-center gap-2">
+                            <h3 className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-2">
                                <Stethoscope className="w-4 h-4 text-teal-500" /> Modality & Payer
                             </h3>
                             <div className="space-y-3">
@@ -641,7 +641,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                          </div>
                        )}
                        {currentStep === 6 && (
-                         <div className="text-center py-10 space-y-8 animate-in zoom-in duration-500">
+                         <div className="text-center py-10 space-y-8 animate-in fade-in duration-300">
                             <div className="w-24 h-24 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-500 mx-auto shadow-[0_0_40px_rgba(20,184,166,0.1)]">
                                <ClipboardCheck className="w-12 h-12" />
                             </div>

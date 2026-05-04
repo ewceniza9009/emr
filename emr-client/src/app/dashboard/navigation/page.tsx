@@ -15,6 +15,12 @@ import {
   MoreVertical,
   Loader2
 } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const InteractiveMap = dynamic(() => import("@/components/Map"), { 
+  ssr: false,
+  loading: () => <div className="h-full w-full bg-[var(--input-bg)] animate-pulse rounded-[2.5rem] border border-[var(--card-border)] flex items-center justify-center"><p className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Initializing Tactical Map...</p></div>
+});
 
 const GET_NAVIGATION_DATA = gql`
   query GetNavigationData {
@@ -69,93 +75,16 @@ export default function CareNavigationPage() {
   return (
     <div className="flex h-full gap-4 overflow-hidden animate-in fade-in duration-700">
       {/* Map Placeholder Area */}
-      {/* Sector Logistics Map */}
-      <div className="flex-1 bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--card-border)] shadow-2xl relative overflow-hidden group">
-        {/* Schematic Map Base */}
-        <div className="absolute inset-0 bg-[var(--background)] opacity-50" />
-        <div className="absolute inset-0" style={{ 
-          backgroundImage: `radial-gradient(var(--card-border) 1px, transparent 1px)`,
-          backgroundSize: '30px 30px' 
-        }} />
-
-        {/* District Sectors */}
-        <div className="absolute inset-0 p-10 grid grid-cols-2 grid-rows-2 gap-4 opacity-20 pointer-events-none">
-          <div className="border border-[var(--card-border)] rounded-3xl flex items-start p-6"><span className="text-[40px] font-black text-[var(--card-border)] uppercase">North Sector</span></div>
-          <div className="border border-[var(--card-border)] rounded-3xl flex items-start justify-end p-6"><span className="text-[40px] font-black text-[var(--card-border)] uppercase">East Sector</span></div>
-          <div className="border border-[var(--card-border)] rounded-3xl flex items-end p-6"><span className="text-[40px] font-black text-[var(--card-border)] uppercase">West Sector</span></div>
-          <div className="border border-[var(--card-border)] rounded-3xl flex items-end justify-end p-6"><span className="text-[40px] font-black text-[var(--card-border)] uppercase">South Sector</span></div>
-        </div>
-
-        {/* Simulated Road Network */}
-        <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 1000 1000">
-          <path d="M0 200 L1000 200 M0 500 L1000 500 M0 800 L1000 800 M200 0 L200 1000 M500 0 L500 1000 M800 0 L800 1000" stroke="var(--primary)" strokeWidth="2" fill="none" />
-          <path d="M100 100 L300 400 L700 200 L900 800" stroke="var(--primary)" strokeWidth="4" fill="none" strokeDasharray="10 10" />
-        </svg>
-
-        {/* Facility Markers */}
-        <div className="absolute top-1/4 left-1/3 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
-           <div className="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.2)]">
-              <Activity className="w-4 h-4" />
-           </div>
-           <span className="text-[8px] font-black text-rose-500 uppercase tracking-widest bg-black/40 px-2 py-0.5 rounded">Central Hospital</span>
-        </div>
-
-        <div className="absolute bottom-1/3 right-1/4 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
-           <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-500">
-              <Activity className="w-4 h-4" />
-           </div>
-           <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest bg-black/40 px-2 py-0.5 rounded">Westside Clinic</span>
-        </div>
-        
-        {/* Provider Avatars on Map */}
-        <div className="absolute inset-0 pointer-events-none">
-           {providers.map((p: any, i: number) => {
-             // Semi-deterministic positioning based on ID
-             const seed = p.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-             const top = 15 + (seed % 70);
-             const left = 15 + ((seed * 1.3) % 70);
-             
-             return (
-              <div key={p.id} 
-                className={`absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-[2000ms] pointer-events-auto
-                  ${selectedProviderId === p.id ? 'z-50' : 'z-10'}`}
-                style={{ top: `${top}%`, left: `${left}%` }}
-                onClick={() => setSelectedProviderId(p.id)}
-              >
-                {/* Connection Line for Transit */}
-                {p.status === 'In Transit' && (
-                  <div className="absolute top-1/2 left-1/2 w-32 h-[1px] bg-gradient-to-r from-[var(--primary)] to-transparent origin-left -rotate-45 opacity-40" />
-                )}
-
-                {/* Avatar / Marker */}
-                <div className={`relative group/marker cursor-pointer`}>
-                  <div className={`w-10 h-10 rounded-2xl border-2 flex items-center justify-center transition-all shadow-2xl
-                    ${selectedProviderId === p.id ? 'bg-white border-[var(--primary)] scale-125' : 
-                      p.status === 'On Site' ? 'bg-emerald-500/10 border-emerald-500' : 
-                      p.status === 'In Transit' ? 'bg-[var(--primary)]/10 border-[var(--primary)]' : 
-                      'bg-slate-800 border-slate-700 opacity-60'}`}
-                  >
-                    <User className={`w-5 h-5 ${selectedProviderId === p.id ? 'text-[var(--primary)]' : 'text-current'}`} />
-                  </div>
-                  
-                  {/* Tooltip Label */}
-                  <div className={`absolute bottom-full mb-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-2xl whitespace-nowrap transition-all
-                    ${selectedProviderId === p.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 group-hover/marker:opacity-100 group-hover/marker:translate-y-0'}`}>
-                    <p className="text-[10px] font-black uppercase tracking-tight">{p.name}</p>
-                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase">{p.status} • {p.role}</p>
-                  </div>
-
-                  {/* Status Indicator Dot */}
-                  <div className={`absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[var(--card-bg)] shadow-lg
-                    ${p.status === 'On Site' ? 'bg-emerald-500' : p.status === 'In Transit' ? 'bg-[var(--primary)] animate-pulse' : 'bg-slate-500'}`} />
-                </div>
-              </div>
-             );
-           })}
-        </div>
+      {/* Interactive Logistics Map */}
+      <div className="flex-1 relative group">
+        <InteractiveMap 
+          providers={providers} 
+          selectedProviderId={selectedProviderId} 
+          onProviderSelect={setSelectedProviderId} 
+        />
 
         {/* Tactical HUD Overlay */}
-        <div className="absolute inset-x-10 bottom-10 flex items-end justify-between">
+        <div className="absolute inset-x-10 bottom-10 flex items-end justify-between z-[1000]">
           <div className="flex items-center gap-2 bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-2xl p-2 shadow-2xl">
             <button 
               onClick={() => setActiveHud("nav")}

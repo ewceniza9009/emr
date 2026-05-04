@@ -15,15 +15,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    // Check if user has a preference in localStorage
+    // Initial mount: load theme from localStorage
     const savedTheme = localStorage.getItem("aura-theme") as Theme;
     if (savedTheme) {
       setTheme(savedTheme);
+      // Apply immediately to prevent flash
+      document.documentElement.classList.remove("light", "dark");
+      document.documentElement.classList.add(savedTheme);
     }
   }, []);
 
   useEffect(() => {
-    // Apply the theme class to the document root
+    // Sync theme changes to localStorage and DOM
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);

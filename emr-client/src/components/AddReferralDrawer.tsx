@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
-import { X, UserPlus, Save, Phone, Mail, FileText } from "lucide-react";
+import { 
+  X, UserPlus, Save, Phone, Mail, FileText, 
+  MapPin, ClipboardList, Activity, Navigation,
+  Search, Shield, CheckCircle, ChevronRight
+} from "lucide-react";
+import AuraPortal from "./Portal";
 
 const CREATE_OUTREACH = gql`
   mutation CreateOutreach($input: CreateOutreachCommandInput!) {
@@ -49,148 +54,209 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] flex justify-end">
-      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md" onClick={onClose} />
-      <div className="relative h-full w-full max-w-md bg-[#050608] shadow-2xl flex flex-col border-l border-white/5 animate-in slide-in-from-right duration-500">
-        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-          <div className="flex items-center gap-3">
-             <UserPlus className="text-emerald-400 w-5 h-5" />
-             <h2 className="text-lg font-bold text-white uppercase tracking-tighter">New Referral Intake</h2>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl text-slate-500">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <AuraPortal>
+      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden animate-fade-in">
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-xl transition-opacity" onClick={onClose} />
+        
+        <div className={`relative h-full w-full max-w-[500px] bg-[var(--sidebar-bg)] shadow-[-20px_0_60px_rgba(0,0,0,0.3)] 
+          flex flex-col transition-transform duration-300 ease-out border-l border-[var(--card-border)]
+          ${open ? "translate-x-0" : "translate-x-full"}`}>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
-          <div className="grid grid-cols-2 gap-4">
-             <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">First Name</label>
-                <input 
-                  required
-                  className="w-full premium-input rounded-xl py-3 px-4"
-                  value={form.firstName}
-                  onChange={e => setForm({...form, firstName: e.target.value})}
-                />
-             </div>
-             <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Last Name</label>
-                <input 
-                  required
-                  className="w-full premium-input rounded-xl py-3 px-4"
-                  value={form.lastName}
-                  onChange={e => setForm({...form, lastName: e.target.value})}
-                />
-             </div>
+          {/* Clean Header */}
+          <div className="h-16 w-full flex items-center justify-between px-8 bg-[var(--sidebar-bg)] border-b border-[var(--card-border)] shrink-0">
+            <div className="flex items-center gap-4">
+              <div className="w-1 h-8 bg-[var(--primary)] rounded-full" />
+              <div>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Referral Intake</h2>
+                <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-widest mt-1">Patient Outreach // Clinical Enrollment</span>
+              </div>
+            </div>
+            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-all text-slate-500 hover:text-white">
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          <div className="space-y-2">
-             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Referral Source</label>
-             <select 
-               className="w-full premium-input rounded-xl py-3 px-4 bg-slate-900"
-               value={form.referralSource}
-               onChange={e => setForm({...form, referralSource: e.target.value})}
-             >
-               <option value="Hospital Discharge">Hospital Discharge</option>
-               <option value="Primary Care Physician">Primary Care Physician</option>
-               <option value="Self-Referral">Self-Referral</option>
-               <option value="Community Agency">Community Agency</option>
-               <option value="Other">Other</option>
-             </select>
-          </div>
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-10 space-y-10 scrollbar-hide">
+            {/* Section 01: Core Identification */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-3">
+                <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest">Core Identification</h3>
+                <div className="flex-1 h-px bg-[var(--card-border)]" />
+              </div>
 
-          <div className="space-y-4 pt-4 border-t border-white/5">
-             <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                  <Phone className="w-3 h-3" /> Primary Phone
-                </label>
-                <input 
-                  className="w-full premium-input rounded-xl py-3 px-4"
-                  value={form.primaryPhone}
-                  onChange={e => setForm({...form, primaryPhone: e.target.value})}
-                  placeholder="+63 9xx xxxx xxx"
-                />
-             </div>
-             <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                  <Mail className="w-3 h-3" /> Email Address
-                </label>
-                <input 
-                  type="email"
-                  className="w-full premium-input rounded-xl py-3 px-4"
-                  value={form.primaryEmail}
-                  onChange={e => setForm({...form, primaryEmail: e.target.value})}
-                  placeholder="name@example.com"
-                />
-             </div>
-          </div>
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <label className="block text-[11px] font-medium text-slate-500">First Name</label>
+                    <div className="relative group">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                      <input 
+                        required
+                        className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)] transition-all"
+                        value={form.firstName}
+                        onChange={e => setForm({...form, firstName: e.target.value})}
+                        placeholder="John"
+                      />
+                    </div>
+                 </div>
+                 <div className="space-y-2">
+                    <label className="block text-[11px] font-medium text-slate-500">Last Name</label>
+                    <div className="relative group">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                      <input 
+                        required
+                        className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)] transition-all"
+                        value={form.lastName}
+                        onChange={e => setForm({...form, lastName: e.target.value})}
+                        placeholder="Doe"
+                      />
+                    </div>
+                 </div>
+              </div>
 
-          <div className="space-y-4 pt-4 border-t border-white/5">
-             <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                  House No. / Street
-                </label>
-                <input 
-                  className="w-full premium-input rounded-xl py-3 px-4"
-                  value={form.street}
-                  onChange={e => setForm({...form, street: e.target.value})}
-                  placeholder="e.g. 123 Palliative St"
-                />
-             </div>
-             
-             <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">City</label>
+              <div className="space-y-2">
+                 <label className="block text-[11px] font-medium text-slate-500">Referral Channel</label>
+                 <div className="relative group">
+                   <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                   <select 
+                     className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white appearance-none focus:outline-none focus:border-[var(--primary)] transition-all"
+                     value={form.referralSource}
+                     onChange={e => setForm({...form, referralSource: e.target.value})}
+                   >
+                     <option value="Hospital Discharge">Hospital Discharge</option>
+                     <option value="Primary Care Physician">Primary Care Physician</option>
+                     <option value="Self-Referral">Self-Referral</option>
+                     <option value="Community Agency">Community Agency</option>
+                     <option value="Other">Other</option>
+                   </select>
+                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-600">
+                     <ChevronRight className="w-4 h-4 rotate-90" />
+                   </div>
+                 </div>
+              </div>
+            </section>
+
+            {/* Section 02: Contact Information */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-3">
+                <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest">Contact Information</h3>
+                <div className="flex-1 h-px bg-[var(--card-border)]" />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                 <div className="space-y-2">
+                    <label className="block text-[11px] font-medium text-slate-500">Primary Phone</label>
+                    <div className="relative group">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                      <input 
+                        className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)] transition-all"
+                        value={form.primaryPhone}
+                        onChange={e => setForm({...form, primaryPhone: e.target.value})}
+                        placeholder="+63 9XX XXXX XXX"
+                      />
+                    </div>
+                 </div>
+                 <div className="space-y-2">
+                    <label className="block text-[11px] font-medium text-slate-500">Email Address</label>
+                    <div className="relative group">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                      <input 
+                        type="email"
+                        className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)] transition-all"
+                        value={form.primaryEmail}
+                        onChange={e => setForm({...form, primaryEmail: e.target.value})}
+                        placeholder="patient@email.com"
+                      />
+                    </div>
+                 </div>
+              </div>
+            </section>
+
+            {/* Section 03: Deployment Address */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-3">
+                <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest">Deployment Address</h3>
+                <div className="flex-1 h-px bg-[var(--card-border)]" />
+              </div>
+
+              <div className="space-y-2">
+                 <label className="block text-[11px] font-medium text-slate-500">Street Address</label>
+                 <div className="relative group">
+                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
                    <input 
-                     className="w-full premium-input rounded-xl py-3 px-4"
-                     value={form.city}
-                     onChange={e => setForm({...form, city: e.target.value})}
+                     className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)] transition-all"
+                     value={form.street}
+                     onChange={e => setForm({...form, street: e.target.value})}
+                     placeholder="123 Street Name"
                    />
-                </div>
-                <div className="space-y-2">
-                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">State</label>
-                   <input 
-                     className="w-full premium-input rounded-xl py-3 px-4"
-                     value={form.state}
-                     onChange={e => setForm({...form, state: e.target.value})}
+                 </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <label className="block text-[11px] font-medium text-slate-500">City</label>
+                    <input 
+                      className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                      value={form.city}
+                      onChange={e => setForm({...form, city: e.target.value})}
+                    />
+                 </div>
+                 <div className="space-y-2">
+                    <label className="block text-[11px] font-medium text-slate-500">Region</label>
+                    <input 
+                      className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                      value={form.state}
+                      onChange={e => setForm({...form, state: e.target.value})}
+                    />
+                 </div>
+              </div>
+            </section>
+
+            {/* Section 04: Internal Notes */}
+            <section className="space-y-6 pb-10">
+              <div className="flex items-center gap-3">
+                <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-widest">Clinical Notes</h3>
+                <div className="flex-1 h-px bg-[var(--card-border)]" />
+              </div>
+
+              <div className="space-y-2">
+                 <label className="block text-[11px] font-medium text-slate-500">Initial Context</label>
+                 <div className="relative group">
+                   <ClipboardList className="absolute left-4 top-4 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                   <textarea 
+                     className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 h-32 focus:outline-none focus:border-[var(--primary)] transition-all resize-none scrollbar-hide"
+                     value={form.notes}
+                     onChange={e => setForm({...form, notes: e.target.value})}
+                     placeholder="Enter any additional patient context..."
                    />
-                </div>
-             </div>
+                 </div>
+              </div>
+            </section>
+          </form>
 
-             <div className="space-y-2">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Postal Code</label>
-                <input 
-                  className="w-full premium-input rounded-xl py-3 px-4"
-                  value={form.postalCode}
-                  onChange={e => setForm({...form, postalCode: e.target.value})}
-                />
-             </div>
+          {/* Action Zone */}
+          <div className="p-8 bg-[var(--sidebar-bg)] border-t border-[var(--card-border)] mt-auto flex flex-col gap-4">
+            <button 
+              type="submit" 
+              onClick={handleSubmit}
+              disabled={loading}
+              className="group w-full py-3.5 rounded-xl bg-[var(--primary)] hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed
+                        text-white font-bold text-sm transition-all shadow-lg shadow-[var(--primary-glow)] flex items-center justify-center gap-2 active:scale-[0.98]"
+            >
+              {loading ? (
+                <Activity className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span>{loading ? "Initializing..." : "Complete Intake"}</span>
+                </>
+              )}
+            </button>
+            <p className="text-[10px] font-medium text-slate-500 text-center uppercase tracking-widest">
+              Authorized Clinical Personnel Only
+            </p>
           </div>
-
-          <div className="space-y-2 pt-4 border-t border-white/5">
-             <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-               <FileText className="w-3 h-3" /> Referral Notes
-             </label>
-             <textarea 
-               className="w-full premium-input rounded-xl py-3 px-4 h-32"
-               value={form.notes}
-               onChange={e => setForm({...form, notes: e.target.value})}
-               placeholder="Initial clinical context, caregiver info, or specific requirements..."
-             />
-          </div>
-        </form>
-
-        <div className="p-6 bg-white/5 border-t border-white/5 mt-auto">
-          <button 
-            type="submit" 
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full py-4 rounded-[2rem] bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-          >
-            {loading ? "Saving Referral..." : <><Save className="w-5 h-5" /> Save Referral</>}
-          </button>
         </div>
       </div>
-    </div>
+    </AuraPortal>
   );
 }

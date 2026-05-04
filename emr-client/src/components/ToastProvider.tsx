@@ -35,20 +35,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div 
             key={t.id} 
-            className="glass-morphism rounded-2xl border border-white/10 p-5 pr-12 shadow-2xl animate-in slide-in-from-right-10 duration-500 relative flex items-center gap-4 min-w-[320px]"
+            className="bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] p-5 pr-12 shadow-2xl animate-in slide-in-from-right-10 duration-500 relative flex items-center gap-4 min-w-[320px] backdrop-blur-xl"
           >
              <div className={`
-               ${t.type === "success" ? "text-emerald-400" : ""}
-               ${t.type === "error" ? "text-red-400" : ""}
-               ${t.type === "info" ? "text-blue-400" : ""}
+               ${t.type === "success" ? "text-emerald-600" : ""}
+               ${t.type === "error" ? "text-red-600" : ""}
+               ${t.type === "info" ? "text-blue-600" : ""}
              `}>
                 {t.type === "success" && <CheckCircle2 className="w-6 h-6" />}
                 {t.type === "error" && <AlertCircle className="w-6 h-6" />}
                 {t.type === "info" && <Info className="w-6 h-6" />}
              </div>
              <div>
-                <p className="text-white font-bold text-sm">{t.message}</p>
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-0.5">Clinical Notification</p>
+                <p className="text-[var(--text-primary)] font-bold text-sm">{t.message}</p>
+                <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-bold mt-0.5">Clinical Notification</p>
              </div>
              <button 
                onClick={() => setToasts((prev) => prev.filter((toast) => toast.id !== t.id))}

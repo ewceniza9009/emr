@@ -10,6 +10,7 @@ import {
   Timer, Zap, Navigation, Check, Activity, Target, Phone, Edit3, Radar, AlertCircle
 } from "lucide-react";
 import { CLINICAL_CONFIG } from "@/lib/clinical-config";
+import AuraPortal from "./Portal";
 
 const BOOK_APPOINTMENT = gql`
   mutation BookAppointment($input: BookAppointmentInput!) {
@@ -114,11 +115,7 @@ const GET_GEOSPATIAL_AVAILABILITY = gql`
   }
 `;
 
-// NO MANUAL PERSONNEL - PURELY API DRIVEN
 const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-
-// ─── CONFIG ──────────────────────────────────────────────────────────────────
-// Now using Global CLINICAL_CONFIG from @/lib/clinical-config
 
 interface Props {
   open: boolean;
@@ -155,22 +152,18 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const [modality, setModality] = useState("IN_PERSON_HOME_VISIT");
   const [booked, setBooked] = useState(false);
 
-  // Timezone-Explicit Date Formatter (Prevents UTC Shifting)
   const formatForEngine = (date: Date, hours: number) => {
     const d = new Date(date);
     d.setHours(hours, 0, 0, 0);
-    
     const offset = -d.getTimezoneOffset();
     const sign = offset >= 0 ? '+' : '-';
     const pad = (n: number) => n.toString().padStart(2, '0');
     const offH = pad(Math.floor(Math.abs(offset) / 60));
     const offM = pad(Math.abs(offset) % 60);
-    
     const y = d.getFullYear();
     const m = pad(d.getMonth() + 1);
     const day = pad(d.getDate());
     const h = pad(hours);
-    
     return `${y}-${m}-${day}T${h}:00:00${sign}${offH}:${offM}`;
   };
 
@@ -179,11 +172,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setPatientId("");
       setPatientSearch("");
       setPatientAddress({ street: "", city: "", state: "", postalCode: "" });
-      
-      // AUTO-DEFAULT: Set to currently logged-in practitioner
       const userPracId = (session?.user as any)?.practitionerId;
       setPractitionerId(userPracId || "");
-      
       setSupportingIds([]);
       setPeriod(null);
       setModality("IN_PERSON_HOME_VISIT");
@@ -203,7 +193,6 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     }
   }, [open, propPatientId, appointmentId]);
 
-  // DEBOUNCE ENGINE: Prevent hammer-firing the backend during rapid UI changes
   const [debouncedDuration, setDebouncedDuration] = useState(duration);
   const [debouncedDate, setDebouncedDate] = useState(selectedDate);
   const [debouncedModality, setDebouncedModality] = useState(modality);
@@ -217,7 +206,6 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     return () => clearTimeout(handler);
   }, [duration, selectedDate, modality]);
 
-  // PERIOD LOCK: Force a clean re-optimization when switching AM/PM
   useEffect(() => {
     setPractitionerId("");
     setSupportingIds([]);
@@ -231,7 +219,6 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     skip: !appointmentId || !open
   });
 
-  // Sync edit data
   useEffect(() => {
     if (appointmentData?.appointment) {
       const a = appointmentData.appointment;
@@ -243,7 +230,6 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
         postalCode: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || a.patient?.addresses?.[0]?.address?.postalCode || ""
       });
       setPractitionerId(a.practitionerId || "");
-      // Data Integrity: Load all supporting clinicians regardless of their primary role title
       const rawSupporting = a.supportingClinicians?.map((s: any) => s.practitionerId) || [];
       setSupportingIds(rawSupporting);
       setModality(a.modality);
@@ -277,16 +263,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
   const currentGeoData = period === "AM" ? amData : pmData;
 
-  // Auto-select best supporting clinician when slot is chosen
   useEffect(() => {
     if (currentGeoData?.availableProviders?.length > 0 && !practitionerId) {
-      // ENGINE PROPOSAL: Prioritize CareNavigators for the Primary (CN) slot
       const best = [...currentGeoData.availableProviders]
         .filter(p => p.role === "CareNavigator")
         .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
       if (best) setPractitionerId(best.practitionerId);
       else {
-        // Fallback to any available provider if no specific CN is found
         const fallback = [...currentGeoData.availableProviders]
           .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
         if (fallback) setPractitionerId(fallback.practitionerId);
@@ -297,40 +280,28 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const practitionerSlots = useMemo(() => {
     const map = new Map<string, any[]>();
     currentGeoData?.availableProviders?.forEach((slot: any) => {
-      // PRODUCTION GUARD: Ensure slot falls within 8AM - 6PM
       const start = new Date(slot.shiftStart);
       const end = new Date(slot.shiftEnd);
-      
       const isWithinClinicalHours = start.getHours() >= 8 && end.getHours() <= 18;
-      
-      // PERIOD GUARD: Ensure AM stays in AM, PM stays in PM (Timezone-Resilient)
       const isAM = start.getHours() < CLINICAL_CONFIG.CUTOFF_HOUR;
       const isCorrectPeriod = period === "AM" ? isAM : !isAM;
-
       if (isWithinClinicalHours && isCorrectPeriod) {
         const existing = map.get(slot.practitionerId) || [];
         map.set(slot.practitionerId, [...existing, slot]);
       }
     });
     return map;
-  }, [currentGeoData, period, CLINICAL_CONFIG]);
+  }, [currentGeoData, period]);
 
   const displayCns = useMemo(() => {
     const geoProviders = currentGeoData?.availableProviders || [];
     const allPractitioners = practitionerData?.practitioners || [];
-    
-    // STABLE SORT: Keep items in a fixed position to prevent "jumping"
     const combined = allPractitioners.filter((p: any) => 
         (p.isCareNavigator || p.practitionerId?.toLowerCase() === practitionerId?.toLowerCase()) &&
         !supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
-
     return combined.map((p: any) => {
-        // SUPER-MATCH: Resilient ID + Name matching for Admin profiles
-        const geo = geoProviders.find((g: any) => 
-            g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase() ||
-            (p.lastName === "Admin" && g.practitionerId?.toLowerCase().includes("admin"))
-        );
+        const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
         return { ...p, ...geo };
     });
   }, [currentGeoData, practitionerData, practitionerId, supportingIds]);
@@ -338,19 +309,12 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const displayScs = useMemo(() => {
     const geoProviders = currentGeoData?.availableProviders || [];
     const allPractitioners = practitionerData?.practitioners || [];
-    
-    // STABLE SORT: Keep items in a fixed position to prevent "jumping"
     const combined = allPractitioners.filter((p: any) => 
         (p.isSupportingClinician || supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())) &&
         p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase()
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
-
     return combined.map((p: any) => {
-        // SUPER-MATCH: Resilient ID + Name matching for Admin profiles
-        const geo = geoProviders.find((g: any) => 
-            g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase() ||
-            (p.lastName === "Admin" && g.practitionerId?.toLowerCase().includes("admin"))
-        );
+        const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
         return { ...p, ...geo };
     });
   }, [currentGeoData, practitionerData, practitionerId, supportingIds]);
@@ -362,8 +326,6 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     }
     if (!practitionerId) return null;
     const slots = practitionerSlots.get(practitionerId) || [];
-    
-    // PRODUCTION FALLBACK: If engine is still scanning or found nothing, provide a clinical baseline
     if (slots.length === 0) {
         const fallbackHour = period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START;
         const d = new Date(selectedDate);
@@ -376,7 +338,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
         };
     }
     return slots[0];
-  }, [practitionerId, practitionerSlots, appointmentId, appointmentData, period, selectedDate, duration, CLINICAL_CONFIG]);
+  }, [practitionerId, practitionerSlots, appointmentId, appointmentData, period, selectedDate, duration]);
 
   const [book, { loading: bookingLoading }] = useMutation(BOOK_APPOINTMENT, {
     refetchQueries: ["GetScheduleData"],
@@ -389,28 +351,16 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!patientId || !practitionerId) return;
-
-    // Use current slot, or default to a baseline if engine is still calculating
     const slot = selectedSlot || {
         shiftStart: new Date(new Date(selectedDate).setHours(period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START, 0, 0, 0)).toISOString(),
         shiftEnd: new Date(new Date(selectedDate).setHours(period === "AM" ? CLINICAL_CONFIG.AM_START + 1 : CLINICAL_CONFIG.PM_START + 1, 0, 0, 0)).toISOString(),
         travelTimeInMinutes: CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS,
         distanceInMiles: CLINICAL_CONFIG.ENGINE_SAFETY_DIST_KM
     };
-
-    // FINAL PRODUCTION VALIDATION: Ensure the period hasn't shifted (Timezone-Resilient)
     const startHour = new Date(slot.shiftStart).getHours();
     const isSlotAM = startHour < CLINICAL_CONFIG.CUTOFF_HOUR;
-    
-    if (period === "AM" && !isSlotAM) {
-      alert(`TIMEZONE CONFLICT: Engine proposed a PM slot (${startHour}:00) for an AM selection. Save blocked.`);
-      return;
-    }
-    if (period === "PM" && isSlotAM) {
-      alert(`TIMEZONE CONFLICT: Engine proposed an AM slot (${startHour}:00) for a PM selection. Save blocked.`);
-      return;
-    }
-
+    if (period === "AM" && !isSlotAM) return;
+    if (period === "PM" && isSlotAM) return;
     book({
       variables: {
         input: {
@@ -437,7 +387,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       const isSelected = selectedDate.getDate() === d && selectedDate.getMonth() === viewDate.getMonth();
       days.push(
         <button key={d} type="button" onClick={() => { setSelectedDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), d)); setPeriod(null); setPractitionerId(""); }}
-          className={`h-10 w-full rounded-2xl text-xs font-black transition-all flex items-center justify-center
+          className={`h-10 w-full rounded-2xl text-xs font-semibold transition-all flex items-center justify-center
             ${isSelected ? "bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
           {d}
         </button>
@@ -449,504 +399,465 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 !m-0 !p-0 z-[999999] flex justify-end overflow-hidden">
-      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl" onClick={onClose} />
+    <AuraPortal>
+      <div className="fixed inset-0 !m-0 !p-0 z-[9999999] flex justify-end overflow-hidden">
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-xl" onClick={onClose} />
 
-      <div className={`relative h-full w-full max-w-[900px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
-        flex flex-col transition-transform duration-700 cubic-bezier(0.16, 1, 0.3, 1) 
-        ${open ? "translate-x-0" : "translate-x-full"}`}>
+        <div className={`relative h-full w-full max-w-[900px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
+          flex flex-col transition-transform duration-300 ease-out 
+          ${open ? "translate-x-0" : "translate-x-full"}`}>
 
-        <div className="h-20 w-full flex items-center justify-between px-8 bg-[var(--sidebar-bg)] border-b border-[var(--card-border)] shrink-0 backdrop-blur-md">
-          <div className="flex items-center gap-6">
-            <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
-            <div className="flex flex-col">
-              <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Encounter Orchestration</h2>
-              <span className="text-[10px] font-black text-[var(--primary)] tracking-[0.2em] mt-1 uppercase">Clinical Staff Sync // Geospatial Assessment</span>
+          <div className="h-20 w-full flex items-center justify-between px-8 bg-[var(--sidebar-bg)] border-b border-[var(--card-border)] shrink-0 backdrop-blur-md">
+            <div className="flex items-center gap-6">
+              <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
+              <div className="flex flex-col">
+                <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight leading-none">Schedule Appointment</h2>
+                <span className="text-xs font-medium text-[var(--text-muted)] mt-1.5">Configure encounter details and clinical team</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)]">
+                <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />
+                <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Engine Active</span>
+              </div>
+              <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                <X className="w-6 h-6" />
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)]/10 rounded-full border border-[var(--primary)]/20 shadow-[0_0_15px_rgba(var(--primary-rgb),0.1)]">
-              <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
-              <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">Live Engine Connected</span>
-            </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-white">
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
 
-        <div className="flex-1 flex flex-row overflow-hidden">
-          <div className="flex-1 flex flex-col border-r border-[var(--card-border)] bg-[var(--sidebar-bg)] overflow-hidden">
-            <form id="appointment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 pt-4 space-y-6 scrollbar-hide">
-              <section className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <span className="text-xs font-black text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">01</span>
-                  <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Bedside Identification</h3>
-                  <div className="flex-1 h-px bg-[var(--card-border)]" />
-                </div>
+          <div className="flex-1 flex flex-row overflow-hidden">
+            <div className="flex-1 flex flex-col border-r border-[var(--card-border)] bg-[var(--sidebar-bg)] overflow-hidden">
+              <form id="appointment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 pt-6 space-y-8 scrollbar-hide">
+                <section className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">01</span>
+                    <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Patient Selection</h3>
+                    <div className="flex-1 h-px bg-[var(--card-border)]" />
+                  </div>
 
-                <div className="relative group">
-                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
-                  <input required value={patientSearch} onChange={e => { setPatientSearch(e.target.value); setShowPatientResults(true); }}
-                    placeholder="SEARCH FOR MRN OR NAME..."
-                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-14 pr-6 py-3 text-[var(--text-primary)] text-xs font-black placeholder:text-[var(--text-muted)]
-                      focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-wider"
-                  />
-                  {showPatientResults && patientSearch && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden z-[1001] max-h-60 overflow-y-auto shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
-                      {patientData?.patients?.filter((p: any) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(patientSearch.toLowerCase())).map((p: any) => (
-                        <button key={p.patientId} type="button" onClick={() => {
-                          setPatientId(p.patientId);
-                          setPatientSearch(`${p.firstName} ${p.lastName}`);
-                          setPatientAddress({
-                            street: p.addresses?.find((x: any) => x.isPrimary)?.address?.street || p.addresses?.[0]?.address?.street || "",
-                            city: p.addresses?.find((x: any) => x.isPrimary)?.address?.city || p.addresses?.[0]?.address?.city || "",
-                            state: p.addresses?.find((x: any) => x.isPrimary)?.address?.state || p.addresses?.[0]?.address?.state || "",
-                            postalCode: p.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || p.addresses?.[0]?.address?.postalCode || ""
-                          });
-                          setShowPatientResults(false);
-                        }}
-                          className="w-full px-6 py-4 text-left hover:bg-[var(--primary)]/20 border-b border-[var(--card-border)] transition-colors flex items-center justify-between group">
-                          <span className="font-black text-[var(--text-primary)] text-sm uppercase tracking-widest">{p.firstName} {p.lastName}</span>
-                          <span className="text-[10px] font-mono text-[var(--text-muted)] group-hover:text-[var(--primary)]">{p.mrn}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {patientId && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-700">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Target className="w-4 h-4 text-[var(--primary)]" />
-                        <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Location Verified</span>
-                      </div>
-                      <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl p-5 relative group/addr space-y-4">
-                        <div className="flex items-center justify-between">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <div className="p-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)]">
-                                    <MapPin className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                                </div>
-                                <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Patient Site Data</span>
-                            </div>
-                            
-                            {/* Deployment Logistics Badge */}
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--input-bg)] border border-[var(--card-border)]">
-                                <Car className="w-3 h-3 text-[var(--primary)]" />
-                                <span className="text-[10px] font-black text-[var(--text-primary)]">
-                                  {(() => {
-                                    const activePractitioner = practitionerId 
-                                      ? displayCns.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase()) || displayScs.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase())
-                                      : null;
-                                    return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : `${CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS}m`;
-                                  })()}
-                                </span>
-                                <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Est. Travel</span>
-                            </div>
-
-                            <button type="button" onClick={() => setIsEditingAddress(!isEditingAddress)}
-                                className={`p-2 rounded-lg border transition-all ${isEditingAddress ? "bg-[var(--primary)]/20 border-[var(--primary)]/30 text-[var(--primary)]" : "bg-[var(--input-bg)] hover:bg-[var(--primary)]/10 border-[var(--card-border)] text-[var(--text-muted)]"}`}>
-                                {isEditingAddress ? <Check className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
-                            </button>
-                        </div>
-                        </div>
-                        
-                        {isEditingAddress ? (
-                          <div className="space-y-4 animate-in fade-in slide-in-from-top-1 duration-300">
-                            <div className="space-y-1.5">
-                              <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
-                              <input autoFocus value={patientAddress.street} onChange={e => setPatientAddress({ ...patientAddress, street: e.target.value })}
-                                className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50 transition-all" />
-                            </div>
-                            <div className="grid grid-cols-3 gap-3">
-                              <div className="space-y-1.5">
-                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">City</label>
-                                <input value={patientAddress.city} onChange={e => setPatientAddress({ ...patientAddress, city: e.target.value })}
-                                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50 transition-all" />
-                              </div>
-                              <div className="space-y-1.5">
-                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Region</label>
-                                <input value={patientAddress.state} onChange={e => setPatientAddress({ ...patientAddress, state: e.target.value })}
-                                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50 transition-all" />
-                              </div>
-                              <div className="space-y-1.5">
-                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Zip</label>
-                                <input value={patientAddress.postalCode} onChange={e => setPatientAddress({ ...patientAddress, postalCode: e.target.value })}
-                                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50 transition-all" />
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            <div className="space-y-1">
-                              <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
-                              <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-tight">{patientAddress.street || "NO ADDRESS RECORDED"}</p>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4">
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">City</label>
-                                <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase truncate">{patientAddress.city || "--"}</p>
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Region</label>
-                                <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase truncate">{patientAddress.state || "--"}</p>
-                              </div>
-                              <div className="space-y-1">
-                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Zip</label>
-                                <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase truncate">{patientAddress.postalCode || "--"}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Activity className="w-4 h-4 text-[var(--primary)]" />
-                        <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Visit Modality</span>
-                      </div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[
-                          { id: "IN_PERSON_HOME_VISIT", label: "HOME VISIT", icon: <Home className="w-4 h-4" /> },
-                          { id: "IN_PERSON_FACILITY", label: "FACILITY", icon: <Building2 className="w-4 h-4" /> },
-                          { id: "TELEHEALTH_VIDEO", label: "VIDEO CALL", icon: <Video className="w-4 h-4" /> },
-                          { id: "TELEPHONE", label: "AUDIO ONLY", icon: <Phone className="w-4 h-4" /> },
-                        ].map((m) => (
-                          <button key={m.id} type="button" onClick={() => { setModality(m.id); setPeriod(null); }}
-                            className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl border text-[8px] font-black transition-all whitespace-nowrap
-                                    ${modality === m.id ? "bg-[var(--primary)] border-transparent text-white shadow-lg shadow-[var(--primary-glow)]" : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
-                            {React.cloneElement(m.icon as React.ReactElement, { className: "w-3 h-3 shrink-0" })}
-                            {m.label}
+                  <div className="relative group">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+                    <input required value={patientSearch} onChange={e => { setPatientSearch(e.target.value); setShowPatientResults(true); }}
+                      placeholder="Search by MRN or patient name..."
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-14 pr-6 py-4 text-[var(--text-primary)] text-sm font-medium placeholder:text-[var(--text-muted)]
+                        focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-sm"
+                    />
+                    {showPatientResults && patientSearch && (
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden z-[1001] max-h-60 overflow-y-auto shadow-2xl backdrop-blur-2xl">
+                        {patientData?.patients?.filter((p: any) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(patientSearch.toLowerCase())).map((p: any) => (
+                          <button key={p.patientId} type="button" onClick={() => {
+                            setPatientId(p.patientId);
+                            setPatientSearch(`${p.firstName} ${p.lastName}`);
+                            setPatientAddress({
+                              street: p.addresses?.find((x: any) => x.isPrimary)?.address?.street || p.addresses?.[0]?.address?.street || "",
+                              city: p.addresses?.find((x: any) => x.isPrimary)?.address?.city || p.addresses?.[0]?.address?.city || "",
+                              state: p.addresses?.find((x: any) => x.isPrimary)?.address?.state || p.addresses?.[0]?.address?.state || "",
+                              postalCode: p.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || p.addresses?.[0]?.address?.postalCode || ""
+                            });
+                            setShowPatientResults(false);
+                          }}
+                            className="w-full px-6 py-4 text-left hover:bg-[var(--primary)]/10 border-b border-[var(--card-border)] transition-colors flex items-center justify-between group">
+                            <span className="font-semibold text-[var(--text-primary)] text-sm">{p.firstName} {p.lastName}</span>
+                            <span className="text-xs font-medium text-[var(--text-muted)] group-hover:text-[var(--primary)]">{p.mrn}</span>
                           </button>
                         ))}
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
-              </section>
 
-              {!patientId || !period ? (
-                <div className="py-24 text-center border-2 border-dashed border-[var(--card-border)] rounded-[3rem] group">
-                  <Radar className="w-12 h-12 text-[var(--text-muted)] opacity-20 mx-auto mb-6 group-hover:text-[var(--primary)] transition-colors" />
-                  <p className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.4em] animate-pulse">
-                    {!patientId ? "Scanning for Target" : "Select Time Window"}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
-                  <section className="space-y-6">
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs font-black text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">02</span>
-                      <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Care Navigator Assignment</h3>
-                      <div className="flex-1 h-px bg-[var(--card-border)]" />
+                  {patientId && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <MapPin className="w-4 h-4 text-[var(--primary)]" />
+                          <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Service Location</span>
+                        </div>
+                        <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-6 relative group/addr space-y-6">
+                          <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                  <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Patient Primary Address</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                                    <Car className="w-3.5 h-3.5 text-[var(--primary)]" />
+                                    <span className="text-xs font-bold text-[var(--text-primary)]">
+                                      {(() => {
+                                        const activePractitioner = practitionerId 
+                                          ? displayCns.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase()) || displayScs.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase())
+                                          : null;
+                                        return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : `${CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS}m`;
+                                      })()}
+                                    </span>
+                                    <span className="text-[10px] font-medium text-[var(--text-muted)] ml-1">travel</span>
+                                </div>
+                                <button type="button" onClick={() => setIsEditingAddress(!isEditingAddress)}
+                                    className={`p-2.5 rounded-xl border transition-all ${isEditingAddress ? "bg-[var(--primary)] text-white border-transparent" : "bg-white/5 hover:bg-white/10 border-white/10 text-[var(--text-muted)]"}`}>
+                                    {isEditingAddress ? <Check className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                                </button>
+                              </div>
+                          </div>
+                          
+                          {isEditingAddress ? (
+                            <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-top-1 duration-300">
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
+                                <input autoFocus value={patientAddress.street} onChange={e => setPatientAddress({ ...patientAddress, street: e.target.value })}
+                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
+                              </div>
+                              <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
+                                  <input value={patientAddress.city} onChange={e => setPatientAddress({ ...patientAddress, city: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
+                                </div>
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">State</label>
+                                  <input value={patientAddress.state} onChange={e => setPatientAddress({ ...patientAddress, state: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
+                                </div>
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zip Code</label>
+                                  <input value={patientAddress.postalCode} onChange={e => setPatientAddress({ ...patientAddress, postalCode: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
+                                <p className="text-base font-semibold text-[var(--text-primary)]">{patientAddress.street || "No address recorded"}</p>
+                              </div>
+                              <div className="grid grid-cols-3 gap-6">
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
+                                  <p className="text-sm font-medium text-[var(--text-secondary)]">{patientAddress.city || "--"}</p>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">State</label>
+                                  <p className="text-sm font-medium text-[var(--text-secondary)]">{patientAddress.state || "--"}</p>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zip Code</label>
+                                  <p className="text-sm font-medium text-[var(--text-secondary)]">{patientAddress.postalCode || "--"}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Activity className="w-4 h-4 text-[var(--primary)]" />
+                          <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Visit Modality</span>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          {[
+                            { id: "IN_PERSON_HOME_VISIT", label: "Home Visit", icon: <Home className="w-4 h-4" /> },
+                            { id: "IN_PERSON_FACILITY", label: "Facility", icon: <Building2 className="w-4 h-4" /> },
+                            { id: "TELEHEALTH_VIDEO", label: "Video Call", icon: <Video className="w-4 h-4" /> },
+                            { id: "TELEPHONE", label: "Audio Only", icon: <Phone className="w-4 h-4" /> },
+                          ].map((m) => (
+                            <button key={m.id} type="button" onClick={() => { setModality(m.id); setPeriod(null); }}
+                              className={`flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-xl border text-xs font-semibold transition-all
+                                      ${modality === m.id ? "bg-[var(--primary)] border-transparent text-white shadow-lg shadow-[var(--primary-glow)]" : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10"}`}>
+                              {React.cloneElement(m.icon as React.ReactElement, { className: "w-4 h-4 shrink-0" })}
+                              {m.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
+                  )}
+                </section>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {displayCns.map((p: any) => {
+                {!patientId || !period ? (
+                  <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.01]">
+                    <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                      <Search className="w-8 h-8 text-[var(--text-muted)] opacity-30" />
+                    </div>
+                    <p className="text-sm font-medium text-[var(--text-muted)]">
+                      {!patientId ? "Select a patient to begin scheduling" : "Choose a time slot to see available clinicians"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                    <section className="space-y-6">
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">02</span>
+                        <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Clinical Lead Assignment</h3>
+                        <div className="flex-1 h-px bg-[var(--card-border)]" />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {displayCns.map((p: any) => {
+                            const pid = p.practitionerId;
+                            const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
+                            const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
+                            return (
+                              <div key={pid} className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group
+                                ${isPrimary || isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm" : "bg-white/5 border-white/10 hover:border-white/30"}`}
+                              onClick={() => {
+                                if (!pid) return;
+                                if (isSupporting) {
+                                  setPractitionerId(pid);
+                                  setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                                } else if (isPrimary) {
+                                  setPractitionerId("");
+                                } else {
+                                  setPractitionerId(pid);
+                                  setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                                }
+                              }}>
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
+                                  <User className="w-5 h-5" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className={`text-sm font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                                    {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
+                                  </p>
+                                  <p className="text-[11px] font-medium text-[var(--text-muted)] mt-0.5">
+                                      {isPrimary ? "Primary Lead" : isSupporting ? "Supporting" : "Care Navigator"}
+                                  </p>
+                                </div>
+                              </div>
+                               <div className="text-right">
+                                  <div className="flex items-center gap-1.5 justify-end">
+                                      {p.travelTimeInMinutes !== undefined ? (
+                                        <>
+                                          <Car className={`w-3.5 h-3.5 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
+                                          <span className={`text-xs font-bold ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
+                                            {isPrimary || isSupporting 
+                                              ? (selectedSlot?.travelTimeInMinutes !== undefined ? `${selectedSlot.travelTimeInMinutes}m` : "--")
+                                              : (p.travelTimeInMinutes !== undefined ? `${p.travelTimeInMinutes}m` : "--")}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <span className="text-[10px] font-semibold text-rose-500/80 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/10">
+                                          Unavailable
+                                        </span>
+                                      )}
+                                  </div>
+                              </div>
+                            </div>
+                            );
+                        })}
+                      </div>
+                    </section>
+                    <section className="space-y-6">
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">03</span>
+                        <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Supporting Clinicians</h3>
+                        <div className="flex-1 h-px bg-[var(--card-border)]" />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {displayScs.map((p: any) => {
                           const pid = p.practitionerId;
                           const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
                           const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
                           return (
-                            <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
-                              ${isPrimary ? "bg-[var(--primary)]/10 border-[var(--primary)] shadow-xl shadow-[var(--primary-glow)]" : isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)] shadow-xl shadow-[var(--primary-glow)]" : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-[var(--text-muted)]"}`}
-                            onClick={() => {
-                              if (!pid) return;
-                              if (isSupporting) {
-                                // If they were supporting, make them primary
-                                setPractitionerId(pid);
-                                setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
-                              } else if (isPrimary) {
-                                // Toggle off primary
-                                setPractitionerId("");
-                              } else {
-                                setPractitionerId(pid);
-                                setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
-                              }
-                            }}>
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary ? "bg-[var(--primary)] text-white" : isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/5 text-slate-600"}`}>
-                                <User className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className={`text-xs font-black uppercase truncate whitespace-nowrap ${isPrimary ? "text-[var(--primary)]" : isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}
-                                   title={p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}>
-                                  {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}
-                                </p>
-                                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5 truncate whitespace-nowrap">
-                                    {isPrimary ? "Primary (CN)" : isSupporting ? "Supporting (SC)" : "Care Navigator"}
-                                </p>
-                              </div>
-                            </div>
-                             <div className="text-right">
-                                <div className="flex items-center gap-1.5 justify-end">
-                                    {p.travelTimeInMinutes !== undefined ? (
-                                      <>
-                                        <Car className={`w-3 h-3 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
-                                        <span className={`text-xs font-black ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
-                                          {isPrimary || isSupporting 
-                                            ? (selectedSlot?.travelTimeInMinutes !== undefined ? `${selectedSlot.travelTimeInMinutes}m` : "--")
-                                            : (p.travelTimeInMinutes !== undefined ? `${p.travelTimeInMinutes}m` : "--")}
-                                        </span>
-                                      </>
-                                    ) : (
-                                      <span className="text-[8px] font-black text-rose-500/60 uppercase tracking-tighter bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
-                                        Busy / Off-Duty
-                                      </span>
-                                    )}
+                            <div key={pid} className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group
+                              ${isPrimary || isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm" : "bg-white/5 border-white/10 hover:border-white/30"}`}
+                               onClick={() => {
+                                 if (!pid) return;
+                                 if (isPrimary) {
+                                    setPractitionerId("");
+                                    setSupportingIds(prev => [...prev, pid]);
+                                 } else if (isSupporting) {
+                                    setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                                 } else {
+                                    setSupportingIds(prev => [...prev, pid]);
+                                    if (practitionerId?.toLowerCase() === pid.toLowerCase()) setPractitionerId("");
+                                 }
+                               }}>
+                              <div className="flex items-center gap-3 min-w-0">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
+                                  <Stethoscope className="w-5 h-5" />
                                 </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-
-                  <section className="space-y-6">
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs font-black text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">03</span>
-                      <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Supporting Clinical Lane</h3>
-                      <div className="flex-1 h-px bg-[var(--card-border)]" />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {displayScs.map((p: any) => {
-                        const pid = p.practitionerId;
-                        const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
-                        const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
-                        const isSelected = isPrimary || isSupporting;
-                        return (
-                          <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
-                            ${isPrimary ? "bg-[var(--primary)]/10 border-[var(--primary)] shadow-xl shadow-[var(--primary-glow)]" : isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)] shadow-xl shadow-[var(--primary-glow)]" : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-[var(--text-muted)]"}`}
-                             onClick={() => {
-                               if (!pid) return;
-                               if (isPrimary) {
-                                  // Switch from primary to supporting
-                                  setPractitionerId("");
-                                  setSupportingIds(prev => [...prev, pid]);
-                               } else if (isSupporting) {
-                                  // Toggle off supporting
-                                  setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
-                               } else {
-                                  // Toggle on supporting
-                                  setSupportingIds(prev => [...prev, pid]);
-                                  if (practitionerId?.toLowerCase() === pid.toLowerCase()) setPractitionerId("");
-                               }
-                             }}>
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary ? "bg-[var(--primary)] text-white" : isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/5 text-slate-600"}`}>
-                                <Stethoscope className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className={`text-xs font-black uppercase truncate whitespace-nowrap ${isPrimary ? "text-[var(--primary)]" : isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}
-                                   title={p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}>
-                                  {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Unnamed Provider")}
-                                </p>
-                                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5 truncate whitespace-nowrap">
-                                    {isPrimary ? "Primary (CN)" : isSupporting ? "Supporting (SC)" : "Supporting Clinician"}
-                                </p>
+                                <div className="min-w-0">
+                                  <p className={`text-sm font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                                    {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
+                                  </p>
+                                  <p className="text-[11px] font-medium text-[var(--text-muted)] mt-0.5">
+                                      {isPrimary ? "Primary Lead" : isSupporting ? "Supporting" : "Supporting Clinician"}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-                </div>
-              )}
-            </form>
-          </div>
-
-          <div className="w-[380px] flex flex-col bg-[var(--sidebar-bg)] p-10 space-y-10 overflow-y-auto scrollbar-hide border-l border-[var(--card-border)]">
-            <section className="space-y-6">
-              <div className="grid grid-cols-3 gap-4 pb-6 border-b border-white/5">
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Transit</p>
-                  <p className="text-sm font-black text-[var(--text-primary)] uppercase">{selectedSlot?.travelTimeInMinutes || "--"}M</p>
-                </div>
-                <div className="space-y-1 border-l border-[var(--card-border)] pl-4">
-                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Radius</p>
-                  <p className="text-sm font-black text-[var(--text-primary)] uppercase">{selectedSlot?.distanceInMiles?.toFixed(1) || "--"}M</p>
-                </div>
-                <div className="space-y-1 border-l border-[var(--card-border)] pl-4">
-                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Duration</p>
-                  <p className="text-sm font-black text-[var(--text-primary)] uppercase">{duration}M</p>
-                </div>
-              </div>
-
-              <h3 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Temporal Selection</h3>
-              <div className="bg-[var(--input-bg)] rounded-2xl border border-[var(--card-border)] p-4 space-y-4">
-                <div className="flex items-center justify-between px-2">
-                  <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">
-                    {isNaN(viewDate.getTime()) ? "SELECT DATE" : `${monthNames[viewDate.getMonth()]} // ${viewDate.getFullYear()}`}
-                  </span>
-                  <div className="flex gap-1.5">
-                    <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="p-1.5 hover:bg-[var(--primary-glow)] rounded-lg border border-[var(--card-border)] transition-colors"><ChevronLeft className="w-3.5 h-3.5 text-[var(--text-muted)]" /></button>
-                    <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="p-1.5 hover:bg-[var(--primary-glow)] rounded-lg border border-[var(--card-border)] transition-colors"><ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" /></button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-7 gap-1">
-                  {renderCalendar()}
-                </div>
-              </div>
-
-              {patientId && (
-                <div className="flex bg-[var(--input-bg)] rounded-xl p-1 border border-[var(--card-border)] gap-1">
-                  <button type="button" onClick={() => { setPeriod("AM"); setPractitionerId(""); }}
-                    className={`flex-1 py-3 rounded-lg text-[9px] font-black tracking-[0.3em] transition-all
-                                 ${period === "AM" ? "bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
-                    {amLoading ? <Activity className="w-3 h-3 animate-spin mx-auto" /> : "AM SLOT"}
-                  </button>
-                  <button type="button" onClick={() => { setPeriod("PM"); setPractitionerId(""); }}
-                    className={`flex-1 py-3 rounded-lg text-[9px] font-black tracking-[0.3em] transition-all
-                                 ${period === "PM" ? "bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
-                    {pmLoading ? <Activity className="w-3 h-3 animate-spin mx-auto" /> : "PM SLOT"}
-                  </button>
-                </div>
-              )}
-
-              <div className="pt-4 px-2">
-                <div className="flex justify-between items-baseline mb-4">
-                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Duration Profile</label>
-                  <span className="text-lg font-black text-[var(--primary)]">{duration} <span className="text-[10px] text-[var(--text-muted)]">MINS</span></span>
-                </div>
-                <input type="range" min="15" max="60" step="15" value={duration}
-                  onChange={e => setDuration(parseInt(e.target.value))}
-                  className="w-full h-1.5 rounded-full appearance-none transition-colors accent-[var(--primary)] bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer hover:bg-[var(--primary-glow)]" />
-                <div className="flex justify-between mt-3 text-[9px] font-black text-[var(--text-muted)] tracking-widest uppercase">
-                  <span>15m</span>
-                  <span>Clinical Norm</span>
-                  <span>60m</span>
-                </div>
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Engine Proposal</h3>
-                {selectedSlot?.shiftStart && (
-                  <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[7px] font-black uppercase tracking-widest
-                              ${(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? "bg-[var(--primary)]/10 border-[var(--primary)]/20 text-[var(--primary)]" :
-                      selectedSlot.travelTimeInMinutes < 15 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" :
-                        selectedSlot.travelTimeInMinutes < 30 ? "bg-amber-500/10 border-amber-500/20 text-amber-500" :
-                          "bg-rose-500/10 border-rose-500/20 text-rose-500"}`}>
-                    {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? <Activity className="w-2 h-2" /> : <Navigation className="w-2 h-2" />}
-                    {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? "Network: High" :
-                      selectedSlot.travelTimeInMinutes < 15 ? "Confidence: High" :
-                        selectedSlot.travelTimeInMinutes < 30 ? "Traffic: Moderate" : "Congestion: Heavy"}
+                          );
+                        })}
+                      </div>
+                    </section>
                   </div>
                 )}
-              </div>
+              </form>
+            </div>
 
-              <div className={`p-6 rounded-[2rem] border-2 transition-all duration-1000 relative overflow-hidden group
-                      ${selectedSlot?.shiftStart ? "bg-[var(--primary)] border-transparent shadow-[0_15px_40px_var(--primary-glow)]" : "bg-white/[0.01] border-white/5 opacity-20"}`}>
-
-                {/* Simulated Deployment Radar Map */}
-                <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(255,255,255,0.1)_100%)]" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] border border-white/20 rounded-full animate-pulse" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] border border-white/10 rounded-full" />
-                  {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-full h-px bg-cyan-500/20 animate-pulse" />
+            <div className="w-[400px] flex flex-col bg-[var(--sidebar-bg)] p-8 space-y-8 overflow-y-auto scrollbar-hide border-l border-[var(--card-border)]">
+              <section className="space-y-6">
+                <div className="grid grid-cols-3 gap-4 pb-6 border-b border-white/5">
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Travel</p>
+                    <p className="text-base font-bold text-[var(--text-primary)]">{selectedSlot?.travelTimeInMinutes || "--"}m</p>
+                  </div>
+                  <div className="space-y-1.5 border-l border-white/5 pl-4">
+                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Distance</p>
+                    <p className="text-base font-bold text-[var(--text-primary)]">{selectedSlot?.distanceInMiles?.toFixed(1) || "--"}mi</p>
+                  </div>
+                  <div className="space-y-1.5 border-l border-white/5 pl-4">
+                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Duration</p>
+                    <p className="text-base font-bold text-[var(--text-primary)]">{duration}m</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Encounter Date</h3>
+                  <div className="bg-white/5 rounded-2xl border border-white/10 p-5 space-y-4 shadow-sm">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs font-bold text-[var(--text-primary)]">
+                        {isNaN(viewDate.getTime()) ? "Select Date" : `${monthNames[viewDate.getMonth()]} ${viewDate.getFullYear()}`}
+                      </span>
+                      <div className="flex gap-2">
+                        <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="p-1.5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"><ChevronLeft className="w-4 h-4 text-slate-400" /></button>
+                        <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="p-1.5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"><ChevronRight className="w-4 h-4 text-slate-400" /></button>
+                      </div>
                     </div>
-                  ) : (
-                    <>
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-px bg-white/10 rotate-45" />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-px bg-white/10 -rotate-45" />
-                    </>
+                    <div className="grid grid-cols-7 gap-1">
+                      {renderCalendar()}
+                    </div>
+                  </div>
+                </div>
+                {patientId && (
+                  <div className="flex bg-white/5 rounded-2xl p-1.5 border border-white/10 gap-1.5 shadow-inner">
+                    <button type="button" onClick={() => { setPeriod("AM"); setPractitionerId(""); }}
+                      className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
+                                   ${period === "AM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-white hover:bg-white/5"}`}>
+                      {amLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "MORNING SLOT"}
+                    </button>
+                    <button type="button" onClick={() => { setPeriod("PM"); setPractitionerId(""); }}
+                      className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
+                                   ${period === "PM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-white hover:bg-white/5"}`}>
+                      {pmLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "AFTERNOON SLOT"}
+                    </button>
+                  </div>
+                )}
+                <div className="pt-4 px-2">
+                  <div className="flex justify-between items-baseline mb-4">
+                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Encounter Duration</label>
+                    <span className="text-lg font-bold text-[var(--primary)]">{duration} <span className="text-xs text-[var(--text-muted)]">mins</span></span>
+                  </div>
+                  <input type="range" min="15" max="60" step="15" value={duration}
+                    onChange={e => setDuration(parseInt(e.target.value))}
+                    className="w-full h-1.5 rounded-full appearance-none transition-colors accent-[var(--primary)] bg-white/5 border border-white/10 cursor-pointer" />
+                  <div className="flex justify-between mt-4 text-[9px] font-bold text-[var(--text-muted)] tracking-widest uppercase">
+                    <span>15m</span>
+                    <span>Standard Visit</span>
+                    <span>60m</span>
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Encounter Summary</h3>
+                  {selectedSlot?.shiftStart && (
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-bold uppercase tracking-wider
+                                ${(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? "bg-[var(--primary)]/10 border-[var(--primary)]/20 text-[var(--primary)]" :
+                        selectedSlot.travelTimeInMinutes < 15 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" :
+                          selectedSlot.travelTimeInMinutes < 30 ? "bg-amber-500/10 border-amber-500/20 text-amber-500" :
+                            "bg-rose-500/10 border-rose-500/20 text-rose-500"}`}>
+                      <Timer className="w-3 h-3" />
+                      {modality.includes("TELE") ? "Virtual Sync" : selectedSlot.travelTimeInMinutes < 15 ? "Efficient Window" : "Transit Warning"}
+                    </div>
                   )}
                 </div>
-
-                {selectedSlot?.shiftStart ? (
-                  <div className="space-y-4 relative z-10">
-                    <div className="flex items-center gap-2">
-                      {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? <Video className="w-3 h-3 text-teal-100" /> : <Zap className="w-3 h-3 text-teal-100 animate-pulse" />}
-                      <p className="text-[8px] font-black text-teal-100 uppercase tracking-[0.2em]">
-                        {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? "Virtual Deployment" : "Optimized Deployment"}
-                      </p>
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="flex items-baseline gap-1 mb-1">
-                        <h4 className="text-2xl font-black text-white tracking-tighter leading-none">
-                          {new Date(selectedSlot.shiftStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).split(' ')[0]}
-                        </h4>
-                        <span className="text-[10px] font-black text-teal-200 uppercase tracking-widest">{new Date(selectedSlot.shiftStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }).split(' ')[1]}</span>
-                      </div>
-                      <p className="text-[8px] font-black text-teal-100/50 uppercase tracking-widest">Target Connection Time</p>
-                    </div>
-                    <div className="pt-4 flex items-center justify-between border-t border-white/20 mt-4">
-                      {(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? (
-                        <div className="w-full text-center">
-                          <p className="text-[10px] font-black text-blue-100/40 uppercase tracking-widest mb-1">Link Latency</p>
-                          <p className="text-2xl font-black text-white leading-none">0.02<span className="text-xs ml-1 opacity-60">ms</span></p>
+                <div className={`p-6 rounded-3xl border-2 transition-all duration-500 relative overflow-hidden group
+                        ${selectedSlot?.shiftStart ? "bg-[var(--primary)]/5 border-[var(--primary)]/30" : "bg-white/[0.01] border-white/5 opacity-20"}`}>
+                  {selectedSlot?.shiftStart ? (
+                    <div className="space-y-6 relative z-10">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)]">
+                          <Clock className="w-6 h-6" />
                         </div>
-                      ) : (
-                        <>
-                          <div className="text-left">
-                            <p className="text-[10px] font-black text-blue-100/40 uppercase tracking-widest mb-1">Travel</p>
-                            <p className="text-2xl font-black text-white leading-none">{selectedSlot.travelTimeInMinutes}<span className="text-xs ml-1 opacity-60">M</span></p>
+                        <div>
+                          <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Scheduled Time</p>
+                          <div className="flex items-baseline gap-2">
+                            <h4 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
+                              {new Date(selectedSlot.shiftStart).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                            </h4>
                           </div>
-                          <div className="text-right">
-                            <p className="text-[10px] font-black text-blue-100/40 uppercase tracking-widest mb-1">Range</p>
-                            <p className="text-2xl font-black text-white leading-none">{selectedSlot.distanceInMiles.toFixed(1)}<span className="text-xs ml-1 opacity-60">M</span></p>
-                          </div>
-                        </>
-                      )}
+                        </div>
+                      </div>
+                      <div className="pt-6 flex items-center justify-between border-t border-white/5">
+                        <div className="text-left space-y-1">
+                          <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Travel Time</p>
+                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot.travelTimeInMinutes}<span className="text-xs ml-1 opacity-60">m</span></p>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Distance</p>
+                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot.distanceInMiles.toFixed(1)}<span className="text-xs ml-1 opacity-60">mi</span></p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-12 opacity-50 relative z-10">
-                    <Radar className="w-10 h-10 text-[var(--text-muted)] mx-auto mb-4" />
-                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Scanning Grid...</p>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <div className="mt-auto pt-10">
-              {appointmentId && (
-                <div className="grid grid-cols-4 gap-2 mb-4">
-                  <button type="button" onClick={() => alert("Marked as Completed")} className="p-3 bg-white/[0.02] hover:bg-[var(--primary)]/10 rounded-xl border border-white/5 hover:border-[var(--primary)]/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
-                    <CheckCircle className="w-4 h-4 text-[var(--primary)] group-hover:scale-110 transition-transform" />
-                    <span className="text-[7px] font-black uppercase tracking-widest text-white/50 group-hover:text-[var(--primary)]">Done</span>
-                  </button>
-                  <button type="button" onClick={() => alert("Placed on Hold")} className="p-3 bg-white/[0.02] hover:bg-amber-500/10 rounded-xl border border-white/5 hover:border-amber-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
-                    <Clock className="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                    <span className="text-[7px] font-black uppercase tracking-widest text-white/50 group-hover:text-amber-400">Hold</span>
-                  </button>
-                  <button type="button" onClick={() => alert("Appointment Cancelled")} className="p-3 bg-white/[0.02] hover:bg-rose-500/10 rounded-xl border border-white/5 hover:border-rose-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
-                    <X className="w-4 h-4 text-rose-500 group-hover:scale-110 transition-transform" />
-                    <span className="text-[7px] font-black uppercase tracking-widest text-white/50 group-hover:text-rose-400">Cancel</span>
-                  </button>
-                  <button type="button" onClick={() => alert("Permanent Delete")} className="p-3 bg-white/[0.02] hover:bg-red-600/20 rounded-xl border border-white/5 hover:border-red-600/50 flex flex-col items-center justify-center gap-1.5 group transition-all">
-                    <AlertCircle className="w-4 h-4 text-red-600 group-hover:scale-110 transition-transform" />
-                    <span className="text-[7px] font-black uppercase tracking-widest text-white/50 group-hover:text-red-500">Delete</span>
-                  </button>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
+                        <Calendar className="w-6 h-6 text-slate-600" />
+                      </div>
+                      <p className="text-xs font-semibold text-slate-500">Awaiting Time Selection</p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </section>
 
-              <button type="submit" form="appointment-form" disabled={bookingLoading || !selectedSlot?.shiftStart}
-                className="group w-full py-3.5 rounded-xl bg-[var(--primary)] hover:opacity-90 disabled:opacity-10 disabled:cursor-not-allowed
-                          text-white font-black text-xs uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_var(--primary-glow)] flex items-center justify-center gap-3 active:scale-[0.98]">
-                {bookingLoading ? (
-                  <Activity className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <Navigation className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-500" />
-                    <span>{appointmentId ? "UPDATE SCHEDULE" : "CONFIRM SCHEDULE"}</span>
-                  </>
+              <div className="mt-auto pt-8 space-y-6">
+                {appointmentId && (
+                  <div className="grid grid-cols-3 gap-2">
+                    <button type="button" onClick={() => alert("Marked as Completed")} className="p-3 bg-[var(--input-bg)] hover:bg-emerald-500/10 rounded-xl border border-[var(--card-border)] hover:border-emerald-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                      <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-emerald-500">Done</span>
+                    </button>
+                    <button type="button" onClick={() => alert("Appointment Cancelled")} className="p-3 bg-[var(--input-bg)] hover:bg-rose-500/10 rounded-xl border border-[var(--card-border)] hover:border-rose-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                      <X className="w-4 h-4 text-rose-500" />
+                      <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-rose-500">Cancel</span>
+                    </button>
+                    <button type="button" onClick={() => alert("Delete Permanent")} className="p-3 bg-[var(--input-bg)] hover:bg-red-600/20 rounded-xl border border-[var(--card-border)] hover:border-red-600/50 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                      <AlertCircle className="w-4 h-4 text-red-600" />
+                      <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-red-600">Delete</span>
+                    </button>
+                  </div>
                 )}
-              </button>
-              <p className="text-[9px] font-black text-slate-700 text-center uppercase tracking-widest mt-6 opacity-40">
-                Authorized Clinical Dispatch Only
-              </p>
+                <button type="submit" form="appointment-form" disabled={bookingLoading || !selectedSlot?.shiftStart}
+                  className="w-full h-14 bg-[var(--primary)] hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed
+                            text-white font-bold text-sm shadow-xl shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center justify-center gap-3 rounded-2xl">
+                  {bookingLoading ? (
+                    <Activity className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Check className="w-5 h-5" />
+                      <span>{appointmentId ? "Update Appointment" : "Schedule Appointment"}</span>
+                    </>
+                  )}
+                </button>
+                <p className="text-[10px] font-bold text-slate-600 text-center uppercase tracking-widest opacity-50">
+                  Authorized Clinical Staff Only
+                </p>
+              </div>
             </div>
           </div>
+
+          {booked && (
+            <div className="absolute inset-0 bg-[var(--background)]/95 backdrop-blur-3xl z-[1000000] flex flex-col items-center justify-center animate-in fade-in duration-500">
+              <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mb-8 border-4 border-emerald-500/20 shadow-[0_0_50px_rgba(16,185,129,0.2)]">
+                <CheckCircle className="w-12 h-12 text-emerald-500 animate-in zoom-in duration-700" />
+              </div>
+              <h2 className="text-3xl font-bold text-white tracking-tight mb-2">Schedule Confirmed</h2>
+              <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-xs">Patient records synchronized successfully</p>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+    </AuraPortal>
   );
 }

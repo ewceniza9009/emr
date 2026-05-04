@@ -1,41 +1,74 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Bell, Search, User } from "lucide-react";
+import { Bell, Search, User, Shield, Zap, Activity } from "lucide-react";
 
 export function TopBar() {
   const { data: session } = useSession();
 
   return (
-    <header className="h-14 flex items-center justify-between px-6 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)] sticky top-0 z-40 transition-colors duration-500">
-      <div className="flex-1 max-w-md">
+    <header className="h-20 flex items-center justify-between px-8 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)]/80 backdrop-blur-3xl sticky top-0 z-[90] transition-all duration-500">
+      {/* Tactical Search Vector */}
+      <div className="flex-1 max-w-xl">
         <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+            <Search className="w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+            <div className="w-px h-4 bg-[var(--card-border)]" />
+          </div>
           <input 
             type="text" 
-            placeholder="Search patients, MRNs, or cases..."
-            className="w-full premium-input rounded-xl py-1.5 pl-10 pr-4 text-xs focus:ring-4 focus:ring-[var(--primary-glow)] focus:border-[var(--primary)] transition-all"
+            placeholder="COMMAND SEARCH // PATIENT OR MRN..."
+            className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl py-3 pl-14 pr-4 text-[10px] font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)] tracking-[0.1em] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 focus:shadow-[0_0_20px_rgba(var(--primary-rgb),0.1)] transition-all uppercase"
           />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            <span className="text-[8px] font-bold text-[var(--text-muted)] tracking-widest border border-[var(--card-border)] rounded px-1.5 py-0.5 uppercase">Alt + K</span>
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <button className="relative p-2 rounded-lg hover:bg-[var(--primary-glow)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all">
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-[var(--sidebar-bg)]"></span>
-        </button>
-
-        <div className="flex items-center gap-3 pl-4 border-l border-[var(--card-border)]">
-          <div className="text-right">
-            <p className="text-xs font-bold text-[var(--text-primary)] tracking-tight leading-none">
-              {session?.user?.name || "Practitioner"}
-            </p>
-            <p className="text-[10px] text-[var(--text-muted)] capitalize tracking-widest mt-0.5">
-              {session?.user?.role || "System Admin"}
-            </p>
+      <div className="flex items-center gap-8">
+        {/* System Health Indicators */}
+        <div className="hidden xl:flex items-center gap-6 pr-8 border-r border-[var(--card-border)]">
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">System Load</span>
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className={`w-1 h-2 rounded-full ${i < 4 ? 'bg-[var(--primary)]' : 'bg-[var(--card-border)]'}`} />
+              ))}
+            </div>
           </div>
-          <div className="w-8 h-8 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center shadow-inner overflow-hidden">
-             <User className="text-[var(--text-muted)] w-5 h-5" />
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Latency</span>
+            <span className="text-[9px] font-bold text-[var(--primary)] tracking-widest uppercase">14ms</span>
+          </div>
+        </div>
+
+        {/* Notifications & User */}
+        <div className="flex items-center gap-6">
+          <button className="relative p-2.5 rounded-xl hover:bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all group active:scale-95">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[var(--sidebar-bg)]"></span>
+            <div className="absolute inset-0 bg-[var(--primary)]/5 opacity-0 group-hover:opacity-100 rounded-xl transition-opacity" />
+          </button>
+
+          <div className="flex items-center gap-4 pl-6 border-l border-[var(--card-border)]">
+            <div className="text-right">
+              <p className="text-sm font-bold text-[var(--text-primary)] tracking-tighter leading-none uppercase">
+                {session?.user?.name || "G. HOUSE, M.D."}
+              </p>
+              <div className="flex items-center justify-end gap-1.5 mt-1.5">
+                <Shield className="w-2.5 h-2.5 text-[var(--primary)]" />
+                <p className="text-[9px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] opacity-80">
+                  {session?.user?.role || "Authorized Clinician"}
+                </p>
+              </div>
+            </div>
+            <div className="relative group cursor-pointer">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center shadow-2xl overflow-hidden group-hover:border-[var(--primary)]/30 transition-all">
+                 <User className="text-[var(--text-muted)] w-6 h-6 group-hover:text-[var(--primary)] transition-colors" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-4 border-[var(--sidebar-bg)]" />
+            </div>
           </div>
         </div>
       </div>

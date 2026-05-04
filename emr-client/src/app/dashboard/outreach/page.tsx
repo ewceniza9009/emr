@@ -9,15 +9,16 @@ import {
   CheckCircle2, 
   Filter, 
   Search,
-  MoreVertical,
-  ArrowRight
+  ArrowRight,
+  Activity,
+  Zap,
+  Target
 } from "lucide-react";
 
 const GET_OUTREACH_LEADS = gql`
   query GetOutreachLeads {
     outreaches {
       patientOutreachId
-
       firstName
       lastName
       referralSource
@@ -50,7 +51,6 @@ export default function OutreachPage() {
   const leads = data?.outreaches || [];
 
   const filteredLeads = leads.filter((lead: any) => {
-    // Attempt Bucket Logic
     if (filters.attempts) {
       const count = lead.callAttemptCount;
       if (filters.attempts === "0" && count !== 0) return false;
@@ -59,31 +59,26 @@ export default function OutreachPage() {
       if (filters.attempts === "10-14" && (count < 10 || count > 14)) return false;
       if (filters.attempts === "15+" && count < 15) return false;
     }
-    
-    // Status Logic
     if (filters.status && lead.status.toLowerCase() !== filters.status.toLowerCase()) return false;
-
-    // Search Logic
     if (filters.search && !`${lead.firstName} ${lead.lastName}`.toLowerCase().includes(filters.search.toLowerCase())) return false;
-
     return true;
   }).sort((a: any, b: any) => {
-    // Stable Alphabetical Sort
     const nameA = `${a.lastName} ${a.firstName}`.toLowerCase();
     const nameB = `${b.lastName} ${b.firstName}`.toLowerCase();
     return nameA.localeCompare(nameB);
   });
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="w-full space-y-6">
+      {/* Refined Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">Outreach & Enrollment</h1>
-          <p className="text-[var(--text-secondary)]">Manage the patient referral pipeline and conversion workflow.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Outreach & Enrollment</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">Manage patient referral pipeline and clinical conversions.</p>
         </div>
         <button 
           onClick={() => setIsAddOpen(true)}
-          className="premium-button px-6 h-11 rounded-xl premium-gradient text-white text-xs font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+          className="h-10 px-6 rounded-xl bg-[var(--primary)] text-white text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all shadow-md"
         >
           <UserPlus className="w-4 h-4" />
           Add Referral
@@ -96,40 +91,40 @@ export default function OutreachPage() {
         onSuccess={() => refetch()} 
       />
 
-      {/* Pipeline Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Minimalist Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "New Leads", count: "14", color: "blue", icon: UserPlus },
-          { label: "In Contact", count: "8", color: "purple", icon: PhoneCall },
-          { label: "Interested", count: "5", color: "emerald", icon: Clock },
-          { label: "Enrolled", count: "12", color: "green", icon: CheckCircle2 },
+          { label: "New Leads", count: "14", icon: Target },
+          { label: "In Contact", count: "08", icon: PhoneCall },
+          { label: "Interested", count: "05", icon: Zap },
+          { label: "Enrolled", count: "12", icon: CheckCircle2 },
         ].map((stat) => (
-          <div key={stat.label} className="glass-morphism rounded-3xl p-6 border border-white/5">
-            <div className="flex items-center justify-between mb-4">
-               <div className={`p-2 rounded-xl bg-${stat.color}-500/10 text-${stat.color}-400`}>
+          <div key={stat.label} className="glass-morphism rounded-2xl p-5 border border-[var(--card-border)] flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+               <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
                  <stat.icon className="w-5 h-5" />
                </div>
                <span className="text-2xl font-bold text-[var(--text-primary)]">{stat.count}</span>
             </div>
-            <p className="text-[var(--text-secondary)] text-sm font-medium">{stat.label}</p>
+            <p className="text-xs font-medium text-[var(--text-muted)]">{stat.label}</p>
           </div>
         ))}
       </div>
 
-      {/* Advanced Filter Bar */}
-      <div className="flex flex-wrap gap-4 items-center bg-[var(--card-bg)] p-6 rounded-3xl border border-[var(--card-border)]">
-        <div className="flex-1 min-w-[200px] relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+      {/* Clean Filter Bar */}
+      <div className="flex flex-wrap gap-3 items-center bg-[var(--card-bg)] p-4 rounded-2xl border border-[var(--card-border)]">
+        <div className="flex-1 min-w-[240px] relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
           <input 
             type="text" 
-            placeholder="Search by name, phone..." 
-            className="w-full premium-input rounded-xl h-10 pl-10 pr-4 text-sm"
+            placeholder="Search patients or referrals..." 
+            className="w-full h-10 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-11 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]/30 transition-all"
             value={filters.search}
             onChange={(e) => setFilters({...filters, search: e.target.value})}
           />
         </div>
         <select 
-          className="premium-input rounded-xl h-10 px-4 text-sm bg-slate-900 appearance-none"
+          className="h-10 px-4 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/30 appearance-none min-w-[160px]"
           value={filters.status}
           onChange={(e) => setFilters({...filters, status: e.target.value})}
         >
@@ -138,108 +133,82 @@ export default function OutreachPage() {
           <option value="Contacted">Contacted</option>
           <option value="Interested">Interested</option>
         </select>
-        <select 
-          className="premium-input rounded-xl h-10 px-4 text-sm bg-slate-900 appearance-none"
-          value={filters.attempts}
-          onChange={(e) => setFilters({...filters, attempts: e.target.value})}
-        >
-          <option value="">Call Attempts (All)</option>
-          <option value="0">0 Calls (Fresh)</option>
-          <option value="1-4">1-4 Calls (Active)</option>
-          <option value="5-9">5-9 Calls (High Touch)</option>
-          <option value="10-14">10-14 Calls (Struggling)</option>
-          <option value="15+">15+ Calls (Critical/Review)</option>
-        </select>
-        <select 
-          className="premium-input rounded-xl h-10 px-4 text-sm bg-slate-900 appearance-none"
-          value={filters.urgency}
-          onChange={(e) => setFilters({...filters, urgency: e.target.value})}
-        >
-          <option value="">Due Date (All)</option>
-          <option value="overdue">Overdue Follow-up</option>
-          <option value="today">Due Today</option>
-          <option value="tomorrow">Due Tomorrow</option>
-          <option value="upcoming">Upcoming (7 Days)</option>
-        </select>
-        <select className="premium-input rounded-xl h-10 px-4 text-sm bg-slate-900 appearance-none">
-          <option value="">Any Modality</option>
-          <option value="Telephone">Telephone</option>
-          <option value="InPerson">In-Person</option>
-          <option value="Telehealth">Telehealth</option>
-        </select>
-        <button className="flex items-center gap-2 px-6 h-10 bg-blue-500/10 text-blue-400 rounded-xl font-bold text-sm hover:bg-blue-500/20 transition-all border border-blue-500/20 active:scale-95">
-          <Filter className="w-4 h-4" />
-          Apply Filters
+        <button className="flex items-center gap-2 px-6 h-10 bg-[var(--input-bg)] text-[var(--text-primary)] rounded-xl font-medium text-sm hover:bg-[var(--primary)]/5 transition-all border border-[var(--card-border)]">
+          <Filter className="w-4 h-4 text-[var(--primary)]" />
+          Filters
         </button>
       </div>
 
-      {/* Active Worklist */}
-      <div className="glass-morphism rounded-3xl overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
-          <h2 className="text-lg font-bold text-[var(--text-primary)]">Clinical Outreach Worklist</h2>
+      {/* Professional Worklist */}
+      <div className="glass-morphism rounded-2xl overflow-hidden border border-[var(--card-border)] shadow-sm">
+        <div className="px-6 py-4 border-b border-[var(--card-border)] flex items-center justify-between bg-white/[0.01]">
+          <div className="flex items-center gap-3">
+            <Activity className="w-4 h-4 text-[var(--primary)]" />
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">Clinical Outreach Worklist</h2>
+          </div>
+          <span className="text-xs text-[var(--text-muted)]">{filteredLeads.length} Lead(s)</span>
         </div>
         
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scrollbar-hide">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-[var(--input-bg)] border-b border-[var(--card-border)]">
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Prospect</th>
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest text-center">Attempts</th>
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Last Outreach</th>
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Follow-up Due</th>
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest text-center">Status</th>
-                <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Actions</th>
+              <tr className="bg-white/[0.01] border-b border-[var(--card-border)]">
+                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Patient Name</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-center">Attempts</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Last Activity</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Next Follow-up</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-center">Status</th>
+                <th className="px-6 py-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--card-border)]">
               {loading ? (
-                [1, 2, 3].map(i => <tr key={i} className="animate-pulse"><td colSpan={6} className="h-20 bg-[var(--input-bg)]" /></tr>)
+                [1, 2, 3].map(i => <tr key={i} className="animate-pulse"><td colSpan={6} className="h-16" /></tr>)
               ) : filteredLeads.map((lead: any) => (
-                <tr key={lead.patientOutreachId} className="group hover:bg-[var(--input-bg)] transition-colors">
-
-                  <td className="px-8 py-5">
-                    <div>
-                      <p className="text-[var(--text-primary)] font-semibold">{lead.firstName} {lead.lastName}</p>
-                      <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider">{lead.referralSource || "Self-Referral"}</p>
+                <tr key={lead.patientOutreachId} className="group hover:bg-white/[0.01] transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">{lead.firstName} {lead.lastName}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5">{lead.referralSource || "Intake Source"}</p>
                     </div>
                   </td>
-                  <td className="px-8 py-5 text-center">
-                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${lead.callAttemptCount >= 3 ? 'bg-rose-500/10 text-rose-500' : 'bg-[var(--input-bg)] text-[var(--text-muted)]'}`}>
+                  <td className="px-6 py-4 text-center">
+                    <span className={`inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-lg text-xs font-semibold ${lead.callAttemptCount >= 3 ? 'bg-red-500/10 text-red-500' : 'bg-white/5 text-[var(--text-secondary)]'}`}>
                       {lead.callAttemptCount}
                     </span>
                   </td>
-                  <td className="px-8 py-5 text-[var(--text-secondary)] text-sm">
-                    {lead.lastActivityDate ? new Date(lead.lastActivityDate).toLocaleDateString() : 'No attempts'}
+                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
+                    {lead.lastActivityDate ? new Date(lead.lastActivityDate).toLocaleDateString() : '—'}
                   </td>
-                  <td className="px-8 py-5 text-sm">
+                  <td className="px-6 py-4 text-sm">
                     {lead.nextFollowUpDate ? (
-                      <span className="text-emerald-500 font-medium">{new Date(lead.nextFollowUpDate).toLocaleDateString()}</span>
+                      <span className="text-[var(--primary)] font-medium">{new Date(lead.nextFollowUpDate).toLocaleDateString()}</span>
                     ) : (
-                      <span className="text-[var(--text-muted)] italic text-xs">Not scheduled</span>
+                      <span className="text-slate-600 italic text-xs">Unscheduled</span>
                     )}
                   </td>
-                  <td className="px-8 py-5 text-center">
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
-                      ${lead.status === 'Lead' ? 'bg-blue-500/10 text-blue-500' : ''}
-                      ${lead.status === 'Contacted' ? 'bg-purple-500/10 text-purple-500' : ''}
-                      ${lead.status === 'Interested' ? 'bg-emerald-500/10 text-emerald-500' : ''}
+                  <td className="px-6 py-4 text-center">
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide border
+                      ${lead.status === 'Lead' ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' : ''}
+                      ${lead.status === 'Contacted' ? 'bg-purple-500/10 border-purple-500/20 text-purple-500' : ''}
+                      ${lead.status === 'Interested' ? 'bg-[var(--primary)]/10 border-[var(--primary)]/20 text-[var(--primary)]' : ''}
                     `}>
                       {lead.status}
                     </span>
                   </td>
-                  <td className="px-8 py-5">
-                    <div className="flex gap-2">
-                       <button className="p-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all">
-                         <PhoneCall className="w-4 h-4" />
+                  <td className="px-6 py-4">
+                    <div className="flex justify-end gap-2">
+                       <button className="w-8 h-8 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all flex items-center justify-center border border-white/5">
+                         <PhoneCall className="w-3.5 h-3.5" />
                        </button>
                        <button 
                          onClick={() => {
                            setSelectedLeadId(lead.patientOutreachId);
                            setIsEnrollOpen(true);
                          }}
-                         className="p-2 rounded-lg bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-blue-500/10 transition-all border border-[var(--card-border)]"
+                         className="w-8 h-8 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-white hover:bg-[var(--primary)] transition-all flex items-center justify-center border border-white/5"
                        >
-                         <ArrowRight className="w-4 h-4" />
+                         <ArrowRight className="w-3.5 h-3.5" />
                        </button>
                     </div>
                   </td>
@@ -247,14 +216,17 @@ export default function OutreachPage() {
               ))}
             </tbody>
           </table>
-          {!loading && leads.length === 0 && (
-            <div className="p-20 text-center text-[var(--text-muted)]">
-               No active leads found. Click "Add Referral" to start your pipeline.
-            </div>
-          )}
         </div>
       </div>
 
+      <EnrollmentDrawer 
+        open={isEnrollOpen} 
+        onClose={() => {
+          setIsEnrollOpen(false);
+          setSelectedLeadId(null);
+        }} 
+        outreachId={selectedLeadId}
+      />
       <EnrollmentDrawer 
         open={isEnrollOpen} 
         onClose={() => {
