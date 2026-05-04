@@ -31,6 +31,12 @@ public class ClinicalEncounterConfiguration : IEntityTypeConfiguration<ClinicalE
 
         builder.Property(e => e.DischargedAt).HasColumnName("discharged_at");
 
+        builder.Property(e => e.EncounterDate).HasColumnName("encounter_date").IsRequired();
+
+        builder.Property(e => e.ChiefComplaint).HasColumnName("chief_complaint").HasMaxLength(1000);
+
+        builder.Property(e => e.PpsScore).HasColumnName("pps_score");
+
         builder
             .HasOne(e => e.Patient)
             .WithMany()

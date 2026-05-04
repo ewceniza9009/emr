@@ -4,6 +4,7 @@
 
 :root {
   /* High-Contrast Minimalist Professional */
+  color-scheme: dark;
   --background: #020408;
   --foreground: #f8fafc;
   --card-bg: #0a0c12;
@@ -20,6 +21,7 @@
 
 .light {
   /* High-Contrast Minimalist Light */
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #0f172a;
   --card-bg: #f8fafc;
@@ -93,6 +95,26 @@ h1, h2, h3, h4 {
 .standard-input:focus {
   border-color: var(--primary);
   outline: none;
+}
+
+.premium-input {
+  background: var(--input-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.premium-input:focus {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.05);
+  box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.1);
+  outline: none;
+}
+
+.premium-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
 }
 
 /* Scrollbars - Subtle */

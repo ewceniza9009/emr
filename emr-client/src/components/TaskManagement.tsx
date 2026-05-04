@@ -96,7 +96,7 @@ export default function TaskManagement({ patientId }: Props) {
     <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 border border-[var(--card-border)] shadow-xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tighter">
+          <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
             Clinical Coordination Tasks
           </h2>
@@ -104,7 +104,7 @@ export default function TaskManagement({ patientId }: Props) {
         </div>
         <button 
           onClick={() => setIsAdding(true)}
-          className="p-2 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all">
+          className="p-2 rounded-xl bg-white/5 border border-white/10 text-[var(--text-primary)] hover:bg-white/10 transition-all">
           <Plus className="w-5 h-5" />
         </button>
       </div>
@@ -117,11 +117,11 @@ export default function TaskManagement({ patientId }: Props) {
              onChange={e => setNewTask(e.target.value)}
              onKeyDown={e => e.key === 'Enter' && handleAddTask()}
              placeholder="What needs to be done? (e.g. Order O2 Tank)"
-             className="w-full premium-input rounded-2xl py-4 px-6 text-sm text-white"
+             className="w-full premium-input rounded-2xl py-4 px-6 text-sm text-[var(--text-primary)]"
            />
            <div className="flex justify-end gap-2">
               <button onClick={() => setIsAdding(false)} className="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">Cancel</button>
-              <button onClick={handleAddTask} className="px-6 py-2 bg-emerald-600 rounded-xl text-[10px] font-black text-white uppercase tracking-widest shadow-lg shadow-emerald-600/20">Create Task</button>
+              <button onClick={handleAddTask} className="px-6 py-2 bg-emerald-600 rounded-xl text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest shadow-lg shadow-emerald-600/20">Create Task</button>
            </div>
         </div>
       )}
@@ -144,7 +144,7 @@ export default function TaskManagement({ patientId }: Props) {
                    <Circle className="w-6 h-6 text-slate-700 group-hover:text-slate-500" />
                  )}
                  <div>
-                    <p className={`text-sm font-bold ${task.status === 'Completed' ? 'line-through text-slate-500' : 'text-white'}`}>{task.description}</p>
+                    <p className={`text-sm font-bold ${task.status === 'Completed' ? 'line-through text-slate-500' : 'text-[var(--text-primary)]'}`}>{task.description}</p>
                     <div className="flex items-center gap-3 mt-1">
                        <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1">
                          <Clock className="w-3 h-3" /> Due {new Date(task.dueDate).toLocaleDateString()}
@@ -164,7 +164,7 @@ export default function TaskManagement({ patientId }: Props) {
         ) : (
           <div className="py-10 text-center opacity-30 border-2 border-dashed border-white/5 rounded-[2rem]">
             <AlertCircle className="w-8 h-8 mx-auto mb-3" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-white">No active tasks for this case</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">No active tasks for this case</p>
           </div>
         )}
       </div>

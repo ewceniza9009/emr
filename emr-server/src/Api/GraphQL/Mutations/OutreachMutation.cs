@@ -9,66 +9,66 @@ namespace Api.GraphQL.Mutations;
 public class OutreachMutation
 {
     public async Task<Guid> FinalizeEnrollment(
-        FinalizeEnrollmentCommand command,
+        FinalizeEnrollmentCommand input,
         [Service] IMediator mediator
     )
     {
-        return await mediator.Send(command);
+        return await mediator.Send(input);
     }
 
     public async Task<Guid> CreateOutreach(
-        CreateOutreachCommand command,
+        CreateOutreachCommand input,
         [Service] IMediator mediator
     )
     {
-        return await mediator.Send(command);
+        return await mediator.Send(input);
     }
 
     public async Task<Guid> LogOutreachActivity(
-        LogOutreachActivityCommand command,
+        LogOutreachActivityCommand input,
         [Service] IMediator mediator
     )
     {
-        return await mediator.Send(command);
+        return await mediator.Send(input);
     }
 
     public async Task<Guid> AddOutreachContact(
-        AddOutreachContactCommand command,
+        AddOutreachContactCommand input,
         [Service] IMediator mediator
     )
     {
-        return await mediator.Send(command);
+        return await mediator.Send(input);
     }
 
     public async Task<bool> RemoveOutreachContact(
-        RemoveOutreachContactCommand command,
+        RemoveOutreachContactCommand input,
         [Service] IMediator mediator
     )
     {
-        return await mediator.Send(command);
+        return await mediator.Send(input);
     }
 
     public async Task<bool> UpdateOutreachLead(
-        UpdateOutreachLeadCommand command,
+        UpdateOutreachLeadCommand input,
         [Service] IMediator mediator
     )
     {
-        return await mediator.Send(command);
+        return await mediator.Send(input);
     }
 
     public async Task<Guid> LogSpiritualAssessment(
-        LogSpiritualAssessmentCommand command,
+        LogSpiritualAssessmentCommand input,
         [Service] IMediator mediator
     )
     {
-        return await mediator.Send(command);
+        return await mediator.Send(input);
     }
 
     public async Task<Guid> AddAdvanceDirective(
-        AddAdvanceDirectiveCommand command,
+        AddAdvanceDirectiveCommand input,
         [Service] IMediator mediator
     )
     {
-        return await mediator.Send(command);
+        return await mediator.Send(input);
     }
 }

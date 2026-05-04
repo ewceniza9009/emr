@@ -37,7 +37,7 @@ const VALIDATE_PRESCRIPTION = gql`
 
 const ADD_PRESCRIPTION = gql`
   mutation AddPrescription($input: AddPrescriptionCommandInput!) {
-    addPrescription(command: $input)
+    addPrescription(input: $input)
   }
 `;
 
@@ -89,7 +89,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
 
   const prescriptions = data?.prescriptionsByPatient || [];
 
-  if (loading) return <div className="p-8 text-slate-500 animate-pulse">Loading Medications...</div>;
+  if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse">Loading Medications...</div>;
 
   return (
     <div className="glass-morphism rounded-2xl overflow-hidden border border-[var(--card-border)]">

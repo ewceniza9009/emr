@@ -84,7 +84,7 @@ export default function LoginPage() {
             <p className="text-[var(--primary)] font-black tracking-[0.4em] uppercase text-[10px]">Clinical OS // Authorized Portal</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} method="POST" className="space-y-6">
             {error && (
               <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-shake">
                 {error}

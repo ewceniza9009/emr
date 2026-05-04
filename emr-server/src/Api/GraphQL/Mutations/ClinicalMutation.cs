@@ -1,4 +1,5 @@
 using Application.Clinical.Commands;
+using Application.Patients.Commands;
 using MediatR;
 
 namespace Api.GraphQL.Mutations;
@@ -43,11 +44,29 @@ public class ClinicalMutation
     }
 
     public async Task<Guid> SaveClinicalNote(
-        SaveClinicalNoteCommand command,
+        SaveClinicalNoteCommand input,
         [Service] IMediator mediator,
         CancellationToken cancellationToken
     )
     {
-        return await mediator.Send(command, cancellationToken);
+        return await mediator.Send(input, cancellationToken);
+    }
+
+    public async Task<Guid> AddAllergy(
+        AddAllergyCommand input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(input, cancellationToken);
+    }
+
+    public async Task<Guid> AddPrescription(
+        AddPrescriptionCommand input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(input, cancellationToken);
     }
 }

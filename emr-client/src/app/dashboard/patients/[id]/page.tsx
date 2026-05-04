@@ -191,6 +191,13 @@ export default function PatientDetailPage() {
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Status: Stable</span>
            </div>
+           <Link 
+             href={`/dashboard/patients/${params.id}/assessment/new`}
+             className="px-6 py-2 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all flex items-center gap-2"
+           >
+             <ClipboardList className="w-3.5 h-3.5" />
+             Clinical Assessment
+           </Link>
            <button className="px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all">
              Emergency Action
            </button>

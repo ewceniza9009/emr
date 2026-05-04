@@ -90,12 +90,12 @@ export default function ProviderSchedulePanel({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-widest">
+        <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-widest">
           <Navigation className="w-4 h-4 text-blue-400" />
           Available Providers
         </h3>
         {!loading && (
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[10px] text-[var(--text-muted)] font-mono">
             {providers.length} FOUND · SORTED BY PROXIMITY
           </span>
         )}
@@ -127,9 +127,9 @@ export default function ProviderSchedulePanel({
 
       {!loading && !error && providers.length === 0 && (
         <div className="glass-morphism rounded-2xl p-6 text-center">
-          <MapPin className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-          <p className="text-slate-400 text-sm">No providers available for this time slot.</p>
-          <p className="text-slate-600 text-xs mt-1">Try a different date or duration.</p>
+          <MapPin className="w-8 h-8 text-[var(--text-muted)] mx-auto mb-2 opacity-50" />
+          <p className="text-[var(--text-muted)] text-sm">No providers available for this time slot.</p>
+          <p className="text-[var(--text-muted)] text-xs mt-1 opacity-70">Try a different date or duration.</p>
         </div>
       )}
 
@@ -152,7 +152,7 @@ export default function ProviderSchedulePanel({
                 {/* Avatar */}
                 <div
                   className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all
-                    ${isSelected ? "bg-blue-500/20 text-blue-400" : "bg-white/5 text-slate-400"}`}
+                    ${isSelected ? "bg-blue-500/20 text-blue-400" : "bg-white/5 text-[var(--text-muted)]"}`}
                 >
                   {provider.role === "Physician" ? (
                     <Stethoscope className="w-5 h-5" />
@@ -164,12 +164,12 @@ export default function ProviderSchedulePanel({
                 {/* Name & Role */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-semibold text-white">{provider.fullName}</p>
-                    <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/5 text-slate-400">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">{provider.fullName}</p>
+                    <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/5 text-[var(--text-muted)]">
                       {provider.role}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
+                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
                     Shift:{" "}
                     {new Date(provider.shiftStart).toLocaleTimeString([], {
                       hour: "2-digit",
@@ -195,7 +195,7 @@ export default function ProviderSchedulePanel({
                         {provider.travelTimeInMinutes} min
                       </span>
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                    <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
                       <MapPin className="w-3 h-3" />
                       {provider.distanceInMiles.toFixed(1)} mi
                     </div>

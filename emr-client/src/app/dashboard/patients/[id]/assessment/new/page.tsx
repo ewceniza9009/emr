@@ -12,9 +12,13 @@ import {
   MessageSquare, 
   AlertCircle,
   Thermometer,
-  Wind
+  Wind,
+  Scale,
+  Droplets
 } from "lucide-react";
 import Link from "next/link";
+import EsasScoring from "@/components/EsasScoring";
+import PpsSelector from "@/components/PpsSelector";
 
 const CREATE_ENCOUNTER = gql`
   mutation CreateEncounter($input: CreateClinicalEncounterCommandInput!) {
@@ -22,10 +26,24 @@ const CREATE_ENCOUNTER = gql`
   }
 `;
 
+const LOG_ESAS_ASSESSMENT = gql`
+  mutation LogEsasAssessment($input: LogEsasAssessmentCommandInput!) {
+    logEsasAssessment(input: $input)
+  }
+`;
+
+const LOG_VITAL_SIGN = gql`
+  mutation LogVitalSign($input: LogVitalSignCommandInput!) {
+    logVitalSign(input: $input)
+  }
+`;
+
 export default function NewAssessmentPage() {
   const params = useParams();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [esasScores, setEsasScores] = useState<Record<string, number>>({});
+  const [ppsScore, setPpsScore] = useState<number>(100);
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
@@ -41,24 +59,71 @@ export default function NewAssessmentPage() {
       respiratoryRate: 18,
       systolicBp: 120,
       diastolicBp: 80,
+      weight: 70.0,
+      oxygenSaturation: 98
     }
   });
 
   const [createEncounter] = useMutation(CREATE_ENCOUNTER);
+  const [logEsas] = useMutation(LOG_ESAS_ASSESSMENT);
+  const [logVital] = useMutation(LOG_VITAL_SIGN);
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      await createEncounter({
+      // 1. Create Encounter with PPS
+      const { data: encounterData } = await createEncounter({
         variables: {
           input: {
             patientId: data.patientId,
+            practitionerId: "00000000-0000-0000-0000-000000000001", // Hardcoded for demo
             chiefComplaint: data.chiefComplaint,
             notes: `${data.subjective}\n\n${data.objective}\n\n${data.assessment}\n\n${data.plan}`,
-            encounterType: "FollowUp"
+            ppsScore: ppsScore
           }
         }
       });
+
+      const encounterId = encounterData.createClinicalEncounter;
+
+      // 2. Log ESAS if scores changed
+      if (Object.keys(esasScores).length > 0) {
+        await logEsas({
+          variables: {
+            input: {
+              patientId: data.patientId,
+              encounterId: encounterId,
+              pain: esasScores.pain || 0,
+              tiredness: esasScores.tiredness || 0,
+              drowsiness: esasScores.drowsiness || 0,
+              nausea: esasScores.nausea || 0,
+              lackOfAppetite: esasScores.appetite || 0,
+              shortnessOfBreath: esasScores.shortnessOfBreath || 0,
+              depression: esasScores.depression || 0,
+              anxiety: esasScores.anxiety || 0,
+              wellbeing: esasScores.wellbeing || 0,
+            }
+          }
+        });
+      }
+
+      // 3. Log Vitals
+      await logVital({
+        variables: {
+          input: {
+            patientId: data.patientId,
+            encounterId: encounterId,
+            heartRate: parseFloat(data.heartRate),
+            bloodPressureSystolic: parseFloat(data.systolicBp),
+            bloodPressureDiastolic: parseFloat(data.diastolicBp),
+            respiratoryRate: parseFloat(data.respiratoryRate),
+            temperature: parseFloat(data.temperature),
+            oxygenSaturation: parseFloat(data.oxygenSaturation),
+            weight: parseFloat(data.weight)
+          }
+        }
+      });
+
       router.push(`/dashboard/patients/${params.id}`);
     } catch (err) {
       console.error(err);
@@ -84,16 +149,16 @@ export default function NewAssessmentPage() {
         </Link>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} method="POST" className="space-y-6">
         {/* Vitals Section */}
         <div className="glass-morphism rounded-3xl p-8 border border-blue-500/10">
           <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
             <Activity className="w-5 h-5 text-blue-400" />
             Vitals & Physical Signs
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Heart Rate (BPM)</label>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Heart Rate</label>
               <div className="relative">
                 <Activity className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input {...register("heartRate")} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-white" />
@@ -114,6 +179,20 @@ export default function NewAssessmentPage() {
               </div>
             </div>
             <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">SpO2 (%)</label>
+              <div className="relative">
+                <Droplets className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input {...register("oxygenSaturation")} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-white" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Weight (kg)</label>
+              <div className="relative">
+                <Scale className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input {...register("weight")} type="number" step="0.1" className="w-full premium-input rounded-xl py-3 pl-10 text-white" />
+              </div>
+            </div>
+            <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">BP (SYS/DIA)</label>
               <div className="flex items-center gap-2">
                 <input {...register("systolicBp")} type="number" className="w-full premium-input rounded-xl py-3 text-center text-white" placeholder="120" />
@@ -123,6 +202,12 @@ export default function NewAssessmentPage() {
             </div>
           </div>
         </div>
+
+        {/* Functional Assessment */}
+        <PpsSelector onScoreChange={setPpsScore} />
+
+        {/* Symptom Assessment */}
+        <EsasScoring onScoreChange={setEsasScores} />
 
         {/* SOAP Note Section */}
         <div className="glass-morphism rounded-3xl p-8">

@@ -52,7 +52,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
              </div>
              <button 
                onClick={() => setToasts((prev) => prev.filter((toast) => toast.id !== t.id))}
-               className="absolute top-4 right-4 text-slate-600 hover:text-white transition-colors"
+               className="absolute top-4 right-4 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
              >
                <X className="w-4 h-4" />
              </button>

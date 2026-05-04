@@ -18,7 +18,7 @@ const GRID_CONFIG = {
   START_HOUR: 8,
   END_HOUR: 18,
   TOTAL_MINUTES: 600,
-  ROW_HEIGHT: 80,
+  ROW_HEIGHT: 75,
   DAYS: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 };
 
@@ -69,16 +69,16 @@ const GET_SCHEDULE_DATA = gql`
 `;
 
 const RESCHEDULE_APPOINTMENT = gql`
-  mutation RescheduleAppointment($id: UUID!, $newStart: DateTime!, $newEnd: DateTime!) {
-    rescheduleAppointment(appointmentId: $id, newStart: $newStart, newEnd: $newEnd) {
+  mutation RescheduleAppointment($input: RescheduleAppointmentInput!) {
+    rescheduleAppointment(input: $input) {
       appointmentId scheduledStart scheduledEnd travelTimeMinutes distanceInMiles
     }
   }
 `;
 
 const UPDATE_SCHEDULE_BLOCK = gql`
-  mutation UpdateScheduleBlock($id: UUID!, $newStart: DateTime!, $newEnd: DateTime!) {
-    updateScheduleBlock(blockId: $id, newStart: $newStart, newEnd: $newEnd) {
+  mutation UpdateScheduleBlock($input: UpdateScheduleBlockInput!) {
+    updateScheduleBlock(input: $input) {
       blockId startTime endTime
     }
   }
@@ -287,7 +287,15 @@ export default function SchedulingCalendar() {
           setLocalAppointments(prev => prev.map(a =>
             a.appointmentId === apptId ? { ...a, scheduledStart: newStart.toISOString(), scheduledEnd: newEnd.toISOString() } : a
           ));
-          reschedule({ variables: { id: apptId, newStart: newStart.toISOString(), newEnd: newEnd.toISOString() } });
+          reschedule({ 
+            variables: { 
+              input: {
+                appointmentId: apptId, 
+                newStart: newStart.toISOString(), 
+                newEnd: newEnd.toISOString() 
+              }
+            } 
+          });
         }
       });
     } else if (blockId) {
@@ -299,7 +307,15 @@ export default function SchedulingCalendar() {
           setLocalBlocks(prev => prev.map(b =>
             b.blockId === blockId ? { ...b, startTime: newStart.toISOString(), endTime: newEnd.toISOString() } : b
           ));
-          updateBlock({ variables: { id: blockId, newStart: newStart.toISOString(), newEnd: newEnd.toISOString() } });
+          updateBlock({ 
+            variables: { 
+              input: {
+                blockId: blockId, 
+                newStart: newStart.toISOString(), 
+                newEnd: newEnd.toISOString() 
+              }
+            } 
+          });
         }
       });
     }
@@ -348,27 +364,51 @@ export default function SchedulingCalendar() {
               );
             })}
           </div>
-          <div className="h-4 w-px bg-[var(--card-border)]" />
-          <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)]" />
-            <select
-              onChange={(e) => {
-                const id = e.target.value;
-                if (!id) setSelectedPractitioners(new Set());
-                else {
-                  const p = practitioners.find((x: any) => x.practitionerId === id);
-                  setSelectedPractitioners(new Set([id]));
-                  if (p) setSelectedPositions(new Set([p.position.toLowerCase()]));
-                }
-              }}
-              className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-lg pl-8 pr-8 py-1.5 text-[11px] font-semibold text-[var(--text-primary)] outline-none appearance-none cursor-pointer"
-              value={selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : ""}
-            >
-              <option value="">All Practitioners...</option>
-              {practitioners.map((p: any) => (
-                <option key={p.practitionerId} value={p.practitionerId}>{p.firstName} {p.lastName}</option>
-              ))}
-            </select>
+          <div className="flex-1 flex items-center gap-4">
+            <div className="relative flex-1 max-w-[180px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)]" />
+              <select
+                onChange={(e) => {
+                  const id = e.target.value;
+                  if (!id) setSelectedPractitioners(new Set());
+                  else {
+                    const p = practitioners.find((x: any) => x.practitionerId === id);
+                    setSelectedPractitioners(new Set([id]));
+                    if (p) setSelectedPositions(new Set([p.position.toLowerCase()]));
+                  }
+                }}
+                className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-lg pl-8 pr-10 py-1.5 text-[11px] font-semibold text-[var(--text-primary)] outline-none appearance-none cursor-pointer hover:border-[var(--primary)]/30 transition-all"
+                value={selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : ""}
+              >
+                <option value="" className="bg-[var(--card-bg)] text-[var(--text-primary)]">All Practitioners...</option>
+                {practitioners.map((p: any) => (
+                  <option key={p.practitionerId} value={p.practitionerId} className="bg-[var(--card-bg)] text-[var(--text-primary)]">
+                    {p.firstName} {p.lastName}
+                  </option>
+                ))}
+              </select>
+              <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] pointer-events-none rotate-90" />
+            </div>
+
+            <div className="h-4 w-px bg-[var(--card-border)]" />
+            
+            <div className="flex items-center gap-4">
+              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Modality:</span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5 opacity-60">
+                  <Home className="w-3 h-3 text-[var(--primary)]" />
+                  <span className="text-[10px] font-bold">Home</span>
+                </div>
+                <div className="flex items-center gap-1.5 opacity-60">
+                  <Building2 className="w-3 h-3 text-[var(--primary)]" />
+                  <span className="text-[10px] font-bold">Facility</span>
+                </div>
+                <div className="flex items-center gap-1.5 opacity-60">
+                  <Video className="w-3 h-3 text-[var(--primary)]" />
+                  <span className="text-[10px] font-bold">Tele</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -521,15 +561,14 @@ export default function SchedulingCalendar() {
 
                             <div draggable onDragStart={(e) => { e.dataTransfer.setData("appointmentId", appt.appointmentId); e.dataTransfer.setData("duration", durMin.toString()); }}
                               onClick={() => { setDrawerPrefill(appt.appointmentId); setDrawerOpen(true); }}
-                              className={`absolute top-0 left-0 right-0 h-full group-hover/appt:h-auto p-3 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden backdrop-blur-lg z-10 group-hover/appt:z-[70] group-hover/appt:shadow-2xl group-hover/appt:translate-y-[-4px]
+                              className={`absolute top-0 left-0 right-0 h-full group-hover/appt:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden backdrop-blur-lg z-10 group-hover/appt:z-[70] group-hover/appt:shadow-2xl group-hover/appt:translate-y-[-4px]
                                     ${isViewedAsSc ? "bg-indigo-500/10 border-indigo-500/40" : style.bg + " " + style.border} group-hover/appt:border-[var(--primary)]/40`}>
 
                               {/* Header Section */}
-                              <div className="flex flex-wrap items-center justify-between shrink-0 mb-2 gap-1.5">
+                              <div className="flex flex-nowrap items-center justify-between shrink-0 mb-1 gap-1">
                                 <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                                  <div className={`px-2 py-1 bg-[var(--input-bg)] border border-[var(--card-border)] text-[10px] font-bold text-[var(--text-secondary)] flex items-center gap-1 shrink-0`}>
+                                  <div className={`px-2 py-1 bg-[var(--input-bg)] border border-[var(--card-border)] text-[10px] font-bold text-[var(--text-secondary)] flex items-center gap-1 shrink-0`} title={modality.label}>
                                     {React.cloneElement(modality.icon as React.ReactElement, { className: `w-3 h-3 ${isViewedAsSc ? "text-indigo-400" : "text-[var(--primary)]"}` })}
-                                    <span className="whitespace-nowrap">{modality.label}</span>
                                   </div>
                                   <div className={`px-2 py-1 ${isViewedAsSc ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-300" : statusConfig.bg + " " + statusConfig.border + " " + statusConfig.text} text-[10px] font-bold flex items-center gap-1 border shadow-sm shrink-0`}>
                                     <div className={`w-2 h-2 rounded-full ${isViewedAsSc ? "bg-indigo-400" : statusConfig.dot}`} /> 
@@ -542,9 +581,9 @@ export default function SchedulingCalendar() {
                               </div>
 
                               {/* Patient Data */}
-                              <div className="flex flex-col mb-2">
+                              <div className="flex flex-col mb-1">
                                 <h4 className="text-sm font-bold text-[var(--text-primary)] tracking-tight group-hover/appt:text-[var(--primary)] transition-colors leading-tight">{appt.patient?.firstName} {appt.patient?.lastName}</h4>
-                                <p className="text-[10px] text-[var(--text-muted)] mt-1 font-medium leading-tight line-clamp-1">{appt.patient?.addresses?.[0]?.address?.street || "No address provided"}</p>
+                                <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium leading-tight line-clamp-1">{appt.patient?.addresses?.[0]?.address?.street || "No address provided"}</p>
                               </div>
 
                               {/* Detailed Hover Info */}

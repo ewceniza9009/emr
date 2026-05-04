@@ -60,7 +60,7 @@ export default function DocumentVault({ patientId }: Props) {
       
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 relative z-10">
         <div>
-          <h2 className="text-2xl font-black text-white flex items-center gap-3 uppercase tracking-tighter">
+          <h2 className="text-2xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
             <ShieldCheck className="w-6 h-6 text-blue-400" />
             Clinical Document Vault
           </h2>
@@ -73,10 +73,10 @@ export default function DocumentVault({ patientId }: Props) {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Filter by type or name..." 
-                className="bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs text-white focus:border-blue-500 transition-all w-60"
+                className="bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs text-[var(--text-primary)] focus:border-blue-500 transition-all w-60"
               />
            </div>
-           <button className="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 flex items-center gap-2 hover:bg-blue-500 transition-all">
+           <button className="px-6 py-2.5 rounded-xl bg-blue-600 text-[var(--text-primary)] font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 flex items-center gap-2 hover:bg-blue-500 transition-all">
              <Plus className="w-4 h-4" /> Upload Record
            </button>
         </div>
@@ -93,15 +93,15 @@ export default function DocumentVault({ patientId }: Props) {
                      {getIcon(doc.contentType || '')}
                   </div>
                   <div className="flex gap-2">
-                     <button className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-all">
+                     <button className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all">
                         <Download className="w-4 h-4" />
                      </button>
-                     <button className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-all">
+                     <button className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all">
                         <ExternalLink className="w-4 h-4" />
                      </button>
                   </div>
                </div>
-               <h3 className="text-sm font-black text-white uppercase tracking-tight mb-1 truncate">{doc.title}</h3>
+               <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight mb-1 truncate">{doc.title}</h3>
                <div className="flex items-center justify-between mt-4">
                   <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">{doc.documentType}</span>
                   <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
@@ -125,7 +125,7 @@ export default function DocumentVault({ patientId }: Props) {
                <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-               <p className="text-xs font-black text-white uppercase tracking-widest">HIPAA Compliant Storage</p>
+               <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">HIPAA Compliant Storage</p>
                <p className="text-[9px] text-slate-500 uppercase tracking-widest">All documents are encrypted at rest and in transit.</p>
             </div>
          </div>

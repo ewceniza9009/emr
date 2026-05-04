@@ -67,26 +67,26 @@ const GET_LEAD_DETAILS = gql`
 `;
 
 const LOG_OUTREACH_ACTIVITY = gql`
-  mutation LogActivity($command: LogOutreachActivityCommandInput!) {
-    logOutreachActivity(command: $command)
+  mutation LogActivity($input: LogOutreachActivityCommandInput!) {
+    logOutreachActivity(input: $input)
   }
 `;
 
 const ADD_OUTREACH_CONTACT = gql`
-  mutation AddContact($command: AddOutreachContactCommandInput!) {
-    addOutreachContact(command: $command)
+  mutation AddContact($input: AddOutreachContactCommandInput!) {
+    addOutreachContact(input: $input)
   }
 `;
 
 const REMOVE_OUTREACH_CONTACT = gql`
-  mutation RemoveContact($command: RemoveOutreachContactCommandInput!) {
-    removeOutreachContact(command: $command)
+  mutation RemoveContact($input: RemoveOutreachContactCommandInput!) {
+    removeOutreachContact(input: $input)
   }
 `;
 
 const UPDATE_OUTREACH_LEAD = gql`
-  mutation UpdateLead($command: UpdateOutreachLeadCommandInput!) {
-    updateOutreachLead(command: $command)
+  mutation UpdateLead($input: UpdateOutreachLeadCommandInput!) {
+    updateOutreachLead(input: $input)
   }
 `;
 
@@ -101,7 +101,7 @@ const GET_ENROLLMENT_DATA = gql`
 
 const FINALIZE_ENROLLMENT = gql`
   mutation FinalizeEnrollment($input: FinalizeEnrollmentCommandInput!) {
-    finalizeEnrollment(command: $input)
+    finalizeEnrollment(input: $input)
   }
 `;
 
@@ -193,7 +193,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     try {
       await updateLead({
         variables: {
-          command: {
+          input: {
             patientOutreachId: outreachId,
             ...fields
           }
@@ -209,7 +209,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     try {
       await logActivity({
         variables: {
-          command: {
+          input: {
             outreachId: outreachId,
             method: "TELEPHONE",
             outcome: outcome,
@@ -251,7 +251,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     try {
       await addContact({
         variables: {
-          command: {
+          input: {
             patientOutreachId: outreachId,
             ...newRelativeForm
           }
@@ -283,7 +283,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     try {
       await removeContact({
         variables: {
-          command: {
+          input: {
             outreachContactId: id
           }
         },
@@ -318,7 +318,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                     <p className="text-[10px] font-medium text-[var(--text-muted)]">Lead Conversion</p>
                  </div>
               </div>
-              <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 transition-all text-slate-500 hover:text-white">
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -344,7 +344,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
               {leadLoading ? (
                 <div className="h-full flex flex-col items-center justify-center space-y-4">
                    <div className="animate-spin w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full" />
-                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Synchronizing Lead Data...</p>
+                   <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Synchronizing Lead Data...</p>
                 </div>
               ) : lead && (
                 <div className="space-y-8">
@@ -355,7 +355,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                              <PhoneCall className="w-4 h-4 text-[var(--primary)]" /> Outbound Engagement
                           </h3>
                           <div className="flex gap-2">
-                             <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`w-10 h-10 rounded-xl border transition-all flex items-center justify-center ${isDialPadOpen ? 'bg-[var(--primary)] border-[var(--primary)] text-white' : 'bg-white/5 border-white/5 text-slate-500 hover:text-white hover:bg-white/10'}`}><Hash className="w-4 h-4" /></button>
+                             <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`w-10 h-10 rounded-xl border transition-all flex items-center justify-center ${isDialPadOpen ? 'bg-[var(--primary)] border-[var(--primary)] text-white' : 'bg-white/5 border-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10'}`}><Hash className="w-4 h-4" /></button>
                              <button onClick={() => setIsAddingRelative(true)} className="flex items-center gap-2 px-4 h-10 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-xs font-medium hover:bg-[var(--primary)]/20 transition-all"><UserPlus className="w-4 h-4" /> Add Contact</button>
                           </div>
                        </div>
@@ -448,7 +448,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                                  <button 
                                    onClick={() => handleCall({phone: lead.primaryPhone || tempNumbers['patient']})} 
                                    disabled={!(lead.primaryPhone || tempNumbers['patient'])} 
-                                   className={`w-10 h-10 rounded-xl transition-all flex items-center justify-center ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-teal-500 text-black shadow-lg shadow-teal-500/20 active:scale-90' : 'bg-slate-800 text-slate-600'}`}
+                                   className={`w-10 h-10 rounded-xl transition-all flex items-center justify-center ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-teal-500 text-black shadow-lg shadow-teal-500/20 active:scale-90' : 'bg-slate-800 text-[var(--text-muted)]'}`}
                                  >
                                    <PhoneCall className="w-5 h-5" />
                                  </button>
@@ -474,8 +474,8 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                                        onChange={e => handleTempNumberChange(contact.outreachContactId, e.target.value)} 
                                      />
                                    )}
-                                   <button onClick={() => handleCall({phone: contact.phoneNumber || tempNumbers[contact.outreachContactId]})} disabled={!(contact.phoneNumber || tempNumbers[contact.outreachContactId])} className={`w-10 h-10 rounded-xl transition-all flex items-center justify-center ${contact.phoneNumber || tempNumbers[contact.outreachContactId] ? 'bg-white/10 text-white hover:bg-teal-500 hover:text-black active:scale-90' : 'bg-slate-900 text-slate-700'}`}><PhoneCall className="w-5 h-5" /></button>
-                                   <button onClick={() => handleRemoveContact(contact.outreachContactId)} className="w-10 h-10 rounded-xl bg-white/5 text-slate-600 hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"><Trash2 className="w-4 h-4" /></button>
+                                   <button onClick={() => handleCall({phone: contact.phoneNumber || tempNumbers[contact.outreachContactId]})} disabled={!(contact.phoneNumber || tempNumbers[contact.outreachContactId])} className={`w-10 h-10 rounded-xl transition-all flex items-center justify-center ${contact.phoneNumber || tempNumbers[contact.outreachContactId] ? 'bg-white/10 text-[var(--text-primary)] hover:bg-teal-500 hover:text-black active:scale-90' : 'bg-slate-900 text-[var(--text-muted)]'}`}><PhoneCall className="w-5 h-5" /></button>
+                                   <button onClick={() => handleRemoveContact(contact.outreachContactId)} className="w-10 h-10 rounded-xl bg-white/5 text-[var(--text-muted)] hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"><Trash2 className="w-4 h-4" /></button>
                                 </div>
                              </div>
                            ))}
@@ -554,7 +554,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                                   </div>
                                </div>
                                <div className="space-y-3">
-                                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Technology Access</p>
+                                  <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Technology Access</p>
                                   <div className="grid grid-cols-1 gap-2">
                                      {["SMARTPHONE", "TABLET", "NONE"].map((v) => (
                                        <button
@@ -663,7 +663,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
             {/* Action Footer */}
             <div className="h-12 px-6 border-t border-[var(--card-border)] flex items-center justify-between bg-[var(--card-bg)] shrink-0">
               {currentStep > 1 && (
-                <button onClick={() => setCurrentStep(prev => prev - 1)} className="flex items-center gap-2 px-3 py-1 rounded bg-white/5 text-slate-500 hover:text-white transition-all">
+                <button onClick={() => setCurrentStep(prev => prev - 1)} className="flex items-center gap-2 px-3 py-1 rounded bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all">
                   <ChevronLeft className="w-3 h-3" />
                   <span className="text-[8px] font-black uppercase tracking-widest">Back</span>
                 </button>

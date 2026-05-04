@@ -34,6 +34,7 @@ public class CreateClinicalEncounterCommandHandler
             Status = EncounterStatus.InProgress,
             AdmittedAt = _dateTime.UtcNow,
             ChiefComplaint = request.ChiefComplaint,
+            PpsScore = request.PpsScore,
         };
 
         // Create the initial clinical note

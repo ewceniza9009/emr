@@ -7,5 +7,6 @@ public record CreateClinicalEncounterCommand(
     Guid PractitionerId,
     Guid? AppointmentId,
     string ChiefComplaint,
-    string Notes
+    string Notes,
+    int? PpsScore
 ) : IRequest<Guid>;

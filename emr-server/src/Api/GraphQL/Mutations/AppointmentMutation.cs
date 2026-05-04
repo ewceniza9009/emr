@@ -31,29 +31,25 @@ public class AppointmentMutation
     }
 
     public async Task<Appointment> RescheduleAppointment(
-        Guid appointmentId,
-        DateTimeOffset newStart,
-        DateTimeOffset newEnd,
+        RescheduleAppointmentInput input,
         [Service] IMediator mediator,
         CancellationToken cancellationToken
     )
     {
         return await mediator.Send(
-            new RescheduleAppointmentCommand(appointmentId, newStart, newEnd),
+            new RescheduleAppointmentCommand(input.AppointmentId, input.NewStart, input.NewEnd),
             cancellationToken
         );
     }
 
     public async Task<ScheduleBlock> UpdateScheduleBlock(
-        Guid blockId,
-        DateTimeOffset newStart,
-        DateTimeOffset newEnd,
+        UpdateScheduleBlockInput input,
         [Service] IMediator mediator,
         CancellationToken cancellationToken
     )
     {
         return await mediator.Send(
-            new UpdateScheduleBlockCommand(blockId, newStart, newEnd),
+            new UpdateScheduleBlockCommand(input.BlockId, input.NewStart, input.NewEnd),
             cancellationToken
         );
     }
@@ -67,4 +63,16 @@ public record BookAppointmentInput(
     DateTimeOffset ScheduledEnd,
     AppointmentModality Modality,
     Guid? AppointmentId = null
+);
+
+public record RescheduleAppointmentInput(
+    Guid AppointmentId,
+    DateTimeOffset NewStart,
+    DateTimeOffset NewEnd
+);
+
+public record UpdateScheduleBlockInput(
+    Guid BlockId,
+    DateTimeOffset NewStart,
+    DateTimeOffset NewEnd
 );
