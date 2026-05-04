@@ -43,7 +43,9 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid credentials. Please verify your email and password.");
       } else {
-        router.push("/dashboard");
+        // Force a full refresh to ensure all session providers (NextAuth, Apollo) 
+        // and middleware pick up the new authentication cookies immediately.
+        window.location.href = "/dashboard";
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again later.");

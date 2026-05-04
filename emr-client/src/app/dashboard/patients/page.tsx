@@ -100,14 +100,14 @@ export default function PatientsPage() {
       </div>
 
       {/* Patient Table */}
-      <div className="glass-morphism rounded-3xl overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-white/5">
+      <div className="glass-morphism rounded-3xl overflow-hidden shadow-2xl border border-[var(--card-border)]">
+        <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
           <h2 className="text-lg font-bold text-[var(--text-primary)]">Active Clinical Roster</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-white/5 border-b border-[var(--card-border)]">
+              <tr className="bg-[var(--input-bg)] border-b border-[var(--card-border)]">
                 <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Patient Details</th>
                 <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest text-center">MRN</th>
                 <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Location</th>
@@ -115,28 +115,28 @@ export default function PatientsPage() {
                 <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[var(--card-border)]">
               {loading ? (
                 [1, 2, 3].map((i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={5} className="px-8 py-10 bg-white/5" />
+                    <td colSpan={5} className="px-8 py-10 bg-[var(--input-bg)]" />
                   </tr>
                 ))
               ) : error ? (
                 <tr>
                   <td colSpan={5} className="px-8 py-24 text-center bg-red-500/5">
                      <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
-                       <div className="w-16 h-16 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-400 mb-2">
+                       <div className="w-16 h-16 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-600 mb-2 border border-red-500/20">
                          <Filter className="w-8 h-8 opacity-50 absolute" />
                          <Search className="w-8 h-8" />
                        </div>
-                       <h3 className="text-xl font-bold text-white">Connection Error</h3>
-                       <p className="text-slate-400 text-sm leading-relaxed">
+                       <h3 className="text-xl font-bold text-[var(--text-primary)]">Connection Error</h3>
+                       <p className="text-[var(--text-muted)] text-sm leading-relaxed">
                          We're having trouble connecting to the medical registry. This usually happens when the backend clinical service is offline or restarting.
                        </p>
                        <button 
                           onClick={() => refetch()}
-                          className="mt-4 px-6 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all border border-white/10"
+                          className="mt-4 px-6 py-2 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white text-sm font-semibold transition-all"
                        >
                          Try Reconnecting
                        </button>
@@ -144,7 +144,7 @@ export default function PatientsPage() {
                   </td>
                 </tr>
               ) : filteredPatients.map((patient: any) => (
-                <tr key={patient.patientId} className="group hover:bg-white/[0.02] transition-colors relative">
+                <tr key={patient.patientId} className="group hover:bg-[var(--primary-glow)] transition-colors relative">
                   <td className="px-8 py-5">
                     <Link href={`/dashboard/patients/${patient.patientId}`} className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-xs font-bold text-[var(--text-muted)]">
@@ -157,7 +157,7 @@ export default function PatientsPage() {
                     </Link>
                   </td>
                   <td className="px-8 py-5 text-center">
-                    <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px] font-mono font-bold border border-blue-500/10">
+                    <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 text-[10px] font-mono font-bold border border-blue-500/20">
                       {patient.mrn}
                     </span>
                   </td>
@@ -237,7 +237,7 @@ export default function PatientsPage() {
         </div>
         
         {!loading && patients.length === 0 && (
-          <div className="px-8 py-20 text-center text-[var(--text-muted)] bg-white/5">
+          <div className="px-8 py-20 text-center text-[var(--text-muted)] bg-[var(--input-bg)]">
             No patients found in the registry.
           </div>
         )}

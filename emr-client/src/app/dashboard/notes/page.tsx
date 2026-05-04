@@ -170,9 +170,9 @@ export default function ClinicalNotesPage() {
                     />
                     
                     {/* Floating Formatting Helper */}
-                    <div className="absolute bottom-6 right-10 flex items-center gap-4 text-[9px] font-black text-slate-500 uppercase tracking-widest pointer-events-none opacity-40 group-focus-within:opacity-100 transition-opacity">
+                    <div className="absolute bottom-6 right-10 flex items-center gap-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest pointer-events-none opacity-40 group-focus-within:opacity-100 transition-opacity">
                       <span>Press <span className="text-[var(--primary)]">/</span> for Smart Phrases</span>
-                      <span className="w-1 h-1 rounded-full bg-slate-700" />
+                      <span className="w-1 h-1 rounded-full bg-[var(--card-border)]" />
                       <span>Auto-Saving enabled</span>
                     </div>
                   </div>
@@ -180,7 +180,7 @@ export default function ClinicalNotesPage() {
             </div>
 
             {/* Compliance Badge */}
-            <div className="absolute bottom-8 right-8 flex items-center gap-2 px-4 py-2 bg-slate-500/5 rounded-full border border-white/5">
+            <div className="absolute bottom-8 right-8 flex items-center gap-2 px-4 py-2 bg-[var(--input-bg)] rounded-full border border-[var(--card-border)]">
               <Lock className="w-3 h-3 text-[var(--text-muted)]" />
               <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">End-to-End HIPAA Encrypted Session</span>
             </div>

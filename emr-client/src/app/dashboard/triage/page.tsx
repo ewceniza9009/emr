@@ -46,13 +46,13 @@ export default function TriageDashboard() {
           <p className="text-[var(--text-secondary)]">Prioritizing patients by symptom burden and urgency.</p>
         </div>
         <div className="flex gap-4">
-          <div className="px-6 py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400">
-            <div className="text-[10px] uppercase font-bold tracking-widest">High Severity</div>
-            <div className="text-xl font-bold">{alertCount} Patients</div>
+          <div className="px-6 py-3 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-600">
+            <div className="text-[10px] uppercase font-black tracking-widest">High Severity</div>
+            <div className="text-xl font-black">{alertCount} Patients</div>
           </div>
-          <div className="px-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-            <div className="text-[10px] uppercase font-bold tracking-widest">Stable</div>
-            <div className="text-xl font-bold">{stableCount} Patients</div>
+          <div className="px-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600">
+            <div className="text-[10px] uppercase font-black tracking-widest">Stable</div>
+            <div className="text-xl font-black">{stableCount} Patients</div>
           </div>
         </div>
       </div>
@@ -62,14 +62,14 @@ export default function TriageDashboard() {
         
         {/* Triage Worklist */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="glass-morphism rounded-3xl overflow-hidden border border-white/5">
-            <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-white/5">
+          <div className="glass-morphism rounded-3xl overflow-hidden border border-[var(--card-border)]">
+            <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
               <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-400" />
+                <AlertTriangle className="w-5 h-5 text-red-500" />
                 Symptom Triage Worklist
               </h2>
               <div className="flex gap-2">
-                <button className="p-2 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5">
+                <button className="p-2 rounded-xl bg-[var(--card-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all border border-[var(--card-border)]">
                    <Filter className="w-4 h-4" />
                 </button>
               </div>
@@ -77,7 +77,7 @@ export default function TriageDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-white/5 text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-widest">
+                  <tr className="bg-[var(--input-bg)] text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-widest border-b border-[var(--card-border)]">
                     <th className="px-8 py-4">Patient</th>
                     <th className="px-8 py-4 text-center">Burden</th>
                     <th className="px-8 py-4 text-center">Directive</th>
@@ -85,9 +85,9 @@ export default function TriageDashboard() {
                     <th className="px-8 py-4"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-[var(--card-border)]">
                   {triageItems.map((p: any) => (
-                    <tr key={p.patientId} className="group hover:bg-white/[0.02] transition-colors">
+                    <tr key={p.patientId} className="group hover:bg-[var(--primary-glow)] transition-colors">
                       <td className="px-8 py-5">
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 rounded-full ${p.isAlert ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
@@ -99,18 +99,18 @@ export default function TriageDashboard() {
                       </td>
                       <td className="px-8 py-5 text-center">
                         <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border 
-                          ${p.latestPainScore > 7 ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
+                          ${p.latestPainScore > 7 ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
                           Pain: {p.latestPainScore}/10
                         </div>
                       </td>
                       <td className="px-8 py-5 text-center">
                         <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border 
-                          ${p.advanceDirectiveType !== 'None' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-white/5 text-slate-500 border-white/10'}`}>
+                          ${p.advanceDirectiveType !== 'None' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--card-border)]'}`}>
                           {p.advanceDirectiveType}
                         </span>
                       </td>
                       <td className="px-8 py-5">
-                        <span className="text-slate-400 text-xs italic">
+                        <span className="text-[var(--text-muted)] text-xs italic">
                            {p.isAlert ? 'Urgent Review Needed' : 'Stable'}
                         </span>
                       </td>
@@ -146,9 +146,9 @@ export default function TriageDashboard() {
                     <TrendingUp className="w-4 h-4 text-[var(--text-muted)]" />
                   </div>
                   <div className="flex gap-3">
-                    <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">{f.patients} Patients</div>
+                    <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">{f.patients} Patients</div>
                     {f.crisis > 0 && (
-                      <div className="text-[10px] text-red-400 uppercase tracking-wider font-bold">{f.crisis} In Crisis</div>
+                      <div className="text-[10px] text-red-500 uppercase tracking-wider font-bold">{f.crisis} In Crisis</div>
                     )}
                   </div>
                 </div>
@@ -160,17 +160,17 @@ export default function TriageDashboard() {
             </button>
           </div>
 
-          <div className="glass-morphism rounded-3xl p-6 border border-white/5">
-            <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <ShieldAlert className="w-5 h-5 text-blue-400" />
+          <div className="glass-morphism rounded-3xl p-6 border border-[var(--card-border)]">
+            <h2 className="text-lg font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-blue-500" />
               Missing Directives
             </h2>
-            <p className="text-slate-500 text-xs mb-4">The following patients are in high-risk groups but lack a documented Advance Directive.</p>
+            <p className="text-[var(--text-muted)] text-xs mb-4">The following patients are in high-risk groups but lack a documented Advance Directive.</p>
             <div className="space-y-3">
               {["Juan Dela Cruz", "Maria Santos"].map(name => (
                 <div key={name} className="flex items-center justify-between text-sm">
-                   <span className="text-white font-medium">{name}</span>
-                   <button className="text-blue-400 font-bold text-xs hover:underline">Log DNR</button>
+                   <span className="text-[var(--text-primary)] font-medium">{name}</span>
+                   <button className="text-blue-500 font-bold text-xs hover:underline">Log DNR</button>
                 </div>
               ))}
             </div>

@@ -38,13 +38,13 @@ const getModalityConfig = (modalityStr: string) => {
 };
 
 const getStatusConfig = (statusStr: string) => {
-  if (!statusStr) return { label: "SCHED", bg: "bg-white/5", border: "border-white/10", text: "text-white/40", dot: "bg-white/20" };
+  if (!statusStr) return { label: "SCHED", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]", text: "text-[var(--text-muted)]", dot: "bg-[var(--text-muted)]/20" };
   const s = statusStr.toUpperCase();
-  if (s.includes("INPROGRESS")) return { label: "LIVE", bg: "bg-emerald-500/20", border: "border-emerald-500/50", text: "text-emerald-400", dot: "bg-emerald-400 animate-pulse" };
-  if (s.includes("HOLD")) return { label: "HOLD", bg: "bg-amber-500/20", border: "border-amber-500/50", text: "text-amber-400", dot: "bg-amber-400" };
-  if (s.includes("COMPLETE")) return { label: "DONE", bg: "bg-blue-500/20", border: "border-blue-500/50", text: "text-blue-400", dot: "bg-blue-400" };
-  if (s.includes("CANCEL")) return { label: "CANC", bg: "bg-rose-500/20", border: "border-rose-500/50", text: "text-rose-400", dot: "bg-rose-400" };
-  return { label: "SCHED", bg: "bg-white/5", border: "border-white/10", text: "text-white/40", dot: "bg-white/20" };
+  if (s.includes("INPROGRESS")) return { label: "LIVE", bg: "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500 animate-pulse" };
+  if (s.includes("HOLD")) return { label: "HOLD", bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500" };
+  if (s.includes("COMPLETE")) return { label: "DONE", bg: "bg-blue-500/10", border: "border-blue-500/30", text: "text-blue-600 dark:text-blue-400", dot: "bg-blue-500" };
+  if (s.includes("CANCEL")) return { label: "CANC", bg: "bg-rose-500/10", border: "border-rose-500/30", text: "text-rose-600 dark:text-rose-400", dot: "bg-rose-500" };
+  return { label: "SCHED", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]", text: "text-[var(--text-muted)]", dot: "bg-[var(--text-muted)]/20" };
 };
 
 // ─── GraphQL ─────────────────────────────────────────────────────────────────
@@ -393,13 +393,13 @@ export default function SchedulingCalendar() {
         </div>
         <div className="flex items-center gap-1">
           {apiPositions.map(pos => {
-            const style = POSITION_STYLE[pos] ?? { label: pos, color: "text-white", bg: "bg-white/5", border: "border-white/10" };
+            const style = POSITION_STYLE[pos] ?? { label: pos, color: "text-[var(--text-primary)]", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]" };
             return (
               <button key={pos} onClick={() => togglePosition(pos)}
                 className={`px-4 py-2 rounded-xl border font-black text-[10px] tracking-widest transition-all duration-300
                       ${selectedPositions.has(pos)
                     ? `${style.bg} ${style.border} ${style.color} shadow-lg shadow-[var(--primary-glow)] scale-105`
-                    : "bg-white/[0.02] border-white/10 text-white/20 hover:bg-white/[0.05] hover:border-white/10 hover:text-white/40"}`}>
+                    : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:bg-[var(--primary-glow)]/10 hover:text-[var(--text-secondary)]"}`}>
                 <div className="flex items-center gap-2">
                   {style.icon}
                   <span className="uppercase">{pos.replace(/_/g, " ")}</span>
@@ -449,11 +449,11 @@ export default function SchedulingCalendar() {
                 <div key={i} className={`flex-1 flex flex-col items-center py-4 border-l border-white/5 first:border-l-0 transition-all
                   ${isToday ? "bg-[var(--primary)]/[0.03] relative" : ""}`}>
                   {isToday && <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--primary)] shadow-[0_0_15px_var(--primary-glow)]" />}
-                  <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${isToday ? "text-[var(--primary)]" : "text-slate-500"}`}>
+                  <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${isToday ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}>
                     {GRID_CONFIG.DAYS[i]}
                   </span>
                   <div className={`mt-2 w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black transition-all
-                    ${isToday ? "bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" : "text-white/80"}`}>
+                    ${isToday ? "bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" : "text-[var(--text-primary)]"}`}>
                     {date.getDate()}
                   </div>
                 </div>
@@ -504,7 +504,7 @@ export default function SchedulingCalendar() {
                             e.dataTransfer.setData("blockId", block.blockId);
                             e.dataTransfer.setData("duration", durMin.toString());
                           }}
-                          className="absolute left-1.5 right-1.5 z-0 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] backdrop-blur-sm p-3 flex flex-col gap-2 overflow-hidden cursor-grab active:cursor-grabbing hover:border-slate-500 transition-all"
+                          className="absolute left-1.5 right-1.5 z-0 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] backdrop-blur-sm p-3 flex flex-col gap-2 overflow-hidden cursor-grab active:cursor-grabbing hover:border-[var(--text-muted)] transition-all shadow-sm"
                           style={{ top: `${top}%`, height: `${height}%` }}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -517,7 +517,7 @@ export default function SchedulingCalendar() {
                           </div>
                           <p className="text-[10px] font-black text-[var(--text-primary)] uppercase truncate tracking-wide">OFF-DUTY / BLOCKED</p>
                           <div className="mt-auto flex items-center gap-2">
-                            <div className="w-4 h-4 rounded-full bg-slate-700 flex items-center justify-center text-[7px] font-black text-white">{block.practitioner?.firstName?.[0]}{block.practitioner?.lastName?.[0]}</div>
+                            <div className="w-4 h-4 rounded-full bg-slate-500 flex items-center justify-center text-[7px] font-black text-white">{block.practitioner?.firstName?.[0]}{block.practitioner?.lastName?.[0]}</div>
                             <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase truncate">{block.practitioner?.firstName} {block.practitioner?.lastName}</span>
                           </div>
                         </div>
@@ -612,44 +612,44 @@ export default function SchedulingCalendar() {
                                 {/* The "Hint" of CN and SC */}
                                 <div className="flex -space-x-1 shrink-0 ml-1">
                                   {appt.practitioner && (
-                                    <div className="w-3.5 h-3.5 rounded-full bg-purple-600 border border-[#0a0b10] flex items-center justify-center text-[5px] font-black text-white shadow-md" title="Care Navigator (Primary)">CN</div>
+                                    <div className="w-3.5 h-3.5 rounded-full bg-purple-600 border border-[var(--sidebar-bg)] flex items-center justify-center text-[5px] font-black text-white shadow-md" title="Care Navigator (Primary)">CN</div>
                                   )}
                                   {appt.supportingClinicians?.length > 0 && (
-                                    <div className="w-3.5 h-3.5 rounded-full bg-blue-600 border border-[#0a0b10] flex items-center justify-center text-[5px] font-black text-white shadow-md" title="Supporting Clinician">SC</div>
+                                    <div className="w-3.5 h-3.5 rounded-full bg-blue-600 border border-[var(--sidebar-bg)] flex items-center justify-center text-[5px] font-black text-white shadow-md" title="Supporting Clinician">SC</div>
                                   )}
                                 </div>
                               </div>
 
                               {/* Expanded Hover Info (Revealed on hover via max-h expansion) */}
-                              <div className="mt-2 pt-2 border-t border-white/10 flex flex-col gap-1.5 shrink-0 opacity-0 group-hover/appt:opacity-100 transition-opacity delay-75">
+                              <div className="mt-2 pt-2 border-t border-[var(--card-border)] flex flex-col gap-1.5 shrink-0 opacity-0 group-hover/appt:opacity-100 transition-opacity delay-75">
                                 {modality.label !== "TELEHEALTH" && (
-                                  <p className="text-[8px] font-bold text-white/60 truncate flex items-center gap-1.5">
-                                    <Home className="w-2.5 h-2.5 text-white/40 shrink-0" />
-                                    <span className={`truncate ${appt.patient?.addresses?.[0]?.address?.street ? "text-white/80" : "text-rose-400"}`}>
+                                  <p className="text-[8px] font-bold text-[var(--text-muted)] truncate flex items-center gap-1.5">
+                                    <Home className="w-2.5 h-2.5 opacity-60 shrink-0" />
+                                    <span className={`truncate ${appt.patient?.addresses?.[0]?.address?.street ? "text-[var(--text-secondary)]" : "text-rose-500"}`}>
                                       {appt.patient?.addresses?.[0]?.address?.street || "NO ADDRESS ON FILE"}
                                     </span>
                                   </p>
                                 )}
-                                <div className="flex flex-col gap-1 mt-1 bg-black/20 p-1.5 rounded border border-white/5">
+                                <div className="flex flex-col gap-1 mt-1 bg-[var(--input-bg)] p-1.5 rounded border border-[var(--card-border)]">
                                   <div className="flex items-center gap-1.5">
-                                    <div className="w-3 h-3 rounded-full bg-purple-600 border border-white/10 flex items-center justify-center text-[5px] font-black text-white shrink-0">CN</div>
+                                    <div className="w-3 h-3 rounded-full bg-purple-600 border border-[var(--sidebar-bg)] flex items-center justify-center text-[5px] font-black text-white shrink-0">CN</div>
                                     {(() => {
                                       const cn = appt.practitioner || practitioners.find((pr: any) => pr.practitionerId?.toLowerCase() === appt.practitionerId?.toLowerCase());
                                       const name = cn ? `${cn.firstName} ${cn.lastName}`.trim() : "";
                                       return (
-                                        <span className={`text-[8px] font-black uppercase truncate ${name ? "text-white/90" : "text-white/50"}`}>
+                                        <span className={`text-[8px] font-black uppercase truncate ${name ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}>
                                           {name || "UNASSIGNED"}
                                         </span>
                                       );
                                     })()}
                                   </div>
                                   <div className="flex items-center gap-1.5">
-                                    <div className="w-3 h-3 rounded-full bg-blue-600 border border-white/10 flex items-center justify-center text-[5px] font-black text-white shrink-0">SC</div>
+                                    <div className="w-3 h-3 rounded-full bg-blue-600 border border-[var(--sidebar-bg)] flex items-center justify-center text-[5px] font-black text-white shrink-0">SC</div>
                                     {(() => {
                                       const sc = appt.supportingClinicians?.[0] || practitioners.find((pr: any) => appt.supportingPractitionerIds?.some((id: string) => id?.toLowerCase() === pr.practitionerId?.toLowerCase()));
                                       const name = sc ? `${sc.firstName} ${sc.lastName}`.trim() : "";
                                       return (
-                                        <span className={`text-[8px] font-black uppercase truncate ${name ? "text-white/90" : "text-white/50"}`}>
+                                        <span className={`text-[8px] font-black uppercase truncate ${name ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}>
                                           {name || "UNASSIGNED"}
                                         </span>
                                       );
@@ -677,18 +677,18 @@ export default function SchedulingCalendar() {
       {/* ── Confirmation Modal ── */}
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
-          <div className="bg-[#0c0d15] border border-white/10 rounded-[2rem] p-8 max-w-sm w-full space-y-6 shadow-2xl scale-in-center">
+          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[2rem] p-8 max-w-sm w-full space-y-6 shadow-2xl scale-in-center">
             <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mx-auto border border-blue-500/20">
               <AlertCircle className="w-8 h-8" />
             </div>
             <div className="text-center space-y-2">
-              <h3 className="text-xl font-bold text-white uppercase tracking-tight">{confirmModal.title}</h3>
-              <p className="text-slate-400 text-sm">{confirmModal.message}</p>
+              <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-tight">{confirmModal.title}</h3>
+              <p className="text-[var(--text-secondary)] text-sm">{confirmModal.message}</p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                className="py-4 rounded-xl bg-white/5 text-slate-400 font-bold hover:bg-white/10 transition-all uppercase text-[10px] tracking-widest"
+                className="py-4 rounded-xl bg-[var(--input-bg)] text-[var(--text-muted)] font-bold hover:bg-[var(--primary-glow)]/10 transition-all uppercase text-[10px] tracking-widest border border-[var(--card-border)]"
               >
                 Cancel
               </button>

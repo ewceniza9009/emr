@@ -92,10 +92,10 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
   if (loading) return <div className="p-8 text-slate-500 animate-pulse">Loading Medications...</div>;
 
   return (
-    <div className="glass-morphism rounded-3xl overflow-hidden border border-white/5">
-      <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Pill className="w-5 h-5 text-emerald-400" />
+    <div className="glass-morphism rounded-3xl overflow-hidden border border-[var(--card-border)]">
+      <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
+        <h2 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <Pill className="w-5 h-5 text-emerald-500" />
           Active Medications
         </h2>
         <button 
@@ -107,18 +107,18 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
         </button>
       </div>
 
-      <div className="divide-y divide-white/5">
+      <div className="divide-y divide-[var(--card-border)]">
         {prescriptions.map((p: any) => (
-          <div key={p.prescriptionId} className="p-6 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
+          <div key={p.prescriptionId} className="p-6 flex items-center justify-between group hover:bg-[var(--primary-glow)] transition-colors">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 border border-emerald-500/20">
                 <Pill className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-white font-bold text-sm">{p.medication.name} <span className="text-slate-500 font-normal ml-1">({p.medication.strength})</span></h3>
+                <h3 className="text-[var(--text-primary)] font-bold text-sm">{p.medication.name} <span className="text-[var(--text-muted)] font-normal ml-1">({p.medication.strength})</span></h3>
                 <div className="flex gap-3 mt-1">
-                   <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{p.dose} • {p.route}</span>
-                   <span className="text-[10px] text-blue-400 uppercase font-bold tracking-wider flex items-center gap-1">
+                   <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">{p.dose} • {p.route}</span>
+                   <span className="text-[10px] text-blue-600 uppercase font-bold tracking-wider flex items-center gap-1">
                       <Clock className="w-3 h-3" /> {p.frequency}
                    </span>
                 </div>
@@ -136,7 +136,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
         ))}
       </div>
 
-      <div className="p-4 bg-emerald-500/5 border-t border-white/5 flex items-center gap-2 text-emerald-400/60 text-[10px] font-bold uppercase tracking-widest">
+      <div className="p-4 bg-emerald-500/5 border-t border-[var(--card-border)] flex items-center gap-2 text-emerald-600/60 text-[10px] font-bold uppercase tracking-widest">
          <History className="w-3 h-3" />
          View Medication History (12 Archive)
       </div>

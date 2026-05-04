@@ -33,18 +33,18 @@ export default function VitalsIoTPage() {
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-      <Activity className="w-12 h-12 text-blue-500 animate-pulse" />
-      <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Scanning Clinical IoT Network...</p>
+      <Activity className="w-12 h-12 text-[var(--primary)] animate-pulse" />
+      <p className="text-[var(--text-muted)] font-black uppercase tracking-[0.3em] text-[10px]">Scanning Clinical IoT Network...</p>
     </div>
   );
 
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
-       <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-400 border border-red-500/20">
+       <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-600 border border-red-500/20">
           <Activity className="w-8 h-8" />
        </div>
-       <h2 className="text-xl font-bold text-white">Registry Connection Failed</h2>
-       <p className="text-slate-500 text-sm max-w-xs">Could not establish a secure connection to the patient data registry.</p>
+       <h2 className="text-xl font-bold text-[var(--text-primary)]">Registry Connection Failed</h2>
+       <p className="text-[var(--text-muted)] text-sm max-w-xs">Could not establish a secure connection to the patient data registry.</p>
     </div>
   );
 
@@ -93,8 +93,8 @@ export default function VitalsIoTPage() {
                   {patient.firstName[0]}{patient.lastName[0]}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[var(--text-primary)] group-hover:text-blue-400 transition-colors">{patient.firstName} {patient.lastName}</h3>
-                  <p className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest mt-0.5">{patient.mrn}</p>
+                  <h3 className="text-sm font-bold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">{patient.firstName} {patient.lastName}</h3>
+                  <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-0.5">{patient.mrn}</p>
                 </div>
               </div>
               <button className="p-2 rounded-lg hover:bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all">

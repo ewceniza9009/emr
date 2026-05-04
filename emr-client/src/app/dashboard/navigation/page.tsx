@@ -38,6 +38,9 @@ export default function CareNavigationPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { data, loading, error } = useQuery(GET_NAVIGATION_DATA);
 
+  const [activeHud, setActiveHud] = useState("nav");
+  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
+
   if (loading) return (
     <div className="h-full flex items-center justify-center">
       <Loader2 className="w-12 h-12 text-[var(--primary)] animate-spin" />
@@ -67,27 +70,27 @@ export default function CareNavigationPage() {
     <div className="flex h-full gap-4 overflow-hidden animate-in fade-in duration-700">
       {/* Map Placeholder Area */}
       {/* Tactical Geospatial Radar Grid */}
-      <div className="flex-1 bg-slate-950 rounded-[2.5rem] border border-white/5 shadow-2xl relative overflow-hidden group">
+      <div className="flex-1 bg-[var(--radar-bg)] rounded-[2.5rem] border border-[var(--card-border)] shadow-2xl relative overflow-hidden group">
         {/* Vector Grid Layer */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.05)_0%,transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--primary-glow)_0%,transparent_70%)]" />
         <div className="absolute inset-0" style={{ 
-          backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px), 
-                            linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(to right, var(--radar-grid) 1px, transparent 1px), 
+                            linear-gradient(to bottom, var(--radar-grid) 1px, transparent 1px)`,
           backgroundSize: '40px 40px' 
         }} />
         <div className="absolute inset-0" style={{ 
-          backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), 
-                            linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(to right, var(--radar-grid) 2px, transparent 2px), 
+                            linear-gradient(to bottom, var(--radar-grid) 2px, transparent 2px)`,
           backgroundSize: '200px 200px' 
         }} />
 
         {/* Sector Boundaries */}
-        <div className="absolute inset-0 border-[0.5px] border-white/[0.03] pointer-events-none">
-          <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-white/[0.05] shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
-          <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-white/[0.05] shadow-[0_0_15px_rgba(255,255,255,0.1)]" />
+        <div className="absolute inset-0 border-[0.5px] border-[var(--card-border)] opacity-30 pointer-events-none">
+          <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-[var(--radar-grid)] shadow-[0_0_15px_var(--primary-glow)]" />
+          <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-[var(--radar-grid)] shadow-[0_0_15px_var(--primary-glow)]" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-[400px] h-[400px] border border-white/[0.03] rounded-full" />
-            <div className="w-[800px] h-[800px] border border-white/[0.02] rounded-full" />
+            <div className="w-[400px] h-[400px] border border-[var(--radar-grid)] rounded-full" />
+            <div className="w-[800px] h-[800px] border border-[var(--radar-grid)] rounded-full" />
           </div>
         </div>
 
@@ -107,18 +110,21 @@ export default function CareNavigationPage() {
                
                return (
                 <div key={p.id} 
-                  className="absolute -translate-x-1/2 -translate-y-1/2 group/sig"
+                  className={`absolute -translate-x-1/2 -translate-y-1/2 group/sig transition-all duration-1000
+                    ${selectedProviderId === p.id ? 'scale-150 z-50' : 'scale-100'}`}
                   style={{ top: `${top}%`, left: `${left}%` }}
+                  onClick={() => setSelectedProviderId(p.id)}
                 >
                   {/* Signal Pulse */}
                   <div className={`absolute -inset-4 rounded-full animate-ping opacity-20
-                    ${p.status === 'On Site' ? 'bg-emerald-500' : p.status === 'In Transit' ? 'bg-[var(--primary)]' : 'bg-slate-500'}`} />
+                    ${p.status === 'On Site' ? 'bg-emerald-500' : p.status === 'In Transit' ? 'bg-[var(--primary)]' : 'bg-[var(--text-muted)]'}`} />
                   
                   {/* Signal Blip */}
                   <div className={`w-3 h-3 rounded-full relative shadow-lg transition-transform hover:scale-150 cursor-pointer pointer-events-auto
-                    ${p.status === 'On Site' ? 'bg-emerald-500 shadow-emerald-500/50' : 
+                    ${selectedProviderId === p.id ? 'bg-white ring-4 ring-[var(--primary)] shadow-[0_0_20px_var(--primary)]' : 
+                      p.status === 'On Site' ? 'bg-emerald-500 shadow-emerald-500/50' : 
                       p.status === 'In Transit' ? 'bg-[var(--primary)] shadow-[var(--primary-glow)]' : 
-                      'bg-slate-700 shadow-black'}`}
+                      'bg-[var(--text-muted)] shadow-black'}`}
                   >
                     {/* Direction Vector for Motion */}
                     {p.status === 'In Transit' && (
@@ -127,8 +133,8 @@ export default function CareNavigationPage() {
                   </div>
 
                   {/* Signal Label (Visible on Hover) */}
-                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-black/80 backdrop-blur-md px-2 py-1 rounded border border-white/10 opacity-0 group-hover/sig:opacity-100 transition-opacity">
-                    <p className="text-[7px] font-black text-white uppercase tracking-tighter">{p.name}</p>
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[var(--card-bg)]/80 backdrop-blur-md px-2 py-1 rounded border border-[var(--card-border)] opacity-0 group-hover/sig:opacity-100 transition-opacity">
+                    <p className="text-[7px] font-black uppercase tracking-tighter">{p.name}</p>
                   </div>
                 </div>
                );
@@ -138,10 +144,22 @@ export default function CareNavigationPage() {
 
         {/* Tactical HUD Overlay */}
         <div className="absolute inset-x-10 bottom-10 flex items-end justify-between">
-          <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-xl border border-white/5 rounded-2xl p-2 shadow-2xl">
-            <button className="p-3 bg-[var(--primary)] text-white rounded-xl shadow-lg shadow-[var(--primary-glow)]"><Navigation2 className="w-5 h-5" /></button>
-            <button className="p-3 text-slate-500 hover:text-white transition-colors"><Layers className="w-5 h-5" /></button>
-            <button className="p-3 text-slate-500 hover:text-white transition-colors"><Activity className="w-5 h-5" /></button>
+          <div className="flex items-center gap-2 bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-2xl p-2 shadow-2xl">
+            <button 
+              onClick={() => setActiveHud("nav")}
+              className={`p-3 rounded-xl transition-all ${activeHud === "nav" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+              <Navigation2 className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => setActiveHud("layers")}
+              className={`p-3 rounded-xl transition-all ${activeHud === "layers" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+              <Layers className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => setActiveHud("activity")}
+              className={`p-3 rounded-xl transition-all ${activeHud === "activity" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+              <Activity className="w-5 h-5" />
+            </button>
           </div>
 
           <div className="flex flex-col items-end gap-2 text-right">
@@ -149,7 +167,7 @@ export default function CareNavigationPage() {
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Live Engine Feed</span>
              </div>
-             <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Coord: 40.7128° N, 74.0060° W</p>
+             <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Coord: 14.5995° N, 120.9842° E</p>
           </div>
         </div>
 
@@ -194,11 +212,14 @@ export default function CareNavigationPage() {
 
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-hide">
             {providers.map((p: any) => (
-              <div key={p.id} className="p-4 rounded-2xl border border-[var(--card-border)] bg-[var(--input-bg)]/50 hover:border-[var(--primary)]/30 transition-all group cursor-pointer">
+              <div key={p.id} 
+                onClick={() => setSelectedProviderId(p.id)}
+                className={`p-4 rounded-2xl border transition-all group cursor-pointer
+                  ${selectedProviderId === p.id ? 'border-[var(--primary)] bg-[var(--primary)]/10 shadow-lg' : 'border-[var(--card-border)] bg-[var(--input-bg)]/50 hover:border-[var(--primary)]/30'}`}>
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
-                      <User className="w-5 h-5 text-[var(--primary)]" />
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${selectedProviderId === p.id ? 'bg-[var(--primary)] text-white' : 'bg-[var(--primary)]/10 text-[var(--primary)]'}`}>
+                      <User className="w-5 h-5" />
                     </div>
                     <div>
                       <h4 className="text-xs font-black uppercase">{p.name}</h4>
@@ -229,9 +250,15 @@ export default function CareNavigationPage() {
                       </div>
                       <span className="text-[8px] font-black text-[var(--text-muted)]">{p.battery}%</span>
                    </div>
-                   <button className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                     Track <ChevronRight className="w-3 h-3" />
-                   </button>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedProviderId(p.id);
+                      }}
+                      className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform"
+                    >
+                      Track <ChevronRight className="w-3 h-3" />
+                    </button>
                 </div>
               </div>
             ))}

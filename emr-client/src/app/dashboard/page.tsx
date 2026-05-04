@@ -100,9 +100,9 @@ export default function MissionControl() {
           
           <div className="space-y-6">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center gap-6 p-4 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5 group">
-                <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center shrink-0">
-                   <Activity className="text-blue-400 w-5 h-5" />
+              <div key={i} className="flex items-center gap-6 p-4 rounded-2xl hover:bg-[var(--input-bg)] transition-colors border border-transparent hover:border-[var(--card-border)] group">
+                <div className="w-12 h-12 rounded-xl bg-[var(--input-bg)] flex items-center justify-center shrink-0 border border-[var(--card-border)]">
+                   <Activity className="text-blue-500 w-5 h-5" />
                 </div>
                 <div className="flex-1">
                   <p className="text-[var(--text-primary)] font-medium">New Assessment for John Doe</p>
@@ -110,7 +110,7 @@ export default function MissionControl() {
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-[var(--text-muted)]">By Dr. Gregory House</p>
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-blue-400">Validated</span>
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-blue-500">Validated</span>
                 </div>
               </div>
             ))}

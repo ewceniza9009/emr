@@ -12,7 +12,6 @@ import {
   MoreVertical,
   ArrowRight
 } from "lucide-react";
-import Link from "next/link";
 
 const GET_OUTREACH_LEADS = gql`
   query GetOutreachLeads {
@@ -33,9 +32,12 @@ const GET_OUTREACH_LEADS = gql`
 `;
 
 import AddReferralDrawer from "@/components/AddReferralDrawer";
+import EnrollmentDrawer from "@/components/EnrollmentDrawer";
 
 export default function OutreachPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEnrollOpen, setIsEnrollOpen] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     status: "",
     attempts: "",
@@ -168,14 +170,14 @@ export default function OutreachPage() {
 
       {/* Active Worklist */}
       <div className="glass-morphism rounded-3xl overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-white/5">
+        <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
           <h2 className="text-lg font-bold text-[var(--text-primary)]">Clinical Outreach Worklist</h2>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-white/5 border-b border-[var(--card-border)]">
+              <tr className="bg-[var(--input-bg)] border-b border-[var(--card-border)]">
                 <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Prospect</th>
                 <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest text-center">Attempts</th>
                 <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Last Outreach</th>
@@ -184,11 +186,11 @@ export default function OutreachPage() {
                 <th className="px-8 py-4 text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[var(--card-border)]">
               {loading ? (
-                [1, 2, 3].map(i => <tr key={i} className="animate-pulse"><td colSpan={5} className="h-20 bg-white/5" /></tr>)
+                [1, 2, 3].map(i => <tr key={i} className="animate-pulse"><td colSpan={6} className="h-20 bg-[var(--input-bg)]" /></tr>)
               ) : filteredLeads.map((lead: any) => (
-                <tr key={lead.patientOutreachId} className="group hover:bg-white/[0.02] transition-colors">
+                <tr key={lead.patientOutreachId} className="group hover:bg-[var(--input-bg)] transition-colors">
 
                   <td className="px-8 py-5">
                     <div>
@@ -197,37 +199,43 @@ export default function OutreachPage() {
                     </div>
                   </td>
                   <td className="px-8 py-5 text-center">
-                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${lead.callAttemptCount >= 3 ? 'bg-red-500/20 text-red-400' : 'bg-white/5 text-slate-400'}`}>
+                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${lead.callAttemptCount >= 3 ? 'bg-rose-500/10 text-rose-500' : 'bg-[var(--input-bg)] text-[var(--text-muted)]'}`}>
                       {lead.callAttemptCount}
                     </span>
                   </td>
-                  <td className="px-8 py-5 text-slate-300 text-sm">
+                  <td className="px-8 py-5 text-[var(--text-secondary)] text-sm">
                     {lead.lastActivityDate ? new Date(lead.lastActivityDate).toLocaleDateString() : 'No attempts'}
                   </td>
                   <td className="px-8 py-5 text-sm">
                     {lead.nextFollowUpDate ? (
-                      <span className="text-emerald-400 font-medium">{new Date(lead.nextFollowUpDate).toLocaleDateString()}</span>
+                      <span className="text-emerald-500 font-medium">{new Date(lead.nextFollowUpDate).toLocaleDateString()}</span>
                     ) : (
-                      <span className="text-slate-600 italic text-xs">Not scheduled</span>
+                      <span className="text-[var(--text-muted)] italic text-xs">Not scheduled</span>
                     )}
                   </td>
                   <td className="px-8 py-5 text-center">
                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
-                      ${lead.status === 'Lead' ? 'bg-blue-500/10 text-blue-400' : ''}
-                      ${lead.status === 'Contacted' ? 'bg-purple-500/10 text-purple-400' : ''}
-                      ${lead.status === 'Interested' ? 'bg-emerald-500/10 text-emerald-400' : ''}
+                      ${lead.status === 'Lead' ? 'bg-blue-500/10 text-blue-500' : ''}
+                      ${lead.status === 'Contacted' ? 'bg-purple-500/10 text-purple-500' : ''}
+                      ${lead.status === 'Interested' ? 'bg-emerald-500/10 text-emerald-500' : ''}
                     `}>
                       {lead.status}
                     </span>
                   </td>
                   <td className="px-8 py-5">
                     <div className="flex gap-2">
-                       <button className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all">
+                       <button className="p-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-all">
                          <PhoneCall className="w-4 h-4" />
                        </button>
-                       <Link href={`/dashboard/outreach/${lead.patientOutreachId}/enroll`} className="p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all">
+                       <button 
+                         onClick={() => {
+                           setSelectedLeadId(lead.patientOutreachId);
+                           setIsEnrollOpen(true);
+                         }}
+                         className="p-2 rounded-lg bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-blue-500/10 transition-all border border-[var(--card-border)]"
+                       >
                          <ArrowRight className="w-4 h-4" />
-                       </Link>
+                       </button>
                     </div>
                   </td>
                 </tr>
@@ -235,12 +243,21 @@ export default function OutreachPage() {
             </tbody>
           </table>
           {!loading && leads.length === 0 && (
-            <div className="p-20 text-center text-slate-500">
+            <div className="p-20 text-center text-[var(--text-muted)]">
                No active leads found. Click "Add Referral" to start your pipeline.
             </div>
           )}
         </div>
       </div>
+
+      <EnrollmentDrawer 
+        open={isEnrollOpen} 
+        onClose={() => {
+          setIsEnrollOpen(false);
+          setSelectedLeadId(null);
+        }} 
+        outreachId={selectedLeadId}
+      />
     </div>
   );
 }
