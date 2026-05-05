@@ -679,7 +679,7 @@ namespace Infrastructure.Data
                 .RuleFor(a => a.ScheduledStart, f => baseDate.AddDays(f.IndexFaker / 3).AddHours((f.IndexFaker % 3) * 3))
                 .RuleFor(a => a.ScheduledEnd, (f, a) => a.ScheduledStart.AddMinutes(f.Random.Bool(0.6f) ? 60 : 45))
                 .RuleFor(a => a.SupportingClinicians, (f, a) => practitioners.Where(p => p.PractitionerId != a.PractitionerId).OrderBy(x => Guid.NewGuid()).Take(1).ToList())
-                .RuleFor(a => a.DistanceInMiles, (f, a) => GetDistance(a.PractitionerId, a.PatientId, a.Modality))
+                .RuleFor(a => a.DistanceInMiles, (f, a) => GetDistance(a.PractitionerId ?? Guid.Empty, a.PatientId, a.Modality))
                 .RuleFor(a => a.TravelTimeMinutes, (f, a) => GetTravelTime(a.DistanceInMiles ?? 0, a.Modality, true, f))
                 .Generate(9);
 
@@ -694,7 +694,7 @@ namespace Infrastructure.Data
                 .RuleFor(a => a.ScheduledStart, f => baseDate.AddDays(f.IndexFaker / 4).AddHours((f.IndexFaker % 4) * 2.5))
                 .RuleFor(a => a.ScheduledEnd, (f, a) => a.ScheduledStart.AddMinutes(f.Random.WeightedRandom(new[] { 15, 30, 45, 60 }, new[] { 0.1f, 0.2f, 0.3f, 0.4f })))
                 .RuleFor(a => a.SupportingClinicians, (f, a) => f.Random.Bool(0.8f) ? practitioners.Where(pr => pr.PractitionerId != a.PractitionerId).OrderBy(x => Guid.NewGuid()).Take(1).ToList() : new List<Practitioner>())
-                .RuleFor(a => a.DistanceInMiles, (f, a) => GetDistance(a.PractitionerId, a.PatientId, a.Modality))
+                .RuleFor(a => a.DistanceInMiles, (f, a) => GetDistance(a.PractitionerId ?? Guid.Empty, a.PatientId, a.Modality))
                 .RuleFor(a => a.TravelTimeMinutes, (f, a) => GetTravelTime(a.DistanceInMiles ?? 0, a.Modality, false, f))
                 .Generate(20);
 
@@ -801,7 +801,7 @@ namespace Infrastructure.Data
                         .RuleFor(e => e.PractitionerId, f => f.PickRandom(practitionerIds))
                         .RuleFor(
                             e => e.AppointmentId,
-                            f => f.PickRandom(allAppointments).AppointmentId
+                            f => (Guid?)f.PickRandom(allAppointments).AppointmentId
                         )
                         .RuleFor(e => e.Type, f => f.PickRandom<EncounterType>())
                         .RuleFor(e => e.Status, EncounterStatus.Completed)
@@ -842,13 +842,31 @@ namespace Infrastructure.Data
 
             var encountersList = await context.ClinicalEncounters.ToListAsync();
 
+            var clinicalSummaries = new[] {
+                "Patient alert and oriented. Breathing unlabored on room air. Pain well-controlled with current regimen.",
+                "Medication reconciliation completed with family. No new changes to prescription list.",
+                "Wound care performed on lower left extremity. No signs of infection noted. Dressing replaced.",
+                "Conducted psychosocial assessment. Patient and family expressing adequate coping mechanisms.",
+                "Emergency triage visit. Respiratory status stabilized after nebulizer treatment. Monitoring continues.",
+                "Initial hospice intake. Comprehensive assessment performed. Patient comfortable and resting.",
+                "Bereavement follow-up. Family provided with counseling resources. Support group recommended.",
+                "Patient experiencing mild nausea. Adjusted PRN medications. Family educated on monitoring.",
+                "Advanced care planning discussed. All documents reviewed and signed by legal guardian.",
+                "Routine symptom management visit. Vital signs stable. Patient reporting improved appetite.",
+                "Spiritual assessment completed. Chaplain referral initiated per patient request.",
+                "Respiratory status monitored. O2 saturation stable at 98% on 2L NC. Patient resting comfortably.",
+                "Safety assessment of home environment completed. Recommendations provided for fall prevention.",
+                "Caregiver education provided regarding pain management protocol. Understanding demonstrated.",
+                "Psychosocial support provided. Patient expressed concerns regarding transition of care. Validated."
+            };
+
             var notes = new Faker<ClinicalNote>()
                 .RuleFor(n => n.NoteId, Guid.NewGuid)
                 .RuleFor(n => n.EncounterId, (f, u) => f.PickRandom(encountersList).EncounterId)
                 .RuleFor(n => n.AuthorId, f => f.PickRandom(practitioners).PractitionerId)
                 .RuleFor(n => n.Type, f => f.PickRandom<NoteType>())
-                .RuleFor(n => n.Subjective, f => f.Lorem.Paragraph())
-                .Generate(20);
+                .RuleFor(n => n.Content, f => f.PickRandom(clinicalSummaries))
+                .Generate(encountersList.Count); // Match every encounter with a note for high fidelity
             context.Set<ClinicalNote>().AddRange(notes);
 
             var esas = new Faker<EsasAssessment>()
