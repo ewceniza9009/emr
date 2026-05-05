@@ -9,6 +9,9 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 export const metadata: Metadata = {
   title: "Aura",
   description: "Enterprise-grade Clinical Electronic Medical Record system.",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

@@ -1,3 +1,4 @@
+using Application.Common.Utils;
 using Bogus;
 using Domain.Entities;
 using Domain.Enums;
@@ -322,14 +323,6 @@ namespace Infrastructure.Data
                 .Generate(5);
             context.Set<Facility>().AddRange(facilities);
 
-            var outreachScripts = new Faker<OutreachScript>()
-                .RuleFor(x => x.OutreachScriptId, Guid.NewGuid)
-                .RuleFor(x => x.LocationName, f => f.Address.City())
-                .RuleFor(x => x.ScriptTitle, f => f.Lorem.Word())
-                .RuleFor(x => x.Content, f => f.Lorem.Paragraph())
-                .Generate(5);
-            context.Set<OutreachScript>().AddRange(outreachScripts);
-
             var dme = new Faker<DurableMedicalEquipment>()
                 .RuleFor(x => x.EquipmentId, Guid.NewGuid)
                 .RuleFor(x => x.SerialNumber, f => $"SN-{f.IndexGlobal}-{f.Random.AlphaNumeric(5)}")
@@ -615,8 +608,8 @@ namespace Infrastructure.Data
                         City = f.Address.City(),
                         State = "Utah",
                         PostalCode = f.Address.ZipCode(),
-                        Latitude = f.Address.Latitude(39.0, 41.0),
-                        Longitude = f.Address.Longitude(-113.0, -111.0),
+                        Latitude = f.Address.Latitude(40.70, 40.80),
+                        Longitude = f.Address.Longitude(-111.95, -111.85),
                     }
                 )
                 .Generate(10);
@@ -637,23 +630,22 @@ namespace Infrastructure.Data
                 .Generate(10);
             context.Set<AdvanceDirective>().AddRange(advanceDirectives);
 
-            var diagnoses = new Faker<Diagnosis>()
+            var diagnosesList = new Faker<Diagnosis>()
                 .RuleFor(x => x.DiagnosisId, Guid.NewGuid)
                 .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                 .RuleFor(x => x.Icd10Code, f => f.Random.AlphaNumeric(5))
                 .RuleFor(x => x.Description, f => f.Lorem.Sentence())
                 .Generate(10);
-            context.Set<Diagnosis>().AddRange(diagnoses);
+            context.Set<Diagnosis>().AddRange(diagnosesList);
 
-            var allergies = new Faker<Allergy>()
+            var allergiesList = new Faker<Allergy>()
                 .RuleFor(x => x.AllergyId, Guid.NewGuid)
                 .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                 .RuleFor(x => x.Allergen, f => f.Lorem.Word())
                 .RuleFor(x => x.Severity, f => f.PickRandom<SeverityLevel>())
                 .RuleFor(x => x.Reaction, f => f.Lorem.Word())
                 .Generate(10);
-            context.Set<Allergy>().AddRange(allergies);
-
+            context.Set<Allergy>().AddRange(allergiesList);
             // Anchor perfectly to the user's Local Time Zone to prevent UTC shifting past 6 PM
             var baseDate = new DateTime(2026, 5, 4, 8, 0, 0, DateTimeKind.Local).ToUniversalTime();
             var modalities = Enum.GetValues<AppointmentModality>();
@@ -850,7 +842,10 @@ namespace Infrastructure.Data
                         .RuleFor(e => e.EncounterId, Guid.NewGuid)
                         .RuleFor(e => e.PatientId, p.PatientId)
                         .RuleFor(e => e.PractitionerId, f => f.PickRandom(practitionerIds))
-                        .RuleFor(e => e.AppointmentId, f => f.PickRandom(appointments).AppointmentId)
+                        .RuleFor(
+                            e => e.AppointmentId,
+                            f => f.PickRandom(appointments).AppointmentId
+                        )
                         .RuleFor(e => e.Type, f => f.PickRandom<EncounterType>())
                         .RuleFor(e => e.Status, EncounterStatus.Completed)
                         .RuleFor(e => e.PpsScore, f => f.Random.Number(30, 90))
@@ -879,7 +874,7 @@ namespace Infrastructure.Data
                             OxygenSaturation = new Random().Next(92, 100),
                             Temperature = (decimal)(97.2 + new Random().NextDouble() * 2.8),
                             Weight = new Random().Next(45, 105),
-                            RecordedAt = e.EncounterDate.AddMinutes(-new Random().Next(0, 60))
+                            RecordedAt = e.EncounterDate.AddMinutes(-new Random().Next(0, 60)),
                         };
                         vitals.Add(v);
                     }
@@ -888,11 +883,11 @@ namespace Infrastructure.Data
                 await context.SaveChangesAsync(default);
             }
 
-            var encounters = await context.ClinicalEncounters.ToListAsync();
+            var encountersList = await context.ClinicalEncounters.ToListAsync();
 
             var notes = new Faker<ClinicalNote>()
                 .RuleFor(n => n.NoteId, Guid.NewGuid)
-                .RuleFor(n => n.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
+                .RuleFor(n => n.EncounterId, (f, u) => f.PickRandom(encountersList).EncounterId)
                 .RuleFor(n => n.AuthorId, f => f.PickRandom(practitioners).PractitionerId)
                 .RuleFor(n => n.Type, f => f.PickRandom<NoteType>())
                 .RuleFor(n => n.Subjective, f => f.Lorem.Paragraph())
@@ -902,7 +897,7 @@ namespace Infrastructure.Data
             var esas = new Faker<EsasAssessment>()
                 .RuleFor(x => x.AssessmentId, Guid.NewGuid)
                 .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
-                .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
+                .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(encountersList).EncounterId)
                 .RuleFor(x => x.Pain, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.Nausea, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.ShortnessOfBreath, f => f.Random.Number(0, 10))
@@ -971,41 +966,10 @@ namespace Infrastructure.Data
                 .Generate(10);
             context.Set<SdohAssessment>().AddRange(sdoh);
 
-            var blocks = new List<ScheduleBlock>();
-            // Generate clean, conflict-free busy blocks for each practitioner
-            for (int i = 0; i < practitioners.Count; i++)
-            {
-                var p = practitioners[i];
-                blocks.Add(
-                    new ScheduleBlock
-                    {
-                        BlockId = Guid.NewGuid(),
-                        PractitionerId = p.PractitionerId,
-                        Status = ScheduleBlockStatus.Blocked,
-                        // Place blocks late in the day (4PM-6PM) so they never overlap with the 8AM-2PM appointment slots
-                        StartTime = baseDate.AddDays(i % 5).AddHours(16),
-                        EndTime = baseDate.AddDays(i % 5).AddHours(18),
-                    }
-                );
-            }
-            context.Set<ScheduleBlock>().AddRange(blocks);
-            await context.SaveChangesAsync(default);
-
-            var resources = new Faker<AppointmentResource>()
-                .RuleFor(x => x.AppointmentId, (f, u) => f.PickRandom(appointments).AppointmentId)
-                .RuleFor(x => x.BlockId, (f, u) => f.PickRandom(blocks).BlockId)
-                .Generate(10);
-
-            var distinctResources = resources
-                .GroupBy(x => new { x.AppointmentId, x.BlockId })
-                .Select(g => g.First())
-                .ToList();
-            context.Set<AppointmentResource>().AddRange(distinctResources);
-
             var shifts = new List<ProviderShift>();
             foreach (var p in practitioners)
             {
-                for (int day = 1; day <= 5; day++) // Mon-Fri
+                for (int day = 1; day <= 5; day++)
                 {
                     shifts.Add(
                         new ProviderShift
@@ -1059,12 +1023,11 @@ namespace Infrastructure.Data
                 .RuleFor(
                     x => x.InvoiceNumber,
                     f => $"INV-{f.IndexGlobal}-{f.Random.AlphaNumeric(5)}"
-                ) // FIX
+                )
                 .RuleFor(x => x.Status, f => f.PickRandom<InvoiceStatus>())
                 .Generate(10);
             context.Set<BillingInvoice>().AddRange(invoices);
 
-            await context.SaveChangesAsync(default);
             var scripts = new List<OutreachScript>
             {
                 new OutreachScript

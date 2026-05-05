@@ -150,6 +150,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   });
   const [duration, setDuration] = useState(60);
   const [modality, setModality] = useState("IN_PERSON_HOME_VISIT");
+  const [visitType, setVisitType] = useState("ROUTINE_SYMPTOM_MANAGEMENT");
   const [booked, setBooked] = useState(false);
 
   const formatForEngine = (date: Date, hours: number) => {
@@ -237,6 +238,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setSelectedDate(start);
       setPeriod(start.getHours() < 12 ? "AM" : "PM");
       setDuration(Math.round((new Date(a.scheduledEnd).getTime() - start.getTime()) / 60000));
+      setVisitType(a.visitType || "ROUTINE_SYMPTOM_MANAGEMENT");
       setPatientSearch(`${a.patient?.firstName} ${a.patient?.lastName}`);
     }
   }, [appointmentData]);
@@ -390,6 +392,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
           scheduledStart: slot.shiftStart, 
           scheduledEnd: slot.shiftEnd,
           modality, 
+          visitType,
           travelTimeMinutes: slot.travelTimeInMinutes, 
           distanceInMiles: slot.distanceInMiles
         }
@@ -584,6 +587,31 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                       ${modality === m.id ? "bg-[var(--primary)] border-transparent text-white shadow-lg shadow-[var(--primary-glow)]" : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10"}`}>
                               {React.cloneElement(m.icon as React.ReactElement, { className: "w-4 h-4 shrink-0" })}
                               {m.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Stethoscope className="w-4 h-4 text-[var(--primary)]" />
+                          <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Visit Type</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { id: "INITIAL_HOSPICE_INTAKE", label: "Initial Intake", icon: <Zap className="w-3 h-3" /> },
+                            { id: "ROUTINE_SYMPTOM_MANAGEMENT", label: "Routine Management", icon: <Activity className="w-3 h-3" /> },
+                            { id: "BEREAVEMENT_FOLLOW_UP", label: "Bereavement", icon: <Shield className="w-3 h-3" /> },
+                            { id: "EMERGENCY_TRIAGE", label: "Emergency", icon: <AlertCircle className="w-3 h-3" /> },
+                            { id: "ADVANCE_CARE_PLANNING", label: "Advance Care", icon: <Target className="w-3 h-3" /> },
+                            { id: "SPIRITUAL_ASSESSMENT", label: "Spiritual", icon: <Activity className="w-3 h-3" /> },
+                            { id: "PSYCHOSOCIAL_ASSESSMENT", label: "Psychosocial", icon: <Users className="w-3 h-3" /> },
+                          ].map((t) => (
+                            <button key={t.id} type="button" onClick={() => setVisitType(t.id)}
+                              className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-bold transition-all
+                                      ${visitType === t.id ? "bg-[var(--primary)] border-transparent text-white shadow-lg shadow-[var(--primary-glow)]" : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10"}`}>
+                              {t.icon}
+                              {t.label}
                             </button>
                           ))}
                         </div>

@@ -1,14 +1,15 @@
 namespace Application.Clinical.Dtos;
 
-public record VitalSignDto(
-    Guid VitalId,
-    Guid EncounterId,
-    decimal? HeartRate,
-    decimal? BloodPressureSystolic,
-    decimal? BloodPressureDiastolic,
-    decimal? RespiratoryRate,
-    decimal? Temperature,
-    decimal? OxygenSaturation,
-    decimal? Weight,
-    DateTimeOffset RecordedAt
-);
+public class VitalSignDto
+{
+    public Guid VitalId { get; set; }
+    public Guid EncounterId { get; set; }
+    public decimal? HeartRate { get; set; }
+    public decimal? BloodPressureSystolic { get; set; }
+    public decimal? BloodPressureDiastolic { get; set; }
+    public decimal? RespiratoryRate { get; set; }
+    public decimal? Temperature { get; set; }
+    public decimal? OxygenSaturation { get; set; }
+    public decimal? Weight { get; set; }
+    public DateTimeOffset RecordedAt { get; set; }
+}
