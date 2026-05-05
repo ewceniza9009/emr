@@ -28,6 +28,12 @@ public class CreatePatientCommandHandler : IRequestHandler<CreatePatientCommand,
             BiologicalSex = request.BiologicalSex,
             GenderIdentity = request.GenderIdentity,
             PhilhealthNumber = request.PhilhealthNumber,
+            CivilStatus = request.CivilStatus,
+            Religion = request.Religion,
+            Occupation = request.Occupation,
+            PlaceOfBirth = request.PlaceOfBirth,
+            Nationality = request.Nationality,
+            Language = request.Language,
             Addresses = new List<EntityAddress>
             {
                 new EntityAddress

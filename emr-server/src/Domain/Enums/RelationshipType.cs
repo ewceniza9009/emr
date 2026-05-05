@@ -8,6 +8,8 @@ public enum RelationshipType
     Sibling,
     Relative,
     Friend,
+    Family,
+    Lawyer,
     LegalRepresentative,
     Other,
 }

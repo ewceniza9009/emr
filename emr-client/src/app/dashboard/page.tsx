@@ -160,7 +160,7 @@ export default function Dashboard() {
                         {isAlert ? 'Urgent' : 'Validated'}
                       </span>
                     </div>
-                    <p className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Dr. Gregory House</p>
+                    <p className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider">{isReal ? (item.practitionerName || "System Admin") : "Clinical Reviewer"}</p>
                   </div>
                 </div>
               );

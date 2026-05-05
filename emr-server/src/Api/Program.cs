@@ -78,9 +78,11 @@ builder
     .AddTypeExtension<BillingMutation>()
     .AddTypeExtension<IntegrationMutation>()
     .AddTypeExtension<OutreachMutation>()
+    .AddTypeExtension<DocumentMutation>()
     .AddProjections()
     .AddFiltering()
-    .AddSorting();
+    .AddSorting()
+    .AddType<UploadType>();
 
 builder.Services.AddCors(options =>
 {

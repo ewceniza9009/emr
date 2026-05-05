@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -25,7 +25,12 @@ import {
   Edit3,
   Wind,
   Truck,
-  Package
+  Package,
+  ShieldCheck,
+  Users,
+  User,
+  FileText,
+  Trash2
 } from "lucide-react";
 import SymptomTrendChart from "@/components/SymptomTrendChart";
 import MedicationRegistry from "@/components/MedicationRegistry";
@@ -37,6 +42,8 @@ import EquipmentRegistry from "@/components/EquipmentRegistry";
 import BookingDrawer from "@/components/BookingDrawer";
 import TaskManagement from "@/components/TaskManagement";
 import DocumentVault from "@/components/DocumentVault";
+import AddContactDrawer from "@/components/AddContactDrawer";
+import EditDemographicsDrawer from "@/components/EditDemographicsDrawer";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -65,6 +72,23 @@ const GET_PATIENT_DETAILS = gql`
         emailAddress
         type
         isPrimary
+      }
+      civilStatus
+      religion
+      occupation
+      placeOfBirth
+      nationality
+      language
+      contacts {
+        patientContactId
+        firstName
+        lastName
+        relationship
+        phone
+        email
+        isPoa
+        isLegalGuardian
+        notes
       }
     }
   }
@@ -99,24 +123,40 @@ const GET_CLINICAL_SUMMARY = gql`
   }
 `;
 
+const DELETE_CONTACT = gql`
+  mutation DeleteContact($input: DeleteContactCommandInput!) {
+    deleteContact(input: $input)
+  }
+`;
+
 export default function PatientDetailPage() {
   const params = useParams();
   const [activeTab, setActiveTab] = useState("snapshot");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [showEditDemographics, setShowEditDemographics] = useState(false);
+  const [editingContact, setEditingContact] = useState<any>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
   
+  const isUuid = (val: any) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
+
   const { data, loading, error, refetch } = useQuery(GET_PATIENT_DETAILS, {
     variables: { id: params.id },
+    skip: !params.id || !isUuid(params.id)
   });
 
   const { data: summaryData } = useQuery(GET_CLINICAL_SUMMARY, {
     variables: { patientId: params.id },
-    skip: !params.id
+    skip: !params.id || !isUuid(params.id)
+  });
+
+  const [deleteContact] = useMutation(DELETE_CONTACT, {
+    onCompleted: () => refetch()
   });
 
   const { data: apptData, loading: apptLoading, refetch: refetchAppts } = useQuery(GET_PATIENT_APPOINTMENTS, {
     variables: { id: params.id },
-    skip: !params.id
+    skip: !params.id || !isUuid(params.id)
   });
 
   if (loading) return (
@@ -258,6 +298,106 @@ export default function PatientDetailPage() {
                    </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
+                <Users className="w-3.5 h-3.5 text-emerald-400" />
+                Trusted Contacts
+              </h2>
+              <button 
+                onClick={() => setShowAddContact(true)}
+                className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              {patient.contacts?.length > 0 ? (
+                patient.contacts.map((contact: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${contact.isPoa ? 'bg-blue-500/20 text-blue-400' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                        {contact.isPoa ? <ShieldCheck className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-black text-[var(--text-primary)]">{contact.firstName} {contact.lastName}</p>
+                        <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">{contact.relationship}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {contact.isPoa && (
+                        <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 uppercase tracking-tighter">POA</span>
+                      )}
+                      {contact.isLegalGuardian && (
+                        <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/20 uppercase tracking-tighter">Guardian</span>
+                      )}
+                      <button 
+                        onClick={() => {
+                          setEditingContact(contact);
+                          setShowAddContact(true);
+                        }}
+                        className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-white hover:bg-[var(--primary)]/20 transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to remove ${contact.firstName} ${contact.lastName}?`)) {
+                            deleteContact({ variables: { input: { patientContactId: contact.patientContactId } } });
+                          }
+                        }}
+                        className="p-1.5 rounded-lg bg-white/5 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-[9px] text-[var(--text-muted)] italic">No contacts registered</p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+                Patient Demographics
+              </h2>
+              <button 
+                className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all"
+                onClick={() => setShowEditDemographics(true)}
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-0.5">
+                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Civil Status</p>
+                <p className="text-[10px] font-black text-[var(--text-primary)]">{patient.civilStatus || "Not recorded"}</p>
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Religion</p>
+                <p className="text-[10px] font-black text-[var(--text-primary)]">{patient.religion || "Not recorded"}</p>
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Language</p>
+                <p className="text-[10px] font-black text-[var(--text-primary)]">{patient.language || "English"}</p>
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Nationality</p>
+                <p className="text-[10px] font-black text-[var(--text-primary)]">{patient.nationality || "Filipino"}</p>
+              </div>
+              <div className="col-span-2 space-y-0.5 pt-2 border-t border-white/5">
+                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Occupation</p>
+                <p className="text-[10px] font-black text-[var(--text-primary)]">{patient.occupation || "Unspecified"}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -535,12 +675,102 @@ export default function PatientDetailPage() {
                        </div>
                     </div>
                  </div>
-              </div>
+
+                 <DocumentVault patientId={params.id as string} />
+               </div>
            )}
 
            {activeTab === "coordination" && (
              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <TaskManagement patientId={params.id as string} />
+                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h2 className="text-2xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+                        <Users className="w-6 h-6 text-emerald-400" />
+                        Trusted Contacts & POA
+                      </h2>
+                      <p className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest mt-1">Authorized Representatives & Family</p>
+                    </div>
+                    <button 
+                      onClick={() => setShowAddContact(true)}
+                      className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-600/20 flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all"
+                    >
+                       <Plus className="w-4 h-4" /> Add Contact
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {patient.contacts?.length > 0 ? (
+                      patient.contacts.map((contact: any) => (
+                        <div key={contact.patientContactId} className={`p-6 rounded-3xl border transition-all ${contact.isPoa ? 'bg-blue-500/5 border-blue-500/20' : 'bg-white/5 border-white/5'}`}>
+                           <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-3">
+                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${contact.isPoa ? 'bg-blue-500 text-white' : 'bg-white/10 text-slate-400'}`}>
+                                    <UserCircle className="w-6 h-6" />
+                                 </div>
+                                 <div>
+                                    <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{contact.firstName} {contact.lastName}</h3>
+                                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">{contact.relationship}</p>
+                                 </div>
+                              </div>
+                              <div className="flex gap-2">
+                                 {contact.isPoa && (
+                                   <span className="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[8px] font-black uppercase tracking-widest border border-blue-500/20">POA</span>
+                                 )}
+                                  {contact.isLegalGuardian && (
+                                    <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-400 text-[8px] font-black uppercase tracking-widest border border-purple-500/20">Guardian</span>
+                                  )}
+                                  <button 
+                                    onClick={() => {
+                                      setEditingContact(contact);
+                                      setShowAddContact(true);
+                                    }}
+                                    className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-white hover:bg-[var(--primary)]/20 transition-all"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button 
+                                     onClick={() => {
+                                       if (window.confirm(`Are you sure you want to remove ${contact.firstName} ${contact.lastName}?`)) {
+                                         deleteContact({ variables: { input: { patientContactId: contact.patientContactId } } });
+                                       }
+                                     }}
+                                     className="p-1.5 rounded-lg bg-white/5 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+                                   >
+                                     <Trash2 className="w-3.5 h-3.5" />
+                                   </button>
+                               </div>
+                           </div>
+                           
+                           <div className="space-y-2 mb-4">
+                              <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)]">
+                                 <Phone className="w-3 h-3 opacity-50" />
+                                 <span className="font-bold">{contact.phone || "No phone recorded"}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)]">
+                                 <Mail className="w-3 h-3 opacity-50" />
+                                 <span className="font-bold">{contact.email || "No email recorded"}</span>
+                              </div>
+                           </div>
+
+                           {contact.isPoa && (
+                              <div className="pt-4 border-t border-blue-500/10">
+                                 <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Power of Attorney Records</p>
+                                 <button className="w-full py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2">
+                                    <FileText className="w-3.5 h-3.5" /> View POA Document (PDF)
+                                 </button>
+                              </div>
+                           )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-full py-12 text-center border-2 border-dashed border-white/5 rounded-3xl">
+                         <p className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">No additional contacts registered.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <DocumentVault patientId={params.id as string} />
              </div>
            )}
@@ -631,6 +861,28 @@ export default function PatientDetailPage() {
         }}
         appointmentId={selectedAppointmentId}
         patientId={params.id as string}
+      />
+
+      <AddContactDrawer
+        open={showAddContact}
+        onClose={() => {
+          setShowAddContact(false);
+          setEditingContact(null);
+        }}
+        onSuccess={() => {
+          refetch();
+          setShowAddContact(false);
+          setEditingContact(null);
+        }}
+        initialData={editingContact}
+        patientId={params.id as string}
+      />
+
+      <EditDemographicsDrawer
+        open={showEditDemographics}
+        onClose={() => setShowEditDemographics(false)}
+        onSuccess={() => refetch()}
+        patient={patient}
       />
     </div>
   );

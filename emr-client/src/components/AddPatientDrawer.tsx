@@ -41,6 +41,12 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
     lastName: "",
     dob: "",
     biologicalSex: "Male",
+    civilStatus: "Single",
+    religion: "None",
+    occupation: "",
+    placeOfBirth: "",
+    nationality: "Filipino",
+    language: "English",
     philhealthNumber: "",
     healthPlanId: "",
     facilityId: "",
@@ -203,10 +209,73 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
               </div>
             </section>
 
-            {/* Section 02: Insurance & Governance */}
+            {/* Section 02: Social & Cultural Demographics */}
             <section className="space-y-6">
               <div className="flex items-center gap-4">
                 <span className="text-xs font-black text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">02</span>
+                <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Social & Cultural</h3>
+                <div className="flex-1 h-px bg-[var(--card-border)]" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Civil Status</label>
+                    <select 
+                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                      value={form.civilStatus}
+                      onChange={e => setForm({...form, civilStatus: e.target.value})}
+                    >
+                      <option value="Single">Single</option>
+                      <option value="Married">Married</option>
+                      <option value="Widowed">Widowed</option>
+                      <option value="Divorced">Divorced</option>
+                    </select>
+                 </div>
+                 <div className="space-y-2">
+                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Religion</label>
+                    <input 
+                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                      value={form.religion}
+                      onChange={e => setForm({...form, religion: e.target.value})}
+                      placeholder="RELIGION"
+                    />
+                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Nationality</label>
+                    <input 
+                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                      value={form.nationality}
+                      onChange={e => setForm({...form, nationality: e.target.value})}
+                    />
+                 </div>
+                 <div className="space-y-2">
+                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Primary Language</label>
+                    <input 
+                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                      value={form.language}
+                      onChange={e => setForm({...form, language: e.target.value})}
+                    />
+                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Occupation</label>
+                <input 
+                  className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                  value={form.occupation}
+                  onChange={e => setForm({...form, occupation: e.target.value})}
+                  placeholder="CURRENT OR FORMER OCCUPATION"
+                />
+              </div>
+            </section>
+
+            {/* Section 03: Insurance & Governance */}
+            <section className="space-y-6">
+              <div className="flex items-center gap-4">
+                <span className="text-xs font-black text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">03</span>
                 <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Insurance & Governance</h3>
                 <div className="flex-1 h-px bg-[var(--card-border)]" />
               </div>
@@ -266,10 +335,10 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
               </div>
             </section>
 
-            {/* Section 03: Geospatial Placement */}
+            {/* Section 04: Geospatial Placement */}
             <section className="space-y-6 pb-10">
               <div className="flex items-center gap-4">
-                <span className="text-xs font-black text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">03</span>
+                <span className="text-xs font-black text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">04</span>
                 <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Geospatial Placement</h3>
                 <div className="flex-1 h-px bg-[var(--card-border)]" />
               </div>

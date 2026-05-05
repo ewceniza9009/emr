@@ -14,6 +14,12 @@ public class Patient : BaseEntity
     public string BiologicalSex { get; set; } = string.Empty;
     public string? GenderIdentity { get; set; }
     public string? PhilhealthNumber { get; set; }
+    public string? CivilStatus { get; set; }
+    public string? Religion { get; set; }
+    public string? Occupation { get; set; }
+    public string? PlaceOfBirth { get; set; }
+    public string? Nationality { get; set; }
+    public string? Language { get; set; }
     // Navigation Properties
     public ICollection<EntityAddress> Addresses { get; set; } = new List<EntityAddress>();
 

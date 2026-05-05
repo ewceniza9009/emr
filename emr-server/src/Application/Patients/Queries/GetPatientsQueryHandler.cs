@@ -25,6 +25,7 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, IEnumer
             .Include(p => p.Phones)
             .Include(p => p.Emails)
             .Include(p => p.Appointments)
+            .Include(p => p.Contacts)
             .ToListAsync(cancellationToken);
 
         var dtos = patients.Adapt<List<PatientDto>>();

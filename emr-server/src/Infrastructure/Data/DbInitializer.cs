@@ -305,12 +305,17 @@ namespace Infrastructure.Data
                 .RuleFor(p => p.PatientId, Guid.NewGuid)
                 .RuleFor(p => p.FirstName, f => f.Name.FirstName())
                 .RuleFor(p => p.LastName, f => f.Name.LastName())
-                .RuleFor(p => p.Mrn, f => $"MRN-{f.IndexGlobal + 50000}") // FIX: Guarantee uniqueness
+                .RuleFor(p => p.Mrn, f => $"MRN-{f.IndexGlobal + 50000}") 
                 .RuleFor(
                     p => p.Dob,
                     f => f.Date.Past(80, DateTime.UtcNow.AddYears(-20)).ToUniversalTime()
                 )
                 .RuleFor(p => p.BiologicalSex, f => f.PickRandom("Male", "Female"))
+                .RuleFor(p => p.CivilStatus, f => f.PickRandom("Single", "Married", "Widowed", "Divorced"))
+                .RuleFor(p => p.Religion, f => f.PickRandom("Catholic", "Christian", "Muslim", "Buddhism", "None"))
+                .RuleFor(p => p.Occupation, f => f.Name.JobTitle())
+                .RuleFor(p => p.Nationality, f => "Filipino")
+                .RuleFor(p => p.Language, f => "English")
                 .RuleFor(p => p.HealthPlanId, f => f.PickRandom(healthPlans).HealthPlanId)
                 .RuleFor(p => p.FacilityId, f => f.PickRandom(facilities).FacilityId)
                 .RuleFor(
@@ -320,6 +325,75 @@ namespace Infrastructure.Data
                 .Generate(10);
             context.Patients.AddRange(patients);
             await context.SaveChangesAsync();
+
+            // Seed Patient Contacts with POA
+            var patientContacts = new List<PatientContact>();
+            foreach (var p in patients)
+            {
+                // Spouse (Primary & POA)
+                patientContacts.Add(new PatientContact
+                {
+                    ContactId = Guid.NewGuid(),
+                    PatientId = p.PatientId,
+                    FirstName = faker.Name.FirstName(),
+                    LastName = p.LastName,
+                    Relationship = RelationshipType.Spouse,
+                    PhoneNumber = faker.Phone.PhoneNumber("###-###-####"),
+                    Email = faker.Internet.Email(),
+                    IsPrimaryContact = true,
+                    HasPowerOfAttorney = true,
+                    IsLegalGuardian = false,
+                    Notes = "Primary medical decision maker and spouse."
+                });
+
+                // Sibling (Legal Guardian)
+                patientContacts.Add(new PatientContact
+                {
+                    ContactId = Guid.NewGuid(),
+                    PatientId = p.PatientId,
+                    FirstName = faker.Name.FirstName(),
+                    LastName = p.LastName,
+                    Relationship = RelationshipType.Sibling,
+                    PhoneNumber = faker.Phone.PhoneNumber("###-###-####"),
+                    Email = faker.Internet.Email(),
+                    IsPrimaryContact = false,
+                    HasPowerOfAttorney = false,
+                    IsLegalGuardian = true,
+                    Notes = "Court-appointed legal guardian."
+                });
+
+                // Lawyer
+                patientContacts.Add(new PatientContact
+                {
+                    ContactId = Guid.NewGuid(),
+                    PatientId = p.PatientId,
+                    FirstName = faker.Name.FirstName(),
+                    LastName = faker.Name.LastName(),
+                    Relationship = RelationshipType.Lawyer,
+                    PhoneNumber = faker.Phone.PhoneNumber("###-###-####"),
+                    Email = faker.Internet.Email(),
+                    IsPrimaryContact = false,
+                    HasPowerOfAttorney = false,
+                    IsLegalGuardian = false,
+                    Notes = "Legal counsel for estate and directives."
+                });
+            }
+            context.PatientContacts.AddRange(patientContacts);
+
+            // Seed POA Documents
+            var poaDocuments = patientContacts.Where(c => c.HasPowerOfAttorney).Select(c => new PatientDocument
+            {
+                PatientDocumentId = Guid.NewGuid(),
+                PatientId = c.PatientId,
+                PatientContactId = c.ContactId,
+                Title = "Durable Power of Attorney - Legal.pdf",
+                DocumentType = "POA",
+                StorageUrl = "/documents/poa_sample.pdf",
+                ContentType = "application/pdf",
+                FileSize = 102456,
+                UploadedAt = DateTimeOffset.UtcNow.AddMonths(-1)
+            }).ToList();
+            context.PatientDocuments.AddRange(poaDocuments);
 
             var patientOutreaches = new Faker<PatientOutreach>()
                 .RuleFor(x => x.PatientOutreachId, Guid.NewGuid)
@@ -373,14 +447,6 @@ namespace Infrastructure.Data
                 .Generate(10);
             context.Set<OutreachActivity>().AddRange(outreachActivities);
 
-            var patientContacts = new Faker<PatientContact>()
-                .RuleFor(x => x.ContactId, Guid.NewGuid)
-                .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
-                .RuleFor(x => x.FirstName, f => f.Name.FirstName())
-                .RuleFor(x => x.LastName, f => f.Name.LastName())
-                .RuleFor(x => x.Relationship, f => f.PickRandom<RelationshipType>())
-                .Generate(10);
-            context.Set<PatientContact>().AddRange(patientContacts);
 
             var patientPhones = new Faker<PatientPhone>()
                 .RuleFor(x => x.PhoneId, Guid.NewGuid)

@@ -7,6 +7,7 @@ public class PatientDocument : BaseEntity
 {
     public Guid PatientDocumentId { get; set; } = Guid.NewGuid();
     public Guid PatientId { get; set; }
+    public Guid? PatientContactId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string DocumentType { get; set; } = string.Empty; // e.g. "Hospital Discharge", "Consent", "ID Card"
     public string StorageUrl { get; set; } = string.Empty;
@@ -16,5 +17,6 @@ public class PatientDocument : BaseEntity
     public Guid? UploadedById { get; set; }
     
     public Patient Patient { get; set; } = null!;
+    public PatientContact? Contact { get; set; }
     public Practitioner? UploadedBy { get; set; }
 }

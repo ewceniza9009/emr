@@ -41,7 +41,7 @@ export function TopBar() {
           <div className="flex items-center gap-4 pl-4 border-l border-[var(--card-border)]">
             <div className="text-right">
               <p className="text-[12px] font-bold text-[var(--text-primary)] tracking-tighter leading-none uppercase">
-                {session?.user?.name || "G. HOUSE, M.D."}
+                {session?.user?.name || "AUTHENTICATED USER"}
               </p>
               <div className="flex items-center justify-end gap-1 mt-1">
                 <Shield className="w-2 h-2 text-[var(--primary)]" />
