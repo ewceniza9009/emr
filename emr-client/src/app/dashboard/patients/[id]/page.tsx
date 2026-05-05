@@ -46,6 +46,7 @@ import TaskManagement from "@/components/TaskManagement";
 import DocumentVault from "@/components/DocumentVault";
 import AddContactDrawer from "@/components/AddContactDrawer";
 import EditDemographicsDrawer from "@/components/EditDemographicsDrawer";
+import EditCommunicationsDrawer from "@/components/EditCommunicationsDrawer";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -158,6 +159,7 @@ export default function PatientDetailPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
   const [showEditDemographics, setShowEditDemographics] = useState(false);
+  const [showEditCommunications, setShowEditCommunications] = useState(false);
   const [editingContact, setEditingContact] = useState<any>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
 
@@ -305,10 +307,18 @@ export default function PatientDetailPage() {
           </div>
 
           <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl">
-            <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-              <Phone className="w-3.5 h-3.5 text-[var(--primary)]" />
-              Communications
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5 text-[var(--primary)]" />
+                Communications
+              </h2>
+              <button 
+                onClick={() => setShowEditCommunications(true)}
+                className="p-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-all"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <div className="space-y-3">
               {patient.phones?.map((phone: any, idx: number) => (
                 <div key={idx} className="flex items-center gap-3 group">
@@ -948,6 +958,12 @@ export default function PatientDetailPage() {
       <EditDemographicsDrawer
         open={showEditDemographics}
         onClose={() => setShowEditDemographics(false)}
+        onSuccess={() => refetch()}
+        patient={patient}
+      />
+      <EditCommunicationsDrawer
+        open={showEditCommunications}
+        onClose={() => setShowEditCommunications(false)}
         onSuccess={() => refetch()}
         patient={patient}
       />

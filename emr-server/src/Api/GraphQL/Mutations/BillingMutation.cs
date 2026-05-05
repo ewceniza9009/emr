@@ -14,4 +14,13 @@ public class BillingMutation
     {
         return await mediator.Send(input, cancellationToken);
     }
+
+    public async Task<Application.Billing.Dtos.BillingInvoiceDto> CreateInvoice(
+        CreateInvoiceCommand input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(input, cancellationToken);
+    }
 }

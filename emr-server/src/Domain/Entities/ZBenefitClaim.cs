@@ -12,6 +12,8 @@ public class ZBenefitClaim : BaseEntity
     public ClaimStatus Status { get; set; } = ClaimStatus.Pending;
     public decimal TotalAmount { get; set; }
     public DateTimeOffset? SubmittedAt { get; set; }
+    public DateTimeOffset? ApprovedAt { get; set; }
+    public DateTimeOffset? PaidAt { get; set; }
 
     public Patient Patient { get; set; } = null!;
     public ICollection<ClaimStatusLog> StatusLogs { get; set; } = new List<ClaimStatusLog>();

@@ -15,4 +15,12 @@ public class BillingQuery
     {
         return context.ZBenefitClaims.AsNoTracking().ProjectToType<ZBenefitClaimDto>();
     }
+
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<BillingInvoiceDto> GetBillingInvoices([Service] IApplicationDbContext context)
+    {
+        return context.BillingInvoices.AsNoTracking().ProjectToType<BillingInvoiceDto>();
+    }
 }

@@ -10,5 +10,7 @@ public record ZBenefitClaimDto(
     ClaimStatus Status,
     decimal TotalAmount,
     DateTimeOffset CreatedAt,
-    DateTimeOffset? SubmittedAt
+    DateTimeOffset? SubmittedAt,
+    DateTimeOffset? ApprovedAt,
+    DateTimeOffset? PaidAt
 );

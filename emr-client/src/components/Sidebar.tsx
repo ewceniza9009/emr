@@ -34,6 +34,7 @@ const navItems = [
   { icon: HeartPulse, label: "Vitals & IoT", href: "/dashboard/telemetry" },
   { icon: Navigation2, label: "Navigation", href: "/dashboard/navigation" },
   { icon: FileText, label: "Clinical Notes", href: "/dashboard/notes" },
+  { icon: Stethoscope, label: "Billing", href: "/dashboard/billing" },
 ];
 
 export function Sidebar() {

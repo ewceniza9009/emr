@@ -647,7 +647,7 @@ namespace Infrastructure.Data
                 .Generate(10);
             context.Set<Allergy>().AddRange(allergiesList);
             // Anchor perfectly to the user's Local Time Zone to prevent UTC shifting past 6 PM
-            var baseDate = new DateTime(2026, 5, 4, 8, 0, 0, DateTimeKind.Local).ToUniversalTime();
+            var baseDate = new DateTimeOffset(2026, 5, 4, 0, 0, 0, TimeSpan.Zero);
 
             // Phase 1: Dedicated System Admin Appointments (Ensures Admin visibility)
             // --- HIGH-FIDELITY SCHEDULING ENGINE ---
@@ -977,8 +977,11 @@ namespace Infrastructure.Data
             var claims = new Faker<ZBenefitClaim>()
                 .RuleFor(x => x.ClaimId, Guid.NewGuid)
                 .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
-                .RuleFor(x => x.PhilhealthNumber, f => f.Random.AlphaNumeric(10))
+                .RuleFor(x => x.PhilhealthNumber, f => f.Random.AlphaNumeric(12))
+                .RuleFor(x => x.PackageCode, f => f.PickRandom(new[] { "Z001", "Z002", "Z003", "Z004" }))
                 .RuleFor(x => x.Status, f => f.PickRandom<ClaimStatus>())
+                .RuleFor(x => x.TotalAmount, f => f.Finance.Amount(1000, 10000))
+                .RuleFor(x => x.SubmittedAt, f => f.Date.RecentOffset(30).ToUniversalTime())
                 .Generate(10);
             context.Set<ZBenefitClaim>().AddRange(claims);
             await context.SaveChangesAsync(default);
@@ -1000,6 +1003,10 @@ namespace Infrastructure.Data
                     f => $"INV-{f.IndexGlobal}-{f.Random.AlphaNumeric(5)}"
                 )
                 .RuleFor(x => x.Status, f => f.PickRandom<InvoiceStatus>())
+                .RuleFor(x => x.SubtotalAmount, f => f.Finance.Amount(500, 5000))
+                .RuleFor(x => x.CoveredAmount, (f, x) => x.SubtotalAmount * f.Random.Decimal(0.6m, 0.9m))
+                .RuleFor(x => x.PatientResponsibility, (f, x) => x.SubtotalAmount - x.CoveredAmount)
+                .RuleFor(x => x.DueDate, f => DateTimeOffset.UtcNow.AddDays(f.Random.Number(14, 30)))
                 .Generate(10);
             context.Set<BillingInvoice>().AddRange(invoices);
 
