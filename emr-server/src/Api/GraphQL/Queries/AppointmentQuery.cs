@@ -25,56 +25,26 @@ public class AppointmentQuery
     /// Used by the weekly scheduling calendar.
     /// </summary>
     public async Task<Application.Common.Models.PagedResponse<Appointment>> GetAppointments(
-        [Service] IApplicationDbContext context,
+        [Service] IMediator mediator,
         DateTime? startDate = null,
-        DateTime? endDate = null
+        DateTime? endDate = null,
+        CancellationToken cancellationToken = default
     )
     {
-        var query = context
-            .Appointments.Include(a => a.Patient)
-                .ThenInclude(p => p!.Addresses)
-            .Include(a => a.Practitioner)
-            .Include(a => a.SupportingClinicians)
-            .AsNoTracking();
-
-        if (startDate.HasValue)
-            query = query.Where(a => a.ScheduledStart >= startDate.Value);
-
-        if (endDate.HasValue)
-            query = query.Where(a => a.ScheduledEnd <= endDate.Value);
-
-        var totalCount = await query.CountAsync();
-        var items = await query.ToListAsync(); // Calendar usually needs all in range
-
-        return new Application.Common.Models.PagedResponse<Appointment>
-        {
-            Items = items,
-            TotalCount = totalCount,
-        };
+        return await mediator.Send(new GetAppointmentsQuery(startDate, endDate), cancellationToken);
     }
 
     public async Task<Application.Common.Models.PagedResponse<ScheduleBlock>> GetScheduleBlocks(
-        [Service] IApplicationDbContext context,
+        [Service] IMediator mediator,
         DateTime? startDate = null,
-        DateTime? endDate = null
+        DateTime? endDate = null,
+        CancellationToken cancellationToken = default
     )
     {
-        var query = context.ScheduleBlocks.Include(b => b.Practitioner).AsNoTracking();
-
-        if (startDate.HasValue)
-            query = query.Where(b => b.StartTime >= startDate.Value);
-
-        if (endDate.HasValue)
-            query = query.Where(b => b.EndTime <= endDate.Value);
-
-        var totalCount = await query.CountAsync();
-        var items = await query.ToListAsync();
-
-        return new Application.Common.Models.PagedResponse<ScheduleBlock>
-        {
-            Items = items,
-            TotalCount = totalCount,
-        };
+        return await mediator.Send(
+            new GetScheduleBlocksQuery(startDate, endDate),
+            cancellationToken
+        );
     }
 
     [UseFirstOrDefault]

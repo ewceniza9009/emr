@@ -1,5 +1,7 @@
 using Application.Common.Interfaces;
+using Application.Outreach.Queries;
 using Domain.Entities;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.GraphQL.Queries;
@@ -8,35 +10,14 @@ namespace Api.GraphQL.Queries;
 public class OutreachQuery
 {
     public async Task<Application.Common.Models.PagedResponse<PatientOutreach>> GetOutreaches(
-        [Service] IApplicationDbContext context,
+        [Service] IMediator mediator,
         string? search = null,
         int skip = 0,
-        int take = 50
+        int take = 50,
+        CancellationToken cancellationToken = default
     )
     {
-        var query = context.PatientOutreaches.AsNoTracking();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            query = query.Where(o =>
-                o.FirstName.Contains(search)
-                || o.LastName.Contains(search)
-                || o.ReferralSource.Contains(search)
-            );
-        }
-
-        var totalCount = await query.CountAsync();
-        var items = await query
-            .OrderByDescending(o => o.CreatedAt)
-            .Skip(skip)
-            .Take(take)
-            .ToListAsync();
-
-        return new Application.Common.Models.PagedResponse<PatientOutreach>
-        {
-            Items = items,
-            TotalCount = totalCount,
-        };
+        return await mediator.Send(new GetOutreachesQuery(search, skip, take), cancellationToken);
     }
 
     [UseFirstOrDefault]

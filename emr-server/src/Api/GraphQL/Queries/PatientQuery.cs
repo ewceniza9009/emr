@@ -21,36 +21,14 @@ public class PatientQuery
     }
 
     public async Task<Application.Common.Models.PagedResponse<PatientDto>> GetPatients(
-        [Service] IApplicationDbContext context,
+        [Service] IMediator mediator,
         string? search = null,
         int skip = 0,
-        int take = 50
+        int take = 50,
+        CancellationToken cancellationToken = default
     )
     {
-        var query = context.Patients.AsNoTracking();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            query = query.Where(p =>
-                p.FirstName.Contains(search)
-                || p.LastName.Contains(search)
-                || p.Mrn.Contains(search)
-            );
-        }
-
-        var totalCount = await query.CountAsync();
-        var items = await query
-            .OrderBy(p => p.LastName)
-            .Skip(skip)
-            .Take(take)
-            .ProjectToType<PatientDto>()
-            .ToListAsync();
-
-        return new Application.Common.Models.PagedResponse<PatientDto>
-        {
-            Items = items,
-            TotalCount = totalCount,
-        };
+        return await mediator.Send(new GetPatientsQuery(search, skip, take), cancellationToken);
     }
 
     [UseFiltering]
