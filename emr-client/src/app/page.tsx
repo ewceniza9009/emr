@@ -10,167 +10,312 @@ import {
   ArrowRight, 
   Zap, 
   Lock,
-  BarChart3
+  BarChart3,
+  Globe,
+  Database,
+  Cpu,
+  Fingerprint
 } from "lucide-react";
-import Image from "next/image";
+import { motion, Variants } from "framer-motion";
+import { useState, useEffect } from "react";
 
 export default function HomePage() {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.8 }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-400 font-sans selection:bg-[var(--primary)] selection:text-white">
+    <div className="min-h-screen bg-[#02040a] text-slate-400 font-sans selection:bg-[var(--primary)] selection:text-white overflow-x-hidden">
+      {/* AMBIENT BACKGROUND GLOWS */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[var(--primary)]/5 rounded-full blur-[160px] animate-pulse" />
+        <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/5 rounded-full blur-[140px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-emerald-500/5 rounded-full blur-[120px]" />
+      </div>
+
       {/* NAVBAR */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.03] bg-slate-950/50 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary-glow)]/20">
-              <ShieldCheck className="w-4 h-4 text-white" />
+      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 border-b ${isScrolled ? "bg-black/60 backdrop-blur-2xl border-white/10 py-3" : "bg-transparent border-transparent py-6"}`}>
+        <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-3 group cursor-pointer"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-blue-600 flex items-center justify-center shadow-xl shadow-[var(--primary-glow)]/40 group-hover:scale-110 transition-transform duration-500">
+              <ShieldCheck className="w-6 h-6 text-white" />
             </div>
-            <span className="text-lg font-bold text-white tracking-tight">Aura</span>
+            <div className="flex flex-col">
+              <span className="text-xl font-black text-white tracking-tighter leading-none">Aura</span>
+              <span className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em] mt-1">Clinical OS</span>
+            </div>
+          </motion.div>
+
+          <div className="hidden lg:flex items-center gap-10">
+            {['Engine', 'Network', 'Security', 'Infrastructure'].map((item) => (
+              <Link key={item} href={`#${item.toLowerCase()}`} className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 hover:text-white transition-all hover:tracking-[0.25em]">
+                {item}
+              </Link>
+            ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="#features" className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 hover:text-white transition-colors">Features</Link>
-            <Link href="#solutions" className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 hover:text-white transition-colors">Solutions</Link>
-            <Link href="#security" className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 hover:text-white transition-colors">Security</Link>
-          </div>
-
-          <div className="flex items-center gap-5">
-            <Link href="/login" className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 hover:text-white transition-colors">Sign In</Link>
-            <Link href="/login" className="h-9 px-4 bg-[var(--primary)] text-white text-[11px] font-semibold uppercase tracking-wider rounded-lg flex items-center justify-center hover:bg-[var(--primary)]/90 transition-all">
-              Request Demo
+          <div className="flex items-center gap-6">
+            <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 hover:text-white transition-colors">Client Auth</Link>
+            <Link href="/login" className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)] to-blue-600 rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+              <div className="relative h-11 px-7 bg-black rounded-xl flex items-center justify-center border border-white/10">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Deploy System</span>
+              </div>
             </Link>
           </div>
         </div>
       </nav>
 
       {/* HERO SECTION */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-40 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[var(--primary)]/10 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px]" />
+      <section className="relative pt-48 pb-32 lg:pt-64 lg:pb-56 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-8 relative z-10">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="flex flex-col items-center text-center"
+          >
+            <motion.div variants={itemVariants} className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/10 mb-12 backdrop-blur-xl">
+              <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-ping" />
+              <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">Operational Readiness: Active</span>
+            </motion.div>
+            
+            <motion.h1 variants={itemVariants} className="text-6xl lg:text-[100px] font-black text-white leading-[0.95] tracking-[-0.04em] mb-12 max-w-5xl">
+              Practical <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500">electronic medical records.</span>
+            </motion.h1>
+            
+            <motion.p variants={itemVariants} className="text-xl text-slate-500 font-medium leading-relaxed mb-14 max-w-2xl">
+              The unified operating system for high-scale medical operations. Secure, distributed, and engineered for the next decade of healthcare.
+            </motion.p>
+
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-6">
+              <Link href="/login" className="h-14 px-10 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-2xl shadow-white/10 group">
+                Initialize Workspace
+                <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link href="#features" className="h-14 px-10 bg-white/[0.03] border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:bg-white/[0.08] transition-all backdrop-blur-md">
+                Technical Protocol
+              </Link>
+            </motion.div>
+          </motion.div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.05] mb-8">
-            <Zap className="w-3 h-3 text-[var(--primary)]" />
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Next-Gen Clinical OS</span>
-          </div>
-          
-          <h1 className="text-5xl lg:text-7xl font-bold text-white leading-tight tracking-tight mb-8 max-w-4xl mx-auto">
-            The platform for <span className="text-slate-500">high-fidelity</span> <br />
-            clinical logistics.
-          </h1>
-          
-          <p className="text-lg text-slate-500 font-medium leading-relaxed mb-10 max-w-2xl mx-auto">
-            Streamline patient outreach, care navigation, and billing into a unified, secure operating system designed for modern healthcare teams.
-          </p>
+        {/* HERO VISUAL DECOR */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] opacity-20 pointer-events-none">
+          <div className="absolute inset-0 border border-white/[0.03] rounded-full" />
+          <div className="absolute inset-[15%] border border-white/[0.03] rounded-full" />
+          <div className="absolute inset-[30%] border border-white/[0.03] rounded-full" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+          <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        </div>
+      </section>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/login" className="w-full sm:w-auto h-12 px-8 bg-white text-slate-950 text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center hover:bg-slate-200 transition-all">
-              Start Building
-              <ArrowRight className="w-3.5 h-3.5 ml-2" />
-            </Link>
-            <Link href="#features" className="w-full sm:w-auto h-12 px-8 bg-white/[0.03] border border-white/[0.05] text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center justify-center hover:bg-white/[0.08] transition-all">
-              View Documentation
-            </Link>
+      {/* FEATURE CLUSTERS */}
+      <section id="engine" className="py-32 relative">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="grid lg:grid-cols-2 gap-24 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1 }}
+              viewport={{ once: true }}
+            >
+              <div className="inline-flex items-center gap-3 mb-8">
+                <div className="w-12 h-px bg-[var(--primary)]" />
+                <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.4em]">Core Architecture</span>
+              </div>
+              <h2 className="text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight mb-8">
+                Distributed data. <br />Centralized control.
+              </h2>
+              <p className="text-lg text-slate-500 leading-relaxed mb-12">
+                Aura's core engine handles complex clinical synchronization at scale, ensuring your providers stay connected across disparate clinical environments and geospatial boundaries.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-8">
+                {[
+                  { label: "Uptime SLA", val: "99.999%", icon: Zap },
+                  { label: "Sync Latency", val: "<40ms", icon: Activity },
+                ].map((item, i) => (
+                  <div key={i} className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5">
+                    <item.icon className="w-5 h-5 text-[var(--primary)] mb-4" />
+                    <p className="text-2xl font-black text-white mb-1">{item.val}</p>
+                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">{item.label}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1 }}
+              viewport={{ once: true }}
+              className="relative aspect-square"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/20 to-blue-600/20 rounded-[3rem] blur-3xl opacity-30" />
+              <div className="relative h-full w-full bg-white/[0.01] border border-white/10 rounded-[3rem] p-8 backdrop-blur-3xl overflow-hidden flex items-center justify-center">
+                <div className="relative w-full h-full border border-white/5 rounded-2xl flex items-center justify-center">
+                   <div className="w-48 h-48 rounded-full border border-[var(--primary)]/30 flex items-center justify-center animate-[spin_20s_linear_infinite]">
+                      <div className="w-4 h-4 rounded-full bg-[var(--primary)] absolute top-0 shadow-[0_0_15px_var(--primary-glow)]" />
+                   </div>
+                   <div className="w-32 h-32 rounded-full border border-blue-500/30 flex items-center justify-center animate-[spin_15s_linear_infinite_reverse]">
+                      <div className="w-3 h-3 rounded-full bg-blue-500 absolute bottom-0 shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+                   </div>
+                   <ShieldCheck className="w-16 h-16 text-white opacity-20 absolute" />
+                </div>
+                
+                {/* DATA STREAM DECOR */}
+                <div className="absolute bottom-8 left-8 right-8">
+                   <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ x: "-100%" }}
+                        animate={{ x: "100%" }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        className="h-full w-1/2 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent"
+                      />
+                   </div>
+                   <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mt-4 text-center">Encrypted Telemetry Stream</p>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* FEATURES GRID */}
-      <section id="features" className="py-24 border-t border-white/[0.03]">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-3 gap-12">
+      {/* CORE CAPABILITIES */}
+      <section id="network" className="py-32 border-y border-white/[0.03] bg-white/[0.01]">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="text-center mb-24">
+             <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.5em] mb-6 block">Capability Matrix</span>
+             <h2 className="text-5xl font-black text-white tracking-tighter">Unified clinical workflows.</h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              {
-                title: "Care Navigation",
-                desc: "Real-time geospatial coordination for providers and patients.",
-                icon: Map
-              },
-              {
-                title: "Revenue Cycle",
-                desc: "Automated claim submission and invoice tracking.",
-                icon: CreditCard
-              },
-              {
-                title: "Vital Telemetry",
-                desc: "Direct integration with clinical hardware monitoring.",
-                icon: Activity
-              }
-            ].map((feature, i) => (
-              <div key={i} className="group">
-                <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center mb-6 group-hover:border-[var(--primary)]/30 transition-all">
-                  <feature.icon className="w-5 h-5 text-slate-400 group-hover:text-[var(--primary)] transition-colors" />
+              { title: "Tactical Navigation", desc: "Real-time geospatial provider tracking.", icon: Map },
+              { title: "Revenue Cycle", desc: "Deep integration with billing registries.", icon: CreditCard },
+              { title: "Node Telemetry", desc: "Low-latency clinical IoT connectivity.", icon: Cpu },
+              { title: "Identity Vault", desc: "Level 1 security for patient records.", icon: Fingerprint }
+            ].map((card, i) => (
+              <motion.div 
+                key={i}
+                whileHover={{ y: -10 }}
+                className="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-[var(--primary)]/30 transition-all group"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-[var(--primary)]/10 transition-all">
+                  <card.icon className="w-6 h-6 text-slate-400 group-hover:text-[var(--primary)]" />
                 </div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-3">{feature.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed mb-6">{feature.desc}</p>
-                <Link href="/login" className="text-[11px] font-bold text-[var(--primary)] uppercase tracking-wider inline-flex items-center gap-1.5 hover:gap-2.5 transition-all">
-                  Explore <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
+                <h3 className="text-sm font-black text-white uppercase tracking-widest mb-4">{card.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed mb-8">{card.desc}</p>
+                <div className="h-px w-8 bg-white/10 group-hover:w-full group-hover:bg-[var(--primary)] transition-all duration-700" />
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* TRUST SECTION */}
-      <section className="py-32 bg-white/[0.01] border-y border-white/[0.03]">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="flex flex-col items-center text-center gap-12">
-            <div className="w-10 h-1 bg-[var(--primary)]/20 rounded-full" />
-            <blockquote className="text-3xl font-medium text-white leading-snug tracking-tight">
-              "Aura transformed our clinical pipeline from a messy spreadsheet into a predictable engine. It's the only OS we trust for our specialized services."
-            </blockquote>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-slate-900 border border-white/[0.05] flex items-center justify-center text-sm font-bold text-white">
-                MM
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-white leading-none">Michael McDonald</p>
-                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest mt-1.5">St. James Clinical Director</p>
-              </div>
+      {/* TRUST & INFRASTRUCTURE */}
+      <section id="security" className="py-48 overflow-hidden relative">
+        <div className="absolute inset-0 bg-[var(--primary)]/[0.02] -skew-y-6 translate-y-32" />
+        <div className="max-w-7xl mx-auto px-8 relative z-10">
+          <div className="flex flex-col items-center text-center">
+            <Globe className="w-12 h-12 text-[var(--primary)] opacity-20 mb-12 animate-pulse" />
+            <h2 className="text-5xl lg:text-7xl font-black text-white tracking-tighter mb-16 max-w-4xl">
+              Engineered for the <span className="text-slate-700 italic">mission critical.</span>
+            </h2>
+            
+            <div className="grid md:grid-cols-3 gap-16 w-full max-w-5xl">
+              {[
+                { label: "Active Deployments", val: "148" },
+                { label: "Data Throughput", val: "2.8 TB/s" },
+                { label: "Security Layer", val: "AES-256" }
+              ].map((stat, i) => (
+                <div key={i}>
+                  <p className="text-4xl font-black text-white mb-3 tracking-tighter">{stat.val}</p>
+                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">{stat.label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* STATS SECTION */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
-            {[
-              { label: "Providers", val: "2.4k" },
-              { label: "Claims", val: "$1.2B" },
-              { label: "Nodes", val: "14" },
-              { label: "Security", val: "Level 1" }
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <p className="text-3xl font-bold text-white mb-2">{stat.val}</p>
-                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+      {/* CTA SECTION */}
+      <section className="py-40 relative">
+        <div className="max-w-4xl mx-auto px-8">
+           <motion.div 
+             initial={{ opacity: 0, y: 50 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.8 }}
+             viewport={{ once: true }}
+             className="relative rounded-[3rem] p-16 overflow-hidden"
+           >
+             <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-blue-800 opacity-90" />
+             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
+             
+             <div className="relative z-10 flex flex-col items-center text-center">
+                <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tight mb-8">Ready to modernize?</h2>
+                <p className="text-white/70 text-lg mb-12 font-medium">Join the fleet of high-performance clinical teams running on Aura.</p>
+                <Link href="/login" className="h-16 px-12 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-3xl shadow-black/20 group">
+                  Get Started Now
+                  <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1 transition-transform" />
+                </Link>
+             </div>
+           </motion.div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="py-16 border-t border-white/[0.03]">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-white/10 flex items-center justify-center">
-              <ShieldCheck className="w-3.5 h-3.5 text-white" />
+      <footer className="py-24 border-t border-white/[0.03]">
+        <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-12">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+              <ShieldCheck className="w-6 h-6 text-white" />
             </div>
-            <span className="text-sm font-bold text-white tracking-tight">Aura</span>
+            <div>
+              <span className="text-xl font-black text-white tracking-tighter block leading-none">Aura</span>
+              <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest">Next-Gen Protocol</span>
+            </div>
           </div>
           
-          <div className="flex items-center gap-8 text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-            <Link href="#" className="hover:text-white transition-colors">Privacy</Link>
-            <Link href="#" className="hover:text-white transition-colors">Terms</Link>
-            <Link href="#" className="hover:text-white transition-colors">Security</Link>
+          <div className="flex flex-wrap items-center justify-center gap-10 text-[10px] font-black text-slate-700 uppercase tracking-widest">
+            {['Status', 'Security', 'Privacy', 'Network', 'API', 'Legal'].map(link => (
+              <Link key={link} href="#" className="hover:text-[var(--primary)] transition-colors tracking-[0.2em]">{link}</Link>
+            ))}
           </div>
 
-          <p className="text-[10px] font-bold text-slate-700 uppercase tracking-widest">
-            © 2026 Aura Clinical Technologies
-          </p>
+          <div className="text-right">
+            <p className="text-[9px] font-black text-slate-800 uppercase tracking-widest leading-relaxed">
+              © 2026 Aura Clinical Technologies <br />
+              All Vector Units Reserved.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
