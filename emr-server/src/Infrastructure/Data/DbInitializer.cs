@@ -840,31 +840,49 @@ namespace Infrastructure.Data
             }
             await context.SaveChangesAsync(default);
 
-            var encounters = new Faker<ClinicalEncounter>()
-                .RuleFor(e => e.EncounterId, Guid.NewGuid)
-                .RuleFor(e => e.PatientId, f => f.PickRandom(patients).PatientId)
-                .RuleFor(e => e.PractitionerId, f => f.PickRandom(practitionerIds))
-                .RuleFor(e => e.AppointmentId, (f, u) => f.PickRandom(appointments).AppointmentId)
-                .RuleFor(e => e.Type, f => f.PickRandom<EncounterType>())
-                .RuleFor(e => e.Status, f => f.PickRandom<EncounterStatus>())
-                .RuleFor(e => e.PpsScore, f => f.Random.Number(30, 100))
-                .Generate(30);
-            context.Set<ClinicalEncounter>().AddRange(encounters);
+            // --- CLINICAL HISTORY RECONCILIATION ---
+            var allEncounters = new List<ClinicalEncounter>();
+            foreach (var p in patients)
+            {
+                var pEncounters = new Faker<ClinicalEncounter>()
+                    .RuleFor(e => e.EncounterId, Guid.NewGuid)
+                    .RuleFor(e => e.PatientId, p.PatientId)
+                    .RuleFor(e => e.PractitionerId, f => f.PickRandom(practitionerIds))
+                    .RuleFor(e => e.AppointmentId, f => f.PickRandom(appointments).AppointmentId)
+                    .RuleFor(e => e.Type, f => f.PickRandom<EncounterType>())
+                    .RuleFor(e => e.Status, EncounterStatus.Completed)
+                    .RuleFor(e => e.PpsScore, f => f.Random.Number(30, 90))
+                    .RuleFor(e => e.EncounterDate, f => f.Date.PastOffset(1).ToUniversalTime())
+                    .Generate(3);
+                allEncounters.AddRange(pEncounters);
+            }
+            context.ClinicalEncounters.AddRange(allEncounters);
             await context.SaveChangesAsync(default);
 
-            var vitals = new Faker<VitalSign>()
-                .RuleFor(v => v.VitalId, Guid.NewGuid)
-                .RuleFor(v => v.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
-                .RuleFor(v => v.HeartRate, f => f.Random.Decimal(60, 110))
-                .RuleFor(v => v.BloodPressureSystolic, f => f.Random.Decimal(100, 160))
-                .RuleFor(v => v.Weight, f => f.Random.Decimal(50, 100))
-                .RuleFor(v => v.RecordedAt, f => f.Date.RecentOffset(30).ToUniversalTime())
-                .Generate(60);
-            context.Set<VitalSign>().AddRange(vitals);
+            var vitals = new List<VitalSign>();
+            foreach (var e in allEncounters)
+            {
+                var v = new VitalSign
+                {
+                    VitalId = Guid.NewGuid(),
+                    EncounterId = e.EncounterId,
+                    HeartRate = new Random().Next(60, 100),
+                    BloodPressureSystolic = new Random().Next(110, 140),
+                    BloodPressureDiastolic = new Random().Next(70, 90),
+                    RespiratoryRate = new Random().Next(12, 20),
+                    OxygenSaturation = new Random().Next(94, 100),
+                    Temperature = (decimal)(97.0 + new Random().NextDouble() * 2.0),
+                    Weight = new Random().Next(50, 90),
+                    RecordedAt = e.EncounterDate
+                };
+                vitals.Add(v);
+            }
+            context.VitalSigns.AddRange(vitals);
+            await context.SaveChangesAsync(default);
 
             var notes = new Faker<ClinicalNote>()
                 .RuleFor(n => n.NoteId, Guid.NewGuid)
-                .RuleFor(n => n.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
+                .RuleFor(n => n.EncounterId, (f, u) => f.PickRandom(allEncounters).EncounterId)
                 .RuleFor(n => n.AuthorId, f => f.PickRandom(practitioners).PractitionerId)
                 .RuleFor(n => n.Type, f => f.PickRandom<NoteType>())
                 .RuleFor(n => n.Subjective, f => f.Lorem.Paragraph())
@@ -874,7 +892,7 @@ namespace Infrastructure.Data
             var esas = new Faker<EsasAssessment>()
                 .RuleFor(x => x.AssessmentId, Guid.NewGuid)
                 .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
-                .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
+                .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(allEncounters).EncounterId)
                 .RuleFor(x => x.Pain, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.Nausea, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.ShortnessOfBreath, f => f.Random.Number(0, 10))

@@ -90,6 +90,13 @@ const GET_PATIENT_DETAILS = gql`
         isLegalGuardian
         notes
       }
+      documents {
+        patientDocumentId
+        title
+        storageUrl
+        documentType
+        patientContactId
+      }
     }
   }
 `;
@@ -756,7 +763,23 @@ export default function PatientDetailPage() {
                            {contact.isPoa && (
                               <div className="pt-4 border-t border-blue-500/10">
                                  <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Power of Attorney Records</p>
-                                 <button className="w-full py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2">
+                                 <button 
+                                   onClick={() => {
+                                     const poaDoc = patient.documents?.find((d: any) => 
+                                       d.patientContactId === contact.patientContactId && 
+                                       (d.documentType === 'POA' || d.title.toUpperCase().includes('POA'))
+                                     );
+                                     if (poaDoc) {
+                                       const url = poaDoc.storageUrl.startsWith('http') 
+                                         ? poaDoc.storageUrl 
+                                         : `${process.env.NEXT_PUBLIC_API_URL}${poaDoc.storageUrl}`;
+                                       window.open(url, '_blank');
+                                     } else {
+                                       alert("No POA document found for this contact. Please upload it in the Document Vault below.");
+                                     }
+                                   }}
+                                   className="w-full py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2"
+                                 >
                                     <FileText className="w-3.5 h-3.5" /> View POA Document (PDF)
                                  </button>
                               </div>

@@ -14,6 +14,7 @@ public class PatientMappingConfig : IRegister
             .Map(dest => dest.IsPoa, src => src.HasPowerOfAttorney);
             
         config.NewConfig<Patient, PatientDto>()
-            .Map(dest => dest.Contacts, src => src.Contacts);
+            .Map(dest => dest.Contacts, src => src.Contacts)
+            .Map(dest => dest.Documents, src => src.PatientDocuments);
     }
 }

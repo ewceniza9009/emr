@@ -102,7 +102,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                 <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
                 <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">Record Link Active</span>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-white">
+              <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-[var(--text-primary)]">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -137,7 +137,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                   <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
                   <input 
                     required
-                    className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                    className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                     value={form.mrn}
                     onChange={e => setForm({...form, mrn: e.target.value})}
                     placeholder="E.G. MRN-123456"
@@ -152,7 +152,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
                       <input 
                         required
-                        className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-wider"
+                        className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-wider"
                         value={form.firstName}
                         onChange={e => setForm({...form, firstName: e.target.value})}
                         placeholder="FIRST NAME"
@@ -165,7 +165,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
                       <input 
                         required
-                        className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-wider"
+                        className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-wider"
                         value={form.lastName}
                         onChange={e => setForm({...form, lastName: e.target.value})}
                         placeholder="LAST NAME"
@@ -182,7 +182,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                       <input 
                         required
                         type="date"
-                        className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-white focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                        className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                         value={form.dob}
                         onChange={e => setForm({...form, dob: e.target.value})}
                       />
@@ -221,7 +221,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                  <div className="space-y-2">
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Civil Status</label>
                     <select 
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                       value={form.civilStatus}
                       onChange={e => setForm({...form, civilStatus: e.target.value})}
                     >
@@ -246,7 +246,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                  <div className="space-y-2">
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Nationality</label>
                     <input 
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                       value={form.nationality}
                       onChange={e => setForm({...form, nationality: e.target.value})}
                     />
@@ -254,7 +254,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                  <div className="space-y-2">
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Primary Language</label>
                     <input 
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                       value={form.language}
                       onChange={e => setForm({...form, language: e.target.value})}
                     />
@@ -264,7 +264,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
               <div className="space-y-2">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Occupation</label>
                 <input 
-                  className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                  className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                   value={form.occupation}
                   onChange={e => setForm({...form, occupation: e.target.value})}
                   placeholder="CURRENT OR FORMER OCCUPATION"
@@ -285,7 +285,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                  <div className="relative group">
                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
                    <input 
-                     className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                     className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                      value={form.philhealthNumber}
                      onChange={e => setForm({...form, philhealthNumber: e.target.value})}
                      placeholder="XX-XXXXXXXXX-X"
@@ -299,7 +299,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                     <div className="relative group">
                       <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
                       <select 
-                        className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-white appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                        className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                         value={form.healthPlanId}
                         onChange={e => setForm({...form, healthPlanId: e.target.value})}
                       >
@@ -318,7 +318,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                     <div className="relative group">
                       <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
                       <select 
-                        className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-white appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                        className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                         value={form.facilityId}
                         onChange={e => setForm({...form, facilityId: e.target.value})}
                       >
@@ -349,7 +349,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
                    <input 
                      required
-                     className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-wider"
+                     className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-wider"
                      value={form.street}
                      onChange={e => setForm({...form, street: e.target.value})}
                      placeholder="E.G. 123 PALLIATIVE ST"
@@ -362,7 +362,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">City Hub</label>
                     <input 
                       required
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                       value={form.city}
                       onChange={e => setForm({...form, city: e.target.value})}
                     />
@@ -371,7 +371,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Region Code</label>
                     <input 
                       required
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                       value={form.state}
                       onChange={e => setForm({...form, state: e.target.value})}
                     />
@@ -382,7 +382,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Postal Identification</label>
                  <input 
                    required
-                   className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-white focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                   className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                    value={form.postalCode}
                    onChange={e => setForm({...form, postalCode: e.target.value})}
                  />

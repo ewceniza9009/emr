@@ -758,12 +758,12 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                   <div className="flex bg-white/5 rounded-2xl p-1.5 border border-white/10 gap-1.5 shadow-inner">
                     <button type="button" onClick={() => { setPeriod("AM"); setPractitionerId(""); }}
                       className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
-                                   ${period === "AM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-white hover:bg-white/5"}`}>
+                                   ${period === "AM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"}`}>
                       {amLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "MORNING SLOT"}
                     </button>
                     <button type="button" onClick={() => { setPeriod("PM"); setPractitionerId(""); }}
                       className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
-                                   ${period === "PM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-white hover:bg-white/5"}`}>
+                                   ${period === "PM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"}`}>
                       {pmLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "AFTERNOON SLOT"}
                     </button>
                   </div>

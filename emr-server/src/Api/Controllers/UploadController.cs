@@ -57,4 +57,42 @@ public class UploadController : ControllerBase
 
         return Ok(new { documentId = document.PatientDocumentId, url = storageUrl });
     }
+
+    [HttpPost("general/{patientId}")]
+    public async Task<IActionResult> UploadGeneralDocument(
+        Guid patientId, 
+        [FromForm] string title, 
+        [FromForm] string documentType, 
+        IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("No file uploaded");
+
+        var patientExists = await _context.Patients.AnyAsync(p => p.PatientId == patientId);
+        if (!patientExists)
+            return NotFound("Patient not found");
+
+        using var stream = file.OpenReadStream();
+        var storageUrl = await _storageService.UploadFileAsync(
+            stream, 
+            file.FileName, 
+            file.ContentType
+        );
+
+        var document = new PatientDocument
+        {
+            PatientId = patientId,
+            Title = title ?? file.FileName,
+            DocumentType = documentType ?? "OTHER",
+            StorageUrl = storageUrl,
+            ContentType = file.ContentType,
+            FileSize = file.Length,
+            UploadedAt = DateTimeOffset.UtcNow
+        };
+
+        _context.PatientDocuments.Add(document);
+        await _context.SaveChangesAsync(default);
+
+        return Ok(new { documentId = document.PatientDocumentId, url = storageUrl });
+    }
 }

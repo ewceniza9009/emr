@@ -11,6 +11,9 @@ import {
   Scale
 } from "lucide-react";
 
+import { useState } from "react";
+import VitalLogDrawer from "./VitalLogDrawer";
+
 const GET_ENCOUNTERS = gql`
   query GetEncounters($patientId: UUID!) {
     encountersByPatient(patientId: $patientId) {
@@ -32,6 +35,7 @@ const GET_ENCOUNTERS = gql`
 `;
 
 export default function VitalSignTimeline({ patientId }: { patientId: string }) {
+  const [isLogOpen, setIsLogOpen] = useState(false);
   const { data, loading } = useQuery(GET_ENCOUNTERS, {
     variables: { patientId }
   });
@@ -47,7 +51,12 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
             <Activity className="w-4 h-4 text-blue-400" />
             Vital Sign History
           </h2>
-          <button className="text-blue-400 text-[9px] font-black uppercase tracking-widest hover:underline">Full Log</button>
+          <button 
+            onClick={() => setIsLogOpen(true)}
+            className="text-blue-400 text-[9px] font-black uppercase tracking-widest hover:underline"
+          >
+            Full Log
+          </button>
        </div>
 
        <div className="space-y-2">
@@ -102,6 +111,11 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
             })
           )}
        </div>
+        <VitalLogDrawer 
+          isOpen={isLogOpen} 
+          onClose={() => setIsLogOpen(false)} 
+          encounters={encounters} 
+        />
     </div>
   );
 }

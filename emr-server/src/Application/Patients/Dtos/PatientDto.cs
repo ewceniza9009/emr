@@ -26,5 +26,6 @@ public class PatientDto
     public ICollection<PatientPhoneDto> Phones { get; set; } = new List<PatientPhoneDto>();
     public ICollection<PatientEmailDto> Emails { get; set; } = new List<PatientEmailDto>();
     public ICollection<PatientContactDto> Contacts { get; set; } = new List<PatientContactDto>();
+    public ICollection<PatientDocumentDto> Documents { get; set; } = new List<PatientDocumentDto>();
     public string? VisitStatus { get; set; }
 }

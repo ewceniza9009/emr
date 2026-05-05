@@ -13,6 +13,7 @@ import {
   FileBox
 } from "lucide-react";
 import { useState } from "react";
+import UploadDocumentDrawer from "./UploadDocumentDrawer";
 
 const GET_DOCUMENTS = gql`
   query GetDocumentsByPatient($patientId: UUID!) {
@@ -34,10 +35,11 @@ interface Props {
 
 export default function DocumentVault({ patientId }: Props) {
   const [search, setSearch] = useState("");
-  const { data, loading } = useQuery(GET_DOCUMENTS, {
-    variables: { patientId },
-    skip: !patientId
-  });
+   const [isUploadOpen, setIsUploadOpen] = useState(false);
+   const { data, loading, refetch } = useQuery(GET_DOCUMENTS, {
+     variables: { patientId },
+     skip: !patientId
+   });
 
   const documents = data?.documentsByPatient || [];
   
@@ -76,7 +78,10 @@ export default function DocumentVault({ patientId }: Props) {
                 className="bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs text-[var(--text-primary)] focus:border-blue-500 transition-all w-60"
               />
            </div>
-           <button className="px-6 py-2.5 rounded-xl bg-blue-600 text-[var(--text-primary)] font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 flex items-center gap-2 hover:bg-blue-500 transition-all">
+           <button 
+             onClick={() => setIsUploadOpen(true)}
+             className="px-6 py-2.5 rounded-xl bg-blue-600 text-[var(--text-primary)] font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 flex items-center gap-2 hover:bg-blue-500 transition-all"
+           >
              <Plus className="w-4 h-4" /> Upload Record
            </button>
         </div>
@@ -93,10 +98,30 @@ export default function DocumentVault({ patientId }: Props) {
                      {getIcon(doc.contentType || '')}
                   </div>
                   <div className="flex gap-2">
-                     <button className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all">
+                     <button 
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         const url = doc.storageUrl.startsWith('http') 
+                           ? doc.storageUrl 
+                           : `${process.env.NEXT_PUBLIC_API_URL}${doc.storageUrl}`;
+                         window.open(url, '_blank');
+                       }}
+                       className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
+                       title="Download / View"
+                     >
                         <Download className="w-4 h-4" />
                      </button>
-                     <button className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all">
+                     <button 
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         const url = doc.storageUrl.startsWith('http') 
+                           ? doc.storageUrl 
+                           : `${process.env.NEXT_PUBLIC_API_URL}${doc.storageUrl}`;
+                         window.open(url, '_blank');
+                       }}
+                       className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
+                       title="Open in new tab"
+                     >
                         <ExternalLink className="w-4 h-4" />
                      </button>
                   </div>
@@ -131,6 +156,15 @@ export default function DocumentVault({ patientId }: Props) {
          </div>
          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Total Vault Size: 1.2 MB</span>
       </div>
+
+      <UploadDocumentDrawer 
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        patientId={patientId}
+        onSuccess={() => {
+          refetch();
+        }}
+      />
     </div>
   );
 }
