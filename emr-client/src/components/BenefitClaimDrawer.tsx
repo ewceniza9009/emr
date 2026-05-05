@@ -7,10 +7,12 @@ import { X, Search, FileText, CheckCircle2, AlertCircle, DollarSign, CreditCard 
 const GET_PATIENTS = gql`
   query GetPatients {
     patients {
-      patientId
-      firstName
-      lastName
-      mrn
+      items {
+        patientId
+        firstName
+        lastName
+        mrn
+      }
     }
   }
 `;
@@ -69,7 +71,7 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
 
   const isEdit = !!initialData;
 
-  const patients = patientData?.patients || [];
+  const patients = patientData?.patients?.items || [];
   const filteredPatients = patients.filter((p: any) => 
     `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.mrn.toLowerCase().includes(searchTerm.toLowerCase())

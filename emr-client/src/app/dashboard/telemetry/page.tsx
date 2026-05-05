@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { 
   Heart, 
@@ -18,10 +19,12 @@ import LiveHeartbeat from "@/components/LiveHeartbeat";
 const GET_PATIENTS = gql`
   query GetPatientsForTelemetry {
     patients {
-      patientId
-      mrn
-      firstName
-      lastName
+      items {
+        patientId
+        mrn
+        firstName
+        lastName
+      }
     }
   }
 `;
@@ -29,7 +32,12 @@ const GET_PATIENTS = gql`
 export default function VitalsIoTPage() {
   const { showToast } = useToast();
   const { data, loading, error } = useQuery(GET_PATIENTS);
-  const patients = data?.patients || [];
+  const [searchTerm, setSearchTerm] = useState("");
+  const patientsData = data?.patients?.items || [];
+  const patients = patientsData.filter((p: any) => 
+    `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.mrn.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
@@ -72,6 +80,8 @@ export default function VitalsIoTPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
             <input 
               type="text" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by patient..."
               className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2 pl-9 pr-4 text-xs text-[var(--text-primary)] focus:border-blue-500/30 transition-all outline-none w-64"
             />

@@ -29,17 +29,19 @@ const BOOK_APPOINTMENT = gql`
 const GET_PATIENTS = gql`
   query GetPatients {
     patients {
-      patientId
-      firstName
-      lastName
-      mrn
-      addresses {
-        isPrimary
-        address {
-          street
-          city
-          state
-          postalCode
+      items {
+        patientId
+        firstName
+        lastName
+        mrn
+        addresses {
+          isPrimary
+          address {
+            street
+            city
+            state
+            postalCode
+          }
         }
       }
     }
@@ -467,7 +469,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                     />
                     {showPatientResults && patientSearch && (
                       <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden z-[1001] max-h-60 overflow-y-auto shadow-2xl backdrop-blur-2xl">
-                        {patientData?.patients?.filter((p: any) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(patientSearch.toLowerCase())).map((p: any) => (
+                        {patientData?.patients?.items?.filter((p: any) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(patientSearch.toLowerCase())).map((p: any) => (
                           <button key={p.patientId} type="button" onClick={() => {
                             setPatientId(p.patientId);
                             setPatientSearch(`${p.firstName} ${p.lastName}`);

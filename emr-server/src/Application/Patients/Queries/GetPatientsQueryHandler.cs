@@ -35,14 +35,30 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query
+            .Include(p => p.Appointments)
             .OrderBy(p => p.LastName)
             .Skip(request.Skip)
             .Take(request.Take)
             .ProjectToType<PatientDto>()
             .ToListAsync(cancellationToken);
 
-        // Map visit status manually if needed (Mapster should handle most but visitStatus is dynamic)
-        // For performance, we could optimize this further, but this matches our previous "Solid" logic.
+        // Map visit status manually based on the latest non-cancelled appointment
+        foreach (var item in items)
+        {
+            var latestAppt = item.Appointments
+                .Where(a => a.Status != "Cancelled")
+                .OrderByDescending(a => a.ScheduledStart)
+                .FirstOrDefault();
+
+            if (latestAppt != null)
+            {
+                item.VisitStatus = latestAppt.Status;
+            }
+            else
+            {
+                item.VisitStatus = "No Visit";
+            }
+        }
 
         return new PagedResponse<PatientDto> { Items = items, TotalCount = totalCount };
     }

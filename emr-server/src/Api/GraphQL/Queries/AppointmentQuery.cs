@@ -24,14 +24,32 @@ public class AppointmentQuery
     /// Full appointment list with patient + practitioner navigation.
     /// Used by the weekly scheduling calendar.
     /// </summary>
-    public async Task<Application.Common.Models.PagedResponse<Appointment>> GetAppointments(
-        [Service] IMediator mediator,
-        DateTime? startDate = null,
-        DateTime? endDate = null,
-        CancellationToken cancellationToken = default
+    [UseOffsetPaging]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<Appointment> GetAppointments(
+        DateTime? startDate,
+        DateTime? endDate,
+        [Service] IApplicationDbContext context
     )
     {
-        return await mediator.Send(new GetAppointmentsQuery(startDate, endDate), cancellationToken);
+        var query = context.Appointments
+            .Include(a => a.Patient)
+            .Include(a => a.Practitioner)
+            .Include(a => a.SupportingClinicians)
+            .AsNoTracking();
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(a => a.ScheduledStart >= startDate.Value);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(a => a.ScheduledEnd <= endDate.Value);
+        }
+
+        return query;
     }
 
     public async Task<Application.Common.Models.PagedResponse<ScheduleBlock>> GetScheduleBlocks(

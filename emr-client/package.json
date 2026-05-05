@@ -19,6 +19,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "date-fns": "^3.6.0",
+    "framer-motion": "^12.38.0",
     "graphql": "^16.8.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.378.0",

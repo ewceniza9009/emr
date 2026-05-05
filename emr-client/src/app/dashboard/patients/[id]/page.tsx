@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
 import {
@@ -122,14 +122,16 @@ const GET_PATIENT_DETAILS = gql`
 const GET_PATIENT_APPOINTMENTS = gql`
   query GetPatientAppointments($id: UUID!) {
     appointments(where: { patientId: { eq: $id } }) {
-      appointmentId
-      scheduledStart
-      scheduledEnd
-      status
-      modality
-      practitioner {
-        firstName
-        lastName
+      items {
+        appointmentId
+        scheduledStart
+        scheduledEnd
+        status
+        modality
+        practitioner {
+          firstName
+          lastName
+        }
       }
     }
   }
@@ -153,8 +155,11 @@ const DELETE_CONTACT = gql`
   }
 `;
 
+import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
+
 export default function PatientDetailPage() {
   const params = useParams();
+  const { addPatient } = useRecentlyBrowsed();
   const [activeTab, setActiveTab] = useState("snapshot");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
@@ -169,6 +174,17 @@ export default function PatientDetailPage() {
     variables: { id: params.id },
     skip: !params.id || !isUuid(params.id)
   });
+
+  useEffect(() => {
+    if (data?.patientById) {
+      addPatient({
+        patientId: data.patientById.patientId,
+        firstName: data.patientById.firstName,
+        lastName: data.patientById.lastName,
+        mrn: data.patientById.mrn
+      });
+    }
+  }, [data?.patientById]);
 
   const { data: summaryData } = useQuery(GET_CLINICAL_SUMMARY, {
     variables: { patientId: params.id },
@@ -212,7 +228,7 @@ export default function PatientDetailPage() {
   const patient = data?.patientById;
   if (!patient) return <div className="p-10 text-[var(--text-primary)] font-black uppercase tracking-widest">Patient record not found in registry.</div>;
 
-  const appointments = apptData?.appointments || [];
+  const appointments = apptData?.appointments?.items || [];
   const activeAppointment = appointments.find((a: any) =>
     a.status?.toUpperCase().includes('PROGRESS') || a.status?.toUpperCase() === 'LIVE'
   );

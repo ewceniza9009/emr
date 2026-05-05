@@ -31,11 +31,13 @@ const GET_NAVIGATION_DATA = gql`
       position
     }
     appointments {
-      appointmentId
-      status
-      practitionerId
-      scheduledStart
-      scheduledEnd
+      items {
+        appointmentId
+        status
+        practitionerId
+        scheduledStart
+        scheduledEnd
+      }
     }
   }
 `;
@@ -54,7 +56,7 @@ export default function CareNavigationPage() {
   );
 
   const practitioners = data?.practitioners || [];
-  const appointments = data?.appointments || [];
+  const appointments = data?.appointments?.items || [];
 
   // Map real practitioners to the UI state
   const providers = practitioners.map((p: any) => {

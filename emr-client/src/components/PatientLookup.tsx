@@ -7,20 +7,22 @@ import { Search, X, User, CheckCircle2, Hash, MapPin, Phone } from "lucide-react
 const GET_PATIENTS = gql`
   query GetPatients {
     patients {
-      patientId
-      mrn
-      firstName
-      lastName
-      dob
-      addresses {
-        isPrimary
-        address {
-          city
-          state
+      items {
+        patientId
+        mrn
+        firstName
+        lastName
+        dob
+        addresses {
+          isPrimary
+          address {
+            city
+            state
+          }
         }
-      }
-      phones {
-        phoneNumber
+        phones {
+          phoneNumber
+        }
       }
     }
   }
@@ -36,7 +38,7 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
   const [search, setSearch] = useState("");
   const { data, loading } = useQuery(GET_PATIENTS);
 
-  const patients = data?.patients || [];
+  const patients = data?.patients?.items || [];
   const filtered = useMemo(() => {
     return patients.filter((p: any) => 
       `${p.firstName} ${p.lastName}`.toLowerCase().includes(search.toLowerCase()) ||

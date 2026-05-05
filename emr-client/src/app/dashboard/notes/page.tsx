@@ -22,18 +22,20 @@ import {
 const GET_NOTES_DATA = gql`
   query GetNotesData {
     appointments {
-      appointmentId
-      patientId
-      scheduledStart
-      status
-      patient {
-        firstName
-        lastName
-        mrn
-      }
-      practitioner {
-        firstName
-        lastName
+      items {
+        appointmentId
+        patientId
+        scheduledStart
+        status
+        patient {
+          firstName
+          lastName
+          mrn
+        }
+        practitioner {
+          firstName
+          lastName
+        }
       }
     }
     smartPhrases {
@@ -70,8 +72,13 @@ export default function ClinicalNotesPage() {
   const [noteCache, setNoteCache] = useState<Record<string, string>>({});
   const [encounterCache, setEncounterCache] = useState<Record<string, string>>({});
   const [isSyncing, setIsSyncing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const appointments = data?.appointments || [];
+  const appointmentsData = data?.appointments?.items || [];
+  const appointments = appointmentsData.filter((n: any) => 
+    `${n.patient?.firstName} ${n.patient?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    n.patient?.mrn?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   const smartPhrases = data?.smartPhrases || [];
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const selectedNote = appointments.find((a: any) => a.appointmentId === selectedId);
@@ -236,6 +243,8 @@ export default function ClinicalNotesPage() {
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
             <input 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="SEARCH NOTES OR PATIENTS..."
               className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)] transition-all uppercase"
             />
