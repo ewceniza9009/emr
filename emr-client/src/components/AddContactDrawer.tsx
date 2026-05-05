@@ -173,7 +173,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">First Name</label>
                     <input 
                       required
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 px-4 text-xs font-black text-white focus:outline-none focus:border-emerald-500/50 transition-all uppercase"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/50 transition-all uppercase"
                       value={form.firstName}
                       onChange={e => setForm({...form, firstName: e.target.value})}
                     />
@@ -182,7 +182,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Last Name</label>
                     <input 
                       required
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 px-4 text-xs font-black text-white focus:outline-none focus:border-emerald-500/50 transition-all uppercase"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/50 transition-all uppercase"
                       value={form.lastName}
                       onChange={e => setForm({...form, lastName: e.target.value})}
                     />
@@ -192,7 +192,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
               <div className="space-y-2">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Relationship Type</label>
                 <select 
-                  className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 px-4 text-xs font-black text-white appearance-none focus:outline-none focus:border-emerald-500/50 transition-all uppercase"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] appearance-none focus:outline-none focus:border-emerald-500/50 transition-all uppercase"
                   value={form.relationship}
                   onChange={e => setForm({...form, relationship: e.target.value})}
                 >
@@ -223,7 +223,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-emerald-500" />
                     <input 
                       required
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-xs font-black text-white focus:outline-none focus:border-emerald-500/50 transition-all"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/50 transition-all"
                       value={form.phoneNumber}
                       onChange={e => setForm({...form, phoneNumber: e.target.value})}
                       placeholder="###-###-####"
@@ -236,7 +236,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-emerald-500" />
                     <input 
                       type="email"
-                      className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-xs font-black text-white focus:outline-none focus:border-emerald-500/50 transition-all"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/50 transition-all"
                       value={form.email}
                       onChange={e => setForm({...form, email: e.target.value})}
                       placeholder="EMAIL@EXAMPLE.COM"
@@ -254,15 +254,15 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
               </div>
 
               <div className="space-y-4">
-                <label className="flex items-center gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/5 cursor-pointer hover:bg-white/[0.04] transition-all">
+                <label className="flex items-center gap-3 p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer hover:bg-white/[0.04] transition-all">
                   <input 
                     type="checkbox"
-                    className="w-4 h-4 rounded border-white/10 bg-black checked:bg-emerald-500 transition-all"
+                    className="w-4 h-4 rounded border-[var(--card-border)] bg-black checked:bg-emerald-500 transition-all"
                     checked={form.isPrimaryContact}
                     onChange={e => setForm({...form, isPrimaryContact: e.target.checked})}
                   />
                   <div>
-                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Primary Contact</p>
+                    <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">Primary Contact</p>
                     <p className="text-[9px] text-slate-500 uppercase tracking-tight">Main person to contact for alerts</p>
                   </div>
                 </label>
@@ -312,7 +312,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                         onChange={e => setSelectedFile(e.target.files?.[0] || null)}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                       />
-                      <div className="w-full py-4 px-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-between group-hover:border-blue-500/30 transition-all">
+                      <div className="w-full py-4 px-4 rounded-xl border border-[var(--card-border)] bg-[var(--input-bg)] flex items-center justify-between group-hover:border-blue-500/30 transition-all">
                         <span className="text-[10px] font-black text-slate-500 uppercase truncate pr-4">
                           {selectedFile ? selectedFile.name : "Select POA File..."}
                         </span>
@@ -331,7 +331,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
               <div className="space-y-2">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Administrative Notes</label>
                 <textarea 
-                  className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 px-4 text-xs font-black text-white focus:outline-none focus:border-emerald-500/50 transition-all h-24 resize-none"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/50 transition-all h-24 resize-none"
                   value={form.notes}
                   onChange={e => setForm({...form, notes: e.target.value})}
                   placeholder="ADDITIONAL GOVERNANCE DETAILS..."

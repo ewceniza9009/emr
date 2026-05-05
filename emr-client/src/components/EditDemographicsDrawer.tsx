@@ -105,7 +105,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                 <div className="space-y-2">
                   <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Civil Status</label>
                   <select 
-                    className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 px-4 text-xs font-black text-white focus:outline-none focus:border-blue-500/50 transition-all uppercase"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
                     value={form.civilStatus}
                     onChange={e => setForm({...form, civilStatus: e.target.value})}
                   >
@@ -118,7 +118,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                 <div className="space-y-2">
                   <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Religion</label>
                   <input 
-                    className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 px-4 text-xs font-black text-white focus:outline-none focus:border-blue-500/50 transition-all"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all"
                     value={form.religion}
                     onChange={e => setForm({...form, religion: e.target.value})}
                     placeholder="e.g. Christian"
@@ -130,7 +130,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                 <div className="space-y-2">
                   <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Primary Language</label>
                   <input 
-                    className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 px-4 text-xs font-black text-white focus:outline-none focus:border-blue-500/50 transition-all"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all"
                     value={form.language}
                     onChange={e => setForm({...form, language: e.target.value})}
                   />
@@ -138,7 +138,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                 <div className="space-y-2">
                   <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Nationality</label>
                   <input 
-                    className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 px-4 text-xs font-black text-white focus:outline-none focus:border-blue-500/50 transition-all"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all"
                     value={form.nationality}
                     onChange={e => setForm({...form, nationality: e.target.value})}
                   />
@@ -150,7 +150,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                 <div className="relative group">
                   <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500" />
                   <input 
-                    className="w-full bg-white/[0.02] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-xs font-black text-white focus:outline-none focus:border-blue-500/50 transition-all"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all"
                     value={form.occupation}
                     onChange={e => setForm({...form, occupation: e.target.value})}
                     placeholder="Current job title..."

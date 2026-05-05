@@ -609,6 +609,48 @@ namespace Infrastructure.Data
             context.Appointments.AddRange(appointments);
             await context.SaveChangesAsync();
 
+            // --- CLINICAL DATA HARDENING ---
+            foreach (var p in patients)
+            {
+                // Allergies
+                var pAllergies = new Faker<Allergy>()
+                    .RuleFor(a => a.PatientId, p.PatientId)
+                    .RuleFor(a => a.Allergen, f => f.PickRandom(new[] { "Penicillin", "Peanuts", "Latex", "Sulfa Drugs", "Aspirin", "Shellfish" }))
+                    .RuleFor(a => a.Severity, f => f.PickRandom<SeverityLevel>())
+                    .RuleFor(a => a.Reaction, f => f.PickRandom(new[] { "Anaphylaxis", "Rash", "Hives", "Shortness of breath", "Itching" }))
+                    .Generate(f => f.Random.Number(0, 2));
+                context.Set<Allergy>().AddRange(pAllergies);
+
+                // Diagnoses (Problem List)
+                var pDiagnoses = new Faker<Diagnosis>()
+                    .RuleFor(d => d.PatientId, p.PatientId)
+                    .RuleFor(d => d.Icd10Code, f => f.PickRandom(new[] { "C34.90", "I50.9", "E11.9", "J44.9", "F32.9" }))
+                    .RuleFor(d => d.Description, (f, d) => d.Icd10Code switch {
+                        "C34.90" => "Malignant neoplasm of unspecified part of unspecified bronchus or lung",
+                        "I50.9" => "Heart failure, unspecified",
+                        "E11.9" => "Type 2 diabetes mellitus without complications",
+                        "J44.9" => "Chronic obstructive pulmonary disease, unspecified",
+                        "F32.9" => "Major depressive disorder, single episode, unspecified",
+                        _ => "General Diagnosis"
+                    })
+                    .RuleFor(d => d.IsPrimary, f => f.IndexFaker == 0)
+                    .Generate(f => f.Random.Number(1, 3));
+                context.Set<Diagnosis>().AddRange(pDiagnoses);
+
+                // Medications (Prescriptions)
+                var pPrescriptions = new Faker<Prescription>()
+                    .RuleFor(pr => pr.PatientId, p.PatientId)
+                    .RuleFor(pr => pr.MedicationId, f => f.PickRandom(context.Set<Medication>().Local.ToList()).MedicationId)
+                    .RuleFor(pr => pr.PrescribedById, f => f.PickRandom(practitionerIds))
+                    .RuleFor(pr => pr.Dose, f => f.PickRandom(new[] { "5mg", "10mg", "20mg", "1 tab" }))
+                    .RuleFor(pr => pr.Frequency, f => f.PickRandom(new[] { "QD", "BID", "TID", "Q4H PRN" }))
+                    .RuleFor(pr => pr.StartDate, f => f.Date.PastOffset(1))
+                    .RuleFor(pr => pr.IsActive, true)
+                    .Generate(f => f.Random.Number(2, 5));
+                context.Set<Prescription>().AddRange(pPrescriptions);
+            }
+            await context.SaveChangesAsync();
+
             var encounters = new Faker<ClinicalEncounter>()
                 .RuleFor(e => e.EncounterId, Guid.NewGuid)
                 .RuleFor(e => e.PatientId, f => f.PickRandom(patients).PatientId)
@@ -617,7 +659,7 @@ namespace Infrastructure.Data
                 .RuleFor(e => e.Type, f => f.PickRandom<EncounterType>())
                 .RuleFor(e => e.Status, f => f.PickRandom<EncounterStatus>())
                 .RuleFor(e => e.PpsScore, f => f.Random.Number(30, 100))
-                .Generate(10);
+                .Generate(30);
             context.Set<ClinicalEncounter>().AddRange(encounters);
             await context.SaveChangesAsync();
 
@@ -627,8 +669,8 @@ namespace Infrastructure.Data
                 .RuleFor(v => v.HeartRate, f => f.Random.Decimal(60, 110))
                 .RuleFor(v => v.BloodPressureSystolic, f => f.Random.Decimal(100, 160))
                 .RuleFor(v => v.Weight, f => f.Random.Decimal(50, 100))
-                .RuleFor(v => v.RecordedAt, f => f.Date.RecentOffset(5).ToUniversalTime())
-                .Generate(10);
+                .RuleFor(v => v.RecordedAt, f => f.Date.RecentOffset(30).ToUniversalTime())
+                .Generate(60);
             context.Set<VitalSign>().AddRange(vitals);
 
             var notes = new Faker<ClinicalNote>()
@@ -637,7 +679,7 @@ namespace Infrastructure.Data
                 .RuleFor(n => n.AuthorId, f => f.PickRandom(practitioners).PractitionerId)
                 .RuleFor(n => n.Type, f => f.PickRandom<NoteType>())
                 .RuleFor(n => n.Subjective, f => f.Lorem.Paragraph())
-                .Generate(10);
+                .Generate(20);
             context.Set<ClinicalNote>().AddRange(notes);
 
             var esas = new Faker<EsasAssessment>()
@@ -645,7 +687,16 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                 .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
                 .RuleFor(x => x.Pain, f => f.Random.Number(0, 10))
-                .Generate(10);
+                .RuleFor(x => x.Nausea, f => f.Random.Number(0, 10))
+                .RuleFor(x => x.ShortnessOfBreath, f => f.Random.Number(0, 10))
+                .RuleFor(x => x.Tiredness, f => f.Random.Number(0, 10))
+                .RuleFor(x => x.Drowsiness, f => f.Random.Number(0, 10))
+                .RuleFor(x => x.Appetite, f => f.Random.Number(0, 10))
+                .RuleFor(x => x.Wellbeing, f => f.Random.Number(0, 10))
+                .RuleFor(x => x.Anxiety, f => f.Random.Number(0, 10))
+                .RuleFor(x => x.Depression, f => f.Random.Number(0, 10))
+                .RuleFor(x => x.RecordedAt, f => f.Date.RecentOffset(30).ToUniversalTime())
+                .Generate(100);
             context.Set<EsasAssessment>().AddRange(esas);
 
             var deliveries = new Faker<EquipmentDelivery>()
