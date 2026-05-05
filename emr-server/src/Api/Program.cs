@@ -133,9 +133,9 @@ app.MapGraphQL("/graphql");
 app.MapHub<TelemetryHub>("/hubs/telemetry");
 
 // Seed the database
-//var wipeDb = builder.Configuration.GetValue<bool>("EMR_WIPE_DB", true);
-//var seedDb = builder.Configuration.GetValue<bool>("EMR_SEED_DB", true);
+var wipeDb = builder.Configuration.GetValue<bool>("EMR_WIPE_DB", true);
+var seedDb = builder.Configuration.GetValue<bool>("EMR_SEED_DB", true);
 
-//await DbInitializer.InitializeAsync(app.Services, wipeDb, seedDb);
+await DbInitializer.InitializeAsync(app.Services, wipeDb, seedDb);
 
 app.Run();

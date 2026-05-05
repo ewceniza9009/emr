@@ -35,6 +35,7 @@ public class AppointmentQuery
     {
         var query = context.Appointments
             .Include(a => a.Patient)
+                .ThenInclude(p => p.Addresses)
             .Include(a => a.Practitioner)
             .Include(a => a.SupportingClinicians)
             .AsNoTracking();
