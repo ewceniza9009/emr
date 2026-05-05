@@ -53,7 +53,7 @@ public class UploadController : ControllerBase
         };
 
         _context.PatientDocuments.Add(document);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(default);
 
         return Ok(new { documentId = document.PatientDocumentId, url = storageUrl });
     }

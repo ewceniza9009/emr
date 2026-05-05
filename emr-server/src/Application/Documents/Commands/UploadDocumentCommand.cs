@@ -1,7 +1,6 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 
 namespace Application.Documents.Commands;
 
@@ -10,7 +9,10 @@ public record UploadDocumentCommand(
     Guid? PatientContactId,
     string Title,
     string DocumentType,
-    IFile File
+    Stream FileStream,
+    string FileName,
+    string ContentType,
+    long FileSize
 ) : IRequest<Guid>;
 
 public class UploadDocumentCommandHandler : IRequestHandler<UploadDocumentCommand, Guid>
@@ -27,9 +29,9 @@ public class UploadDocumentCommandHandler : IRequestHandler<UploadDocumentComman
     public async Task<Guid> Handle(UploadDocumentCommand request, CancellationToken cancellationToken)
     {
         var storageUrl = await _storageService.UploadFileAsync(
-            request.File.OpenReadStream(),
-            request.File.Name,
-            request.File.ContentType,
+            request.FileStream,
+            request.FileName,
+            request.ContentType,
             cancellationToken
         );
 
@@ -40,8 +42,8 @@ public class UploadDocumentCommandHandler : IRequestHandler<UploadDocumentComman
             Title = request.Title,
             DocumentType = request.DocumentType,
             StorageUrl = storageUrl,
-            ContentType = request.File.ContentType,
-            FileSize = request.File.Length ?? 0,
+            ContentType = request.ContentType,
+            FileSize = request.FileSize,
             UploadedAt = DateTimeOffset.UtcNow
         };
 

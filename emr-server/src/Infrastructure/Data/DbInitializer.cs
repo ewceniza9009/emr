@@ -20,7 +20,9 @@ namespace Infrastructure.Data
         {
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<
+                UserManager<ApplicationUser>
+            >();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
             // Ensure the database is up to date with all migrations before wiping or seeding
@@ -40,7 +42,11 @@ namespace Infrastructure.Data
             }
         }
 
-        private static async Task SeedIdentityAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        private static async Task SeedIdentityAsync(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager
+        )
         {
             // Seed Roles
             var roles = new[] { "Admin", "CareNavigator", "Practitioner" };
@@ -66,7 +72,7 @@ namespace Infrastructure.Data
                     FirstName = "System",
                     LastName = "Admin",
                     EmailConfirmed = true,
-                    PractitionerId = adminPractitionerId
+                    PractitionerId = adminPractitionerId,
                 };
 
                 var result = await userManager.CreateAsync(adminUser, "P@ssword123!");
@@ -85,14 +91,18 @@ namespace Infrastructure.Data
                 }
             }
 
-            var existingAdminPractitioner = await context.Practitioners
-                .FirstOrDefaultAsync(p => p.UserId == Guid.Parse(adminUser.Id));
+            var existingAdminPractitioner = await context.Practitioners.FirstOrDefaultAsync(p =>
+                p.UserId == Guid.Parse(adminUser.Id)
+            );
 
-            if (existingAdminPractitioner != null && existingAdminPractitioner.PractitionerId == Guid.Empty)
+            if (
+                existingAdminPractitioner != null
+                && existingAdminPractitioner.PractitionerId == Guid.Empty
+            )
             {
                 // PK Mutation is dangerous in EF. Delete and re-create instead.
                 context.Practitioners.Remove(existingAdminPractitioner);
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(default);
                 existingAdminPractitioner = null;
             }
 
@@ -114,13 +124,62 @@ namespace Infrastructure.Data
             // Seed Other Practitioners from CREDENTIALS.md
             var practitionerAccounts = new[]
             {
-                new { Email = "dr.house@palliative.emr", First = "Gregory", Last = "House", Role = "CareNavigator", Position = PractitionerPosition.Physician },
-                new { Email = "dr.wilson@palliative.emr", First = "James", Last = "Wilson", Role = "Practitioner", Position = PractitionerPosition.Physician },
-                new { Email = "dr.grey@palliative.emr", First = "Meredith", Last = "Grey", Role = "Practitioner", Position = PractitionerPosition.Physician },
-                new { Email = "dr.murphy@palliative.emr", First = "Shaun", Last = "Murphy", Role = "Practitioner", Position = PractitionerPosition.Physician },
-                new { Email = "dr.dorian@palliative.emr", First = "John", Last = "Dorian", Role = "Practitioner", Position = PractitionerPosition.Physician },
-                new { Email = "dr.yang@palliative.emr", First = "Cristina", Last = "Yang", Role = "Practitioner", Position = PractitionerPosition.Physician },
-                new { Email = "dr.mccoy@palliative.emr", First = "Leonard", Last = "McCoy", Role = "Practitioner", Position = PractitionerPosition.Physician }
+                new
+                {
+                    Email = "dr.house@palliative.emr",
+                    First = "Gregory",
+                    Last = "House",
+                    Role = "CareNavigator",
+                    Position = PractitionerPosition.Physician,
+                },
+                new
+                {
+                    Email = "dr.wilson@palliative.emr",
+                    First = "James",
+                    Last = "Wilson",
+                    Role = "Practitioner",
+                    Position = PractitionerPosition.Physician,
+                },
+                new
+                {
+                    Email = "dr.grey@palliative.emr",
+                    First = "Meredith",
+                    Last = "Grey",
+                    Role = "Practitioner",
+                    Position = PractitionerPosition.Physician,
+                },
+                new
+                {
+                    Email = "dr.murphy@palliative.emr",
+                    First = "Shaun",
+                    Last = "Murphy",
+                    Role = "Practitioner",
+                    Position = PractitionerPosition.Physician,
+                },
+                new
+                {
+                    Email = "dr.dorian@palliative.emr",
+                    First = "John",
+                    Last = "Dorian",
+                    Role = "Practitioner",
+                    Position = PractitionerPosition.Physician,
+                },
+                new
+                {
+                    Email = "dr.yang@palliative.emr",
+                    First = "Cristina",
+                    Last = "Yang",
+                    Role = "Practitioner",
+                    Position = PractitionerPosition.Physician,
+                },
+                new
+                {
+                    Email = "dr.mccoy@palliative.emr",
+                    First = "Leonard",
+                    Last = "McCoy",
+                    Role = "Practitioner",
+                    Position = PractitionerPosition.Physician,
+                },
             };
 
             foreach (var acc in practitionerAccounts)
@@ -138,7 +197,7 @@ namespace Infrastructure.Data
                         FirstName = acc.First,
                         LastName = acc.Last,
                         EmailConfirmed = true,
-                        PractitionerId = pId
+                        PractitionerId = pId,
                     };
 
                     var result = await userManager.CreateAsync(user, "Practitioner@123!");
@@ -161,13 +220,17 @@ namespace Infrastructure.Data
                     }
                 }
 
-                var existingPractitioner = await context.Practitioners
-                    .FirstOrDefaultAsync(p => p.UserId == Guid.Parse(user.Id));
+                var existingPractitioner = await context.Practitioners.FirstOrDefaultAsync(p =>
+                    p.UserId == Guid.Parse(user.Id)
+                );
 
-                if (existingPractitioner != null && existingPractitioner.PractitionerId == Guid.Empty)
+                if (
+                    existingPractitioner != null
+                    && existingPractitioner.PractitionerId == Guid.Empty
+                )
                 {
                     context.Practitioners.Remove(existingPractitioner);
-                    await context.SaveChangesAsync();
+                    await context.SaveChangesAsync(default);
                     existingPractitioner = null;
                 }
 
@@ -188,7 +251,7 @@ namespace Infrastructure.Data
                 }
             }
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
         }
 
         public static async Task WipeDatabaseAsync(ApplicationDbContext context)
@@ -199,8 +262,8 @@ namespace Infrastructure.Data
                 .Distinct()
                 .Where(t =>
                     !string.IsNullOrEmpty(t)
-                    // We now allow wiping AspNet tables if a full wipe is requested
-                    // to ensure no "dirty" identity data persists across resets
+                // We now allow wiping AspNet tables if a full wipe is requested
+                // to ensure no "dirty" identity data persists across resets
                 )
                 .ToList();
 
@@ -230,8 +293,13 @@ namespace Infrastructure.Data
 
             if (!practitioners.Any())
             {
-                var debugInfo = string.Join(", ", allPractitioners.Select(p => $"{p.LastName}:{p.PractitionerId}"));
-                throw new Exception($"Seeding failed: No valid practitioners found. DB contained: {debugInfo}");
+                var debugInfo = string.Join(
+                    ", ",
+                    allPractitioners.Select(p => $"{p.LastName}:{p.PractitionerId}")
+                );
+                throw new Exception(
+                    $"Seeding failed: No valid practitioners found. DB contained: {debugInfo}"
+                );
             }
 
             var practitionerIds = practitioners.Select(p => p.PractitionerId).ToList();
@@ -271,6 +339,71 @@ namespace Infrastructure.Data
                 .Generate(5);
             context.Set<DurableMedicalEquipment>().AddRange(dme);
 
+            var medications = new List<Medication>
+            {
+                new Medication
+                {
+                    Name = "Morphine Sulfate (Roxanol)",
+                    Strength = "20mg/mL",
+                    DefaultRoute = MedicationRoute.Oral,
+                },
+                new Medication
+                {
+                    Name = "Lorazepam (Ativan)",
+                    Strength = "0.5mg",
+                    DefaultRoute = MedicationRoute.Sublingual,
+                },
+                new Medication
+                {
+                    Name = "Haloperidol (Haldol)",
+                    Strength = "2mg/mL",
+                    DefaultRoute = MedicationRoute.Oral,
+                },
+                new Medication
+                {
+                    Name = "Gabapentin (Neurontin)",
+                    Strength = "300mg",
+                    DefaultRoute = MedicationRoute.Oral,
+                },
+                new Medication
+                {
+                    Name = "Fentanyl Patch (Duragesic)",
+                    Strength = "25mcg/hr",
+                    DefaultRoute = MedicationRoute.Transdermal,
+                },
+                new Medication
+                {
+                    Name = "Midazolam (Versed)",
+                    Strength = "5mg/mL",
+                    DefaultRoute = MedicationRoute.Subcutaneous,
+                },
+                new Medication
+                {
+                    Name = "Scopolamine Patch (Transderm Scop)",
+                    Strength = "1.5mg",
+                    DefaultRoute = MedicationRoute.Transdermal,
+                },
+                new Medication
+                {
+                    Name = "Prednisone",
+                    Strength = "5mg",
+                    DefaultRoute = MedicationRoute.Oral,
+                },
+                new Medication
+                {
+                    Name = "Ondansetron (Zofran)",
+                    Strength = "4mg",
+                    DefaultRoute = MedicationRoute.Oral,
+                },
+                new Medication
+                {
+                    Name = "Dexamethasone (Decadron)",
+                    Strength = "4mg",
+                    DefaultRoute = MedicationRoute.Oral,
+                },
+            };
+            context.Set<Medication>().AddRange(medications);
+
             var faker = new Faker();
             // Seed coordinates for practitioners around a tight SLC cluster (approx 10-15 mile radius)
             foreach (var p in practitioners)
@@ -294,9 +427,7 @@ namespace Infrastructure.Data
                 context.EntityAddresses.Add(entityAddr);
             }
 
-            await context.SaveChangesAsync();
-
-
+            await context.SaveChangesAsync(default);
 
             // ==========================================
             // TRANSACTIONAL TABLES (10 Records Each)
@@ -305,14 +436,20 @@ namespace Infrastructure.Data
                 .RuleFor(p => p.PatientId, Guid.NewGuid)
                 .RuleFor(p => p.FirstName, f => f.Name.FirstName())
                 .RuleFor(p => p.LastName, f => f.Name.LastName())
-                .RuleFor(p => p.Mrn, f => $"MRN-{f.IndexGlobal + 50000}") 
+                .RuleFor(p => p.Mrn, f => $"MRN-{f.IndexGlobal + 50000}")
                 .RuleFor(
                     p => p.Dob,
                     f => f.Date.Past(80, DateTime.UtcNow.AddYears(-20)).ToUniversalTime()
                 )
                 .RuleFor(p => p.BiologicalSex, f => f.PickRandom("Male", "Female"))
-                .RuleFor(p => p.CivilStatus, f => f.PickRandom("Single", "Married", "Widowed", "Divorced"))
-                .RuleFor(p => p.Religion, f => f.PickRandom("Catholic", "Christian", "Muslim", "Buddhism", "None"))
+                .RuleFor(
+                    p => p.CivilStatus,
+                    f => f.PickRandom("Single", "Married", "Widowed", "Divorced")
+                )
+                .RuleFor(
+                    p => p.Religion,
+                    f => f.PickRandom("Catholic", "Christian", "Muslim", "Buddhism", "None")
+                )
                 .RuleFor(p => p.Occupation, f => f.Name.JobTitle())
                 .RuleFor(p => p.Nationality, f => "Filipino")
                 .RuleFor(p => p.Language, f => "English")
@@ -324,75 +461,84 @@ namespace Infrastructure.Data
                 )
                 .Generate(10);
             context.Patients.AddRange(patients);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
 
             // Seed Patient Contacts with POA
             var patientContacts = new List<PatientContact>();
             foreach (var p in patients)
             {
                 // Spouse (Primary & POA)
-                patientContacts.Add(new PatientContact
-                {
-                    ContactId = Guid.NewGuid(),
-                    PatientId = p.PatientId,
-                    FirstName = faker.Name.FirstName(),
-                    LastName = p.LastName,
-                    Relationship = RelationshipType.Spouse,
-                    PhoneNumber = faker.Phone.PhoneNumber("###-###-####"),
-                    Email = faker.Internet.Email(),
-                    IsPrimaryContact = true,
-                    HasPowerOfAttorney = true,
-                    IsLegalGuardian = false,
-                    Notes = "Primary medical decision maker and spouse."
-                });
+                patientContacts.Add(
+                    new PatientContact
+                    {
+                        ContactId = Guid.NewGuid(),
+                        PatientId = p.PatientId,
+                        FirstName = faker.Name.FirstName(),
+                        LastName = p.LastName,
+                        Relationship = RelationshipType.Spouse,
+                        PhoneNumber = faker.Phone.PhoneNumber("###-###-####"),
+                        Email = faker.Internet.Email(),
+                        IsPrimaryContact = true,
+                        HasPowerOfAttorney = true,
+                        IsLegalGuardian = false,
+                        Notes = "Primary medical decision maker and spouse.",
+                    }
+                );
 
                 // Sibling (Legal Guardian)
-                patientContacts.Add(new PatientContact
-                {
-                    ContactId = Guid.NewGuid(),
-                    PatientId = p.PatientId,
-                    FirstName = faker.Name.FirstName(),
-                    LastName = p.LastName,
-                    Relationship = RelationshipType.Sibling,
-                    PhoneNumber = faker.Phone.PhoneNumber("###-###-####"),
-                    Email = faker.Internet.Email(),
-                    IsPrimaryContact = false,
-                    HasPowerOfAttorney = false,
-                    IsLegalGuardian = true,
-                    Notes = "Court-appointed legal guardian."
-                });
+                patientContacts.Add(
+                    new PatientContact
+                    {
+                        ContactId = Guid.NewGuid(),
+                        PatientId = p.PatientId,
+                        FirstName = faker.Name.FirstName(),
+                        LastName = p.LastName,
+                        Relationship = RelationshipType.Sibling,
+                        PhoneNumber = faker.Phone.PhoneNumber("###-###-####"),
+                        Email = faker.Internet.Email(),
+                        IsPrimaryContact = false,
+                        HasPowerOfAttorney = false,
+                        IsLegalGuardian = true,
+                        Notes = "Court-appointed legal guardian.",
+                    }
+                );
 
                 // Lawyer
-                patientContacts.Add(new PatientContact
-                {
-                    ContactId = Guid.NewGuid(),
-                    PatientId = p.PatientId,
-                    FirstName = faker.Name.FirstName(),
-                    LastName = faker.Name.LastName(),
-                    Relationship = RelationshipType.Lawyer,
-                    PhoneNumber = faker.Phone.PhoneNumber("###-###-####"),
-                    Email = faker.Internet.Email(),
-                    IsPrimaryContact = false,
-                    HasPowerOfAttorney = false,
-                    IsLegalGuardian = false,
-                    Notes = "Legal counsel for estate and directives."
-                });
+                patientContacts.Add(
+                    new PatientContact
+                    {
+                        ContactId = Guid.NewGuid(),
+                        PatientId = p.PatientId,
+                        FirstName = faker.Name.FirstName(),
+                        LastName = faker.Name.LastName(),
+                        Relationship = RelationshipType.Lawyer,
+                        PhoneNumber = faker.Phone.PhoneNumber("###-###-####"),
+                        Email = faker.Internet.Email(),
+                        IsPrimaryContact = false,
+                        HasPowerOfAttorney = false,
+                        IsLegalGuardian = false,
+                        Notes = "Legal counsel for estate and directives.",
+                    }
+                );
             }
             context.PatientContacts.AddRange(patientContacts);
 
             // Seed POA Documents
-            var poaDocuments = patientContacts.Where(c => c.HasPowerOfAttorney).Select(c => new PatientDocument
-            {
-                PatientDocumentId = Guid.NewGuid(),
-                PatientId = c.PatientId,
-                PatientContactId = c.ContactId,
-                Title = "Durable Power of Attorney - Legal.pdf",
-                DocumentType = "POA",
-                StorageUrl = "/documents/poa_sample.pdf",
-                ContentType = "application/pdf",
-                FileSize = 102456,
-                UploadedAt = DateTimeOffset.UtcNow.AddMonths(-1)
-            }).ToList();
+            var poaDocuments = patientContacts
+                .Where(c => c.HasPowerOfAttorney)
+                .Select(c => new PatientDocument
+                {
+                    PatientDocumentId = Guid.NewGuid(),
+                    PatientId = c.PatientId,
+                    PatientContactId = c.ContactId,
+                    Title = "Durable Power of Attorney - Legal.pdf",
+                    DocumentType = "POA",
+                    StorageUrl = "/documents/poa_sample.pdf",
+                    ContentType = "application/pdf",
+                    FileSize = 102456,
+                    UploadedAt = DateTimeOffset.UtcNow.AddMonths(-1),
+                })
+                .ToList();
             context.PatientDocuments.AddRange(poaDocuments);
 
             var patientOutreaches = new Faker<PatientOutreach>()
@@ -418,7 +564,7 @@ namespace Infrastructure.Data
                 )
                 .Generate(10);
             context.Set<PatientOutreach>().AddRange(patientOutreaches);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
 
             var outreachContacts = new Faker<OutreachContact>()
                 .RuleFor(x => x.OutreachContactId, Guid.NewGuid)
@@ -446,7 +592,6 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.ActivityDate, f => f.Date.RecentOffset(5).ToUniversalTime())
                 .Generate(10);
             context.Set<OutreachActivity>().AddRange(outreachActivities);
-
 
             var patientPhones = new Faker<PatientPhone>()
                 .RuleFor(x => x.PhoneId, Guid.NewGuid)
@@ -607,7 +752,9 @@ namespace Infrastructure.Data
                 )
                 .Generate(12); // Generate 12 to perfectly fill 3 days (4 per day)
             context.Appointments.AddRange(appointments);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
+
+            var meds = context.Set<Medication>().Local.ToList();
 
             // --- CLINICAL DATA HARDENING ---
             foreach (var p in patients)
@@ -615,41 +762,83 @@ namespace Infrastructure.Data
                 // Allergies
                 var pAllergies = new Faker<Allergy>()
                     .RuleFor(a => a.PatientId, p.PatientId)
-                    .RuleFor(a => a.Allergen, f => f.PickRandom(new[] { "Penicillin", "Peanuts", "Latex", "Sulfa Drugs", "Aspirin", "Shellfish" }))
+                    .RuleFor(
+                        a => a.Allergen,
+                        f =>
+                            f.PickRandom(
+                                new[]
+                                {
+                                    "Penicillin",
+                                    "Peanuts",
+                                    "Latex",
+                                    "Sulfa Drugs",
+                                    "Aspirin",
+                                    "Shellfish",
+                                }
+                            )
+                    )
                     .RuleFor(a => a.Severity, f => f.PickRandom<SeverityLevel>())
-                    .RuleFor(a => a.Reaction, f => f.PickRandom(new[] { "Anaphylaxis", "Rash", "Hives", "Shortness of breath", "Itching" }))
-                    .Generate(f => f.Random.Number(0, 2));
+                    .RuleFor(
+                        a => a.Reaction,
+                        f =>
+                            f.PickRandom(
+                                new[]
+                                {
+                                    "Anaphylaxis",
+                                    "Rash",
+                                    "Hives",
+                                    "Shortness of breath",
+                                    "Itching",
+                                }
+                            )
+                    )
+                    .Generate(new Random().Next(0, 3));
                 context.Set<Allergy>().AddRange(pAllergies);
 
                 // Diagnoses (Problem List)
                 var pDiagnoses = new Faker<Diagnosis>()
                     .RuleFor(d => d.PatientId, p.PatientId)
-                    .RuleFor(d => d.Icd10Code, f => f.PickRandom(new[] { "C34.90", "I50.9", "E11.9", "J44.9", "F32.9" }))
-                    .RuleFor(d => d.Description, (f, d) => d.Icd10Code switch {
-                        "C34.90" => "Malignant neoplasm of unspecified part of unspecified bronchus or lung",
-                        "I50.9" => "Heart failure, unspecified",
-                        "E11.9" => "Type 2 diabetes mellitus without complications",
-                        "J44.9" => "Chronic obstructive pulmonary disease, unspecified",
-                        "F32.9" => "Major depressive disorder, single episode, unspecified",
-                        _ => "General Diagnosis"
-                    })
+                    .RuleFor(
+                        d => d.Icd10Code,
+                        f => f.PickRandom(new[] { "C34.90", "I50.9", "E11.9", "J44.9", "F32.9" })
+                    )
+                    .RuleFor(
+                        d => d.Description,
+                        (f, d) =>
+                            d.Icd10Code switch
+                            {
+                                "C34.90" =>
+                                    "Malignant neoplasm of unspecified part of unspecified bronchus or lung",
+                                "I50.9" => "Heart failure, unspecified",
+                                "E11.9" => "Type 2 diabetes mellitus without complications",
+                                "J44.9" => "Chronic obstructive pulmonary disease, unspecified",
+                                "F32.9" => "Major depressive disorder, single episode, unspecified",
+                                _ => "General Diagnosis",
+                            }
+                    )
                     .RuleFor(d => d.IsPrimary, f => f.IndexFaker == 0)
-                    .Generate(f => f.Random.Number(1, 3));
+                    .Generate(new Random().Next(1, 4));
                 context.Set<Diagnosis>().AddRange(pDiagnoses);
 
                 // Medications (Prescriptions)
                 var pPrescriptions = new Faker<Prescription>()
                     .RuleFor(pr => pr.PatientId, p.PatientId)
-                    .RuleFor(pr => pr.MedicationId, f => f.PickRandom(context.Set<Medication>().Local.ToList()).MedicationId)
+                    .RuleFor(pr => pr.MedicationId, f => f.PickRandom(meds).MedicationId)
                     .RuleFor(pr => pr.PrescribedById, f => f.PickRandom(practitionerIds))
-                    .RuleFor(pr => pr.Dose, f => f.PickRandom(new[] { "5mg", "10mg", "20mg", "1 tab" }))
-                    .RuleFor(pr => pr.Frequency, f => f.PickRandom(new[] { "QD", "BID", "TID", "Q4H PRN" }))
-                    .RuleFor(pr => pr.StartDate, f => f.Date.PastOffset(1))
+                    .RuleFor(
+                        pr => pr.Dose,
+                        f => f.PickRandom(new[] { "5mg", "10mg", "20mg", "1 tab" })
+                    )
+                    .RuleFor(
+                        pr => pr.Frequency,
+                        f => f.PickRandom(new[] { "QD", "BID", "TID", "Q4H PRN" })
+                    )
+                    .RuleFor(pr => pr.StartDate, f => f.Date.PastOffset(1).ToUniversalTime())
                     .RuleFor(pr => pr.IsActive, true)
-                    .Generate(f => f.Random.Number(2, 5));
+                    .Generate(new Random().Next(2, 6));
                 context.Set<Prescription>().AddRange(pPrescriptions);
             }
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
 
             var encounters = new Faker<ClinicalEncounter>()
                 .RuleFor(e => e.EncounterId, Guid.NewGuid)
@@ -661,7 +850,7 @@ namespace Infrastructure.Data
                 .RuleFor(e => e.PpsScore, f => f.Random.Number(30, 100))
                 .Generate(30);
             context.Set<ClinicalEncounter>().AddRange(encounters);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
 
             var vitals = new Faker<VitalSign>()
                 .RuleFor(v => v.VitalId, Guid.NewGuid)
@@ -691,11 +880,11 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.ShortnessOfBreath, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.Tiredness, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.Drowsiness, f => f.Random.Number(0, 10))
-                .RuleFor(x => x.Appetite, f => f.Random.Number(0, 10))
+                .RuleFor(x => x.LackOfAppetite, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.Wellbeing, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.Anxiety, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.Depression, f => f.Random.Number(0, 10))
-                .RuleFor(x => x.RecordedAt, f => f.Date.RecentOffset(30).ToUniversalTime())
+                .RuleFor(x => x.AssessedAt, f => f.Date.RecentOffset(30).ToUniversalTime())
                 .Generate(100);
             context.Set<EsasAssessment>().AddRange(esas);
 
@@ -723,7 +912,7 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.AcuityLevel, f => f.PickRandom<AcuityLevel>())
                 .Generate(10);
             context.Set<CareNavigationCase>().AddRange(cases);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
 
             var barriers = new Faker<BarrierLog>()
                 .RuleFor(x => x.BarrierId, Guid.NewGuid)
@@ -772,7 +961,7 @@ namespace Infrastructure.Data
                 );
             }
             context.Set<ScheduleBlock>().AddRange(blocks);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
 
             var resources = new Faker<AppointmentResource>()
                 .RuleFor(x => x.AppointmentId, (f, u) => f.PickRandom(appointments).AppointmentId)
@@ -825,7 +1014,7 @@ namespace Infrastructure.Data
                 .RuleFor(x => x.Status, f => f.PickRandom<ClaimStatus>())
                 .Generate(10);
             context.Set<ZBenefitClaim>().AddRange(claims);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
 
             var claimLogs = new Faker<ClaimStatusLog>()
                 .RuleFor(x => x.LogId, Guid.NewGuid)
@@ -847,7 +1036,7 @@ namespace Infrastructure.Data
                 .Generate(10);
             context.Set<BillingInvoice>().AddRange(invoices);
 
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
             var scripts = new List<OutreachScript>
             {
                 new OutreachScript
@@ -870,7 +1059,7 @@ namespace Infrastructure.Data
                 },
             };
             context.Set<OutreachScript>().AddRange(scripts);
-            await context.SaveChangesAsync();
+            await context.SaveChangesAsync(default);
         }
     }
 }
