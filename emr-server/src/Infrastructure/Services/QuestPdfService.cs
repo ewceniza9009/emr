@@ -36,6 +36,16 @@ public class QuestPdfService : IPdfService
             .Include(e => e.Diagnoses)
             .FirstOrDefaultAsync(e => e.AppointmentId == appointmentId);
 
+        // Fetch ESAS assessment
+        var esas = encounter != null 
+            ? await _context.EsasAssessments.FirstOrDefaultAsync(e => e.EncounterId == encounter.EncounterId)
+            : null;
+
+        // Fetch Billing Invoice
+        var invoice = encounter != null
+            ? await _context.BillingInvoices.Include(i => i.Items).FirstOrDefaultAsync(i => i.EncounterId == encounter.EncounterId)
+            : null;
+
         var document = Document.Create(container =>
         {
             container.Page(page =>
@@ -56,7 +66,7 @@ public class QuestPdfService : IPdfService
                                     .FontSize(20)
                                     .SemiBold()
                                     .FontColor(Colors.Teal.Medium);
-                                col.Item().Text("Clinical Encounter Summary").FontSize(14).Medium();
+                                col.Item().Text("Visit Summary").FontSize(14).Medium();
                             });
 
                         row.RelativeItem()
@@ -225,6 +235,86 @@ public class QuestPdfService : IPdfService
                                         .Text($"• {diag.Description} ({diag.Icd10Code})");
                                 }
                             }
+
+                            if (esas != null)
+                            {
+                                col.Item().PaddingTop(20).Text("SYMPTOM BURDEN (ESAS-R)").SemiBold().Underline();
+                                col.Item().PaddingTop(10).Table(table =>
+                                {
+                                    table.ColumnsDefinition(columns =>
+                                    {
+                                        columns.RelativeColumn();
+                                        columns.RelativeColumn();
+                                        columns.RelativeColumn();
+                                        columns.RelativeColumn();
+                                    });
+
+                                    AddEsasCell(table, "Pain", esas.Pain);
+                                    AddEsasCell(table, "Tiredness", esas.Tiredness);
+                                    AddEsasCell(table, "Drowsiness", esas.Drowsiness);
+                                    AddEsasCell(table, "Nausea", esas.Nausea);
+                                    AddEsasCell(table, "Appetite", esas.LackOfAppetite);
+                                    AddEsasCell(table, "SOB", esas.ShortnessOfBreath);
+                                    AddEsasCell(table, "Depression", esas.Depression);
+                                    AddEsasCell(table, "Anxiety", esas.Anxiety);
+                                    AddEsasCell(table, "Wellbeing", esas.Wellbeing);
+                                });
+                            }
+
+                            if (invoice != null)
+                            {
+                                col.Item().PaddingTop(20).Text("BILLING DETAILS").SemiBold().Underline();
+                                col.Item().PaddingTop(10).Table(table =>
+                                {
+                                    table.ColumnsDefinition(columns =>
+                                    {
+                                        columns.RelativeColumn(3);
+                                        columns.RelativeColumn();
+                                        columns.RelativeColumn();
+                                        columns.RelativeColumn();
+                                    });
+
+                                    table.Header(header =>
+                                    {
+                                        header.Cell().BorderBottom(1).Padding(2).Text("Description").SemiBold();
+                                        header.Cell().BorderBottom(1).Padding(2).Text("Qty").SemiBold();
+                                        header.Cell().BorderBottom(1).Padding(2).Text("Unit Price").SemiBold();
+                                        header.Cell().BorderBottom(1).Padding(2).Text("Total").SemiBold();
+                                    });
+
+                                    foreach (var item in invoice.Items)
+                                    {
+                                        table.Cell().Padding(2).Text(item.Description);
+                                        table.Cell().Padding(2).Text(item.Quantity.ToString("N0"));
+                                        table.Cell().Padding(2).Text(item.UnitPrice.ToString("C"));
+                                        table.Cell().Padding(2).Text(item.TotalPrice.ToString("C"));
+                                    }
+
+                                    table.Footer(footer =>
+                                    {
+                                        footer.Cell().ColumnSpan(3).Padding(2).AlignRight().Text("Subtotal:").SemiBold();
+                                        footer.Cell().Padding(2).Text(invoice.SubtotalAmount.ToString("C")).SemiBold();
+                                    });
+                                });
+
+                                col.Item().PaddingTop(5).AlignRight().Text(text =>
+                                {
+                                    text.Span("Patient Responsibility: ").SemiBold();
+                                    text.Span(invoice.PatientResponsibility.ToString("C")).FontColor(Colors.Red.Medium).SemiBold();
+                                });
+                            }
+
+                            // Attestation
+                            col.Item().PaddingTop(30).Background(Colors.Grey.Lighten4).Padding(10).Column(c =>
+                            {
+                                c.Item().Text("ELECTRONIC ATTESTATION").FontSize(8).SemiBold().FontColor(Colors.Grey.Medium);
+                                c.Item().PaddingTop(5).Text(text =>
+                                {
+                                    text.Span("This clinical record was electronically signed by ").Italic();
+                                    text.Span($"{encounter.Practitioner?.FirstName} {encounter.Practitioner?.LastName}").SemiBold().Italic();
+                                    text.Span($" on {(encounter.DischargedAt ?? encounter.EncounterDate):MMM dd, yyyy HH:mm}.").Italic();
+                                });
+                            });
                         }
                         else
                         {
@@ -275,5 +365,14 @@ public class QuestPdfService : IPdfService
         table.Cell().Padding(2).Text(metric);
         table.Cell().Padding(2).Text(value);
         table.Cell().Padding(2).Text(recordedAt.ToString("MMM dd, HH:mm"));
+    }
+
+    private void AddEsasCell(QuestPDF.Fluent.TableDescriptor table, string label, int value)
+    {
+        table.Cell().Padding(2).Text(text =>
+        {
+            text.Span($"{label}: ").FontSize(9);
+            text.Span($"{value}/10").FontSize(9).SemiBold().FontColor(value > 7 ? Colors.Red.Medium : value > 3 ? Colors.Orange.Medium : Colors.Green.Medium);
+        });
     }
 }

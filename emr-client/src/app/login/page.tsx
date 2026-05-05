@@ -136,11 +136,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-8">
-            <p className="text-xs font-bold text-slate-500">
-              Don't have an account? <button className="text-[var(--primary)] hover:underline">Register now!</button>
-            </p>
-          </div>
         </div>
 
         <div className="mt-auto pt-12">

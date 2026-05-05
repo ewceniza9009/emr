@@ -63,5 +63,10 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
                 j => j.HasOne<Practitioner>().WithMany().HasForeignKey("practitioner_id"),
                 j => j.HasOne<Appointment>().WithMany().HasForeignKey("appointment_id")
             );
+        
+        builder
+            .HasMany(a => a.Encounters)
+            .WithOne(e => e.Appointment)
+            .HasForeignKey(e => e.AppointmentId);
     }
 }

@@ -26,6 +26,7 @@ const POSITION_STYLE: Record<string, any> = {
   nurse: { label: "Nurse", color: "text-[var(--primary)]", bg: "bg-[var(--primary)]/5", border: "border-[var(--primary)]/20", icon: <Users className="w-3.5 h-3.5" /> },
   physician: { label: "Physician", color: "text-amber-600", bg: "bg-amber-500/10", border: "border-amber-500/30", icon: <Shield className="w-3.5 h-3.5" /> },
   practitioner: { label: "Practitioner", color: "text-purple-600", bg: "bg-purple-500/10", border: "border-purple-500/30", icon: <Stethoscope className="w-3.5 h-3.5" /> },
+  admin: { label: "Admin", color: "text-emerald-600", bg: "bg-emerald-500/10", border: "border-emerald-500/30", icon: <Zap className="w-3.5 h-3.5" /> },
 };
 
 const getModalityConfig = (modalityStr: string) => {
@@ -57,6 +58,7 @@ const GET_SCHEDULE_DATA = gql`
         appointmentId scheduledStart scheduledEnd modality status travelTimeMinutes distanceInMiles practitionerId
         practitioner { practitionerId firstName lastName position }
         supportingClinicians { practitionerId firstName lastName position }
+        encounters { practitioner { practitionerId firstName lastName position } }
         patient { firstName lastName mrn addresses { isPrimary address { street } } }
       }
     }
@@ -214,14 +216,20 @@ export default function SchedulingCalendar() {
       const withinHours = hour >= GRID_CONFIG.START_HOUR && hour < GRID_CONFIG.END_HOUR;
       if (selectedPractitioners.size > 0) {
         const primaryId = (a.practitionerId || a.practitioner?.practitionerId || "")?.toLowerCase().trim();
-        const primaryName = (a.practitioner ? `${a.practitioner.firstName} ${a.practitioner.lastName}` : "")?.toLowerCase().trim();
+        const pObj = a.practitioner || practitioners.find((p: any) => p.practitionerId.toLowerCase().trim() === primaryId);
+        const primaryName = (pObj ? `${pObj.firstName} ${pObj.lastName}` : "")?.toLowerCase().trim();
         const isPrimaryMatch = (primaryId && selectedIds.has(primaryId)) || (primaryName && selectedFullNames.has(primaryName));
         const isSupportingMatch = a.supportingClinicians?.some((sc: any) => {
           const scId = (sc.practitionerId || sc.PractitionerId || "")?.toLowerCase().trim();
           const scName = `${sc.firstName} ${sc.lastName}`.toLowerCase().trim();
           return (scId && selectedIds.has(scId)) || (scName && selectedFullNames.has(scName));
         });
-        return (isPrimaryMatch || isSupportingMatch) && withinHours;
+        const encounterPrac = a.encounters?.[0]?.practitioner;
+        const encounterPracId = encounterPrac?.practitionerId?.toLowerCase().trim();
+        const encounterPracName = encounterPrac ? `${encounterPrac.firstName} ${encounterPrac.lastName}`.toLowerCase().trim() : "";
+        const isEncounterMatch = (encounterPracId && selectedIds.has(encounterPracId)) || (encounterPracName && selectedFullNames.has(encounterPracName));
+        
+        return (isPrimaryMatch || isSupportingMatch || isEncounterMatch) && withinHours;
       }
       const pPosition = (a.practitioner?.position || a.practitioner?.Position || "")?.toLowerCase().trim();
       return pPosition && (selectedPositions.size === 0 || selectedPositions.has(pPosition)) && withinHours;
@@ -516,7 +524,8 @@ export default function SchedulingCalendar() {
                       let durMin = (end.getTime() - start.getTime()) / 60000;
                       const viewedPractitionerId = selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : null;
                       const isViewedAsSc = viewedPractitionerId && viewedPractitionerId !== appt.practitionerId && appt.supportingClinicians?.some((sc: any) => sc.practitionerId === viewedPractitionerId);
-                      if (isViewedAsSc) durMin = 15;
+                      const isViewedAsAttending = viewedPractitionerId && viewedPractitionerId !== appt.practitionerId && appt.encounters?.[0]?.practitioner?.practitionerId === viewedPractitionerId;
+                      if (isViewedAsSc || isViewedAsAttending) durMin = 15;
                       const modality = getModalityConfig(appt.modality);
                       const statusConfig = getStatusConfig(appt.status);
                       const driveMin = appt.travelTimeMinutes || 0;
@@ -570,7 +579,7 @@ export default function SchedulingCalendar() {
                             <div draggable onDragStart={(e) => { e.dataTransfer.setData("appointmentId", appt.appointmentId); e.dataTransfer.setData("duration", durMin.toString()); }}
                               onClick={() => { setDrawerPrefill(appt.appointmentId); setDrawerOpen(true); }}
                               className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden backdrop-blur-lg z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px]
-                                    ${isViewedAsSc ? "bg-indigo-500/10 border-indigo-500/40 group-hover:bg-[var(--card-bg)]" : style.bg + " " + style.border + " group-hover:bg-[var(--card-bg)]"} group-hover:border-[var(--primary)]/40`}>
+                                    ${(isViewedAsSc || isViewedAsAttending) ? "bg-indigo-500/10 border-indigo-500/40 group-hover:bg-[var(--card-bg)]" : style.bg + " " + style.border + " group-hover:bg-[var(--card-bg)]"} group-hover:border-[var(--primary)]/40`}>
 
                               {/* Header Section */}
                               <div className="flex flex-nowrap items-center justify-between shrink-0 mb-1 gap-1">
@@ -578,9 +587,9 @@ export default function SchedulingCalendar() {
                                   <div className={`px-2 py-1 bg-[var(--input-bg)] border border-[var(--card-border)] text-[10px] font-bold text-[var(--text-secondary)] flex items-center gap-1 shrink-0`} title={modality.label}>
                                     {React.cloneElement(modality.icon as React.ReactElement, { className: `w-3 h-3 ${isViewedAsSc ? "text-indigo-500" : "text-[var(--primary)]"}` })}
                                   </div>
-                                  <div className={`px-2 py-1 ${isViewedAsSc ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-600 dark:text-indigo-300" : statusConfig.bg + " " + statusConfig.border + " " + statusConfig.text} text-[10px] font-bold flex items-center gap-1 border shadow-sm shrink-0`}>
-                                    <div className={`w-2 h-2 rounded-full ${isViewedAsSc ? "bg-indigo-500" : statusConfig.dot}`} /> 
-                                    <span className="whitespace-nowrap">{isViewedAsSc ? "SUPPORT" : statusConfig.label}</span>
+                                  <div className={`px-2 py-1 ${(isViewedAsSc || isViewedAsAttending) ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-600 dark:text-indigo-300" : statusConfig.bg + " " + statusConfig.border + " " + statusConfig.text} text-[10px] font-bold flex items-center gap-1 border shadow-sm shrink-0`}>
+                                    <div className={`w-2 h-2 rounded-full ${(isViewedAsSc || isViewedAsAttending) ? "bg-indigo-500" : statusConfig.dot}`} /> 
+                                    <span className="whitespace-nowrap">{isViewedAsAttending ? "YOU PERFORMED" : isViewedAsSc ? "YOU SUPPORTED" : statusConfig.label}</span>
                                   </div>
                                 </div>
                                 <span className="text-xs font-bold text-[var(--text-primary)] shrink-0 ml-auto whitespace-nowrap">
@@ -590,17 +599,29 @@ export default function SchedulingCalendar() {
 
                               {/* Patient Data */}
                               <div className="flex flex-col mb-1">
-                                <h4 className="text-sm font-bold text-[var(--text-primary)] tracking-tight group-hover:text-[var(--primary)] transition-colors leading-tight">{appt.patient?.firstName} {appt.patient?.lastName}</h4>
-                                <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium leading-tight line-clamp-1">{appt.patient?.addresses?.[0]?.address?.street || "No address provided"}</p>
+                                <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em] mb-1">Patient</p>
+                                <h4 className="text-base font-black text-[var(--text-primary)] tracking-tight group-hover:text-[var(--primary)] transition-colors leading-tight">{appt.patient?.firstName} {appt.patient?.lastName}</h4>
+                                <div className="flex items-center gap-1.5 mt-1.5">
+                                  <MapPin className="w-3 h-3 text-[var(--text-muted)]" />
+                                  <p className="text-[10px] text-[var(--text-muted)] font-bold leading-tight line-clamp-1 uppercase tracking-wider">{appt.patient?.addresses?.[0]?.address?.street || "No address recorded"}</p>
+                                </div>
+                                <div className="mt-3 flex flex-col gap-1">
+                                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.1em]">{isViewedAsAttending ? "Performed By" : "Clinical Lead"}</p>
+                                  <p className="text-xs font-semibold text-[var(--text-primary)]">
+                                    {isViewedAsAttending 
+                                      ? `${appt.encounters[0].practitioner.firstName} ${appt.encounters[0].practitioner.lastName}`
+                                      : `${appt.practitioner?.firstName} ${appt.practitioner?.lastName}`}
+                                  </p>
+                                </div>
                               </div>
 
                               {/* Detailed Hover Info */}
                               <div className="hidden group-hover:flex flex-col gap-4 mt-2 pb-4 border-t border-[var(--card-border)] pt-4 animate-in fade-in slide-in-from-top-1 duration-300">
                                 <div className="flex flex-col gap-1">
-                                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Clinical Lead</p>
+                                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{isViewedAsAttending ? "Scheduled Lead" : "Clinical Lead"}</p>
                                   <p className="text-xs font-semibold text-[var(--text-primary)]">{appt.practitioner?.firstName} {appt.practitioner?.lastName}</p>
                                 </div>
-                                {appt.supportingClinicians?.length > 0 && (
+                                {appt.supportingClinicians?.length > 0 && !isViewedAsAttending && (
                                   <div className="flex flex-col gap-1">
                                     <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Support Team</p>
                                     <div className="flex flex-col gap-1">
@@ -615,11 +636,14 @@ export default function SchedulingCalendar() {
                               {/* Footer Section */}
                               <div className="mt-auto pt-2 border-t border-[var(--card-border)] flex items-center justify-between shrink-0">
                                 <div className="flex -space-x-2">
-                                  {appt.practitioner && (
-                                      <div className="w-7 h-7 bg-[var(--primary)] border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="Primary Clinician">PC</div>
+                                  {appt.practitionerId === viewedPractitionerId && (
+                                      <div className="w-7 h-7 bg-[var(--primary)] border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You are the Primary Lead">YOU</div>
                                   )}
-                                  {appt.supportingClinicians?.length > 0 && (
-                                      <div className="w-7 h-7 bg-blue-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="Supporting Staff">SS</div>
+                                  {isViewedAsSc && (
+                                      <div className="w-7 h-7 bg-blue-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You are Supporting">SS</div>
+                                  )}
+                                  {isViewedAsAttending && (
+                                      <div className="w-7 h-7 bg-emerald-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You performed this encounter">AP</div>
                                   )}
                                 </div>
                                 <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors" />

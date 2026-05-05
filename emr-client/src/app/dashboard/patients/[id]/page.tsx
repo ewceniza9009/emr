@@ -133,6 +133,12 @@ const GET_PATIENT_APPOINTMENTS = gql`
           firstName
           lastName
         }
+        encounters {
+          practitioner {
+            firstName
+            lastName
+          }
+        }
       }
     }
   }
@@ -649,7 +655,9 @@ export default function PatientDetailPage() {
                               </span>
                               <span className="flex items-center gap-1.5 text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">
                                 <UserCircle className="w-3.5 h-3.5" />
-                                {appt.practitioner?.firstName} {appt.practitioner?.lastName}
+                                {appt.status?.toUpperCase() === 'COMPLETED' && appt.encounters?.[0]?.practitioner 
+                                  ? `${appt.encounters[0].practitioner.firstName} ${appt.encounters[0].practitioner.lastName}`
+                                  : `${appt.practitioner?.firstName} ${appt.practitioner?.lastName}`}
                               </span>
                             </div>
                           </div>

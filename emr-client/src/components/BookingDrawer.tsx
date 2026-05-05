@@ -269,17 +269,24 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
   useEffect(() => {
     if (currentGeoData?.availableProviders?.length > 0 && !practitionerId) {
-      const best = [...currentGeoData.availableProviders]
-        .filter(p => p.role === "CareNavigator")
-        .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
-      if (best) setPractitionerId(best.practitionerId);
-      else {
-        const fallback = [...currentGeoData.availableProviders]
+      const userPracId = (session?.user as any)?.practitionerId;
+      const me = currentGeoData.availableProviders.find((p: any) => p.practitionerId?.toLowerCase() === userPracId?.toLowerCase());
+      
+      if (me) {
+        setPractitionerId(me.practitionerId);
+      } else {
+        const best = [...currentGeoData.availableProviders]
+          .filter(p => p.role === "CareNavigator")
           .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
-        if (fallback) setPractitionerId(fallback.practitionerId);
+        if (best) setPractitionerId(best.practitionerId);
+        else {
+          const fallback = [...currentGeoData.availableProviders]
+            .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
+          if (fallback) setPractitionerId(fallback.practitionerId);
+        }
       }
     }
-  }, [currentGeoData, practitionerId]);
+  }, [currentGeoData, practitionerId, session]);
 
   const practitionerSlots = useMemo(() => {
     const map = new Map<string, any[]>();
@@ -322,7 +329,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     const allPractitioners = practitionerData?.practitioners || [];
     const combined = allPractitioners.filter((p: any) => 
         (p.isSupportingClinician || supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())) &&
-        p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase()
+        p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase() &&
+        p.position?.toLowerCase() !== "admin"
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
     return combined.map((p: any) => {
         const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());

@@ -22,4 +22,5 @@ public class Appointment : BaseEntity
     public Practitioner? Practitioner { get; set; }
     public ICollection<Practitioner> SupportingClinicians { get; set; } = new List<Practitioner>();
     public ICollection<AppointmentResource> AppointmentResources { get; set; } = new List<AppointmentResource>();
+    public ICollection<ClinicalEncounter> Encounters { get; set; } = new List<ClinicalEncounter>();
 }

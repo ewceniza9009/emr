@@ -15,8 +15,8 @@ namespace Infrastructure.Data
 
         public static async Task InitializeAsync(
             IServiceProvider serviceProvider,
-            bool wipeDb = true,
-            bool seedDb = true
+            bool wipeDb = false,
+            bool seedDb = false
         )
         {
             using var scope = serviceProvider.CreateScope();
@@ -30,16 +30,25 @@ namespace Infrastructure.Data
             await context.Database.MigrateAsync();
 
             // RESILIENCE: Drop the PascalCase shadow column that sometimes gets orphaned in spiritual_assessments
-            try 
+            try
             {
-                await context.Database.ExecuteSqlRawAsync("ALTER TABLE spiritual_assessments DROP COLUMN IF EXISTS \"ClinicalEncounterEncounterId\";");
+                await context.Database.ExecuteSqlRawAsync(
+                    "ALTER TABLE spiritual_assessments DROP COLUMN IF EXISTS \"ClinicalEncounterEncounterId\";"
+                );
             }
-            catch { /* Ignore if already dropped */ }
+            catch
+            {
+                /* Ignore if already dropped */
+            }
 
             // SELF-HEALING: Mark appointments as completed if they have a completed encounter
-            var orphanedAppointments = await context.Appointments
-                .Where(a => a.Status == AppointmentStatus.Scheduled)
-                .Where(a => context.ClinicalEncounters.Any(e => e.AppointmentId == a.AppointmentId && e.Status == EncounterStatus.Completed))
+            var orphanedAppointments = await context
+                .Appointments.Where(a => a.Status == AppointmentStatus.Scheduled)
+                .Where(a =>
+                    context.ClinicalEncounters.Any(e =>
+                        e.AppointmentId == a.AppointmentId && e.Status == EncounterStatus.Completed
+                    )
+                )
                 .ToListAsync();
 
             if (orphanedAppointments.Any())
@@ -139,6 +148,7 @@ namespace Infrastructure.Data
                     LastName = "Admin",
                     IsActive = true,
                     IsCareNavigator = true,
+                    IsSupportingClinician = false,
                     Position = PractitionerPosition.Admin,
                 };
                 context.Practitioners.Add(adminPractitioner);
@@ -297,7 +307,6 @@ namespace Infrastructure.Data
                 await context.Database.ExecuteSqlRawAsync(sql);
             }
         }
-
 
         public static async Task SeedDatabaseAsync(ApplicationDbContext context)
         {
@@ -810,7 +819,10 @@ namespace Infrastructure.Data
                         (f, a) =>
                             f.Random.Bool(0.8f)
                                 ? practitioners
-                                    .Where(pr => pr.PractitionerId != a.PractitionerId)
+                                    .Where(pr =>
+                                        pr.PractitionerId != a.PractitionerId
+                                        && pr.Position != PractitionerPosition.Admin
+                                    )
                                     .OrderBy(x => Guid.NewGuid())
                                     .Take(1)
                                     .ToList()
@@ -929,7 +941,16 @@ namespace Infrastructure.Data
                         var pEncounters = new Faker<ClinicalEncounter>()
                             .RuleFor(e => e.EncounterId, Guid.NewGuid)
                             .RuleFor(e => e.PatientId, p.PatientId)
-                            .RuleFor(e => e.PractitionerId, f => f.PickRandom(practitionerIds))
+                            .RuleFor(
+                                e => e.PractitionerId,
+                                f =>
+                                    f.PickRandom(
+                                        practitioners
+                                            .Where(pr => pr.Position != PractitionerPosition.Admin)
+                                            .Select(pr => pr.PractitionerId)
+                                            .ToList()
+                                    )
+                            )
                             .RuleFor(
                                 e => e.AppointmentId,
                                 f => (Guid?)f.PickRandom(allAppointments).AppointmentId

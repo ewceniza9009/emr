@@ -72,20 +72,22 @@ export default function HomePage() {
           </motion.div>
 
           <div className="hidden lg:flex items-center gap-10">
-            {['Engine', 'Network', 'Security', 'Infrastructure'].map((item) => (
-              <Link key={item} href={`#${item.toLowerCase()}`} className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 hover:text-white transition-all hover:tracking-[0.25em]">
-                {item}
+            {[
+              { label: 'Features', id: 'engine' },
+              { label: 'Workflows', id: 'network' },
+              { label: 'Safety', id: 'security' },
+              { label: 'Platform', id: 'security' }
+            ].map((item) => (
+              <Link key={item.id} href={`#${item.id}`} className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all">
+                {item.label}
               </Link>
             ))}
           </div>
 
-          <div className="flex items-center gap-6">
-            <Link href="/login" className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 hover:text-white transition-colors">Client Auth</Link>
-            <Link href="/login" className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-[var(--primary)] to-blue-600 rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-              <div className="relative h-11 px-7 bg-black rounded-xl flex items-center justify-center border border-white/10">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Deploy System</span>
-              </div>
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="h-11 px-8 bg-[var(--primary)] text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-xl flex items-center justify-center hover:scale-105 transition-all shadow-[0_0_30px_var(--primary-glow)] group">
+              Launch App
+              <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
@@ -93,6 +95,26 @@ export default function HomePage() {
 
       {/* HERO SECTION */}
       <section className="relative pt-48 pb-32 lg:pt-64 lg:pb-56 overflow-hidden">
+        {/* MOVING LIGHT BEAMS */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <motion.div 
+            animate={{ 
+              x: [0, 100, 0],
+              opacity: [0.1, 0.3, 0.1]
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            className="absolute top-[-20%] left-[-10%] w-[1px] h-[150%] bg-white/20 rotate-[35deg] blur-[80px]" 
+          />
+          <motion.div 
+            animate={{ 
+              x: [0, -150, 0],
+              opacity: [0.05, 0.2, 0.05]
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute top-[-20%] right-[20%] w-[1px] h-[150%] bg-[var(--primary)]/30 rotate-[35deg] blur-[100px]" 
+          />
+        </div>
+
         <div className="max-w-7xl mx-auto px-8 relative z-10">
           <motion.div 
             variants={containerVariants}
@@ -100,27 +122,27 @@ export default function HomePage() {
             animate="visible"
             className="flex flex-col items-center text-center"
           >
-            <motion.div variants={itemVariants} className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/10 mb-12 backdrop-blur-xl">
-              <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-ping" />
-              <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">Operational Readiness: Active</span>
+            <motion.div variants={itemVariants} className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/[0.03] border border-white/10 mb-12 backdrop-blur-2xl shadow-2xl">
+              <div className="w-2 h-2 rounded-full bg-[var(--primary)] shadow-[0_0_10px_var(--primary)] animate-pulse" />
+              <span className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.4em]">System Status: Online</span>
             </motion.div>
             
-            <motion.h1 variants={itemVariants} className="text-6xl lg:text-[100px] font-black text-white leading-[0.95] tracking-[-0.04em] mb-12 max-w-5xl">
-              Practical <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500">electronic medical records.</span>
+            <motion.h1 variants={itemVariants} className="text-7xl lg:text-[120px] font-black text-white leading-[0.9] tracking-[-0.05em] mb-12 max-w-6xl">
+              <span className="inline-block text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/20">The future of</span> <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] via-blue-400 to-emerald-400 animate-gradient-x">clinical operations.</span>
             </motion.h1>
             
-            <motion.p variants={itemVariants} className="text-xl text-slate-500 font-medium leading-relaxed mb-14 max-w-2xl">
-              The unified operating system for high-scale medical operations. Secure, distributed, and engineered for the next decade of healthcare.
+            <motion.p variants={itemVariants} className="text-xl lg:text-2xl text-slate-400 font-medium leading-relaxed mb-16 max-w-3xl">
+              A beautifully engineered clinical operating system designed to unify workflows and empower high-performance medical teams.
             </motion.p>
 
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-6">
-              <Link href="/login" className="h-14 px-10 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-2xl shadow-white/10 group">
-                Initialize Workspace
+              <Link href="/login" className="h-16 px-12 bg-white text-black text-[11px] font-black uppercase tracking-[0.25em] rounded-2xl flex items-center justify-center hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] transition-all group">
+                Get Started
                 <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link href="#features" className="h-14 px-10 bg-white/[0.03] border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:bg-white/[0.08] transition-all backdrop-blur-md">
-                Technical Protocol
+              <Link href="#engine" className="h-16 px-12 bg-white/[0.03] border border-white/10 text-white text-[11px] font-black uppercase tracking-[0.25em] rounded-2xl flex items-center justify-center hover:bg-white/[0.08] transition-all backdrop-blur-md">
+                See Features
               </Link>
             </motion.div>
           </motion.div>
