@@ -650,159 +650,52 @@ namespace Infrastructure.Data
             var baseDate = new DateTime(2026, 5, 4, 8, 0, 0, DateTimeKind.Local).ToUniversalTime();
 
             // Phase 1: Dedicated System Admin Appointments (Ensures Admin visibility)
-            var adminPrac =
-                practitioners.FirstOrDefault(p => p.FirstName == "System" && p.LastName == "Admin")
-                ?? practitioners[0];
+            // --- HIGH-FIDELITY SCHEDULING ENGINE ---
+            var adminPrac = practitioners.FirstOrDefault(p => p.FirstName == "System" && p.LastName == "Admin") ?? practitioners[0];
+            
+            // Helper: Unified Geospatial Logic
+            double GetDistance(Guid pId, Guid patId, AppointmentModality mod) {
+                if (mod != AppointmentModality.InPersonHomeVisit && mod != AppointmentModality.InPersonFacility) return 0;
+                var pA = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == pId)?.Address;
+                var ptA = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == patId)?.Address;
+                return (pA == null || ptA == null) ? 5.0 : Application.Common.Utils.GeoUtils.CalculateDistance(pA.Latitude ?? 40.7, pA.Longitude ?? -111.8, ptA.Latitude ?? 40.7, ptA.Longitude ?? -111.8);
+            }
+
+            int GetTravelTime(double dist, AppointmentModality mod, bool isAdmin, Faker f) {
+                if (mod != AppointmentModality.InPersonHomeVisit && mod != AppointmentModality.InPersonFacility) return 0;
+                var baseT = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(dist);
+                var multiplier = isAdmin ? f.Random.Double(2.5, 4.0) : f.Random.Double(1.2, 3.5);
+                return (int)Math.Clamp(baseT * multiplier, 15, 45);
+            }
+
+            // Phase 1: System Admin Tactical Roster
             var adminAppointments = new Faker<Appointment>()
                 .RuleFor(a => a.AppointmentId, Guid.NewGuid)
                 .RuleFor(a => a.PatientId, f => f.PickRandom(patients).PatientId)
                 .RuleFor(a => a.PractitionerId, adminPrac.PractitionerId)
                 .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
-                .RuleFor(a => a.Status, f => AppointmentStatus.Scheduled)
-                .RuleFor(
-                    a => a.Modality,
-                    f =>
-                        f.Random.Bool(0.7f)
-                            ? AppointmentModality.InPersonHomeVisit
-                            : AppointmentModality.TelehealthVideo
-                )
-                .RuleFor(
-                    a => a.ScheduledStart,
-                    f => baseDate.AddDays(f.IndexFaker / 3).AddHours((f.IndexFaker % 3) * 3)
-                )
-                .RuleFor(
-                    a => a.ScheduledEnd,
-                    (f, a) => a.ScheduledStart.AddMinutes(f.Random.Bool(0.6f) ? 60 : 45)
-                )
-                .RuleFor(
-                    a => a.SupportingClinicians,
-                    (f, a) =>
-                        practitioners
-                            .Where(p => p.PractitionerId != a.PractitionerId)
-                            .OrderBy(x => Guid.NewGuid())
-                            .Take(1)
-                            .ToList()
-                )
-                .RuleFor(
-                    a => a.DistanceInMiles,
-                    (f, a) =>
-                    {
-                        if (a.Modality != AppointmentModality.InPersonHomeVisit)
-                            return 0;
-                        var pAddr = context
-                            .EntityAddresses.Local.FirstOrDefault(ea =>
-                                ea.PractitionerId == a.PractitionerId
-                            )
-                            ?.Address;
-                        var patAddr = context
-                            .EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == a.PatientId)
-                            ?.Address;
-                        if (pAddr == null || patAddr == null)
-                            return f.Random.Double(3, 8);
-                        return Application.Common.Utils.GeoUtils.CalculateDistance(
-                            pAddr.Latitude ?? 40.7,
-                            pAddr.Longitude ?? -111.8,
-                            patAddr.Latitude ?? 40.7,
-                            patAddr.Longitude ?? -111.8
-                        );
-                    }
-                )
-                .RuleFor(
-                    a => a.TravelTimeMinutes,
-                    (f, a) =>
-                    {
-                        if (a.Modality != AppointmentModality.InPersonHomeVisit)
-                            return 0;
-                        var baseTime = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(
-                            a.DistanceInMiles ?? 0
-                        );
-                        // Force high traffic for Admin variety
-                        return (int)Math.Clamp(baseTime * f.Random.Double(2.5, 4.0), 15, 45);
-                    }
-                )
+                .RuleFor(a => a.Status, AppointmentStatus.Scheduled)
+                .RuleFor(a => a.Modality, f => f.Random.Bool(0.7f) ? AppointmentModality.InPersonHomeVisit : AppointmentModality.TelehealthVideo)
+                .RuleFor(a => a.ScheduledStart, f => baseDate.AddDays(f.IndexFaker / 3).AddHours((f.IndexFaker % 3) * 3))
+                .RuleFor(a => a.ScheduledEnd, (f, a) => a.ScheduledStart.AddMinutes(f.Random.Bool(0.6f) ? 60 : 45))
+                .RuleFor(a => a.SupportingClinicians, (f, a) => practitioners.Where(p => p.PractitionerId != a.PractitionerId).OrderBy(x => Guid.NewGuid()).Take(1).ToList())
+                .RuleFor(a => a.DistanceInMiles, (f, a) => GetDistance(a.PractitionerId, a.PatientId, a.Modality))
+                .RuleFor(a => a.TravelTimeMinutes, (f, a) => GetTravelTime(a.DistanceInMiles ?? 0, a.Modality, true, f))
                 .Generate(9);
 
-            // Phase 2: General Practitioner Appointments
+            // Phase 2: General Roster Diversity
             var otherAppointments = new Faker<Appointment>()
                 .RuleFor(a => a.AppointmentId, Guid.NewGuid)
                 .RuleFor(a => a.PatientId, f => f.PickRandom(patients).PatientId)
-                .RuleFor(
-                    a => a.PractitionerId,
-                    f =>
-                        f.PickRandom(
-                            practitioners.Where(p => p.PractitionerId != adminPrac.PractitionerId)
-                        ).PractitionerId
-                )
+                .RuleFor(a => a.PractitionerId, f => f.PickRandom(practitioners.Where(p => p.PractitionerId != adminPrac.PractitionerId)).PractitionerId)
                 .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
                 .RuleFor(a => a.Status, f => f.PickRandom<AppointmentStatus>())
-                .RuleFor(
-                    a => a.Modality,
-                    f =>
-                        f.Random.Number(1, 100) <= 70
-                            ? AppointmentModality.InPersonHomeVisit
-                            : AppointmentModality.TelehealthVideo
-                )
-                .RuleFor(
-                    a => a.ScheduledStart,
-                    f => baseDate.AddDays(f.IndexFaker / 4).AddHours((f.IndexFaker % 4) * 2.5)
-                )
-                .RuleFor(
-                    a => a.ScheduledEnd,
-                    (f, a) =>
-                        a.ScheduledStart.AddMinutes(
-                            f.Random.WeightedRandom(
-                                new[] { 15, 30, 45, 60 },
-                                new[] { 0.1f, 0.2f, 0.3f, 0.4f }
-                            )
-                        )
-                )
-                .RuleFor(
-                    a => a.SupportingClinicians,
-                    (f, a) =>
-                        f.Random.Bool(0.8f)
-                            ? practitioners
-                                .Where(pr => pr.PractitionerId != a.PractitionerId)
-                                .OrderBy(x => Guid.NewGuid())
-                                .Take(1)
-                                .ToList()
-                            : new List<Practitioner>()
-                )
-                .RuleFor(
-                    a => a.DistanceInMiles,
-                    (f, a) =>
-                    {
-                        if (a.Modality != AppointmentModality.InPersonHomeVisit)
-                            return 0;
-                        var pAddr = context
-                            .EntityAddresses.Local.FirstOrDefault(ea =>
-                                ea.PractitionerId == a.PractitionerId
-                            )
-                            ?.Address;
-                        var patAddr = context
-                            .EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == a.PatientId)
-                            ?.Address;
-                        if (pAddr == null || patAddr == null)
-                            return f.Random.Double(2, 6);
-                        return Application.Common.Utils.GeoUtils.CalculateDistance(
-                            pAddr.Latitude ?? 40.7,
-                            pAddr.Longitude ?? -111.8,
-                            patAddr.Latitude ?? 40.7,
-                            patAddr.Longitude ?? -111.8
-                        );
-                    }
-                )
-                .RuleFor(
-                    a => a.TravelTimeMinutes,
-                    (f, a) =>
-                    {
-                        if (a.Modality != AppointmentModality.InPersonHomeVisit)
-                            return 0;
-                        var baseTime = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(
-                            a.DistanceInMiles ?? 0
-                        );
-                        return (int)Math.Clamp(baseTime * f.Random.Double(1.2, 3.5), 15, 45);
-                    }
-                )
+                .RuleFor(a => a.Modality, f => f.Random.Number(1, 100) <= 70 ? AppointmentModality.InPersonHomeVisit : AppointmentModality.TelehealthVideo)
+                .RuleFor(a => a.ScheduledStart, f => baseDate.AddDays(f.IndexFaker / 4).AddHours((f.IndexFaker % 4) * 2.5))
+                .RuleFor(a => a.ScheduledEnd, (f, a) => a.ScheduledStart.AddMinutes(f.Random.WeightedRandom(new[] { 15, 30, 45, 60 }, new[] { 0.1f, 0.2f, 0.3f, 0.4f })))
+                .RuleFor(a => a.SupportingClinicians, (f, a) => f.Random.Bool(0.8f) ? practitioners.Where(pr => pr.PractitionerId != a.PractitionerId).OrderBy(x => Guid.NewGuid()).Take(1).ToList() : new List<Practitioner>())
+                .RuleFor(a => a.DistanceInMiles, (f, a) => GetDistance(a.PractitionerId, a.PatientId, a.Modality))
+                .RuleFor(a => a.TravelTimeMinutes, (f, a) => GetTravelTime(a.DistanceInMiles ?? 0, a.Modality, false, f))
                 .Generate(20);
 
             context.Appointments.AddRange(adminAppointments);

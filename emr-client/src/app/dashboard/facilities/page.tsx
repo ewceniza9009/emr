@@ -87,8 +87,8 @@ export default function FacilitiesPage() {
             <div key={i} className="h-64 glass-morphism rounded-2xl animate-pulse bg-white/[0.02] border border-white/5" />
           ))
         ) : filteredFacilities.map((f: any) => (
-          <div key={f.facilityId} className="glass-morphism rounded-2xl p-6 border border-[var(--card-border)] hover:border-[var(--primary)]/30 transition-all group flex flex-col h-full shadow-lg hover:shadow-[var(--primary-glow)] hover:-translate-y-1 duration-300">
-            <div className="flex items-start justify-between mb-6">
+          <div key={f.facilityId} className="glass-morphism rounded-2xl p-5 border border-[var(--card-border)] hover:border-[var(--primary)]/30 transition-all group flex flex-col h-full shadow-lg hover:shadow-[var(--primary-glow)] hover:-translate-y-1 duration-300">
+            <div className="flex items-start justify-between mb-4">
               <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] shadow-inner group-hover:bg-[var(--primary)] group-hover:text-white transition-all duration-500">
                 <Building2 className="w-6 h-6" />
               </div>
@@ -108,8 +108,8 @@ export default function FacilitiesPage() {
                 </button>
               </div>
             </div>
-
-            <div className="mb-6">
+            
+            <div className="mb-4">
               <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:text-[var(--primary)] transition-colors line-clamp-1">{f.name}</h3>
               <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                 <MapPin className="w-3.5 h-3.5" />
@@ -118,7 +118,7 @@ export default function FacilitiesPage() {
             </div>
 
             <div className="space-y-4 flex-1">
-               <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] shadow-inner group-hover:bg-[var(--primary)]/5 transition-colors">
+               <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] shadow-inner group-hover:bg-[var(--primary)]/5 transition-colors">
                  <div className="flex items-center gap-2">
                    <Users className="w-4 h-4 text-blue-400" />
                    <span className="text-xs font-semibold text-[var(--text-secondary)]">Active Residents</span>
@@ -126,7 +126,7 @@ export default function FacilitiesPage() {
                  <span className="text-sm font-bold text-[var(--text-primary)]">{f.residents?.length || 0}</span>
                </div>
                
-               <div className="space-y-2.5 px-1">
+               <div className="space-y-1.5 px-1">
                  <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
                    <div className="w-5 h-5 rounded-lg bg-white/5 flex items-center justify-center">
                      <User className="w-3 h-3" />
@@ -141,10 +141,10 @@ export default function FacilitiesPage() {
                  </div>
                </div>
             </div>
-
+            
             <button 
               onClick={() => router.push(`/dashboard/navigation?facilityId=${f.facilityId}`)}
-              className="w-full mt-8 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all active:scale-[0.98] shadow-sm"
+              className="w-full mt-6 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all active:scale-[0.98] shadow-sm"
             >
               Tactical Sector Map
               <ArrowRight className="w-4 h-4" />

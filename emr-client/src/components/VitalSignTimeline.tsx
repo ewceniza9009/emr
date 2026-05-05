@@ -40,7 +40,10 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
     variables: { patientId }
   });
 
-  const encounters = data?.encountersByPatient || [];
+  const encounters = [...(data?.encountersByPatient || [])].sort((a: any, b: any) => 
+    new Date(b.encounterDate).getTime() - new Date(a.encounterDate).getTime()
+  );
+  const displayedEncounters = encounters.slice(0, 5);
 
   if (loading) return <div className="p-8 text-slate-500 animate-pulse text-xs uppercase font-bold tracking-widest">Scanning Vitals...</div>;
 
@@ -65,7 +68,7 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
               No historical vitals found in registry.
             </div>
           ) : (
-            encounters.map((e: any) => {
+            displayedEncounters.map((e: any) => {
               const v = e.vitalSigns?.[0]; // Get the most recent vitals for this encounter
               if (!v) return null;
 
