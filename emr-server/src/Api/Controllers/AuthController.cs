@@ -81,10 +81,12 @@ public class AuthController : ControllerBase
                     expiration = token.ValidTo,
                     user = new
                     {
+                        Id = user.Id,
                         user.FirstName,
                         user.LastName,
                         user.Email,
-                        Roles = userRoles,
+                        roles = userRoles,
+                        practitionerId = user.PractitionerId
                     },
                 }
             );

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { 
   Save, 
@@ -41,6 +42,7 @@ const LOG_VITAL_SIGN = gql`
 export default function NewAssessmentPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [esasScores, setEsasScores] = useState<Record<string, number>>({});
   const [ppsScore, setPpsScore] = useState<number>(100);
@@ -76,7 +78,7 @@ export default function NewAssessmentPage() {
         variables: {
           input: {
             patientId: data.patientId,
-            practitionerId: "00000000-0000-0000-0000-000000000001", // Hardcoded for demo
+            practitionerId: session?.user?.practitionerId || "00000000-0000-0000-0000-000000000000",
             chiefComplaint: data.chiefComplaint,
             notes: `${data.subjective}\n\n${data.objective}\n\n${data.assessment}\n\n${data.plan}`,
             ppsScore: ppsScore

@@ -1,6 +1,8 @@
 using Bogus;
 using Domain.Entities;
 using Domain.Enums;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +10,8 @@ namespace Infrastructure.Data
 {
     public static class DbInitializer
     {
+        private static readonly Guid adminPractitionerId = Guid.NewGuid();
+
         public static async Task InitializeAsync(
             IServiceProvider serviceProvider,
             bool wipeDb = true,
@@ -16,6 +20,8 @@ namespace Infrastructure.Data
         {
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
             // Ensure the database is up to date with all migrations before wiping or seeding
             await context.Database.MigrateAsync();
@@ -25,10 +31,164 @@ namespace Infrastructure.Data
                 await WipeDatabaseAsync(context);
             }
 
+            // Seed Roles, Users, and Practitioners
+            await SeedIdentityAsync(context, userManager, roleManager);
+
             if (seedDb)
             {
                 await SeedDatabaseAsync(context);
             }
+        }
+
+        private static async Task SeedIdentityAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        {
+            // Seed Roles
+            var roles = new[] { "Admin", "CareNavigator", "Practitioner" };
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
+
+            // Seed Admin User & Practitioner
+            var adminEmail = "admin@palliative.emr";
+            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+            if (adminUser == null)
+            {
+                adminUser = new ApplicationUser
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    UserName = adminEmail,
+                    Email = adminEmail,
+                    FirstName = "System",
+                    LastName = "Admin",
+                    EmailConfirmed = true,
+                    PractitionerId = adminPractitionerId
+                };
+
+                var result = await userManager.CreateAsync(adminUser, "P@ssword123!");
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                }
+            }
+            else
+            {
+                // FIX: Ensure existing admin user has a valid PractitionerId
+                if (!adminUser.PractitionerId.HasValue || adminUser.PractitionerId == Guid.Empty)
+                {
+                    adminUser.PractitionerId = adminPractitionerId;
+                    await userManager.UpdateAsync(adminUser);
+                }
+            }
+
+            var existingAdminPractitioner = await context.Practitioners
+                .FirstOrDefaultAsync(p => p.UserId == Guid.Parse(adminUser.Id));
+
+            if (existingAdminPractitioner != null && existingAdminPractitioner.PractitionerId == Guid.Empty)
+            {
+                // PK Mutation is dangerous in EF. Delete and re-create instead.
+                context.Practitioners.Remove(existingAdminPractitioner);
+                await context.SaveChangesAsync();
+                existingAdminPractitioner = null;
+            }
+
+            if (existingAdminPractitioner == null)
+            {
+                var adminPractitioner = new Practitioner
+                {
+                    PractitionerId = adminUser.PractitionerId ?? adminPractitionerId,
+                    UserId = Guid.Parse(adminUser.Id),
+                    FirstName = "System",
+                    LastName = "Admin",
+                    IsActive = true,
+                    IsCareNavigator = true,
+                    Position = PractitionerPosition.Admin,
+                };
+                context.Practitioners.Add(adminPractitioner);
+            }
+
+            // Seed Other Practitioners from CREDENTIALS.md
+            var practitionerAccounts = new[]
+            {
+                new { Email = "dr.house@palliative.emr", First = "Gregory", Last = "House", Role = "CareNavigator", Position = PractitionerPosition.Physician },
+                new { Email = "dr.wilson@palliative.emr", First = "James", Last = "Wilson", Role = "Practitioner", Position = PractitionerPosition.Physician },
+                new { Email = "dr.grey@palliative.emr", First = "Meredith", Last = "Grey", Role = "Practitioner", Position = PractitionerPosition.Physician },
+                new { Email = "dr.murphy@palliative.emr", First = "Shaun", Last = "Murphy", Role = "Practitioner", Position = PractitionerPosition.Physician },
+                new { Email = "dr.dorian@palliative.emr", First = "John", Last = "Dorian", Role = "Practitioner", Position = PractitionerPosition.Physician },
+                new { Email = "dr.yang@palliative.emr", First = "Cristina", Last = "Yang", Role = "Practitioner", Position = PractitionerPosition.Physician },
+                new { Email = "dr.mccoy@palliative.emr", First = "Leonard", Last = "McCoy", Role = "Practitioner", Position = PractitionerPosition.Physician }
+            };
+
+            foreach (var acc in practitionerAccounts)
+            {
+                var user = await userManager.FindByEmailAsync(acc.Email);
+                var pId = Guid.NewGuid();
+
+                if (user == null)
+                {
+                    user = new ApplicationUser
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        UserName = acc.Email,
+                        Email = acc.Email,
+                        FirstName = acc.First,
+                        LastName = acc.Last,
+                        EmailConfirmed = true,
+                        PractitionerId = pId
+                    };
+
+                    var result = await userManager.CreateAsync(user, "Practitioner@123!");
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(user, acc.Role);
+                    }
+                }
+                else
+                {
+                    // FIX: Handle cases where the user exists but has an empty or null PractitionerId
+                    if (!user.PractitionerId.HasValue || user.PractitionerId == Guid.Empty)
+                    {
+                        user.PractitionerId = pId;
+                        await userManager.UpdateAsync(user);
+                    }
+                    else
+                    {
+                        pId = user.PractitionerId.Value;
+                    }
+                }
+
+                var existingPractitioner = await context.Practitioners
+                    .FirstOrDefaultAsync(p => p.UserId == Guid.Parse(user.Id));
+
+                if (existingPractitioner != null && existingPractitioner.PractitionerId == Guid.Empty)
+                {
+                    context.Practitioners.Remove(existingPractitioner);
+                    await context.SaveChangesAsync();
+                    existingPractitioner = null;
+                }
+
+                if (existingPractitioner == null)
+                {
+                    var practitioner = new Practitioner
+                    {
+                        PractitionerId = pId,
+                        UserId = Guid.Parse(user.Id),
+                        FirstName = acc.First,
+                        LastName = acc.Last,
+                        IsActive = true,
+                        IsCareNavigator = acc.Role == "CareNavigator",
+                        IsSupportingClinician = acc.Role == "Practitioner",
+                        Position = acc.Position,
+                    };
+                    context.Practitioners.Add(practitioner);
+                }
+            }
+
+            await context.SaveChangesAsync();
         }
 
         public static async Task WipeDatabaseAsync(ApplicationDbContext context)
@@ -39,7 +199,8 @@ namespace Infrastructure.Data
                 .Distinct()
                 .Where(t =>
                     !string.IsNullOrEmpty(t)
-                    && !t.StartsWith("AspNet", StringComparison.OrdinalIgnoreCase)
+                    // We now allow wiping AspNet tables if a full wipe is requested
+                    // to ensure no "dirty" identity data persists across resets
                 )
                 .ToList();
 
@@ -53,11 +214,27 @@ namespace Infrastructure.Data
 
         public static async Task SeedDatabaseAsync(ApplicationDbContext context)
         {
-            // Only seed if the database is empty to prevent unique constraint violations
-            if (await context.Practitioners.AnyAsync())
+            // Only seed if the database is empty of patients to prevent unique constraint violations
+            // (Practitioners are now seeded in SeedIdentityAsync)
+            if (await context.Patients.AnyAsync())
                 return;
 
             Randomizer.Seed = new Random(8675309); // Deterministic test data
+
+            // Fetch practitioners seeded in Identity phase
+            // FINAL GUARD: Ensure we ONLY pick practitioners with valid, non-zero IDs
+            var allPractitioners = await context.Practitioners.ToListAsync();
+            var practitioners = allPractitioners
+                .Where(p => p.PractitionerId != Guid.Empty)
+                .ToList();
+
+            if (!practitioners.Any())
+            {
+                var debugInfo = string.Join(", ", allPractitioners.Select(p => $"{p.LastName}:{p.PractitionerId}"));
+                throw new Exception($"Seeding failed: No valid practitioners found. DB contained: {debugInfo}");
+            }
+
+            var practitionerIds = practitioners.Select(p => p.PractitionerId).ToList();
 
             // ==========================================
             // SETUP TABLES (5 Records Each)
@@ -94,44 +271,6 @@ namespace Infrastructure.Data
                 .Generate(5);
             context.Set<DurableMedicalEquipment>().AddRange(dme);
 
-            var careNavigators = new Faker<Practitioner>()
-                .RuleFor(p => p.PractitionerId, Guid.NewGuid)
-                .RuleFor(p => p.UserId, Guid.NewGuid)
-                .RuleFor(p => p.FirstName, f => f.Name.FirstName())
-                .RuleFor(p => p.LastName, f => f.Name.LastName())
-                .RuleFor(p => p.IsActive, true)
-                .RuleFor(p => p.IsCareNavigator, true)
-                .RuleFor(p => p.IsSupportingClinician, false)
-                .RuleFor(p => p.Position, PractitionerPosition.Nurse)
-                .Generate(5);
-
-            var supportingClinicians = new Faker<Practitioner>()
-                .RuleFor(p => p.PractitionerId, Guid.NewGuid)
-                .RuleFor(p => p.UserId, Guid.NewGuid)
-                .RuleFor(p => p.FirstName, f => f.Name.FirstName())
-                .RuleFor(p => p.LastName, f => f.Name.LastName())
-                .RuleFor(p => p.IsActive, true)
-                .RuleFor(p => p.IsCareNavigator, false)
-                .RuleFor(p => p.IsSupportingClinician, true)
-                .RuleFor(p => p.Position, PractitionerPosition.Physician)
-                .Generate(5);
-
-            // Add the System Admin explicitly as a practitioner for testing
-            var adminPractitioner = new Practitioner
-            {
-                PractitionerId = Guid.NewGuid(),
-                FirstName = "System",
-                LastName = "Admin",
-                IsActive = true,
-                IsCareNavigator = true,
-                Position = PractitionerPosition.Nurse,
-            };
-
-            var practitioners = careNavigators
-                .Concat(supportingClinicians)
-                .Append(adminPractitioner)
-                .ToList();
-
             var faker = new Faker();
             // Seed coordinates for practitioners around a tight SLC cluster (approx 10-15 mile radius)
             foreach (var p in practitioners)
@@ -155,8 +294,9 @@ namespace Infrastructure.Data
                 context.EntityAddresses.Add(entityAddr);
             }
 
-            context.Practitioners.AddRange(practitioners);
             await context.SaveChangesAsync();
+
+
 
             // ==========================================
             // TRANSACTIONAL TABLES (10 Records Each)
@@ -406,7 +546,7 @@ namespace Infrastructure.Data
             var encounters = new Faker<ClinicalEncounter>()
                 .RuleFor(e => e.EncounterId, Guid.NewGuid)
                 .RuleFor(e => e.PatientId, f => f.PickRandom(patients).PatientId)
-                .RuleFor(e => e.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
+                .RuleFor(e => e.PractitionerId, f => f.PickRandom(practitionerIds))
                 .RuleFor(e => e.AppointmentId, (f, u) => f.PickRandom(appointments).AppointmentId)
                 .RuleFor(e => e.Type, f => f.PickRandom<EncounterType>())
                 .RuleFor(e => e.Status, f => f.PickRandom<EncounterStatus>())

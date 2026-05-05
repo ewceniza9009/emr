@@ -60,8 +60,16 @@ public class TelemetrySimulatorService : BackgroundService
                 _logger.LogError(ex, "Error occurred while simulating telemetry data.");
             }
 
-            // Pulse every 2 seconds for a realistic cadence
-            await Task.Delay(2000, stoppingToken);
+            try
+            {
+                // Pulse every 2 seconds for a realistic cadence
+                await Task.Delay(2000, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Normal shutdown, ignore
+                break;
+            }
         }
     }
 }

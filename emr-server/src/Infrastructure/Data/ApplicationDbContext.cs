@@ -94,6 +94,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     {
         base.OnModelCreating(modelBuilder);
 
+        // Apply manual configurations first so the global naming loop can see and transform them
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
         modelBuilder.HasSequence<long>("patient_mrn_seq").StartsAt(10000).IncrementsBy(1);
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
@@ -103,7 +106,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
                 continue;
             }
 
-            entity.SetTableName(tableName?.ToSnakeCase());
+            // Only apply SetTableName to non-owned types to prevent them from being split into separate tables
+            if (!entity.IsOwned())
+            {
+                entity.SetTableName(tableName?.ToSnakeCase());
+            }
 
             foreach (var property in entity.GetProperties())
             {
@@ -125,8 +132,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
                 index.SetDatabaseName(index.GetDatabaseName()?.ToSnakeCase());
             }
         }
-
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }
 

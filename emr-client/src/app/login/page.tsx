@@ -128,7 +128,7 @@ export default function LoginPage() {
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  INITIALIZE SESSION
+                  LOGIN
                   <ChevronRight className="w-5 h-5 ml-3 group-hover:translate-x-2 transition-transform" />
                 </>
               )}

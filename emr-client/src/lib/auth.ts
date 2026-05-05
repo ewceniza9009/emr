@@ -19,10 +19,12 @@ export const authOptions: NextAuthOptions = {
             headers: { "Content-Type": "application/json" }
           });
 
-          const user = await res.json();
-
-          if (res.ok && user) {
-            return user; // Contains token and user info
+          const data = await res.json();
+          if (res.ok && data) {
+            return {
+              ...data.user,
+              token: data.token
+            };
           }
           return null;
         } catch (error) {
@@ -36,7 +38,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role;
+        token.role = user.roles?.[0] || user.role;
         token.token = user.token;
         token.practitionerId = user.practitionerId;
       }

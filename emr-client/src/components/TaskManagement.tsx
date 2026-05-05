@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
+import { useSession } from "next-auth/react";
 import { 
   CheckCircle2, 
   Circle, 
@@ -46,6 +47,7 @@ interface Props {
 }
 
 export default function TaskManagement({ patientId }: Props) {
+  const { data: session } = useSession();
   const [isAdding, setIsAdding] = useState(false);
   const [newTask, setNewTask] = useState("");
   
@@ -77,7 +79,7 @@ export default function TaskManagement({ patientId }: Props) {
           caseId: activeCase.caseId,
           description: newTask,
           dueDate: new Date(Date.now() + 86400000 * 2).toISOString(), // 2 days default
-          assignedToId: "00000000-0000-0000-0000-000000000000" // System for now
+          assignedToId: session?.user?.practitionerId || "00000000-0000-0000-0000-000000000000"
         }
       }
     });

@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { 
-  Stethoscope, 
-  Activity, 
-  ClipboardList, 
-  Pill, 
-  ChevronRight, 
+import { useSession } from "next-auth/react";
+import {
+  Stethoscope,
+  Activity,
+  ClipboardList,
+  Pill,
+  ChevronRight,
   ChevronLeft,
   CheckCircle2,
   AlertCircle,
@@ -78,8 +79,9 @@ export default function GuidedVisitPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const appointmentId = searchParams.get("appointmentId");
-  
+
   const { data: apptData } = useQuery(GET_APPOINTMENT_DETAILS, {
     variables: { id: appointmentId },
     skip: !appointmentId
@@ -92,14 +94,14 @@ export default function GuidedVisitPage() {
   // Form States
   const [vitals, setVitals] = useState({ hr: "", sbp: "", dbp: "", rr: "", temp: "", spo2: "" });
   const [esas, setEsas] = useState({
-    pain: 0, tiredness: 0, drowsiness: 0, nausea: 0, 
+    pain: 0, tiredness: 0, drowsiness: 0, nausea: 0,
     appetite: 0, sob: 0, depression: 0, anxiety: 0, wellbeing: 0
   });
   const [spiritual, setSpiritual] = useState({
     faith: "", importance: "", community: "", addressInCare: "",
     religiousPreference: "", clergyContact: ""
   });
-  const [directives, setDirectives] = useState<{type: string, notes: string}[]>([]);
+  const [directives, setDirectives] = useState<{ type: string, notes: string }[]>([]);
   const [note, setNote] = useState({ s: "", o: "", a: "", p: "", signature: "" });
 
   const [startEncounter, { loading: starting }] = useMutation(START_ENCOUNTER);
@@ -112,10 +114,10 @@ export default function GuidedVisitPage() {
   const handleStart = async () => {
     try {
       const { data } = await startEncounter({
-        variables: { 
+        variables: {
           input: {
-            patientId: params.id, 
-            practitionerId: "00000000-0000-0000-0000-000000000000", // Fallback or context provider needed
+            patientId: params.id,
+            practitionerId: session?.user?.practitionerId || "00000000-0000-0000-0000-000000000000",
             appointmentId: appointmentId || null,
             chiefComplaint: appointmentId ? "Scheduled Visit Assessment" : "Ad-hoc Assessment",
             notes: ""
@@ -197,7 +199,7 @@ export default function GuidedVisitPage() {
         variables: {
           input: {
             encounterId,
-            authorId: "00000000-0000-0000-0000-000000000000",
+            authorId: session?.user?.practitionerId || "00000000-0000-0000-0000-000000000000",
             subjective: note.s,
             objective: note.o,
             assessment: note.a,
@@ -229,7 +231,7 @@ export default function GuidedVisitPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-5">
-          <button 
+          <button
             onClick={() => router.push(`/dashboard/patients/${params.id}`)}
             className="p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/30 transition-all active:scale-95 group"
             title="Exit to Patient Profile"
@@ -242,22 +244,22 @@ export default function GuidedVisitPage() {
               <Stethoscope className="w-6 h-6" />
             </div>
             <div>
-            <h1 className="text-2xl font-bold text-[var(--text-primary)] uppercase tracking-tight">
-              {appointment ? "Scheduled Encounter" : "Clinical Encounter"}
-            </h1>
-            <p className="text-[var(--text-muted)] text-xs font-mono uppercase tracking-widest">
-              {appointment 
-                ? `Visit for ${new Date(appointment.scheduledStart).toLocaleDateString()} with ${appointment.practitioner?.firstName} ${appointment.practitioner?.lastName}`
-                : "Guided Palliative Assessment Workflow"}
-            </p>
+              <h1 className="text-2xl font-bold text-[var(--text-primary)] uppercase tracking-tight">
+                {appointment ? "Scheduled Encounter" : "Clinical Encounter"}
+              </h1>
+              <p className="text-[var(--text-muted)] text-xs font-mono uppercase tracking-widest">
+                {appointment
+                  ? `Visit for ${new Date(appointment.scheduledStart).toLocaleDateString()} with ${appointment.practitioner?.firstName} ${appointment.practitioner?.lastName}`
+                  : "Guided Palliative Assessment Workflow"}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10">
-           <div className={`w-2 h-2 rounded-full ${appointmentId ? 'bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]' : 'bg-emerald-500 animate-pulse'} `} />
-           <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">
-             {appointmentId ? `Linked: ${appointmentId.slice(0, 8)}` : 'Live Session'}
-           </span>
+          <div className={`w-2 h-2 rounded-full ${appointmentId ? 'bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]' : 'bg-emerald-500 animate-pulse'} `} />
+          <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">
+            {appointmentId ? `Linked: ${appointmentId.slice(0, 8)}` : 'Live Session'}
+          </span>
         </div>
       </div>
 
@@ -266,11 +268,11 @@ export default function GuidedVisitPage() {
         {steps.map((s, idx) => (
           <div key={s.id} className="flex items-center flex-1 last:flex-none">
             <div className={`flex flex-col items-center gap-2 transition-all ${step >= s.id ? 'text-blue-400' : 'text-[var(--text-muted)]'}`}>
-               <div className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 transition-all
-                  ${step === s.id ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-600/20 scale-110' : 
-                    step > s.id ? 'bg-blue-600/20 border-blue-600/40 text-blue-400' : 'bg-white/5 border-white/5'}`}>
-                  <s.icon className="w-5 h-5" />
-               </div>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 transition-all
+                  ${step === s.id ? 'bg-blue-600 border-blue-400 text-white shadow-lg shadow-blue-600/20 scale-110' :
+                  step > s.id ? 'bg-blue-600/20 border-blue-600/40 text-blue-400' : 'bg-white/5 border-white/5'}`}>
+                <s.icon className="w-5 h-5" />
+              </div>
             </div>
             {idx < steps.length - 1 && (
               <div className={`h-[2px] flex-1 mx-4 transition-all ${step > s.id ? 'bg-blue-600/40' : 'bg-white/5'}`} />
@@ -282,28 +284,28 @@ export default function GuidedVisitPage() {
       <div className="glass-morphism rounded-[2.5rem] p-12 min-h-[500px] flex flex-col border border-white/5">
         {step === 1 && (
           <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in zoom-in duration-500">
-             <div className="w-24 h-24 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-               <Stethoscope className="w-12 h-12" />
-             </div>
-             <div className="space-y-3">
-               <h2 className="text-3xl font-black text-[var(--text-primary)]">Start New Encounter</h2>
-               <p className="text-[var(--text-muted)] max-w-sm mx-auto leading-relaxed">You are about to initiate a documented clinical visit. This will create a permanent entry in the patient's record.</p>
-             </div>
-              <div className="flex items-center gap-4 w-full max-w-md">
-                <button 
-                  onClick={() => router.push(`/dashboard/patients/${params.id}`)}
-                  className="flex-1 py-5 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] font-black text-sm uppercase tracking-[0.2em] hover:text-[var(--text-primary)] hover:bg-white/5 transition-all"
-                >
-                  Cancel
-                </button>
-                <button 
-                  onClick={handleStart}
-                  disabled={starting}
-                  className="flex-[2] py-5 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-[0.2em] hover:bg-blue-500 transition-all shadow-2xl shadow-blue-600/20 disabled:opacity-50"
-                >
-                  {starting ? "Initializing..." : "Initiate Encounter"}
-                </button>
-              </div>
+            <div className="w-24 h-24 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <Stethoscope className="w-12 h-12" />
+            </div>
+            <div className="space-y-3">
+              <h2 className="text-3xl font-black text-[var(--text-primary)]">Start New Encounter</h2>
+              <p className="text-[var(--text-muted)] max-w-sm mx-auto leading-relaxed">You are about to initiate a documented clinical visit. This will create a permanent entry in the patient's record.</p>
+            </div>
+            <div className="flex items-center gap-4 w-full max-w-md">
+              <button
+                onClick={() => router.push(`/dashboard/patients/${params.id}`)}
+                className="flex-1 py-5 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] font-black text-sm uppercase tracking-[0.2em] hover:text-[var(--text-primary)] hover:bg-white/5 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStart}
+                disabled={starting}
+                className="flex-[2] py-5 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-[0.2em] hover:bg-blue-500 transition-all shadow-2xl shadow-blue-600/20 disabled:opacity-50"
+              >
+                {starting ? "Initializing..." : "Initiate Encounter"}
+              </button>
+            </div>
           </div>
         )}
 
@@ -313,31 +315,31 @@ export default function GuidedVisitPage() {
               <h2 className="text-2xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Step 02: Health Plan Directives</h2>
               <p className="text-[var(--text-muted)] text-sm">Verify or add advance directives, DNR orders, and healthcare proxies.</p>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-4">
-               {['DNR', 'DNI', 'FullCode', 'LivingWill', 'HealthcareProxy'].map(type => (
-                 <button key={type} onClick={() => {
-                   if (directives.some(d => d.type === type)) {
-                     setDirectives(directives.filter(d => d.type !== type));
-                   } else {
-                     setDirectives([...directives, { type, notes: "" }]);
-                   }
-                 }} className={`p-6 rounded-2xl border text-left transition-all flex items-center justify-between group
+              {['DNR', 'DNI', 'FullCode', 'LivingWill', 'HealthcareProxy'].map(type => (
+                <button key={type} onClick={() => {
+                  if (directives.some(d => d.type === type)) {
+                    setDirectives(directives.filter(d => d.type !== type));
+                  } else {
+                    setDirectives([...directives, { type, notes: "" }]);
+                  }
+                }} className={`p-6 rounded-2xl border text-left transition-all flex items-center justify-between group
                    ${directives.some(d => d.type === type) ? 'bg-blue-600/10 border-blue-500 shadow-lg' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}>
-                   <div>
-                     <p className={`text-sm font-black uppercase ${directives.some(d => d.type === type) ? 'text-blue-400' : 'text-[var(--text-primary)]'}`}>{type}</p>
-                     <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-1">Status: {directives.some(d => d.type === type) ? 'Active Selection' : 'Unverified'}</p>
-                   </div>
-                   {directives.some(d => d.type === type) ? <CheckCircle2 className="w-6 h-6 text-blue-400" /> : <Plus className="w-6 h-6 text-[var(--text-muted)]" />}
-                 </button>
-               ))}
+                  <div>
+                    <p className={`text-sm font-black uppercase ${directives.some(d => d.type === type) ? 'text-blue-400' : 'text-[var(--text-primary)]'}`}>{type}</p>
+                    <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mt-1">Status: {directives.some(d => d.type === type) ? 'Active Selection' : 'Unverified'}</p>
+                  </div>
+                  {directives.some(d => d.type === type) ? <CheckCircle2 className="w-6 h-6 text-blue-400" /> : <Plus className="w-6 h-6 text-[var(--text-muted)]" />}
+                </button>
+              ))}
             </div>
 
             <div className="pt-10 flex gap-4">
-               <button onClick={() => setStep(1)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-muted)] font-bold hover:text-[var(--text-primary)] transition-all">Back</button>
-               <button onClick={() => setStep(3)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
-                  Continue to Vitality Check <ChevronRight className="w-5 h-5" />
-               </button>
+              <button onClick={() => setStep(1)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-muted)] font-bold hover:text-[var(--text-primary)] transition-all">Back</button>
+              <button onClick={() => setStep(3)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+                Continue to Vitality Check <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
           </div>
         )}
@@ -349,58 +351,58 @@ export default function GuidedVisitPage() {
               <p className="text-[var(--text-muted)] text-sm">Record the patient's physiological baseline for this encounter.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                    <Heart className="w-3 h-3 text-rose-500" /> Heart Rate
-                 </label>
-                 <div className="relative">
-                    <input value={vitals.hr} onChange={e => setVitals({...vitals, hr: e.target.value})} placeholder="72" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
-                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-bold text-xs uppercase">BPM</span>
-                 </div>
-               </div>
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                    <Activity className="w-3 h-3 text-blue-500" /> Blood Pressure
-                 </label>
-                 <div className="flex gap-2">
-                    <input value={vitals.sbp} onChange={e => setVitals({...vitals, sbp: e.target.value})} placeholder="120" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
-                    <span className="text-[var(--text-muted)] text-2xl font-black flex items-center opacity-30">/</span>
-                    <input value={vitals.dbp} onChange={e => setVitals({...vitals, dbp: e.target.value})} placeholder="80" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
-                 </div>
-               </div>
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                    <Thermometer className="w-3 h-3 text-amber-500" /> Temperature
-                 </label>
-                 <div className="relative">
-                    <input value={vitals.temp} onChange={e => setVitals({...vitals, temp: e.target.value})} placeholder="98.6" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
-                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-bold text-xs uppercase">°F</span>
-                 </div>
-               </div>
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                    <Wind className="w-3 h-3 text-[var(--text-muted)]" /> Respiratory Rate
-                 </label>
-                 <div className="relative">
-                    <input value={vitals.rr} onChange={e => setVitals({...vitals, rr: e.target.value})} placeholder="16" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
-                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-bold text-xs uppercase">BPM</span>
-                 </div>
-               </div>
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                    <Droplets className="w-3 h-3 text-blue-400" /> Oxygen Saturation
-                 </label>
-                 <div className="relative">
-                    <input value={vitals.spo2} onChange={e => setVitals({...vitals, spo2: e.target.value})} placeholder="98" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
-                    <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-bold text-xs uppercase">% SpO2</span>
-                 </div>
-               </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+                  <Heart className="w-3 h-3 text-rose-500" /> Heart Rate
+                </label>
+                <div className="relative">
+                  <input value={vitals.hr} onChange={e => setVitals({ ...vitals, hr: e.target.value })} placeholder="72" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-bold text-xs uppercase">BPM</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+                  <Activity className="w-3 h-3 text-blue-500" /> Blood Pressure
+                </label>
+                <div className="flex gap-2">
+                  <input value={vitals.sbp} onChange={e => setVitals({ ...vitals, sbp: e.target.value })} placeholder="120" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
+                  <span className="text-[var(--text-muted)] text-2xl font-black flex items-center opacity-30">/</span>
+                  <input value={vitals.dbp} onChange={e => setVitals({ ...vitals, dbp: e.target.value })} placeholder="80" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+                  <Thermometer className="w-3 h-3 text-amber-500" /> Temperature
+                </label>
+                <div className="relative">
+                  <input value={vitals.temp} onChange={e => setVitals({ ...vitals, temp: e.target.value })} placeholder="98.6" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-bold text-xs uppercase">°F</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+                  <Wind className="w-3 h-3 text-[var(--text-muted)]" /> Respiratory Rate
+                </label>
+                <div className="relative">
+                  <input value={vitals.rr} onChange={e => setVitals({ ...vitals, rr: e.target.value })} placeholder="16" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-bold text-xs uppercase">BPM</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+                  <Droplets className="w-3 h-3 text-blue-400" /> Oxygen Saturation
+                </label>
+                <div className="relative">
+                  <input value={vitals.spo2} onChange={e => setVitals({ ...vitals, spo2: e.target.value })} placeholder="98" className="w-full premium-input rounded-2xl py-4 px-6 text-xl font-bold text-[var(--text-primary)]" />
+                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[var(--text-muted)] font-bold text-xs uppercase">% SpO2</span>
+                </div>
+              </div>
             </div>
             <div className="pt-10 flex gap-4">
-               <button onClick={() => setStep(2)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-muted)] font-bold hover:text-[var(--text-primary)] transition-all">Back</button>
-               <button onClick={() => setStep(4)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
-                  Continue to ESAS-R Assessment <ChevronRight className="w-5 h-5" />
-               </button>
+              <button onClick={() => setStep(2)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-muted)] font-bold hover:text-[var(--text-primary)] transition-all">Back</button>
+              <button onClick={() => setStep(4)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+                Continue to ESAS-R Assessment <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
           </div>
         )}
@@ -412,38 +414,38 @@ export default function GuidedVisitPage() {
               <p className="text-[var(--text-muted)] text-sm">Rate each symptom from 0 (Absent) to 10 (Worst Possible).</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-               {[
-                 { id: 'pain', label: 'Pain' },
-                 { id: 'tiredness', label: 'Tiredness' },
-                 { id: 'drowsiness', label: 'Drowsiness' },
-                 { id: 'nausea', label: 'Nausea' },
-                 { id: 'appetite', label: 'Lack of Appetite' },
-                 { id: 'sob', label: 'Shortness of Breath' },
-                 { id: 'depression', label: 'Depression' },
-                 { id: 'anxiety', label: 'Anxiety' },
-                 { id: 'wellbeing', label: 'Overall Wellbeing' },
-               ].map((s) => (
-                 <div key={s.id} className="space-y-4">
-                    <div className="flex items-center justify-between">
-                       <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">{s.label}</label>
-                       <span className={`text-sm font-black px-3 py-1 rounded-lg ${esas[s.id as keyof typeof esas] > 7 ? 'bg-red-500/20 text-red-400' : esas[s.id as keyof typeof esas] > 3 ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                          {esas[s.id as keyof typeof esas]}
-                       </span>
-                    </div>
-                    <input 
-                      type="range" min="0" max="10" step="1" 
-                      value={esas[s.id as keyof typeof esas]}
-                      onChange={(e) => setEsas({...esas, [s.id]: parseInt(e.target.value)})}
-                      className="w-full h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer accent-blue-500" 
-                    />
-                 </div>
-               ))}
+              {[
+                { id: 'pain', label: 'Pain' },
+                { id: 'tiredness', label: 'Tiredness' },
+                { id: 'drowsiness', label: 'Drowsiness' },
+                { id: 'nausea', label: 'Nausea' },
+                { id: 'appetite', label: 'Lack of Appetite' },
+                { id: 'sob', label: 'Shortness of Breath' },
+                { id: 'depression', label: 'Depression' },
+                { id: 'anxiety', label: 'Anxiety' },
+                { id: 'wellbeing', label: 'Overall Wellbeing' },
+              ].map((s) => (
+                <div key={s.id} className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">{s.label}</label>
+                    <span className={`text-sm font-black px-3 py-1 rounded-lg ${esas[s.id as keyof typeof esas] > 7 ? 'bg-red-500/20 text-red-400' : esas[s.id as keyof typeof esas] > 3 ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                      {esas[s.id as keyof typeof esas]}
+                    </span>
+                  </div>
+                  <input
+                    type="range" min="0" max="10" step="1"
+                    value={esas[s.id as keyof typeof esas]}
+                    onChange={(e) => setEsas({ ...esas, [s.id]: parseInt(e.target.value) })}
+                    className="w-full h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                </div>
+              ))}
             </div>
             <div className="pt-10 flex gap-4">
-               <button onClick={() => setStep(3)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-muted)] font-bold hover:text-[var(--text-primary)] transition-all">Back</button>
-               <button onClick={() => setStep(5)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
-                  Continue to Spiritual Care <ChevronRight className="w-5 h-5" />
-               </button>
+              <button onClick={() => setStep(3)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-muted)] font-bold hover:text-[var(--text-primary)] transition-all">Back</button>
+              <button onClick={() => setStep(5)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+                Continue to Spiritual Care <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
           </div>
         )}
@@ -454,31 +456,31 @@ export default function GuidedVisitPage() {
               <h2 className="text-2xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Step 05: Spiritual Care (FICA)</h2>
               <p className="text-[var(--text-muted)] text-sm">Assess spiritual and religious needs using the FICA framework.</p>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-6">
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">[F] Faith & Belief</label>
-                 <textarea value={spiritual.faith} onChange={e => setSpiritual({...spiritual, faith: e.target.value})} placeholder="What are your spiritual or religious beliefs?" className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[100px]" />
-               </div>
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">[I] Importance & Influence</label>
-                 <textarea value={spiritual.importance} onChange={e => setSpiritual({...spiritual, importance: e.target.value})} placeholder="How important are these beliefs to you?" className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[100px]" />
-               </div>
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">[C] Community</label>
-                 <textarea value={spiritual.community} onChange={e => setSpiritual({...spiritual, community: e.target.value})} placeholder="Are you part of a spiritual or religious community?" className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[100px]" />
-               </div>
-               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">[A] Address in Care</label>
-                 <textarea value={spiritual.addressInCare} onChange={e => setSpiritual({...spiritual, addressInCare: e.target.value})} placeholder="How would you like me to address these issues in your healthcare?" className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[100px]" />
-               </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">[F] Faith & Belief</label>
+                <textarea value={spiritual.faith} onChange={e => setSpiritual({ ...spiritual, faith: e.target.value })} placeholder="What are your spiritual or religious beliefs?" className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[100px]" />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">[I] Importance & Influence</label>
+                <textarea value={spiritual.importance} onChange={e => setSpiritual({ ...spiritual, importance: e.target.value })} placeholder="How important are these beliefs to you?" className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[100px]" />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">[C] Community</label>
+                <textarea value={spiritual.community} onChange={e => setSpiritual({ ...spiritual, community: e.target.value })} placeholder="Are you part of a spiritual or religious community?" className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[100px]" />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">[A] Address in Care</label>
+                <textarea value={spiritual.addressInCare} onChange={e => setSpiritual({ ...spiritual, addressInCare: e.target.value })} placeholder="How would you like me to address these issues in your healthcare?" className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[100px]" />
+              </div>
             </div>
 
             <div className="pt-10 flex gap-4">
-               <button onClick={() => setStep(4)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-muted)] font-bold hover:text-[var(--text-primary)] transition-all">Back</button>
-               <button onClick={() => setStep(6)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
-                  Continue to Clinical Profile <ChevronRight className="w-5 h-5" />
-               </button>
+              <button onClick={() => setStep(4)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-muted)] font-bold hover:text-[var(--text-primary)] transition-all">Back</button>
+              <button onClick={() => setStep(6)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+                Continue to Clinical Profile <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
           </div>
         )}
@@ -489,19 +491,19 @@ export default function GuidedVisitPage() {
               <h2 className="text-2xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Step 04: Clinical Profile Review</h2>
               <p className="text-[var(--text-muted)] text-sm">Review active diagnoses and medications. Note any interventions required.</p>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-8">
-               <ToastProvider>
-                  <ProblemList patientId={params.id as string} />
-                  <MedicationRegistry patientId={params.id as string} />
-               </ToastProvider>
+              <ToastProvider>
+                <ProblemList patientId={params.id as string} />
+                <MedicationRegistry patientId={params.id as string} />
+              </ToastProvider>
             </div>
 
             <div className="pt-10 flex gap-4">
-               <button onClick={() => setStep(5)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-muted)] font-bold hover:text-[var(--text-primary)] transition-all">Back</button>
-               <button onClick={() => setStep(7)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
-                  Continue to SOAP Note <ChevronRight className="w-5 h-5" />
-               </button>
+              <button onClick={() => setStep(5)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-[var(--text-muted)] font-bold hover:text-[var(--text-primary)] transition-all">Back</button>
+              <button onClick={() => setStep(7)} className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3">
+                Continue to SOAP Note <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
           </div>
         )}
@@ -513,49 +515,49 @@ export default function GuidedVisitPage() {
               <p className="text-[var(--text-muted)] text-sm">Document your clinical findings and care plan.</p>
             </div>
             <div className="space-y-8">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">[S] SUBJECTIVE</label>
-                    <textarea value={note.s} onChange={e => setNote({...note, s: e.target.value})} placeholder="Patient reports..." className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[150px]" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">[S] SUBJECTIVE</label>
+                  <textarea value={note.s} onChange={e => setNote({ ...note, s: e.target.value })} placeholder="Patient reports..." className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[150px]" />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">[O] OBJECTIVE</label>
+                  <textarea value={note.o} onChange={e => setNote({ ...note, o: e.target.value })} placeholder="Observed findings..." className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[150px]" />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">[A] ASSESSMENT</label>
+                  <textarea value={note.a} onChange={e => setNote({ ...note, a: e.target.value })} placeholder="Clinical interpretation..." className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[150px]" />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">[P] PLAN</label>
+                  <textarea value={note.p} onChange={e => setNote({ ...note, p: e.target.value })} placeholder="Next steps..." className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[150px]" />
+                </div>
+              </div>
+
+              <div className="p-10 rounded-3xl bg-blue-500/5 border border-blue-500/10 space-y-6">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="w-6 h-6 text-blue-400" />
+                  <div>
+                    <h4 className="text-[var(--text-primary)] font-bold">E-Signature & Attestation</h4>
+                    <p className="text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-widest">Permanent Record Finalization</p>
                   </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">[O] OBJECTIVE</label>
-                    <textarea value={note.o} onChange={e => setNote({...note, o: e.target.value})} placeholder="Observed findings..." className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[150px]" />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">[A] ASSESSMENT</label>
-                    <textarea value={note.a} onChange={e => setNote({...note, a: e.target.value})} placeholder="Clinical interpretation..." className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[150px]" />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest">[P] PLAN</label>
-                    <textarea value={note.p} onChange={e => setNote({...note, p: e.target.value})} placeholder="Next steps..." className="w-full premium-input rounded-2xl p-6 text-sm text-[var(--text-primary)] min-h-[150px]" />
-                  </div>
-               </div>
-               
-               <div className="p-10 rounded-3xl bg-blue-500/5 border border-blue-500/10 space-y-6">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck className="w-6 h-6 text-blue-400" />
-                    <div>
-                      <h4 className="text-[var(--text-primary)] font-bold">E-Signature & Attestation</h4>
-                      <p className="text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-widest">Permanent Record Finalization</p>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Sign with Full Name</label>
-                    <input value={note.signature} onChange={e => setNote({...note, signature: e.target.value})} placeholder="Dr. Practitioner Name" className="w-full premium-input rounded-xl py-4 px-6 text-[var(--text-primary)] italic font-serif text-lg" />
-                  </div>
-                  <p className="text-[10px] text-[var(--text-muted)] leading-relaxed italic opacity-70">By signing this note, I attest that the information provided is accurate to the best of my knowledge and reflects the clinical encounter conducted with this patient.</p>
-               </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Sign with Full Name</label>
+                  <input value={note.signature} onChange={e => setNote({ ...note, signature: e.target.value })} placeholder="Dr. Practitioner Name" className="w-full premium-input rounded-xl py-4 px-6 text-[var(--text-primary)] italic font-serif text-lg" />
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)] leading-relaxed italic opacity-70">By signing this note, I attest that the information provided is accurate to the best of my knowledge and reflects the clinical encounter conducted with this patient.</p>
+              </div>
             </div>
             <div className="pt-4 flex gap-4">
-               <button onClick={() => setStep(6)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
-               <button 
-                 onClick={handleFinish}
-                 disabled={savingNote || !note.signature}
-                 className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3 disabled:opacity-50"
-               >
-                  {savingNote ? "Signing Note..." : "Finalize & Save Encounter"} <Save className="w-5 h-5" />
-               </button>
+              <button onClick={() => setStep(6)} className="flex-1 py-5 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold hover:text-white transition-all">Back</button>
+              <button
+                onClick={handleFinish}
+                disabled={savingNote || !note.signature}
+                className="flex-[2] premium-button premium-gradient py-5 rounded-2xl text-white font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                {savingNote ? "Signing Note..." : "Finalize & Save Encounter"} <Save className="w-5 h-5" />
+              </button>
             </div>
           </div>
         )}
