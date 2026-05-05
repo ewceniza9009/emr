@@ -23,4 +23,31 @@ public class BillingMutation
     {
         return await mediator.Send(input, cancellationToken);
     }
+
+    public async Task<bool> UpdateClaimStatus(
+        UpdateClaimStatusCommand input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(input, cancellationToken);
+    }
+
+    public async Task<bool> VoidInvoice(
+        VoidInvoiceCommand input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(input, cancellationToken);
+    }
+
+    public async Task<Application.Billing.Dtos.BillingInvoiceDto> UpdateInvoice(
+        UpdateInvoiceCommand input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(input, cancellationToken);
+    }
 }

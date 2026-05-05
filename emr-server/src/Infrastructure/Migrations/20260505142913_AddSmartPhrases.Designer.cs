@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260505142913_AddSmartPhrases")]
+    partial class AddSmartPhrases
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -369,64 +372,6 @@ namespace Infrastructure.Migrations
                         .HasDatabaseName("ix_billing_invoices_patient_id");
 
                     b.ToTable("billing_invoices", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Entities.BillingInvoiceItem", b =>
-                {
-                    b.Property<Guid>("ItemId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("item_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("created_by");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("description");
-
-                    b.Property<Guid>("InvoiceId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("invoice_id");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("quantity");
-
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("total_price");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("numeric(12,2)")
-                        .HasColumnName("unit_price");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("updated_by");
-
-                    b.HasKey("ItemId")
-                        .HasName("pk_billing_invoice_items");
-
-                    b.HasIndex("InvoiceId")
-                        .HasDatabaseName("ix_billing_invoice_items_invoice_id");
-
-                    b.ToTable("billing_invoice_items", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.CareNavigationCase", b =>
@@ -3143,18 +3088,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Patient");
                 });
 
-            modelBuilder.Entity("Domain.Entities.BillingInvoiceItem", b =>
-                {
-                    b.HasOne("Domain.Entities.BillingInvoice", "Invoice")
-                        .WithMany("Items")
-                        .HasForeignKey("InvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_billing_invoice_items_billing_invoices_invoice_id");
-
-                    b.Navigation("Invoice");
-                });
-
             modelBuilder.Entity("Domain.Entities.CareNavigationCase", b =>
                 {
                     b.HasOne("Domain.Entities.Practitioner", "Navigator")
@@ -3881,11 +3814,6 @@ namespace Infrastructure.Migrations
             modelBuilder.Entity("Domain.Entities.Appointment", b =>
                 {
                     b.Navigation("AppointmentResources");
-                });
-
-            modelBuilder.Entity("Domain.Entities.BillingInvoice", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Domain.Entities.CareNavigationCase", b =>

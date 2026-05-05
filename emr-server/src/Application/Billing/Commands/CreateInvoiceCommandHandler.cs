@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Mapster;
 using MediatR;
+using System.Linq;
 
 namespace Application.Billing.Commands;
 
@@ -34,7 +35,15 @@ public class CreateInvoiceCommandHandler : IRequestHandler<CreateInvoiceCommand,
             CoveredAmount = request.CoveredAmount,
             PatientResponsibility = request.SubtotalAmount - request.CoveredAmount,
             GeneratedAt = _dateTime.UtcNow,
-            DueDate = _dateTime.UtcNow.AddDays(request.DueInDays)
+            DueDate = _dateTime.UtcNow.AddDays(request.DueInDays),
+            Items = request.Items.Select(i => new BillingInvoiceItem
+            {
+                ItemId = Guid.NewGuid(),
+                Description = i.Description,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice,
+                TotalPrice = i.Quantity * i.UnitPrice
+            }).ToList()
         };
 
         _context.BillingInvoices.Add(invoice);

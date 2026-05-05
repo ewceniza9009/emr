@@ -114,6 +114,16 @@ public class ClinicalQuery
             .AsNoTracking()
             .Where(x => x.PatientId == patientId);
     }
+
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<SmartPhrase> GetSmartPhrases(
+        [Service] IApplicationDbContext context
+    )
+    {
+        return context.SmartPhrases.AsNoTracking().Where(p => p.IsActive);
+    }
 }
 
 public class TriageItemDto

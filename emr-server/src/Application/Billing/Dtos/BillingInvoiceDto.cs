@@ -1,4 +1,6 @@
 using Domain.Enums;
+using Application.Patients.Dtos;
+using System.Collections.Generic;
 
 namespace Application.Billing.Dtos;
 
@@ -13,5 +15,15 @@ public record BillingInvoiceDto(
     decimal CoveredAmount,
     decimal PatientResponsibility,
     DateTimeOffset GeneratedAt,
-    DateTimeOffset DueDate
+    DateTimeOffset DueDate,
+    PatientDto? Patient = null,
+    ICollection<BillingInvoiceItemDto>? Items = null
+);
+
+public record BillingInvoiceItemDto(
+    Guid ItemId,
+    string Description,
+    decimal Quantity,
+    decimal UnitPrice,
+    decimal TotalPrice
 );

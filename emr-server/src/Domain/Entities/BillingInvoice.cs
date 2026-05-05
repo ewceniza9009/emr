@@ -1,5 +1,6 @@
 using Domain.Common;
 using Domain.Enums;
+using System.Collections.Generic;
 
 namespace Domain.Entities;
 
@@ -20,4 +21,5 @@ public class BillingInvoice : BaseEntity
     public Patient Patient { get; set; } = null!;
     public ClinicalEncounter? Encounter { get; set; }
     public ZBenefitClaim? Claim { get; set; }
+    public ICollection<BillingInvoiceItem> Items { get; set; } = new List<BillingInvoiceItem>();
 }

@@ -13,6 +13,7 @@ public record SaveClinicalNoteCommand : IRequest<Guid>
     public string? Objective { get; init; }
     public string? Assessment { get; init; }
     public string? Plan { get; init; }
+    public string? Content { get; init; }
     public string? Signature { get; init; }
 }
 
@@ -62,8 +63,9 @@ public class SaveClinicalNoteCommandHandler : IRequestHandler<SaveClinicalNoteCo
         }
 
         // Render full content for search/legacy display
-        note.Content =
-            $"S: {note.Subjective}\nO: {note.Objective}\nA: {note.Assessment}\nP: {note.Plan}";
+        note.Content = !string.IsNullOrEmpty(request.Content) 
+            ? request.Content 
+            : $"S: {note.Subjective}\nO: {note.Objective}\nA: {note.Assessment}\nP: {note.Plan}";
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -41,6 +41,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<ZBenefitClaim> ZBenefitClaims { get; set; } = null!;
     public DbSet<ClaimStatusLog> ClaimStatusLogs { get; set; } = null!;
     public DbSet<BillingInvoice> BillingInvoices { get; set; } = null!;
+    public DbSet<BillingInvoiceItem> BillingInvoiceItems { get; set; } = null!;
     public DbSet<ClinicalEncounter> ClinicalEncounters { get; set; } = null!;
     public DbSet<Diagnosis> Diagnoses { get; set; } = null!;
     public DbSet<Allergy> Allergies { get; set; } = null!;
@@ -70,6 +71,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<SpiritualAssessment> SpiritualAssessments => Set<SpiritualAssessment>();
     public DbSet<PatientDocument> PatientDocuments => Set<PatientDocument>();
     public DbSet<EntityAddress> EntityAddresses => Set<EntityAddress>();
+    public DbSet<SmartPhrase> SmartPhrases => Set<SmartPhrase>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

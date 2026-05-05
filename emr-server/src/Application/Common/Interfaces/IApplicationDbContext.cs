@@ -18,6 +18,7 @@ public interface IApplicationDbContext
     DbSet<ZBenefitClaim> ZBenefitClaims { get; }
     DbSet<ClaimStatusLog> ClaimStatusLogs { get; }
     DbSet<BillingInvoice> BillingInvoices { get; }
+    DbSet<BillingInvoiceItem> BillingInvoiceItems { get; }
     DbSet<ClinicalEncounter> ClinicalEncounters { get; }
     DbSet<Diagnosis> Diagnoses { get; }
     DbSet<Allergy> Allergies { get; }
@@ -43,6 +44,8 @@ public interface IApplicationDbContext
     DbSet<Prescription> Prescriptions { get; }
     DbSet<PatientDocument> PatientDocuments { get; }
     DbSet<ProviderShift> ProviderShifts { get; }
+    DbSet<EntityAddress> EntityAddresses { get; }
+    DbSet<SmartPhrase> SmartPhrases { get; }
     DbSet<SpiritualAssessment> SpiritualAssessments { get; }
     DbSet<OutreachContact> OutreachContacts { get; }
 
