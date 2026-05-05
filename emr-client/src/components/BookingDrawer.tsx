@@ -302,9 +302,16 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
     return combined.map((p: any) => {
         const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
-        return { ...p, ...geo };
+        const isExistingLead = appointmentData?.appointment?.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
+        
+        return { 
+          ...p, 
+          ...geo,
+          travelTimeInMinutes: isExistingLead ? (appointmentData.appointment.travelTimeMinutes ?? geo?.travelTimeInMinutes) : geo?.travelTimeInMinutes,
+          distanceInMiles: isExistingLead ? (appointmentData.appointment.distanceInMiles ?? geo?.distanceInMiles) : geo?.distanceInMiles
+        };
     });
-  }, [currentGeoData, practitionerData, practitionerId, supportingIds]);
+  }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData]);
 
   const displayScs = useMemo(() => {
     const geoProviders = currentGeoData?.availableProviders || [];
@@ -317,14 +324,26 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
         const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
         return { ...p, ...geo };
     });
-  }, [currentGeoData, practitionerData, practitionerId, supportingIds]);
+  }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData]);
 
   const selectedSlot = useMemo(() => {
-    if (appointmentId && !practitionerId && appointmentData?.appointment) {
+    // If we are editing an existing appointment, and the practitioner hasn't changed, 
+    // prioritize the persisted travel/distance data to avoid UI flickering/inconsistency.
+    const isEditingExisting = !!appointmentId && !!appointmentData?.appointment;
+    const samePractitioner = isEditingExisting && appointmentData.appointment.practitionerId === practitionerId;
+
+    if (samePractitioner) {
       const a = appointmentData.appointment;
-      return { shiftStart: a.scheduledStart, shiftEnd: a.scheduledEnd, travelTimeInMinutes: a.travelTimeMinutes || 0, distanceInMiles: a.distanceInMiles || 0 };
+      return { 
+        shiftStart: a.scheduledStart, 
+        shiftEnd: a.scheduledEnd, 
+        travelTimeInMinutes: a.travelTimeMinutes || 0, 
+        distanceInMiles: a.distanceInMiles || 0 
+      };
     }
+
     if (!practitionerId) return null;
+    
     const slots = practitionerSlots.get(practitionerId) || [];
     if (slots.length === 0) {
         const fallbackHour = period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START;
@@ -333,8 +352,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
         return { 
             shiftStart: d.toISOString(), 
             shiftEnd: new Date(d.getTime() + duration * 60000).toISOString(),
-            travelTimeInMinutes: CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS,
-            distanceInMiles: CLINICAL_CONFIG.ENGINE_SAFETY_DIST_KM
+            travelTimeInMinutes: null,
+            distanceInMiles: null
         };
     }
     return slots[0];
@@ -486,7 +505,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                         const activePractitioner = practitionerId 
                                           ? displayCns.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase()) || displayScs.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase())
                                           : null;
-                                        return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : `${CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS}m`;
+                                        return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : "--";
                                       })()}
                                     </span>
                                     <span className="text-[10px] font-medium text-[var(--text-muted)] ml-1">travel</span>
@@ -624,14 +643,21 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                 </div>
                               </div>
                                <div className="text-right">
-                                  <div className="flex items-center gap-1.5 justify-end">
-                                      {p.travelTimeInMinutes !== undefined ? (
+                                  <div className="flex flex-col items-end gap-0.5">
+                                      {p.travelTimeInMinutes != null || p.distanceInMiles != null ? (
                                         <>
-                                          <Car className={`w-3 h-3 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
-                                          <span className={`text-[11px] font-bold ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
+                                          <div className="flex items-center gap-1.5">
+                                            <Car className={`w-3 h-3 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
+                                            <span className={`text-[11px] font-bold ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
+                                              {isPrimary || isSupporting 
+                                                ? (selectedSlot?.travelTimeInMinutes != null ? `${selectedSlot.travelTimeInMinutes}m` : "--")
+                                                : (p.travelTimeInMinutes != null ? `${p.travelTimeInMinutes}m` : "--")}
+                                            </span>
+                                          </div>
+                                          <span className={`text-[9px] font-black uppercase tracking-tight ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"} opacity-70`}>
                                             {isPrimary || isSupporting 
-                                              ? (selectedSlot?.travelTimeInMinutes !== undefined ? `${selectedSlot.travelTimeInMinutes}m` : "--")
-                                              : (p.travelTimeInMinutes !== undefined ? `${p.travelTimeInMinutes}m` : "--")}
+                                              ? (selectedSlot?.distanceInMiles != null ? `${selectedSlot.distanceInMiles.toFixed(1)}mi` : "--")
+                                              : (p.distanceInMiles != null ? `${p.distanceInMiles.toFixed(1)}mi` : "--")}
                                           </span>
                                         </>
                                       ) : (
@@ -792,11 +818,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       <div className="pt-6 flex items-center justify-between border-t border-white/5">
                         <div className="text-left space-y-1">
                           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Travel Time</p>
-                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot.travelTimeInMinutes}<span className="text-xs ml-1 opacity-60">m</span></p>
+                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot.travelTimeInMinutes != null ? selectedSlot.travelTimeInMinutes : "--"}<span className="text-xs ml-1 opacity-60">m</span></p>
                         </div>
                         <div className="text-right space-y-1">
                           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Distance</p>
-                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot.distanceInMiles.toFixed(1)}<span className="text-xs ml-1 opacity-60">mi</span></p>
+                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot.distanceInMiles != null ? selectedSlot.distanceInMiles.toFixed(1) : "--"}<span className="text-xs ml-1 opacity-60">mi</span></p>
                         </div>
                       </div>
                     </div>
