@@ -619,10 +619,12 @@ export default function SchedulingCalendar() {
 
                               {/* Detailed Hover Info */}
                               <div className="hidden group-hover:flex flex-col gap-4 mt-2 pb-4 border-t border-[var(--card-border)] pt-4 animate-in fade-in slide-in-from-top-1 duration-300">
-                                <div className="flex flex-col gap-1">
-                                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{isViewedAsAttending ? "Scheduled Lead" : "Clinical Lead"}</p>
-                                  <p className="text-xs font-semibold text-[var(--text-primary)]">{appt.practitioner?.firstName} {appt.practitioner?.lastName}</p>
-                                </div>
+                                {isViewedAsAttending && (
+                                  <div className="flex flex-col gap-1">
+                                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Scheduled Lead</p>
+                                    <p className="text-xs font-semibold text-[var(--text-primary)]">{appt.practitioner?.firstName} {appt.practitioner?.lastName}</p>
+                                  </div>
+                                )}
                                 {appt.supportingClinicians?.length > 0 && !isViewedAsAttending && (
                                   <div className="flex flex-col gap-1">
                                     <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Support Team</p>

@@ -154,6 +154,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const [modality, setModality] = useState("IN_PERSON_HOME_VISIT");
   const [visitType, setVisitType] = useState("ROUTINE_SYMPTOM_MANAGEMENT");
   const [booked, setBooked] = useState(false);
+  const [cnSearch, setCnSearch] = useState("");
+  const [scSearch, setScSearch] = useState("");
 
   const formatForEngine = (date: Date, hours: number) => {
     const d = new Date(date);
@@ -249,6 +251,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setDuration(Math.round((new Date(a.scheduledEnd).getTime() - start.getTime()) / 60000));
       setVisitType(a.visitType || "ROUTINE_SYMPTOM_MANAGEMENT");
       setPatientSearch(`${a.patient?.firstName} ${a.patient?.lastName}`);
+      setIsEditingAddress(false);
     }
   }, [appointmentData]);
 
@@ -318,7 +321,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       (p.isCareNavigator || p.practitionerId?.toLowerCase() === practitionerId?.toLowerCase()) &&
       !supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
-    return combined.map((p: any) => {
+    const filtered = combined.filter((p: any) => 
+        !cnSearch || 
+        p.firstName?.toLowerCase().includes(cnSearch.toLowerCase()) || 
+        p.lastName?.toLowerCase().includes(cnSearch.toLowerCase()) ||
+        p.fullName?.toLowerCase().includes(cnSearch.toLowerCase())
+    );
+    return filtered.map((p: any) => {
       const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
       const isExistingLead = appointmentData?.appointment?.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
 
@@ -329,7 +338,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
         distanceInMiles: isExistingLead ? (appointmentData.appointment.distanceInMiles ?? geo?.distanceInMiles) : geo?.distanceInMiles
       };
     });
-  }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData]);
+  }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData, cnSearch]);
 
   const displayScs = useMemo(() => {
     const geoProviders = currentGeoData?.availableProviders || [];
@@ -339,11 +348,17 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase() &&
       p.position?.toLowerCase() !== "admin"
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
-    return combined.map((p: any) => {
+    const filtered = combined.filter((p: any) => 
+        !scSearch || 
+        p.firstName?.toLowerCase().includes(scSearch.toLowerCase()) || 
+        p.lastName?.toLowerCase().includes(scSearch.toLowerCase()) ||
+        p.fullName?.toLowerCase().includes(scSearch.toLowerCase())
+    );
+    return filtered.map((p: any) => {
       const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
       return { ...p, ...geo };
     });
-  }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData]);
+  }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData, scSearch]);
 
   const selectedSlot = useMemo(() => {
     // If we are editing an existing appointment, and the practitioner hasn't changed, 
@@ -478,6 +493,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                   <div className="relative group">
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                     <input required value={patientSearch} onChange={e => { setPatientSearch(e.target.value); setShowPatientResults(true); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
                       placeholder="Search by MRN or patient name..."
                       className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-14 pr-6 py-4 text-[var(--text-primary)] text-sm font-medium placeholder:text-[var(--text-muted)]
                         focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-sm"
@@ -495,6 +511,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                               postalCode: p.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || p.addresses?.[0]?.address?.postalCode || ""
                             });
                             setShowPatientResults(false);
+                            setIsEditingAddress(false);
                           }}
                             className="w-full px-6 py-4 text-left hover:bg-[var(--primary)]/10 border-b border-[var(--card-border)] transition-colors flex items-center justify-between group">
                             <span className="font-semibold text-[var(--text-primary)] text-sm">{p.firstName} {p.lastName}</span>
@@ -525,7 +542,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                     const activePractitioner = practitionerId
                                       ? displayCns.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase()) || displayScs.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase())
                                       : null;
-                                    return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : "--";
+                                    return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : "0m";
                                   })()}
                                 </span>
                                 <span className="text-[10px] font-medium text-[var(--text-muted)] ml-1">travel</span>
@@ -649,116 +666,144 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                 ) : (
                   <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700">
                     <section className="space-y-6">
-                      <div className="flex items-center gap-4">
-                        <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">02</span>
-                        <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Clinical Lead Assignment</h3>
-                        <div className="flex-1 h-px bg-[var(--card-border)]" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">02</span>
+                          <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Clinical Lead Assignment</h3>
+                        </div>
+                        <div className="relative group">
+                          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+                          <input 
+                            type="text" 
+                            placeholder="Search Leads..." 
+                            value={cnSearch}
+                            onChange={(e) => setCnSearch(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                            className="bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/40 w-32 focus:w-48 transition-all"
+                          />
+                        </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {displayCns.map((p: any) => {
-                          const pid = p.practitionerId;
-                          const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
-                          const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
-                          return (
-                            <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
-                                ${isPrimary || isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm" : "bg-white/5 border-white/10 hover:border-white/30"}`}
-                              onClick={() => {
-                                if (!pid) return;
-                                if (isSupporting) {
-                                  setPractitionerId(pid);
-                                  setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
-                                } else if (isPrimary) {
-                                  setPractitionerId("");
-                                } else {
-                                  setPractitionerId(pid);
-                                  setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
-                                }
-                              }}>
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
-                                  <User className="w-4 h-4" />
+                      <div className="max-h-[220px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {displayCns.map((p: any) => {
+                            const pid = p.practitionerId;
+                            const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
+                            const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
+                            return (
+                              <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
+                                  ${isPrimary || isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm" : "bg-white/5 border-white/10 hover:border-white/30"}`}
+                                onClick={() => {
+                                  if (!pid) return;
+                                  if (isSupporting) {
+                                    setPractitionerId(pid);
+                                    setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                                  } else if (isPrimary) {
+                                    setPractitionerId("");
+                                  } else {
+                                    setPractitionerId(pid);
+                                    setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                                  }
+                                }}>
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
+                                    <User className="w-4 h-4" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className={`text-[13px] font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                                      {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
+                                    </p>
+                                    <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tighter">
+                                      {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="min-w-0">
-                                  <p className={`text-[13px] font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
-                                    {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
-                                  </p>
-                                  <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tighter">
-                                    {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="flex flex-col items-end gap-0.5">
-                                  {p.travelTimeInMinutes != null || p.distanceInMiles != null ? (
-                                    <>
-                                      <div className="flex items-center gap-1.5">
-                                        <Car className={`w-3 h-3 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
-                                        <span className={`text-[11px] font-bold ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
+                                <div className="text-right">
+                                  <div className="flex flex-col items-end gap-0.5">
+                                    {p.travelTimeInMinutes != null || p.distanceInMiles != null ? (
+                                      <>
+                                        <div className="flex items-center gap-1.5">
+                                          <Car className={`w-3 h-3 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
+                                          <span className={`text-[11px] font-bold ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
+                                            {isPrimary || isSupporting
+                                              ? (selectedSlot?.travelTimeInMinutes != null ? `${selectedSlot.travelTimeInMinutes}m` : "0m")
+                                              : (p.travelTimeInMinutes != null ? `${p.travelTimeInMinutes}m` : "0m")}
+                                          </span>
+                                        </div>
+                                        <span className={`text-[9px] font-black uppercase tracking-tight ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"} opacity-70`}>
                                           {isPrimary || isSupporting
-                                            ? (selectedSlot?.travelTimeInMinutes != null ? `${selectedSlot.travelTimeInMinutes}m` : "--")
-                                            : (p.travelTimeInMinutes != null ? `${p.travelTimeInMinutes}m` : "--")}
+                                            ? (selectedSlot?.distanceInMiles != null ? `${selectedSlot.distanceInMiles.toFixed(1)}mi` : "0.0mi")
+                                            : (p.distanceInMiles != null ? `${p.distanceInMiles.toFixed(1)}mi` : "0.0mi")}
                                         </span>
-                                      </div>
-                                      <span className={`text-[9px] font-black uppercase tracking-tight ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"} opacity-70`}>
-                                        {isPrimary || isSupporting
-                                          ? (selectedSlot?.distanceInMiles != null ? `${selectedSlot.distanceInMiles.toFixed(1)}mi` : "--")
-                                          : (p.distanceInMiles != null ? `${p.distanceInMiles.toFixed(1)}mi` : "--")}
+                                      </>
+                                    ) : (
+                                      <span className="text-[9px] font-semibold text-rose-500/80 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/10 uppercase">
+                                        N/A
                                       </span>
-                                    </>
-                                  ) : (
-                                    <span className="text-[9px] font-semibold text-rose-500/80 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/10 uppercase">
-                                      N/A
-                                    </span>
-                                  )}
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
                     </section>
                     <section className="space-y-6">
-                      <div className="flex items-center gap-4">
-                        <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">03</span>
-                        <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Supporting Clinicians</h3>
-                        <div className="flex-1 h-px bg-[var(--card-border)]" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">03</span>
+                          <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Supporting Clinicians</h3>
+                        </div>
+                        <div className="relative group">
+                          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+                          <input 
+                            type="text" 
+                            placeholder="Search Support..." 
+                            value={scSearch}
+                            onChange={(e) => setScSearch(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                            className="bg-white/5 border border-white/10 rounded-full py-1.5 pl-9 pr-4 text-[11px] text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/40 w-32 focus:w-48 transition-all"
+                          />
+                        </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {displayScs.map((p: any) => {
-                          const pid = p.practitionerId;
-                          const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
-                          const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
-                          return (
-                            <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
-                              ${isPrimary || isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm" : "bg-white/5 border-white/10 hover:border-white/30"}`}
-                              onClick={() => {
-                                if (!pid) return;
-                                if (isPrimary) {
-                                  setPractitionerId("");
-                                  setSupportingIds(prev => [...prev, pid]);
-                                } else if (isSupporting) {
-                                  setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
-                                } else {
-                                  setSupportingIds(prev => [...prev, pid]);
-                                  if (practitionerId?.toLowerCase() === pid.toLowerCase()) setPractitionerId("");
-                                }
-                              }}>
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
-                                  <Stethoscope className="w-4 h-4" />
-                                </div>
-                                <div className="min-w-0">
-                                  <p className={`text-[13px] font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
-                                    {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
-                                  </p>
-                                  <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tighter">
-                                    {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
-                                  </p>
+                      <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {displayScs.map((p: any) => {
+                            const pid = p.practitionerId;
+                            const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
+                            const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
+                            return (
+                              <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
+                                ${isPrimary || isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm" : "bg-white/5 border-white/10 hover:border-white/30"}`}
+                                onClick={() => {
+                                  if (!pid) return;
+                                  if (isPrimary) {
+                                    setPractitionerId("");
+                                    setSupportingIds(prev => [...prev, pid]);
+                                  } else if (isSupporting) {
+                                    setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                                  } else {
+                                    setSupportingIds(prev => [...prev, pid]);
+                                    if (practitionerId?.toLowerCase() === pid.toLowerCase()) setPractitionerId("");
+                                  }
+                                }}>
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
+                                    <Stethoscope className="w-4 h-4" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className={`text-[13px] font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                                      {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
+                                    </p>
+                                    <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tighter">
+                                      {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
                     </section>
                   </div>
@@ -771,11 +816,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                 <div className="grid grid-cols-3 gap-4 pb-6 border-b border-white/5">
                   <div className="space-y-1.5">
                     <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Travel</p>
-                    <p className="text-base font-bold text-[var(--text-primary)]">{selectedSlot?.travelTimeInMinutes || "--"}m</p>
+                    <p className="text-base font-bold text-[var(--text-primary)]">{selectedSlot?.travelTimeInMinutes || "0"}m</p>
                   </div>
                   <div className="space-y-1.5 border-l border-white/5 pl-4">
                     <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Distance</p>
-                    <p className="text-base font-bold text-[var(--text-primary)]">{selectedSlot?.distanceInMiles?.toFixed(1) || "--"}mi</p>
+                    <p className="text-base font-bold text-[var(--text-primary)]">{selectedSlot?.distanceInMiles?.toFixed(1) || "0.0"}mi</p>
                   </div>
                   <div className="space-y-1.5 border-l border-white/5 pl-4">
                     <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Duration</p>
@@ -863,11 +908,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       <div className="pt-6 flex items-center justify-between border-t border-white/5">
                         <div className="text-left space-y-1">
                           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Travel Time</p>
-                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot.travelTimeInMinutes != null ? selectedSlot.travelTimeInMinutes : "--"}<span className="text-xs ml-1 opacity-60">m</span></p>
+                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot?.travelTimeInMinutes != null ? selectedSlot.travelTimeInMinutes : "0"}<span className="text-xs ml-1 opacity-60">m</span></p>
                         </div>
                         <div className="text-right space-y-1">
                           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Distance</p>
-                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot.distanceInMiles != null ? selectedSlot.distanceInMiles.toFixed(1) : "--"}<span className="text-xs ml-1 opacity-60">mi</span></p>
+                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot?.distanceInMiles != null ? selectedSlot.distanceInMiles.toFixed(1) : "0.0"}<span className="text-xs ml-1 opacity-60">mi</span></p>
                         </div>
                       </div>
                     </div>
