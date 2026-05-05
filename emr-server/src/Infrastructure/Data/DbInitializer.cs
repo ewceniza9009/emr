@@ -680,7 +680,7 @@ namespace Infrastructure.Data
                 )
                 .RuleFor(
                     a => a.ScheduledEnd,
-                    (f, a) => a.ScheduledStart.AddMinutes(f.PickRandom(30, 45, 60))
+                    (f, a) => a.ScheduledStart.AddMinutes(f.PickRandom(15, 30, 45, 60))
                 )
                 // Seed secondary clinicians (Care Navigators) - Ensure 80% assignment rate for realistic data
                 .RuleFor(
@@ -727,7 +727,7 @@ namespace Infrastructure.Data
                             || !pAddress.Latitude.HasValue
                             || patientAddr?.Address?.Latitude.HasValue != true
                         )
-                            return 15; // Minimum buffer fallback
+                            return f.Random.Number(15, 30); // Random fallback buffer
 
                         var dist = Application.Common.Utils.GeoUtils.CalculateDistance(
                             pAddress.Latitude.Value,
@@ -739,7 +739,10 @@ namespace Infrastructure.Data
                         var time = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(
                             dist
                         );
-                        return (int)Math.Clamp(Math.Round(time, 0), 15, 45);
+
+                        // Add variety up to 45 mins with traffic jitter
+                        var trafficJitter = f.Random.Number(0, 20);
+                        return (int)Math.Clamp(Math.Round(time, 0) + trafficJitter, 15, 45);
                     }
                 )
                 .Generate(12); // Generate 12 to perfectly fill 3 days (4 per day)
