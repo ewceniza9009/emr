@@ -29,6 +29,8 @@ public class SchedulingService : ISchedulingService
     {
         try
         {
+            await _semaphore.WaitAsync(cancellationToken);
+
             // HARDENED DATE LOGIC: Use the date part of the targetStart in the clinician's timezone context
             var targetDate = targetStart.Date;
             var dayOfWeek = targetDate.DayOfWeek;
@@ -102,7 +104,8 @@ public class SchedulingService : ISchedulingService
             var scheduleBlocks = await _context
                 .ScheduleBlocks.AsNoTracking()
                 .Where(b =>
-                    b.StartTime >= startOfToday
+                    b.PractitionerId != null
+                    && b.StartTime >= startOfToday
                     && b.StartTime < endOfToday
                     && b.Status == ScheduleBlockStatus.Blocked
                 )
@@ -119,6 +122,8 @@ public class SchedulingService : ISchedulingService
 
             foreach (var staff in staffData)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var shift = staff.Shifts.FirstOrDefault();
                 if (shift == null)
                 {
@@ -132,15 +137,6 @@ public class SchedulingService : ISchedulingService
 
                 var shiftStart = new DateTimeOffset(targetDate.Add(shift.StartTime), TimeSpan.Zero);
                 var shiftEnd = new DateTimeOffset(targetDate.Add(shift.EndTime), TimeSpan.Zero);
-
-                _logger.LogDebug(
-                    ">>> WINDOW: {Name} | Shift: {S}-{E} | Scan: {SS}-{SE}",
-                    staff.LastName,
-                    shiftStart.ToString("t"),
-                    shiftEnd.ToString("t"),
-                    slotWindowStart.ToString("t"),
-                    slotWindowEnd.ToString("t")
-                );
 
                 // Effective window is intersection of Slot and Shift
                 var effectiveStart = slotWindowStart > shiftStart ? slotWindowStart : shiftStart;
@@ -159,6 +155,9 @@ public class SchedulingService : ISchedulingService
                     time = time.AddMinutes(15)
                 )
                 {
+                    // Check cancellation inside the tight loop for ultra-responsiveness
+                    if (allSlots.Count % 10 == 0) cancellationToken.ThrowIfCancellationRequested();
+
                     // 1. Conflict Check (In Memory) - Appointments & OOF Blocks
                     var hasConflict = staffAppts.Any(a =>
                         time < a.ScheduledEnd && time.Add(duration) > a.ScheduledStart
@@ -182,7 +181,7 @@ public class SchedulingService : ISchedulingService
                         .OrderByDescending(a => a.ScheduledEnd)
                         .FirstOrDefault();
 
-                    // Fallback to localized Utah center (Salt Lake City) instead of Manila to avoid 8000-mile errors
+                    // Fallback to localized Utah center (Salt Lake City)
                     double startLat = staff.Latitude ?? 40.7608;
                     double startLon = staff.Longitude ?? -111.8910;
 
@@ -214,12 +213,9 @@ public class SchedulingService : ISchedulingService
                         travelTime = GeoUtils.EstimateTravelTimeMinutes(distance);
                     }
 
-                    // EDGE CASE: Nonsense distance filter (e.g. > 150 miles / 5 hours)
                     if (distance > 150)
                         continue;
 
-                    // EDGE CASE: First appointment travel
-                    // If it's the first appointment, travel time starts from shiftStart
                     var earliestArrival =
                         anchor != null
                             ? anchor.ScheduledEnd.AddMinutes(travelTime)
@@ -228,8 +224,6 @@ public class SchedulingService : ISchedulingService
                     if (time < earliestArrival)
                         continue;
 
-                    // EDGE CASE: Return trip stretching past office hours
-                    // Ensure they can get back home by shift end
                     var appointmentEnd = time.Add(duration);
                     double returnDistance = 0;
                     if (patientAddr?.Latitude.HasValue == true && staff.Latitude.HasValue)
@@ -244,15 +238,7 @@ public class SchedulingService : ISchedulingService
                     double returnTravelTime = GeoUtils.EstimateTravelTimeMinutes(returnDistance);
 
                     if (appointmentEnd.AddMinutes(returnTravelTime) > shiftEnd)
-                    {
-                        _logger.LogDebug(
-                            ">>> REJECT: {Name} slot at {Time} would stretch return trip past {End}",
-                            staff.LastName,
-                            time.ToString("t"),
-                            shiftEnd.ToString("t")
-                        );
                         continue;
-                    }
 
                     allSlots.Add(
                         new ClinicalSlot
@@ -273,6 +259,10 @@ public class SchedulingService : ISchedulingService
         {
             _logger.LogDebug(">>> GEOSPATIAL RADAR: Scan cancelled by client.");
             return new List<ClinicalSlot>();
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 

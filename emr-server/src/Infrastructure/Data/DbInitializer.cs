@@ -15,10 +15,13 @@ namespace Infrastructure.Data
 
         public static async Task InitializeAsync(
             IServiceProvider serviceProvider,
-            bool wipeDb = false,
-            bool seedDb = false
+            bool wipeDb = true,
+            bool seedDb = true
         )
         {
+            // FORCE WIPE FOR SYNCHRONIZATION
+            wipeDb = true;
+            seedDb = true;
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var userManager = scope.ServiceProvider.GetRequiredService<

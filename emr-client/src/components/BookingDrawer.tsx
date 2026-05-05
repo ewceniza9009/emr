@@ -209,10 +209,17 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     return () => clearTimeout(handler);
   }, [duration, selectedDate, modality]);
 
+  // RESET STATE WHEN APPOINTMENT ID CHANGES TO PREVENT STALE DATA
   useEffect(() => {
-    setPractitionerId("");
-    setSupportingIds([]);
-  }, [period]);
+    if (appointmentId) {
+      setPatientId("");
+      setPatientSearch("");
+      setPractitionerId("");
+      setSupportingIds([]);
+      setPeriod(null);
+      setBooked(false);
+    }
+  }, [appointmentId]);
 
   const { data: patientData } = useQuery(GET_PATIENTS, { skip: !open });
   const { data: practitionerData } = useQuery(GET_PRACTITIONERS, { skip: !open });
@@ -271,7 +278,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     if (currentGeoData?.availableProviders?.length > 0 && !practitionerId) {
       const userPracId = (session?.user as any)?.practitionerId;
       const me = currentGeoData.availableProviders.find((p: any) => p.practitionerId?.toLowerCase() === userPracId?.toLowerCase());
-      
+
       if (me) {
         setPractitionerId(me.practitionerId);
       } else {
@@ -307,34 +314,34 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const displayCns = useMemo(() => {
     const geoProviders = currentGeoData?.availableProviders || [];
     const allPractitioners = practitionerData?.practitioners || [];
-    const combined = allPractitioners.filter((p: any) => 
-        (p.isCareNavigator || p.practitionerId?.toLowerCase() === practitionerId?.toLowerCase()) &&
-        !supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())
+    const combined = allPractitioners.filter((p: any) =>
+      (p.isCareNavigator || p.practitionerId?.toLowerCase() === practitionerId?.toLowerCase()) &&
+      !supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
     return combined.map((p: any) => {
-        const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
-        const isExistingLead = appointmentData?.appointment?.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
-        
-        return { 
-          ...p, 
-          ...geo,
-          travelTimeInMinutes: isExistingLead ? (appointmentData.appointment.travelTimeMinutes ?? geo?.travelTimeInMinutes) : geo?.travelTimeInMinutes,
-          distanceInMiles: isExistingLead ? (appointmentData.appointment.distanceInMiles ?? geo?.distanceInMiles) : geo?.distanceInMiles
-        };
+      const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
+      const isExistingLead = appointmentData?.appointment?.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
+
+      return {
+        ...p,
+        ...geo,
+        travelTimeInMinutes: isExistingLead ? (appointmentData.appointment.travelTimeMinutes ?? geo?.travelTimeInMinutes) : geo?.travelTimeInMinutes,
+        distanceInMiles: isExistingLead ? (appointmentData.appointment.distanceInMiles ?? geo?.distanceInMiles) : geo?.distanceInMiles
+      };
     });
   }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData]);
 
   const displayScs = useMemo(() => {
     const geoProviders = currentGeoData?.availableProviders || [];
     const allPractitioners = practitionerData?.practitioners || [];
-    const combined = allPractitioners.filter((p: any) => 
-        (p.isSupportingClinician || supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())) &&
-        p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase() &&
-        p.position?.toLowerCase() !== "admin"
+    const combined = allPractitioners.filter((p: any) =>
+      (p.isSupportingClinician || supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())) &&
+      p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase() &&
+      p.position?.toLowerCase() !== "admin"
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
     return combined.map((p: any) => {
-        const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
-        return { ...p, ...geo };
+      const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
+      return { ...p, ...geo };
     });
   }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData]);
 
@@ -346,27 +353,27 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
     if (samePractitioner) {
       const a = appointmentData.appointment;
-      return { 
-        shiftStart: a.scheduledStart, 
-        shiftEnd: a.scheduledEnd, 
-        travelTimeInMinutes: a.travelTimeMinutes || 0, 
-        distanceInMiles: a.distanceInMiles || 0 
+      return {
+        shiftStart: a.scheduledStart,
+        shiftEnd: a.scheduledEnd,
+        travelTimeInMinutes: a.travelTimeMinutes || 0,
+        distanceInMiles: a.distanceInMiles || 0
       };
     }
 
     if (!practitionerId) return null;
-    
+
     const slots = practitionerSlots.get(practitionerId) || [];
     if (slots.length === 0) {
-        const fallbackHour = period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START;
-        const d = new Date(selectedDate);
-        d.setHours(fallbackHour, 0, 0, 0);
-        return { 
-            shiftStart: d.toISOString(), 
-            shiftEnd: new Date(d.getTime() + duration * 60000).toISOString(),
-            travelTimeInMinutes: null,
-            distanceInMiles: null
-        };
+      const fallbackHour = period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START;
+      const d = new Date(selectedDate);
+      d.setHours(fallbackHour, 0, 0, 0);
+      return {
+        shiftStart: d.toISOString(),
+        shiftEnd: new Date(d.getTime() + duration * 60000).toISOString(),
+        travelTimeInMinutes: null,
+        distanceInMiles: null
+      };
     }
     return slots[0];
   }, [practitionerId, practitionerSlots, appointmentId, appointmentData, period, selectedDate, duration]);
@@ -383,10 +390,10 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     e.preventDefault();
     if (!patientId || !practitionerId) return;
     const slot = selectedSlot || {
-        shiftStart: new Date(new Date(selectedDate).setHours(period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START, 0, 0, 0)).toISOString(),
-        shiftEnd: new Date(new Date(selectedDate).setHours(period === "AM" ? CLINICAL_CONFIG.AM_START + 1 : CLINICAL_CONFIG.PM_START + 1, 0, 0, 0)).toISOString(),
-        travelTimeInMinutes: CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS,
-        distanceInMiles: CLINICAL_CONFIG.ENGINE_SAFETY_DIST_KM
+      shiftStart: new Date(new Date(selectedDate).setHours(period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START, 0, 0, 0)).toISOString(),
+      shiftEnd: new Date(new Date(selectedDate).setHours(period === "AM" ? CLINICAL_CONFIG.AM_START + 1 : CLINICAL_CONFIG.PM_START + 1, 0, 0, 0)).toISOString(),
+      travelTimeInMinutes: CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS,
+      distanceInMiles: CLINICAL_CONFIG.ENGINE_SAFETY_DIST_KM
     };
     const startHour = new Date(slot.shiftStart).getHours();
     const isSlotAM = startHour < CLINICAL_CONFIG.CUTOFF_HOUR;
@@ -395,15 +402,15 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     book({
       variables: {
         input: {
-          appointmentId: appointmentId || null, 
-          patientId, 
-          practitionerId, 
+          appointmentId: appointmentId || null,
+          patientId,
+          practitionerId,
           supportingPractitionerIds: supportingIds,
-          scheduledStart: slot.shiftStart, 
+          scheduledStart: slot.shiftStart,
           scheduledEnd: slot.shiftEnd,
-          modality, 
+          modality,
           visitType,
-          travelTimeMinutes: slot.travelTimeInMinutes, 
+          travelTimeMinutes: slot.travelTimeInMinutes,
           distanceInMiles: slot.distanceInMiles
         }
       }
@@ -507,29 +514,29 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         </div>
                         <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 relative group/addr space-y-4">
                           <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                  <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Patient Primary Address</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Patient Primary Address</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                                <Car className="w-3.5 h-3.5 text-[var(--primary)]" />
+                                <span className="text-xs font-bold text-[var(--text-primary)]">
+                                  {(() => {
+                                    const activePractitioner = practitionerId
+                                      ? displayCns.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase()) || displayScs.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase())
+                                      : null;
+                                    return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : "--";
+                                  })()}
+                                </span>
+                                <span className="text-[10px] font-medium text-[var(--text-muted)] ml-1">travel</span>
                               </div>
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-                                    <Car className="w-3.5 h-3.5 text-[var(--primary)]" />
-                                    <span className="text-xs font-bold text-[var(--text-primary)]">
-                                      {(() => {
-                                        const activePractitioner = practitionerId 
-                                          ? displayCns.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase()) || displayScs.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase())
-                                          : null;
-                                        return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : "--";
-                                      })()}
-                                    </span>
-                                    <span className="text-[10px] font-medium text-[var(--text-muted)] ml-1">travel</span>
-                                </div>
-                                <button type="button" onClick={() => setIsEditingAddress(!isEditingAddress)}
-                                    className={`p-2.5 rounded-xl border transition-all ${isEditingAddress ? "bg-[var(--primary)] text-white border-transparent" : "bg-white/5 hover:bg-white/10 border-white/10 text-[var(--text-muted)]"}`}>
-                                    {isEditingAddress ? <Check className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-                                </button>
-                              </div>
+                              <button type="button" onClick={() => setIsEditingAddress(!isEditingAddress)}
+                                className={`p-2.5 rounded-xl border transition-all ${isEditingAddress ? "bg-[var(--primary)] text-white border-transparent" : "bg-white/5 hover:bg-white/10 border-white/10 text-[var(--text-muted)]"}`}>
+                                {isEditingAddress ? <Check className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                              </button>
+                            </div>
                           </div>
-                          
+
                           {isEditingAddress ? (
                             <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-top-1 duration-300">
                               <div className="space-y-2">
@@ -649,11 +656,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {displayCns.map((p: any) => {
-                            const pid = p.practitionerId;
-                            const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
-                            const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
-                            return (
-                              <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
+                          const pid = p.practitionerId;
+                          const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
+                          const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
+                          return (
+                            <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                                 ${isPrimary || isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm" : "bg-white/5 border-white/10 hover:border-white/30"}`}
                               onClick={() => {
                                 if (!pid) return;
@@ -676,37 +683,37 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                     {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
                                   </p>
                                   <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tighter">
-                                      {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
+                                    {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
                                   </p>
                                 </div>
                               </div>
-                               <div className="text-right">
-                                  <div className="flex flex-col items-end gap-0.5">
-                                      {p.travelTimeInMinutes != null || p.distanceInMiles != null ? (
-                                        <>
-                                          <div className="flex items-center gap-1.5">
-                                            <Car className={`w-3 h-3 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
-                                            <span className={`text-[11px] font-bold ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
-                                              {isPrimary || isSupporting 
-                                                ? (selectedSlot?.travelTimeInMinutes != null ? `${selectedSlot.travelTimeInMinutes}m` : "--")
-                                                : (p.travelTimeInMinutes != null ? `${p.travelTimeInMinutes}m` : "--")}
-                                            </span>
-                                          </div>
-                                          <span className={`text-[9px] font-black uppercase tracking-tight ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"} opacity-70`}>
-                                            {isPrimary || isSupporting 
-                                              ? (selectedSlot?.distanceInMiles != null ? `${selectedSlot.distanceInMiles.toFixed(1)}mi` : "--")
-                                              : (p.distanceInMiles != null ? `${p.distanceInMiles.toFixed(1)}mi` : "--")}
-                                          </span>
-                                        </>
-                                      ) : (
-                                        <span className="text-[9px] font-semibold text-rose-500/80 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/10 uppercase">
-                                          N/A
+                              <div className="text-right">
+                                <div className="flex flex-col items-end gap-0.5">
+                                  {p.travelTimeInMinutes != null || p.distanceInMiles != null ? (
+                                    <>
+                                      <div className="flex items-center gap-1.5">
+                                        <Car className={`w-3 h-3 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
+                                        <span className={`text-[11px] font-bold ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
+                                          {isPrimary || isSupporting
+                                            ? (selectedSlot?.travelTimeInMinutes != null ? `${selectedSlot.travelTimeInMinutes}m` : "--")
+                                            : (p.travelTimeInMinutes != null ? `${p.travelTimeInMinutes}m` : "--")}
                                         </span>
-                                      )}
-                                  </div>
+                                      </div>
+                                      <span className={`text-[9px] font-black uppercase tracking-tight ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"} opacity-70`}>
+                                        {isPrimary || isSupporting
+                                          ? (selectedSlot?.distanceInMiles != null ? `${selectedSlot.distanceInMiles.toFixed(1)}mi` : "--")
+                                          : (p.distanceInMiles != null ? `${p.distanceInMiles.toFixed(1)}mi` : "--")}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="text-[9px] font-semibold text-rose-500/80 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/10 uppercase">
+                                      N/A
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                            );
+                          );
                         })}
                       </div>
                     </section>
@@ -724,18 +731,18 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           return (
                             <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                               ${isPrimary || isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm" : "bg-white/5 border-white/10 hover:border-white/30"}`}
-                               onClick={() => {
-                                 if (!pid) return;
-                                 if (isPrimary) {
-                                    setPractitionerId("");
-                                    setSupportingIds(prev => [...prev, pid]);
-                                 } else if (isSupporting) {
-                                    setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
-                                 } else {
-                                    setSupportingIds(prev => [...prev, pid]);
-                                    if (practitionerId?.toLowerCase() === pid.toLowerCase()) setPractitionerId("");
-                                 }
-                               }}>
+                              onClick={() => {
+                                if (!pid) return;
+                                if (isPrimary) {
+                                  setPractitionerId("");
+                                  setSupportingIds(prev => [...prev, pid]);
+                                } else if (isSupporting) {
+                                  setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
+                                } else {
+                                  setSupportingIds(prev => [...prev, pid]);
+                                  if (practitionerId?.toLowerCase() === pid.toLowerCase()) setPractitionerId("");
+                                }
+                              }}>
                               <div className="flex items-center gap-2.5 min-w-0">
                                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
                                   <Stethoscope className="w-4 h-4" />
@@ -745,7 +752,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                     {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
                                   </p>
                                   <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tighter">
-                                      {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
+                                    {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
                                   </p>
                                 </div>
                               </div>
@@ -794,12 +801,12 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                 </div>
                 {patientId && (
                   <div className="flex bg-white/5 rounded-2xl p-1.5 border border-white/10 gap-1.5 shadow-inner">
-                    <button type="button" onClick={() => { setPeriod("AM"); setPractitionerId(""); }}
+                    <button type="button" onClick={() => { if (period !== "AM") { setPeriod("AM"); setPractitionerId(""); setSupportingIds([]); } }}
                       className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
                                    ${period === "AM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"}`}>
                       {amLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "MORNING SLOT"}
                     </button>
-                    <button type="button" onClick={() => { setPeriod("PM"); setPractitionerId(""); }}
+                    <button type="button" onClick={() => { if (period !== "PM") { setPeriod("PM"); setPractitionerId(""); setSupportingIds([]); } }}
                       className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
                                    ${period === "PM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"}`}>
                       {pmLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "AFTERNOON SLOT"}

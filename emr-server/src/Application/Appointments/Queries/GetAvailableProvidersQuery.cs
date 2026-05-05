@@ -23,44 +23,57 @@ public class GetAvailableProvidersQueryHandler(
         CancellationToken cancellationToken
     )
     {
-        var duration = TimeSpan.FromMinutes(request.DurationMinutes);
+        try
+        {
+            var duration = TimeSpan.FromMinutes(request.DurationMinutes);
 
-        var slots = await schedulingService.GetAvailableProvidersAsync(
-            request.TargetStart,
-            duration,
-            request.Modality,
-            request.PatientId,
-            cancellationToken
-        );
+            var slots = await schedulingService.GetAvailableProvidersAsync(
+                request.TargetStart,
+                duration,
+                request.Modality,
+                request.PatientId,
+                cancellationToken
+            );
 
-        if (slots.Count == 0)
-            return [];
+            if (slots.Count == 0)
+                return [];
 
-        var practitionerIds = slots.Select(d => d.PractitionerId).Distinct().ToList();
+            var practitionerIds = slots.Select(d => d.PractitionerId).Distinct().ToList();
 
-        var practitioners = await context
-            .Practitioners.Where(p => practitionerIds.Contains(p.PractitionerId))
-            .ToListAsync(cancellationToken);
+            var practitioners = await context
+                .Practitioners.AsNoTracking()
+                .Where(p => practitionerIds.Contains(p.PractitionerId))
+                .ToListAsync(cancellationToken);
 
-        return slots
-            .Select(s =>
-            {
-                var p = practitioners.First(x => x.PractitionerId == s.PractitionerId);
-
-                return new AvailableProviderDto
+            return slots
+                .Select(s =>
                 {
-                    PractitionerId = s.PractitionerId,
-                    FullName = $"{p.FirstName} {p.LastName}",
-                    Role = p.IsCareNavigator ? "CareNavigator" : "Physician",
-                    Position = p.Position.ToString(),
-                    DistanceInMiles = s.DistanceInMiles,
-                    TravelTimeInMinutes = s.TravelTimeInMinutes,
-                    ShiftStart = s.StartTime,
-                    ShiftEnd = s.EndTime,
-                };
-            })
-            .OrderBy(x => x.ShiftStart)
-            .ThenBy(x => x.TravelTimeInMinutes)
-            .ToList();
+                    var p = practitioners.FirstOrDefault(x => x.PractitionerId == s.PractitionerId);
+                    if (p == null)
+                        return null;
+
+                    return new AvailableProviderDto
+                    {
+                        PractitionerId = s.PractitionerId,
+                        FullName = $"{p.FirstName} {p.LastName}",
+                        Role = p.IsCareNavigator ? "CareNavigator" : "Physician",
+                        Position = p.Position.ToString(),
+                        DistanceInMiles = s.DistanceInMiles,
+                        TravelTimeInMinutes = s.TravelTimeInMinutes,
+                        ShiftStart = s.StartTime,
+                        ShiftEnd = s.EndTime,
+                    };
+                })
+                .Where(x => x != null)
+                .Cast<AvailableProviderDto>()
+                .OrderBy(x => x.ShiftStart)
+                .ThenBy(x => x.TravelTimeInMinutes)
+                .ToList();
+        }
+        catch (OperationCanceledException)
+        {
+            // Gracefully handle cancellation from debounced frontend requests
+            return [];
+        }
     }
 }

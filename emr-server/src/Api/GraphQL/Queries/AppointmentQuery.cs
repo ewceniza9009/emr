@@ -24,7 +24,7 @@ public class AppointmentQuery
     /// Full appointment list with patient + practitioner navigation.
     /// Used by the weekly scheduling calendar.
     /// </summary>
-    [UseOffsetPaging]
+    [UseOffsetPaging(DefaultPageSize = 100, MaxPageSize = 500)]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
@@ -50,8 +50,9 @@ public class AppointmentQuery
         {
             query = query.Where(a => a.ScheduledEnd <= endDate.Value);
         }
-
-        return query;
+        
+        // Ensure we always return the full graph for frontend-side role matching
+        return query.Include(a => a.SupportingClinicians).AsNoTracking();
     }
 
     public async Task<Application.Common.Models.PagedResponse<ScheduleBlock>> GetScheduleBlocks(

@@ -213,15 +213,16 @@ export default function SchedulingCalendar() {
     let va = localAppointments.filter((a: any) => {
       const start = new Date(a.scheduledStart);
       const hour = start.getHours();
-      const withinHours = hour >= GRID_CONFIG.START_HOUR && hour < GRID_CONFIG.END_HOUR;
+      
       if (selectedPractitioners.size > 0) {
         const primaryId = (a.practitionerId || a.practitioner?.practitionerId || "")?.toLowerCase().trim();
         const pObj = a.practitioner || practitioners.find((p: any) => p.practitionerId.toLowerCase().trim() === primaryId);
         const primaryName = (pObj ? `${pObj.firstName} ${pObj.lastName}` : "")?.toLowerCase().trim();
+        
         const isPrimaryMatch = (primaryId && selectedIds.has(primaryId)) || (primaryName && selectedFullNames.has(primaryName));
         const isSupportingMatch = a.supportingClinicians?.some((sc: any) => {
           const scId = (sc.practitionerId || sc.PractitionerId || "")?.toLowerCase().trim();
-          const scName = `${sc.firstName} ${sc.lastName}`.toLowerCase().trim();
+          const scName = (sc.firstName && sc.lastName) ? `${sc.firstName} ${sc.lastName}`.toLowerCase().trim() : "";
           return (scId && selectedIds.has(scId)) || (scName && selectedFullNames.has(scName));
         });
         const encounterPrac = a.encounters?.[0]?.practitioner;
@@ -229,25 +230,26 @@ export default function SchedulingCalendar() {
         const encounterPracName = encounterPrac ? `${encounterPrac.firstName} ${encounterPrac.lastName}`.toLowerCase().trim() : "";
         const isEncounterMatch = (encounterPracId && selectedIds.has(encounterPracId)) || (encounterPracName && selectedFullNames.has(encounterPracName));
         
-        return (isPrimaryMatch || isSupportingMatch || isEncounterMatch) && withinHours;
+        const isMatch = isPrimaryMatch || isSupportingMatch || isEncounterMatch;
+        return isMatch && (hour >= GRID_CONFIG.START_HOUR - 2 && hour < GRID_CONFIG.END_HOUR + 2);
       }
       const pPosition = (a.practitioner?.position || a.practitioner?.Position || "")?.toLowerCase().trim();
-      return pPosition && (selectedPositions.size === 0 || selectedPositions.has(pPosition)) && withinHours;
+      return pPosition && (selectedPositions.size === 0 || selectedPositions.has(pPosition)) && (hour >= GRID_CONFIG.START_HOUR - 2 && hour < GRID_CONFIG.END_HOUR + 2);
     });
 
     let vb = localBlocks.filter((b: any) => {
       const start = new Date(b.startTime);
       const hour = start.getHours();
-      const withinHours = hour >= GRID_CONFIG.START_HOUR && hour < GRID_CONFIG.END_HOUR;
+      const withinHoursRelaxed = hour >= GRID_CONFIG.START_HOUR - 2 && hour < GRID_CONFIG.END_HOUR + 2;
       const bPractitioner = b.practitioner || practitioners.find((p: any) => p.practitionerId.toLowerCase().trim() === b.practitionerId.toLowerCase().trim());
       const bName = (bPractitioner ? `${bPractitioner.firstName} ${bPractitioner.lastName}` : "")?.toLowerCase().trim();
       if (bName === "system admin" && b.status === "Blocked") return false;
       if (selectedPractitioners.size > 0) {
         const bId = (b.practitionerId || b.practitioner?.practitionerId || "")?.toLowerCase().trim();
-        return ((bId && selectedIds.has(bId)) || (bName && selectedFullNames.has(bName))) && withinHours;
+        return ((bId && selectedIds.has(bId)) || (bName && selectedFullNames.has(bName))) && withinHoursRelaxed;
       }
       const pPosition = (b.practitioner?.position || b.practitioner?.Position || "")?.toLowerCase().trim();
-      return pPosition && (selectedPositions.size === 0 || selectedPositions.has(pPosition)) && withinHours;
+      return pPosition && (selectedPositions.size === 0 || selectedPositions.has(pPosition)) && withinHoursRelaxed;
     });
 
     const conf = new Set<string>();
@@ -663,7 +665,7 @@ export default function SchedulingCalendar() {
         </div>
       </div>
 
-      <BookingDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onBooked={() => refetch()} prefillDate={drawerPrefill} appointmentId={drawerPrefill?.length === 36 ? drawerPrefill : undefined} />
+      <BookingDrawer key={drawerPrefill} open={drawerOpen} onClose={() => setDrawerOpen(false)} onBooked={() => refetch()} prefillDate={drawerPrefill} appointmentId={drawerPrefill?.length === 36 ? drawerPrefill : undefined} />
 
       {/* Confirmation Modal */}
       {confirmModal.isOpen && (
