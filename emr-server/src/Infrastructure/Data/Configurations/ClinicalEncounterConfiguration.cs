@@ -39,7 +39,7 @@ public class ClinicalEncounterConfiguration : IEntityTypeConfiguration<ClinicalE
 
         builder
             .HasOne(e => e.Patient)
-            .WithMany()
+            .WithMany(p => p.Encounters)
             .HasForeignKey(e => e.PatientId)
             .OnDelete(DeleteBehavior.Restrict);
 

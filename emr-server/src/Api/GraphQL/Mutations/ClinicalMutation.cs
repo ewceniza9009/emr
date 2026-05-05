@@ -69,4 +69,13 @@ public class ClinicalMutation
     {
         return await mediator.Send(input, cancellationToken);
     }
+
+    public async Task<Guid> AddDiagnosis(
+        AddDiagnosisCommand input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(input, cancellationToken);
+    }
 }

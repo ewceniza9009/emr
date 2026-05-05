@@ -26,6 +26,12 @@ public class GetPatientByIdQueryHandler : IRequestHandler<GetPatientByIdQuery, P
             .Include(p => p.Emails)
             .Include(p => p.Contacts)
             .Include(p => p.PatientDocuments)
+            .Include(p => p.Encounters)
+                .ThenInclude(e => e.VitalSigns)
+            .Include(p => p.Encounters)
+                .ThenInclude(e => e.Practitioner)
+            .Include(p => p.Encounters)
+                .ThenInclude(e => e.ClinicalNotes)
             .FirstOrDefaultAsync(p => p.PatientId == request.PatientId, cancellationToken);
 
         if (patient is null)

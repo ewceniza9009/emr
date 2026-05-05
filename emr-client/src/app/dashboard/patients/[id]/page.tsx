@@ -30,8 +30,10 @@ import {
   Users,
   User,
   FileText,
-  Trash2
+  Trash2,
+  Thermometer
 } from "lucide-react";
+import Link from "next/link";
 import SymptomTrendChart from "@/components/SymptomTrendChart";
 import MedicationRegistry from "@/components/MedicationRegistry";
 import VitalSignTimeline from "@/components/VitalSignTimeline";
@@ -96,6 +98,20 @@ const GET_PATIENT_DETAILS = gql`
         storageUrl
         documentType
         patientContactId
+      }
+      encounters {
+        encounterId
+        type
+        status
+        encounterDate
+        practitioner {
+          firstName
+          lastName
+        }
+        clinicalNotes {
+          content
+          type
+        }
       }
     }
   }
@@ -217,18 +233,29 @@ export default function PatientDetailPage() {
               <p className="text-[var(--text-muted)] text-[9px] font-black tracking-[0.2em] uppercase">{patient.mrn} // {patient.biologicalSex}</p>
               <span className="w-1 h-1 rounded-full bg-[var(--card-border)]" />
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/5 border border-rose-500/10">
-                  <Activity className="w-3 h-3 text-rose-500" />
-                  <span className="text-[9px] font-black text-rose-500 uppercase">72 BPM</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/5 border border-emerald-500/10">
-                  <Wind className="w-3 h-3 text-emerald-500" />
-                  <span className="text-[9px] font-black text-emerald-500 uppercase">98% SpO2</span>
-                </div>
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/5 border border-amber-500/10">
-                  <Loader2 className="w-3 h-3 text-amber-500 animate-spin" />
-                  <span className="text-[9px] font-black text-amber-500 uppercase">98.6°F</span>
-                </div>
+                {(() => {
+                  const vitals = summaryData?.patientClinicalSummary?.recentVitals || [];
+                  const hr = vitals.find((v: any) => v.type.toUpperCase() === 'HEART RATE' || v.type.toUpperCase() === 'HR');
+                  const spo2 = vitals.find((v: any) => v.type.toUpperCase() === 'SPO2' || v.type.toUpperCase() === 'O2');
+                  const temp = vitals.find((v: any) => v.type.toUpperCase() === 'TEMPERATURE' || v.type.toUpperCase() === 'TEMP');
+                  
+                  return (
+                    <>
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/5 border border-rose-500/10">
+                        <Activity className="w-3 h-3 text-rose-500" />
+                        <span className="text-[9px] font-black text-rose-500 uppercase">{hr?.value || '--'} BPM</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/5 border border-emerald-500/10">
+                        <Wind className="w-3 h-3 text-emerald-500" />
+                        <span className="text-[9px] font-black text-emerald-500 uppercase">{spo2?.value || '--'}% SpO2</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/5 border border-amber-500/10">
+                        <Thermometer className="w-3 h-3 text-amber-500" />
+                        <span className="text-[9px] font-black text-amber-500 uppercase">{temp?.value || '--'}°F</span>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -498,27 +525,44 @@ export default function PatientDetailPage() {
                    <div className="space-y-8 relative">
                       <div className="absolute left-[21px] top-0 w-px h-full bg-[var(--card-border)]" />
                       
-                      {[
-                        { date: "2026-05-01", time: "14:20", event: "Progress Note Finalized", provider: "Sarah Chen", icon: <CheckCircle2 className="w-4 h-4" /> },
-                        { date: "2026-04-28", time: "09:45", event: "Medication Reconciliation", provider: "Marcus Wright", icon: <ClipboardList className="w-4 h-4" /> },
-                        { date: "2026-04-15", time: "11:00", event: "Home Visit Completed", provider: "Elena Rodriguez", icon: <MapPin className="w-4 h-4" /> },
-                      ].map((evt, i) => (
-                        <div key={i} className="flex gap-8 relative z-10 group cursor-pointer">
-                           <div className="w-11 h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--primary)] group-hover:text-[var(--primary)] transition-all">
-                             {evt.icon}
-                           </div>
-                           <div className="pt-1 flex-1">
-                              <div className="flex items-center justify-between">
-                                 <h4 className="text-sm font-black uppercase text-[var(--text-primary)]">{evt.event}</h4>
-                                 <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{evt.date} // {evt.time}</span>
-                              </div>
-                              <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">Provider: {evt.provider}</p>
-                              <div className="mt-4 p-4 rounded-xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] group-hover:bg-[var(--primary)]/5 transition-all">
-                                 <p className="text-xs text-[var(--text-secondary)] italic">Patient reports improved pain management following dosage adjustment. Vital signs stable.</p>
-                              </div>
-                           </div>
-                        </div>
-                      ))}
+                      {(patient.encounters || [])
+                        .slice()
+                        .sort((a: any, b: any) => new Date(b.encounterDate).getTime() - new Date(a.encounterDate).getTime())
+                        .map((evt: any, i: number) => {
+                          const note = evt.clinicalNotes?.[0]?.content || "Visit completed without supplemental clinical narrative.";
+                          const date = new Date(evt.encounterDate);
+                          
+                          // Determine icon based on type
+                          const getIcon = (type: string) => {
+                            if (type.includes('ASSESSMENT')) return <ClipboardList className="w-4 h-4" />;
+                            if (type.includes('FOLLOWUP')) return <History className="w-4 h-4" />;
+                            return <CheckCircle2 className="w-4 h-4" />;
+                          };
+
+                          return (
+                            <div key={evt.encounterId} className="flex gap-8 relative z-10 group cursor-pointer">
+                               <div className="w-11 h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--primary)] group-hover:text-[var(--primary)] transition-all">
+                                 {getIcon(evt.type)}
+                               </div>
+                               <div className="pt-1 flex-1">
+                                  <div className="flex items-center justify-between">
+                                     <h4 className="text-sm font-black uppercase text-[var(--text-primary)]">{evt.type.replace('_', ' ')}</h4>
+                                     <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                                       {date.toLocaleDateString()} // {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                     </span>
+                                  </div>
+                                  <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">
+                                    Provider: {evt.practitioner ? `${evt.practitioner.firstName} ${evt.practitioner.lastName}` : "System Automated"}
+                                  </p>
+                                  <div className="mt-4 p-4 rounded-xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] group-hover:bg-[var(--primary)]/5 transition-all">
+                                     <p className="text-xs text-[var(--text-secondary)] italic">
+                                       {note}
+                                     </p>
+                                  </div>
+                               </div>
+                            </div>
+                          );
+                        })}
                    </div>
                 </div>
              </div>
@@ -910,6 +954,3 @@ export default function PatientDetailPage() {
     </div>
   );
 }
-
-// Added back missing import
-import Link from "next/link";

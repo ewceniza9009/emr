@@ -42,6 +42,7 @@ public class Patient : BaseEntity
     public ICollection<PatientContact> Contacts { get; set; } = new List<PatientContact>();
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     public ICollection<PatientDocument> PatientDocuments { get; set; } = new List<PatientDocument>();
+    public ICollection<ClinicalEncounter> Encounters { get; set; } = new List<ClinicalEncounter>();
 
     public static Patient CreateFromOutreach(PatientOutreach outreach, string mrn, Guid healthPlanId, DateTimeOffset createdAt)
     {

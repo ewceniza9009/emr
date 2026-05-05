@@ -15,6 +15,7 @@ public class PatientMappingConfig : IRegister
             
         config.NewConfig<Patient, PatientDto>()
             .Map(dest => dest.Contacts, src => src.Contacts)
-            .Map(dest => dest.Documents, src => src.PatientDocuments);
+            .Map(dest => dest.Documents, src => src.PatientDocuments)
+            .Map(dest => dest.Encounters, src => src.Encounters);
     }
 }

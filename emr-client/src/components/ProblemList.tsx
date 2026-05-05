@@ -9,6 +9,8 @@ import {
   Search,
   ChevronRight
 } from "lucide-react";
+import AddDiagnosisDrawer from "./AddDiagnosisDrawer";
+import DiagnosisDetailDrawer from "./DiagnosisDetailDrawer";
 
 const GET_DIAGNOSES = gql`
   query GetDiagnoses($patientId: UUID!) {
@@ -23,22 +25,28 @@ const GET_DIAGNOSES = gql`
 `;
 
 export default function ProblemList({ patientId }: { patientId: string }) {
-  const { data, loading } = useQuery(GET_DIAGNOSES, {
+  const [showAddDrawer, setShowAddDrawer] = useState(false);
+  const [selectedDiagnosis, setSelectedDiagnosis] = useState<any>(null);
+
+  const { data, loading, refetch } = useQuery(GET_DIAGNOSES, {
     variables: { patientId },
   });
 
   const problems = data?.diagnosesByPatient || [];
 
-  if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse">Loading Problem List...</div>;
+  if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse uppercase text-[10px] font-black tracking-widest">Scanning Longitudinal History...</div>;
 
   return (
-    <div className="glass-morphism rounded-2xl overflow-hidden border border-[var(--card-border)]">
-      <div className="px-6 py-2 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
+    <div className="glass-morphism rounded-2xl border border-[var(--card-border)] relative">
+      <div className="px-6 py-2 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)] rounded-t-2xl">
         <h2 className="text-base font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tighter">
           <ClipboardList className="w-4 h-4 text-blue-400" />
           Problem List (Diagnoses)
         </h2>
-        <button className="flex items-center gap-1 text-blue-400 text-xs font-bold uppercase tracking-widest hover:text-blue-300 transition-colors">
+        <button 
+          onClick={() => setShowAddDrawer(true)}
+          className="flex items-center gap-1 text-blue-400 text-xs font-bold uppercase tracking-widest hover:text-blue-300 transition-colors"
+        >
           <Plus className="w-4 h-4" />
           Add Diagnosis
         </button>
@@ -53,7 +61,7 @@ export default function ProblemList({ patientId }: { patientId: string }) {
           problems.map((p: any) => (
             <div key={p.diagnosisId} className="px-6 py-2.5 flex items-center justify-between group hover:bg-[var(--primary)]/5 transition-colors">
               <div className="flex items-center gap-4">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${p.isPrimary ? 'bg-blue-500/10 text-blue-400' : 'bg-[var(--input-bg)] text-[var(--text-muted)]'}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${p.isPrimary ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border border-[var(--card-border)]'}`}>
                   <AlertCircle className="w-4 h-4" />
                 </div>
                 <div>
@@ -69,13 +77,29 @@ export default function ProblemList({ patientId }: { patientId: string }) {
                   </div>
                 </div>
               </div>
-              <button className="p-2 text-[var(--text-muted)] hover:text-blue-400 transition-colors">
+              <button 
+                onClick={() => setSelectedDiagnosis(p)}
+                className="p-2 text-[var(--text-muted)] hover:text-blue-400 transition-colors"
+              >
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           ))
         )}
       </div>
+
+      <AddDiagnosisDrawer 
+        isOpen={showAddDrawer} 
+        onClose={() => setShowAddDrawer(false)} 
+        patientId={patientId} 
+        onSuccess={refetch} 
+      />
+
+      <DiagnosisDetailDrawer 
+        isOpen={!!selectedDiagnosis} 
+        onClose={() => setSelectedDiagnosis(null)} 
+        diagnosis={selectedDiagnosis} 
+      />
     </div>
   );
 }

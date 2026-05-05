@@ -841,48 +841,58 @@ namespace Infrastructure.Data
             await context.SaveChangesAsync(default);
 
             // --- CLINICAL HISTORY RECONCILIATION ---
-            var allEncounters = new List<ClinicalEncounter>();
-            foreach (var p in patients)
+            if (!await context.ClinicalEncounters.AnyAsync())
             {
-                var pEncounters = new Faker<ClinicalEncounter>()
-                    .RuleFor(e => e.EncounterId, Guid.NewGuid)
-                    .RuleFor(e => e.PatientId, p.PatientId)
-                    .RuleFor(e => e.PractitionerId, f => f.PickRandom(practitionerIds))
-                    .RuleFor(e => e.AppointmentId, f => f.PickRandom(appointments).AppointmentId)
-                    .RuleFor(e => e.Type, f => f.PickRandom<EncounterType>())
-                    .RuleFor(e => e.Status, EncounterStatus.Completed)
-                    .RuleFor(e => e.PpsScore, f => f.Random.Number(30, 90))
-                    .RuleFor(e => e.EncounterDate, f => f.Date.PastOffset(1).ToUniversalTime())
-                    .Generate(3);
-                allEncounters.AddRange(pEncounters);
-            }
-            context.ClinicalEncounters.AddRange(allEncounters);
-            await context.SaveChangesAsync(default);
-
-            var vitals = new List<VitalSign>();
-            foreach (var e in allEncounters)
-            {
-                var v = new VitalSign
+                var allEncounters = new List<ClinicalEncounter>();
+                foreach (var p in patients)
                 {
-                    VitalId = Guid.NewGuid(),
-                    EncounterId = e.EncounterId,
-                    HeartRate = new Random().Next(60, 100),
-                    BloodPressureSystolic = new Random().Next(110, 140),
-                    BloodPressureDiastolic = new Random().Next(70, 90),
-                    RespiratoryRate = new Random().Next(12, 20),
-                    OxygenSaturation = new Random().Next(94, 100),
-                    Temperature = (decimal)(97.0 + new Random().NextDouble() * 2.0),
-                    Weight = new Random().Next(50, 90),
-                    RecordedAt = e.EncounterDate
-                };
-                vitals.Add(v);
+                    var pEncounters = new Faker<ClinicalEncounter>()
+                        .RuleFor(e => e.EncounterId, Guid.NewGuid)
+                        .RuleFor(e => e.PatientId, p.PatientId)
+                        .RuleFor(e => e.PractitionerId, f => f.PickRandom(practitionerIds))
+                        .RuleFor(e => e.AppointmentId, f => f.PickRandom(appointments).AppointmentId)
+                        .RuleFor(e => e.Type, f => f.PickRandom<EncounterType>())
+                        .RuleFor(e => e.Status, EncounterStatus.Completed)
+                        .RuleFor(e => e.PpsScore, f => f.Random.Number(30, 90))
+                        .RuleFor(e => e.EncounterDate, f => f.Date.PastOffset(1).ToUniversalTime())
+                        .Generate(10); // Increased to 10 for better history
+                    allEncounters.AddRange(pEncounters);
+                }
+                context.ClinicalEncounters.AddRange(allEncounters);
+                await context.SaveChangesAsync(default);
+
+                var vitals = new List<VitalSign>();
+                foreach (var e in allEncounters)
+                {
+                    // Generate 1-2 vitals per encounter for high density history
+                    var count = new Random().Next(1, 3);
+                    for (int i = 0; i < count; i++)
+                    {
+                        var v = new VitalSign
+                        {
+                            VitalId = Guid.NewGuid(),
+                            EncounterId = e.EncounterId,
+                            HeartRate = new Random().Next(60, 110),
+                            BloodPressureSystolic = new Random().Next(105, 150),
+                            BloodPressureDiastolic = new Random().Next(65, 95),
+                            RespiratoryRate = new Random().Next(12, 24),
+                            OxygenSaturation = new Random().Next(92, 100),
+                            Temperature = (decimal)(97.2 + new Random().NextDouble() * 2.8),
+                            Weight = new Random().Next(45, 105),
+                            RecordedAt = e.EncounterDate.AddMinutes(-new Random().Next(0, 60))
+                        };
+                        vitals.Add(v);
+                    }
+                }
+                context.VitalSigns.AddRange(vitals);
+                await context.SaveChangesAsync(default);
             }
-            context.VitalSigns.AddRange(vitals);
-            await context.SaveChangesAsync(default);
+
+            var encounters = await context.ClinicalEncounters.ToListAsync();
 
             var notes = new Faker<ClinicalNote>()
                 .RuleFor(n => n.NoteId, Guid.NewGuid)
-                .RuleFor(n => n.EncounterId, (f, u) => f.PickRandom(allEncounters).EncounterId)
+                .RuleFor(n => n.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
                 .RuleFor(n => n.AuthorId, f => f.PickRandom(practitioners).PractitionerId)
                 .RuleFor(n => n.Type, f => f.PickRandom<NoteType>())
                 .RuleFor(n => n.Subjective, f => f.Lorem.Paragraph())
@@ -892,7 +902,7 @@ namespace Infrastructure.Data
             var esas = new Faker<EsasAssessment>()
                 .RuleFor(x => x.AssessmentId, Guid.NewGuid)
                 .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
-                .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(allEncounters).EncounterId)
+                .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(encounters).EncounterId)
                 .RuleFor(x => x.Pain, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.Nausea, f => f.Random.Number(0, 10))
                 .RuleFor(x => x.ShortnessOfBreath, f => f.Random.Number(0, 10))

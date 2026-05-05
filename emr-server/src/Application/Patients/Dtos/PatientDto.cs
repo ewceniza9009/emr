@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Application.Common.Dtos;
+using Application.Clinical.Dtos;
 
 namespace Application.Patients.Dtos;
 
@@ -27,5 +28,6 @@ public class PatientDto
     public ICollection<PatientEmailDto> Emails { get; set; } = new List<PatientEmailDto>();
     public ICollection<PatientContactDto> Contacts { get; set; } = new List<PatientContactDto>();
     public ICollection<PatientDocumentDto> Documents { get; set; } = new List<PatientDocumentDto>();
+    public ICollection<ClinicalEncounterDto> Encounters { get; set; } = new List<ClinicalEncounterDto>();
     public string? VisitStatus { get; set; }
 }
