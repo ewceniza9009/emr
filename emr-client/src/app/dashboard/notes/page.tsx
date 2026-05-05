@@ -41,6 +41,51 @@ export default function ClinicalNotesPage() {
   const { data, loading, error } = useQuery(GET_NOTES_DATA);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [narrative, setNarrative] = useState("");
+  const [showSmartPhrases, setShowSmartPhrases] = useState(false);
+  const [phraseFilter, setPhraseFilter] = useState("");
+  const [cursorPos, setCursorPos] = useState({ top: 0, left: 0 });
+
+  const SMART_PHRASES = [
+    { key: "/hpi", label: "History of Present Illness", text: "Chief Complaint: \nHistory: \nRelevant Symptoms: \nTimeline: " },
+    { key: "/soap", label: "SOAP Note Template", text: "S: \nO: \nA: \nP: " },
+    { key: "/ros", label: "Review of Systems", text: "General: \nHEENT: \nRespiratory: \nCardiovascular: \nGastrointestinal: \nMusculoskeletal: " },
+    { key: "/pain", label: "Pain Assessment", text: "Intensity: /10\nCharacter: \nRadiation: \nAggravating Factors: \nRelieving Factors: " },
+    { key: "/phys", label: "Physical Exam (Brief)", text: "General: \nLungs: Clear to auscultation.\nHeart: RRR, no murmurs.\nAbdomen: Soft, non-tender.\nExtremities: No edema." },
+    { key: "/tele", label: "Telehealth Disclosure", text: "Patient consented to telehealth visit. Identity verified. Connection secure. Location: Home." },
+  ];
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    const selectionStart = e.target.selectionStart;
+    setNarrative(value);
+
+    // Detect / trigger
+    const lastChar = value.slice(selectionStart - 1, selectionStart);
+    if (lastChar === "/") {
+      setShowSmartPhrases(true);
+      setPhraseFilter("");
+      // Simple heuristic for dropdown positioning
+      const rect = e.target.getBoundingClientRect();
+      setCursorPos({ top: 100, left: 40 }); // Fixed relative to container for now
+    } else if (showSmartPhrases) {
+      // Find text after last /
+      const lastSlashIdx = value.lastIndexOf("/", selectionStart);
+      if (lastSlashIdx !== -1) {
+        setPhraseFilter(value.slice(lastSlashIdx + 1, selectionStart).toLowerCase());
+      } else {
+        setShowSmartPhrases(false);
+      }
+    }
+  };
+
+  const selectPhrase = (phrase: string) => {
+    const lastSlashIdx = narrative.lastIndexOf("/");
+    if (lastSlashIdx !== -1) {
+      const newText = narrative.slice(0, lastSlashIdx) + phrase + narrative.slice(lastSlashIdx + phraseFilter.length + 1);
+      setNarrative(newText);
+    }
+    setShowSmartPhrases(false);
+  };
 
   if (loading) return (
     <div className="h-full flex items-center justify-center">
@@ -164,10 +209,34 @@ export default function ClinicalNotesPage() {
                   <div className="group relative">
                     <textarea 
                       value={narrative}
-                      onChange={(e) => setNarrative(e.target.value)}
+                      onChange={handleTextChange}
                       placeholder={`Begin typing clinical documentation for ${selectedNote.patient?.firstName}... use / for smart templates.`}
                       className="w-full min-h-[500px] bg-[var(--input-bg)] border border-[var(--card-border)] rounded-[2.5rem] p-10 text-sm leading-relaxed text-[var(--text-primary)] placeholder:text-[var(--text-muted)] placeholder:italic placeholder:opacity-30 outline-none focus:border-[var(--primary)]/50 focus:shadow-[0_0_30px_var(--primary-glow)] transition-all resize-none scrollbar-hide"
                     />
+
+                    {/* Smart Phrase Dropdown */}
+                    {showSmartPhrases && (
+                      <div className="absolute top-10 left-10 w-80 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
+                        <div className="p-4 border-b border-[var(--card-border)] bg-[var(--primary)]/5">
+                           <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Aura Smart Phrases</p>
+                        </div>
+                        <div className="max-h-60 overflow-y-auto">
+                          {SMART_PHRASES.filter(p => p.key.includes(phraseFilter)).map((p) => (
+                            <div 
+                              key={p.key} 
+                              onClick={() => selectPhrase(p.text)}
+                              className="p-4 hover:bg-[var(--primary)]/10 cursor-pointer border-b border-[var(--card-border)] last:border-0 group transition-all"
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[10px] font-black text-white uppercase group-hover:text-[var(--primary)]">{p.key}</span>
+                                <ChevronRight className="w-3 h-3 text-[var(--text-muted)] group-hover:translate-x-1 transition-transform" />
+                              </div>
+                              <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{p.label}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Floating Formatting Helper */}
                     <div className="absolute bottom-6 right-10 flex items-center gap-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest pointer-events-none opacity-40 group-focus-within:opacity-100 transition-opacity">

@@ -61,7 +61,7 @@ export default function LoginPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Home
           </button>
-          
+
           <div className="flex items-center gap-3 mb-12">
             <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-[0_0_20px_var(--primary-glow)]">
               <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -69,11 +69,11 @@ export default function LoginPage() {
                 <path d="M8 12h3l1-3 2 6 1-3h2" />
               </svg>
             </div>
-            <h1 className="text-2xl font-black tracking-tighter text-white uppercase italic">Aura</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-white uppercase">Aura</h1>
           </div>
 
           <div className="space-y-2 mb-10">
-            <h2 className="text-4xl font-black text-white tracking-tight">Welcome back</h2>
+            <h2 className="text-4xl font-bold text-white tracking-tight">Welcome back</h2>
             <p className="text-slate-500 text-sm font-medium">Enter your credentials to access your workspace.</p>
           </div>
 
@@ -185,17 +185,17 @@ export default function LoginPage() {
           {/* Testimonial */}
           <div className="space-y-12">
             <div className="w-12 h-1 bg-[var(--primary)] rounded-full" />
-            <blockquote className="text-5xl font-black text-white leading-tight tracking-tight">
-              "Aura transformed our <span className="text-[var(--primary)]">clinical pipeline</span> from a messy spreadsheet into a <span className="text-blue-500">predictable engine</span>."
+            <blockquote className="text-4xl font-bold text-white leading-tight tracking-tight">
+              "Aura transformed our clinical pipeline from a messy spreadsheet into a predictable engine."
             </blockquote>
             
             <div className="flex items-center gap-4 pt-4">
-              <div className="w-14 h-14 rounded-full bg-[var(--primary)] flex items-center justify-center text-xl font-black text-white shadow-xl shadow-[var(--primary-glow)]">
-                HG
+              <div className="w-12 h-12 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center text-sm font-bold text-white">
+                MM
               </div>
               <div>
-                <p className="text-lg font-black text-white uppercase leading-none">Harold Glenn Minerva</p>
-                <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">CEO at BlockSpace Inc.</p>
+                <p className="text-sm font-bold text-white leading-none">Michael McDonald</p>
+                <p className="text-[10px] font-bold text-slate-500 mt-1.5 uppercase tracking-widest">St. James Clinical Director</p>
               </div>
             </div>
           </div>
