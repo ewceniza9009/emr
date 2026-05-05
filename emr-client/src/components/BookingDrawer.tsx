@@ -428,7 +428,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
           <div className="flex-1 flex flex-row overflow-hidden">
             <div className="flex-1 flex flex-col border-r border-[var(--card-border)] bg-[var(--sidebar-bg)] overflow-hidden">
-              <form id="appointment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 pt-6 space-y-8 scrollbar-hide">
+              <form id="appointment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 pt-4 space-y-6 scrollbar-hide">
                 <section className="space-y-6">
                   <div className="flex items-center gap-4">
                     <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">01</span>
@@ -473,7 +473,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           <MapPin className="w-4 h-4 text-[var(--primary)]" />
                           <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Service Location</span>
                         </div>
-                        <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-6 relative group/addr space-y-6">
+                        <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 relative group/addr space-y-4">
                           <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                   <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Patient Primary Address</span>
@@ -524,23 +524,23 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                               </div>
                             </div>
                           ) : (
-                            <div className="space-y-4">
-                              <div className="space-y-1.5">
+                            <div className="space-y-3">
+                              <div className="space-y-1">
                                 <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
-                                <p className="text-base font-semibold text-[var(--text-primary)]">{patientAddress.street || "No address recorded"}</p>
+                                <p className="text-sm font-semibold text-[var(--text-primary)]">{patientAddress.street || "No address recorded"}</p>
                               </div>
-                              <div className="grid grid-cols-3 gap-6">
-                                <div className="space-y-1.5">
+                              <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-1">
                                   <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
-                                  <p className="text-sm font-medium text-[var(--text-secondary)]">{patientAddress.city || "--"}</p>
+                                  <p className="text-[13px] font-medium text-[var(--text-secondary)]">{patientAddress.city || "--"}</p>
                                 </div>
-                                <div className="space-y-1.5">
+                                <div className="space-y-1">
                                   <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">State</label>
-                                  <p className="text-sm font-medium text-[var(--text-secondary)]">{patientAddress.state || "--"}</p>
+                                  <p className="text-[13px] font-medium text-[var(--text-secondary)]">{patientAddress.state || "--"}</p>
                                 </div>
-                                <div className="space-y-1.5">
+                                <div className="space-y-1">
                                   <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zip Code</label>
-                                  <p className="text-sm font-medium text-[var(--text-secondary)]">{patientAddress.postalCode || "--"}</p>
+                                  <p className="text-[13px] font-medium text-[var(--text-secondary)]">{patientAddress.postalCode || "--"}</p>
                                 </div>
                               </div>
                             </div>
@@ -553,15 +553,15 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           <Activity className="w-4 h-4 text-[var(--primary)]" />
                           <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Visit Modality</span>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
                           {[
-                            { id: "IN_PERSON_HOME_VISIT", label: "Home Visit", icon: <Home className="w-4 h-4" /> },
-                            { id: "IN_PERSON_FACILITY", label: "Facility", icon: <Building2 className="w-4 h-4" /> },
-                            { id: "TELEHEALTH_VIDEO", label: "Video Call", icon: <Video className="w-4 h-4" /> },
-                            { id: "TELEPHONE", label: "Audio Only", icon: <Phone className="w-4 h-4" /> },
+                            { id: "IN_PERSON_HOME_VISIT", label: "Home Visit", icon: <Home className="w-3.5 h-3.5" /> },
+                            { id: "IN_PERSON_FACILITY", label: "Facility", icon: <Building2 className="w-3.5 h-3.5" /> },
+                            { id: "TELEHEALTH_VIDEO", label: "Video Call", icon: <Video className="w-3.5 h-3.5" /> },
+                            { id: "TELEPHONE", label: "Audio Only", icon: <Phone className="w-3.5 h-3.5" /> },
                           ].map((m) => (
                             <button key={m.id} type="button" onClick={() => { setModality(m.id); setPeriod(null); }}
-                              className={`flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-xl border text-xs font-semibold transition-all
+                              className={`flex flex-col items-center justify-center gap-1.5 px-3 py-3 rounded-xl border text-[10px] font-bold transition-all
                                       ${modality === m.id ? "bg-[var(--primary)] border-transparent text-white shadow-lg shadow-[var(--primary-glow)]" : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10"}`}>
                               {React.cloneElement(m.icon as React.ReactElement, { className: "w-4 h-4 shrink-0" })}
                               {m.label}
@@ -590,13 +590,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Clinical Lead Assignment</h3>
                         <div className="flex-1 h-px bg-[var(--card-border)]" />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {displayCns.map((p: any) => {
                             const pid = p.practitionerId;
                             const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
                             const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
                             return (
-                              <div key={pid} className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group
+                              <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                                 ${isPrimary || isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm" : "bg-white/5 border-white/10 hover:border-white/30"}`}
                               onClick={() => {
                                 if (!pid) return;
@@ -610,16 +610,16 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                   setSupportingIds(prev => prev.filter(id => id?.toLowerCase() !== pid.toLowerCase()));
                                 }
                               }}>
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
-                                  <User className="w-5 h-5" />
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
+                                  <User className="w-4 h-4" />
                                 </div>
                                 <div className="min-w-0">
-                                  <p className={`text-sm font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                                  <p className={`text-[13px] font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
                                     {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
                                   </p>
-                                  <p className="text-[11px] font-medium text-[var(--text-muted)] mt-0.5">
-                                      {isPrimary ? "Primary Lead" : isSupporting ? "Supporting" : "Care Navigator"}
+                                  <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tighter">
+                                      {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
                                   </p>
                                 </div>
                               </div>
@@ -627,16 +627,16 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                   <div className="flex items-center gap-1.5 justify-end">
                                       {p.travelTimeInMinutes !== undefined ? (
                                         <>
-                                          <Car className={`w-3.5 h-3.5 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
-                                          <span className={`text-xs font-bold ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
+                                          <Car className={`w-3 h-3 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
+                                          <span className={`text-[11px] font-bold ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
                                             {isPrimary || isSupporting 
                                               ? (selectedSlot?.travelTimeInMinutes !== undefined ? `${selectedSlot.travelTimeInMinutes}m` : "--")
                                               : (p.travelTimeInMinutes !== undefined ? `${p.travelTimeInMinutes}m` : "--")}
                                           </span>
                                         </>
                                       ) : (
-                                        <span className="text-[10px] font-semibold text-rose-500/80 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/10">
-                                          Unavailable
+                                        <span className="text-[9px] font-semibold text-rose-500/80 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/10 uppercase">
+                                          N/A
                                         </span>
                                       )}
                                   </div>
@@ -652,13 +652,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Supporting Clinicians</h3>
                         <div className="flex-1 h-px bg-[var(--card-border)]" />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {displayScs.map((p: any) => {
                           const pid = p.practitionerId;
                           const isPrimary = practitionerId?.toLowerCase() === pid?.toLowerCase();
                           const isSupporting = supportingIds.some((id: string) => id?.toLowerCase() === pid?.toLowerCase());
                           return (
-                            <div key={pid} className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group
+                            <div key={pid} className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between group
                               ${isPrimary || isSupporting ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm" : "bg-white/5 border-white/10 hover:border-white/30"}`}
                                onClick={() => {
                                  if (!pid) return;
@@ -672,16 +672,16 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                     if (practitionerId?.toLowerCase() === pid.toLowerCase()) setPractitionerId("");
                                  }
                                }}>
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
-                                  <Stethoscope className="w-5 h-5" />
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${isPrimary || isSupporting ? "bg-[var(--primary)] text-white" : "bg-white/10 text-slate-500"}`}>
+                                  <Stethoscope className="w-4 h-4" />
                                 </div>
                                 <div className="min-w-0">
-                                  <p className={`text-sm font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                                  <p className={`text-[13px] font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
                                     {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
                                   </p>
-                                  <p className="text-[11px] font-medium text-[var(--text-muted)] mt-0.5">
-                                      {isPrimary ? "Primary Lead" : isSupporting ? "Supporting" : "Supporting Clinician"}
+                                  <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tighter">
+                                      {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
                                   </p>
                                 </div>
                               </div>
@@ -695,7 +695,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               </form>
             </div>
 
-            <div className="w-[400px] flex flex-col bg-[var(--sidebar-bg)] p-8 space-y-8 overflow-y-auto scrollbar-hide border-l border-[var(--card-border)]">
+            <div className="w-[360px] flex flex-col bg-[var(--sidebar-bg)] p-6 space-y-6 overflow-y-auto scrollbar-hide border-l border-[var(--card-border)]">
               <section className="space-y-6">
                 <div className="grid grid-cols-3 gap-4 pb-6 border-b border-white/5">
                   <div className="space-y-1.5">

@@ -8,7 +8,7 @@ import {
   ChevronLeft, ChevronRight, Calendar, User, Stethoscope, Shield,
   Users, Filter, Plus, Video, Home, Building2, Activity,
   Navigation, Clock, AlertCircle, Zap, Database, RefreshCw,
-  Search, Target, CheckCircle, MapPin
+  Search, Target, CheckCircle, MapPin, Phone
 } from "lucide-react";
 import { useToast } from "./ToastProvider";
 
@@ -341,7 +341,7 @@ export default function SchedulingCalendar() {
           <div className="flex items-center gap-2">
             <button onClick={() => refetch()} className="p-2 hover:bg-[var(--primary)]/10 rounded-lg text-[var(--text-secondary)]"><RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /></button>
             <button onClick={() => { setDrawerPrefill(undefined); setDrawerOpen(true); }}
-              className="px-4 h-9 bg-[var(--primary)] hover:opacity-90 rounded-lg text-xs font-bold text-[var(--text-primary)] transition-all active:scale-95">
+              className="px-4 h-9 bg-[var(--primary)] hover:opacity-90 rounded-lg text-xs font-bold text-white transition-all active:scale-95 shadow-sm shadow-[var(--primary-glow)]">
               New Encounter
             </button>
           </div>
@@ -357,7 +357,7 @@ export default function SchedulingCalendar() {
               return (
                 <button key={pos} onClick={() => togglePosition(pos)}
                   className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all flex items-center gap-2
-                         ${isActive ? `bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]` : "bg-transparent border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+                         ${isActive ? `bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)] ring-1 ring-[var(--primary)]/20` : "bg-transparent border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5"}`}>
                   {style.icon}
                   <span className="capitalize">{pos}</span>
                 </button>
@@ -377,7 +377,7 @@ export default function SchedulingCalendar() {
                     if (p) setSelectedPositions(new Set([p.position.toLowerCase()]));
                   }
                 }}
-                className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-lg pl-8 pr-10 py-1.5 text-[11px] font-semibold text-[var(--text-primary)] outline-none appearance-none cursor-pointer hover:border-[var(--primary)]/30 transition-all"
+                className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-lg pl-8 pr-10 py-1.5 text-[11px] font-semibold text-[var(--text-secondary)] hover:text-[var(--primary)] outline-none appearance-none cursor-pointer hover:border-[var(--primary)]/30 transition-all"
                 value={selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : ""}
               >
                 <option value="" className="bg-[var(--card-bg)] text-[var(--text-primary)]">All Practitioners...</option>
@@ -405,7 +405,11 @@ export default function SchedulingCalendar() {
                 </div>
                 <div className="flex items-center gap-1.5 opacity-60">
                   <Video className="w-3 h-3 text-[var(--primary)]" />
-                  <span className="text-[10px] font-bold">Tele</span>
+                  <span className="text-[10px] font-bold">Telehealth</span>
+                </div>
+                <div className="flex items-center gap-1.5 opacity-60">
+                  <Phone className="w-3 h-3 text-[var(--primary)]" />
+                  <span className="text-[10px] font-bold">Telephone</span>
                 </div>
               </div>
             </div>
@@ -656,7 +660,7 @@ export default function SchedulingCalendar() {
                   confirmModal.onConfirm();
                   setConfirmModal(prev => ({ ...prev, isOpen: false }));
                 }}
-                className="py-3 rounded-xl bg-[var(--primary)] text-[var(--text-primary)] font-semibold text-sm shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all"
+                className="py-3 rounded-xl bg-[var(--primary)] text-white font-semibold text-sm shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all"
               >
                 Confirm Move
               </button>

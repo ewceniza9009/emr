@@ -27,6 +27,13 @@ const GET_DASHBOARD_STATS = gql`
       criticalAlerts
       deployedEquipmentCount
     }
+    triageWorklist {
+      patientId
+      mrn
+      firstName
+      lastName
+      isAlert
+    }
   }
 `;
 
@@ -36,11 +43,11 @@ export default function Dashboard() {
   const { data, loading } = useQuery(GET_DASHBOARD_STATS);
 
   const stats = [
-    { label: "Active Patients", value: loading ? "..." : data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, trend: "+12.4%", desc: "Current Caseload" },
-    { label: "New Encounters", value: loading ? "..." : data?.dashboardStats?.newEncounters.toString(), icon: Target, trend: "+5.1%", desc: "Past 24 Hours" },
-    { label: "Pending Reviews", value: loading ? "..." : data?.dashboardStats?.pendingReviews.toString(), icon: Clock, trend: "-2.3%", desc: "Average Latency" },
-    { label: "Critical Alerts", value: loading ? "..." : data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, color: "#f43f5e", trend: "Stable", desc: "System Health" },
-    { label: "Equipment", value: loading ? "..." : data?.dashboardStats?.deployedEquipmentCount.toString(), icon: Truck, trend: "+3", desc: "Active Logistics" },
+    { label: "Active Patients", value: loading ? "..." : data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, trend: "+12.4%", desc: "Current Caseload", href: "/dashboard/patients" },
+    { label: "New Encounters", value: loading ? "..." : data?.dashboardStats?.newEncounters.toString(), icon: Target, trend: "+5.1%", desc: "Past 24 Hours", href: "/dashboard/schedule" },
+    { label: "Pending Reviews", value: loading ? "..." : data?.dashboardStats?.pendingReviews.toString(), icon: Clock, trend: "-2.3%", desc: "Average Latency", href: "/dashboard/triage" },
+    { label: "Critical Alerts", value: loading ? "..." : data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, color: "#f43f5e", trend: "Stable", desc: "System Health", href: "/dashboard/triage" },
+    { label: "Equipment", value: loading ? "..." : data?.dashboardStats?.deployedEquipmentCount.toString(), icon: Truck, trend: "+3", desc: "Active Logistics", href: "/dashboard/telemetry" },
   ];
 
   return (
@@ -60,7 +67,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-3">
            <button 
              onClick={() => showToast("Preparing clinical report...", "info")}
-             className="px-5 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--primary)]/5 transition-all active:scale-[0.98]"
+             className="px-5 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 transition-all active:scale-[0.98]"
            >
              Generate Report
            </button>
@@ -76,9 +83,13 @@ export default function Dashboard() {
       {stats.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {stats.map((stat) => (
-            <div key={stat.label} className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] hover:bg-white/[0.02] transition-all">
+            <div 
+              key={stat.label} 
+              onClick={() => stat.href && router.push(stat.href)}
+              className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] hover:bg-white/[0.02] transition-all cursor-pointer group active:scale-[0.98]"
+            >
               <div className="flex items-center justify-between mb-2">
-                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
+                <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] group-hover:bg-[var(--primary)]/20 transition-all">
                   <stat.icon className="w-5 h-5" />
                 </div>
                 <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-lg
@@ -109,30 +120,51 @@ export default function Dashboard() {
               <div className="w-1 h-5 bg-[var(--primary)] rounded-full" />
               <h2 className="text-lg font-semibold text-[var(--text-primary)]">Activity Log</h2>
             </div>
-            <button className="text-xs font-semibold text-[var(--primary)] hover:opacity-80 flex items-center gap-2 group">
+            <button 
+              onClick={() => router.push("/dashboard/patients")}
+              className="text-xs font-semibold text-[var(--primary)] hover:opacity-80 flex items-center gap-2 group"
+            >
               View History <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </button>
           </div>
           
           <div className="space-y-2">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-center gap-4 p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 transition-all">
-                <div className="w-10 h-10 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0">
-                   <Zap className="text-[var(--primary)] w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">Patient Assessment: PRN-48291</p>
-                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5">Clinical Review // Synchronized 2h ago</p>
-                </div>
-                <div className="text-right hidden sm:block">
-                  <div className="flex items-center justify-end gap-1.5 mb-1">
-                    <Shield className="w-3 h-3 text-emerald-500" />
-                    <span className="text-[10px] font-semibold text-emerald-500">Validated</span>
+            {(data?.triageWorklist || [1, 2, 3, 4]).slice(0, 4).map((item: any, i: number) => {
+              const isReal = !!item.patientId;
+              const patientId = isReal ? item.patientId : "sample-id";
+              const mrn = isReal ? item.mrn : `PRN-${48291 + i}`;
+              const name = isReal ? `${item.firstName} ${item.lastName}` : "Patient Assessment";
+              const isAlert = isReal ? item.isAlert : i === 0;
+
+              return (
+                <div 
+                  key={isReal ? item.patientId : i} 
+                  onClick={() => router.push(`/dashboard/patients/${patientId}`)}
+                  className="flex items-center gap-4 p-3 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20 transition-all cursor-pointer active:scale-[0.99] group"
+                >
+                  <div className={`w-10 h-10 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0 ${isAlert ? 'border-red-500/30' : ''}`}>
+                     <Zap className={`${isAlert ? 'text-red-500 animate-pulse' : 'text-[var(--primary)]'} w-5 h-5`} />
                   </div>
-                  <p className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Dr. Gregory House</p>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">
+                      {isReal ? `Assessment: ${name}` : `Patient Assessment: ${mrn}`}
+                    </p>
+                    <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+                      {isReal ? `MRN: ${mrn} // Verified` : "Clinical Review // Synchronized 2h ago"}
+                    </p>
+                  </div>
+                  <div className="text-right hidden sm:block">
+                    <div className="flex items-center justify-end gap-1.5 mb-1">
+                      <Shield className={`w-3 h-3 ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`} />
+                      <span className={`text-[10px] font-semibold ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`}>
+                        {isAlert ? 'Urgent' : 'Validated'}
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-wider">Dr. Gregory House</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -153,7 +185,10 @@ export default function Dashboard() {
                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                  Patient MRN-4829 has lost device connectivity. Follow-up required immediately.
                </p>
-               <button className="w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/10 text-red-500 text-[11px] font-semibold hover:bg-red-500/20 transition-all">
+               <button 
+                 onClick={() => router.push("/dashboard/telemetry")}
+                 className="w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/10 text-red-500 text-[11px] font-semibold hover:bg-red-500/20 transition-all active:scale-[0.98]"
+               >
                  Review Status
                </button>
             </div>
@@ -167,7 +202,10 @@ export default function Dashboard() {
                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                  Professional credentials for practitioner group NJ expire in 14 days.
                </p>
-               <button className="w-full py-2.5 rounded-xl bg-orange-500/10 border border-orange-500/10 text-orange-500 text-[11px] font-semibold hover:bg-orange-500/20 transition-all">
+               <button 
+                 onClick={() => showToast("Redirecting to credentials management...", "info")}
+                 className="w-full py-2.5 rounded-xl bg-orange-500/10 border border-orange-500/10 text-orange-500 text-[11px] font-semibold hover:bg-orange-500/20 transition-all active:scale-[0.98]"
+               >
                  Renew Now
                </button>
             </div>

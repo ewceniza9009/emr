@@ -13,6 +13,7 @@ import {
   TrendingUp,
   History
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const GET_TRIAGE_WORKLIST = gql`
@@ -31,6 +32,7 @@ const GET_TRIAGE_WORKLIST = gql`
 `;
 
 export default function TriageDashboard() {
+  const router = useRouter();
   const { data, loading } = useQuery(GET_TRIAGE_WORKLIST);
   const triageItems = data?.triageWorklist || [];
 
@@ -87,7 +89,11 @@ export default function TriageDashboard() {
                 </thead>
                 <tbody className="divide-y divide-[var(--card-border)]">
                   {triageItems.map((p: any) => (
-                    <tr key={p.patientId} className="group hover:bg-[var(--primary-glow)] transition-colors">
+                    <tr 
+                      key={p.patientId} 
+                      onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}
+                      className="group hover:bg-[var(--primary-glow)] transition-colors cursor-pointer active:scale-[0.995]"
+                    >
                       <td className="px-8 py-2.5">
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 rounded-full ${p.isAlert ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
@@ -140,7 +146,7 @@ export default function TriageDashboard() {
           </div>
         </div>
 
-        {/* Facility Outreach Side Panel */}
+              {/* Facility Outreach Side Panel */}
         <div className="space-y-4">
           <div className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)]">
             <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
@@ -153,7 +159,11 @@ export default function TriageDashboard() {
                 { name: "QC Care Home", patients: 8, crisis: 0 },
                 { name: "St. Lukes Hospital", patients: 5, crisis: 1 },
               ].map((f) => (
-                <div key={f.name} className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-emerald-500/30 transition-all cursor-pointer group">
+                <div 
+                  key={f.name} 
+                  onClick={() => router.push("/dashboard/navigation")}
+                  className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-emerald-500/30 transition-all cursor-pointer group active:scale-[0.98]"
+                >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-[var(--text-primary)] font-bold text-sm group-hover:text-emerald-400 transition-colors">{f.name}</h3>
                     <TrendingUp className="w-4 h-4 text-[var(--text-muted)]" />
@@ -167,25 +177,41 @@ export default function TriageDashboard() {
                 </div>
               ))}
             </div>
-            <button className="w-full mt-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-sm hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-2">
+            <button 
+              onClick={() => router.push("/dashboard/navigation")}
+              className="w-full mt-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-sm hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+            >
               <Building2 className="w-4 h-4" />
               Manage All Facilities
             </button>
           </div>
 
-          <div className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)]">
+          <div className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] shadow-lg">
             <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-blue-500" />
               Missing Directives
             </h2>
-            <p className="text-[var(--text-muted)] text-[10px] mb-3">The following patients are in high-risk groups but lack a documented Advance Directive.</p>
+            <p className="text-[var(--text-muted)] text-[10px] mb-4 leading-relaxed italic">The following patients are in high-risk groups but lack a documented Advance Directive.</p>
             <div className="space-y-3">
-              {["Juan Dela Cruz", "Maria Santos"].map(name => (
-                <div key={name} className="flex items-center justify-between text-sm">
-                   <span className="text-[var(--text-primary)] font-medium">{name}</span>
-                   <button className="text-blue-500 font-bold text-xs hover:underline">Log DNR</button>
+              {(triageItems.filter((p: any) => p.advanceDirectiveType === 'None').slice(0, 4)).map((p: any) => (
+                <div key={p.patientId} className="flex items-center justify-between text-sm group p-1 hover:bg-[var(--primary)]/5 rounded-lg transition-all">
+                   <span 
+                    onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}
+                    className="text-[var(--text-primary)] font-medium cursor-pointer hover:text-[var(--primary)] transition-colors"
+                   >
+                     {p.firstName} {p.lastName}
+                   </span>
+                   <button 
+                    onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}
+                    className="text-blue-500 font-bold text-[10px] uppercase tracking-widest hover:underline hover:text-blue-400 transition-all"
+                   >
+                    Log DNR
+                   </button>
                 </div>
               ))}
+              {triageItems.filter((p: any) => p.advanceDirectiveType === 'None').length === 0 && (
+                <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest text-center py-4">All high-risk records validated.</p>
+              )}
             </div>
           </div>
         </div>

@@ -97,6 +97,11 @@ h1, h2, h3, h4 {
   outline: none;
 }
 
+select option {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
 .premium-input {
   background: var(--input-bg);
   border: 1px solid var(--card-border);

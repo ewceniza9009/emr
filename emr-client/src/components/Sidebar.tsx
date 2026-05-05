@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  FileText, 
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  FileText,
   LogOut,
   Stethoscope,
   HeartPulse,
@@ -17,7 +17,8 @@ import {
   Menu,
   Zap,
   Activity,
-  Shield
+  Shield,
+  Building2
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useSidebar } from "@/lib/SidebarContext";
@@ -27,6 +28,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: AlertTriangle, label: "Triage", href: "/dashboard/triage" },
   { icon: PhoneCall, label: "Outreach", href: "/dashboard/outreach" },
+  { icon: Building2, label: "Facilities", href: "/dashboard/facilities" },
   { icon: Users, label: "Patients", href: "/dashboard/patients" },
   { icon: Calendar, label: "Schedule", href: "/dashboard/schedule" },
   { icon: HeartPulse, label: "Vitals & IoT", href: "/dashboard/telemetry" },
@@ -39,10 +41,9 @@ export function Sidebar() {
   const { isCollapsed, toggle } = useSidebar();
 
   return (
-    <aside 
-      className={`bg-[var(--sidebar-bg)] border-r border-[var(--card-border)] h-screen flex flex-col sticky top-0 transition-all duration-300 ease-in-out z-[100] ${
-        isCollapsed ? "w-20" : "w-64"
-      }`}
+    <aside
+      className={`bg-[var(--sidebar-bg)] border-r border-[var(--card-border)] h-screen flex flex-col sticky top-0 transition-all duration-300 ease-in-out z-[100] ${isCollapsed ? "w-20" : "w-64"
+        }`}
     >
       {/* Brand Section */}
       <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-14 border-b border-[var(--card-border)] shrink-0`}>
@@ -71,11 +72,10 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               title={isCollapsed ? item.label : ""}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${
-                isActive 
-                  ? "bg-[var(--primary)]/10 text-[var(--primary)]" 
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${isActive
+                  ? "bg-[var(--primary)]/10 text-[var(--primary)]"
                   : "text-[var(--text-muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--text-primary)]"
-              }`}
+                }`}
             >
               <div className="relative">
                 <item.icon className={`w-5 h-5 shrink-0 transition-all ${isActive ? "text-[var(--primary)]" : "group-hover:text-[var(--primary)]"}`} />
@@ -83,13 +83,13 @@ export function Sidebar() {
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-[var(--sidebar-bg)]" />
                 )}
               </div>
-              
+
               {!isCollapsed && (
                 <span className={`text-[13px] font-medium transition-all ${isActive ? "text-[var(--primary)]" : ""}`}>
                   {item.label}
                 </span>
               )}
-              
+
               {isActive && !isCollapsed && (
                 <div className="absolute right-3 w-1 h-1 rounded-full bg-[var(--primary)]" />
               )}
@@ -100,7 +100,7 @@ export function Sidebar() {
 
       {/* Footer Actions */}
       <div className="p-3 border-t border-[var(--card-border)] space-y-1">
-        <button 
+        <button
           onClick={toggle}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[var(--text-muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--text-primary)] transition-all group"
           title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
@@ -111,8 +111,8 @@ export function Sidebar() {
           {!isCollapsed && <span className="text-[13px] font-medium">Collapse Sidebar</span>}
         </button>
 
-        
-        <button 
+
+        <button
           onClick={() => signOut()}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[var(--text-muted)] hover:bg-rose-500/15 hover:text-rose-600 transition-all group"
           title={isCollapsed ? "Sign Out" : ""}
