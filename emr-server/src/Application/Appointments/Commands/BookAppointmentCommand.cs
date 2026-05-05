@@ -26,6 +26,20 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context)
         CancellationToken cancellationToken
     )
     {
+        // --- COLLISION PROOF GUARD ---
+        // Check for any overlapping appointments for the same practitioner
+        var hasConflict = await context.Appointments
+            .AnyAsync(a => a.PractitionerId == request.PractitionerId 
+                           && a.AppointmentId != request.AppointmentId
+                           && request.ScheduledStart < a.ScheduledEnd 
+                           && request.ScheduledEnd > a.ScheduledStart, 
+                      cancellationToken);
+
+        if (hasConflict)
+        {
+            throw new InvalidOperationException("Collision Detected: This practitioner already has an appointment scheduled during this time window.");
+        }
+
         var supporting = await context
             .Practitioners.Where(p => request.SupportingPractitionerIds.Contains(p.PractitionerId))
             .ToListAsync(cancellationToken);
