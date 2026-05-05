@@ -23,8 +23,8 @@ import Link from "next/link";
 import BenefitClaimDrawer from "@/components/BenefitClaimDrawer";
 
 const GET_INVOICES = gql`
-  query GetInvoices {
-    billingInvoices {
+  query GetInvoices($search: String, $status: String) {
+    billingInvoices(search: $search, status: $status) {
       invoiceId
       invoiceNumber
       patientId
@@ -47,8 +47,8 @@ const GET_INVOICES = gql`
 `;
 
 const GET_CLAIMS = gql`
-  query GetClaims {
-    zBenefitClaims {
+  query GetClaims($search: String, $status: String) {
+    zBenefitClaims(search: $search, status: $status) {
       claimId
       patientId
       philhealthNumber
@@ -84,16 +84,25 @@ export default function BillingPage() {
   const { showToast } = useToast();
   const [statusFilter, setStatusFilter] = useState("All");
   const [periodFilter, setPeriodFilter] = useState("All Time");
-  
-  const { data: invoiceData, loading: loadingInvoices, refetch: refetchInvoices } = useQuery(GET_INVOICES);
-
-  const { data: claimData, loading: loadingClaims, refetch: refetchClaims } = useQuery(GET_CLAIMS);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("invoices");
   const [isClaimOpen, setIsClaimOpen] = useState(false);
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [editingClaim, setEditingClaim] = useState<any>(null);
+
+  const { data: invoiceData, loading: loadingInvoices, refetch: refetchInvoices } = useQuery(GET_INVOICES, {
+    variables: {
+      search: searchTerm,
+      status: statusFilter
+    }
+  });
+
+  const { data: claimData, loading: loadingClaims, refetch: refetchClaims } = useQuery(GET_CLAIMS, {
+    variables: {
+      search: searchTerm,
+      status: statusFilter
+    }
+  });
 
   const loading = loadingInvoices || loadingClaims;
   const invoices = invoiceData?.billingInvoices || [];
@@ -104,21 +113,8 @@ export default function BillingPage() {
     refetchClaims();
   };
 
-  const filteredInvoices = invoices
-    .filter((inv: any) => 
-      (statusFilter === "All" || inv.status === statusFilter) &&
-      (inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${inv.patient?.firstName} ${inv.patient?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-    .sort((a: any, b: any) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime());
-
-  const filteredClaims = claims
-    .filter((claim: any) => 
-      (statusFilter === "All" || claim.status === statusFilter) &&
-      (`${claim.patient?.firstName} ${claim.patient?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      claim.philhealthNumber.includes(searchTerm))
-    )
-    .sort((a: any, b: any) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  const filteredInvoices = invoices;
+  const filteredClaims = claims;
 
   const handleEditClaim = (claim: any) => {
     setEditingClaim({

@@ -17,8 +17,9 @@ import { useRouter } from "next/navigation";
 import AddPatientDrawer from "@/components/AddPatientDrawer";
 
 const GET_PATIENTS = gql`
-  query GetPatients {
-    patients {
+  query GetPatients($search: String) {
+    patients(search: $search) {
+      items {
       patientId
       mrn
       firstName
@@ -37,6 +38,8 @@ const GET_PATIENTS = gql`
         type
       }
       visitStatus
+      }
+      totalCount
     }
   }
 `;
@@ -47,19 +50,15 @@ export default function PatientsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   
-  const { data, loading, error, refetch } = useQuery(GET_PATIENTS);
+  const { data, loading, error, refetch } = useQuery(GET_PATIENTS, {
+    variables: {
+      search: searchQuery || undefined
+    }
+  });
 
-  const patients = data?.patients || [];
+  const patients = data?.patients?.items || [];
 
-  const filteredPatients = useMemo(() => {
-    if (!searchQuery) return patients;
-    const query = searchQuery.toLowerCase();
-    return patients.filter((p: any) => 
-      `${p.firstName} ${p.lastName}`.toLowerCase().includes(query) ||
-      p.mrn.toLowerCase().includes(query) ||
-      p.addresses?.some((a: any) => a.address?.city?.toLowerCase().includes(query))
-    );
-  }, [patients, searchQuery]);
+  const filteredPatients = patients;
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -126,8 +125,8 @@ export default function PatientsPage() {
                 ))
               ) : error ? (
                 <tr>
-                  <td colSpan={5} className="px-8 py-24 text-center bg-red-500/5">
-                     <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
+                  <td colSpan={6} className="px-8 py-24 text-center bg-red-500/5">
+                     <div className="flex flex-col items-center justify-center gap-4 max-w-md mx-auto w-full">
                        <div className="w-16 h-16 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-600 mb-2 border border-red-500/20">
                          <Filter className="w-8 h-8 opacity-50 absolute" />
                          <Search className="w-8 h-8" />

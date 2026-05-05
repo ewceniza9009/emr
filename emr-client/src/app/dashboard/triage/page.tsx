@@ -17,24 +17,30 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const GET_TRIAGE_WORKLIST = gql`
-  query GetTriageWorklist {
-    triageWorklist {
-      patientId
-      mrn
-      firstName
-      lastName
-      latestPainScore
-      latestWellbeingScore
-      advanceDirectiveType
-      isAlert
+  query GetTriageWorklist($search: String) {
+    triageWorklist(search: $search) {
+      items {
+        patientId
+        mrn
+        firstName
+        lastName
+        latestPainScore
+        latestWellbeingScore
+        advanceDirectiveType
+        isAlert
+      }
+      totalCount
     }
   }
 `;
 
 export default function TriageDashboard() {
   const router = useRouter();
-  const { data, loading } = useQuery(GET_TRIAGE_WORKLIST);
-  const triageItems = data?.triageWorklist || [];
+  const [searchQuery, setSearchQuery] = useState("");
+  const { data, loading } = useQuery(GET_TRIAGE_WORKLIST, {
+    variables: { search: searchQuery || undefined }
+  });
+  const triageItems = data?.triageWorklist?.items || [];
 
   const alertCount = triageItems.filter((i: any) => i.isAlert).length;
   const stableCount = triageItems.length - alertCount;

@@ -16,18 +16,21 @@ import {
 } from "lucide-react";
 
 const GET_OUTREACH_LEADS = gql`
-  query GetOutreachLeads {
-    outreaches {
-      patientOutreachId
-      firstName
-      lastName
-      referralSource
-      status
-      primaryPhone
-      createdAt
-      lastActivityDate
-      callAttemptCount
-      nextFollowUpDate
+  query GetOutreachLeads($search: String) {
+    outreaches(search: $search) {
+      items {
+        patientOutreachId
+        firstName
+        lastName
+        referralSource
+        status
+        primaryPhone
+        createdAt
+        lastActivityDate
+        callAttemptCount
+        nextFollowUpDate
+      }
+      totalCount
     }
   }
 `;
@@ -47,26 +50,14 @@ export default function OutreachPage() {
     search: ""
   });
 
-  const { data, loading, error, refetch } = useQuery(GET_OUTREACH_LEADS);
-  const leads = data?.outreaches || [];
-
-  const filteredLeads = leads.filter((lead: any) => {
-    if (filters.attempts) {
-      const count = lead.callAttemptCount;
-      if (filters.attempts === "0" && count !== 0) return false;
-      if (filters.attempts === "1-4" && (count < 1 || count > 4)) return false;
-      if (filters.attempts === "5-9" && (count < 5 || count > 9)) return false;
-      if (filters.attempts === "10-14" && (count < 10 || count > 14)) return false;
-      if (filters.attempts === "15+" && count < 15) return false;
+  const { data, loading, error, refetch } = useQuery(GET_OUTREACH_LEADS, {
+    variables: {
+      search: filters.search || undefined
     }
-    if (filters.status && lead.status.toLowerCase() !== filters.status.toLowerCase()) return false;
-    if (filters.search && !`${lead.firstName} ${lead.lastName}`.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    return true;
-  }).sort((a: any, b: any) => {
-    const nameA = `${a.lastName} ${a.firstName}`.toLowerCase();
-    const nameB = `${b.lastName} ${b.firstName}`.toLowerCase();
-    return nameA.localeCompare(nameB);
   });
+  const leads = data?.outreaches?.items || [];
+
+  const filteredLeads = leads;
 
   return (
     <div className="w-full space-y-4">

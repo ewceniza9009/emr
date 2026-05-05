@@ -24,29 +24,60 @@ public class AppointmentQuery
     /// Full appointment list with patient + practitioner navigation.
     /// Used by the weekly scheduling calendar.
     /// </summary>
-    [UseProjection]
-    [UseFiltering]
-    [UseSorting]
-    public IQueryable<Appointment> GetAppointments([Service] IApplicationDbContext context)
+    public async Task<Application.Common.Models.PagedResponse<Appointment>> GetAppointments(
+        [Service] IApplicationDbContext context,
+        DateTime? startDate = null,
+        DateTime? endDate = null
+    )
     {
-        return context
+        var query = context
             .Appointments.Include(a => a.Patient)
                 .ThenInclude(p => p!.Addresses)
             .Include(a => a.Practitioner)
             .Include(a => a.SupportingClinicians)
             .AsNoTracking();
+
+        if (startDate.HasValue)
+            query = query.Where(a => a.ScheduledStart >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(a => a.ScheduledEnd <= endDate.Value);
+
+        var totalCount = await query.CountAsync();
+        var items = await query.ToListAsync(); // Calendar usually needs all in range
+
+        return new Application.Common.Models.PagedResponse<Appointment>
+        {
+            Items = items,
+            TotalCount = totalCount,
+        };
     }
 
-    [UseProjection]
-    [UseFiltering]
-    [UseSorting]
-    public IQueryable<ScheduleBlock> GetScheduleBlocks([Service] IApplicationDbContext context)
+    public async Task<Application.Common.Models.PagedResponse<ScheduleBlock>> GetScheduleBlocks(
+        [Service] IApplicationDbContext context,
+        DateTime? startDate = null,
+        DateTime? endDate = null
+    )
     {
-        return context.ScheduleBlocks.Include(b => b.Practitioner).AsNoTracking();
+        var query = context.ScheduleBlocks.Include(b => b.Practitioner).AsNoTracking();
+
+        if (startDate.HasValue)
+            query = query.Where(b => b.StartTime >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(b => b.EndTime <= endDate.Value);
+
+        var totalCount = await query.CountAsync();
+        var items = await query.ToListAsync();
+
+        return new Application.Common.Models.PagedResponse<ScheduleBlock>
+        {
+            Items = items,
+            TotalCount = totalCount,
+        };
     }
 
     [UseFirstOrDefault]
-    [UseProjection]
     public IQueryable<Appointment> GetAppointment(Guid id, [Service] IApplicationDbContext context)
     {
         return context

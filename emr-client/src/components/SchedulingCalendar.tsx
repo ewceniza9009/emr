@@ -52,15 +52,19 @@ const getStatusConfig = (statusStr: string) => {
 
 const GET_SCHEDULE_DATA = gql`
   query GetScheduleData($startDate: DateTime!, $endDate: DateTime!) {
-    appointments(where: { scheduledStart: { gte: $startDate }, scheduledEnd: { lte: $endDate } }) {
-      appointmentId scheduledStart scheduledEnd modality status travelTimeMinutes distanceInMiles practitionerId
-      practitioner { practitionerId firstName lastName position }
-      supportingClinicians { practitionerId firstName lastName position }
-      patient { firstName lastName mrn addresses { isPrimary address { street } } }
+    appointments(startDate: $startDate, endDate: $endDate) {
+      items {
+        appointmentId scheduledStart scheduledEnd modality status travelTimeMinutes distanceInMiles practitionerId
+        practitioner { practitionerId firstName lastName position }
+        supportingClinicians { practitionerId firstName lastName position }
+        patient { firstName lastName mrn addresses { isPrimary address { street } } }
+      }
     }
-    scheduleBlocks(where: { startTime: { gte: $startDate }, endTime: { lte: $endDate } }) {
-      blockId startTime endTime status practitionerId
-      practitioner { practitionerId firstName lastName position }
+    scheduleBlocks(startDate: $startDate, endDate: $endDate) {
+      items {
+        blockId startTime endTime status practitionerId
+        practitioner { practitionerId firstName lastName position }
+      }
     }
     practitioners {
       practitionerId firstName lastName position
@@ -152,8 +156,8 @@ export default function SchedulingCalendar() {
   });
 
   useEffect(() => {
-    if (data?.appointments) setLocalAppointments(data.appointments);
-    if (data?.scheduleBlocks) setLocalBlocks(data.scheduleBlocks);
+    if (data?.appointments?.items) setLocalAppointments(data.appointments.items);
+    if (data?.scheduleBlocks?.items) setLocalBlocks(data.scheduleBlocks.items);
   }, [data]);
 
   const apiPositions = useMemo(() =>

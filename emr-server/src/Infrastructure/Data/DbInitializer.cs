@@ -1165,7 +1165,7 @@ namespace Infrastructure.Data
                                 Description = faker.PickRandom(serviceNames),
                                 Quantity = qty,
                                 UnitPrice = itemUnitPrice,
-                                TotalPrice = qty * itemUnitPrice
+                                TotalPrice = qty * itemUnitPrice,
                             }
                         );
                     }

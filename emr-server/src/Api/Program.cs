@@ -82,6 +82,7 @@ builder
     .AddProjections()
     .AddFiltering()
     .AddSorting()
+    .SetPagingOptions(new HotChocolate.Types.Pagination.PagingOptions { IncludeTotalCount = true })
     .AddType<UploadType>();
 
 builder.Services.AddCors(options =>

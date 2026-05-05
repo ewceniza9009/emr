@@ -15,7 +15,6 @@ public class ClinicalQuery
     // A direct EF Core query inside the GraphQL endpoint.
     // In a fully scaled system, this should also be moved to MediatR, but here we demonstrate
     // HotChocolate's direct IQueryable integration for high-performance projections.
-    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<ClinicalEncounterDto> GetEncountersByPatient(
@@ -29,7 +28,6 @@ public class ClinicalQuery
             .ProjectToType<ClinicalEncounterDto>();
     }
 
-    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<EsasAssessment> GetEsasHistoryByPatient(
@@ -40,13 +38,30 @@ public class ClinicalQuery
         return context.EsasAssessments.AsNoTracking().Where(e => e.PatientId == patientId);
     }
 
-    public async Task<List<TriageItemDto>> GetTriageWorklist(
-        [Service] IApplicationDbContext context
+    public async Task<Application.Common.Models.PagedResponse<TriageItemDto>> GetTriageWorklist(
+        [Service] IApplicationDbContext context,
+        string? search = null,
+        int skip = 0,
+        int take = 50
     )
     {
-        // Fetch all patients and their latest ESAS using navigation properties
-        var triageItems = await context
-            .Patients.AsNoTracking()
+        var query = context.Patients.AsNoTracking();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(p =>
+                p.FirstName.Contains(search)
+                || p.LastName.Contains(search)
+                || p.Mrn.Contains(search)
+            );
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var items = await query
+            .OrderBy(p => p.LastName) // Default sort
+            .Skip(skip)
+            .Take(take)
             .Select(p => new TriageItemDto
             {
                 PatientId = p.PatientId,
@@ -72,7 +87,11 @@ public class ClinicalQuery
             })
             .ToListAsync();
 
-        return triageItems;
+        return new Application.Common.Models.PagedResponse<TriageItemDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+        };
     }
 
     public async Task<List<string>> ValidatePrescription(
@@ -101,7 +120,6 @@ public class ClinicalQuery
         );
     }
 
-    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<EquipmentDelivery> GetEquipmentDeliveriesByPatient(
@@ -115,12 +133,9 @@ public class ClinicalQuery
             .Where(x => x.PatientId == patientId);
     }
 
-    [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<SmartPhrase> GetSmartPhrases(
-        [Service] IApplicationDbContext context
-    )
+    public IQueryable<SmartPhrase> GetSmartPhrases([Service] IApplicationDbContext context)
     {
         return context.SmartPhrases.AsNoTracking().Where(p => p.IsActive);
     }

@@ -2,6 +2,7 @@ using Application.Common.Interfaces;
 using Application.Patients.Dtos;
 using Application.Patients.Queries;
 using Domain.Entities;
+using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,18 +20,39 @@ public class PatientQuery
         return await mediator.Send(new GetPatientByIdQuery(patientId), cancellationToken);
     }
 
-    [UseProjection]
-    [UseFiltering]
-    [UseSorting]
-    public async Task<IEnumerable<PatientDto>> GetPatients(
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken
+    public async Task<Application.Common.Models.PagedResponse<PatientDto>> GetPatients(
+        [Service] IApplicationDbContext context,
+        string? search = null,
+        int skip = 0,
+        int take = 50
     )
     {
-        return await mediator.Send(new GetPatientsQuery(), cancellationToken);
+        var query = context.Patients.AsNoTracking();
+
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(p =>
+                p.FirstName.Contains(search)
+                || p.LastName.Contains(search)
+                || p.Mrn.Contains(search)
+            );
+        }
+
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .OrderBy(p => p.LastName)
+            .Skip(skip)
+            .Take(take)
+            .ProjectToType<PatientDto>()
+            .ToListAsync();
+
+        return new Application.Common.Models.PagedResponse<PatientDto>
+        {
+            Items = items,
+            TotalCount = totalCount,
+        };
     }
 
-    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Prescription> GetPrescriptionsByPatient(
@@ -44,7 +66,6 @@ public class PatientQuery
             .Where(x => x.PatientId == patientId);
     }
 
-    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Diagnosis> GetDiagnosesByPatient(
@@ -55,7 +76,6 @@ public class PatientQuery
         return context.Diagnoses.AsNoTracking().Where(x => x.PatientId == patientId);
     }
 
-    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Allergy> GetAllergiesByPatient(
@@ -66,7 +86,6 @@ public class PatientQuery
         return context.Allergies.AsNoTracking().Where(x => x.PatientId == patientId);
     }
 
-    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<PatientDocument> GetDocumentsByPatient(
