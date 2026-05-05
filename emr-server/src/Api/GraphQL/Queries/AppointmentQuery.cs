@@ -25,6 +25,7 @@ public class AppointmentQuery
     /// Used by the weekly scheduling calendar.
     /// </summary>
     [UseOffsetPaging]
+    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Appointment> GetAppointments(
@@ -67,6 +68,7 @@ public class AppointmentQuery
     }
 
     [UseFirstOrDefault]
+    [UseProjection]
     public IQueryable<Appointment> GetAppointment(Guid id, [Service] IApplicationDbContext context)
     {
         return context

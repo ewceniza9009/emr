@@ -29,6 +29,28 @@ namespace Infrastructure.Data
             // Ensure the database is up to date with all migrations before wiping or seeding
             await context.Database.MigrateAsync();
 
+            // RESILIENCE: Drop the PascalCase shadow column that sometimes gets orphaned in spiritual_assessments
+            try 
+            {
+                await context.Database.ExecuteSqlRawAsync("ALTER TABLE spiritual_assessments DROP COLUMN IF EXISTS \"ClinicalEncounterEncounterId\";");
+            }
+            catch { /* Ignore if already dropped */ }
+
+            // SELF-HEALING: Mark appointments as completed if they have a completed encounter
+            var orphanedAppointments = await context.Appointments
+                .Where(a => a.Status == AppointmentStatus.Scheduled)
+                .Where(a => context.ClinicalEncounters.Any(e => e.AppointmentId == a.AppointmentId && e.Status == EncounterStatus.Completed))
+                .ToListAsync();
+
+            if (orphanedAppointments.Any())
+            {
+                foreach (var appt in orphanedAppointments)
+                {
+                    appt.Status = AppointmentStatus.Completed;
+                }
+                await context.SaveChangesAsync();
+            }
+
             if (wipeDb)
             {
                 await WipeDatabaseAsync(context);
@@ -275,6 +297,7 @@ namespace Infrastructure.Data
                 await context.Database.ExecuteSqlRawAsync(sql);
             }
         }
+
 
         public static async Task SeedDatabaseAsync(ApplicationDbContext context)
         {

@@ -2,6 +2,7 @@ using Application.Common.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Clinical.Commands;
 
@@ -51,6 +52,18 @@ public class CreateClinicalEncounterCommandHandler
 
         _context.ClinicalEncounters.Add(encounter);
         _context.ClinicalNotes.Add(note);
+
+        // Update linked appointment status
+        if (request.AppointmentId.HasValue)
+        {
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(a => a.AppointmentId == request.AppointmentId.Value, cancellationToken);
+            if (appointment != null)
+            {
+                appointment.Status = AppointmentStatus.InProgress;
+            }
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return encounter.EncounterId;

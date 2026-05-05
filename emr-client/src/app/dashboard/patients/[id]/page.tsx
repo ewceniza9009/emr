@@ -47,6 +47,7 @@ import DocumentVault from "@/components/DocumentVault";
 import AddContactDrawer from "@/components/AddContactDrawer";
 import EditDemographicsDrawer from "@/components/EditDemographicsDrawer";
 import EditCommunicationsDrawer from "@/components/EditCommunicationsDrawer";
+import VisitSummaryDrawer from "@/components/VisitSummaryDrawer";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -167,6 +168,8 @@ export default function PatientDetailPage() {
   const [showEditCommunications, setShowEditCommunications] = useState(false);
   const [editingContact, setEditingContact] = useState<any>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
+  const [summaryAppointmentId, setSummaryAppointmentId] = useState<string | null>(null);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
 
   const isUuid = (val: any) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
 
@@ -694,7 +697,13 @@ export default function PatientDetailPage() {
                               </button>
                             </>
                           ) : (
-                            <button className="px-6 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest hover:text-[var(--text-primary)] transition-all">
+                            <button 
+                              onClick={() => {
+                                setSummaryAppointmentId(appt.appointmentId);
+                                setIsSummaryOpen(true);
+                              }}
+                              className="px-6 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest hover:text-[var(--text-primary)] transition-all"
+                            >
                               View Summary
                             </button>
                           )}
@@ -983,6 +992,14 @@ export default function PatientDetailPage() {
         onSuccess={() => refetch()}
         patient={patient}
       />
+      {summaryAppointmentId && (
+        <VisitSummaryDrawer 
+          isOpen={isSummaryOpen}
+          onClose={() => setIsSummaryOpen(false)}
+          patientId={params.id as string}
+          appointmentId={summaryAppointmentId}
+        />
+      )}
     </div>
   );
 }

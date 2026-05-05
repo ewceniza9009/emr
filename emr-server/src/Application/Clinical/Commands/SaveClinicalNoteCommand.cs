@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -60,6 +61,22 @@ public class SaveClinicalNoteCommandHandler : IRequestHandler<SaveClinicalNoteCo
             note.IsSigned = true;
             note.SignatureHash = request.Signature; // In production, this would be a real cryptographic hash
             note.SignedAt = _dateTime.UtcNow;
+
+            // Update Encounter and Linked Appointment to Completed
+            var encounter = await _context.ClinicalEncounters
+                .Include(e => e.Appointment)
+                .FirstOrDefaultAsync(e => e.EncounterId == request.EncounterId, cancellationToken);
+
+            if (encounter != null)
+            {
+                encounter.Status = EncounterStatus.Completed;
+                encounter.DischargedAt = _dateTime.UtcNow;
+
+                if (encounter.Appointment != null)
+                {
+                    encounter.Appointment.Status = AppointmentStatus.Completed;
+                }
+            }
         }
 
         // Render full content for search/legacy display
