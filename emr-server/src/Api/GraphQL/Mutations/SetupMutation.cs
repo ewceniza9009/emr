@@ -24,7 +24,12 @@ public class SetupMutation
         Practitioner input,
         [Service] IApplicationDbContext context)
     {
-        var existing = await context.Practitioners.FindAsync(input.PractitionerId);
+        var existing = await context.Practitioners
+            .Include(p => p.Addresses)
+            .Include(p => p.Licensures)
+            .Include(p => p.ServiceAreas)
+            .FirstOrDefaultAsync(p => p.PractitionerId == input.PractitionerId);
+            
         if (existing == null) return false;
 
         existing.FirstName = input.FirstName;
@@ -35,6 +40,24 @@ public class SetupMutation
         existing.Position = input.Position;
         existing.IsCareNavigator = input.IsCareNavigator;
         existing.IsSupportingClinician = input.IsSupportingClinician;
+
+        // Atomic Sync of Addresses
+        if (input.Addresses != null) {
+            existing.Addresses.Clear();
+            foreach(var addr in input.Addresses) existing.Addresses.Add(addr);
+        }
+
+        // Atomic Sync of Licensures
+        if (input.Licensures != null) {
+            existing.Licensures.Clear();
+            foreach(var lic in input.Licensures) existing.Licensures.Add(lic);
+        }
+
+        // Atomic Sync of Service Areas (Zipcodes)
+        if (input.ServiceAreas != null) {
+            existing.ServiceAreas.Clear();
+            foreach(var area in input.ServiceAreas) existing.ServiceAreas.Add(area);
+        }
 
         await context.SaveChangesAsync(default);
         return true;

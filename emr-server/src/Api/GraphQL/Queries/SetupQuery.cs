@@ -10,41 +10,49 @@ namespace Api.GraphQL.Queries;
 [ExtendObjectType("Query")]
 public class SetupQuery
 {
+    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Practitioner> GetPractitioners([Service] IApplicationDbContext context) =>
         context.Practitioners.AsNoTracking();
 
+    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Facility> GetFacilities([Service] IApplicationDbContext context) =>
         context.Facilities.AsNoTracking();
 
+    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<HealthPlan> GetHealthPlans([Service] IApplicationDbContext context) =>
         context.HealthPlans.AsNoTracking();
 
+    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Medication> GetMedications([Service] IApplicationDbContext context) =>
         context.Medications.AsNoTracking();
 
+    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Questionnaire> GetQuestionnaires([Service] IApplicationDbContext context) =>
-        context.Questionnaires.Include(x => x.Questions).AsNoTracking();
+        context.Questionnaires.AsNoTracking();
 
+    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<DurableMedicalEquipment> GetEquipment([Service] IApplicationDbContext context) =>
         context.DurableMedicalEquipment.AsNoTracking();
 
+    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<OutreachScript> GetOutreachScripts([Service] IApplicationDbContext context) =>
         context.OutreachScripts.AsNoTracking();
 
+    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<IntegrationProfile> GetIntegrationProfiles([Service] IApplicationDbContext context) =>

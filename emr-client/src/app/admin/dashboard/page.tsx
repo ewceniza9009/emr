@@ -2,14 +2,14 @@
 
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useState, useEffect } from "react";
-import { 
-  Shield, 
-  Plus, 
-  Search, 
-  Building2, 
-  Users, 
-  Stethoscope, 
-  Pill, 
+import {
+  Shield,
+  Plus,
+  Search,
+  Building2,
+  Users,
+  Stethoscope,
+  Pill,
   MoreHorizontal,
   Activity,
   LogOut,
@@ -32,6 +32,23 @@ const GET_SETUP_DATA = gql`
       position
       isActive
       prcLicenseNumber
+      addresses {
+        address {
+          street
+          city
+          state
+          postalCode
+        }
+      }
+      licensures {
+        licenseNumber
+        state
+        expiryDate
+      }
+      serviceAreas {
+        zipCode
+        county
+      }
     }
     facilities {
       facilityId
@@ -117,7 +134,7 @@ export default function AdminDashboardPage() {
     setEditItem(null);
     localStorage.setItem("aura_admin_active_tab", tab);
   };
-  
+
   const { data, loading, error, refetch } = useQuery(GET_SETUP_DATA);
 
   const [deleteItem] = useMutation(DELETE_MUTATIONS[activeTab], {
@@ -125,7 +142,7 @@ export default function AdminDashboardPage() {
   });
 
   if (status === "loading") return <div className="min-h-screen bg-[#020617] flex items-center justify-center font-black text-slate-500 uppercase tracking-widest animate-pulse">Initializing Security Session...</div>;
-  
+
   if (status === "unauthenticated") {
     redirect("/admin/login");
   }
@@ -138,7 +155,7 @@ export default function AdminDashboardPage() {
   const handleDelete = async (item: any) => {
     const idKey = Object.keys(item).find(k => k.toLowerCase().includes('id'));
     if (!idKey) return;
-    
+
     if (confirm(`Are you sure you want to delete this record? This action is irreversible.`)) {
       try {
         await deleteItem({ variables: { id: item[idKey] } });
@@ -160,26 +177,28 @@ export default function AdminDashboardPage() {
     switch (activeTab) {
       case "practitioners":
         return (
-          <SetupTable 
+          <SetupTable
             {...tableProps}
-            data={data?.practitioners || []} 
+            data={data?.practitioners || []}
             columns={[
               { key: "fullName", label: "Name", render: (item: any) => `${item.firstName} ${item.lastName}` },
               { key: "position", label: "Position" },
               { key: "prcLicenseNumber", label: "PRC License" },
-              { key: "isActive", label: "Status", render: (item: any) => (
-                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${item.isActive ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border-rose-500/20"}`}>
-                  {item.isActive ? "Active" : "Inactive"}
-                </span>
-              )}
+              {
+                key: "isActive", label: "Status", render: (item: any) => (
+                  <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${item.isActive ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border-rose-500/20"}`}>
+                    {item.isActive ? "Active" : "Inactive"}
+                  </span>
+                )
+              }
             ]}
           />
         );
       case "facilities":
         return (
-          <SetupTable 
+          <SetupTable
             {...tableProps}
-            data={data?.facilities || []} 
+            data={data?.facilities || []}
             columns={[
               { key: "name", label: "Facility Name" },
               { key: "type", label: "Type" }
@@ -188,9 +207,9 @@ export default function AdminDashboardPage() {
         );
       case "healthPlans":
         return (
-          <SetupTable 
+          <SetupTable
             {...tableProps}
-            data={data?.healthPlans || []} 
+            data={data?.healthPlans || []}
             columns={[
               { key: "name", label: "Plan Name" },
               { key: "code", label: "Code" }
@@ -199,9 +218,9 @@ export default function AdminDashboardPage() {
         );
       case "medications":
         return (
-          <SetupTable 
+          <SetupTable
             {...tableProps}
-            data={data?.medications || []} 
+            data={data?.medications || []}
             columns={[
               { key: "name", label: "Medication" },
               { key: "strength", label: "Strength" },
@@ -211,9 +230,9 @@ export default function AdminDashboardPage() {
         );
       case "smartPhrases":
         return (
-          <SetupTable 
+          <SetupTable
             {...tableProps}
-            data={data?.smartPhrases || []} 
+            data={data?.smartPhrases || []}
             columns={[
               { key: "shortcut", label: "Trigger Key", render: (item: any) => <span className="font-mono text-indigo-400">{item.shortcut}</span> },
               { key: "templateText", label: "Full Phrase" },
@@ -223,75 +242,81 @@ export default function AdminDashboardPage() {
         );
       case "questionnaires":
         return (
-          <SetupTable 
+          <SetupTable
             {...tableProps}
-            data={data?.questionnaires || []} 
+            data={data?.questionnaires || []}
             columns={[
               { key: "name", label: "Form Name" },
               { key: "assessmentType", label: "Type" },
-              { key: "schemaJson", label: "Logic Status", render: (item: any) => {
-                const hasModern = !!item.schemaJson && item.schemaJson.length > 20;
-                const hasLegacy = item.questions?.length > 0;
-                
-                if (hasModern) return (
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                    <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
-                      Neural Script Active
-                    </span>
-                  </div>
-                );
-                if (hasLegacy) return (
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
-                    <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-amber-500/10 text-amber-500 border-amber-500/20">
-                      Legacy Bridge Mode
-                    </span>
-                  </div>
-                );
-                return (
-                  <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-700" />
-                    <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-slate-500/10 text-slate-500 border-slate-500/20 opacity-50">
-                      Empty Schema
-                    </span>
-                  </div>
-                );
-              }},
-              { key: "actions", label: "Designer", render: (item: any) => (
-                <Link 
-                  href={`/admin/forms/${item.questionnaireId}/design`}
-                  className="inline-flex items-center gap-3 px-4 py-2 border border-white/5 bg-white/5 hover:bg-indigo-600 hover:border-indigo-500 text-slate-400 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all group/btn"
-                >
-                  <ClipboardList className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
-                  Launch Architect
-                </Link>
-              )}
+              {
+                key: "schemaJson", label: "Logic Status", render: (item: any) => {
+                  const hasModern = !!item.schemaJson && item.schemaJson.length > 20;
+                  const hasLegacy = item.questions?.length > 0;
+
+                  if (hasModern) return (
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                      <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                        Neural Script Active
+                      </span>
+                    </div>
+                  );
+                  if (hasLegacy) return (
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+                      <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-amber-500/10 text-amber-500 border-amber-500/20">
+                        Legacy Bridge Mode
+                      </span>
+                    </div>
+                  );
+                  return (
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-700" />
+                      <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-slate-500/10 text-slate-500 border-slate-500/20 opacity-50">
+                        Empty Schema
+                      </span>
+                    </div>
+                  );
+                }
+              },
+              {
+                key: "actions", label: "Designer", render: (item: any) => (
+                  <Link
+                    href={`/admin/forms/${item.questionnaireId}/design`}
+                    className="inline-flex items-center gap-3 px-4 py-2 border border-white/5 bg-white/5 hover:bg-indigo-600 hover:border-indigo-500 text-slate-400 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all group/btn"
+                  >
+                    <ClipboardList className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
+                    Launch Designer
+                  </Link>
+                )
+              }
             ]}
           />
         );
       case "equipment":
         return (
-          <SetupTable 
+          <SetupTable
             {...tableProps}
-            data={data?.equipment || []} 
+            data={data?.equipment || []}
             columns={[
               { key: "modelName", label: "Model" },
               { key: "serialNumber", label: "Serial #" },
               { key: "type", label: "Type" },
-              { key: "status", label: "Status", render: (item: any) => (
-                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${item.status === 'Available' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"}`}>
-                  {item.status}
-                </span>
-              )}
+              {
+                key: "status", label: "Status", render: (item: any) => (
+                  <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${item.status === 'Available' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"}`}>
+                    {item.status}
+                  </span>
+                )
+              }
             ]}
           />
         );
       case "outreachScripts":
         return (
-          <SetupTable 
+          <SetupTable
             {...tableProps}
-            data={data?.outreachScripts || []} 
+            data={data?.outreachScripts || []}
             columns={[
               { key: "scriptTitle", label: "Title" },
               { key: "locationName", label: "Region" },
@@ -301,17 +326,19 @@ export default function AdminDashboardPage() {
         );
       case "integrationProfiles":
         return (
-          <SetupTable 
+          <SetupTable
             {...tableProps}
-            data={data?.integrationProfiles || []} 
+            data={data?.integrationProfiles || []}
             columns={[
               { key: "partner", label: "Partner" },
               { key: "apiKey", label: "Key Fragment", render: (item: any) => `****${item.apiKey.slice(-4)}` },
-              { key: "isActive", label: "Status", render: (item: any) => (
-                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${item.isActive ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border-rose-500/20"}`}>
-                  {item.isActive ? "Active" : "Inactive"}
-                </span>
-              )}
+              {
+                key: "isActive", label: "Status", render: (item: any) => (
+                  <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${item.isActive ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border-rose-500/20"}`}>
+                    {item.isActive ? "Active" : "Inactive"}
+                  </span>
+                )
+              }
             ]}
           />
         );
@@ -321,41 +348,41 @@ export default function AdminDashboardPage() {
   return (
     <div className="flex min-h-screen bg-[#020617]">
       <AdminSidebar activeTab={activeTab} setActiveTab={handleTabChange} />
-      
+
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         <header className="h-20 border-b border-white/5 bg-slate-900/50 backdrop-blur-xl flex items-center justify-between px-8 shrink-0">
           <div className="flex items-center gap-4">
-             <div className="flex items-center gap-2 text-[10px] font-black text-white uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
-                <span>{activeTab.replace(/([A-Z])/g, ' $1')} Registry</span>
-             </div>
+            <div className="flex items-center gap-2 text-[10px] font-black text-white uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+              <span>{activeTab.replace(/([A-Z])/g, ' $1')} Registry</span>
+            </div>
           </div>
           <div className="flex items-center gap-4">
-             <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                Protected Admin Session
-             </div>
+            <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+              Protected Admin Session
+            </div>
           </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-8 space-y-8 scroll-smooth">
           <div className="flex items-end justify-between">
             <div>
-               <h1 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-                 {activeTab.replace(/([A-Z])/g, ' $1')}
-               </h1>
-               <div className="flex items-center gap-4 mt-3">
-                 <div className="flex items-center gap-2">
-                   <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                     {data?.[activeTab]?.length || 0} Records Registered
-                   </span>
-                 </div>
-                 <div className="w-px h-3 bg-white/10" />
-                 <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
-                   Node: Master Registry
-                 </span>
-               </div>
+              <h1 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
+                {activeTab.replace(/([A-Z])/g, ' $1')}
+              </h1>
+              <div className="flex items-center gap-4 mt-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {data?.[activeTab]?.length || 0} Records Registered
+                  </span>
+                </div>
+                <div className="w-px h-3 bg-white/10" />
+                <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                  Node: Master Registry
+                </span>
+              </div>
             </div>
-            <button 
+            <button
               className="h-11 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-[0.15em] shadow-2xl shadow-indigo-500/20 transition-all active:scale-[0.98] flex items-center gap-3 group"
               onClick={() => { setEditItem(null); setIsDrawerOpen(true); }}
             >
@@ -367,9 +394,9 @@ export default function AdminDashboardPage() {
           <div className="flex items-center justify-between gap-6">
             <div className="relative flex-1 max-w-md group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-indigo-500 transition-colors" />
-              <input 
-                type="text" 
-                placeholder={`Query master registry for ${activeTab}...`} 
+              <input
+                type="text"
+                placeholder={`Query master registry for ${activeTab}...`}
                 className="w-full bg-slate-900/40 border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-[12px] font-bold text-white focus:outline-none focus:border-indigo-500/40 focus:bg-slate-950 transition-all placeholder:text-slate-700"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -377,8 +404,8 @@ export default function AdminDashboardPage() {
             </div>
             <div className="flex items-center gap-4 text-[9px] font-black text-slate-600 uppercase tracking-widest">
               <div className="flex items-center gap-2 px-4 py-2 bg-white/[0.02] border border-white/5 rounded-xl">
-                 <Activity className="w-3.5 h-3.5 text-indigo-500" />
-                 Last Sync: {new Date().toLocaleTimeString()}
+                <Activity className="w-3.5 h-3.5 text-indigo-500" />
+                Last Sync: {new Date().toLocaleTimeString()}
               </div>
             </div>
           </div>
@@ -389,12 +416,12 @@ export default function AdminDashboardPage() {
         </main>
       </div>
 
-      <SetupDrawer 
-        open={isDrawerOpen} 
-        type={activeTab} 
+      <SetupDrawer
+        open={isDrawerOpen}
+        type={activeTab}
         initialData={editItem}
-        onClose={() => { setIsDrawerOpen(false); setEditItem(null); }} 
-        onSuccess={() => refetch()} 
+        onClose={() => { setIsDrawerOpen(false); setEditItem(null); }}
+        onSuccess={() => refetch()}
       />
     </div>
   );
@@ -441,14 +468,14 @@ function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns:
               ))}
               <td className="px-8 py-5 text-right">
                 <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                  <button 
+                  <button
                     onClick={() => onEdit(item)}
                     className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-800/50 hover:bg-indigo-600 text-slate-400 hover:text-white border border-white/5 hover:border-indigo-500 transition-all shadow-xl"
                     title="Edit Record"
                   >
                     <Edit className="w-3.5 h-3.5" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => onDelete(item)}
                     className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-800/50 hover:bg-rose-600 text-slate-400 hover:text-white border border-white/5 hover:border-rose-500 transition-all shadow-xl"
                     title="Delete Record"

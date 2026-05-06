@@ -186,30 +186,107 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
 
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-6">
             {type === "practitioners" && (
-              <>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">First Name</label>
-                  <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} />
+              <div className="space-y-8">
+                {/* Basic Identity */}
+                <div className="space-y-4">
+                  <h3 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em] border-b border-[var(--card-border)] pb-2">Basic Identity</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">First Name</label>
+                      <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Last Name</label>
+                      <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Position</label>
+                    <select className="premium-input w-full rounded-xl p-3 text-sm appearance-none" value={form.position} onChange={e => setForm({...form, position: e.target.value})}>
+                      <option value="Nurse">Nurse</option>
+                      <option value="Physician">Physician</option>
+                      <option value="Admin">Admin</option>
+                      <option value="SocialWorker">Social Worker</option>
+                      <option value="Chaplain">Chaplain</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Last Name</label>
-                  <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} />
+
+                {/* Clinical Governance */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-2">
+                    <h3 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Clinical Governance</h3>
+                    <button type="button" onClick={() => setForm({...form, licensures: [...(form.licensures || []), { licenseNumber: "", state: "", expiryDate: new Date().toISOString() }]})} className="text-[9px] font-bold text-[var(--primary)] hover:underline uppercase tracking-widest">+ Add License</button>
+                  </div>
+                  {(form.licensures || []).map((lic: any, idx: number) => (
+                    <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/5 space-y-3 relative group">
+                      <button type="button" onClick={() => setForm({...form, licensures: form.licensures.filter((_: any, i: number) => i !== idx)})} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-400 transition-all text-[10px] font-bold uppercase">Remove</button>
+                      <div className="grid grid-cols-2 gap-3">
+                        <input placeholder="License #" className="premium-input w-full rounded-lg p-2 text-xs" value={lic.licenseNumber} onChange={e => {
+                          const newLics = [...form.licensures];
+                          newLics[idx].licenseNumber = e.target.value;
+                          setForm({...form, licensures: newLics});
+                        }} />
+                        <input placeholder="State (e.g. CA)" className="premium-input w-full rounded-lg p-2 text-xs" value={lic.state} onChange={e => {
+                          const newLics = [...form.licensures];
+                          newLics[idx].state = e.target.value;
+                          setForm({...form, licensures: newLics});
+                        }} />
+                      </div>
+                    </div>
+                  ))}
+                  {(!form.licensures || form.licensures.length === 0) && <p className="text-[10px] text-center text-slate-600 italic py-2">No regional licensures defined.</p>}
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Position</label>
-                  <select className="premium-input w-full rounded-xl p-3 text-sm appearance-none" value={form.position} onChange={e => setForm({...form, position: e.target.value})}>
-                    <option value="Nurse">Nurse</option>
-                    <option value="Physician">Physician</option>
-                    <option value="Admin">Admin</option>
-                    <option value="SocialWorker">Social Worker</option>
-                    <option value="Chaplain">Chaplain</option>
-                  </select>
+
+                {/* Service Deployment Zones */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-2">
+                    <h3 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Deployment Zones</h3>
+                    <button type="button" onClick={() => setForm({...form, serviceAreas: [...(form.serviceAreas || []), { zipCode: "", county: "" }]})} className="text-[9px] font-bold text-[var(--primary)] hover:underline uppercase tracking-widest">+ Add Zipcode</button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {(form.serviceAreas || []).map((area: any, idx: number) => (
+                      <div key={idx} className="flex gap-2">
+                        <input placeholder="Zipcode" className="premium-input flex-1 rounded-lg p-2 text-xs font-mono" value={area.zipCode} onChange={e => {
+                          const newAreas = [...form.serviceAreas];
+                          newAreas[idx].zipCode = e.target.value;
+                          setForm({...form, serviceAreas: newAreas});
+                        }} />
+                        <button type="button" onClick={() => setForm({...form, serviceAreas: form.serviceAreas.filter((_: any, i: number) => i !== idx)})} className="text-rose-500 hover:text-rose-400 p-2"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">PRC License Number</label>
-                  <input className="premium-input w-full rounded-xl p-3 text-sm" value={form.prcLicenseNumber} onChange={e => setForm({...form, prcLicenseNumber: e.target.value})} />
+
+                {/* Base Operations Address */}
+                <div className="space-y-4">
+                  <h3 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em] border-b border-[var(--card-border)] pb-2">Base Operations</h3>
+                  <div className="space-y-3">
+                    <input placeholder="Street Address" className="premium-input w-full rounded-xl p-3 text-sm" value={form.addresses?.[0]?.address?.street || ""} onChange={e => {
+                      const newAddrs = [...(form.addresses || [{address: {street: "", city: "", state: "", postalCode: ""}}])];
+                      newAddrs[0].address = { ...newAddrs[0].address, street: e.target.value };
+                      setForm({...form, addresses: newAddrs});
+                    }} />
+                    <div className="grid grid-cols-3 gap-3">
+                      <input placeholder="City" className="premium-input w-full rounded-lg p-2 text-xs" value={form.addresses?.[0]?.address?.city || ""} onChange={e => {
+                        const newAddrs = [...(form.addresses || [{address: {street: "", city: "", state: "", postalCode: ""}}])];
+                        newAddrs[0].address = { ...newAddrs[0].address, city: e.target.value };
+                        setForm({...form, addresses: newAddrs});
+                      }} />
+                      <input placeholder="State" className="premium-input w-full rounded-lg p-2 text-xs" value={form.addresses?.[0]?.address?.state || ""} onChange={e => {
+                        const newAddrs = [...(form.addresses || [{address: {street: "", city: "", state: "", postalCode: ""}}])];
+                        newAddrs[0].address = { ...newAddrs[0].address, state: e.target.value };
+                        setForm({...form, addresses: newAddrs});
+                      }} />
+                      <input placeholder="Zip" className="premium-input w-full rounded-lg p-2 text-xs font-mono" value={form.addresses?.[0]?.address?.postalCode || ""} onChange={e => {
+                        const newAddrs = [...(form.addresses || [{address: {street: "", city: "", state: "", postalCode: ""}}])];
+                        newAddrs[0].address = { ...newAddrs[0].address, postalCode: e.target.value };
+                        setForm({...form, addresses: newAddrs});
+                      }} />
+                    </div>
+                  </div>
                 </div>
-              </>
+              </div>
             )}
 
             {type === "facilities" && (

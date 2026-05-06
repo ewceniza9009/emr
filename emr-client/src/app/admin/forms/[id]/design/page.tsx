@@ -81,8 +81,8 @@ export default function FormDesignerPage() {
 
     // SELF-HEALING: If the schema exists but was built using old rules (Rating instead of Slider, or missing 0-10 scale)
     // we force a re-synthesis to ensure clinical parity.
-    const isStaleSchema = form.schemaJson?.includes('"name":"legacy_import"') && 
-                         (!form.schemaJson?.includes('"rateMax":10') || !form.schemaJson?.includes('"type":"slider"'));
+    const isStaleSchema = form.schemaJson?.includes('"name":"legacy_import"') &&
+      (!form.schemaJson?.includes('"rateMax":10') || !form.schemaJson?.includes('"type":"slider"'));
 
     if (form.schemaJson && form.schemaJson.length > 10 && !isStaleSchema) return form.schemaJson;
 
@@ -94,7 +94,7 @@ export default function FormDesignerPage() {
           name: `q_${idx}`,
           title: q.text
         };
-        
+
         // Handle High-Resolution Clinical Scales (0-10)
         if (type === "rating") {
           base.rateMin = 0;
@@ -112,16 +112,16 @@ export default function FormDesignerPage() {
         }
         return base;
       });
-      
-      return JSON.stringify({ 
+
+      return JSON.stringify({
         title: form.name,
         description: `Dynamic Clinical Assessment: ${form.assessmentType}`,
         logoPosition: "right",
-        pages: [{ 
-          name: "legacy_import", 
+        pages: [{
+          name: "legacy_import",
           title: "Initial Assessment Data",
-          elements 
-        }] 
+          elements
+        }]
       });
     }
     return null;
@@ -144,57 +144,57 @@ export default function FormDesignerPage() {
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-black text-slate-900 uppercase tracking-tighter leading-none">{form.name}</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Dynamic Script Architect</span>
+              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1"> Assessment Form Design</span>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-           {saving && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full border border-indigo-100">
-                <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping" />
-                <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Persisting...</span>
-              </div>
-           )}
-            <button 
-              onClick={async () => {
-                console.log("Forcing Re-Sync for:", form?.name);
-                try {
-                  const res = await updateForm({
-                    variables: {
-                      input: {
-                        questionnaireId: form.questionnaireId,
-                        name: form.name,
-                        assessmentType: form.assessmentType,
-                        schemaJson: null 
-                      }
+          {saving && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full border border-indigo-100">
+              <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping" />
+              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Persisting...</span>
+            </div>
+          )}
+          <button
+            onClick={async () => {
+              console.log("Forcing Re-Sync for:", form?.name);
+              try {
+                const res = await updateForm({
+                  variables: {
+                    input: {
+                      questionnaireId: form.questionnaireId,
+                      name: form.name,
+                      assessmentType: form.assessmentType,
+                      schemaJson: null
                     }
-                  });
-                  console.log("Purge Result:", res);
-                  window.location.href = window.location.href;
-                } catch (e) {
-                  console.error("Re-sync error:", e);
-                }
-              }}
-              className="h-11 px-6 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95"
-            >
-              <Activity className="w-4 h-4" />
-              <span className="text-[9px]">Force Repair 0-10 Scale</span>
-            </button>
-            <button 
-              onClick={() => window.dispatchEvent(new CustomEvent('save-survey-schema'))}
-              className="h-11 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-[0.15em] shadow-2xl shadow-indigo-600/20 transition-all flex items-center gap-3 active:scale-95"
-            >
-              <Save className="w-4 h-4" />
-              <span className="text-[10px]">Save Schema</span>
-            </button>
-         </div>
+                  }
+                });
+                console.log("Purge Result:", res);
+                window.location.href = window.location.href;
+              } catch (e) {
+                console.error("Re-sync error:", e);
+              }
+            }}
+            className="h-11 px-6 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95"
+          >
+            <Activity className="w-4 h-4" />
+            <span className="text-[9px]">Force Repair 0-10 Scale</span>
+          </button>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('save-survey-schema'))}
+            className="h-11 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-[0.15em] shadow-2xl shadow-indigo-600/20 transition-all flex items-center gap-3 active:scale-95"
+          >
+            <Save className="w-4 h-4" />
+            <span className="text-[10px]">Save Schema</span>
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 overflow-hidden relative">
-        <SurveyCreatorWidget 
-          initialJson={initialJson || "{}"} 
-          onSave={handleSave} 
+        <SurveyCreatorWidget
+          initialJson={initialJson || "{}"}
+          onSave={handleSave}
         />
       </main>
 
