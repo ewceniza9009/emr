@@ -620,7 +620,9 @@ export default function GuidedVisitPage() {
                           <button
                             onClick={() => {
                               setActiveAssessments(prev => prev.filter(a => a.assessmentType !== currentStep.assessmentId));
-                              setStep(nextStep.id);
+                              // When removing, it is safer to drop back to the previous stable step 
+                              // rather than jumping into the next assessment unprepared.
+                              setStep(prevStep.id);
                             }}
                             className="flex-1 py-3.5 rounded-xl bg-rose-500/10 border border-rose-500/10 text-rose-400 font-black text-[10px] uppercase tracking-widest hover:bg-rose-500/20 transition-all"
                           >

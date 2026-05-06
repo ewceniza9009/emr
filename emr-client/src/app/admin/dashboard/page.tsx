@@ -230,32 +230,41 @@ export default function AdminDashboardPage() {
               { key: "name", label: "Form Name" },
               { key: "assessmentType", label: "Type" },
               { key: "schemaJson", label: "Logic Status", render: (item: any) => {
-                const hasModern = !!item.schemaJson;
+                const hasModern = !!item.schemaJson && item.schemaJson.length > 20;
                 const hasLegacy = item.questions?.length > 0;
                 
                 if (hasModern) return (
-                  <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
-                    Neural Script Active
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                    <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                      Neural Script Active
+                    </span>
+                  </div>
                 );
                 if (hasLegacy) return (
-                  <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border bg-amber-500/10 text-amber-500 border-amber-500/20">
-                    Legacy Logic Detected
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+                    <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-amber-500/10 text-amber-500 border-amber-500/20">
+                      Legacy Bridge Mode
+                    </span>
+                  </div>
                 );
                 return (
-                  <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border bg-slate-500/10 text-slate-500 border-slate-500/20">
-                    Empty Schema
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-700" />
+                    <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-slate-500/10 text-slate-500 border-slate-500/20 opacity-50">
+                      Empty Schema
+                    </span>
+                  </div>
                 );
               }},
               { key: "actions", label: "Designer", render: (item: any) => (
                 <Link 
                   href={`/admin/forms/${item.questionnaireId}/design`}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
+                  className="inline-flex items-center gap-3 px-4 py-2 border border-white/5 bg-white/5 hover:bg-indigo-600 hover:border-indigo-500 text-slate-400 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all group/btn"
                 >
-                  <ClipboardList className="w-3 h-3" />
-                  Launch Designer
+                  <ClipboardList className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
+                  Launch Architect
                 </Link>
               )}
             ]}
@@ -396,44 +405,53 @@ import { Edit, Trash2 } from "lucide-react";
 function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns: any[], onEdit: (item: any) => void, onDelete: (item: any) => void }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left">
+      <table className="w-full text-left border-collapse">
         <thead>
-          <tr className="bg-white/[0.02] border-b border-white/5">
+          <tr className="bg-slate-950/50 border-b border-white/5">
             {columns.map((col) => (
-              <th key={col.key} className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-[0.25em]">
+              <th key={col.key} className="px-8 py-6 text-[9px] font-black text-slate-500 uppercase tracking-[0.3em]">
                 {col.label}
               </th>
             ))}
-            <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-[0.25em] text-right">
+            <th className="px-8 py-6 text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] text-right">
               Management
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-white/5">
+        <tbody className="divide-y divide-white/[0.03]">
           {data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length + 1} className="px-6 py-16 text-center text-slate-600 italic text-[11px] font-medium tracking-tight">
+              <td colSpan={columns.length + 1} className="px-8 py-24 text-center text-slate-600 italic text-[11px] font-medium tracking-widest uppercase">
+                <Activity className="w-8 h-8 mx-auto mb-4 opacity-20 animate-pulse" />
                 No active records detected in this registry segment.
               </td>
             </tr>
           ) : data.map((item, idx) => (
-            <tr key={idx} className="group hover:bg-white/[0.01] transition-colors">
-              {columns.map((col) => (
-                <td key={col.key} className="px-6 py-4 text-[11px]">
-                  {col.render ? col.render(item) : <span className="text-slate-300 font-bold tracking-tight">{item[col.key]}</span>}
+            <tr key={idx} className="group hover:bg-white/[0.02] transition-all duration-300 relative">
+              {columns.map((col, colIdx) => (
+                <td key={col.key} className={`px-8 py-5 text-[11px] transition-all ${colIdx === 0 ? 'border-l-2 border-transparent group-hover:border-indigo-500' : ''}`}>
+                  {col.render ? col.render(item) : (
+                    <div className="flex flex-col">
+                      <span className="text-slate-200 font-bold tracking-tight uppercase group-hover:text-white transition-colors">
+                        {item[col.key]}
+                      </span>
+                    </div>
+                  )}
                 </td>
               ))}
-              <td className="px-6 py-4 text-right">
-                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <td className="px-8 py-5 text-right">
+                <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                   <button 
                     onClick={() => onEdit(item)}
-                    className="p-2 rounded-lg hover:bg-indigo-500/10 text-slate-500 hover:text-indigo-400 transition-all"
+                    className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-800/50 hover:bg-indigo-600 text-slate-400 hover:text-white border border-white/5 hover:border-indigo-500 transition-all shadow-xl"
+                    title="Edit Record"
                   >
                     <Edit className="w-3.5 h-3.5" />
                   </button>
                   <button 
                     onClick={() => onDelete(item)}
-                    className="p-2 rounded-lg hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 transition-all"
+                    className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-800/50 hover:bg-rose-600 text-slate-400 hover:text-white border border-white/5 hover:border-rose-500 transition-all shadow-xl"
+                    title="Delete Record"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

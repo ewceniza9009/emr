@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
 using HotChocolate;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
@@ -147,8 +148,15 @@ public class SetupMutation
         return input;
     }
 
+    public record UpdateQuestionnaireInput(
+        Guid QuestionnaireId,
+        string Name,
+        AssessmentType AssessmentType,
+        string? SchemaJson
+    );
+
     public async Task<bool> UpdateQuestionnaire(
-        Questionnaire input,
+        UpdateQuestionnaireInput input,
         [Service] IApplicationDbContext context)
     {
         var existing = await context.Questionnaires.FindAsync(input.QuestionnaireId);

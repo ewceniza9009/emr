@@ -16,22 +16,27 @@ export default function SurveyCreatorWidget({ initialJson, onSave }: Props) {
     const options = {
       showLogicTab: true,
       showTranslationTab: true,
-      isAutoSave: true
+      isAutoSave: false, // Prevent background storage hits
+      saveSurveyFunc: (no: any, callback: any) => {
+        callback(no, true);
+      }
     };
-    return new SurveyCreator(options);
+    const creator = new SurveyCreator(options);
+    creator.isAutoSave = false;
+    return creator;
   }, []); // Only create once
 
-  const hydratedRef = useMemo(() => ({ value: false }), []);
+  const lastHydratedRef = useMemo(() => ({ json: "" }), []);
 
   useEffect(() => {
-    if (initialJson && creator && !hydratedRef.value) {
+    if (initialJson && creator && initialJson !== lastHydratedRef.json) {
       // Small delay to ensure the designer is fully "ready" for injection
       const timer = setTimeout(() => {
         try {
           if (initialJson !== "{}" && initialJson.length > 20) {
             console.log("Atomic Hydration Triggered");
             creator.text = initialJson;
-            hydratedRef.value = true;
+            lastHydratedRef.json = initialJson;
           }
         } catch (e) {
           console.error("Hydration Error:", e);
@@ -39,7 +44,7 @@ export default function SurveyCreatorWidget({ initialJson, onSave }: Props) {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [initialJson, creator, hydratedRef]);
+  }, [initialJson, creator, lastHydratedRef]);
 
   useEffect(() => {
     const handleSaveEvent = () => {
