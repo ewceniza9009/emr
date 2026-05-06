@@ -82,6 +82,7 @@ builder
     .AddTypeExtension<OutreachMutation>()
     .AddTypeExtension<DocumentMutation>()
     .AddTypeExtension<SetupMutation>()
+    .AddTypeExtension<LogisticsMutation>()
     .AddProjections()
     .AddFiltering()
     .AddSorting()

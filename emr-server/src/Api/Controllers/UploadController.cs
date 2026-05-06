@@ -97,7 +97,7 @@ public class UploadController : ControllerBase
     }
 
     [HttpGet("document/{documentId}")]
-    public async Task<IActionResult> GetDocument(Guid documentId)
+    public async Task<IActionResult> GetDocument(Guid documentId, [FromQuery] bool download = false)
     {
         var document = await _context.PatientDocuments
             .FirstOrDefaultAsync(d => d.PatientDocumentId == documentId);
@@ -108,7 +108,17 @@ public class UploadController : ControllerBase
         try
         {
             var stream = await _storageService.DownloadFileAsync(document.StorageUrl);
-            return File(stream, document.ContentType, document.Title);
+            if (download)
+            {
+                var contentDisposition = new System.Net.Mime.ContentDisposition
+                {
+                    FileName = document.Title ?? "document",
+                    Inline = false
+                };
+                Response.Headers.Append("Content-Disposition", contentDisposition.ToString());
+                return File(stream, document.ContentType);
+            }
+            return File(stream, document.ContentType);
         }
         catch (Exception ex)
         {

@@ -97,30 +97,35 @@ export default function DocumentVault({ patientId }: Props) {
                   <div className="p-3 rounded-2xl bg-white/5 group-hover:bg-blue-500/10 transition-all">
                      {getIcon(doc.contentType || '')}
                   </div>
-                  <div className="flex gap-2">
-                     <button 
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${doc.patientDocumentId}`;
-                         window.open(url, '_blank');
-                       }}
-                       className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
-                       title="Download / View"
-                     >
-                        <Download className="w-4 h-4" />
-                     </button>
-                     <button 
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${doc.patientDocumentId}`;
-                         window.open(url, '_blank');
-                       }}
-                       className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
-                       title="Open in new tab"
-                     >
-                        <ExternalLink className="w-4 h-4" />
-                     </button>
-                  </div>
+                   <div className="flex gap-2">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${doc.patientDocumentId}?download=true`;
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.setAttribute('download', doc.title || 'document');
+                          document.body.appendChild(link);
+                          link.click();
+                          link.remove();
+                        }}
+                        className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
+                        title="Download Record"
+                      >
+                         <Download className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${doc.patientDocumentId}`;
+                          window.open(url, '_blank');
+                        }}
+                        className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
+                        title="View Record"
+                      >
+                         <ExternalLink className="w-4 h-4" />
+                      </button>
+                   </div>
                </div>
                <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight mb-1 truncate">{doc.title}</h3>
                <div className="flex items-center justify-between mt-4">

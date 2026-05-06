@@ -3,6 +3,7 @@ using Application.Clinical.Queries;
 using Application.Clinical.Services;
 using Application.Common.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
 using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -91,6 +92,15 @@ public class ClinicalQuery
             .Where(x => x.PatientId == patientId);
     }
 
+    public IQueryable<DurableMedicalEquipment> GetAvailableEquipment(
+        [Service] IApplicationDbContext context
+    )
+    {
+        return context
+            .DurableMedicalEquipment.AsNoTracking()
+            .Where(e => e.Status == EquipmentStatus.Available);
+    }
+
     [UseFiltering]
     [UseSorting]
     public IQueryable<SmartPhrase> GetSmartPhrases([Service] IApplicationDbContext context)
@@ -106,8 +116,8 @@ public class ClinicalQuery
         [Service] IApplicationDbContext context
     )
     {
-        return context.AssessmentResponses
-            .AsNoTracking()
+        return context
+            .AssessmentResponses.AsNoTracking()
             .Where(r => r.Encounter != null && r.Encounter.AppointmentId == appointmentId);
     }
 }

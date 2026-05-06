@@ -1,4 +1,5 @@
-import { useQuery, gql } from "@apollo/client";
+import { useState } from "react";
+import { useQuery, useMutation, gql } from "@apollo/client";
 import { 
   Truck, 
   Package, 
@@ -6,11 +7,24 @@ import {
   Clock, 
   Settings,
   Activity,
-  AlertCircle
+  AlertCircle,
+  Plus
 } from "lucide-react";
+
+import EquipmentManagementDrawer from "./EquipmentManagementDrawer";
 
 const GET_EQUIPMENT = gql`
   query GetEquipment($patientId: UUID!) {
+    patientById(patientId: $patientId) {
+      addresses {
+        address {
+          street
+          city
+          state
+          postalCode
+        }
+      }
+    }
     equipmentDeliveriesByPatient(patientId: $patientId) {
       deliveryId
       status
@@ -27,12 +41,40 @@ const GET_EQUIPMENT = gql`
   }
 `;
 
+const UPDATE_DEPLOYMENT_STATUS = gql`
+  mutation UpdateDeploymentStatus($input: UpdateDeploymentStatusCommandInput!) {
+    updateDeploymentStatus(input: $input)
+  }
+`;
+
 export default function EquipmentRegistry({ patientId }: { patientId: string }) {
-  const { data, loading } = useQuery(GET_EQUIPMENT, {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { data, loading, refetch } = useQuery(GET_EQUIPMENT, {
     variables: { patientId },
   });
 
+  const [updateStatus] = useMutation(UPDATE_DEPLOYMENT_STATUS, {
+    onCompleted: () => refetch()
+  });
+
+  const handleStatusUpdate = async (deliveryId: string, currentStatus: string) => {
+    const statuses = ['PENDING', 'SHIPPED', 'DELIVERED', 'FAILED', 'RETURNED'];
+    const currentIndex = statuses.indexOf(currentStatus);
+    const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+    
+    await updateStatus({
+      variables: {
+        input: {
+          deliveryId,
+          newStatus: nextStatus
+        }
+      }
+    });
+  };
+
   const deliveries = data?.equipmentDeliveriesByPatient || [];
+  const primaryAddress = data?.patientById?.addresses?.[0]?.address;
+  const defaultAddressStr = primaryAddress ? `${primaryAddress.street}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}` : "";
 
   if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse uppercase text-[10px] font-black tracking-widest">Inventory Scan in Progress...</div>;
 
@@ -43,11 +85,29 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
           <Truck className="w-5 h-5 text-emerald-500" />
           Medical Equipment & Logistics
         </h2>
-        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full border border-emerald-500/20">
-           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-           <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Global Inventory Linked</span>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsDrawerOpen(true)}
+            className="px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all flex items-center gap-2"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Manage Inventory
+          </button>
+          <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+             <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Global Inventory Linked</span>
+          </div>
         </div>
       </div>
+
+      <EquipmentManagementDrawer 
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        patientId={patientId}
+        defaultAddress={defaultAddressStr}
+        onSuccess={refetch}
+      />
+
 
       <div className="p-8">
         {deliveries.length === 0 ? (
@@ -65,15 +125,28 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
                 
                 <div className="flex items-start justify-between mb-6">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${
-                    d.status === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                    d.status === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
+                    d.status === 'FAILED' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
+                    'bg-amber-500/10 text-amber-500 border-amber-500/20'
                   }`}>
                     <Package className="w-6 h-6" />
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
-                    d.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' : 'bg-amber-500/20 text-amber-500 border-amber-500/30'
-                  }`}>
-                    {d.status}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
+                      d.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' : 
+                      d.status === 'FAILED' ? 'bg-rose-500/20 text-rose-500 border-rose-500/30' :
+                      'bg-amber-500/20 text-amber-500 border-amber-500/30'
+                    }`}>
+                      {d.status}
+                    </span>
+                    <button 
+                      onClick={() => handleStatusUpdate(d.deliveryId, d.status)}
+                      className="text-[7px] font-black uppercase tracking-tighter text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors flex items-center gap-1"
+                    >
+                      <Activity className="w-2.5 h-2.5" />
+                      Update Status
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -106,3 +179,4 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
     </div>
   );
 }
+
