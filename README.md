@@ -1,4 +1,4 @@
-# Aura Clinical OS: Palliative EMR System
+# Halcyon Clinical OS: Palliative EMR System
 
 [![Architecture: Clean](https://img.shields.io/badge/Architecture-Clean--Architecture-blue.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 [![Frontend: Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black.svg)](https://nextjs.org/)
@@ -7,7 +7,7 @@
 
 ## 🏥 Project Overview
 
-**Aura Clinical OS** is a high-performance, real-time Electronic Medical Record (EMR) system specifically engineered for palliative care environments. It bridges the gap between clinical execution and operational logistics, providing care teams with a tactical command center for patient management.
+**Halcyon Clinical OS** is a high-performance, real-time Electronic Medical Record (EMR) system specifically engineered for palliative care environments. It bridges the gap between clinical execution and operational logistics, providing care teams with a tactical command center for patient management.
 
 The system is designed to handle high-density clinical data with sub-second latency, featuring real-time telemetry, advanced scheduling algorithms, and seamless integrations with third-party health platforms.
 
@@ -114,7 +114,7 @@ flowchart TD
 ## 💼 Business Specifications
 
 ### Core Mission
-Aura Clinical OS is designed to transform palliative care from a reactive administrative process into a proactive tactical operation. The system focuses on **Clinical Execution**—ensuring the right clinician is with the right patient at the right time, with all necessary data available instantly.
+Halcyon Clinical OS is designed to transform palliative care from a reactive administrative process into a proactive tactical operation. The system focuses on **Clinical Execution**—ensuring the right clinician is with the right patient at the right time, with all necessary data available instantly.
 
 ### Key Operational Workflows
 1. **The Enrollment Vector:** Converting outreach leads into active clinical records through an intelligent, multi-stage enrollment wizard.
@@ -182,4 +182,4 @@ Aura Clinical OS is designed to transform palliative care from a reactive admini
 
 Developed with ❤️ by **Erwin Wilson Ceniza**
 
-© 2026 Aura Clinical Operations. All rights reserved.
+© 2026 Halcyon Clinical Operations. All rights reserved.

@@ -173,13 +173,13 @@ export default function PatientDetailPage() {
   const { addPatient } = useRecentlyBrowsed();
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem("aura_patient_dashboard_active_tab") || "snapshot";
+      return localStorage.getItem("halcyon_patient_dashboard_active_tab") || "snapshot";
     }
     return "snapshot";
   });
 
   useEffect(() => {
-    localStorage.setItem("aura_patient_dashboard_active_tab", activeTab);
+    localStorage.setItem("halcyon_patient_dashboard_active_tab", activeTab);
   }, [activeTab]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
@@ -231,7 +231,7 @@ export default function PatientDetailPage() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clinical/export/dossier/${params.id}`);
       if (!response.ok) throw new Error("Failed to export dossier");
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -247,7 +247,7 @@ export default function PatientDetailPage() {
       setDownloadingDossier(false);
     }
   };
- 
+
   if (loading) return (
     <div className="p-20 flex flex-col items-center justify-center space-y-4">
       <Zap className="w-12 h-12 text-[var(--primary)] animate-pulse" />
@@ -329,11 +329,10 @@ export default function PatientDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 transition-all duration-500 ${
-            isEmergency 
-              ? "bg-red-500/10 border-red-500/30 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.2)]" 
+          <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 transition-all duration-500 ${isEmergency
+              ? "bg-red-500/10 border-red-500/30 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.2)]"
               : "bg-emerald-500/10 border-emerald-500/20"
-          }`}>
+            }`}>
             <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isEmergency ? "bg-red-500" : "bg-emerald-500"}`} />
             <span className={`text-[9px] font-black uppercase tracking-widest ${isEmergency ? "text-red-500" : "text-emerald-500"}`}>
               Status: {isEmergency ? "Critical" : "Stable"}
@@ -346,7 +345,7 @@ export default function PatientDetailPage() {
             <ClipboardList className="w-3.5 h-3.5" />
             Clinical Assessment
           </Link>
-          <button 
+          <button
             onClick={handleDownloadDossier}
             disabled={downloadingDossier}
             className="px-6 py-2 rounded-xl bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-700 transition-all flex items-center gap-2 disabled:opacity-50"
@@ -354,13 +353,12 @@ export default function PatientDetailPage() {
             {downloadingDossier ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
             Clinical Dossier
           </button>
-          <button 
+          <button
             onClick={() => setShowEmergencyDrawer(true)}
-            className={`px-6 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all ${
-              isEmergency 
-                ? "bg-red-600 shadow-red-600/30 animate-pulse ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950" 
+            className={`px-6 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all ${isEmergency
+                ? "bg-red-600 shadow-red-600/30 animate-pulse ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950"
                 : "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90"
-            }`}
+              }`}
           >
             {isEmergency ? "Protocol Active" : "Emergency Action"}
           </button>
@@ -399,7 +397,7 @@ export default function PatientDetailPage() {
                 <Phone className="w-3.5 h-3.5 text-[var(--primary)]" />
                 Communications
               </h2>
-              <button 
+              <button
                 onClick={() => setShowEditCommunications(true)}
                 className="p-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-all"
               >
@@ -717,7 +715,7 @@ export default function PatientDetailPage() {
                               </span>
                               <span className="flex items-center gap-1.5 text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">
                                 <UserCircle className="w-3.5 h-3.5" />
-                                {appt.status?.toUpperCase() === 'COMPLETED' && appt.encounters?.[0]?.practitioner 
+                                {appt.status?.toUpperCase() === 'COMPLETED' && appt.encounters?.[0]?.practitioner
                                   ? `${appt.encounters[0].practitioner.firstName} ${appt.encounters[0].practitioner.lastName}`
                                   : `${appt.practitioner?.firstName} ${appt.practitioner?.lastName}`}
                               </span>
@@ -767,7 +765,7 @@ export default function PatientDetailPage() {
                               </button>
                             </>
                           ) : (
-                            <button 
+                            <button
                               onClick={() => {
                                 setSummaryAppointmentId(appt.appointmentId);
                                 setIsSummaryOpen(true);
@@ -1061,7 +1059,7 @@ export default function PatientDetailPage() {
         patient={patient}
       />
       {summaryAppointmentId && (
-        <VisitSummaryDrawer 
+        <VisitSummaryDrawer
           isOpen={isSummaryOpen}
           onClose={() => setIsSummaryOpen(false)}
           patientId={params.id as string}
@@ -1069,7 +1067,7 @@ export default function PatientDetailPage() {
         />
       )}
 
-      <EmergencyActionDrawer 
+      <EmergencyActionDrawer
         open={showEmergencyDrawer}
         onClose={() => setShowEmergencyDrawer(false)}
         patient={patient}

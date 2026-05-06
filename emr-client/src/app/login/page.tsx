@@ -150,7 +150,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex flex-1 relative bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 items-center justify-center overflow-hidden border-l border-white/5">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/aura_login_hero_v2_1777967769038.png"
+            src="/halcyon_login_hero_v2_1777967769038.png"
             alt="Hero"
             fill
             className="object-cover opacity-20 scale-105"
@@ -183,7 +183,7 @@ export default function LoginPage() {
             <blockquote className="text-4xl font-bold text-white leading-tight tracking-tight">
               "Halcyon transformed our clinical pipeline from a messy spreadsheet into a predictable engine."
             </blockquote>
-            
+
             <div className="flex items-center gap-4 pt-4">
               <div className="w-12 h-12 rounded-full bg-slate-900 border border-white/5 flex items-center justify-center text-sm font-bold text-white">
                 MM

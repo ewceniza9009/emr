@@ -1371,7 +1371,7 @@ namespace Infrastructure.Data
                     LocationName = "Mandaue City",
                     PostalCode = "84101",
                     Content =
-                        "Hello, I am calling from the Aura Clinical Logistics Team. We've identified you as a candidate for our specialized health support services in the Mandaue region. Our goal is to verify your eligibility and schedule a diagnostic orientation at your convenience.",
+                        "Hello, I am calling from the Halcyon Clinical Logistics Team. We've identified you as a candidate for our specialized health support services in the Mandaue region. Our goal is to verify your eligibility and schedule a diagnostic orientation at your convenience.",
                     IsDefault = true,
                 },
                 new OutreachScript

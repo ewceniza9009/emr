@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
-import { 
+import {
   X, Save, Phone, Mail
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
@@ -62,7 +62,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
     <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
-        
+
         <div className={`relative h-full w-full max-w-[450px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
           flex flex-col transition-transform duration-300 ease-out border-l border-[var(--card-border)]
           ${open ? "translate-x-0" : "translate-x-full"}`}>
@@ -103,10 +103,10 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Primary Phone</label>
                     <div className="relative group">
                       <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)]" />
-                      <input 
+                      <input
                         className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all"
                         value={form.primaryPhone}
-                        onChange={e => setForm({...form, primaryPhone: e.target.value})}
+                        onChange={e => setForm({ ...form, primaryPhone: e.target.value })}
                         placeholder="e.g. 555-0199"
                       />
                     </div>
@@ -116,12 +116,12 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Primary Email</label>
                     <div className="relative group">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)]" />
-                      <input 
+                      <input
                         type="email"
                         className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all"
                         value={form.primaryEmail}
-                        onChange={e => setForm({...form, primaryEmail: e.target.value})}
-                        placeholder="e.g. patient@aura.com"
+                        onChange={e => setForm({ ...form, primaryEmail: e.target.value })}
+                        placeholder="e.g. patient@halcyon.com"
                       />
                     </div>
                   </div>
@@ -137,7 +137,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
 
             {/* Action Footer */}
             <div className="p-8 bg-[var(--sidebar-bg)] border-t border-[var(--card-border)] shrink-0">
-              <button 
+              <button
                 onClick={handleSubmit}
                 disabled={loading}
                 className="w-full h-14 bg-[var(--primary)] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"

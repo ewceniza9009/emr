@@ -223,7 +223,7 @@ public class QuestPdfService : IPdfService
                 page.Footer().PaddingTop(20).Column(footer =>
                 {
                     footer.Item().LineHorizontal(1).LineColor(Colors.Teal.Medium);
-                    footer.Item().PaddingTop(5).AlignCenter().DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.Grey.Medium)).Text("Please make all checks payable to Aura Clinical Services. For billing inquiries, call (555) 012-3456.");
+                    footer.Item().PaddingTop(5).AlignCenter().DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.Grey.Medium)).Text("Please make all checks payable to Halcyon Clinical Services. For billing inquiries, call (555) 012-3456.");
                     footer.Item().AlignCenter().DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.Grey.Medium)).Text(x =>
                     {
                         x.Span("PAGE ");

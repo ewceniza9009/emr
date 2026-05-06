@@ -1,7 +1,7 @@
 import SchedulingCalendar from "@/components/SchedulingCalendar";
 
 export const metadata = {
-  title: "Aura",
+  title: "Halcyon",
   description: "Weekly clinical scheduling view.",
 };
 

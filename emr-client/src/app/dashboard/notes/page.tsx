@@ -91,7 +91,7 @@ export default function ClinicalNotesPage() {
   const selectedNote = appointments.find((a: any) => a.appointmentId === selectedId);
 
   useEffect(() => {
-    const saved = localStorage.getItem("aura_notes_cache");
+    const saved = localStorage.getItem("halcyon_notes_cache");
     if (saved) {
       try {
         setNoteCache(JSON.parse(saved));
@@ -103,7 +103,7 @@ export default function ClinicalNotesPage() {
 
   useEffect(() => {
     if (Object.keys(noteCache).length > 0) {
-      localStorage.setItem("aura_notes_cache", JSON.stringify(noteCache));
+      localStorage.setItem("halcyon_notes_cache", JSON.stringify(noteCache));
       setLastSaved(new Date());
     }
   }, [noteCache]);
@@ -231,13 +231,13 @@ export default function ClinicalNotesPage() {
 
   return (
     <div className="flex h-[calc(100vh-100px)] gap-4 overflow-hidden animate-in fade-in duration-700">
-      <BookingDrawer 
-        open={isBookingOpen} 
-        onClose={() => setIsBookingOpen(false)} 
+      <BookingDrawer
+        open={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
         onBooked={() => {
           setIsBookingOpen(false);
           showToast("New Appointment Synchronized", "success");
-        }} 
+        }}
       />
       <div className="w-[400px] flex flex-col gap-4 overflow-hidden h-full">
         <div className="bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--card-border)] shadow-xl p-6 flex flex-col gap-6 overflow-hidden h-full">
@@ -246,7 +246,7 @@ export default function ClinicalNotesPage() {
               <h2 className="text-sm font-black uppercase tracking-tighter">Clinical Notes</h2>
               <p className="text-[10px] font-black text-[var(--primary)] tracking-widest uppercase">Documentation Registry</p>
             </div>
-            <button 
+            <button
               onClick={() => setIsBookingOpen(true)}
               className="p-3 bg-[var(--primary)] text-white rounded-xl shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all active:scale-95"
             >
@@ -377,7 +377,7 @@ export default function ClinicalNotesPage() {
                   {showSmartPhrases && (
                     <div className="absolute top-10 left-10 w-80 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
                       <div className="p-4 border-b border-[var(--card-border)] bg-[var(--primary)]/5">
-                        <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Aura Smart Phrases</p>
+                        <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Halcyon Smart Phrases</p>
                       </div>
                       <div className="max-h-60 overflow-y-auto">
                         {smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter)).map((p: any) => (
