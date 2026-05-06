@@ -48,6 +48,9 @@ public interface IApplicationDbContext
     DbSet<SmartPhrase> SmartPhrases { get; }
     DbSet<SpiritualAssessment> SpiritualAssessments { get; }
     DbSet<OutreachContact> OutreachContacts { get; }
+    DbSet<Questionnaire> Questionnaires { get; }
+    DbSet<Question> Questions { get; }
+    DbSet<AssessmentResponse> AssessmentResponses { get; }
 
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 

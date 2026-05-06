@@ -42,6 +42,7 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
         builder.Property(a => a.TravelTimeMinutes).HasColumnName("travel_time_minutes");
 
         builder.Property(a => a.DistanceInMiles).HasColumnName("distance_in_miles");
+        builder.Property(a => a.PlannedAssessments).HasColumnName("planned_assessments");
 
         builder
             .HasOne(a => a.Patient)

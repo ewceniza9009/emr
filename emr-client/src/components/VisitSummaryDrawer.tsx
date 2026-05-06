@@ -69,6 +69,14 @@ const GET_VISIT_SUMMARY = gql`
       wellbeing
       assessedAt
     }
+    assessmentResponses: assessmentResponsesByEncounter(appointmentId: $appointmentId) {
+      assessmentResponseId
+      totalScore
+      questionnaire {
+        name
+        description
+      }
+    }
   }
 `;
 
@@ -215,6 +223,32 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                     ))}
                   </div>
                 </div>
+
+                {/* Dynamic Clinical Assessments */}
+                {data?.assessmentResponses?.length > 0 && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                      <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] flex items-center gap-2.5">
+                        <ClipboardList className="w-4 h-4 text-blue-400" />
+                        Clinical Assessments
+                      </h4>
+                      <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--card-border)] to-transparent" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {data.assessmentResponses.map((res: any) => (
+                        <div key={res.assessmentResponseId} className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-blue-500/30 transition-all group">
+                          <div className="flex items-center justify-between mb-2">
+                             <h5 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">{res.questionnaire?.name}</h5>
+                             {res.totalScore !== null && (
+                               <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-black">Score: {res.totalScore}</span>
+                             )}
+                          </div>
+                          <p className="text-[9px] text-[var(--text-muted)] italic line-clamp-1">{res.questionnaire?.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Symptom Burden Analysis */}
                 {esas && (

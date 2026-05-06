@@ -3,17 +3,20 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Infrastructure.Migrations
+namespace Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260506041712_AddPlannedAssessments")]
+    partial class AddPlannedAssessments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -233,80 +236,6 @@ namespace Infrastructure.Migrations
                         .HasDatabaseName("ix_appointment_resources_block_id");
 
                     b.ToTable("appointment_resources", (string)null);
-                });
-
-            modelBuilder.Entity("Domain.Entities.AssessmentResponse", b =>
-                {
-                    b.Property<Guid>("AssessmentResponseId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("assessment_response_id");
-
-                    b.Property<string>("AnswersJson")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("answers_json");
-
-                    b.Property<Guid>("AssessorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("assessor_id");
-
-                    b.Property<DateTimeOffset>("CompletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("completed_at");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("created_by");
-
-                    b.Property<Guid?>("EncounterId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("encounter_id");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<Guid>("PatientId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("patient_id");
-
-                    b.Property<Guid>("QuestionnaireId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("questionnaire_id");
-
-                    b.Property<decimal?>("TotalScore")
-                        .HasColumnType("numeric")
-                        .HasColumnName("total_score");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("updated_by");
-
-                    b.HasKey("AssessmentResponseId")
-                        .HasName("pk_assessment_responses");
-
-                    b.HasIndex("AssessorId")
-                        .HasDatabaseName("ix_assessment_responses_assessor_id");
-
-                    b.HasIndex("EncounterId")
-                        .HasDatabaseName("ix_assessment_responses_encounter_id");
-
-                    b.HasIndex("PatientId")
-                        .HasDatabaseName("ix_assessment_responses_patient_id");
-
-                    b.HasIndex("QuestionnaireId")
-                        .HasDatabaseName("ix_assessment_responses_questionnaire_id");
-
-                    b.ToTable("assessment_responses");
                 });
 
             modelBuilder.Entity("Domain.Entities.BarrierLog", b =>
@@ -2449,113 +2378,6 @@ namespace Infrastructure.Migrations
                     b.ToTable("provider_shifts", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.Question", b =>
-                {
-                    b.Property<Guid>("QuestionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("question_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("created_by");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<string>("OptionsJson")
-                        .HasColumnType("text")
-                        .HasColumnName("options_json");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("integer")
-                        .HasColumnName("order");
-
-                    b.Property<Guid>("QuestionnaireId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("questionnaire_id");
-
-                    b.Property<string>("Subtext")
-                        .HasColumnType("text")
-                        .HasColumnName("subtext");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer")
-                        .HasColumnName("type");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("updated_by");
-
-                    b.HasKey("QuestionId")
-                        .HasName("pk_questions");
-
-                    b.HasIndex("QuestionnaireId")
-                        .HasDatabaseName("ix_questions_questionnaire_id");
-
-                    b.ToTable("questions");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Questionnaire", b =>
-                {
-                    b.Property<Guid>("QuestionnaireId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("questionnaire_id");
-
-                    b.Property<int>("AssessmentType")
-                        .HasColumnType("integer")
-                        .HasColumnName("assessment_type");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("created_by");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("name");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text")
-                        .HasColumnName("updated_by");
-
-                    b.HasKey("QuestionnaireId")
-                        .HasName("pk_questionnaires");
-
-                    b.ToTable("questionnaires");
-                });
-
             modelBuilder.Entity("Domain.Entities.ScheduleBlock", b =>
                 {
                     b.Property<Guid>("BlockId")
@@ -3290,43 +3112,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("ScheduleBlock");
                 });
 
-            modelBuilder.Entity("Domain.Entities.AssessmentResponse", b =>
-                {
-                    b.HasOne("Domain.Entities.Practitioner", "Assessor")
-                        .WithMany()
-                        .HasForeignKey("AssessorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_assessment_responses_practitioners_assessor_id");
-
-                    b.HasOne("Domain.Entities.ClinicalEncounter", "Encounter")
-                        .WithMany()
-                        .HasForeignKey("EncounterId")
-                        .HasConstraintName("fk_assessment_responses_clinical_encounters_encounter_id");
-
-                    b.HasOne("Domain.Entities.Patient", "Patient")
-                        .WithMany()
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_assessment_responses_patients_patient_id");
-
-                    b.HasOne("Domain.Entities.Questionnaire", "Questionnaire")
-                        .WithMany()
-                        .HasForeignKey("QuestionnaireId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_assessment_responses__questionnaires_questionnaire_id");
-
-                    b.Navigation("Assessor");
-
-                    b.Navigation("Encounter");
-
-                    b.Navigation("Patient");
-
-                    b.Navigation("Questionnaire");
-                });
-
             modelBuilder.Entity("Domain.Entities.BarrierLog", b =>
                 {
                     b.HasOne("Domain.Entities.CareNavigationCase", "CareNavigationCase")
@@ -3943,18 +3728,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("Practitioner");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Question", b =>
-                {
-                    b.HasOne("Domain.Entities.Questionnaire", "Questionnaire")
-                        .WithMany("Questions")
-                        .HasForeignKey("QuestionnaireId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_questions__questionnaires_questionnaire_id");
-
-                    b.Navigation("Questionnaire");
-                });
-
             modelBuilder.Entity("Domain.Entities.ScheduleBlock", b =>
                 {
                     b.HasOne("Domain.Entities.Practitioner", "Practitioner")
@@ -4199,11 +3972,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("ServiceAreas");
 
                     b.Navigation("Shifts");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Questionnaire", b =>
-                {
-                    b.Navigation("Questions");
                 });
 
             modelBuilder.Entity("Domain.Entities.ScheduleBlock", b =>

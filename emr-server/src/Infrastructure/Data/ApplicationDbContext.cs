@@ -72,6 +72,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<PatientDocument> PatientDocuments => Set<PatientDocument>();
     public DbSet<EntityAddress> EntityAddresses => Set<EntityAddress>();
     public DbSet<SmartPhrase> SmartPhrases => Set<SmartPhrase>();
+    public DbSet<Questionnaire> Questionnaires => Set<Questionnaire>();
+    public DbSet<Question> Questions => Set<Question>();
+    public DbSet<AssessmentResponse> AssessmentResponses => Set<AssessmentResponse>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

@@ -8,7 +8,8 @@ import {
   ChevronLeft, ChevronRight, Calendar, User, Stethoscope, Shield,
   Users, Filter, Plus, Video, Home, Building2, Activity,
   Navigation, Clock, AlertCircle, Zap, Database, RefreshCw,
-  Search, Target, CheckCircle, MapPin, Phone
+  Search, Target, CheckCircle, MapPin, Phone,
+  ClipboardList
 } from "lucide-react";
 import { useToast } from "./ToastProvider";
 
@@ -55,7 +56,7 @@ const GET_SCHEDULE_DATA = gql`
   query GetScheduleData($startDate: DateTime!, $endDate: DateTime!) {
     appointments(startDate: $startDate, endDate: $endDate) {
       items {
-        appointmentId scheduledStart scheduledEnd modality status travelTimeMinutes distanceInMiles practitionerId
+        appointmentId scheduledStart scheduledEnd modality status travelTimeMinutes distanceInMiles practitionerId plannedAssessments
         practitioner { practitionerId firstName lastName position }
         supportingClinicians { practitionerId firstName lastName position }
         encounters { practitioner { practitionerId firstName lastName position } }
@@ -213,12 +214,12 @@ export default function SchedulingCalendar() {
     let va = localAppointments.filter((a: any) => {
       const start = new Date(a.scheduledStart);
       const hour = start.getHours();
-      
+
       if (selectedPractitioners.size > 0) {
         const primaryId = (a.practitionerId || a.practitioner?.practitionerId || "")?.toLowerCase().trim();
         const pObj = a.practitioner || practitioners.find((p: any) => p.practitionerId.toLowerCase().trim() === primaryId);
         const primaryName = (pObj ? `${pObj.firstName} ${pObj.lastName}` : "")?.toLowerCase().trim();
-        
+
         const isPrimaryMatch = (primaryId && selectedIds.has(primaryId)) || (primaryName && selectedFullNames.has(primaryName));
         const isSupportingMatch = a.supportingClinicians?.some((sc: any) => {
           const scId = (sc.practitionerId || sc.PractitionerId || "")?.toLowerCase().trim();
@@ -229,7 +230,7 @@ export default function SchedulingCalendar() {
         const encounterPracId = encounterPrac?.practitionerId?.toLowerCase().trim();
         const encounterPracName = encounterPrac ? `${encounterPrac.firstName} ${encounterPrac.lastName}`.toLowerCase().trim() : "";
         const isEncounterMatch = (encounterPracId && selectedIds.has(encounterPracId)) || (encounterPracName && selectedFullNames.has(encounterPracName));
-        
+
         const isMatch = isPrimaryMatch || isSupportingMatch || isEncounterMatch;
         return isMatch && (hour >= GRID_CONFIG.START_HOUR - 2 && hour < GRID_CONFIG.END_HOUR + 2);
       }
@@ -301,14 +302,14 @@ export default function SchedulingCalendar() {
           setLocalAppointments(prev => prev.map(a =>
             a.appointmentId === apptId ? { ...a, scheduledStart: newStart.toISOString(), scheduledEnd: newEnd.toISOString() } : a
           ));
-          reschedule({ 
-            variables: { 
+          reschedule({
+            variables: {
               input: {
-                appointmentId: apptId, 
-                newStart: newStart.toISOString(), 
-                newEnd: newEnd.toISOString() 
+                appointmentId: apptId,
+                newStart: newStart.toISOString(),
+                newEnd: newEnd.toISOString()
               }
-            } 
+            }
           });
         }
       });
@@ -321,14 +322,14 @@ export default function SchedulingCalendar() {
           setLocalBlocks(prev => prev.map(b =>
             b.blockId === blockId ? { ...b, startTime: newStart.toISOString(), endTime: newEnd.toISOString() } : b
           ));
-          updateBlock({ 
-            variables: { 
+          updateBlock({
+            variables: {
               input: {
-                blockId: blockId, 
-                newStart: newStart.toISOString(), 
-                newEnd: newEnd.toISOString() 
+                blockId: blockId,
+                newStart: newStart.toISOString(),
+                newEnd: newEnd.toISOString()
               }
-            } 
+            }
           });
         }
       });
@@ -405,7 +406,7 @@ export default function SchedulingCalendar() {
             </div>
 
             <div className="h-4 w-px bg-[var(--card-border)]" />
-            
+
             <div className="flex items-center gap-4">
               <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Modality:</span>
               <div className="flex items-center gap-3">
@@ -557,10 +558,10 @@ export default function SchedulingCalendar() {
                           {/* Drive Time Indicator */}
                           {driveMin > 0 && modality.label !== "TELEHEALTH" && !isViewedAsSc && (
                             <div className="absolute border-l-8 border-[var(--primary)] bg-[var(--primary)]/[0.12] flex items-start justify-end p-2 z-10 shadow-[inset_0_0_20px_rgba(var(--primary-rgb),0.05)]"
-                              style={{ 
+                              style={{
                                 left: `${leftPct}%`,
                                 width: `${widthPct}%`,
-                                top: `${(startMin - driveMin) * (GRID_CONFIG.ROW_HEIGHT / 60)}px`, 
+                                top: `${(startMin - driveMin) * (GRID_CONFIG.ROW_HEIGHT / 60)}px`,
                                 height: `${driveMin * (GRID_CONFIG.ROW_HEIGHT / 60)}px`,
                                 backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(var(--primary-rgb), 0.05) 10px, rgba(var(--primary-rgb), 0.05) 20px)`
                               }}>
@@ -571,8 +572,8 @@ export default function SchedulingCalendar() {
                           )}
 
                           <div className={`absolute z-20 hover:z-[100] group ${hasConflict ? "ring-2 ring-red-500" : ""}`}
-                            style={{ 
-                              top: `${topPx}px`, 
+                            style={{
+                              top: `${topPx}px`,
                               height: `${heightPx}px`,
                               left: `${leftPct + 0.5}%`,
                               width: `${widthPct - 1}%`
@@ -589,8 +590,14 @@ export default function SchedulingCalendar() {
                                   <div className={`px-2 py-1 bg-[var(--input-bg)] border border-[var(--card-border)] text-[10px] font-bold text-[var(--text-secondary)] flex items-center gap-1 shrink-0`} title={modality.label}>
                                     {React.cloneElement(modality.icon as React.ReactElement, { className: `w-3 h-3 ${isViewedAsSc ? "text-indigo-500" : "text-[var(--primary)]"}` })}
                                   </div>
+                                  {appt.plannedAssessments?.length > 0 && (
+                                    <div className="px-2 py-1 bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[9px] font-black text-[var(--primary)] flex items-center gap-1.5 shadow-sm shrink-0" title={`${appt.plannedAssessments.length} Assessments Planned`}>
+                                      <ClipboardList className="w-2.5 h-2.5" />
+                                      <span>{appt.plannedAssessments.length}</span>
+                                    </div>
+                                  )}
                                   <div className={`px-2 py-1 ${(isViewedAsSc || isViewedAsAttending) ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-600 dark:text-indigo-300" : statusConfig.bg + " " + statusConfig.border + " " + statusConfig.text} text-[10px] font-bold flex items-center gap-1 border shadow-sm shrink-0`}>
-                                    <div className={`w-2 h-2 rounded-full ${(isViewedAsSc || isViewedAsAttending) ? "bg-indigo-500" : statusConfig.dot}`} /> 
+                                    <div className={`w-2 h-2 rounded-full ${(isViewedAsSc || isViewedAsAttending) ? "bg-indigo-500" : statusConfig.dot}`} />
                                     <span className="whitespace-nowrap">{isViewedAsAttending ? "YOU PERFORMED" : isViewedAsSc ? "YOU SUPPORTED" : statusConfig.label}</span>
                                   </div>
                                 </div>
@@ -610,7 +617,7 @@ export default function SchedulingCalendar() {
                                 <div className="mt-3 flex flex-col gap-1">
                                   <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.1em]">{isViewedAsAttending ? "Performed By" : "Clinical Lead"}</p>
                                   <p className="text-xs font-semibold text-[var(--text-primary)]">
-                                    {isViewedAsAttending 
+                                    {isViewedAsAttending
                                       ? `${appt.encounters[0].practitioner.firstName} ${appt.encounters[0].practitioner.lastName}`
                                       : `${appt.practitioner?.firstName} ${appt.practitioner?.lastName}`}
                                   </p>
@@ -641,13 +648,13 @@ export default function SchedulingCalendar() {
                               <div className="mt-auto pt-2 border-t border-[var(--card-border)] flex items-center justify-between shrink-0">
                                 <div className="flex -space-x-2">
                                   {appt.practitionerId === viewedPractitionerId && (
-                                      <div className="w-7 h-7 bg-[var(--primary)] border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You are the Primary Lead">YOU</div>
+                                    <div className="w-7 h-7 bg-[var(--primary)] border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You are the Primary Lead">YOU</div>
                                   )}
                                   {isViewedAsSc && (
-                                      <div className="w-7 h-7 bg-blue-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You are Supporting">SS</div>
+                                    <div className="w-7 h-7 bg-blue-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You are Supporting">SS</div>
                                   )}
                                   {isViewedAsAttending && (
-                                      <div className="w-7 h-7 bg-emerald-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You performed this encounter">AP</div>
+                                    <div className="w-7 h-7 bg-emerald-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You performed this encounter">AP</div>
                                   )}
                                 </div>
                                 <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors" />

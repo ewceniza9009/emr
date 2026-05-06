@@ -300,6 +300,14 @@ public class QuestPdfService : IPdfService
 
         var patient = appointment.Patient;
         var encounter = appointment.Encounters.OrderByDescending(e => e.EncounterDate).FirstOrDefault();
+        
+        var assessments = encounter != null 
+            ? await _context.AssessmentResponses
+                .Include(a => a.Questionnaire)
+                .Where(a => a.EncounterId == encounter.EncounterId)
+                .ToListAsync()
+            : new List<AssessmentResponse>();
+
         var esas = encounter != null 
             ? await _context.EsasAssessments.FirstOrDefaultAsync(e => e.EncounterId == encounter.EncounterId)
             : null;
@@ -380,7 +388,26 @@ public class QuestPdfService : IPdfService
                         table.Cell().Padding(5).Text(v?.OxygenSaturation > 0 ? $"{v.OxygenSaturation}% SpO2" : "0% SpO2").FontSize(9);
                     });
 
-                    // Section 3: Symptom Burden Analysis (ESAS)
+                    // Section 3: Clinical Assessments (Dynamic)
+                    if (assessments.Any())
+                    {
+                        col.Item().PaddingBottom(10).Text("CLINICAL ASSESSMENTS").FontSize(8).Bold().FontColor(Colors.Teal.Medium);
+                        foreach (var assessment in assessments)
+                        {
+                            col.Item().PaddingBottom(10).Border(0.5f).BorderColor(Colors.Grey.Lighten3).Padding(8).Column(c =>
+                            {
+                                c.Item().Row(r => {
+                                    r.RelativeItem().Text(assessment.Questionnaire?.Name.ToUpper()).FontSize(8).Bold();
+                                    if (assessment.TotalScore.HasValue)
+                                        r.RelativeItem().AlignRight().Text($"TOTAL SCORE: {assessment.TotalScore}").FontSize(8).Bold().FontColor(Colors.Teal.Medium);
+                                });
+                                c.Item().PaddingTop(2).Text(assessment.Questionnaire?.Description).FontSize(7).Italic().FontColor(Colors.Grey.Medium);
+                            });
+                        }
+                        col.Item().PaddingBottom(10);
+                    }
+
+                    // Section 3b: Symptom Burden Analysis (Legacy ESAS)
                     if (esas != null)
                     {
                         col.Item().PaddingBottom(10).Text("SYMPTOM BURDEN ANALYSIS (ESAS-R)").FontSize(8).Bold().FontColor(Colors.Teal.Medium);

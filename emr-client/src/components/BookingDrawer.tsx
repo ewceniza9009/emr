@@ -7,7 +7,8 @@ import {
   X, Calendar, Clock, User, MapPin, Video, Home,
   Building2, CheckCircle, Car, Search, ChevronRight,
   Stethoscope, Shield, Users, Info, ChevronLeft,
-  Timer, Zap, Navigation, Check, Activity, Target, Phone, Edit3, Radar, AlertCircle
+  Timer, Zap, Navigation, Check, Activity, Target, Phone, Edit3, Radar, AlertCircle,
+  Brain, HeartPulse, HeartHandshake, Wind, Sprout, Sun, Star, ListChecks, ClipboardList, BookOpen
 } from "lucide-react";
 import { CLINICAL_CONFIG } from "@/lib/clinical-config";
 import AuraPortal from "./Portal";
@@ -22,6 +23,7 @@ const BOOK_APPOINTMENT = gql`
       status
       travelTimeMinutes
       distanceInMiles
+      plannedAssessments
     }
   }
 `;
@@ -76,6 +78,7 @@ const GET_APPOINTMENT = gql`
       status
       travelTimeMinutes
       distanceInMiles
+      plannedAssessments
       patient {
         firstName
         lastName
@@ -119,6 +122,70 @@ const GET_GEOSPATIAL_AVAILABILITY = gql`
 
 const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
 
+const ASSESSMENT_OPTIONS = [
+  {
+    category: "Symptom and Pain",
+    icon: <HeartPulse className="w-4 h-4" />,
+    items: [
+      { id: "Esas", label: "ESAS", fullName: "Edmonton Symptom Assessment", description: "Pain, tiredness, nausea, appetite, well-being" },
+      { id: "Bpi", label: "BPI", fullName: "Brief Pain Inventory", description: "Pain severity and impact on functions" },
+      { id: "Msas", label: "MSAS", fullName: "Memorial Symptom Scale", description: "Physical and psychological symptom burden" },
+      { id: "VictoriaBowel", label: "Victoria Bowel", fullName: "Victoria Bowel Scale", description: "Assessment of constipation severity" },
+    ]
+  },
+  {
+    category: "Functional Status",
+    icon: <Navigation className="w-4 h-4" />,
+    items: [
+      { id: "Pps", label: "PPS", fullName: "Palliative Performance Scale", description: "Ambulation, self-care, and intake" },
+      { id: "Kps", label: "KPS", fullName: "Karnofsky Performance Scale", description: "Functional impairment classification" },
+      { id: "Ecog", label: "ECOG", fullName: "ECOG Performance Status", description: "Impact of disease on daily living" },
+      { id: "Fast", label: "FAST", fullName: "Functional Assessment Staging", description: "Alzheimer's and dementia progression" },
+    ]
+  },
+  {
+    category: "Psychological & Cognitive",
+    icon: <Brain className="w-4 h-4" />,
+    items: [
+      { id: "Hads", label: "HADS", fullName: "Hospital Anxiety & Depression", description: "Detecting anxiety and depression states" },
+      { id: "Phq9", label: "PHQ-9", fullName: "Patient Health Questionnaire-9", description: "Screening and measuring depression severity" },
+      { id: "MmseMoca", label: "MMSE/MoCA", fullName: "Mini-Mental / MoCA", description: "Cognitive impairment assessment" },
+    ]
+  },
+  {
+    category: "Quality of Life",
+    icon: <Sun className="w-4 h-4" />,
+    items: [
+      { id: "Mqol", label: "MQOL", fullName: "McGill Quality of Life", description: "Physical, psychological, existential domains" },
+      { id: "FacitPal", label: "FACIT-Pal", description: "Palliative-specific well-being concerns" },
+    ]
+  },
+  {
+    category: "Spiritual & Existential",
+    icon: <Wind className="w-4 h-4" />,
+    items: [
+      { id: "Fica", label: "FICA", fullName: "FICA Spiritual History", description: "Faith, Importance, Community, Address" },
+      { id: "Hope", label: "HOPE", fullName: "HOPE Questions", description: "Hope, Organized religion, Practices, Effects" },
+    ]
+  },
+  {
+    category: "Prognostic Indices",
+    icon: <Timer className="w-4 h-4" />,
+    items: [
+      { id: "Ppi", label: "PPI", fullName: "Palliative Prognostic Index", description: "Survival prediction based on PPS and clinicals" },
+      { id: "Pap", label: "PaP", fullName: "Palliative Prognostic Score", description: "KPS and survival prediction markers" },
+    ]
+  },
+  {
+    category: "Caregiver Assessment",
+    icon: <HeartHandshake className="w-4 h-4" />,
+    items: [
+      { id: "Zbi", label: "ZBI", fullName: "Zarit Burden Interview", description: "Family caregiver stress and strain" },
+      { id: "Csi", label: "CSI", fullName: "Caregiver Strain Index", description: "Physical, financial, and emotional stress" },
+    ]
+  }
+];
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -156,6 +223,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const [booked, setBooked] = useState(false);
   const [cnSearch, setCnSearch] = useState("");
   const [scSearch, setScSearch] = useState("");
+  const [plannedAssessments, setPlannedAssessments] = useState<string[]>([]);
 
   const formatForEngine = (date: Date, hours: number) => {
     const d = new Date(date);
@@ -180,6 +248,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       const userPracId = (session?.user as any)?.practitionerId;
       setPractitionerId(userPracId || "");
       setSupportingIds([]);
+      setPlannedAssessments([]);
       setPeriod(null);
       setModality("IN_PERSON_HOME_VISIT");
       setDuration(60);
@@ -218,6 +287,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setPatientSearch("");
       setPractitionerId("");
       setSupportingIds([]);
+      setPlannedAssessments([]);
       setPeriod(null);
       setBooked(false);
     }
@@ -250,6 +320,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setPeriod(start.getHours() < 12 ? "AM" : "PM");
       setDuration(Math.round((new Date(a.scheduledEnd).getTime() - start.getTime()) / 60000));
       setVisitType(a.visitType || "ROUTINE_SYMPTOM_MANAGEMENT");
+      setPlannedAssessments(a.plannedAssessments || []);
       setPatientSearch(`${a.patient?.firstName} ${a.patient?.lastName}`);
       setIsEditingAddress(false);
     }
@@ -321,11 +392,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       (p.isCareNavigator || p.practitionerId?.toLowerCase() === practitionerId?.toLowerCase()) &&
       !supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
-    const filtered = combined.filter((p: any) => 
-        !cnSearch || 
-        p.firstName?.toLowerCase().includes(cnSearch.toLowerCase()) || 
-        p.lastName?.toLowerCase().includes(cnSearch.toLowerCase()) ||
-        p.fullName?.toLowerCase().includes(cnSearch.toLowerCase())
+    const filtered = combined.filter((p: any) =>
+      !cnSearch ||
+      p.firstName?.toLowerCase().includes(cnSearch.toLowerCase()) ||
+      p.lastName?.toLowerCase().includes(cnSearch.toLowerCase()) ||
+      p.fullName?.toLowerCase().includes(cnSearch.toLowerCase())
     );
     return filtered.map((p: any) => {
       const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
@@ -348,11 +419,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase() &&
       p.position?.toLowerCase() !== "admin"
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
-    const filtered = combined.filter((p: any) => 
-        !scSearch || 
-        p.firstName?.toLowerCase().includes(scSearch.toLowerCase()) || 
-        p.lastName?.toLowerCase().includes(scSearch.toLowerCase()) ||
-        p.fullName?.toLowerCase().includes(scSearch.toLowerCase())
+    const filtered = combined.filter((p: any) =>
+      !scSearch ||
+      p.firstName?.toLowerCase().includes(scSearch.toLowerCase()) ||
+      p.lastName?.toLowerCase().includes(scSearch.toLowerCase()) ||
+      p.fullName?.toLowerCase().includes(scSearch.toLowerCase())
     );
     return filtered.map((p: any) => {
       const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
@@ -425,6 +496,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
           scheduledEnd: slot.shiftEnd,
           modality,
           visitType,
+          plannedAssessments,
           travelTimeMinutes: slot.travelTimeInMinutes,
           distanceInMiles: slot.distanceInMiles
         }
@@ -673,9 +745,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         </div>
                         <div className="relative group">
                           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
-                          <input 
-                            type="text" 
-                            placeholder="Search Leads..." 
+                          <input
+                            type="text"
+                            placeholder="Search Leads..."
                             value={cnSearch}
                             onChange={(e) => setCnSearch(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
@@ -756,9 +828,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         </div>
                         <div className="relative group">
                           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
-                          <input 
-                            type="text" 
-                            placeholder="Search Support..." 
+                          <input
+                            type="text"
+                            placeholder="Search Support..."
                             value={scSearch}
                             onChange={(e) => setScSearch(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
@@ -804,6 +876,59 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                             );
                           })}
                         </div>
+                      </div>
+                    </section>
+                    <section className="space-y-6">
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">04</span>
+                        <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Palliative Assessment Selection</h3>
+                        <div className="flex-1 h-px bg-[var(--card-border)]" />
+                      </div>
+
+                      <div className="space-y-8 pb-10">
+                        {ASSESSMENT_OPTIONS.map((cat) => (
+                          <div key={cat.category} className="space-y-4">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-[var(--primary)]/10 rounded-lg text-[var(--primary)]">
+                                {cat.icon}
+                              </div>
+                              <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{cat.category}</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {cat.items.map((item) => {
+                                const isSelected = plannedAssessments.includes(item.id);
+                                return (
+                                  <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setPlannedAssessments(prev =>
+                                        isSelected ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                                      );
+                                    }}
+                                    className={`flex flex-col p-3 rounded-xl border text-left transition-all group
+                                      ${isSelected
+                                        ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm"
+                                        : "bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/[0.07]"}`}
+                                  >
+                                    <div className="flex items-center justify-between mb-1.5">
+                                      <span className={`text-xs font-bold ${isSelected ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                                        {item.label}
+                                      </span>
+                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all
+                                        ${isSelected ? "bg-[var(--primary)] border-transparent" : "border-white/20 group-hover:border-white/40"}`}>
+                                        {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                                      </div>
+                                    </div>
+                                    <p className="text-[10px] font-medium text-[var(--text-muted)] leading-tight">
+                                      {item.fullName || item.description}
+                                    </p>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </section>
                   </div>
@@ -873,6 +998,34 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                   </div>
                 </div>
               </section>
+              
+              {plannedAssessments.length > 0 && (
+                <section className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ListChecks className="w-3.5 h-3.5 text-[var(--primary)]" />
+                      <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Planned Assessments</h3>
+                    </div>
+                    <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 px-2 py-0.5 rounded-full border border-[var(--primary)]/20">
+                      {plannedAssessments.length} Total
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {plannedAssessments.map(id => {
+                      const category = ASSESSMENT_OPTIONS.find(cat => cat.items.some(i => i.id === id));
+                      const item = category?.items.find(i => i.id === id);
+                      return (
+                        <div key={id} className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/[0.08] transition-colors group">
+                          <div className="text-[var(--primary)] group-hover:scale-110 transition-transform">
+                            {category?.icon}
+                          </div>
+                          <span className="text-[10px] font-bold text-[var(--text-primary)]">{item?.label || id}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
 
               <section className="space-y-6">
                 <div className="flex items-center justify-between">

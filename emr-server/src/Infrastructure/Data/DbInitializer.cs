@@ -11,7 +11,7 @@ namespace Infrastructure.Data
 {
     public static class DbInitializer
     {
-        private static readonly Guid adminPractitionerId = Guid.NewGuid();
+        private static readonly Guid adminPractitionerId = new Guid("c79b9090-6725-460d-8531-1554c46f6f96");
 
         public static async Task InitializeAsync(
             IServiceProvider serviceProvider,
@@ -313,6 +313,9 @@ namespace Infrastructure.Data
 
         public static async Task SeedDatabaseAsync(ApplicationDbContext context)
         {
+            await SeedQuestionnairesAsync(context);
+            await context.SaveChangesAsync(default);
+
             Randomizer.Seed = new Random(8675309); // Deterministic test data
             var faker = new Faker();
 
@@ -1300,6 +1303,591 @@ namespace Infrastructure.Data
                 context.SmartPhrases.AddRange(phrases);
                 await context.SaveChangesAsync(default);
             }
+        }
+
+        private static async Task SeedQuestionnairesAsync(ApplicationDbContext context)
+        {
+            if (await context.Questionnaires.AnyAsync())
+                return;
+
+            // 1. Symptom and Pain
+            var symptomInstruments = new List<Questionnaire>
+            {
+                new Questionnaire
+                {
+                    Name = "ESAS-R",
+                    Description = "Edmonton Symptom Assessment System (Revised) - 9-item scale.",
+                    AssessmentType = AssessmentType.Esas,
+                },
+                new Questionnaire
+                {
+                    Name = "BPI",
+                    Description =
+                        "Brief Pain Inventory - Evaluates pain severity and functional impact.",
+                    AssessmentType = AssessmentType.Bpi,
+                },
+                new Questionnaire
+                {
+                    Name = "MSAS",
+                    Description =
+                        "Memorial Symptom Assessment Scale - Physical/psychological burden.",
+                    AssessmentType = AssessmentType.Msas,
+                },
+                new Questionnaire
+                {
+                    Name = "VBPS",
+                    Description = "Victoria Bowel Performance Scale - Constipation management.",
+                    AssessmentType = AssessmentType.VictoriaBowel,
+                },
+            };
+            context.Questionnaires.AddRange(symptomInstruments);
+
+            // Seed ESAS Questions (Scale)
+            var esas = symptomInstruments[0];
+            var esasQuestions = new[]
+            {
+                "Pain",
+                "Tiredness",
+                "Drowsiness",
+                "Nausea",
+                "Lack of Appetite",
+                "Shortness of Breath",
+                "Depression",
+                "Anxiety",
+                "Overall Wellbeing",
+            };
+            for (int i = 0; i < esasQuestions.Length; i++)
+            {
+                context.Questions.Add(
+                    new Question
+                    {
+                        Questionnaire = esas,
+                        Text = esasQuestions[i],
+                        Subtext = "0 = No Symptom | 10 = Worst Possible",
+                        Type = QuestionType.Scale,
+                        Order = i,
+                    }
+                );
+            }
+
+            // Seed BPI (Scale)
+            var bpi = symptomInstruments[1];
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = bpi,
+                    Text = "Worst pain in last 24 hours",
+                    Subtext = "0 (No Pain) - 10 (Worst)",
+                    Type = QuestionType.Scale,
+                    Order = 0,
+                }
+            );
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = bpi,
+                    Text = "Average pain in last 24 hours",
+                    Subtext = "0 (No Pain) - 10 (Worst)",
+                    Type = QuestionType.Scale,
+                    Order = 1,
+                }
+            );
+
+            // Seed VBPS (Choice)
+            var vbps = symptomInstruments[3];
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = vbps,
+                    Text = "Bowel movement frequency",
+                    OptionsJson =
+                        "[\"Regular\", \"Decreased\", \"Constipated\", \"No BM > 3 days\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 0,
+                }
+            );
+
+            // Seed MSAS (Scale)
+            var msas = symptomInstruments[2];
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = msas,
+                    Text = "Physical Symptom Burden",
+                    Subtext = "Frequency/Severity of physical symptoms",
+                    Type = QuestionType.Scale,
+                    Order = 0,
+                }
+            );
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = msas,
+                    Text = "Psychological Symptom Burden",
+                    Subtext = "Distress from psychological symptoms",
+                    Type = QuestionType.Scale,
+                    Order = 1,
+                }
+            );
+
+            // 2. Functional Status
+            var functionalInstruments = new List<Questionnaire>
+            {
+                new Questionnaire
+                {
+                    Name = "PPSv2",
+                    Description = "Palliative Performance Scale - Functional Assessment.",
+                    AssessmentType = AssessmentType.Pps,
+                },
+                new Questionnaire
+                {
+                    Name = "KPS",
+                    Description =
+                        "Karnofsky Performance Scale - Functional impairment classification (0-100).",
+                    AssessmentType = AssessmentType.Kps,
+                },
+                new Questionnaire
+                {
+                    Name = "ECOG",
+                    Description = "Eastern Cooperative Oncology Group Performance Status.",
+                    AssessmentType = AssessmentType.Ecog,
+                },
+                new Questionnaire
+                {
+                    Name = "FAST",
+                    Description = "Functional Assessment Staging Tool - Dementia progression.",
+                    AssessmentType = AssessmentType.Fast,
+                },
+            };
+            context.Questionnaires.AddRange(functionalInstruments);
+
+            // Seed PPSv2 Questions (Multiple Choice)
+            var pps = functionalInstruments[0];
+            var ppsQuestions = new[]
+            {
+                new
+                {
+                    T = "Ambulation",
+                    O = "[\"Full\", \"Reduced\", \"Mainly Sit/Lie\", \"Mainly Bed\", \"Totally Bed\"]",
+                },
+                new
+                {
+                    T = "Activity & Evidence of Disease",
+                    O = "[\"Normal\", \"Normal / Minor Disease\", \"Normal / Some Disease\", \"Unable to do Job\", \"Extensive Disease\"]",
+                },
+                new
+                {
+                    T = "Self-Care",
+                    O = "[\"Full\", \"Occasional Assistance\", \"Mainly Assistance\", \"Extensive Assistance\", \"Total Care\"]",
+                },
+                new
+                {
+                    T = "Intake",
+                    O = "[\"Normal\", \"Normal / Reduced\", \"Minimal Sips\", \"Mouth Care Only\"]",
+                },
+                new
+                {
+                    T = "Level of Consciousness",
+                    O = "[\"Full\", \"Full / Confusion\", \"Drowsy / Confusion\", \"Coma\"]",
+                },
+            };
+            for (int i = 0; i < ppsQuestions.Length; i++)
+            {
+                context.Questions.Add(
+                    new Question
+                    {
+                        Questionnaire = pps,
+                        Text = ppsQuestions[i].T,
+                        Type = QuestionType.MultipleChoice,
+                        OptionsJson = ppsQuestions[i].O,
+                        Order = i,
+                    }
+                );
+            }
+
+            // Seed KPS (Choice)
+            var kps = functionalInstruments[1];
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = kps,
+                    Text = "Karnofsky Performance Status",
+                    OptionsJson =
+                        "[\"100% - Normal\", \"90% - Minor Symptoms\", \"80% - Effort required\", \"70% - Unable to carry on normal activity\", \"60% - Requires occasional assistance\", \"50% - Requires considerable assistance\", \"40% - Disabled\", \"30% - Severely disabled\", \"20% - Very sick\", \"10% - Moribund\", \"0% - Dead\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 0,
+                }
+            );
+
+            // Seed ECOG (Choice)
+            var ecog = functionalInstruments[2];
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = ecog,
+                    Text = "Performance Status",
+                    OptionsJson =
+                        "[\"0 - Fully Active\", \"1 - Restricted Heavy Labor\", \"2 - Capable of Self-Care\", \"3 - Limited Self-Care\", \"4 - Completely Disabled\", \"5 - Dead\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 0,
+                }
+            );
+
+            // Seed FAST (Choice)
+            var fast = functionalInstruments[3];
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = fast,
+                    Text = "Functional Staging",
+                    OptionsJson =
+                        "[\"Stage 1 - Normal\", \"Stage 2 - Subjective Deficit\", \"Stage 3 - Early AD\", \"Stage 4 - Mild AD\", \"Stage 5 - Moderate AD\", \"Stage 6 - Moderately Severe AD\", \"Stage 7 - Severe AD\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 0,
+                }
+            );
+
+            // 3. Psychological and Cognitive
+            var psychInstruments = new List<Questionnaire>
+            {
+                new Questionnaire
+                {
+                    Name = "HADS",
+                    Description = "Hospital Anxiety and Depression Scale.",
+                    AssessmentType = AssessmentType.Hads,
+                },
+                new Questionnaire
+                {
+                    Name = "PHQ-9",
+                    Description = "Patient Health Questionnaire-9 Depression Screening.",
+                    AssessmentType = AssessmentType.Phq9,
+                },
+                new Questionnaire
+                {
+                    Name = "MMSE-MoCA",
+                    Description = "Cognitive Assessment - Impairment and decision capacity.",
+                    AssessmentType = AssessmentType.MmseMoca,
+                },
+            };
+            context.Questionnaires.AddRange(psychInstruments);
+
+            // Seed HADS (Scale)
+            var hads = psychInstruments[0];
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = hads,
+                    Text = "Anxiety Score",
+                    Subtext = "Combined score (0-21)",
+                    Type = QuestionType.Scale,
+                    Order = 0,
+                }
+            );
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = hads,
+                    Text = "Depression Score",
+                    Subtext = "Combined score (0-21)",
+                    Type = QuestionType.Scale,
+                    Order = 1,
+                }
+            );
+
+            // Seed PHQ-9 Questions (Multiple Choice)
+            var phq9 = psychInstruments[1];
+            var phq9Options =
+                "[\"Not at all\", \"Several days\", \"More than half the days\", \"Nearly every day\"]";
+            var phq9Questions = new[]
+            {
+                "Little interest or pleasure in doing things",
+                "Feeling down, depressed, or hopeless",
+                "Trouble falling or staying asleep, or sleeping too much",
+                "Feeling tired or having little energy",
+                "Poor appetite or overeating",
+                "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+                "Trouble concentrating on things, such as reading the newspaper or watching television",
+                "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual",
+                "Thoughts that you would be better off dead or of hurting yourself in some way",
+            };
+            for (int i = 0; i < phq9Questions.Length; i++)
+            {
+                context.Questions.Add(
+                    new Question
+                    {
+                        Questionnaire = phq9,
+                        Text = phq9Questions[i],
+                        Type = QuestionType.MultipleChoice,
+                        OptionsJson = phq9Options,
+                        Order = i,
+                    }
+                );
+            }
+
+            // Seed MMSE (Choice)
+            var mmse = psychInstruments[2];
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = mmse,
+                    Text = "Orientation to Time & Place",
+                    OptionsJson =
+                        "[\"Intact\", \"Mild Impairment\", \"Moderate Impairment\", \"Severe Impairment\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 0,
+                }
+            );
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = mmse,
+                    Text = "Memory Recall (3 items)",
+                    OptionsJson =
+                        "[\"3 items recall\", \"2 items recall\", \"1 item recall\", \"0 items recall\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 1,
+                }
+            );
+
+            // 4. Quality of Life
+            var qolInstruments = new List<Questionnaire>
+            {
+                new Questionnaire
+                {
+                    Name = "MQOL",
+                    Description = "McGill Quality of Life Questionnaire.",
+                    AssessmentType = AssessmentType.Mqol,
+                },
+                new Questionnaire
+                {
+                    Name = "FACIT-PAL",
+                    Description = "Functional Assessment of Chronic Illness Therapy.",
+                    AssessmentType = AssessmentType.FacitPal,
+                },
+            };
+            context.Questionnaires.AddRange(qolInstruments);
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = qolInstruments[0],
+                    Text = "Overall Quality of Life",
+                    Subtext = "How would you rate your life quality over the past 2 days?",
+                    Type = QuestionType.Scale,
+                    Order = 0,
+                }
+            );
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = qolInstruments[1],
+                    Text = "Functional Well-being Score",
+                    Subtext = "FACIT-Pal standardized score",
+                    Type = QuestionType.Scale,
+                    Order = 0,
+                }
+            );
+
+            // 5. Spiritual and Existential
+            var spiritualInstruments = new List<Questionnaire>
+            {
+                new Questionnaire
+                {
+                    Name = "FICA",
+                    Description = "FICA Spiritual History Tool.",
+                    AssessmentType = AssessmentType.Fica,
+                },
+                new Questionnaire
+                {
+                    Name = "HOPE",
+                    Description = "HOPE Questions - Meaning and practices.",
+                    AssessmentType = AssessmentType.Hope,
+                },
+            };
+            context.Questionnaires.AddRange(spiritualInstruments);
+
+            // Seed FICA Questions (Text)
+            var fica = spiritualInstruments[0];
+            var ficaQuestions = new[]
+            {
+                new
+                {
+                    T = "[F] Faith, Belief, Meaning",
+                    S = "Do you consider yourself spiritual or religious? What gives your life meaning?",
+                },
+                new
+                {
+                    T = "[I] Importance and Influence",
+                    S = "How important are your beliefs to you? Do they influence how you care for yourself?",
+                },
+                new
+                {
+                    T = "[C] Community",
+                    S = "Are you part of a spiritual or religious community? Is this of support to you?",
+                },
+                new
+                {
+                    T = "[A] Address in Care",
+                    S = "How would you like me, your healthcare provider, to address these issues in your healthcare?",
+                },
+            };
+            for (int i = 0; i < ficaQuestions.Length; i++)
+            {
+                context.Questions.Add(
+                    new Question
+                    {
+                        Questionnaire = fica,
+                        Text = ficaQuestions[i].T,
+                        Subtext = ficaQuestions[i].S,
+                        Type = QuestionType.Text,
+                        Order = i,
+                    }
+                );
+            }
+
+            // Seed HOPE Questions (Text)
+            var hope = spiritualInstruments[1];
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = hope,
+                    Text = "Sources of Hope, meaning, comfort, strength",
+                    Type = QuestionType.Text,
+                    Order = 0,
+                }
+            );
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = hope,
+                    Text = "Organized religion / Personal spirituality",
+                    Type = QuestionType.Text,
+                    Order = 1,
+                }
+            );
+
+            // 6. Prognostic
+            var prognosticInstruments = new List<Questionnaire>
+            {
+                new Questionnaire
+                {
+                    Name = "PPI",
+                    Description = "Palliative Prognostic Index.",
+                    AssessmentType = AssessmentType.Ppi,
+                },
+                new Questionnaire
+                {
+                    Name = "PaP",
+                    Description = "Palliative Prognostic Score.",
+                    AssessmentType = AssessmentType.Pap,
+                },
+            };
+            context.Questionnaires.AddRange(prognosticInstruments);
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = prognosticInstruments[0],
+                    Text = "Estimated survival (clinician prediction)",
+                    Subtext = "Predict based on current clinical status",
+                    Type = QuestionType.Text,
+                    Order = 0,
+                }
+            );
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = prognosticInstruments[1],
+                    Text = "Palliative Prognostic Score (PaP)",
+                    Subtext = "Clinical Prediction of Survival percentage",
+                    Type = QuestionType.Scale,
+                    Order = 0,
+                }
+            );
+
+            // 7. Caregiver
+            var caregiverInstruments = new List<Questionnaire>
+            {
+                new Questionnaire
+                {
+                    Name = "ZBI",
+                    Description = "Zarit Burden Interview - Family caregiver stress.",
+                    AssessmentType = AssessmentType.Zbi,
+                },
+                new Questionnaire
+                {
+                    Name = "CSI",
+                    Description =
+                        "Caregiver Strain Index - Physical/emotional stress identification.",
+                    AssessmentType = AssessmentType.Csi,
+                },
+            };
+            context.Questionnaires.AddRange(caregiverInstruments);
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = caregiverInstruments[0],
+                    Text = "Zarit Caregiver Burden Score",
+                    Subtext = "Total score (0-88)",
+                    Type = QuestionType.Scale,
+                    Order = 0,
+                }
+            );
+
+            // Seed CSI Questions (Choice)
+            var csi = caregiverInstruments[1];
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = csi,
+                    Text = "Sleep is disturbed",
+                    OptionsJson = "[\"Yes\", \"No\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 0,
+                }
+            );
+
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = csi,
+                    Text = "It is a physical strain",
+                    OptionsJson = "[\"Yes\", \"No\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 1,
+                }
+            );
+
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = csi,
+                    Text = "It is confining",
+                    OptionsJson = "[\"Yes\", \"No\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 2,
+                }
+            );
+
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = csi,
+                    Text = "There have been family adjustments",
+                    OptionsJson = "[\"Yes\", \"No\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 3,
+                }
+            );
+
+            context.Questions.Add(
+                new Question
+                {
+                    Questionnaire = csi,
+                    Text = "There have been changes in personal plans",
+                    OptionsJson = "[\"Yes\", \"No\"]",
+                    Type = QuestionType.MultipleChoice,
+                    Order = 4,
+                }
+            );
         }
     }
 }

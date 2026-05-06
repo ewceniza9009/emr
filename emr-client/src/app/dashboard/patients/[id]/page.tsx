@@ -168,7 +168,16 @@ import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
 export default function PatientDetailPage() {
   const params = useParams();
   const { addPatient } = useRecentlyBrowsed();
-  const [activeTab, setActiveTab] = useState("snapshot");
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem("aura_patient_dashboard_active_tab") || "snapshot";
+    }
+    return "snapshot";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("aura_patient_dashboard_active_tab", activeTab);
+  }, [activeTab]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
   const [showEditDemographics, setShowEditDemographics] = useState(false);

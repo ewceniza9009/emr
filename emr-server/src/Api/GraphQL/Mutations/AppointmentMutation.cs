@@ -24,6 +24,7 @@ public class AppointmentMutation
                 input.Modality,
                 null, // TravelTimeMinutes
                 null, // DistanceInMiles
+                input.PlannedAssessments,
                 input.AppointmentId
             ),
             cancellationToken
@@ -62,6 +63,7 @@ public record BookAppointmentInput(
     DateTimeOffset ScheduledStart,
     DateTimeOffset ScheduledEnd,
     AppointmentModality Modality,
+    List<AssessmentType> PlannedAssessments = null,
     Guid? AppointmentId = null
 );
 

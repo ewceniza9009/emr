@@ -1,0 +1,44 @@
+using Domain.Common;
+using Domain.Enums;
+
+namespace Domain.Entities;
+
+public class Questionnaire : BaseEntity
+{
+    public Guid QuestionnaireId { get; set; } = Guid.NewGuid();
+    public string Name { get; set; } = null!;
+    public string? Description { get; set; }
+    public AssessmentType AssessmentType { get; set; }
+    
+    public ICollection<Question> Questions { get; set; } = new List<Question>();
+}
+
+public class Question : BaseEntity
+{
+    public Guid QuestionId { get; set; } = Guid.NewGuid();
+    public Guid QuestionnaireId { get; set; }
+    public string Text { get; set; } = null!;
+    public string? Subtext { get; set; }
+    public QuestionType Type { get; set; }
+    public int Order { get; set; }
+    public string? OptionsJson { get; set; } // For MultipleChoice
+
+    public Questionnaire Questionnaire { get; set; } = null!;
+}
+
+public class AssessmentResponse : BaseEntity
+{
+    public Guid AssessmentResponseId { get; set; } = Guid.NewGuid();
+    public Guid QuestionnaireId { get; set; }
+    public Guid PatientId { get; set; }
+    public Guid? EncounterId { get; set; }
+    public Guid AssessorId { get; set; }
+    public DateTimeOffset CompletedAt { get; set; } = DateTimeOffset.UtcNow;
+    public string AnswersJson { get; set; } = null!;
+    public decimal? TotalScore { get; set; }
+
+    public Questionnaire Questionnaire { get; set; } = null!;
+    public Patient Patient { get; set; } = null!;
+    public ClinicalEncounter? Encounter { get; set; }
+    public Practitioner Assessor { get; set; } = null!;
+}

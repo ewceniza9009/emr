@@ -15,6 +15,7 @@ public record BookAppointmentCommand(
     AppointmentModality Modality,
     double? TravelTimeMinutes = null,
     double? DistanceInMiles = null,
+    List<AssessmentType> PlannedAssessments = null,
     Guid? AppointmentId = null
 ) : IRequest<Appointment>;
 
@@ -62,6 +63,7 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context)
             appointment.ScheduledEnd = request.ScheduledEnd;
             appointment.Modality = request.Modality;
             appointment.SupportingClinicians = supporting;
+            appointment.PlannedAssessments = request.PlannedAssessments ?? new();
             appointment.TravelTimeMinutes = request.TravelTimeMinutes;
             appointment.DistanceInMiles = request.DistanceInMiles;
         }
@@ -77,6 +79,7 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context)
                 Modality = request.Modality,
                 Status = AppointmentStatus.Scheduled,
                 SupportingClinicians = supporting,
+                PlannedAssessments = request.PlannedAssessments ?? new(),
                 TravelTimeMinutes = request.TravelTimeMinutes,
                 DistanceInMiles = request.DistanceInMiles,
             };

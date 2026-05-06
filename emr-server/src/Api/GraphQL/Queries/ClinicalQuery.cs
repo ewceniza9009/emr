@@ -97,4 +97,17 @@ public class ClinicalQuery
     {
         return context.SmartPhrases.AsNoTracking().Where(p => p.IsActive);
     }
+
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<AssessmentResponse> GetAssessmentResponsesByEncounter(
+        Guid appointmentId,
+        [Service] IApplicationDbContext context
+    )
+    {
+        return context.AssessmentResponses
+            .AsNoTracking()
+            .Where(r => r.Encounter != null && r.Encounter.AppointmentId == appointmentId);
+    }
 }
