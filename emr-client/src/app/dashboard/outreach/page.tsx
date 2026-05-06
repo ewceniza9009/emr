@@ -35,8 +35,16 @@ const GET_OUTREACH_LEADS = gql`
   }
 `;
 
+const LOG_OUTREACH_ACTIVITY = gql`
+  mutation LogOutreachActivity($input: LogOutreachActivityCommandInput!) {
+    logOutreachActivity(input: $input)
+  }
+`;
+
 import AddReferralDrawer from "@/components/AddReferralDrawer";
 import EnrollmentDrawer from "@/components/EnrollmentDrawer";
+import { useMutation } from "@apollo/client";
+import { useToast } from "@/components/ToastProvider";
 
 export default function OutreachPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -55,6 +63,30 @@ export default function OutreachPage() {
       search: filters.search || undefined
     }
   });
+
+  const [logActivity] = useMutation(LOG_OUTREACH_ACTIVITY);
+  const { showToast } = useToast();
+
+  const handleCall = async (lead: any) => {
+    try {
+      await logActivity({
+        variables: {
+          input: {
+            outreachId: lead.patientOutreachId,
+            method: "TELEPHONE",
+            outcome: "Attempted",
+            notes: "Outreach call initiated from worklist."
+          }
+        }
+      });
+      showToast(`Call attempt logged for ${lead.firstName} ${lead.lastName}`, "success");
+      refetch();
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to log call activity", "error");
+    }
+  };
+
   const leads = data?.outreaches?.items || [];
 
   const filteredLeads = leads;
@@ -189,7 +221,10 @@ export default function OutreachPage() {
                   </td>
                   <td className="px-6 py-2.5">
                     <div className="flex justify-end gap-2">
-                       <button className="w-8 h-8 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all flex items-center justify-center border border-white/5">
+                       <button 
+                        onClick={() => handleCall(lead)}
+                        className="w-8 h-8 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all flex items-center justify-center border border-white/5"
+                       >
                          <PhoneCall className="w-3.5 h-3.5" />
                        </button>
                        <button 
@@ -210,14 +245,6 @@ export default function OutreachPage() {
         </div>
       </div>
 
-      <EnrollmentDrawer 
-        open={isEnrollOpen} 
-        onClose={() => {
-          setIsEnrollOpen(false);
-          setSelectedLeadId(null);
-        }} 
-        outreachId={selectedLeadId}
-      />
       <EnrollmentDrawer 
         open={isEnrollOpen} 
         onClose={() => {
