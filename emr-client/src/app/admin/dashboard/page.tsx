@@ -457,13 +457,9 @@ function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns:
             <tr key={idx} className="group hover:bg-white/[0.02] transition-all duration-300 relative">
               {columns.map((col, colIdx) => (
                 <td key={col.key} className={`px-8 py-5 text-[11px] transition-all ${colIdx === 0 ? 'border-l-2 border-transparent group-hover:border-indigo-500' : ''}`}>
-                  {col.render ? col.render(item) : (
-                    <div className="flex flex-col">
-                      <span className="text-slate-200 font-bold tracking-tight uppercase group-hover:text-white transition-colors">
-                        {item[col.key]}
-                      </span>
-                    </div>
-                  )}
+                  <div className="text-slate-200 font-bold tracking-tight uppercase group-hover:text-white transition-colors">
+                    {col.render ? col.render(item) : item[col.key]}
+                  </div>
                 </td>
               ))}
               <td className="px-8 py-5 text-right">
