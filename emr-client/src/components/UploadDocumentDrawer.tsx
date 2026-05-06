@@ -119,6 +119,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
                     onChange={e => setType(e.target.value)}
                   >
                     <option value="CLINICAL_RECORD">Clinical Record</option>
+                    <option value="ADVANCE_DIRECTIVE">Advance Directive (DNR/POLST)</option>
                     <option value="ID_VERIFICATION">ID Verification</option>
                     <option value="CONSENT_FORM">Consent Form</option>
                     <option value="INSURANCE">Insurance Card</option>

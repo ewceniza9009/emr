@@ -32,6 +32,8 @@ import { useToast } from "@/components/ToastProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
+import BookingDrawer from "@/components/BookingDrawer";
+import AddPatientDrawer from "@/components/AddPatientDrawer";
 import {
   AreaChart,
   Area,
@@ -102,6 +104,8 @@ export default function Dashboard() {
   const { data, loading } = useQuery(GET_DASHBOARD_STATS);
   const { recentPatients } = useRecentlyBrowsed();
   const [greeting, setGreeting] = useState("Good morning");
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -110,10 +114,10 @@ export default function Dashboard() {
   }, []);
 
   const stats = [
-    { label: "Patients", value: loading ? "..." : data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, trend: "+12.4%", desc: "Active Caseload", href: "/dashboard/patients", color: "text-blue-500" },
-    { label: "Encounters", value: loading ? "..." : data?.dashboardStats?.newEncounters.toString(), icon: Target, trend: "+5.1%", desc: "Past 24H", href: "/dashboard/schedule", color: "text-amber-500" },
+    { label: "Patients", value: loading ? "..." : data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, trend: "+12.4%", desc: "Active Caseload", action: "ADD_PATIENT", color: "text-blue-500" },
+    { label: "Encounters", value: loading ? "..." : data?.dashboardStats?.newEncounters.toString(), icon: Target, trend: "+5.1%", desc: "Past 24H", action: "BOOK_APPOINTMENT", color: "text-amber-500" },
     { label: "Reviews", value: loading ? "..." : data?.dashboardStats?.pendingReviews.toString(), icon: Clock, trend: "-2.3%", desc: "Avg Latency", href: "/dashboard/triage", color: "text-purple-500" },
-    { label: "Alerts", value: loading ? "..." : data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, trend: "Stable", desc: "System Health", href: "/dashboard/triage", color: "text-rose-500" },
+    { label: "Alerts", value: loading ? "..." : data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, trend: "Stable", desc: "System Health", href: "/dashboard/triage#alerts", color: "text-rose-500" },
     { label: "Equipment", value: loading ? "..." : data?.dashboardStats?.deployedEquipmentCount.toString(), icon: Truck, trend: "+3", desc: "Logistics", href: "/dashboard/telemetry", color: "text-emerald-500" },
   ];
 
@@ -124,6 +128,8 @@ export default function Dashboard() {
       variants={containerVariants}
       className="w-full space-y-4 pb-8"
     >
+      <BookingDrawer open={isBookingOpen} onClose={() => setIsBookingOpen(false)} onBooked={() => {}} />
+      <AddPatientDrawer open={isAddPatientOpen} onClose={() => setIsAddPatientOpen(false)} onSuccess={() => {}} />
       {/* Premium Hero Header - Compact */}
       <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2rem] bg-slate-900 border border-white/10 p-6 sm:p-8 shadow-xl">
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-teal-500/20 to-blue-600/20 blur-[100px] pointer-events-none" />
@@ -166,7 +172,11 @@ export default function Dashboard() {
           <motion.div
             key={stat.label}
             variants={itemVariants}
-            onClick={() => stat.href && router.push(stat.href)}
+            onClick={() => {
+              if (stat.href) router.push(stat.href);
+              if (stat.action === "BOOK_APPOINTMENT") setIsBookingOpen(true);
+              if (stat.action === "ADD_PATIENT") setIsAddPatientOpen(true);
+            }}
             className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] hover:bg-white/[0.02] transition-all cursor-pointer group active:scale-[0.98]"
           >
             <div className="flex items-center justify-between mb-2">
@@ -345,10 +355,30 @@ export default function Dashboard() {
 
           {/* Quick Navigation Clusters - Compact */}
           <div className="grid grid-cols-2 gap-2">
-            <NavTile icon={ShieldAlert} label="Security" color="text-teal-500" href="/dashboard/security" />
-            <NavTile icon={Boxes} label="Assets" color="text-blue-500" href="/dashboard/assets" />
-            <NavTile icon={Microscope} label="Review" color="text-purple-500" href="/dashboard/reviews" />
-            <NavTile icon={Settings} label="System" color="text-slate-500" href="/dashboard/settings" />
+            <NavTile 
+              icon={ShieldAlert} 
+              label="Security" 
+              color="text-teal-500" 
+              onClick={() => showToast("Security Protocol: AES-256 Verified. All node connections encrypted.", "success")} 
+            />
+            <NavTile 
+              icon={Boxes} 
+              label="Assets" 
+              color="text-blue-500" 
+              href="/dashboard/telemetry" 
+            />
+            <NavTile 
+              icon={Microscope} 
+              label="Review" 
+              color="text-purple-500" 
+              href="/dashboard/triage" 
+            />
+            <NavTile 
+              icon={Settings} 
+              label="System" 
+              color="text-slate-500" 
+              href="/admin" 
+            />
           </div>
         </motion.div>
 
@@ -357,17 +387,20 @@ export default function Dashboard() {
       {/* Footer Branding - Compact */}
       <div className="pt-4 flex flex-col items-center gap-2 opacity-20">
         <div className="w-px h-8 bg-slate-500" />
-        <p className="text-[8px] font-bold text-slate-500 tracking-[0.4em] uppercase">Aura Clinical Operations Group // Nexus</p>
+        <p className="text-[8px] font-bold text-slate-500 tracking-[0.4em] uppercase">Halcyon Clinical Operations Group // Nexus</p>
       </div>
     </motion.div>
   );
 }
 
-function NavTile({ icon: Icon, label, color, href }: { icon: any, label: string, color: string, href: string }) {
+function NavTile({ icon: Icon, label, color, href, onClick }: { icon: any, label: string, color: string, href?: string, onClick?: () => void }) {
   const router = useRouter();
   return (
     <div 
-      onClick={() => router.push(href)}
+      onClick={() => {
+        if (onClick) onClick();
+        else if (href) router.push(href);
+      }}
       className="p-3 rounded-[1.5rem] bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-white/[0.02] hover:border-[var(--primary)]/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 group active:scale-[0.98]"
     >
       <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>

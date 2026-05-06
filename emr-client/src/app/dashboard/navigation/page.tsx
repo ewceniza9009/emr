@@ -88,7 +88,7 @@ export default function CareNavigationPage() {
   }).filter((p: any) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className="flex h-full gap-4 overflow-hidden animate-in fade-in duration-700">
+    <div className="flex h-[calc(100vh-100px)] gap-4 overflow-hidden animate-in fade-in duration-700">
       {/* Map Placeholder Area */}
       {/* Interactive Logistics Map */}
       <div className="flex-1 relative group">

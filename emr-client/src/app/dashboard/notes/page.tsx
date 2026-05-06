@@ -20,6 +20,7 @@ import {
   Download,
   Loader2
 } from "lucide-react";
+import BookingDrawer from "@/components/BookingDrawer";
 
 const GET_NOTES_DATA = gql`
   query GetNotesData {
@@ -76,6 +77,7 @@ export default function ClinicalNotesPage() {
   const [encounterCache, setEncounterCache] = useState<Record<string, string>>({});
   const [isSyncing, setIsSyncing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const appointmentsData = data?.appointments?.items || [];
@@ -228,15 +230,26 @@ export default function ClinicalNotesPage() {
   );
 
   return (
-    <div className="flex h-full gap-4 overflow-hidden animate-in fade-in duration-700">
-      <div className="w-[400px] flex flex-col gap-4 overflow-hidden">
+    <div className="flex h-[calc(100vh-100px)] gap-4 overflow-hidden animate-in fade-in duration-700">
+      <BookingDrawer 
+        open={isBookingOpen} 
+        onClose={() => setIsBookingOpen(false)} 
+        onBooked={() => {
+          setIsBookingOpen(false);
+          showToast("New Appointment Synchronized", "success");
+        }} 
+      />
+      <div className="w-[400px] flex flex-col gap-4 overflow-hidden h-full">
         <div className="bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--card-border)] shadow-xl p-6 flex flex-col gap-6 overflow-hidden h-full">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-black uppercase tracking-tighter">Clinical Notes</h2>
               <p className="text-[10px] font-black text-[var(--primary)] tracking-widest uppercase">Documentation Registry</p>
             </div>
-            <button className="p-3 bg-[var(--primary)] text-white rounded-xl shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all">
+            <button 
+              onClick={() => setIsBookingOpen(true)}
+              className="p-3 bg-[var(--primary)] text-white rounded-xl shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all active:scale-95"
+            >
               <Plus className="w-5 h-5" />
             </button>
           </div>

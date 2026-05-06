@@ -16,6 +16,8 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+import UploadDocumentDrawer from "@/components/UploadDocumentDrawer";
+
 const GET_TRIAGE_WORKLIST = gql`
   query GetTriageWorklist($search: String) {
     triageWorklist(search: $search) {
@@ -37,16 +39,30 @@ const GET_TRIAGE_WORKLIST = gql`
 export default function TriageDashboard() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data, loading } = useQuery(GET_TRIAGE_WORKLIST, {
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+
+  const { data, loading, refetch } = useQuery(GET_TRIAGE_WORKLIST, {
     variables: { search: searchQuery || undefined }
   });
   const triageItems = data?.triageWorklist?.items || [];
+
+  const handleLogDnr = (patientId: string) => {
+    setSelectedPatientId(patientId);
+    setIsUploadOpen(true);
+  };
 
   const alertCount = triageItems.filter((i: any) => i.isAlert).length;
   const stableCount = triageItems.length - alertCount;
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <UploadDocumentDrawer 
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        patientId={selectedPatientId}
+        onSuccess={() => refetch()}
+      />
       {/* Header & Stats */}
       <div className="flex items-center justify-between">
         <div>
@@ -97,10 +113,9 @@ export default function TriageDashboard() {
                   {triageItems.map((p: any) => (
                     <tr 
                       key={p.patientId} 
-                      onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}
                       className="group hover:bg-[var(--primary-glow)] transition-colors cursor-pointer active:scale-[0.995]"
                     >
-                      <td className="px-8 py-2.5">
+                      <td className="px-8 py-2.5" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
                         <div className="flex items-center gap-3">
                           <div className={`w-2 h-2 rounded-full ${p.isAlert ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
                           <div>
@@ -109,19 +124,19 @@ export default function TriageDashboard() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-5 text-center">
+                      <td className="px-8 py-5 text-center" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
                         <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border 
                           ${p.latestPainScore > 7 ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
                           Pain: {p.latestPainScore}/10
                         </div>
                       </td>
-                      <td className="px-8 py-5 text-center">
+                      <td className="px-8 py-5 text-center" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
                         <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border 
                           ${p.advanceDirectiveType !== 'None' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--card-border)]'}`}>
                           {p.advanceDirectiveType}
                         </span>
                       </td>
-                      <td className="px-8 py-2.5">
+                      <td className="px-8 py-2.5" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
                         <span className="text-[var(--text-muted)] text-xs italic">
                            {p.isAlert ? 'Urgent Review Needed' : 'Stable'}
                         </span>
@@ -208,7 +223,7 @@ export default function TriageDashboard() {
                      {p.firstName} {p.lastName}
                    </span>
                    <button 
-                    onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}
+                    onClick={() => handleLogDnr(p.patientId)}
                     className="text-blue-500 font-bold text-[10px] uppercase tracking-widest hover:underline hover:text-blue-400 transition-all"
                    >
                     Log DNR
