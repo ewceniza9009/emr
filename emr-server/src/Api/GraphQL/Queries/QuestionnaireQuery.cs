@@ -9,12 +9,7 @@ namespace Api.GraphQL.Queries;
 [ExtendObjectType(typeof(Query))]
 public class QuestionnaireQuery
 {
-    [UseProjection]
-    [UseFiltering]
-    public IQueryable<Questionnaire> GetQuestionnaires(IApplicationDbContext context)
-    {
-        return context.Questionnaires;
-    }
+
 
     public async Task<Questionnaire?> GetQuestionnaireByType(
         AssessmentType type,

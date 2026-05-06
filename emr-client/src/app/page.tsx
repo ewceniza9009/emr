@@ -85,6 +85,9 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-4">
+            <Link href="/admin" className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-400 transition-all mr-2">
+              Admin Portal
+            </Link>
             <Link href="/login" className="h-11 px-8 bg-[var(--primary)] text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-xl flex items-center justify-center hover:scale-105 transition-all shadow-[0_0_30px_var(--primary-glow)] group">
               Launch App
               <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -330,6 +333,7 @@ export default function HomePage() {
             {['Status', 'Security', 'Privacy', 'Network', 'API', 'Legal'].map(link => (
               <Link key={link} href="#" className="hover:text-[var(--primary)] transition-colors tracking-[0.2em]">{link}</Link>
             ))}
+            <Link href="/admin" className="text-indigo-950 hover:text-indigo-500 transition-colors tracking-[0.2em]">Admin Portal</Link>
           </div>
 
           <div className="text-right">

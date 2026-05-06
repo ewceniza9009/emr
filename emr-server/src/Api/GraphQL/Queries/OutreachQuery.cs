@@ -32,10 +32,4 @@ public class OutreachQuery
             .AsNoTracking();
     }
 
-    [UseFiltering]
-    [UseSorting]
-    public IQueryable<OutreachScript> GetOutreachScripts([Service] IApplicationDbContext context)
-    {
-        return context.OutreachScripts.AsNoTracking();
-    }
 }
