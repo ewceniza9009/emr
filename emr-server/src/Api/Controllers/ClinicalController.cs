@@ -27,4 +27,32 @@ public class ClinicalController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpGet("export/invoice/{invoiceId}")]
+    public async Task<IActionResult> ExportInvoice(Guid invoiceId)
+    {
+        try
+        {
+            var pdfBytes = await _pdfService.GenerateInvoiceAsync(invoiceId);
+            return File(pdfBytes, "application/pdf", $"invoice_{invoiceId}.pdf");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpGet("export/dossier/{patientId}")]
+    public async Task<IActionResult> ExportPatientDossier(Guid patientId)
+    {
+        try
+        {
+            var pdfBytes = await _pdfService.GeneratePatientDossierAsync(patientId);
+            return File(pdfBytes, "application/pdf", $"dossier_{patientId}.pdf");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

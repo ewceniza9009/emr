@@ -93,7 +93,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
   const handleDownloadPdf = async () => {
     setDownloading(true);
     try {
-      const response = await fetch(`/api/clinical/export/encounter/${appointmentId}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clinical/export/encounter/${appointmentId}`);
       if (!response.ok) throw new Error("Failed to export PDF");
       
       const blob = await response.blob();
@@ -156,127 +156,143 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar scrollbar-hide">
+          <div className="flex-1 overflow-y-auto p-8 space-y-12 custom-scrollbar">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20 space-y-4">
-                <Zap className="w-10 h-10 text-[var(--primary)] animate-pulse" />
-                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Retrieving Clinical Record...</p>
+              <div className="flex flex-col items-center justify-center py-20 space-y-6">
+                <div className="w-16 h-16 rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center relative">
+                   <Zap className="w-8 h-8 text-[var(--primary)] animate-pulse" />
+                   <div className="absolute inset-0 rounded-3xl border-2 border-[var(--primary)]/20 animate-ping" />
+                </div>
+                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] animate-pulse">Retrieving Encrypted Clinical Record...</p>
               </div>
             ) : encounter ? (
               <>
-                {/* Provider Info */}
-                <div className="flex items-center gap-6 p-6 rounded-3xl bg-[var(--input-bg)] border border-[var(--card-border)] shadow-sm">
-                  <div className="w-14 h-14 rounded-2xl bg-[var(--primary)] text-white flex items-center justify-center shadow-lg shadow-[var(--primary-glow)]">
-                    <User className="w-7 h-7" />
+                {/* Executive Summary Header */}
+                <div className="flex items-center gap-6 p-8 rounded-[2.5rem] bg-[var(--input-bg)] border border-[var(--card-border)] relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 blur-[60px] rounded-full -mr-16 -mt-16" />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-teal-400 text-white flex items-center justify-center shadow-2xl shadow-[var(--primary-glow)] shrink-0">
+                    <User className="w-8 h-8" />
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Attending Practitioner</p>
-                    <h3 className="text-lg font-bold text-[var(--text-primary)] uppercase">{encounter.practitioner?.firstName} {encounter.practitioner?.lastName}</h3>
-                    <p className="text-[11px] font-bold text-[var(--primary)] uppercase tracking-tighter italic">{encounter.practitioner?.position}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                       <span className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest px-2 py-0.5 rounded-md bg-[var(--primary)]/10">Attending Practitioner</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase truncate">{encounter.practitioner?.firstName} {encounter.practitioner?.lastName}</h3>
+                    <p className="text-xs font-medium text-[var(--text-muted)] italic">{encounter.practitioner?.position}</p>
                   </div>
-                  <div className="ml-auto text-right">
-                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Session Duration</p>
-                    <p className="text-xs font-bold text-[var(--text-primary)] flex items-center justify-end gap-2">
-                      <Clock className="w-3.5 h-3.5 text-[var(--primary)]" />
-                      {encounter.admittedAt && encounter.dischargedAt ? 
-                        `${Math.round((new Date(encounter.dischargedAt).getTime() - new Date(encounter.admittedAt).getTime()) / 60000)} minutes` : 
-                        'Not recorded'}
-                    </p>
+                  <div className="hidden md:block text-right shrink-0">
+                    <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1.5">Encounter ID</p>
+                    <p className="text-[11px] font-mono font-bold text-[var(--text-primary)] opacity-50">{encounter.encounterId.slice(0, 13).toUpperCase()}</p>
                   </div>
                 </div>
 
-                {/* Vitals Grid */}
-                <div className="space-y-4">
+                {/* Metrics Matrix */}
+                <div className="space-y-6">
                   <div className="flex items-center gap-4">
-                    <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.3em] flex items-center gap-2">
-                      <Activity className="w-3.5 h-3.5 text-[var(--primary)]" />
-                      Physiological Markers
+                    <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] flex items-center gap-2.5">
+                      <Activity className="w-4 h-4 text-[var(--primary)]" />
+                      Vital Signs Registry
                     </h4>
-                    <div className="flex-1 h-px bg-[var(--card-border)]" />
+                    <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--card-border)] to-transparent" />
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                      { label: 'Heart Rate', value: encounter.vitalSigns?.[0]?.heartRate, unit: 'BPM', icon: Heart, color: 'text-rose-500' },
-                      { label: 'Blood Pressure', value: encounter.vitalSigns?.[0]?.bloodPressureSystolic ? `${encounter.vitalSigns[0].bloodPressureSystolic}/${encounter.vitalSigns[0].bloodPressureDiastolic}` : null, unit: 'mmHg', icon: Activity, color: 'text-blue-500' },
-                      { label: 'Temperature', value: encounter.vitalSigns?.[0]?.temperature, unit: '°F', icon: Thermometer, color: 'text-amber-500' },
-                      { label: 'Oxygen Sat', value: encounter.vitalSigns?.[0]?.oxygenSaturation, unit: '%', icon: Wind, color: 'text-emerald-500' },
+                      { label: 'Heart Rate', value: encounter.vitalSigns?.[0]?.heartRate, unit: 'BPM', icon: Heart, color: 'text-rose-500', glow: 'shadow-rose-500/20' },
+                      { label: 'Blood Pressure', value: encounter.vitalSigns?.[0]?.bloodPressureSystolic ? `${encounter.vitalSigns[0].bloodPressureSystolic}/${encounter.vitalSigns[0].bloodPressureDiastolic}` : null, unit: 'mmHg', icon: Activity, color: 'text-blue-500', glow: 'shadow-blue-500/20' },
+                      { label: 'Body Temp', value: encounter.vitalSigns?.[0]?.temperature, unit: '°F', icon: Thermometer, color: 'text-amber-500', glow: 'shadow-amber-500/20' },
+                      { label: 'Oxygen Sat', value: encounter.vitalSigns?.[0]?.oxygenSaturation, unit: '% SpO2', icon: Wind, color: 'text-emerald-500', glow: 'shadow-emerald-500/20' },
                     ].map((v, i) => (
-                      <div key={i} className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/30 transition-all">
-                        <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                          <v.icon className={`w-3 h-3 ${v.color}`} /> {v.label}
-                        </p>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-xl font-bold text-[var(--text-primary)]">{v.value || '--'}</span>
-                          <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase">{v.unit}</span>
+                      <div key={i} className="p-5 rounded-3xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/40 transition-all duration-300 group/v">
+                        <div className="flex items-center gap-2 mb-3">
+                           <v.icon className={`w-3.5 h-3.5 ${v.color} group-hover/v:scale-110 transition-transform`} />
+                           <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">{v.label}</span>
+                        </div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl font-bold text-[var(--text-primary)]">{v.value || '0'}</span>
+                          <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">{v.unit}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* ESAS Summary */}
+                {/* Symptom Burden Analysis */}
                 {esas && (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div className="flex items-center gap-4">
-                      <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.3em] flex items-center gap-2">
-                        <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                        Symptom Burden (ESAS-R)
+                      <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] flex items-center gap-2.5">
+                        <AlertCircle className="w-4 h-4 text-amber-500" />
+                        Symptom Burden analysis
                       </h4>
-                      <div className="flex-1 h-px bg-[var(--card-border)]" />
+                      <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--card-border)] to-transparent" />
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 bg-[var(--input-bg)] p-8 rounded-[2.5rem] border border-[var(--card-border)]">
                       {[
                         { label: 'Pain', value: esas.pain },
-                        { label: 'Anxiety', value: esas.anxiety },
+                        { label: 'Tiredness', value: esas.tiredness },
+                        { label: 'Drowsiness', value: esas.drowsiness },
                         { label: 'Nausea', value: esas.nausea },
+                        { label: 'Appetite', value: esas.lackOfAppetite },
                         { label: 'Shortness of Breath', value: esas.shortnessOfBreath },
-                        { label: 'Lack of Appetite', value: esas.lackOfAppetite },
-                        { label: 'Wellbeing', value: esas.wellbeing },
+                        { label: 'Depression', value: esas.depression },
+                        { label: 'Anxiety', value: esas.anxiety },
+                        { label: 'Overall Wellbeing', value: esas.wellbeing },
                       ].map((s, i) => (
-                        <div key={i} className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-between">
-                          <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">{s.label}</span>
-                          <span className={`text-[11px] font-black px-2 py-0.5 rounded-md ${s.value > 7 ? 'bg-rose-500/10 text-rose-500' : s.value > 3 ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                            {s.value}/10
-                          </span>
+                        <div key={i} className="space-y-2.5">
+                          <div className="flex justify-between items-center px-1">
+                            <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{s.label}</span>
+                            <span className={`text-[10px] font-black ${s.value > 7 ? 'text-rose-500' : s.value > 3 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                              {s.value}/10
+                            </span>
+                          </div>
+                          <div className="h-1.5 w-full bg-[var(--card-border)] rounded-full overflow-hidden">
+                             <div 
+                               className={`h-full rounded-full transition-all duration-1000 ${s.value > 7 ? 'bg-rose-500' : s.value > 3 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                               style={{ width: `${s.value * 10}%` }}
+                             />
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* SOAP Notes */}
+                {/* Clinical Documentation */}
                 <div className="space-y-6">
                   <div className="flex items-center gap-4">
-                    <h4 className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.3em] flex items-center gap-2">
-                      <FileText className="w-3.5 h-3.5 text-blue-500" />
-                      Clinical Documentation (SOAP)
+                    <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] flex items-center gap-2.5">
+                      <FileText className="w-4 h-4 text-blue-500" />
+                      Clinical Documentation
                     </h4>
-                    <div className="flex-1 h-px bg-[var(--card-border)]" />
+                    <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--card-border)] to-transparent" />
                   </div>
-                  <div className="grid grid-cols-1 gap-6">
+                  <div className="space-y-8">
                     {encounter.clinicalNotes?.map((note: any, i: number) => (
-                      <div key={i} className="space-y-2">
-                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.5)]" />
-                          [{note.type.charAt(0)}] {note.type}
-                        </p>
-                        <div className="p-6 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[13px] text-[var(--text-secondary)] italic leading-relaxed">
-                          {note.content || 'No narrative provided.'}
+                      <div key={i} className="relative pl-8 border-l border-[var(--card-border)] py-1">
+                        <div className="absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.6)]" />
+                        <div className="space-y-3">
+                           <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">{note.type}</p>
+                           <div className="p-8 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)] shadow-sm hover:border-blue-500/30 transition-all duration-300">
+                              <p className="text-[14px] text-[var(--text-secondary)] leading-[1.8] italic font-medium opacity-90">
+                                {note.content || 'System generated clinical narrative pending clinician finalization.'}
+                              </p>
+                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Attestation */}
-                <div className="p-8 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 flex items-center gap-6">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                    <ShieldCheck className="w-6 h-6 text-emerald-500" />
+                {/* Certification */}
+                <div className="p-10 rounded-[3rem] bg-emerald-500/5 border border-emerald-500/10 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+                  <div className="absolute bottom-0 right-0 w-48 h-48 bg-emerald-500/5 blur-[60px] rounded-full -mr-24 -mb-24" />
+                  <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-8 h-8 text-emerald-500" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Electronic Attestation</p>
-                    <p className="text-xs text-[var(--text-muted)] leading-relaxed italic">
-                      This clinical record was electronically signed by {encounter.practitioner?.firstName} {encounter.practitioner?.lastName} on {new Date(encounter.dischargedAt || encounter.encounterDate).toLocaleString()}.
+                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-2">Electronic certification</p>
+                    <p className="text-sm text-[var(--text-muted)] leading-relaxed italic font-medium">
+                      I hereby certify that the clinical services described herein were personally rendered by me or under my direct supervision. This clinical record was electronically signed by <span className="text-[var(--text-primary)] font-bold not-italic">{encounter.practitioner?.firstName} {encounter.practitioner?.lastName}</span> on {new Date(encounter.dischargedAt || encounter.encounterDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}.
                     </p>
                   </div>
                 </div>

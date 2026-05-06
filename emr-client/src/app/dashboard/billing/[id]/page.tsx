@@ -89,6 +89,32 @@ export default function InvoiceDetailsPage() {
 
   const invoice = data?.billingInvoices?.[0];
 
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!params.id) return;
+    setDownloading(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/billing/export/invoice/${params.id}`);
+      if (!response.ok) throw new Error("Failed to export invoice PDF");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice_${invoice?.invoiceNumber || params.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast("Invoice PDF Generated Successfully", "success");
+    } catch (err: any) {
+      console.error(err);
+      showToast("Error exporting PDF. Please try again.", "error");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const handleVoid = async () => {
     if (!confirm("Are you sure you want to void this invoice? This action cannot be undone.")) return;
     try {
@@ -147,8 +173,13 @@ export default function InvoiceDetailsPage() {
          </div>
          
           <div className="flex items-center gap-3">
-            <button onClick={() => window.print()} className="px-5 h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--card-border)] transition-all flex items-center gap-2">
-               <Printer className="w-4 h-4" /> Print
+            <button 
+              onClick={handleDownloadPdf} 
+              disabled={downloading}
+              className="px-5 h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--card-border)] transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+               {downloading ? <Clock className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
+               {downloading ? "GENERATING..." : "Print"}
             </button>
             {invoice.status !== 'Cancelled' && (
               <>

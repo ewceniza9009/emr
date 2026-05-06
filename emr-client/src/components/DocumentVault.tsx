@@ -101,9 +101,7 @@ export default function DocumentVault({ patientId }: Props) {
                      <button 
                        onClick={(e) => {
                          e.stopPropagation();
-                         const url = doc.storageUrl.startsWith('http') 
-                           ? doc.storageUrl 
-                           : `${process.env.NEXT_PUBLIC_API_URL}${doc.storageUrl}`;
+                         const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${doc.patientDocumentId}`;
                          window.open(url, '_blank');
                        }}
                        className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
@@ -114,9 +112,7 @@ export default function DocumentVault({ patientId }: Props) {
                      <button 
                        onClick={(e) => {
                          e.stopPropagation();
-                         const url = doc.storageUrl.startsWith('http') 
-                           ? doc.storageUrl 
-                           : `${process.env.NEXT_PUBLIC_API_URL}${doc.storageUrl}`;
+                         const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${doc.patientDocumentId}`;
                          window.open(url, '_blank');
                        }}
                        className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"

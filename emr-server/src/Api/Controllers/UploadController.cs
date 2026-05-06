@@ -95,4 +95,24 @@ public class UploadController : ControllerBase
 
         return Ok(new { documentId = document.PatientDocumentId, url = storageUrl });
     }
+
+    [HttpGet("document/{documentId}")]
+    public async Task<IActionResult> GetDocument(Guid documentId)
+    {
+        var document = await _context.PatientDocuments
+            .FirstOrDefaultAsync(d => d.PatientDocumentId == documentId);
+
+        if (document == null)
+            return NotFound("Document record not found");
+
+        try
+        {
+            var stream = await _storageService.DownloadFileAsync(document.StorageUrl);
+            return File(stream, document.ContentType, document.Title);
+        }
+        catch (Exception ex)
+        {
+            return NotFound($"Could not retrieve document: {ex.Message}");
+        }
+    }
 }

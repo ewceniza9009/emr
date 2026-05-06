@@ -60,6 +60,7 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
   const [covered, setCovered] = useState<number>(initialData?.coveredAmount || 0);
   const [dueInDays, setDueInDays] = useState(initialData?.dueInDays || 30);
   const [searchTerm, setSearchTerm] = useState("");
+  const [downloading, setDownloading] = useState(false);
 
   const { data: patientData } = useQuery(GET_PATIENTS);
   const [createInvoice, { loading: creating }] = useMutation(CREATE_INVOICE);
@@ -124,10 +125,32 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
           }
         }
       });
-      onSuccess();
       onClose();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!initialData?.invoiceId) return;
+    setDownloading(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clinical/export/invoice/${initialData.invoiceId}`);
+      if (!response.ok) throw new Error("Failed to export PDF");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice_${initialData.invoiceId.slice(0, 8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      console.error(err);
+      alert("Error exporting invoice. Please try again.");
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -145,9 +168,22 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
             </h2>
             <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-black mt-1">Patient Billing Unit</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-[var(--card-border)] rounded-xl transition-all">
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            {isEdit && (
+              <button 
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={downloading}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-50"
+              >
+                {downloading ? <span className="animate-spin">⏳</span> : <FileText className="w-4 h-4" />}
+                Export PDF
+              </button>
+            )}
+            <button onClick={onClose} className="p-2 hover:bg-[var(--card-border)] rounded-xl transition-all">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8">

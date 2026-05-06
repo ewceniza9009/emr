@@ -44,7 +44,7 @@ public static class DependencyInjection
 
         services.AddScoped<ISchedulingService, Infrastructure.Services.SchedulingService>();
         services.AddScoped<IMrnGenerator, Infrastructure.Services.MrnGenerator>();
-        services.AddScoped<IStorageService, Infrastructure.Services.AsteriteStorageService>();
+        services.AddScoped<IStorageService, Infrastructure.Services.AzuriteStorageService>();
         services.AddScoped<IPdfService, Infrastructure.Services.QuestPdfService>();
 
         return services;

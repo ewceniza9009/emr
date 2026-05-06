@@ -27,6 +27,7 @@ const GET_PRESCRIPTIONS = gql`
       frequency
       route
       isActive
+      startDate
       medication {
         name
         strength
@@ -95,7 +96,9 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
     }
   };
 
-  const prescriptions = data?.prescriptionsByPatient || [];
+  const prescriptions = [...(data?.prescriptionsByPatient || [])].sort(
+    (a: any, b: any) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+  );
 
   if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse uppercase text-[10px] font-black tracking-widest">Reconciling Pharmacopeia...</div>;
 

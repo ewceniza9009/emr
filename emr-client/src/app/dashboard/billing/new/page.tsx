@@ -138,8 +138,8 @@ export default function NewInvoicePage() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[var(--background)] text-[var(--text-secondary)] selection:bg-[var(--primary)] selection:text-white pb-32">
-      <div className="w-full space-y-12 animate-fade-in max-w-[1600px] mx-auto pt-12 px-8">
+    <div className="w-full min-h-screen bg-[var(--background)] text-[var(--text-secondary)] selection:bg-[var(--primary)] selection:text-white pb-16">
+      <div className="w-full space-y-6 animate-fade-in max-w-[1600px] mx-auto pt-6 px-8">
         <PatientLookup 
           open={isPatientLookupOpen} 
           onClose={() => setIsPatientLookupOpen(false)} 
@@ -160,9 +160,9 @@ export default function NewInvoicePage() {
              >
                 <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
              </button>
-             <div className="space-y-2">
-                <div className="flex items-center gap-4">
-                   <h1 className="text-5xl font-black tracking-tighter uppercase leading-none text-[var(--text-primary)]">Financial Station</h1>
+             <div className="space-y-1">
+                <div className="flex items-center gap-3">
+                   <h1 className="text-3xl font-black tracking-tighter uppercase leading-none text-[var(--text-primary)]">Billing Station</h1>
                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--input-bg)] border border-[var(--card-border)]">
                       <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shadow-[0_0_8px_var(--primary)]" />
                       <span className="text-[8px] font-black uppercase tracking-[0.2em] opacity-60">Auth Code: RCM-99</span>
@@ -198,18 +198,18 @@ export default function NewInvoicePage() {
 
         <div className="grid grid-cols-12 gap-12">
            {/* Main Ledger Area */}
-           <div className="col-span-12 xl:col-span-8 space-y-10">
-              <div className="bg-[var(--card-bg)] rounded-[3.5rem] border border-[var(--card-border)] shadow-3xl relative overflow-hidden backdrop-blur-xl">
+           <div className="col-span-12 xl:col-span-8 space-y-6">
+              <div className="bg-[var(--card-bg)] rounded-[2rem] border border-[var(--card-border)] shadow-3xl relative overflow-hidden backdrop-blur-xl">
                  <div className="absolute inset-0 bg-gradient-to-br from-[var(--input-bg)] to-transparent pointer-events-none" />
                  
                  {/* Premium Header */}
-                 <div className="p-12 pb-8 flex items-center justify-between relative">
-                    <div className="flex items-center gap-5">
-                       <div className="w-14 h-14 rounded-[1.5rem] bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20 text-[var(--primary)]">
-                          <FileText className="w-7 h-7" />
+                 <div className="p-8 pb-4 flex items-center justify-between relative">
+                    <div className="flex items-center gap-4">
+                       <div className="w-11 h-11 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20 text-[var(--primary)]">
+                          <FileText className="w-6 h-6" />
                        </div>
                        <div>
-                          <h2 className="text-xl font-black uppercase tracking-tight text-[var(--text-primary)]">Financial Ledger</h2>
+                          <h2 className="text-xl font-black uppercase tracking-tight text-[var(--text-primary)]">Billing Ledger</h2>
                           <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5 opacity-50">Transaction distribution & itemization</p>
                        </div>
                     </div>
@@ -222,7 +222,7 @@ export default function NewInvoicePage() {
                  </div>
                  
                  {/* Ledger Station */}
-                 <div className="px-12 pb-12 space-y-1 relative">
+                 <div className="px-8 pb-8 space-y-1 relative">
                     {/* Header Row */}
                     <div className="grid grid-cols-12 gap-6 py-4 px-6 opacity-30">
                        <div className="col-span-6 text-[9px] font-black uppercase tracking-[0.3em]">Nomenclature / Service</div>
@@ -281,8 +281,8 @@ export default function NewInvoicePage() {
                     </div>
                  </div>
 
-                 {/* Financial Reconciliaton Zone */}
-                 <div className="p-12 bg-[var(--input-bg)]/10 border-t border-[var(--card-border)] grid grid-cols-1 lg:grid-cols-12 gap-12">
+                 {/* Billing Reconciliaton Zone */}
+                 <div className="p-8 bg-[var(--input-bg)]/10 border-t border-[var(--card-border)] grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <div className="lg:col-span-7 space-y-6">
                        <div className="flex items-center gap-3">
                           <HistoryIcon className="w-4 h-4 text-[var(--primary)]" />
@@ -318,10 +318,10 @@ export default function NewInvoicePage() {
                           </div>
                        </div>
 
-                       <div className="bg-[var(--primary)] text-white rounded-[2.5rem] p-10 shadow-[0_20px_50px_rgba(0,0,0,0.2),0_0_20px_var(--primary-glow)] flex items-center justify-between relative overflow-hidden mt-8">
+                       <div className="bg-[var(--primary)] text-white rounded-3xl p-6 shadow-2xl flex items-center justify-between relative overflow-hidden mt-4">
                           <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24 blur-3xl" />
                           <div className="relative">
-                             <p className="text-[9px] font-black uppercase tracking-[0.4em] opacity-60 mb-2">Aggregate Settlement</p>
+                             <p className="text-[9px] font-black uppercase tracking-[0.4em] opacity-60 mb-2">Total Billing Liability</p>
                              <h3 className="text-5xl font-black tracking-tighter">${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
                           </div>
                           <Calculator className="w-20 h-20 opacity-20 relative rotate-12" />
@@ -332,9 +332,9 @@ export default function NewInvoicePage() {
            </div>
 
            {/* Framework & Entities */}
-           <div className="col-span-12 xl:col-span-4 space-y-12">
+           <div className="col-span-12 xl:col-span-4 space-y-6">
               {/* Recipient Module */}
-              <div className="bg-[var(--card-bg)] rounded-[3.5rem] border border-[var(--card-border)] p-12 shadow-3xl relative overflow-hidden group">
+              <div className="bg-[var(--card-bg)] rounded-[2rem] border border-[var(--card-border)] p-8 shadow-3xl relative overflow-hidden group">
                  <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--primary)]/5 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-[var(--primary)]/10 transition-all duration-700" />
                  
                  <div className="flex items-center justify-between relative mb-10">
@@ -351,8 +351,8 @@ export default function NewInvoicePage() {
                  
                  {selectedPatient ? (
                    <div className="space-y-8 relative">
-                      <div className="flex items-center gap-6">
-                         <div className="w-24 h-24 rounded-[2rem] bg-[var(--input-bg)] flex items-center justify-center text-[var(--primary)] border border-[var(--card-border)] text-3xl font-black shadow-inner">
+                      <div className="flex items-center gap-4">
+                         <div className="w-16 h-16 rounded-2xl bg-[var(--input-bg)] flex items-center justify-center text-[var(--primary)] border border-[var(--card-border)] text-2xl font-black shadow-inner">
                             {selectedPatient.firstName?.[0]}{selectedPatient.lastName?.[0]}
                          </div>
                          <div className="space-y-1">
@@ -394,7 +394,7 @@ export default function NewInvoicePage() {
               </div>
 
               {/* Z-Benefit Integration */}
-              <div className="bg-[var(--card-bg)] rounded-[3.5rem] border border-[var(--card-border)] p-12 shadow-3xl space-y-10 relative overflow-hidden group">
+              <div className="bg-[var(--card-bg)] rounded-[2rem] border border-[var(--card-border)] p-8 shadow-3xl space-y-6 relative overflow-hidden group">
                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                        <CheckCircle2 className="w-6 h-6 text-[var(--primary)]" />
@@ -457,7 +457,7 @@ export default function NewInvoicePage() {
               </div>
 
               {/* Scheduling Configuration */}
-              <div className="bg-[var(--card-bg)] rounded-[3.5rem] border border-[var(--card-border)] p-12 shadow-3xl space-y-12 relative overflow-hidden">
+              <div className="bg-[var(--card-bg)] rounded-[2rem] border border-[var(--card-border)] p-8 shadow-3xl space-y-8 relative overflow-hidden">
                  <div className="space-y-8">
                     <div className="flex items-center gap-4">
                        <Calendar className="w-6 h-6 text-[var(--primary)]" />

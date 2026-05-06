@@ -92,6 +92,7 @@ const GET_PATIENT_DETAILS = gql`
         email
         isPoa
         isLegalGuardian
+        isPrimaryContact
         notes
       }
       documents {
@@ -176,6 +177,7 @@ export default function PatientDetailPage() {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
   const [summaryAppointmentId, setSummaryAppointmentId] = useState<string | null>(null);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [downloadingDossier, setDownloadingDossier] = useState(false);
 
   const isUuid = (val: any) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
 
@@ -209,6 +211,29 @@ export default function PatientDetailPage() {
     skip: !params.id || !isUuid(params.id)
   });
 
+  const handleDownloadDossier = async () => {
+    if (!params.id) return;
+    setDownloadingDossier(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clinical/export/dossier/${params.id}`);
+      if (!response.ok) throw new Error("Failed to export dossier");
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clinical_dossier_${patient?.lastName}_${patient?.mrn}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      console.error(err);
+      alert("Error exporting dossier. Please try again.");
+    } finally {
+      setDownloadingDossier(false);
+    }
+  };
+ 
   if (loading) return (
     <div className="p-20 flex flex-col items-center justify-center space-y-4">
       <Zap className="w-12 h-12 text-[var(--primary)] animate-pulse" />
@@ -237,7 +262,9 @@ export default function PatientDetailPage() {
   const patient = data?.patientById;
   if (!patient) return <div className="p-10 text-[var(--text-primary)] font-black uppercase tracking-widest">Patient record not found in registry.</div>;
 
-  const appointments = apptData?.appointments?.items || [];
+  const appointments = [...(apptData?.appointments?.items || [])].sort(
+    (a: any, b: any) => new Date(b.scheduledStart).getTime() - new Date(a.scheduledStart).getTime()
+  );
   const activeAppointment = appointments.find((a: any) =>
     a.status?.toUpperCase().includes('PROGRESS') || a.status?.toUpperCase() === 'LIVE'
   );
@@ -299,6 +326,14 @@ export default function PatientDetailPage() {
             <ClipboardList className="w-3.5 h-3.5" />
             Clinical Assessment
           </Link>
+          <button 
+            onClick={handleDownloadDossier}
+            disabled={downloadingDossier}
+            className="px-6 py-2 rounded-xl bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-700 transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {downloadingDossier ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+            Clinical Dossier
+          </button>
           <button className="px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all">
             Emergency Action
           </button>
@@ -857,9 +892,7 @@ export default function PatientDetailPage() {
                                   (d.documentType === 'POA' || d.title.toUpperCase().includes('POA'))
                                 );
                                 if (poaDoc) {
-                                  const url = poaDoc.storageUrl.startsWith('http')
-                                    ? poaDoc.storageUrl
-                                    : `${process.env.NEXT_PUBLIC_API_URL}${poaDoc.storageUrl}`;
+                                  const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${poaDoc.patientDocumentId}`;
                                   window.open(url, '_blank');
                                 } else {
                                   alert("No POA document found for this contact. Please upload it in the Document Vault below.");
