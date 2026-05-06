@@ -32,6 +32,17 @@ import ProblemList from "@/components/ProblemList";
 import MedicationRegistry from "@/components/MedicationRegistry";
 import DynamicAssessment from "@/components/DynamicAssessment";
 
+const SKIP_REASONS = [
+  "PATIENT_REFUSED",
+  "CLINICALLY_INAPPROPRIATE",
+  "TIME_CONSTRAINT",
+  "PATIENT_DISTRESSED",
+  "COGNITIVE_IMPAIRMENT",
+  "LANGUAGE_BARRIER",
+  "ALREADY_COMPLETED_RECENTLY",
+  "OTHER"
+];
+
 const START_ENCOUNTER = gql`
   mutation StartEncounter($input: CreateClinicalEncounterCommandInput!) {
     createClinicalEncounter(input: $input)
@@ -150,6 +161,7 @@ export default function GuidedVisitPage() {
   const [assessmentResults, setAssessmentResults] = useState<Record<string, any>>({});
   const [activeAssessments, setActiveAssessments] = useState<any[]>([]);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [skippingAssessment, setSkippingAssessment] = useState<{ id: string, name: string } | null>(null);
   const [navSearch, setNavSearch] = useState("");
 
   // Persistence Key
@@ -190,35 +202,35 @@ export default function GuidedVisitPage() {
   const { data: allQuestionnairesData } = useQuery(GET_ALL_QUESTIONNAIRES);
   const allQuestionnaires = allQuestionnairesData?.questionnaires || [];
 
-   // Sync planned assessments into active state - Improved for immediate visibility
-   useEffect(() => {
-     if (!appointment?.plannedAssessments || (isHydrated && activeAssessments.length > 0)) return;
-     
-     const planned = appointment.plannedAssessments;
-     if (activeAssessments.length === 0) {
-       // Create initial stubs for immediate rail visibility
-       const stubs = planned.map((code: string) => {
-         const fullMatch = allQuestionnaires.find((q: any) => q.assessmentType === code || q.name === code);
-         return {
-           questionnaireId: fullMatch?.questionnaireId || code,
-           name: fullMatch?.name || code,
-           assessmentType: fullMatch?.assessmentType || code,
-           isStub: !fullMatch
-         };
-       });
-       setActiveAssessments(stubs);
-     } else if (allQuestionnaires.length > 0) {
-       // Hydrate stubs when metadata arrives
-       const hydrated = activeAssessments.map(a => {
-         if (!a.isStub) return a;
-         const match = allQuestionnaires.find((q: any) => q.assessmentType === a.assessmentType || q.name === a.name);
-         return match ? { ...match, isStub: false } : a;
-       });
-       if (JSON.stringify(hydrated) !== JSON.stringify(activeAssessments)) {
-         setActiveAssessments(hydrated);
-       }
-     }
-   }, [allQuestionnaires, appointment, activeAssessments.length, isHydrated]);
+  // Sync planned assessments into active state - Improved for immediate visibility
+  useEffect(() => {
+    if (!appointment?.plannedAssessments || (isHydrated && activeAssessments.length > 0)) return;
+
+    const planned = appointment.plannedAssessments;
+    if (activeAssessments.length === 0) {
+      // Create initial stubs for immediate rail visibility
+      const stubs = planned.map((code: string) => {
+        const fullMatch = allQuestionnaires.find((q: any) => q.assessmentType === code || q.name === code);
+        return {
+          questionnaireId: fullMatch?.questionnaireId || code,
+          name: fullMatch?.name || code,
+          assessmentType: fullMatch?.assessmentType || code,
+          isStub: !fullMatch
+        };
+      });
+      setActiveAssessments(stubs);
+    } else if (allQuestionnaires.length > 0) {
+      // Hydrate stubs when metadata arrives
+      const hydrated = activeAssessments.map(a => {
+        if (!a.isStub) return a;
+        const match = allQuestionnaires.find((q: any) => q.assessmentType === a.assessmentType || q.name === a.name);
+        return match ? { ...match, isStub: false } : a;
+      });
+      if (JSON.stringify(hydrated) !== JSON.stringify(activeAssessments)) {
+        setActiveAssessments(hydrated);
+      }
+    }
+  }, [allQuestionnaires, appointment, activeAssessments.length, isHydrated]);
 
   const [startEncounter, { loading: starting }] = useMutation(START_ENCOUNTER);
   const [saveNote, { loading: savingNote }] = useMutation(SAVE_NOTE);
@@ -272,7 +284,7 @@ export default function GuidedVisitPage() {
 
     return s;
   }, [appointment, activeAssessments, navSearch]);
-  
+
   // Track last valid index and max step for smart navigation
   useEffect(() => {
     const idx = steps.findIndex(s => s.id === step);
@@ -283,7 +295,7 @@ export default function GuidedVisitPage() {
       }
     }
   }, [steps, step, maxStepReached]);
-  
+
   // Validation hook to prevent stale steps when assessments are removed
   useEffect(() => {
     const stepExists = steps.some(s => s.id === step);
@@ -308,9 +320,9 @@ export default function GuidedVisitPage() {
 
   const handleStart = async () => {
     // Development Fallback: Prioritize session ID, but fallback to static Admin ID in dev environments
-    const clinicianId = session?.user?.practitionerId || 
+    const clinicianId = session?.user?.practitionerId ||
       (process.env.NODE_ENV === 'development' ? "c79b9090-6725-460d-8531-1554c46f6f96" : null);
-    
+
     if (!clinicianId || clinicianId === "00000000-0000-0000-0000-000000000000") {
       console.error("Clinical Identity Missing: Encounter initialization aborted to prevent audit failure.");
       alert("Clinician Identity Required: Please ensure you are logged in with a valid practitioner account.");
@@ -443,7 +455,7 @@ export default function GuidedVisitPage() {
                 const isActive = step === s.id;
                 const isCompleted = currentStepIndex > idx;
                 const isUnlocked = idx <= steps.findIndex(st => st.id === maxStepReached);
-                
+
                 return (
                   <div key={s.id} className="flex items-center gap-2">
                     <button
@@ -494,11 +506,10 @@ export default function GuidedVisitPage() {
                   <button
                     onClick={handleStart}
                     disabled={starting || (!session?.user?.practitionerId && process.env.NODE_ENV !== 'development')}
-                    className={`w-full max-w-[220px] py-3.5 rounded-xl text-white font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg ${
-                      (!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') || starting 
-                        ? "bg-slate-700/50 text-white/30 cursor-not-allowed grayscale" 
-                        : "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90 active:scale-[0.98]"
-                    }`}
+                    className={`w-full max-w-[220px] py-3.5 rounded-xl text-white font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg ${(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') || starting
+                      ? "bg-slate-700/50 text-white/30 cursor-not-allowed grayscale"
+                      : "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90 active:scale-[0.98]"
+                      }`}
                   >
                     {(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') ? "Identifying..." : (starting ? "Establishing..." : "Start Encounter")} <ChevronRight className="w-4 h-4" />
                   </button>
@@ -535,40 +546,38 @@ export default function GuidedVisitPage() {
                       { id: "LIVINGWILL", label: "LIVINGWILL", icon: FileText, desc: "Advance Directive" },
                       { id: "HEALTHCAREPROXY", label: "HEALTHCAREPROXY", icon: UserCheck, desc: "Medical POA" },
                     ].map((item) => (
-                      <button 
-                        key={item.id} 
+                      <button
+                        key={item.id}
                         onClick={() => {
                           if (directives.some(d => d.type === item.id)) {
                             setDirectives(directives.filter(d => d.type !== item.id));
                           } else {
                             setDirectives([...directives, { type: item.id, notes: "" }]);
                           }
-                        }} 
+                        }}
                         className={`p-5 rounded-2xl border transition-all flex items-center justify-between group
-                          ${directives.some(d => d.type === item.id) 
-                            ? 'bg-[var(--primary)]/10 border-[var(--primary)]/30 shadow-sm' 
+                          ${directives.some(d => d.type === item.id)
+                            ? 'bg-[var(--primary)]/10 border-[var(--primary)]/30 shadow-sm'
                             : 'bg-[var(--background)]/5 border-[var(--border-color,rgba(0,0,0,0.05))] hover:border-[var(--primary)]/20'
                           }`}
                       >
                         <div className="flex items-center gap-5">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
-                            directives.some(d => d.type === item.id) 
-                              ? 'bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20' 
-                              : 'bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)]'
-                          }`}>
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${directives.some(d => d.type === item.id)
+                            ? 'bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20'
+                            : 'bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)]'
+                            }`}>
                             <item.icon className="w-6 h-6" />
                           </div>
                           <div className="text-left">
-                            <p className={`text-sm font-bold uppercase tracking-tight ${
-                              directives.some(d => d.type === item.id) ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'
-                            }`}>{item.label}</p>
+                            <p className={`text-sm font-bold uppercase tracking-tight ${directives.some(d => d.type === item.id) ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'
+                              }`}>{item.label}</p>
                             <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-black mt-1">
                               {item.desc} • {directives.some(d => d.type === item.id) ? 'Active' : 'Unset'}
                             </p>
                           </div>
                         </div>
-                        {directives.some(d => d.type === item.id) 
-                          ? <CheckCircle2 className="w-6 h-6 text-[var(--primary)]" /> 
+                        {directives.some(d => d.type === item.id)
+                          ? <CheckCircle2 className="w-6 h-6 text-[var(--primary)]" />
                           : <div className="w-6 h-6 rounded-full border border-[var(--border-color,rgba(0,0,0,0.1))]" />
                         }
                       </button>
@@ -623,8 +632,8 @@ export default function GuidedVisitPage() {
                       const filledCount = [vitals.hr, vitals.sbp && vitals.dbp, vitals.temp, vitals.rr, vitals.spo2].filter(Boolean).length;
                       const isValid = filledCount >= 3;
                       return (
-                        <button 
-                          onClick={() => setStep(nextStep.id)} 
+                        <button
+                          onClick={() => setStep(nextStep.id)}
                           disabled={!isValid}
                           className={`flex-1 py-3.5 rounded-xl text-white font-black text-[10px] uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 ${isValid ? "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90" : "bg-slate-700/50 text-white/30 cursor-not-allowed grayscale"}`}
                         >
@@ -658,21 +667,19 @@ export default function GuidedVisitPage() {
                           Start Assessment <ChevronRight className="w-4 h-4" />
                         </button>
 
-                        <div className="flex gap-4">
+                        <div className="flex gap-4 w-full">
                           <button
-                            onClick={() => setStep(nextStep.id)}
-                            className="flex-1 py-3.5 rounded-xl bg-[var(--card-bg)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:text-[var(--foreground)] hover:bg-[var(--background)]/80 transition-all"
+                            onClick={() => setSkippingAssessment({ id: currentStep.assessmentId!, name: currentStep.label })}
+                            className="flex-1 py-3.5 rounded-xl border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
                           >
                             Skip
                           </button>
                           <button
                             onClick={() => {
                               setActiveAssessments(prev => prev.filter(a => a.assessmentType !== currentStep.assessmentId));
-                              // When removing, it is safer to drop back to the previous stable step 
-                              // rather than jumping into the next assessment unprepared.
                               setStep(prevStep.id);
                             }}
-                            className="flex-1 py-3.5 rounded-xl bg-rose-500/10 border border-rose-500/10 text-rose-400 font-black text-[10px] uppercase tracking-widest hover:bg-rose-500/20 transition-all"
+                            className="flex-1 py-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 font-black text-[10px] uppercase tracking-widest hover:bg-red-500/20 transition-all"
                           >
                             Remove
                           </button>
@@ -710,9 +717,9 @@ export default function GuidedVisitPage() {
                                 }
                               }
                             });
-                            setAssessmentResults(prev => ({ 
-                              ...prev, 
-                              [currentStep.assessmentId!]: { answers, score, completed: true } 
+                            setAssessmentResults(prev => ({
+                              ...prev,
+                              [currentStep.assessmentId!]: { answers, score, completed: true }
                             }));
                             setExecutingAssessment(false);
                             setStep(nextStep.id);
@@ -886,6 +893,47 @@ export default function GuidedVisitPage() {
           questionnaires={allQuestionnaires}
           loading={!allQuestionnairesData}
         />
+      )}
+      {/* Skip Reason Modal */}
+      {skippingAssessment && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+          <div className="bg-[var(--card-bg)] border border-[var(--divider-color)] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl shadow-black">
+            <div className="p-8 space-y-6">
+              <div className="space-y-2">
+                <h3 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tight">Skip Assessment</h3>
+                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Select reason for bypassing <span className="text-[var(--primary)]">{skippingAssessment.name}</span></p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2">
+                {SKIP_REASONS.map((reason) => (
+                  <button
+                    key={reason}
+                    onClick={() => {
+                      setAssessmentResults((prev: any) => ({
+                        ...prev,
+                        [skippingAssessment.id]: { skipped: true, reason, timestamp: new Date().toISOString() }
+                      }));
+                      setSkippingAssessment(null);
+                      const currentIndex = steps.findIndex((s: any) => s.id === step);
+                      if (currentIndex < steps.length - 1) setStep(steps[currentIndex + 1].id);
+                    }}
+                    className="w-full p-4 rounded-xl border border-[var(--divider-color)] text-left text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:border-[var(--primary)] hover:bg-[var(--primary)]/5 hover:text-[var(--text-primary)] transition-all flex items-center justify-between group"
+                  >
+                    {reason.replace(/_/g, ' ')}
+                    <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all text-[var(--primary)]" />
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setSkippingAssessment(null)}
+                className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
