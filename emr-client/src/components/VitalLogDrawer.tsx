@@ -16,7 +16,7 @@ export default function VitalLogDrawer({ isOpen, onClose, encounters }: Props) {
     <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
-        
+
         <div className={`relative h-full w-full max-w-2xl bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
           flex flex-col transition-transform duration-300 ease-out border-l border-[var(--card-border)]
           ${isOpen ? "translate-x-0" : "translate-x-full"}`}>
@@ -29,7 +29,7 @@ export default function VitalLogDrawer({ isOpen, onClose, encounters }: Props) {
               </h2>
               <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-1">Full longitudinal clinical log</p>
             </div>
-            <button 
+            <button
               onClick={onClose}
               className="p-3 rounded-xl bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
             >

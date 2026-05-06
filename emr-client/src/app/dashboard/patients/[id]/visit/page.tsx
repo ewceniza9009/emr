@@ -211,35 +211,41 @@ export default function GuidedVisitPage() {
   const { data: allQuestionnairesData } = useQuery(GET_ALL_QUESTIONNAIRES);
   const allQuestionnaires = allQuestionnairesData?.questionnaires || [];
 
-  // Sync planned assessments into active state - Improved for immediate visibility
+  // 1. Initial Sync from Appointment Plan
   useEffect(() => {
-    if (!appointment?.plannedAssessments || (isHydrated && activeAssessments.length > 0)) return;
-
+    if (!isHydrated || activeAssessments.length > 0 || !appointment?.plannedAssessments) return;
+    
     const planned = appointment.plannedAssessments;
-    if (activeAssessments.length === 0) {
-      // Create initial stubs for immediate rail visibility
-      const stubs = planned.map((code: string) => {
-        const fullMatch = allQuestionnaires.find((q: any) => q.assessmentType === code || q.name === code);
-        return {
-          questionnaireId: fullMatch?.questionnaireId || code,
-          name: fullMatch?.name || code,
-          assessmentType: fullMatch?.assessmentType || code,
-          isStub: !fullMatch
-        };
-      });
-      setActiveAssessments(stubs);
-    } else if (allQuestionnaires.length > 0) {
-      // Hydrate stubs when metadata arrives
-      const hydrated = activeAssessments.map(a => {
-        if (!a.isStub) return a;
-        const match = allQuestionnaires.find((q: any) => q.assessmentType === a.assessmentType || q.name === a.name);
-        return match ? { ...match, isStub: false } : a;
-      });
-      if (JSON.stringify(hydrated) !== JSON.stringify(activeAssessments)) {
-        setActiveAssessments(hydrated);
-      }
+    const stubs = planned.map((code: string) => ({
+      name: code,
+      assessmentType: code,
+      isStub: true
+    }));
+    setActiveAssessments(stubs);
+  }, [appointment, isHydrated, activeAssessments.length]);
+
+  // 2. Hydration from Questionnaire Registry
+  useEffect(() => {
+    if (!isHydrated || allQuestionnaires.length === 0 || activeAssessments.length === 0) return;
+
+    const hydrated = activeAssessments.map(a => {
+      if (!a.isStub) return a;
+      const match = allQuestionnaires.find((q: any) => q.assessmentType === a.assessmentType || q.name === a.name);
+      return match ? { ...match, isStub: false, questionnaireId: match.questionnaireId } : a;
+    });
+
+    // Deduplicate: Keep the last occurrence (most complete/recent record wins)
+    const uniqueMap = new Map();
+    hydrated.forEach(a => {
+      const id = a.questionnaireId || a.assessmentType;
+      uniqueMap.set(id, a);
+    });
+    const unique = Array.from(uniqueMap.values());
+
+    if (JSON.stringify(unique) !== JSON.stringify(activeAssessments)) {
+      setActiveAssessments(unique);
     }
-  }, [allQuestionnaires, appointment, activeAssessments.length, isHydrated]);
+  }, [allQuestionnaires, activeAssessments, isHydrated]);
 
   const [startEncounter, { loading: starting }] = useMutation(START_ENCOUNTER);
   const [saveNote, { loading: savingNote }] = useMutation(SAVE_NOTE);
@@ -266,10 +272,22 @@ export default function GuidedVisitPage() {
 
     const planned = appointment?.plannedAssessments || [];
 
+    // Helper for stable IDs
+    const getStableId = (item: any) => {
+      const seed = item.questionnaireId || item.assessmentType || "unknown";
+      // Simple hash to number
+      let hash = 0;
+      for (let i = 0; i < seed.length; i++) {
+        hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+        hash |= 0;
+      }
+      return 1000 + Math.abs(hash % 9000);
+    };
+
     // Add dynamically picked assessments
-    activeAssessments.forEach((p: any, idx: number) => {
+    activeAssessments.forEach((p: any) => {
       s.push({
-        id: 100 + idx,
+        id: getStableId(p),
         label: p.name,
         icon: ClipboardList,
         type: "ASSESSMENT_WRAPPER",
@@ -675,7 +693,7 @@ export default function GuidedVisitPage() {
                         </p>
                       </div>
 
-                      <div className="w-full max-w-[280px] space-y-2">
+                      <div className="w-full max-w-[320px] space-y-3">
                         <button
                           onClick={() => setExecutingAssessment(true)}
                           className="w-full py-3.5 rounded-xl bg-[var(--primary)] text-white font-black text-[10px] uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary-glow)]"
@@ -683,7 +701,13 @@ export default function GuidedVisitPage() {
                           Start Assessment <ChevronRight className="w-4 h-4" />
                         </button>
 
-                        <div className="flex gap-4 w-full">
+                        <div className="flex gap-3 w-full">
+                          <button
+                            onClick={() => setStep(prevStep.id)}
+                            className="flex-1 py-3.5 rounded-xl bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:text-[var(--foreground)] transition-all"
+                          >
+                            Back
+                          </button>
                           <button
                             onClick={() => setSkippingAssessment({ id: currentStep.assessmentId!, name: currentStep.label })}
                             className="flex-1 py-3.5 rounded-xl border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:text-[var(--foreground)] hover:border-[var(--primary)] transition-all"
@@ -905,7 +929,7 @@ export default function GuidedVisitPage() {
             }
             setIsAssessmentModalOpen(false);
           }}
-          selectedIds={activeAssessments.map(a => a.questionnaireId)}
+          selectedIds={activeAssessments.map(a => a.questionnaireId || a.assessmentType)}
           questionnaires={allQuestionnaires}
           loading={!allQuestionnairesData}
         />
@@ -998,7 +1022,7 @@ function AssessmentSelectionModal({ isOpen, onClose, onSelect, selectedIds, ques
           ) : (
             <div className="grid grid-cols-1 gap-3">
               {filtered.map((q: any) => {
-                const isSelected = selectedIds.includes(q.questionnaireId);
+                const isSelected = selectedIds.includes(q.questionnaireId) || selectedIds.includes(q.assessmentType);
                 return (
                   <button
                     key={q.questionnaireId}

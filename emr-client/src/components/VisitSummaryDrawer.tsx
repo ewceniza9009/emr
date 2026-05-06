@@ -1,12 +1,12 @@
 "use client";
 
 import { useQuery, gql } from "@apollo/client";
-import { 
-  X, 
-  FileText, 
-  Activity, 
-  ShieldCheck, 
-  Heart, 
+import {
+  X,
+  FileText,
+  Activity,
+  ShieldCheck,
+  Heart,
   Download,
   Calendar,
   User,
@@ -103,7 +103,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clinical/export/encounter/${appointmentId}`);
       if (!response.ok) throw new Error("Failed to export PDF");
-      
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -126,11 +126,11 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
     <HalcyonPortal>
       <div className="fixed inset-0 !m-0 !p-0 z-[9999999] flex justify-end overflow-hidden">
         {/* Backdrop */}
-        <div 
+        <div
           className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
           onClick={onClose}
         />
-        
+
         {/* Drawer */}
         <div className="relative w-full max-w-2xl bg-[var(--sidebar-bg)] border-l border-[var(--card-border)] shadow-[-50px_0_150px_rgba(0,0,0,0.3)] h-full flex flex-col animate-in slide-in-from-right duration-500">
           {/* Header */}
@@ -140,13 +140,13 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
               <div>
                 <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight leading-none uppercase">Visit Summary</h2>
                 <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
-                  <Calendar className="w-3.5 h-3.5 text-[var(--primary)]" /> 
+                  <Calendar className="w-3.5 h-3.5 text-[var(--primary)]" />
                   {data?.appointment ? new Date(data.appointment.scheduledStart).toLocaleDateString(undefined, { dateStyle: 'full' }) : 'Loading...'}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <button 
+              <button
                 onClick={handleDownloadPdf}
                 disabled={downloading || !encounter}
                 className="px-6 py-2.5 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all flex items-center gap-2 disabled:opacity-50"
@@ -154,7 +154,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                 {downloading ? <Zap className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                 Export Summary
               </button>
-              <button 
+              <button
                 onClick={onClose}
                 className="p-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
               >
@@ -168,8 +168,8 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 space-y-6">
                 <div className="w-16 h-16 rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center relative">
-                   <Zap className="w-8 h-8 text-[var(--primary)] animate-pulse" />
-                   <div className="absolute inset-0 rounded-3xl border-2 border-[var(--primary)]/20 animate-ping" />
+                  <Zap className="w-8 h-8 text-[var(--primary)] animate-pulse" />
+                  <div className="absolute inset-0 rounded-3xl border-2 border-[var(--primary)]/20 animate-ping" />
                 </div>
                 <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] animate-pulse">Retrieving Encrypted Clinical Record...</p>
               </div>
@@ -183,7 +183,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                       <span className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest px-2 py-0.5 rounded-md bg-[var(--primary)]/10">Attending Practitioner</span>
+                      <span className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest px-2 py-0.5 rounded-md bg-[var(--primary)]/10">Attending Practitioner</span>
                     </div>
                     <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase truncate">{encounter.practitioner?.firstName} {encounter.practitioner?.lastName}</h3>
                     <p className="text-xs font-medium text-[var(--text-muted)] italic">{encounter.practitioner?.position}</p>
@@ -206,14 +206,14 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
                       { label: 'Heart Rate', value: encounter.vitalSigns?.[0]?.heartRate, unit: 'BPM', icon: Heart, color: 'text-rose-500', glow: 'shadow-rose-500/20' },
-                      { label: 'Blood Pressure', value: encounter.vitalSigns?.[0]?.bloodPressureSystolic ? `${encounter.vitalSigns[0].bloodPressureSystolic}/${encounter.vitalSigns[0].bloodPressureDiastolic}` : null, unit: 'mmHg', icon: Activity, color: 'text-blue-500', glow: 'shadow-blue-500/20' },
+                      { label: 'BP', value: encounter.vitalSigns?.[0]?.bloodPressureSystolic ? `${encounter.vitalSigns[0].bloodPressureSystolic}/${encounter.vitalSigns[0].bloodPressureDiastolic}` : null, unit: 'mmHg', icon: Activity, color: 'text-blue-500', glow: 'shadow-blue-500/20' },
                       { label: 'Body Temp', value: encounter.vitalSigns?.[0]?.temperature, unit: '°F', icon: Thermometer, color: 'text-amber-500', glow: 'shadow-amber-500/20' },
                       { label: 'Oxygen Sat', value: encounter.vitalSigns?.[0]?.oxygenSaturation, unit: '% SpO2', icon: Wind, color: 'text-emerald-500', glow: 'shadow-emerald-500/20' },
                     ].map((v, i) => (
                       <div key={i} className="p-5 rounded-3xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/40 transition-all duration-300 group/v">
                         <div className="flex items-center gap-2 mb-3">
-                           <v.icon className={`w-3.5 h-3.5 ${v.color} group-hover/v:scale-110 transition-transform`} />
-                           <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">{v.label}</span>
+                          <v.icon className={`w-3.5 h-3.5 ${v.color} group-hover/v:scale-110 transition-transform`} />
+                          <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">{v.label}</span>
                         </div>
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-2xl font-bold text-[var(--text-primary)]">{v.value || '0'}</span>
@@ -238,10 +238,10 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                       {data.assessmentResponses.map((res: any) => (
                         <div key={res.assessmentResponseId} className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-blue-500/30 transition-all group">
                           <div className="flex items-center justify-between mb-2">
-                             <h5 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">{res.questionnaire?.name}</h5>
-                             {res.totalScore !== null && (
-                               <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-black">Score: {res.totalScore}</span>
-                             )}
+                            <h5 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">{res.questionnaire?.name}</h5>
+                            {res.totalScore !== null && (
+                              <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-black">Score: {res.totalScore}</span>
+                            )}
                           </div>
                           <p className="text-[9px] text-[var(--text-muted)] italic line-clamp-1">{res.questionnaire?.description}</p>
                         </div>
@@ -280,10 +280,10 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                             </span>
                           </div>
                           <div className="h-1.5 w-full bg-[var(--card-border)] rounded-full overflow-hidden">
-                             <div 
-                               className={`h-full rounded-full transition-all duration-1000 ${s.value > 7 ? 'bg-rose-500' : s.value > 3 ? 'bg-amber-500' : 'bg-emerald-500'}`}
-                               style={{ width: `${s.value * 10}%` }}
-                             />
+                            <div
+                              className={`h-full rounded-full transition-all duration-1000 ${s.value > 7 ? 'bg-rose-500' : s.value > 3 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                              style={{ width: `${s.value * 10}%` }}
+                            />
                           </div>
                         </div>
                       ))}
@@ -305,12 +305,12 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                       <div key={i} className="relative pl-8 border-l border-[var(--card-border)] py-1">
                         <div className="absolute left-[-5px] top-0 w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.6)]" />
                         <div className="space-y-3">
-                           <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">{note.type}</p>
-                           <div className="p-8 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)] shadow-sm hover:border-blue-500/30 transition-all duration-300">
-                              <p className="text-[14px] text-[var(--text-secondary)] leading-[1.8] italic font-medium opacity-90">
-                                {note.content || 'System generated clinical narrative pending clinician finalization.'}
-                              </p>
-                           </div>
+                          <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">{note.type}</p>
+                          <div className="p-8 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)] shadow-sm hover:border-blue-500/30 transition-all duration-300">
+                            <p className="text-[14px] text-[var(--text-secondary)] leading-[1.8] italic font-medium opacity-90">
+                              {note.content || 'System generated clinical narrative pending clinician finalization.'}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     ))}
