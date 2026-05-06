@@ -48,13 +48,13 @@ export default function SurveyCreatorWidget({ initialJson, onSave }: Props) {
 
   useEffect(() => {
     const handleSaveEvent = () => {
-      onSave(JSON.stringify(creator.JSON));
+      onSave(creator.text);
     };
 
     window.addEventListener('save-survey-schema', handleSaveEvent);
     
     creator.saveSurveyFunc = (saveNo: number, callback: (no: number, success: boolean) => void) => {
-      onSave(JSON.stringify(creator.JSON));
+      onSave(creator.text);
       callback(saveNo, true);
     };
 

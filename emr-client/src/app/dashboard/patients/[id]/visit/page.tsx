@@ -95,6 +95,7 @@ const GET_QUESTIONNAIRE = gql`
       questionnaireId
       name
       description
+      schemaJson
       questions {
         questionId
         text

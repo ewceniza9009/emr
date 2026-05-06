@@ -84,7 +84,7 @@ export default function FormDesignerPage() {
     const isStaleSchema = form.schemaJson?.includes('"name":"legacy_import"') &&
       (!form.schemaJson?.includes('"rateMax":10') || !form.schemaJson?.includes('"type":"slider"'));
 
-    if (form.schemaJson && form.schemaJson.length > 10 && !isStaleSchema) return form.schemaJson;
+    if (form.schemaJson && form.schemaJson.length > 10) return form.schemaJson;
 
     if (form.questions?.length > 0) {
       const elements = form.questions.map((q: any, idx: number) => {
@@ -132,19 +132,19 @@ export default function FormDesignerPage() {
   if (!form) return <div className="min-h-screen bg-[#020617] flex items-center justify-center p-20 text-center text-rose-500 font-bold uppercase tracking-widest border border-rose-500/20 m-10 rounded-3xl">Form Registry Node Not Found.</div>;
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
-      <header className="h-20 border-b border-slate-200 bg-white/80 backdrop-blur-xl flex items-center justify-between px-8 shrink-0">
+    <div className="flex flex-col h-screen bg-[var(--background)]">
+      <header className="h-14 border-b border-[var(--divider-color)] bg-[var(--sidebar-bg)]/80 backdrop-blur-xl flex items-center justify-between px-8 shrink-0">
         <div className="flex items-center gap-6">
           <Link href="/admin/dashboard" className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-900">
             <ChevronLeft className="w-5 h-5" />
           </Link>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-600/20">
+            <div className="w-8 h-8 rounded-lg bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary-glow)]">
               <Shield className="w-5 h-5 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-black text-slate-900 uppercase tracking-tighter leading-none">{form.name}</span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1"> Assessment Form Design</span>
+              <span className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none">{form.name}</span>
+              <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1"> Assessment Form Design</span>
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@ export default function FormDesignerPage() {
           </button>
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('save-survey-schema'))}
-            className="h-11 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-[0.15em] shadow-2xl shadow-indigo-600/20 transition-all flex items-center gap-3 active:scale-95"
+            className="h-10 px-8 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white font-black uppercase tracking-[0.15em] shadow-2xl shadow-[var(--primary-glow)] transition-all flex items-center gap-3 active:scale-95"
           >
             <Save className="w-4 h-4" />
             <span className="text-[10px]">Save Schema</span>
