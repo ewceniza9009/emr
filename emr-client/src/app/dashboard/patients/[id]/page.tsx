@@ -48,6 +48,7 @@ import AddContactDrawer from "@/components/AddContactDrawer";
 import EditDemographicsDrawer from "@/components/EditDemographicsDrawer";
 import EditCommunicationsDrawer from "@/components/EditCommunicationsDrawer";
 import VisitSummaryDrawer from "@/components/VisitSummaryDrawer";
+import EmergencyActionDrawer from "@/components/EmergencyActionDrawer";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -83,6 +84,8 @@ const GET_PATIENT_DETAILS = gql`
       placeOfBirth
       nationality
       language
+      biologicalSex
+      genderIdentity
       contacts {
         patientContactId
         firstName
@@ -187,6 +190,8 @@ export default function PatientDetailPage() {
   const [summaryAppointmentId, setSummaryAppointmentId] = useState<string | null>(null);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [downloadingDossier, setDownloadingDossier] = useState(false);
+  const [showEmergencyDrawer, setShowEmergencyDrawer] = useState(false);
+  const [isEmergency, setIsEmergency] = useState(false);
 
   const isUuid = (val: any) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
 
@@ -324,9 +329,15 @@ export default function PatientDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Status: Stable</span>
+          <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 transition-all duration-500 ${
+            isEmergency 
+              ? "bg-red-500/10 border-red-500/30 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.2)]" 
+              : "bg-emerald-500/10 border-emerald-500/20"
+          }`}>
+            <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isEmergency ? "bg-red-500" : "bg-emerald-500"}`} />
+            <span className={`text-[9px] font-black uppercase tracking-widest ${isEmergency ? "text-red-500" : "text-emerald-500"}`}>
+              Status: {isEmergency ? "Critical" : "Stable"}
+            </span>
           </div>
           <Link
             href={`/dashboard/patients/${params.id}/assessment/new`}
@@ -343,8 +354,15 @@ export default function PatientDetailPage() {
             {downloadingDossier ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
             Clinical Dossier
           </button>
-          <button className="px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all">
-            Emergency Action
+          <button 
+            onClick={() => setShowEmergencyDrawer(true)}
+            className={`px-6 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all ${
+              isEmergency 
+                ? "bg-red-600 shadow-red-600/30 animate-pulse ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950" 
+                : "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90"
+            }`}
+          >
+            {isEmergency ? "Protocol Active" : "Emergency Action"}
           </button>
         </div>
       </div>
@@ -1050,6 +1068,13 @@ export default function PatientDetailPage() {
           appointmentId={summaryAppointmentId}
         />
       )}
+
+      <EmergencyActionDrawer 
+        open={showEmergencyDrawer}
+        onClose={() => setShowEmergencyDrawer(false)}
+        patient={patient}
+        onEscalate={() => setIsEmergency(true)}
+      />
     </div>
   );
 }

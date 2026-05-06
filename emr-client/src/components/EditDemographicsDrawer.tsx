@@ -27,7 +27,9 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
     religion: "",
     language: "",
     nationality: "",
-    occupation: ""
+    occupation: "",
+    biologicalSex: "",
+    genderIdentity: ""
   });
 
   useEffect(() => {
@@ -37,7 +39,9 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
         religion: patient.religion || "",
         language: patient.language || "English",
         nationality: patient.nationality || "Filipino",
-        occupation: patient.occupation || ""
+        occupation: patient.occupation || "",
+        biologicalSex: patient.biologicalSex || "",
+        genderIdentity: patient.genderIdentity || ""
       });
     }
   }, [open, patient]);
@@ -120,23 +124,71 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                   </div>
                   <div className="space-y-2">
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Religion</label>
-                    <input 
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all"
+                    <select 
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
                       value={form.religion}
                       onChange={e => setForm({...form, religion: e.target.value})}
-                      placeholder="e.g. Christian"
-                    />
+                    >
+                      <option value="">Select Religion</option>
+                      <option value="Catholic">Catholic</option>
+                      <option value="Christian">Christian</option>
+                      <option value="Muslim">Muslim</option>
+                      <option value="Buddhist">Buddhist</option>
+                      <option value="Hindu">Hindu</option>
+                      <option value="Jewish">Jewish</option>
+                      <option value="Atheist">Atheist</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Biological Sex</label>
+                    <select 
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
+                      value={form.biologicalSex}
+                      onChange={e => setForm({...form, biologicalSex: e.target.value})}
+                    >
+                      <option value="">Select Sex</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Intersex">Intersex</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Gender Identity</label>
+                    <select 
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
+                      value={form.genderIdentity}
+                      onChange={e => setForm({...form, genderIdentity: e.target.value})}
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Non-Binary">Non-Binary</option>
+                      <option value="Transgender">Transgender</option>
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Primary Language</label>
-                    <input 
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all"
+                    <select 
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
                       value={form.language}
                       onChange={e => setForm({...form, language: e.target.value})}
-                    />
+                    >
+                      <option value="English">English</option>
+                      <option value="Tagalog">Tagalog</option>
+                      <option value="Spanish">Spanish</option>
+                      <option value="French">French</option>
+                      <option value="Chinese">Chinese</option>
+                      <option value="Japanese">Japanese</option>
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
                   <div className="space-y-2">
                     <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Nationality</label>

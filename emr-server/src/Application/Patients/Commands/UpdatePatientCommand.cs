@@ -10,6 +10,8 @@ public record UpdatePatientCommand : IRequest<bool>
     public string? Occupation { get; init; }
     public string? Language { get; init; }
     public string? Nationality { get; init; }
+    public string? BiologicalSex { get; init; }
+    public string? GenderIdentity { get; init; }
     
     // Communications
     public string? PrimaryPhone { get; init; }

@@ -30,6 +30,8 @@ public class UpdatePatientCommandHandler : IRequestHandler<UpdatePatientCommand,
         if (request.Occupation != null) patient.Occupation = request.Occupation;
         if (request.Language != null) patient.Language = request.Language;
         if (request.Nationality != null) patient.Nationality = request.Nationality;
+        if (request.BiologicalSex != null) patient.BiologicalSex = request.BiologicalSex;
+        if (request.GenderIdentity != null) patient.GenderIdentity = request.GenderIdentity;
 
         // Update Phone
         if (request.PrimaryPhone != null)
