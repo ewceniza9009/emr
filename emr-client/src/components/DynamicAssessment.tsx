@@ -25,12 +25,14 @@ interface Questionnaire {
 
 interface Props {
   questionnaire: Questionnaire;
+  initialAnswers?: Record<string, any>;
   onComplete: (answers: Record<string, any>, totalScore?: number) => void;
   onBack: () => void;
+  onPartialUpdate?: (answers: Record<string, any>) => void;
 }
 
-export default function DynamicAssessment({ questionnaire, onComplete, onBack }: Props) {
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+export default function DynamicAssessment({ questionnaire, initialAnswers = {}, onComplete, onBack, onPartialUpdate }: Props) {
+  const [answers, setAnswers] = useState<Record<string, any>>(initialAnswers);
 
   // Flattened Questions from either Legacy or Modern Schema
   const activeQuestions = useMemo(() => {
@@ -56,7 +58,9 @@ export default function DynamicAssessment({ questionnaire, onComplete, onBack }:
   }, [questionnaire]);
 
   const handleAnswer = (questionId: string, value: any) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+    const newAnswers = { ...answers, [questionId]: value };
+    setAnswers(newAnswers);
+    if (onPartialUpdate) onPartialUpdate(newAnswers);
   };
 
   const isComplete = activeQuestions.every((q) => answers[q.questionId] !== undefined);

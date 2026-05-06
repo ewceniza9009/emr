@@ -138,7 +138,9 @@ export default function GuidedVisitPage() {
   const appointment = apptData?.appointment;
 
   const [step, setStep] = useState(1);
+  const [maxStepReached, setMaxStepReached] = useState(1);
   const [encounterId, setEncounterId] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const lastValidIndex = useRef(0);
 
   // Form States
@@ -150,36 +152,73 @@ export default function GuidedVisitPage() {
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [navSearch, setNavSearch] = useState("");
 
+  // Persistence Key
+  const persistenceKey = `halcyon-visit-persist-${params.id}-${appointmentId || 'adhoc'}`;
+
+  // 1. Load Persisted State on Mount
+  useEffect(() => {
+    const saved = localStorage.getItem(persistenceKey);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.vitals) setVitals(data.vitals);
+        if (data.directives) setDirectives(data.directives);
+        if (data.note) setNote(data.note);
+        if (data.assessmentResults) setAssessmentResults(data.assessmentResults);
+        if (data.encounterId) setEncounterId(data.encounterId);
+        if (data.activeAssessments) setActiveAssessments(data.activeAssessments);
+        if (data.step) setStep(data.step);
+        if (data.maxStepReached) setMaxStepReached(data.maxStepReached);
+        console.log("Mission Continuity: Restored session data.");
+      } catch (e) {
+        console.error("Persistence Restore Failed", e);
+      }
+    }
+    setIsHydrated(true);
+  }, [persistenceKey]);
+
+  // 2. Persist State on Change - Protected by isHydrated
+  useEffect(() => {
+    if (!isHydrated) return;
+    const state = { vitals, directives, note, assessmentResults, encounterId, step, maxStepReached, activeAssessments };
+    localStorage.setItem(persistenceKey, JSON.stringify(state));
+  }, [vitals, directives, note, assessmentResults, encounterId, step, maxStepReached, activeAssessments, isHydrated, persistenceKey]);
+
+  // 3. Clear on Completion
+  const clearPersistence = () => localStorage.removeItem(persistenceKey);
+
   const { data: allQuestionnairesData } = useQuery(GET_ALL_QUESTIONNAIRES);
   const allQuestionnaires = allQuestionnairesData?.questionnaires || [];
 
-  // Sync planned assessments into active state - Improved for immediate visibility
-  useEffect(() => {
-    const planned = appointment?.plannedAssessments || ["ESAS", "FICA"];
-    if (activeAssessments.length === 0) {
-      // Create initial stubs for immediate rail visibility
-      const stubs = planned.map((code: string) => {
-        const fullMatch = allQuestionnaires.find((q: any) => q.assessmentType === code || q.name === code);
-        return {
-          questionnaireId: fullMatch?.questionnaireId || code,
-          name: fullMatch?.name || code,
-          assessmentType: fullMatch?.assessmentType || code,
-          isStub: !fullMatch
-        };
-      });
-      setActiveAssessments(stubs);
-    } else if (allQuestionnaires.length > 0) {
-      // Hydrate stubs when metadata arrives
-      const hydrated = activeAssessments.map(a => {
-        if (!a.isStub) return a;
-        const match = allQuestionnaires.find((q: any) => q.assessmentType === a.assessmentType || q.name === a.name);
-        return match ? { ...match, isStub: false } : a;
-      });
-      if (JSON.stringify(hydrated) !== JSON.stringify(activeAssessments)) {
-        setActiveAssessments(hydrated);
-      }
-    }
-  }, [allQuestionnaires, appointment, activeAssessments.length]);
+   // Sync planned assessments into active state - Improved for immediate visibility
+   useEffect(() => {
+     if (!appointment?.plannedAssessments || (isHydrated && activeAssessments.length > 0)) return;
+     
+     const planned = appointment.plannedAssessments;
+     if (activeAssessments.length === 0) {
+       // Create initial stubs for immediate rail visibility
+       const stubs = planned.map((code: string) => {
+         const fullMatch = allQuestionnaires.find((q: any) => q.assessmentType === code || q.name === code);
+         return {
+           questionnaireId: fullMatch?.questionnaireId || code,
+           name: fullMatch?.name || code,
+           assessmentType: fullMatch?.assessmentType || code,
+           isStub: !fullMatch
+         };
+       });
+       setActiveAssessments(stubs);
+     } else if (allQuestionnaires.length > 0) {
+       // Hydrate stubs when metadata arrives
+       const hydrated = activeAssessments.map(a => {
+         if (!a.isStub) return a;
+         const match = allQuestionnaires.find((q: any) => q.assessmentType === a.assessmentType || q.name === a.name);
+         return match ? { ...match, isStub: false } : a;
+       });
+       if (JSON.stringify(hydrated) !== JSON.stringify(activeAssessments)) {
+         setActiveAssessments(hydrated);
+       }
+     }
+   }, [allQuestionnaires, appointment, activeAssessments.length, isHydrated]);
 
   const [startEncounter, { loading: starting }] = useMutation(START_ENCOUNTER);
   const [saveNote, { loading: savingNote }] = useMutation(SAVE_NOTE);
@@ -234,11 +273,16 @@ export default function GuidedVisitPage() {
     return s;
   }, [appointment, activeAssessments, navSearch]);
   
-  // Track last valid index for smart fallback
+  // Track last valid index and max step for smart navigation
   useEffect(() => {
     const idx = steps.findIndex(s => s.id === step);
-    if (idx >= 0) lastValidIndex.current = idx;
-  }, [steps, step]);
+    if (idx >= 0) {
+      lastValidIndex.current = idx;
+      if (idx > steps.findIndex(s => s.id === maxStepReached)) {
+        setMaxStepReached(step);
+      }
+    }
+  }, [steps, step, maxStepReached]);
   
   // Validation hook to prevent stale steps when assessments are removed
   useEffect(() => {
@@ -341,6 +385,7 @@ export default function GuidedVisitPage() {
       });
 
       router.push(`/dashboard/patients/${params.id}`);
+      clearPersistence();
     } catch (err) {
       console.error(err);
     }
@@ -390,37 +435,39 @@ export default function GuidedVisitPage() {
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden bg-[var(--background)]">
-        {/* Top Sequence Navigator */}
+        {/* Top Sequence Navigator - Scalable Rail */}
         <div className="h-16 border-b border-[var(--border-color,rgba(0,0,0,0.05))] bg-[var(--card-bg)] flex items-center px-8 z-30">
-          <div className="flex-1 flex items-center justify-center max-w-5xl mx-auto gap-2">
-            {steps.map((s, idx) => {
-              const isActive = step === s.id;
-              const isCompleted = currentStepIndex > idx;
-              const Icon = s.icon;
-
-              return (
-                <div key={s.id} className="flex items-center gap-2 flex-1">
-                  <button
-                    onClick={() => (isCompleted || isActive) && setStep(s.id)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${isActive
-                      ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20 scale-105"
-                      : isCompleted
-                        ? "text-[var(--primary)] hover:bg-[var(--primary)]/5"
-                        : "text-[var(--text-muted)] hover:text-[var(--foreground)]"
-                      }`}
-                  >
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center border text-[9px] font-black ${isActive ? "bg-white text-[var(--primary)] border-white" : "border-current"
-                      }`}>
-                      {isCompleted ? <CheckCircle2 className="w-3 h-3" /> : String(idx + 1).padStart(2, '0')}
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest hidden lg:inline">{s.label}</span>
-                  </button>
-                  {idx < steps.length - 1 && (
-                    <div className="flex-1 h-[1px] bg-[var(--border-color,rgba(0,0,0,0.1))] min-w-[12px]" />
-                  )}
-                </div>
-              );
-            })}
+          <div className="flex-1 overflow-x-auto no-scrollbar py-2">
+            <div className="flex items-center gap-2 min-w-max mx-auto px-4">
+              {steps.map((s, idx) => {
+                const isActive = step === s.id;
+                const isCompleted = currentStepIndex > idx;
+                const isUnlocked = idx <= steps.findIndex(st => st.id === maxStepReached);
+                
+                return (
+                  <div key={s.id} className="flex items-center gap-2">
+                    <button
+                      onClick={() => (isUnlocked || isActive) && setStep(s.id)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${isActive
+                        ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20 scale-105"
+                        : isUnlocked
+                          ? "text-[var(--primary)] hover:bg-[var(--primary)]/5"
+                          : "text-[var(--text-muted)] opacity-40 cursor-not-allowed"
+                        }`}
+                    >
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border text-[9px] font-black ${isActive ? "bg-white text-[var(--primary)] border-white" : "border-current"
+                        }`}>
+                        {isCompleted ? <CheckCircle2 className="w-3 h-3" /> : String(idx + 1).padStart(2, '0')}
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest">{s.label}</span>
+                    </button>
+                    {idx < steps.length - 1 && (
+                      <div className="w-6 h-[1px] bg-[var(--border-color,rgba(0,0,0,0.1))]" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
           <button
             onClick={() => setIsAssessmentModalOpen(true)}
@@ -641,6 +688,13 @@ export default function GuidedVisitPage() {
                     ) : questionnaireData?.questionnaireByType ? (
                       <DynamicAssessment
                         questionnaire={questionnaireData.questionnaireByType}
+                        initialAnswers={assessmentResults[currentStep.assessmentId!]?.answers || {}}
+                        onPartialUpdate={(answers) => {
+                          setAssessmentResults(prev => ({
+                            ...prev,
+                            [currentStep.assessmentId!]: { ...prev[currentStep.assessmentId!], answers }
+                          }));
+                        }}
                         onBack={() => setExecutingAssessment(false)}
                         onComplete={async (answers, score) => {
                           try {
@@ -656,7 +710,10 @@ export default function GuidedVisitPage() {
                                 }
                               }
                             });
-                            setAssessmentResults({ ...assessmentResults, [currentStep.assessmentId!]: { answers, score } });
+                            setAssessmentResults(prev => ({ 
+                              ...prev, 
+                              [currentStep.assessmentId!]: { answers, score, completed: true } 
+                            }));
                             setExecutingAssessment(false);
                             setStep(nextStep.id);
                           } catch (err) {
