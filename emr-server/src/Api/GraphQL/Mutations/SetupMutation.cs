@@ -155,6 +155,7 @@ public class SetupMutation
         if (existing == null) return false;
         existing.Name = input.Name;
         existing.AssessmentType = input.AssessmentType;
+        existing.SchemaJson = input.SchemaJson;
         await context.SaveChangesAsync(default);
         return true;
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, gql } from "@apollo/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Shield, 
   Plus, 
@@ -14,7 +14,8 @@ import {
   Activity,
   LogOut,
   MessageSquare,
-  ChevronRight
+  ChevronRight,
+  ClipboardList
 } from "lucide-react";
 import SetupDrawer from "@/components/SetupDrawer";
 import AdminSidebar from "@/components/AdminSidebar";
@@ -58,6 +59,10 @@ const GET_SETUP_DATA = gql`
       questionnaireId
       name
       assessmentType
+      schemaJson
+      questions {
+        questionId
+      }
     }
     equipment {
       equipmentId
@@ -101,6 +106,17 @@ export default function AdminDashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editItem, setEditItem] = useState<any>(null);
+  // Persistence Hook
+  useEffect(() => {
+    const savedTab = localStorage.getItem("aura_admin_active_tab");
+    if (savedTab) setActiveTab(savedTab as TabType);
+  }, []);
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    setEditItem(null);
+    localStorage.setItem("aura_admin_active_tab", tab);
+  };
   
   const { data, loading, error, refetch } = useQuery(GET_SETUP_DATA);
 
@@ -212,7 +228,36 @@ export default function AdminDashboardPage() {
             data={data?.questionnaires || []} 
             columns={[
               { key: "name", label: "Form Name" },
-              { key: "assessmentType", label: "Type" }
+              { key: "assessmentType", label: "Type" },
+              { key: "schemaJson", label: "Logic Status", render: (item: any) => {
+                const hasModern = !!item.schemaJson;
+                const hasLegacy = item.questions?.length > 0;
+                
+                if (hasModern) return (
+                  <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                    Neural Script Active
+                  </span>
+                );
+                if (hasLegacy) return (
+                  <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border bg-amber-500/10 text-amber-500 border-amber-500/20">
+                    Legacy Logic Detected
+                  </span>
+                );
+                return (
+                  <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border bg-slate-500/10 text-slate-500 border-slate-500/20">
+                    Empty Schema
+                  </span>
+                );
+              }},
+              { key: "actions", label: "Designer", render: (item: any) => (
+                <Link 
+                  href={`/admin/forms/${item.questionnaireId}/design`}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
+                >
+                  <ClipboardList className="w-3 h-3" />
+                  Launch Designer
+                </Link>
+              )}
             ]}
           />
         );
@@ -266,7 +311,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-[#020617]">
-      <AdminSidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); setEditItem(null); }} />
+      <AdminSidebar activeTab={activeTab} setActiveTab={handleTabChange} />
       
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         <header className="h-20 border-b border-white/5 bg-slate-900/50 backdrop-blur-xl flex items-center justify-between px-8 shrink-0">

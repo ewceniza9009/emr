@@ -33,7 +33,7 @@ const MUTATIONS = {
   `,
   questionnaires: gql`
     mutation CreateQuestionnaire($input: QuestionnaireInput!) {
-      createQuestionnaire(input: $input) { questionnaireId }
+      createQuestionnaire(input: $input) { questionnaireId name schemaJson }
     }
   `,
   equipment: gql`
@@ -123,7 +123,7 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
         healthPlans: { name: "", code: "" },
         medications: { name: "", strength: "", defaultRoute: "Oral" },
         smartPhrases: { shortcut: "/", label: "", templateText: "" },
-        questionnaires: { name: "", assessmentType: "Esas" },
+        questionnaires: { name: "", assessmentType: "Esas", schemaJson: "" },
         equipment: { modelName: "", serialNumber: "", type: "VitalsMonitor", status: "Available" },
         outreachScripts: { scriptTitle: "", locationName: "", postalCode: "", content: "", isDefault: false },
         integrationProfiles: { partner: "ElationHealth", apiKey: "", baseUrl: "", isActive: true }

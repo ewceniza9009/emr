@@ -12,43 +12,41 @@ public class SetupQuery
 {
     [UseFiltering]
     [UseSorting]
-    public async Task<List<Practitioner>> GetPractitioners([Service] IApplicationDbContext context)
-    {
-        return await context.Practitioners.AsNoTracking().ToListAsync();
-    }
+    public IQueryable<Practitioner> GetPractitioners([Service] IApplicationDbContext context) =>
+        context.Practitioners.AsNoTracking();
 
     [UseFiltering]
     [UseSorting]
-    public async Task<List<Facility>> GetFacilities([Service] IApplicationDbContext context) =>
-        await context.Facilities.AsNoTracking().ToListAsync();
+    public IQueryable<Facility> GetFacilities([Service] IApplicationDbContext context) =>
+        context.Facilities.AsNoTracking();
 
     [UseFiltering]
     [UseSorting]
-    public async Task<List<HealthPlan>> GetHealthPlans([Service] IApplicationDbContext context) =>
-        await context.HealthPlans.AsNoTracking().ToListAsync();
+    public IQueryable<HealthPlan> GetHealthPlans([Service] IApplicationDbContext context) =>
+        context.HealthPlans.AsNoTracking();
 
     [UseFiltering]
     [UseSorting]
-    public async Task<List<Medication>> GetMedications([Service] IApplicationDbContext context) =>
-        await context.Medications.AsNoTracking().ToListAsync();
+    public IQueryable<Medication> GetMedications([Service] IApplicationDbContext context) =>
+        context.Medications.AsNoTracking();
 
     [UseFiltering]
     [UseSorting]
-    public async Task<List<Questionnaire>> GetQuestionnaires([Service] IApplicationDbContext context) =>
-        await context.Questionnaires.AsNoTracking().ToListAsync();
+    public IQueryable<Questionnaire> GetQuestionnaires([Service] IApplicationDbContext context) =>
+        context.Questionnaires.Include(x => x.Questions).AsNoTracking();
 
     [UseFiltering]
     [UseSorting]
-    public async Task<List<DurableMedicalEquipment>> GetEquipment([Service] IApplicationDbContext context) =>
-        await context.DurableMedicalEquipment.AsNoTracking().ToListAsync();
+    public IQueryable<DurableMedicalEquipment> GetEquipment([Service] IApplicationDbContext context) =>
+        context.DurableMedicalEquipment.AsNoTracking();
 
     [UseFiltering]
     [UseSorting]
-    public async Task<List<OutreachScript>> GetOutreachScripts([Service] IApplicationDbContext context) =>
-        await context.OutreachScripts.AsNoTracking().ToListAsync();
+    public IQueryable<OutreachScript> GetOutreachScripts([Service] IApplicationDbContext context) =>
+        context.OutreachScripts.AsNoTracking();
 
     [UseFiltering]
     [UseSorting]
-    public async Task<List<IntegrationProfile>> GetIntegrationProfiles([Service] IApplicationDbContext context) =>
-        await context.IntegrationProfiles.AsNoTracking().ToListAsync();
+    public IQueryable<IntegrationProfile> GetIntegrationProfiles([Service] IApplicationDbContext context) =>
+        context.IntegrationProfiles.AsNoTracking();
 }

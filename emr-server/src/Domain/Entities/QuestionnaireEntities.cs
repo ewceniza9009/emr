@@ -9,6 +9,7 @@ public class Questionnaire : BaseEntity
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public AssessmentType AssessmentType { get; set; }
+    public string? SchemaJson { get; set; } // SurveyJS Schema JSON
     
     public ICollection<Question> Questions { get; set; } = new List<Question>();
 }
