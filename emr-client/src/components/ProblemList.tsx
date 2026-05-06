@@ -33,7 +33,7 @@ export default function ProblemList({ patientId }: { patientId: string }) {
   });
 
   const problems = [...(data?.diagnosesByPatient || [])].sort(
-    (a: any, b: any) => new Date(b.diagnosedAt).getTime() - new Date(a.diagnosedAt).getTime()
+    (a: any, b: any) => new Date(a.diagnosedAt).getTime() - new Date(b.diagnosedAt).getTime()
   );
 
   if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse uppercase text-[10px] font-black tracking-widest">Scanning Longitudinal History...</div>;

@@ -263,7 +263,7 @@ export default function PatientDetailPage() {
   if (!patient) return <div className="p-10 text-[var(--text-primary)] font-black uppercase tracking-widest">Patient record not found in registry.</div>;
 
   const appointments = [...(apptData?.appointments?.items || [])].sort(
-    (a: any, b: any) => new Date(b.scheduledStart).getTime() - new Date(a.scheduledStart).getTime()
+    (a: any, b: any) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime()
   );
   const activeAppointment = appointments.find((a: any) =>
     a.status?.toUpperCase().includes('PROGRESS') || a.status?.toUpperCase() === 'LIVE'
@@ -597,7 +597,7 @@ export default function PatientDetailPage() {
 
                   {(patient.encounters || [])
                     .slice()
-                    .sort((a: any, b: any) => new Date(b.encounterDate).getTime() - new Date(a.encounterDate).getTime())
+                    .sort((a: any, b: any) => new Date(a.encounterDate).getTime() - new Date(b.encounterDate).getTime())
                     .map((evt: any, i: number) => {
                       const note = evt.clinicalNotes?.[0]?.content || "Visit completed without supplemental clinical narrative.";
                       const date = new Date(evt.encounterDate);

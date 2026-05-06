@@ -41,7 +41,7 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
   });
 
   const encounters = [...(data?.encountersByPatient || [])].sort((a: any, b: any) => 
-    new Date(b.encounterDate).getTime() - new Date(a.encounterDate).getTime()
+    new Date(a.encounterDate).getTime() - new Date(b.encounterDate).getTime()
   );
   const displayedEncounters = encounters.slice(0, 5);
 

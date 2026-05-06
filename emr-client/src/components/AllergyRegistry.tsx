@@ -67,7 +67,7 @@ export default function AllergyRegistry({ patientId }: { patientId: string }) {
   };
 
   const allergies = [...(data?.allergiesByPatient || [])].sort(
-    (a: any, b: any) => new Date(b.identifiedAt).getTime() - new Date(a.identifiedAt).getTime()
+    (a: any, b: any) => new Date(a.identifiedAt).getTime() - new Date(b.identifiedAt).getTime()
   );
 
   if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse uppercase text-[10px] font-black tracking-widest">Scanning Patient Biotics...</div>;

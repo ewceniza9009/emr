@@ -34,9 +34,9 @@ public class QuestPdfService : IPdfService
         if (patient == null)
             throw new Exception("Patient not found");
 
-        var allergies = await _context.Allergies.Where(a => a.PatientId == patientId).OrderByDescending(a => a.IdentifiedAt).ToListAsync();
-        var problems = await _context.Diagnoses.Where(d => d.PatientId == patientId).OrderByDescending(d => d.DiagnosedAt).ToListAsync();
-        var prescriptions = await _context.Prescriptions.Include(p => p.Medication).Where(p => p.PatientId == patientId).OrderByDescending(p => p.StartDate).ToListAsync();
+        var allergies = await _context.Allergies.Where(a => a.PatientId == patientId).OrderBy(a => a.IdentifiedAt).ToListAsync();
+        var problems = await _context.Diagnoses.Where(d => d.PatientId == patientId).OrderBy(d => d.DiagnosedAt).ToListAsync();
+        var prescriptions = await _context.Prescriptions.Include(p => p.Medication).Where(p => p.PatientId == patientId).OrderBy(p => p.StartDate).ToListAsync();
 
         var document = Document.Create(container =>
         {
@@ -48,12 +48,12 @@ public class QuestPdfService : IPdfService
                 page.DefaultTextStyle(x => x.FontSize(10).FontFamily("Helvetica"));
 
                 // Header - Branding & Patient Badge
-                page.Header().PaddingBottom(10).BorderBottom(2).BorderColor(Colors.Teal.Medium).Row(row =>
+                page.Header().PaddingBottom(20).BorderBottom(3).BorderColor(Colors.Teal.Medium).Row(row =>
                 {
                     row.RelativeItem().Column(col =>
                     {
                         col.Item().Text("AURA CLINICAL OS").FontSize(22).ExtraBold().FontColor(Colors.Teal.Medium);
-                        col.Item().Text("FULL CLINICAL DOSSIER & PATIENT RECORD").FontSize(9).Medium().FontColor(Colors.Grey.Medium).LetterSpacing(0.1f);
+                        col.Item().Text("AUTHENTICATED PATIENT DOSSIER & REGISTRY").FontSize(8).Medium().FontColor(Colors.Grey.Medium).LetterSpacing(0.2f);
                     });
 
                     row.RelativeItem().AlignRight().Column(col =>
@@ -122,7 +122,7 @@ public class QuestPdfService : IPdfService
                     {
                         c.Item().PaddingBottom(10).Text("ENCOUNTER TIMELINE & CLINICAL NOTES").FontSize(11).Bold().FontColor(Colors.Teal.Medium);
                         
-                        var encounters = patient.Encounters.OrderByDescending(e => e.EncounterDate).ToList();
+                        var encounters = patient.Encounters.OrderBy(e => e.EncounterDate).ToList();
                         foreach (var encounter in encounters)
                         {
                             c.Item().PaddingBottom(15).Border(1).BorderColor(Colors.Grey.Lighten3).Padding(10).Column(ecol =>

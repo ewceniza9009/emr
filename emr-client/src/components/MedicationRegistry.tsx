@@ -97,7 +97,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
   };
 
   const prescriptions = [...(data?.prescriptionsByPatient || [])].sort(
-    (a: any, b: any) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    (a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
   );
 
   if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse uppercase text-[10px] font-black tracking-widest">Reconciling Pharmacopeia...</div>;
