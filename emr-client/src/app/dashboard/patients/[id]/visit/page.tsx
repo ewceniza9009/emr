@@ -31,6 +31,7 @@ import { ToastProvider } from "@/components/ToastProvider";
 import ProblemList from "@/components/ProblemList";
 import MedicationRegistry from "@/components/MedicationRegistry";
 import DynamicAssessment from "@/components/DynamicAssessment";
+import { migrateDirectiveType } from "@/lib/clinical-mappings";
 
 const SKIP_REASONS = [
   "PATIENT_REFUSED",
@@ -75,7 +76,7 @@ const LOG_ASSESSMENT_RESPONSE = gql`
 
 const GET_PATIENT_CONTEXT = gql`
   query GetPatientContext($id: UUID!) {
-    patient(id: $id) {
+    patientById(patientId: $id) {
       patientId
       firstName
       lastName
@@ -145,7 +146,7 @@ export default function GuidedVisitPage() {
     skip: !appointmentId
   });
 
-  const patient = patientData?.patient;
+  const patient = patientData?.patientById;
   const appointment = apptData?.appointment;
 
   const [step, setStep] = useState(1);
@@ -174,13 +175,21 @@ export default function GuidedVisitPage() {
       try {
         const data = JSON.parse(saved);
         if (data.vitals) setVitals(data.vitals);
-        if (data.directives) setDirectives(data.directives);
         if (data.note) setNote(data.note);
         if (data.assessmentResults) setAssessmentResults(data.assessmentResults);
         if (data.encounterId) setEncounterId(data.encounterId);
         if (data.activeAssessments) setActiveAssessments(data.activeAssessments);
         if (data.step) setStep(data.step);
         if (data.maxStepReached) setMaxStepReached(data.maxStepReached);
+
+        // MIGRATION: Convert legacy enum strings to PascalCase (Tech Debt Management)
+        if (data.directives) {
+          setDirectives(data.directives.map((d: any) => ({
+            ...d,
+            type: migrateDirectiveType(d.type)
+          })));
+        }
+
         console.log("Mission Continuity: Restored session data.");
       } catch (e) {
         console.error("Persistence Restore Failed", e);
@@ -373,7 +382,7 @@ export default function GuidedVisitPage() {
           variables: {
             input: {
               patientId: params.id,
-              type: d.type,
+              type: migrateDirectiveType(d.type),
               notes: d.notes,
               effectiveDate: new Date().toISOString()
             }
@@ -427,6 +436,12 @@ export default function GuidedVisitPage() {
               </span>
             </div>
           </div>
+          <button 
+            onClick={() => { localStorage.removeItem(persistenceKey); window.location.reload(); }}
+            className="ml-4 text-[9px] font-black text-rose-500 hover:text-rose-400 uppercase tracking-widest border border-rose-500/20 px-2 py-1 rounded-lg transition-all"
+          >
+            Reset Session
+          </button>
         </div>        <div className="flex items-center gap-8">
           {encounterId && (
             <div className="flex items-center gap-2.5 px-4 py-1.5 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-full">
@@ -542,9 +557,10 @@ export default function GuidedVisitPage() {
                     {[
                       { id: "DNR", label: "DNR", icon: HeartOff, desc: "Do Not Resuscitate" },
                       { id: "DNI", label: "DNI", icon: Wind, desc: "Do Not Intubate" },
-                      { id: "FULLCODE", label: "FULLCODE", icon: Zap, desc: "Full Resuscitation" },
-                      { id: "LIVINGWILL", label: "LIVINGWILL", icon: FileText, desc: "Advance Directive" },
-                      { id: "HEALTHCAREPROXY", label: "HEALTHCAREPROXY", icon: UserCheck, desc: "Medical POA" },
+                      { id: "FULL_CODE", label: "Full Code", icon: Zap, desc: "Full Resuscitation" },
+                      { id: "LIVING_WILL", label: "Living Will", icon: FileText, desc: "Advance Directive" },
+                      { id: "HEALTHCARE_PROXY", label: "Healthcare Proxy", icon: UserCheck, desc: "Medical POA" },
+                      { id: "COMFORT_MEASURES_ONLY", label: "Comfort Only", icon: Droplets, desc: "Comfort Measures" },
                     ].map((item) => (
                       <button
                         key={item.id}
