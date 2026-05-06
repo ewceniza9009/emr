@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, gql } from "@apollo/client";
+import { useQuery, useMutation, gql } from "@apollo/client";
 import { useState } from "react";
 import { 
   Shield, 
@@ -83,12 +83,30 @@ const GET_SETUP_DATA = gql`
 
 type TabType = "practitioners" | "facilities" | "healthPlans" | "medications" | "smartPhrases" | "questionnaires" | "equipment" | "outreachScripts" | "integrationProfiles";
 
+const DELETE_MUTATIONS = {
+  practitioners: gql`mutation DeletePractitioner($id: Guid!) { deletePractitioner(id: $id) }`,
+  facilities: gql`mutation DeleteFacility($id: Guid!) { deleteFacility(id: $id) }`,
+  healthPlans: gql`mutation DeleteHealthPlan($id: Guid!) { deleteHealthPlan(id: $id) }`,
+  medications: gql`mutation DeleteMedication($id: Guid!) { deleteMedication(id: $id) }`,
+  smartPhrases: gql`mutation DeleteSmartPhrase($id: Guid!) { deleteSmartPhrase(id: $id) }`,
+  questionnaires: gql`mutation DeleteQuestionnaire($id: Guid!) { deleteQuestionnaire(id: $id) }`,
+  equipment: gql`mutation DeleteEquipment($id: Guid!) { deleteEquipment(id: $id) }`,
+  outreachScripts: gql`mutation DeleteOutreachScript($id: Guid!) { deleteOutreachScript(id: $id) }`,
+  integrationProfiles: gql`mutation DeleteIntegrationProfile($id: Guid!) { deleteIntegrationProfile(id: $id) }`,
+};
+
 export default function AdminDashboardPage() {
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<TabType>("practitioners");
   const [searchQuery, setSearchQuery] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [editItem, setEditItem] = useState<any>(null);
+  
   const { data, loading, error, refetch } = useQuery(GET_SETUP_DATA);
+
+  const [deleteItem] = useMutation(DELETE_MUTATIONS[activeTab], {
+    onCompleted: () => refetch()
+  });
 
   if (status === "loading") return <div className="min-h-screen bg-[#020617] flex items-center justify-center font-black text-slate-500 uppercase tracking-widest animate-pulse">Initializing Security Session...</div>;
   
@@ -96,14 +114,38 @@ export default function AdminDashboardPage() {
     redirect("/admin/login");
   }
 
+  const handleEdit = (item: any) => {
+    setEditItem(item);
+    setIsDrawerOpen(true);
+  };
+
+  const handleDelete = async (item: any) => {
+    const idKey = Object.keys(item).find(k => k.toLowerCase().includes('id'));
+    if (!idKey) return;
+    
+    if (confirm(`Are you sure you want to delete this record? This action is irreversible.`)) {
+      try {
+        await deleteItem({ variables: { id: item[idKey] } });
+      } catch (err) {
+        alert("Deletion failed. This record may be referenced by other entities.");
+      }
+    }
+  };
+
   const renderContent = () => {
     if (loading) return <div className="p-20 text-center animate-pulse text-slate-500 font-black uppercase tracking-[0.3em]">Synchronizing Master Registry...</div>;
     if (error) return <div className="p-20 text-center text-rose-500 font-bold">Registry Connection Error: {error.message}</div>;
+
+    const tableProps = {
+      onEdit: handleEdit,
+      onDelete: handleDelete
+    };
 
     switch (activeTab) {
       case "practitioners":
         return (
           <SetupTable 
+            {...tableProps}
             data={data?.practitioners || []} 
             columns={[
               { key: "fullName", label: "Name", render: (item: any) => `${item.firstName} ${item.lastName}` },
@@ -120,6 +162,7 @@ export default function AdminDashboardPage() {
       case "facilities":
         return (
           <SetupTable 
+            {...tableProps}
             data={data?.facilities || []} 
             columns={[
               { key: "name", label: "Facility Name" },
@@ -130,6 +173,7 @@ export default function AdminDashboardPage() {
       case "healthPlans":
         return (
           <SetupTable 
+            {...tableProps}
             data={data?.healthPlans || []} 
             columns={[
               { key: "name", label: "Plan Name" },
@@ -140,6 +184,7 @@ export default function AdminDashboardPage() {
       case "medications":
         return (
           <SetupTable 
+            {...tableProps}
             data={data?.medications || []} 
             columns={[
               { key: "name", label: "Medication" },
@@ -151,6 +196,7 @@ export default function AdminDashboardPage() {
       case "smartPhrases":
         return (
           <SetupTable 
+            {...tableProps}
             data={data?.smartPhrases || []} 
             columns={[
               { key: "shortcut", label: "Trigger Key", render: (item: any) => <span className="font-mono text-indigo-400">{item.shortcut}</span> },
@@ -162,6 +208,7 @@ export default function AdminDashboardPage() {
       case "questionnaires":
         return (
           <SetupTable 
+            {...tableProps}
             data={data?.questionnaires || []} 
             columns={[
               { key: "name", label: "Form Name" },
@@ -172,6 +219,7 @@ export default function AdminDashboardPage() {
       case "equipment":
         return (
           <SetupTable 
+            {...tableProps}
             data={data?.equipment || []} 
             columns={[
               { key: "modelName", label: "Model" },
@@ -188,6 +236,7 @@ export default function AdminDashboardPage() {
       case "outreachScripts":
         return (
           <SetupTable 
+            {...tableProps}
             data={data?.outreachScripts || []} 
             columns={[
               { key: "scriptTitle", label: "Title" },
@@ -199,6 +248,7 @@ export default function AdminDashboardPage() {
       case "integrationProfiles":
         return (
           <SetupTable 
+            {...tableProps}
             data={data?.integrationProfiles || []} 
             columns={[
               { key: "partner", label: "Partner" },
@@ -216,21 +266,18 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="flex min-h-screen bg-[#020617]">
-      <AdminSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <AdminSidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); setEditItem(null); }} />
       
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         <header className="h-20 border-b border-white/5 bg-slate-900/50 backdrop-blur-xl flex items-center justify-between px-8 shrink-0">
           <div className="flex items-center gap-4">
-             <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                <span>Setup Portal</span>
-                <ChevronRight className="w-3 h-3" />
-                <span className="text-white">{activeTab.replace(/([A-Z])/g, ' $1').toUpperCase()}</span>
+             <div className="flex items-center gap-2 text-[10px] font-black text-white uppercase tracking-widest bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                <span>{activeTab.replace(/([A-Z])/g, ' $1')} Registry</span>
              </div>
           </div>
           <div className="flex items-center gap-4">
-             <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 rounded-full border border-emerald-500/20">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Admin Uplink Established</span>
+             <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                Protected Admin Session
              </div>
           </div>
         </header>
@@ -239,18 +286,27 @@ export default function AdminDashboardPage() {
           <div className="flex items-end justify-between">
             <div>
                <h1 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-                 {activeTab.replace(/([A-Z])/g, ' $1')} Registry
+                 {activeTab.replace(/([A-Z])/g, ' $1')}
                </h1>
-               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-2">
-                 System Administration // Master Node Registry // Segment {activeTab.toUpperCase()}
-               </p>
+               <div className="flex items-center gap-4 mt-3">
+                 <div className="flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                     {data?.[activeTab]?.length || 0} Records Registered
+                   </span>
+                 </div>
+                 <div className="w-px h-3 bg-white/10" />
+                 <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                   Node: Master Registry
+                 </span>
+               </div>
             </div>
             <button 
               className="h-11 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-[0.15em] shadow-2xl shadow-indigo-500/20 transition-all active:scale-[0.98] flex items-center gap-3 group"
-              onClick={() => setIsDrawerOpen(true)}
+              onClick={() => { setEditItem(null); setIsDrawerOpen(true); }}
             >
               <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-              <span className="text-[10px]">Add New Entry</span>
+              <span className="text-[10px]">Add Entry</span>
             </button>
           </div>
 
@@ -282,26 +338,29 @@ export default function AdminDashboardPage() {
       <SetupDrawer 
         open={isDrawerOpen} 
         type={activeTab} 
-        onClose={() => setIsDrawerOpen(false)} 
+        initialData={editItem}
+        onClose={() => { setIsDrawerOpen(false); setEditItem(null); }} 
         onSuccess={() => refetch()} 
       />
     </div>
   );
 }
 
-function SetupTable({ data, columns }: { data: any[], columns: any[] }) {
+import { Edit, Trash2 } from "lucide-react";
+
+function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns: any[], onEdit: (item: any) => void, onDelete: (item: any) => void }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left">
         <thead>
           <tr className="bg-white/[0.02] border-b border-white/5">
             {columns.map((col) => (
-              <th key={col.key} className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-[0.25em]">
+              <th key={col.key} className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-[0.25em]">
                 {col.label}
               </th>
             ))}
-            <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-[0.25em] text-right">
-              Options
+            <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-[0.25em] text-right">
+              Management
             </th>
           </tr>
         </thead>
@@ -313,16 +372,27 @@ function SetupTable({ data, columns }: { data: any[], columns: any[] }) {
               </td>
             </tr>
           ) : data.map((item, idx) => (
-            <tr key={idx} className="group hover:bg-indigo-500/[0.02] transition-colors">
+            <tr key={idx} className="group hover:bg-white/[0.01] transition-colors">
               {columns.map((col) => (
-                <td key={col.key} className="px-6 py-3.5 text-[11px]">
+                <td key={col.key} className="px-6 py-4 text-[11px]">
                   {col.render ? col.render(item) : <span className="text-slate-300 font-bold tracking-tight">{item[col.key]}</span>}
                 </td>
               ))}
-              <td className="px-6 py-3.5 text-right">
-                <button className="p-1.5 rounded-lg hover:bg-white/5 text-slate-600 hover:text-indigo-400 transition-all opacity-0 group-hover:opacity-100">
-                  <MoreHorizontal className="w-4 h-4" />
-                </button>
+              <td className="px-6 py-4 text-right">
+                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => onEdit(item)}
+                    className="p-2 rounded-lg hover:bg-indigo-500/10 text-slate-500 hover:text-indigo-400 transition-all"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </button>
+                  <button 
+                    onClick={() => onDelete(item)}
+                    className="p-2 rounded-lg hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

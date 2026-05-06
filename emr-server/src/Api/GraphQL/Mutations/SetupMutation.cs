@@ -147,6 +147,18 @@ public class SetupMutation
         return input;
     }
 
+    public async Task<bool> UpdateQuestionnaire(
+        Questionnaire input,
+        [Service] IApplicationDbContext context)
+    {
+        var existing = await context.Questionnaires.FindAsync(input.QuestionnaireId);
+        if (existing == null) return false;
+        existing.Name = input.Name;
+        existing.AssessmentType = input.AssessmentType;
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
     // --- Equipment ---
     public async Task<DurableMedicalEquipment> CreateEquipment(
         DurableMedicalEquipment input,
@@ -155,6 +167,20 @@ public class SetupMutation
         context.DurableMedicalEquipment.Add(input);
         await context.SaveChangesAsync(default);
         return input;
+    }
+
+    public async Task<bool> UpdateEquipment(
+        DurableMedicalEquipment input,
+        [Service] IApplicationDbContext context)
+    {
+        var existing = await context.DurableMedicalEquipment.FindAsync(input.EquipmentId);
+        if (existing == null) return false;
+        existing.ModelName = input.ModelName;
+        existing.SerialNumber = input.SerialNumber;
+        existing.Type = input.Type;
+        existing.Status = input.Status;
+        await context.SaveChangesAsync(default);
+        return true;
     }
 
     // --- Outreach Script ---
@@ -167,6 +193,19 @@ public class SetupMutation
         return input;
     }
 
+    public async Task<bool> UpdateOutreachScript(
+        OutreachScript input,
+        [Service] IApplicationDbContext context)
+    {
+        var existing = await context.OutreachScripts.FindAsync(input.OutreachScriptId);
+        if (existing == null) return false;
+        existing.ScriptTitle = input.ScriptTitle;
+        existing.LocationName = input.LocationName;
+        existing.Content = input.Content;
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
     // --- Integration Profile ---
     public async Task<IntegrationProfile> CreateIntegrationProfile(
         IntegrationProfile input,
@@ -175,5 +214,101 @@ public class SetupMutation
         context.IntegrationProfiles.Add(input);
         await context.SaveChangesAsync(default);
         return input;
+    }
+
+    public async Task<bool> UpdateIntegrationProfile(
+        IntegrationProfile input,
+        [Service] IApplicationDbContext context)
+    {
+        var existing = await context.IntegrationProfiles.FindAsync(input.IntegrationProfileId);
+        if (existing == null) return false;
+        existing.Partner = input.Partner;
+        existing.ApiKey = input.ApiKey;
+        existing.BaseUrl = input.BaseUrl;
+        existing.IsActive = input.IsActive;
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
+    // --- Delete Mutations ---
+    public async Task<bool> DeletePractitioner(Guid id, [Service] IApplicationDbContext context)
+    {
+        var item = await context.Practitioners.FindAsync(id);
+        if (item == null) return false;
+        context.Practitioners.Remove(item);
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
+    public async Task<bool> DeleteFacility(Guid id, [Service] IApplicationDbContext context)
+    {
+        var item = await context.Facilities.FindAsync(id);
+        if (item == null) return false;
+        context.Facilities.Remove(item);
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
+    public async Task<bool> DeleteHealthPlan(Guid id, [Service] IApplicationDbContext context)
+    {
+        var item = await context.HealthPlans.FindAsync(id);
+        if (item == null) return false;
+        context.HealthPlans.Remove(item);
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
+    public async Task<bool> DeleteMedication(Guid id, [Service] IApplicationDbContext context)
+    {
+        var item = await context.Medications.FindAsync(id);
+        if (item == null) return false;
+        context.Medications.Remove(item);
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
+    public async Task<bool> DeleteSmartPhrase(Guid id, [Service] IApplicationDbContext context)
+    {
+        var item = await context.SmartPhrases.FindAsync(id);
+        if (item == null) return false;
+        context.SmartPhrases.Remove(item);
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
+    public async Task<bool> DeleteQuestionnaire(Guid id, [Service] IApplicationDbContext context)
+    {
+        var item = await context.Questionnaires.FindAsync(id);
+        if (item == null) return false;
+        context.Questionnaires.Remove(item);
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
+    public async Task<bool> DeleteEquipment(Guid id, [Service] IApplicationDbContext context)
+    {
+        var item = await context.DurableMedicalEquipment.FindAsync(id);
+        if (item == null) return false;
+        context.DurableMedicalEquipment.Remove(item);
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
+    public async Task<bool> DeleteOutreachScript(Guid id, [Service] IApplicationDbContext context)
+    {
+        var item = await context.OutreachScripts.FindAsync(id);
+        if (item == null) return false;
+        context.OutreachScripts.Remove(item);
+        await context.SaveChangesAsync(default);
+        return true;
+    }
+
+    public async Task<bool> DeleteIntegrationProfile(Guid id, [Service] IApplicationDbContext context)
+    {
+        var item = await context.IntegrationProfiles.FindAsync(id);
+        if (item == null) return false;
+        context.IntegrationProfiles.Remove(item);
+        await context.SaveChangesAsync(default);
+        return true;
     }
 }

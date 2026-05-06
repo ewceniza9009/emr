@@ -53,33 +53,88 @@ const MUTATIONS = {
   `
 };
 
+const UPDATE_MUTATIONS = {
+  practitioners: gql`
+    mutation UpdatePractitioner($input: PractitionerInput!) {
+      updatePractitioner(input: $input)
+    }
+  `,
+  facilities: gql`
+    mutation UpdateFacility($input: FacilityInput!) {
+      updateFacility(input: $input)
+    }
+  `,
+  healthPlans: gql`
+    mutation UpdateHealthPlan($input: HealthPlanInput!) {
+      updateHealthPlan(input: $input)
+    }
+  `,
+  medications: gql`
+    mutation UpdateMedication($input: MedicationInput!) {
+      updateMedication(input: $input)
+    }
+  `,
+  smartPhrases: gql`
+    mutation UpdateSmartPhrase($input: SmartPhraseInput!) {
+      updateSmartPhrase(input: $input)
+    }
+  `,
+  questionnaires: gql`
+    mutation UpdateQuestionnaire($input: QuestionnaireInput!) {
+      updateQuestionnaire(input: $input)
+    }
+  `,
+  equipment: gql`
+    mutation UpdateEquipment($input: DurableMedicalEquipmentInput!) {
+      updateEquipment(input: $input)
+    }
+  `,
+  outreachScripts: gql`
+    mutation UpdateOutreachScript($input: OutreachScriptInput!) {
+      updateOutreachScript(input: $input)
+    }
+  `,
+  integrationProfiles: gql`
+    mutation UpdateIntegrationProfile($input: IntegrationProfileInput!) {
+      updateIntegrationProfile(input: $input)
+    }
+  `
+};
+
 interface Props {
   open: boolean;
   type: "practitioners" | "facilities" | "healthPlans" | "medications" | "smartPhrases" | "questionnaires" | "equipment" | "outreachScripts" | "integrationProfiles";
+  initialData?: any;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export default function SetupDrawer({ open, type, onClose, onSuccess }: Props) {
+export default function SetupDrawer({ open, type, initialData, onClose, onSuccess }: Props) {
   const [form, setForm] = useState<any>({});
 
   useEffect(() => {
-    // Reset form when type changes
-    const initialForms = {
-      practitioners: { firstName: "", lastName: "", position: "Nurse", prcLicenseNumber: "", isActive: true },
-      facilities: { name: "", type: "Hospital" },
-      healthPlans: { name: "", code: "" },
-      medications: { name: "", strength: "", defaultRoute: "Oral" },
-      smartPhrases: { shortcut: "/", label: "", templateText: "" },
-      questionnaires: { name: "", assessmentType: "Esas" },
-      equipment: { modelName: "", serialNumber: "", type: "VitalsMonitor", status: "Available" },
-      outreachScripts: { scriptTitle: "", locationName: "", postalCode: "", content: "", isDefault: false },
-      integrationProfiles: { partner: "ElationHealth", apiKey: "", baseUrl: "", isActive: true }
-    };
-    setForm(initialForms[type] || {});
-  }, [type, open]);
+    if (initialData) {
+      const { __typename, ...cleanData } = initialData;
+      setForm(cleanData);
+    } else {
+      const initialForms = {
+        practitioners: { firstName: "", lastName: "", position: "Nurse", prcLicenseNumber: "", isActive: true },
+        facilities: { name: "", type: "Hospital" },
+        healthPlans: { name: "", code: "" },
+        medications: { name: "", strength: "", defaultRoute: "Oral" },
+        smartPhrases: { shortcut: "/", label: "", templateText: "" },
+        questionnaires: { name: "", assessmentType: "Esas" },
+        equipment: { modelName: "", serialNumber: "", type: "VitalsMonitor", status: "Available" },
+        outreachScripts: { scriptTitle: "", locationName: "", postalCode: "", content: "", isDefault: false },
+        integrationProfiles: { partner: "ElationHealth", apiKey: "", baseUrl: "", isActive: true }
+      };
+      setForm(initialForms[type] || {});
+    }
+  }, [type, open, initialData]);
 
-  const [mutate, { loading, error }] = useMutation(MUTATIONS[type], {
+  const mutation = initialData ? UPDATE_MUTATIONS[type] : MUTATIONS[type];
+
+  const [mutate, { loading, error }] = useMutation(mutation, {
     onCompleted: () => {
       onSuccess();
       onClose();
@@ -88,12 +143,14 @@ export default function SetupDrawer({ open, type, onClose, onSuccess }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutate({ variables: { input: form } });
+    const { __typename, ...input } = form;
+    mutate({ variables: { input } });
   };
 
   if (!open) return null;
 
   const title = type.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()).slice(0, -1);
+  const isEdit = !!initialData;
   const Icon = {
     practitioners: Shield,
     facilities: Building2,
@@ -118,7 +175,7 @@ export default function SetupDrawer({ open, type, onClose, onSuccess }: Props) {
                 <Icon className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[var(--text-primary)]">New {title}</h2>
+                <h2 className="text-lg font-bold text-[var(--text-primary)]">{isEdit ? 'Edit' : 'New'} {title}</h2>
                 <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Setup Registry // Clinical Master</p>
               </div>
             </div>
