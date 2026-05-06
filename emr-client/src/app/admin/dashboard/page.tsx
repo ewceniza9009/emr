@@ -350,7 +350,7 @@ export default function AdminDashboardPage() {
       <AdminSidebar activeTab={activeTab} setActiveTab={handleTabChange} />
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        <header className="h-20 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)]/50 backdrop-blur-xl flex items-center justify-between px-8 shrink-0">
+        <header className="h-14 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)]/50 backdrop-blur-xl flex items-center justify-between px-8 shrink-0">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest bg-[var(--card-bg)] px-3 py-1.5 rounded-lg border border-[var(--card-border)]">
               <span>{activeTab.replace(/([A-Z])/g, ' $1')} Registry</span>
