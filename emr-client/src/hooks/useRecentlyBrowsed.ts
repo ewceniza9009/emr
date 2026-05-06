@@ -10,7 +10,7 @@ export interface RecentPatient {
   browsedAt: string;
 }
 
-const STORAGE_KEY = "aura_recently_browsed_patients";
+const STORAGE_KEY = "halcyon_recently_browsed_patients";
 const MAX_RECENT = 6;
 
 export function useRecentlyBrowsed() {

@@ -5,7 +5,7 @@ import { useMutation, gql } from "@apollo/client";
 import { 
   X, Save, Phone, Mail
 } from "lucide-react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 
 const UPDATE_COMMUNICATIONS = gql`
   mutation UpdatePatient($input: UpdatePatientCommandInput!) {
@@ -59,7 +59,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
   if (!open) return null;
 
   return (
-    <AuraPortal>
+    <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
         
@@ -149,6 +149,6 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
           </div>
         </div>
       </div>
-    </AuraPortal>
+    </HalcyonPortal>
   );
 }

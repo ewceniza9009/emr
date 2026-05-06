@@ -7,7 +7,7 @@ import {
   MapPin, ClipboardList, Activity, Navigation,
   Search, Shield, CheckCircle, ChevronRight
 } from "lucide-react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 
 const CREATE_OUTREACH = gql`
   mutation CreateOutreach($input: CreateOutreachCommandInput!) {
@@ -54,7 +54,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
   if (!open) return null;
 
   return (
-    <AuraPortal>
+    <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden animate-fade-in">
         <div className="absolute inset-0 bg-black/5 backdrop-blur-sm transition-opacity" onClick={onClose} />
         
@@ -257,6 +257,6 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
           </div>
         </div>
       </div>
-    </AuraPortal>
+    </HalcyonPortal>
   );
 }

@@ -5,7 +5,7 @@ import {
   X, AlertTriangle, PhoneCall, Users, ShieldAlert, 
   Activity, Bell, CheckCircle2, Siren
 } from "lucide-react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 
 interface Props {
   open: boolean;
@@ -40,7 +40,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
   const dnrStatus = patient?.advanceDirectives?.some((d: any) => d.type === 'DNR' && d.isActive);
 
   return (
-    <AuraPortal>
+    <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-red-950/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
         
@@ -182,6 +182,6 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
           </div>
         </div>
       </div>
-    </AuraPortal>
+    </HalcyonPortal>
   );
 }

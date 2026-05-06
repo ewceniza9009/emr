@@ -97,7 +97,7 @@ export default function AdminLoginPage() {
                   {...register("email")}
                   type="email"
                   className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:outline-none focus:border-indigo-500/50 focus:bg-slate-950 transition-all placeholder:text-slate-700"
-                  placeholder="sysadmin@aura.clinical"
+                  placeholder="sysadmin@halcyon.clinical"
                 />
               </div>
               {errors.email && <p className="text-[9px] text-rose-400 ml-1 font-black uppercase tracking-widest">{errors.email.message}</p>}

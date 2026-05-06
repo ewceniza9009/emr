@@ -7,7 +7,7 @@ import {
   Calendar, Activity, Shield, Search, User, Target,
   CheckCircle, ChevronRight
 } from "lucide-react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 
 const GET_METADATA = gql`
   query GetMetadata {
@@ -80,7 +80,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
   if (!open) return null;
 
   return (
-    <AuraPortal>
+    <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
         
@@ -414,6 +414,6 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
           </div>
         </div>
       </div>
-    </AuraPortal>
+    </HalcyonPortal>
   );
 }

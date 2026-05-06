@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
-  title: "Aura",
+  title: "Halcyon",
   description: "Enterprise-grade Clinical Electronic Medical Record system.",
   icons: {
     icon: "/favicon.png",
@@ -25,7 +25,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             try {
-              const savedTheme = localStorage.getItem("aura-theme");
+              const savedTheme = localStorage.getItem("halcyon-theme");
               if (savedTheme === "light") {
                 document.documentElement.classList.add("light");
               } else {

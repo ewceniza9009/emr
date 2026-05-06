@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { X, Save, Activity, CheckCircle, Shield, Building2, Stethoscope, Pill, Zap, MessageSquare } from "lucide-react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 
 const MUTATIONS = {
   practitioners: gql`
@@ -164,7 +164,7 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
   }[type] || Zap;
 
   return (
-    <AuraPortal>
+    <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
         
@@ -462,7 +462,7 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
           </div>
         </div>
       </div>
-    </AuraPortal>
+    </HalcyonPortal>
   );
 }
 

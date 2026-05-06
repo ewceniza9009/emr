@@ -6,7 +6,7 @@ import {
   X, Building2, Save, User, Phone, Mail, 
   MapPin, CheckCircle, Activity
 } from "lucide-react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 
 const UPDATE_FACILITY = gql`
   mutation UpdateFacility($input: UpdateFacilityCommandInput!) {
@@ -69,7 +69,7 @@ export default function EditFacilityDrawer({ open, onClose, onSuccess, facility 
   if (!open) return null;
 
   return (
-    <AuraPortal>
+    <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
         
@@ -221,6 +221,6 @@ export default function EditFacilityDrawer({ open, onClose, onSuccess, facility 
           </div>
         </div>
       </div>
-    </AuraPortal>
+    </HalcyonPortal>
   );
 }

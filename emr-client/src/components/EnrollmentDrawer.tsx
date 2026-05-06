@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { 
   X,
@@ -302,7 +302,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
 
   return (
     <>
-      <AuraPortal>
+      <HalcyonPortal>
         <div className="fixed inset-0 z-[9999999] flex justify-end">
           <div className="absolute inset-0 bg-black/5 backdrop-blur-sm transition-opacity" onClick={onClose} />
           <div className="relative h-full w-full max-w-[460px] bg-[var(--card-bg)] border-l border-[var(--card-border)] flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
@@ -678,7 +678,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
 
           </div>
         </div>
-      </AuraPortal>
+      </HalcyonPortal>
     </>
   );
 }

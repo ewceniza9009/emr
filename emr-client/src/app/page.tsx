@@ -66,7 +66,7 @@ export default function HomePage() {
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black text-white tracking-tighter leading-none">Aura</span>
+              <span className="text-xl font-black text-white tracking-tighter leading-none">Halcyon</span>
               <span className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em] mt-1">Clinical OS</span>
             </div>
           </motion.div>
@@ -179,7 +179,7 @@ export default function HomePage() {
                 Distributed data. <br />Centralized control.
               </h2>
               <p className="text-lg text-slate-500 leading-relaxed mb-12">
-                Aura's core engine handles complex clinical synchronization at scale, ensuring your providers stay connected across disparate clinical environments and geospatial boundaries.
+                Halcyon's core engine handles complex clinical synchronization at scale, ensuring your providers stay connected across disparate clinical environments and geospatial boundaries.
               </p>
               
               <div className="grid grid-cols-2 gap-8">
@@ -306,7 +306,7 @@ export default function HomePage() {
              
              <div className="relative z-10 flex flex-col items-center text-center">
                 <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tight mb-8">Ready to modernize?</h2>
-                <p className="text-white/70 text-lg mb-12 font-medium">Join the fleet of high-performance clinical teams running on Aura.</p>
+                <p className="text-white/70 text-lg mb-12 font-medium">Join the fleet of high-performance clinical teams running on Halcyon.</p>
                 <Link href="/login" className="h-16 px-12 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-3xl shadow-black/20 group">
                   Get Started Now
                   <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1 transition-transform" />
@@ -324,7 +324,7 @@ export default function HomePage() {
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="text-xl font-black text-white tracking-tighter block leading-none">Aura</span>
+              <span className="text-xl font-black text-white tracking-tighter block leading-none">Halcyon</span>
               <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest">Next-Gen Protocol</span>
             </div>
           </div>
@@ -338,7 +338,7 @@ export default function HomePage() {
 
           <div className="text-right">
             <p className="text-[9px] font-black text-slate-800 uppercase tracking-widest leading-relaxed">
-              © 2026 Aura Clinical Technologies <br />
+              © 2026 Halcyon Clinical Technologies <br />
               All Vector Units Reserved.
             </p>
           </div>

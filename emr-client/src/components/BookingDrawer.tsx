@@ -11,7 +11,7 @@ import {
   Brain, HeartPulse, HeartHandshake, Wind, Sprout, Sun, Star, ListChecks, ClipboardList, BookOpen
 } from "lucide-react";
 import { CLINICAL_CONFIG } from "@/lib/clinical-config";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 
 const BOOK_APPOINTMENT = gql`
   mutation BookAppointment($input: BookAppointmentInput!) {
@@ -525,7 +525,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   if (!open) return null;
 
   return (
-    <AuraPortal>
+    <HalcyonPortal>
       <div className="fixed inset-0 !m-0 !p-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-black/5 backdrop-blur-sm" onClick={onClose} />
 
@@ -1127,6 +1127,6 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
           )}
         </div>
       </div>
-    </AuraPortal>
+    </HalcyonPortal>
   );
 }

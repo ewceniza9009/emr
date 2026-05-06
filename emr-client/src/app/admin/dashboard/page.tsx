@@ -125,14 +125,14 @@ export default function AdminDashboardPage() {
   const [editItem, setEditItem] = useState<any>(null);
   // Persistence Hook
   useEffect(() => {
-    const savedTab = localStorage.getItem("aura_admin_active_tab");
+    const savedTab = localStorage.getItem("halcyon_admin_active_tab");
     if (savedTab) setActiveTab(savedTab as TabType);
   }, []);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
     setEditItem(null);
-    localStorage.setItem("aura_admin_active_tab", tab);
+    localStorage.setItem("halcyon_admin_active_tab", tab);
   };
 
   const { data, loading, error, refetch } = useQuery(GET_SETUP_DATA);

@@ -78,7 +78,7 @@ h1, h2, h3, h4 {
   background: rgba(var(--primary-rgb), 0.02);
 }
 
-.aura-glow {
+.halcyon-glow {
   box-shadow: 0 4px 20px var(--primary-glow);
 }
 
@@ -150,14 +150,14 @@ select option {
   scrollbar-width: none;
 }
 
-@keyframes aura-pulse {
+@keyframes halcyon-pulse {
   0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4); }
   50% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(var(--primary-rgb), 0.1); }
   100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4); }
 }
 
-.animate-aura-pulse {
-  animation: aura-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-halcyon-pulse {
+  animation: halcyon-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

@@ -49,7 +49,7 @@ export function Sidebar() {
       {/* Brand Section */}
       <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-14 border-b border-[var(--card-border)] shrink-0`}>
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)] animate-aura-pulse">
+          <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)] animate-halcyon-pulse">
             <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z" />
               <path d="M8 12h3l1-3 2 6 1-3h2" />
@@ -57,7 +57,7 @@ export function Sidebar() {
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">Aura</h2>
+              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">Halcyon</h2>
               <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-0.5">Clinical OS</span>
             </div>
           )}

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-export function AuraPortal({ children }: { children: React.ReactNode }) {
+export function HalcyonPortal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -14,4 +14,4 @@ export function AuraPortal({ children }: { children: React.ReactNode }) {
   return mounted ? createPortal(children, document.body) : null;
 }
 
-export default AuraPortal;
+export default HalcyonPortal;

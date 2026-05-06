@@ -69,7 +69,7 @@ export default function LoginPage() {
                 <path d="M8 12h3l1-3 2 6 1-3h2" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white uppercase">Aura</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-white uppercase">Halcyon</h1>
           </div>
 
           <div className="space-y-2 mb-10">
@@ -92,7 +92,7 @@ export default function LoginPage() {
                   {...register("email")}
                   type="email"
                   className="w-full bg-slate-900/50 border border-slate-800 rounded-xl py-3.5 pl-11 pr-4 text-sm font-bold text-white focus:outline-none focus:border-[var(--primary)]/50 focus:bg-slate-900 transition-all placeholder:text-slate-700"
-                  placeholder="name@aura.clinical"
+                  placeholder="name@halcyon.clinical"
                 />
               </div>
               {errors.email && <p className="text-[10px] text-red-400 ml-1 font-bold">{errors.email.message}</p>}
@@ -181,7 +181,7 @@ export default function LoginPage() {
           <div className="space-y-12">
             <div className="w-12 h-1 bg-[var(--primary)] rounded-full" />
             <blockquote className="text-4xl font-bold text-white leading-tight tracking-tight">
-              "Aura transformed our clinical pipeline from a messy spreadsheet into a predictable engine."
+              "Halcyon transformed our clinical pipeline from a messy spreadsheet into a predictable engine."
             </blockquote>
             
             <div className="flex items-center gap-4 pt-4">

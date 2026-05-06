@@ -16,7 +16,7 @@ import {
   Trash2,
   FileText
 } from "lucide-react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 import MedicationDetailDrawer from "./MedicationDetailDrawer";
 
 const GET_PRESCRIPTIONS = gql`
@@ -179,7 +179,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
 
       {/* Add Medication Modal */}
       {showAddModal && (
-        <AuraPortal>
+        <HalcyonPortal>
           <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300">
              <div className="absolute inset-0" onClick={() => setShowAddModal(false)} />
              <div className="relative glass-morphism w-full max-w-lg rounded-[2.5rem] border border-[var(--card-border)] p-10 space-y-8 shadow-2xl bg-[var(--card-bg)] animate-in zoom-in-95 slide-in-from-bottom-8 duration-500">
@@ -301,7 +301,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                 </button>
              </div>
           </div>
-        </AuraPortal>
+        </HalcyonPortal>
       )}
       <MedicationDetailDrawer 
         isOpen={!!selectedPrescription} 

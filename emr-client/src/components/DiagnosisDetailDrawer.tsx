@@ -1,5 +1,5 @@
 import { X, ClipboardList, Calendar, Activity, ShieldCheck, AlertCircle, Info, Tag } from "lucide-react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 
 interface Props {
   isOpen: boolean;
@@ -11,7 +11,7 @@ export default function DiagnosisDetailDrawer({ isOpen, onClose, diagnosis }: Pr
   if (!isOpen || !diagnosis) return null;
 
   return (
-    <AuraPortal>
+    <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
         
@@ -110,6 +110,6 @@ export default function DiagnosisDetailDrawer({ isOpen, onClose, diagnosis }: Pr
           </div>
         </div>
       </div>
-    </AuraPortal>
+    </HalcyonPortal>
   );
 }

@@ -6,7 +6,7 @@ import {
   X, Save, ShieldCheck, UserCircle, 
   MapPin, Globe, Briefcase, Heart
 } from "lucide-react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 
 const UPDATE_PATIENT = gql`
   mutation UpdatePatient($input: UpdatePatientCommandInput!) {
@@ -68,7 +68,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
   if (!open) return null;
 
   return (
-    <AuraPortal>
+    <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
         
@@ -229,6 +229,6 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
           </div>
         </div>
       </div>
-    </AuraPortal>
+    </HalcyonPortal>
   );
 }

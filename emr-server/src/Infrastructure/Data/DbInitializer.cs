@@ -258,13 +258,16 @@ namespace Infrastructure.Data
                     }
                 }
 
-                var existingPractitioner = await context.Practitioners.FirstOrDefaultAsync(p =>
-                    p.UserId == Guid.Parse(user.Id)
-                );
+                var existingPractitioner = await context.Practitioners
+                    .Include(p => p.Addresses)
+                        .ThenInclude(a => a.Address)
+                    .FirstOrDefaultAsync(p =>
+                        p.UserId == Guid.Parse(user.Id)
+                    );
 
                 if (
                     existingPractitioner != null
-                    && existingPractitioner.PractitionerId == Guid.Empty
+                    && (existingPractitioner.PractitionerId == Guid.Empty || existingPractitioner.PractitionerId == Guid.Parse("00000000-0000-0000-0000-000000000000"))
                 )
                 {
                     context.Practitioners.Remove(existingPractitioner);
@@ -285,7 +288,57 @@ namespace Infrastructure.Data
                         IsSupportingClinician = acc.Role == "Practitioner",
                         Position = acc.Position,
                     };
+                    
+                    // SEED CLINICAL BASE OPERATIONS
+                    // Every clinician needs a primary address for the Geospatial Radar
+                    var isCebu = acc.First == "Shaun" || acc.First == "Leonard"; // Simulated regional diversity
+                    var city = isCebu ? "Cebu City" : "Quezon City";
+                    var state = isCebu ? "Central Visayas" : "Metro Manila";
+                    
+                    var entityAddr = new EntityAddress
+                    {
+                        EntityAddressId = Guid.NewGuid(),
+                        PractitionerId = pId,
+                        IsPrimary = true,
+                        Type = AddressType.Home,
+                        Address = new Address
+                        {
+                            Street = isCebu ? "Osmeña Blvd" : "Ayala Ave",
+                            City = city,
+                            State = state,
+                            PostalCode = isCebu ? "6000" : "1100",
+                            Latitude = isCebu ? 10.3157 : 14.6760,
+                            Longitude = isCebu ? 123.8854 : 121.0437
+                        }
+                    };
+                    
+                    practitioner.Addresses.Add(entityAddr);
                     context.Practitioners.Add(practitioner);
+                }
+                else if (!existingPractitioner.Addresses.Any())
+                {
+                    // Repair existing practitioners missing addresses
+                    var isCebu = acc.First == "Shaun" || acc.First == "Leonard";
+                    var city = isCebu ? "Cebu City" : "Quezon City";
+                    var state = isCebu ? "Central Visayas" : "Metro Manila";
+
+                    var entityAddr = new EntityAddress
+                    {
+                        EntityAddressId = Guid.NewGuid(),
+                        PractitionerId = existingPractitioner.PractitionerId,
+                        IsPrimary = true,
+                        Type = AddressType.Home,
+                        Address = new Address
+                        {
+                            Street = isCebu ? "Osmeña Blvd" : "Ayala Ave",
+                            City = city,
+                            State = state,
+                            PostalCode = isCebu ? "6000" : "1100",
+                            Latitude = isCebu ? 10.3157 : 14.6760,
+                            Longitude = isCebu ? 123.8854 : 121.0437
+                        }
+                    };
+                    existingPractitioner.Addresses.Add(entityAddr);
                 }
             }
 

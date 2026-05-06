@@ -16,7 +16,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("aura-theme") as Theme;
+    const savedTheme = localStorage.getItem("halcyon-theme") as Theme;
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.classList.remove("light", "dark");
@@ -30,7 +30,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
-    localStorage.setItem("aura-theme", theme);
+    localStorage.setItem("halcyon-theme", theme);
   }, [theme, mounted]);
 
   const toggleTheme = () => {

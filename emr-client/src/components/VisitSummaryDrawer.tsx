@@ -18,7 +18,7 @@ import {
   Zap,
   Clock
 } from "lucide-react";
-import AuraPortal from "./Portal";
+import HalcyonPortal from "./Portal";
 import { useEffect, useState } from "react";
 
 const GET_VISIT_SUMMARY = gql`
@@ -123,7 +123,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
   if (!isOpen) return null;
 
   return (
-    <AuraPortal>
+    <HalcyonPortal>
       <div className="fixed inset-0 !m-0 !p-0 z-[9999999] flex justify-end overflow-hidden">
         {/* Backdrop */}
         <div 
@@ -345,6 +345,6 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
           </div>
         </div>
       </div>
-    </AuraPortal>
+    </HalcyonPortal>
   );
 }

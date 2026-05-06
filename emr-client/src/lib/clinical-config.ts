@@ -1,5 +1,5 @@
 /**
- * Global Clinical & Operational Configuration (Aura OS)
+ * Global Clinical & Operational Configuration (Halcyon OS)
  * This is the single source of truth for temporal and operational constants.
  */
 
