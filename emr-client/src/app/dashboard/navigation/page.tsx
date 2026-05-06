@@ -29,6 +29,14 @@ const GET_NAVIGATION_DATA = gql`
       firstName
       lastName
       position
+      addresses {
+        address {
+          street
+          city
+          latitude
+          longitude
+        }
+      }
     }
     appointments {
       items {
@@ -63,14 +71,19 @@ export default function CareNavigationPage() {
     const activeAppt = appointments.find((a: any) => a.practitionerId === p.practitionerId && a.status === 'IN_PROGRESS');
     const upcomingAppt = appointments.find((a: any) => a.practitionerId === p.practitionerId && a.status === 'SCHEDULED');
     
+    const primaryAddress = p.addresses?.[0]?.address;
+
     return {
       id: p.practitionerId,
       name: `${p.firstName} ${p.lastName}`,
       role: p.position === 'nurse' ? 'Care Navigator' : 'Supporting Clinician',
-      location: activeAppt ? "Sector Active" : "Stationary",
+      location: primaryAddress?.street || (activeAppt ? "Sector Active" : "Stationary"),
       status: activeAppt ? "On Site" : upcomingAppt ? "In Transit" : "Idle",
       eta: upcomingAppt ? "15m" : "--",
-      battery: Math.floor(Math.random() * 60) + 40, // Simulated battery for now as it's not in DB
+      battery: Math.floor(Math.random() * 60) + 40,
+      lat: primaryAddress?.latitude,
+      lng: primaryAddress?.longitude,
+      street: primaryAddress?.street,
     };
   }).filter((p: any) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 

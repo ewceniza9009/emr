@@ -557,17 +557,19 @@ export default function SchedulingCalendar() {
                         <React.Fragment key={appt.appointmentId}>
                           {/* Drive Time Indicator */}
                           {driveMin > 0 && modality.label !== "TELEHEALTH" && !isViewedAsSc && (
-                            <div className="absolute border-l-8 border-[var(--primary)] bg-[var(--primary)]/[0.12] flex items-start justify-end p-2 z-10 shadow-[inset_0_0_20px_rgba(var(--primary-rgb),0.05)]"
+                            <div className="absolute border-l-4 border-[var(--primary)] bg-[var(--primary)]/[0.08] flex items-start justify-center z-10 shadow-[inset_0_0_15px_rgba(var(--primary-rgb),0.03)] overflow-visible"
                               style={{
                                 left: `${leftPct}%`,
                                 width: `${widthPct}%`,
                                 top: `${(startMin - driveMin) * (GRID_CONFIG.ROW_HEIGHT / 60)}px`,
                                 height: `${driveMin * (GRID_CONFIG.ROW_HEIGHT / 60)}px`,
-                                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(var(--primary-rgb), 0.05) 10px, rgba(var(--primary-rgb), 0.05) 20px)`
+                                minHeight: '26px',
+                                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(var(--primary-rgb), 0.03) 10px, rgba(var(--primary-rgb), 0.05) 20px)`
                               }}>
-                              <span className="text-[10px] font-black text-white bg-[var(--primary)] px-2.5 py-1.5 shadow-2xl flex items-center gap-2 mt-2 ring-2 ring-white/20">
-                                <Navigation className="w-3.5 h-3.5 fill-white" /> {driveMin}m Travel
-                              </span>
+                              <div className="flex items-center gap-1.5 px-2 py-1 bg-[var(--primary)] text-white shadow-xl ring-1 ring-white/10 rounded-sm whitespace-nowrap transform scale-90 origin-top mt-0.5">
+                                <Navigation className="w-3 h-3 fill-white" />
+                                <span className="text-[9px] font-black uppercase tracking-tighter">{driveMin}m Travel</span>
+                              </div>
                             </div>
                           )}
 
