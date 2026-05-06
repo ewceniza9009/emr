@@ -13,12 +13,14 @@ import {
   LogOut,
   ChevronLeft,
   LayoutDashboard,
-  Database,
   Globe,
-  ClipboardList
+  ClipboardList,
+  Sun,
+  Moon
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
+import { useTheme } from "@/lib/ThemeContext";
 
 interface Props {
   activeTab: string;
@@ -27,6 +29,7 @@ interface Props {
 
 export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const navItems = [
     { id: "practitioners", label: "Practitioners", icon: Users },
@@ -42,19 +45,19 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
 
   return (
     <aside
-      className={`bg-slate-950 border-r border-white/5 h-screen flex flex-col sticky top-0 transition-all duration-300 ease-in-out z-[100] ${isCollapsed ? "w-20" : "w-64"
+      className={`bg-[var(--sidebar-bg)] border-r border-[var(--card-border)] h-screen flex flex-col sticky top-0 transition-all duration-300 ease-in-out z-[100] ${isCollapsed ? "w-20" : "w-64"
         }`}
     >
       {/* Brand Section */}
-      <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-20 border-b border-white/5 shrink-0`}>
+      <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-20 border-b border-[var(--card-border)] shrink-0`}>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-indigo-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/20">
+          <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)]">
             <Shield className="w-5 h-5 text-white" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <h2 className="text-sm font-black text-white uppercase tracking-tighter leading-none">Halcyon Setup</h2>
-              <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-0.5">Admin Terminal</span>
+              <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none">Halcyon Setup</h2>
+              <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-0.5">Admin Terminal</span>
             </div>
           )}
         </div>
@@ -64,7 +67,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
       <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto scrollbar-hide">
         {!isCollapsed && (
           <div className="px-3 mb-2">
-            <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em]">Master Registries</p>
+            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Master Registries</p>
           </div>
         )}
         
@@ -76,31 +79,31 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
               onClick={() => setActiveTab(item.id)}
               title={isCollapsed ? item.label : ""}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${isActive
-                  ? "bg-indigo-500/10 text-indigo-400"
-                  : "text-slate-500 hover:bg-white/5 hover:text-slate-300"
+                  ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                  : "text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--text-secondary)]"
                 }`}
             >
               <div className="relative">
-                <item.icon className={`w-5 h-5 shrink-0 transition-all ${isActive ? "text-indigo-400" : "group-hover:text-slate-300"}`} />
+                <item.icon className={`w-5 h-5 shrink-0 transition-all ${isActive ? "text-[var(--primary)]" : "group-hover:text-[var(--text-secondary)]"}`} />
               </div>
 
               {!isCollapsed && (
-                <span className={`text-[12px] font-bold tracking-tight transition-all ${isActive ? "text-white" : ""}`}>
+                <span className={`text-[12px] font-bold tracking-tight transition-all ${isActive ? "text-[var(--text-primary)]" : ""}`}>
                   {item.label}
                 </span>
               )}
 
               {isActive && !isCollapsed && (
-                <div className="absolute right-3 w-1 h-1 rounded-full bg-indigo-500" />
+                <div className="absolute right-3 w-1 h-1 rounded-full bg-[var(--primary)]" />
               )}
             </button>
           );
         })}
 
-        <div className="h-px bg-white/5 mx-3 my-4" />
+        <div className="h-px bg-[var(--divider-color)] mx-3 my-4" />
         <Link
           href="/dashboard"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative text-slate-500 hover:bg-white/5 hover:text-emerald-400"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--primary)]"
         >
           <div className="relative">
             <LayoutDashboard className="w-5 h-5 shrink-0" />
@@ -112,10 +115,19 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
       </nav>
 
       {/* Footer Actions */}
-      <div className="p-3 border-t border-white/5 space-y-1">
+      <div className="p-3 border-t border-[var(--card-border)] space-y-1">
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--primary)] transition-all group"
+          title={isCollapsed ? (theme === "dark" ? "Switch to Light" : "Switch to Dark") : ""}
+        >
+          {theme === "dark" ? <Sun className="w-5 h-5 shrink-0" /> : <Moon className="w-5 h-5 shrink-0" />}
+          {!isCollapsed && <span className="text-[12px] font-bold tracking-tight">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
+        </button>
+
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-500 hover:bg-white/5 hover:text-slate-300 transition-all group"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--text-secondary)] transition-all group"
           title={isCollapsed ? "Expand" : "Collapse"}
         >
           <div className={`transition-transform duration-500 ${isCollapsed ? "rotate-180" : ""}`}>

@@ -17,6 +17,7 @@
   --primary-glow: rgba(20, 184, 166, 0.15);
   --sidebar-bg: #020408;
   --input-bg: rgba(255, 255, 255, 0.05);
+  --divider-color: rgba(255, 255, 255, 0.05);
 }
 
 .light {
@@ -34,6 +35,7 @@
   --primary-glow: rgba(13, 148, 136, 0.1);
   --sidebar-bg: #ffffff;
   --input-bg: #f1f5f9;
+  --divider-color: rgba(15, 23, 42, 0.08);
 }
 
 * {
