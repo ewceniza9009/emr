@@ -12,9 +12,10 @@ public enum OutreachMethod
     Sms
 }
 
-public class OutreachActivity : BaseEntity
+public class OutreachActivity : BaseEntity, ITenantEntity
 {
     public Guid OutreachActivityId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid OutreachId { get; set; }
     public Guid PractitionerId { get; set; }
     public OutreachMethod Method { get; set; }

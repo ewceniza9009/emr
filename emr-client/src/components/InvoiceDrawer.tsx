@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { X, Search, FileText, CheckCircle2, AlertCircle, DollarSign, Calculator, Calendar } from "lucide-react";
+import { useSettings } from "@/lib/SettingsContext";
 import { useCommandModal } from "./CommandModalProvider";
 
 const GET_PATIENTS = gql`
@@ -57,6 +58,7 @@ interface Props {
 
 export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }: Props) {
   const { confirm, alert } = useCommandModal();
+  const { formatCurrency, tenantConfig } = useSettings();
   const [selectedPatientId, setSelectedPatientId] = useState(initialData?.patientId || "");
   const [subtotal, setSubtotal] = useState<number>(initialData?.subtotalAmount || 0);
   const [covered, setCovered] = useState<number>(initialData?.coveredAmount || 0);
@@ -236,9 +238,9 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
           {/* Amount Inputs */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Subtotal Amount</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Subtotal Amount ({tenantConfig.currency})</label>
               <div className="relative">
-                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black opacity-40">{tenantConfig.currency === 'PHP' ? '₱' : '$'}</span>
                 <input 
                   type="number"
                   required
@@ -285,17 +287,17 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
           <div className="bg-[var(--input-bg)] rounded-[2rem] p-6 border border-[var(--card-border)] space-y-3">
              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
                 <span>Gross Billing</span>
-                <span>${subtotal.toLocaleString()}</span>
+                <span>{formatCurrency(subtotal)}</span>
              </div>
              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-emerald-500">
                 <span>Coverage Deductions</span>
-                <span>-${covered.toLocaleString()}</span>
+                <span>-{formatCurrency(covered)}</span>
              </div>
              <div className="h-px bg-[var(--card-border)] my-2" />
              <div className="flex justify-between items-end">
                 <div>
                    <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Patient Responsibility</p>
-                   <h3 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">${patientResponsibility.toLocaleString()}</h3>
+                   <h3 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">{formatCurrency(patientResponsibility)}</h3>
                 </div>
                 <Calculator className="w-8 h-8 text-[var(--primary)] opacity-20" />
              </div>

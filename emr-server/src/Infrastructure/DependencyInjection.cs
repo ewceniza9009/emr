@@ -46,6 +46,8 @@ public static class DependencyInjection
         services.AddScoped<IMrnGenerator, Infrastructure.Services.MrnGenerator>();
         services.AddScoped<IStorageService, Infrastructure.Services.AzuriteStorageService>();
         services.AddScoped<IPdfService, Infrastructure.Services.QuestPdfService>();
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
 
         return services;
     }

@@ -4,9 +4,10 @@ using System.Collections.Generic;
 
 namespace Domain.Entities;
 
-public class BillingInvoice : BaseEntity
+public class BillingInvoice : BaseEntity, ITenantEntity
 {
     public Guid InvoiceId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PatientId { get; set; }
     public Guid? EncounterId { get; set; }
     public Guid? ClaimId { get; set; }

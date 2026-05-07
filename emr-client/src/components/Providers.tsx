@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { SessionProvider } from "next-auth/react";
 import { ApolloProvider } from "@apollo/client";
@@ -8,6 +8,7 @@ import ErrorBoundary from "./ErrorBoundary";
 import { ToastProvider } from "./ToastProvider";
 import { SidebarProvider } from "@/lib/SidebarContext";
 import { ThemeProvider } from "@/lib/ThemeContext";
+import { SettingsProvider } from "@/lib/SettingsContext";
 import SessionGuard from "./SessionGuard";
 import { CommandModalProvider } from "./CommandModalProvider";
 
@@ -16,17 +17,19 @@ export function Providers({ children }: { children: ReactNode }) {
     <SessionProvider>
       <ApolloProvider client={client}>
         <ErrorBoundary>
-          <ThemeProvider>
-            <SidebarProvider>
-              <ToastProvider>
-                <CommandModalProvider>
-                  <SessionGuard>
-                    {children}
-                  </SessionGuard>
-                </CommandModalProvider>
-              </ToastProvider>
-            </SidebarProvider>
-          </ThemeProvider>
+          <SettingsProvider>
+            <ThemeProvider>
+              <SidebarProvider>
+                <ToastProvider>
+                  <CommandModalProvider>
+                    <SessionGuard>
+                      {children}
+                    </SessionGuard>
+                  </CommandModalProvider>
+                </ToastProvider>
+              </SidebarProvider>
+            </ThemeProvider>
+          </SettingsProvider>
         </ErrorBoundary>
       </ApolloProvider>
     </SessionProvider>

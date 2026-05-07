@@ -1,10 +1,12 @@
+using Domain.Common;
 using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class ScheduleBlock
+public class ScheduleBlock : BaseEntity, ITenantEntity
 {
     public Guid BlockId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PractitionerId { get; set; }
     public DateTimeOffset StartTime { get; set; }
     public DateTimeOffset EndTime { get; set; }

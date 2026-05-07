@@ -3,9 +3,10 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class AdvanceDirective
+public class AdvanceDirective : BaseEntity, ITenantEntity
 {
     public Guid AdvanceDirectiveId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PatientId { get; set; }
     public DirectiveType Type { get; set; }
     public string? DocumentUrl { get; set; } // Link to scanned document
@@ -16,9 +17,10 @@ public class AdvanceDirective
     public Patient Patient { get; set; } = null!;
 }
 
-public class Facility : BaseEntity
+public class Facility : BaseEntity, ITenantEntity
 {
     public Guid FacilityId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public string Name { get; set; } = string.Empty;
     public FacilityType Type { get; set; }
     public Address FacilityAddress { get; set; } = new Address();

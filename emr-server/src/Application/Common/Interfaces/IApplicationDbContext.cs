@@ -51,6 +51,7 @@ public interface IApplicationDbContext
     DbSet<Questionnaire> Questionnaires { get; }
     DbSet<Question> Questions { get; }
     DbSet<AssessmentResponse> AssessmentResponses { get; }
+    DbSet<TenantConfiguration> TenantConfigurations { get; }
 
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 

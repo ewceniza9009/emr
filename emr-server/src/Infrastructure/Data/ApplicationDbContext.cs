@@ -11,8 +11,15 @@ namespace Infrastructure.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options) { }
+    private readonly ICurrentUserService _currentUserService;
+
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options,
+        ICurrentUserService currentUserService)
+        : base(options)
+    {
+        _currentUserService = currentUserService;
+    }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -75,6 +82,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Questionnaire> Questionnaires => Set<Questionnaire>();
     public DbSet<Question> Questions => Set<Question>();
     public DbSet<AssessmentResponse> AssessmentResponses => Set<AssessmentResponse>();
+    public DbSet<TenantConfiguration> TenantConfigurations => Set<TenantConfiguration>();
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -84,6 +92,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
             {
                 case EntityState.Added:
                     entry.Entity.CreatedAt = DateTimeOffset.UtcNow;
+                    if (entry.Entity is ITenantEntity tenantEntity && tenantEntity.TenantId == Guid.Empty)
+                    {
+                        tenantEntity.TenantId = _currentUserService.TenantId ?? Guid.Empty;
+                    }
                     break;
 
                 case EntityState.Modified:
@@ -94,6 +106,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
         return await base.SaveChangesAsync(cancellationToken);
     }
+
+    public Guid CurrentTenantId => _currentUserService.TenantId ?? Guid.Empty;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -137,6 +151,23 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
                 index.SetDatabaseName(index.GetDatabaseName()?.ToSnakeCase());
             }
         }
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
+            {
+                var method = typeof(ApplicationDbContext)
+                    .GetMethod(nameof(ApplyTenantFilter), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    ?.MakeGenericMethod(entityType.ClrType);
+                
+                method?.Invoke(this, new object[] { modelBuilder });
+            }
+        }
+    }
+
+    private void ApplyTenantFilter<T>(ModelBuilder modelBuilder) where T : class, ITenantEntity
+    {
+        modelBuilder.Entity<T>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
     }
 }
 

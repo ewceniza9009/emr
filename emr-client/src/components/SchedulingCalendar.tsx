@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
@@ -12,13 +12,14 @@ import {
   ClipboardList
 } from "lucide-react";
 import { useToast } from "./ToastProvider";
+import { formatInTimeZone } from "date-fns-tz";
 
-// â”€â”€â”€ CONFIG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+import { CLINICAL_CONFIG } from "../lib/clinical-config";
 
 const GRID_CONFIG = {
-  START_HOUR: 8,
-  END_HOUR: 18,
-  TOTAL_MINUTES: 600,
+  START_HOUR: CLINICAL_CONFIG.AM_START,
+  END_HOUR: CLINICAL_CONFIG.DAY_END,
+  TOTAL_MINUTES: (CLINICAL_CONFIG.DAY_END - CLINICAL_CONFIG.AM_START) * 60,
   ROW_HEIGHT: 80,
   DAYS: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 };
@@ -42,16 +43,16 @@ const getModalityConfig = (modalityStr: string) => {
 
 const getStatusConfig = (statusStr: string) => {
   if (!statusStr) return { label: "SCHED", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]", text: "text-[var(--text-muted)]", dot: "bg-[var(--text-muted)]/40", isLive: false };
-  
+
   // Normalize: IN_PROGRESS -> INPROGRESS
   const s = statusStr.toUpperCase().replace(/[^A-Z]/g, "");
-  
-  if (["INPROGRESS", "ARRIVED", "STARTED", "LIVE"].includes(s)) 
+
+  if (["INPROGRESS", "ARRIVED", "STARTED", "LIVE"].includes(s))
     return { label: "LIVE", bg: "bg-emerald-500/15", border: "border-emerald-500/40", text: "text-emerald-700", dot: "bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]", isLive: true };
   if (s.includes("HOLD")) return { label: "HOLD", bg: "bg-amber-500/15", border: "border-amber-500/40", text: "text-amber-700", dot: "bg-amber-500 shadow-[0_0_10px_#fbbf24]", isLive: false };
   if (s.includes("COMPLETE") || s === "DONE") return { label: "DONE", bg: "bg-blue-500/15", border: "border-blue-500/40", text: "text-blue-700", dot: "bg-blue-500 shadow-[0_0_10px_#60a5fa]", isLive: false };
   if (s.includes("CANCEL")) return { label: "CANC", bg: "bg-rose-500/15", border: "border-rose-500/40", text: "text-rose-700", dot: "bg-rose-500 shadow-[0_0_10px_#f43f5e]", isLive: false };
-  
+
   return { label: "SCHED", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]", text: "text-[var(--text-muted)]", dot: "bg-[var(--text-muted)]/40", isLive: false };
 };
 
@@ -496,8 +497,13 @@ export default function SchedulingCalendar() {
 
                     {/* Busy Blocks */}
                     {dayBlocks.map((block: any) => {
-                      const start = new Date(block.startTime), end = new Date(block.endTime);
-                      const startMin = (start.getHours() - GRID_CONFIG.START_HOUR) * 60 + start.getMinutes();
+                      const start = new Date(block.startTime);
+                      const end = new Date(block.endTime);
+                      
+                      const blockHour = parseInt(formatInTimeZone(start, CLINICAL_CONFIG.TIMEZONE, "H"));
+                      const blockMinute = parseInt(formatInTimeZone(start, CLINICAL_CONFIG.TIMEZONE, "m"));
+                      
+                      const startMin = (blockHour - GRID_CONFIG.START_HOUR) * 60 + blockMinute;
                       const durMin = (end.getTime() - start.getTime()) / 60000;
                       const topPx = startMin * (GRID_CONFIG.ROW_HEIGHT / 60);
                       const heightPx = Math.min(durMin * (GRID_CONFIG.ROW_HEIGHT / 60), (GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR) * GRID_CONFIG.ROW_HEIGHT - topPx);
@@ -516,7 +522,7 @@ export default function SchedulingCalendar() {
                               <span className="text-xs font-bold uppercase tracking-wider">Unavailable</span>
                             </div>
                             <span className="text-[11px] font-bold text-[var(--text-primary)] bg-[var(--input-bg)] px-2 py-1 rounded">
-                              {start.getHours() % 12 || 12}:{start.getMinutes().toString().padStart(2, '0')}
+                              {blockHour % 12 || 12}:{blockMinute.toString().padStart(2, '0')}
                             </span>
                           </div>
                         </div>
@@ -528,7 +534,11 @@ export default function SchedulingCalendar() {
                       const style = POSITION_STYLE[appt.practitioner?.position.toLowerCase() || "nurse"] ?? POSITION_STYLE.nurse;
                       const start = new Date(appt.scheduledStart), end = new Date(appt.scheduledEnd);
                       const hasConflict = conflicts.has(appt.appointmentId);
-                      const startMin = (start.getHours() - GRID_CONFIG.START_HOUR) * 60 + start.getMinutes();
+
+                      const hour = parseInt(formatInTimeZone(start, CLINICAL_CONFIG.TIMEZONE, "H"));
+                      const minute = parseInt(formatInTimeZone(start, CLINICAL_CONFIG.TIMEZONE, "m"));
+
+                      const startMin = (hour - GRID_CONFIG.START_HOUR) * 60 + minute;
                       let durMin = (end.getTime() - start.getTime()) / 60000;
                       const viewedPractitionerId = selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : null;
                       const isViewedAsSc = viewedPractitionerId && viewedPractitionerId !== appt.practitionerId && appt.supportingClinicians?.some((sc: any) => sc.practitionerId === viewedPractitionerId);

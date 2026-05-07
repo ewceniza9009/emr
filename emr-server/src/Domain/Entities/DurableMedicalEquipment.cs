@@ -3,9 +3,10 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class DurableMedicalEquipment : BaseEntity
+public class DurableMedicalEquipment : BaseEntity, ITenantEntity
 {
     public Guid EquipmentId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public string SerialNumber { get; set; } = string.Empty;
     public string ModelName { get; set; } = string.Empty;
     public EquipmentType Type { get; set; }

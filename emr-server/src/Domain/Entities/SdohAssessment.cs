@@ -2,9 +2,10 @@ using Domain.Common;
 
 namespace Domain.Entities;
 
-public class SdohAssessment : BaseEntity
+public class SdohAssessment : BaseEntity, ITenantEntity
 {
     public Guid SdohId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid CaseId { get; set; }
     public Guid AssessorId { get; set; }
     public bool FoodInsecurity { get; set; }

@@ -1,4 +1,4 @@
-﻿import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 export const authOptions: NextAuthOptions = {
@@ -42,6 +42,7 @@ export const authOptions: NextAuthOptions = {
         token.role = u.roles?.[0] || u.role;
         token.token = u.token;
         token.practitionerId = u.practitionerId;
+        token.tenantId = u.tenantId;
         token.name = u.name || (u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : null);
       }
       return token;
@@ -52,6 +53,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
         session.user.token = token.token as string;
         session.user.practitionerId = token.practitionerId as string;
+        session.user.tenantId = token.tenantId as string;
         session.user.name = token.name as string;
       }
       return session;

@@ -1,15 +1,17 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { useCommandModal } from "./CommandModalProvider";
+import { format, addMinutes } from "date-fns";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import {
   X, Calendar, Clock, User, MapPin, Video, Home,
   Building2, CheckCircle, Car, Search, ChevronRight,
   Stethoscope, Shield, Users, Info, ChevronLeft,
-  Timer, Zap, Navigation, Check, Activity, Target, Phone, Edit3, Radar, AlertCircle,
-  Brain, HeartPulse, HeartHandshake, Wind, Sprout, Sun, Star, ListChecks, ClipboardList, BookOpen
+  Timer, Zap, Navigation, Check, Activity, Target, Phone, Edit3, AlertCircle,
+  Brain, HeartPulse, HeartHandshake, Wind, Sprout, Sun, Star, ListChecks, ClipboardList
 } from "lucide-react";
 import { CLINICAL_CONFIG } from "@/lib/clinical-config";
 import HalcyonPortal from "./Portal";
@@ -25,6 +27,17 @@ const BOOK_APPOINTMENT = gql`
       travelTimeMinutes
       distanceInMiles
       plannedAssessments
+    }
+  }
+`;
+
+const CREATE_SCHEDULE_BLOCK = gql`
+  mutation CreateScheduleBlock($input: CreateScheduleBlockInput!) {
+    createScheduleBlock(input: $input) {
+      blockId
+      startTime
+      endTime
+      status
     }
   }
 `;
@@ -226,6 +239,16 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const [cnSearch, setCnSearch] = useState("");
   const [scSearch, setScSearch] = useState("");
   const [plannedAssessments, setPlannedAssessments] = useState<string[]>([]);
+  const [isBlockMode, setIsBlockMode] = useState(false);
+  const [blockStatus, setBlockStatus] = useState("BLOCKED");
+  const [startHour, setStartHour] = useState(8);
+  const [startMinute, setStartMinute] = useState(0);
+
+  const createZonedISO = (date: Date, hours: number, minutes: number) => {
+    const year = date.getFullYear(), month = date.getMonth(), day = date.getDate();
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+    return fromZonedTime(dateStr, CLINICAL_CONFIG.TIMEZONE).toISOString();
+  };
 
   const formatForEngine = (date: Date, hours: number) => {
     const d = new Date(date);
@@ -257,6 +280,10 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setBooked(false);
       setIsEditingAddress(false);
       setShowPatientResults(false);
+      setIsBlockMode(false);
+      setBlockStatus("BLOCKED");
+      setStartHour(8);
+      setStartMinute(0);
       const now = new Date();
       setSelectedDate(now);
       setViewDate(now);
@@ -454,11 +481,10 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     const slots = practitionerSlots.get(practitionerId) || [];
     if (slots.length === 0) {
       const fallbackHour = period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START;
-      const d = new Date(selectedDate);
-      d.setHours(fallbackHour, 0, 0, 0);
+      const startISO = createZonedISO(selectedDate, fallbackHour, 0);
       return {
-        shiftStart: d.toISOString(),
-        shiftEnd: new Date(d.getTime() + duration * 60000).toISOString(),
+        shiftStart: startISO,
+        shiftEnd: addMinutes(new Date(startISO), duration).toISOString(),
         travelTimeInMinutes: null,
         distanceInMiles: null
       };
@@ -474,17 +500,46 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     },
   });
 
+  const [createBlock, { loading: blockLoading }] = useMutation(CREATE_SCHEDULE_BLOCK, {
+    refetchQueries: ["GetScheduleData"],
+    onCompleted: () => {
+      setBooked(true);
+      setTimeout(() => { setBooked(false); onBooked(); onClose(); }, 1500);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!patientId || !practitionerId) return;
-    const slot = selectedSlot || {
-      shiftStart: new Date(new Date(selectedDate).setHours(period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START, 0, 0, 0)).toISOString(),
-      shiftEnd: new Date(new Date(selectedDate).setHours(period === "AM" ? CLINICAL_CONFIG.AM_START + 1 : CLINICAL_CONFIG.PM_START + 1, 0, 0, 0)).toISOString(),
-      travelTimeInMinutes: CLINICAL_CONFIG.ENGINE_SAFETY_DRIVE_MINS,
-      distanceInMiles: CLINICAL_CONFIG.ENGINE_SAFETY_DIST_KM
+    if (!practitionerId) return;
+
+    const slot: { shiftStart: string; shiftEnd: string; travelTimeInMinutes?: number | null; distanceInMiles?: number | null } = (isBlockMode ? null : selectedSlot) || {
+      shiftStart: createZonedISO(selectedDate, isBlockMode ? startHour : (period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START), isBlockMode ? startMinute : 0),
+      shiftEnd: "", // Calculated below
+      travelTimeInMinutes: 0,
+      distanceInMiles: 0
     };
-    const startHour = new Date(slot.shiftStart).getHours();
-    const isSlotAM = startHour < CLINICAL_CONFIG.CUTOFF_HOUR;
+
+    if (isBlockMode || !selectedSlot) {
+      slot.shiftEnd = addMinutes(new Date(slot.shiftStart), duration).toISOString();
+    }
+
+    if (isBlockMode) {
+      createBlock({
+        variables: {
+          input: {
+            practitionerId,
+            startTime: slot.shiftStart,
+            endTime: slot.shiftEnd,
+            status: blockStatus
+          }
+        }
+      });
+      return;
+    }
+
+    if (!patientId) return;
+    const clinicalHour = parseInt(formatInTimeZone(new Date(slot.shiftStart), CLINICAL_CONFIG.TIMEZONE, "H"));
+    const isSlotAM = clinicalHour < CLINICAL_CONFIG.CUTOFF_HOUR;
     if (period === "AM" && !isSlotAM) return;
     if (period === "PM" && isSlotAM) return;
     book({
@@ -554,181 +609,253 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
             </div>
           </div>
 
+          <div className="bg-[var(--card-bg)] px-8 py-3 border-b border-[var(--card-border)] flex items-center gap-6 shrink-0">
+            <div className="flex bg-[var(--input-bg)] p-1 rounded-xl border border-[var(--card-border)]">
+              <button type="button" onClick={() => setIsBlockMode(false)}
+                className={`px-6 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${!isBlockMode ? "bg-[var(--primary)] text-white shadow-md" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+                Appointment
+              </button>
+              <button type="button" onClick={() => setIsBlockMode(true)}
+                className={`px-6 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${isBlockMode ? "bg-amber-500 text-white shadow-md" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+                Busy Block
+              </button>
+            </div>
+            {isBlockMode && (
+              <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2 duration-300">
+                <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Reason:</span>
+                <select value={blockStatus} onChange={e => setBlockStatus(e.target.value)}
+                  className="bg-transparent border-none text-xs font-bold text-amber-500 outline-none cursor-pointer">
+                  <option value="BLOCKED">Unavailable / Personal</option>
+                  <option value="AVAILABLE">Available for Booking</option>
+                </select>
+              </div>
+            )}
+          </div>
+
           <div className="flex-1 flex flex-row overflow-hidden">
             <div className="flex-1 flex flex-col border-r border-[var(--card-border)] bg-[var(--sidebar-bg)] overflow-hidden">
               <form id="appointment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 pt-4 space-y-6 scrollbar-hide">
                 <section className="space-y-6">
                   <div className="flex items-center gap-4">
                     <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">01</span>
-                    <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Patient Selection</h3>
+                    <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">{isBlockMode ? "Scheduling Details" : "Patient Selection"}</h3>
                     <div className="flex-1 h-px bg-[var(--card-border)]" />
                   </div>
 
-                  <div className="relative group">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
-                    <input required value={patientSearch} onChange={e => { setPatientSearch(e.target.value); setShowPatientResults(true); }}
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
-                      placeholder="Search by MRN or patient name..."
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-14 pr-6 py-4 text-[var(--text-primary)] text-sm font-medium placeholder:text-[var(--text-muted)]
-                        focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-sm"
-                    />
-                    {showPatientResults && patientSearch && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden z-[1001] max-h-60 overflow-y-auto shadow-2xl backdrop-blur-2xl">
-                        {patientData?.patients?.items?.filter((p: any) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(patientSearch.toLowerCase())).map((p: any) => (
-                          <button key={p.patientId} type="button" onClick={() => {
-                            setPatientId(p.patientId);
-                            setPatientSearch(`${p.firstName} ${p.lastName}`);
-                            setPatientAddress({
-                              street: p.addresses?.find((x: any) => x.isPrimary)?.address?.street || p.addresses?.[0]?.address?.street || "",
-                              city: p.addresses?.find((x: any) => x.isPrimary)?.address?.city || p.addresses?.[0]?.address?.city || "",
-                              state: p.addresses?.find((x: any) => x.isPrimary)?.address?.state || p.addresses?.[0]?.address?.state || "",
-                              postalCode: p.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || p.addresses?.[0]?.address?.postalCode || ""
-                            });
-                            setShowPatientResults(false);
-                            setIsEditingAddress(false);
-                          }}
-                            className="w-full px-6 py-4 text-left hover:bg-[var(--primary)]/10 border-b border-[var(--card-border)] transition-colors flex items-center justify-between group">
-                            <span className="font-semibold text-[var(--text-primary)] text-sm">{p.firstName} {p.lastName}</span>
-                            <span className="text-xs font-medium text-[var(--text-muted)] group-hover:text-[var(--primary)]">{p.mrn}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  {!isBlockMode && (
+                    <div className="relative group">
+                      <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+                      <input required={!isBlockMode} value={patientSearch} onChange={e => { setPatientSearch(e.target.value); setShowPatientResults(true); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
+                        placeholder="Search by MRN or patient name..."
+                        className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-14 pr-6 py-4 text-[var(--text-primary)] text-sm font-medium placeholder:text-[var(--text-muted)]
+                          focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-sm"
+                      />
+                      {showPatientResults && patientSearch && (
+                        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl overflow-hidden z-[1001] max-h-60 overflow-y-auto shadow-2xl backdrop-blur-2xl">
+                          {patientData?.patients?.items?.filter((p: any) => `${p.firstName} ${p.lastName}`.toLowerCase().includes(patientSearch.toLowerCase())).map((p: any) => (
+                            <button key={p.patientId} type="button" onClick={() => {
+                              setPatientId(p.patientId);
+                              setPatientSearch(`${p.firstName} ${p.lastName}`);
+                              setPatientAddress({
+                                street: p.addresses?.find((x: any) => x.isPrimary)?.address?.street || p.addresses?.[0]?.address?.street || "",
+                                city: p.addresses?.find((x: any) => x.isPrimary)?.address?.city || p.addresses?.[0]?.address?.city || "",
+                                state: p.addresses?.find((x: any) => x.isPrimary)?.address?.state || p.addresses?.[0]?.address?.state || "",
+                                postalCode: p.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || p.addresses?.[0]?.address?.postalCode || ""
+                              });
+                              setShowPatientResults(false);
+                              setIsEditingAddress(false);
+                            }}
+                              className="w-full px-6 py-4 text-left hover:bg-[var(--primary)]/10 border-b border-[var(--card-border)] transition-colors flex items-center justify-between group">
+                              <span className="font-semibold text-[var(--text-primary)] text-sm">{p.firstName} {p.lastName}</span>
+                              <span className="text-xs font-medium text-[var(--text-muted)] group-hover:text-[var(--primary)]">{p.mrn}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                  {patientId && (
+                  {(patientId || isBlockMode) && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
                       <div className="space-y-4">
                         <div className="flex items-center gap-3 mb-2">
                           <MapPin className="w-4 h-4 text-[var(--primary)]" />
                           <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Service Location</span>
                         </div>
-                        <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 relative group/addr space-y-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Patient Primary Address</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-                                <Car className="w-3.5 h-3.5 text-[var(--primary)]" />
-                                <span className="text-xs font-bold text-[var(--text-primary)]">
-                                  {(() => {
-                                    const activePractitioner = practitionerId
-                                      ? displayCns.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase()) || displayScs.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase())
-                                      : null;
-                                    return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : "0m";
-                                  })()}
-                                </span>
-                                <span className="text-[10px] font-medium text-[var(--text-muted)] ml-1">travel</span>
+                        {!isBlockMode ? (
+                          <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 relative group/addr space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Patient Primary Address</span>
                               </div>
-                              <button type="button" onClick={() => setIsEditingAddress(!isEditingAddress)}
-                                className={`p-2.5 rounded-xl border transition-all ${isEditingAddress ? "bg-[var(--primary)] text-white border-transparent" : "bg-white/5 hover:bg-white/10 border-white/10 text-[var(--text-muted)]"}`}>
-                                {isEditingAddress ? <Check className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-                              </button>
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                                  <Car className="w-3.5 h-3.5 text-[var(--primary)]" />
+                                  <span className="text-xs font-bold text-[var(--text-primary)]">
+                                    {(() => {
+                                      const activePractitioner = practitionerId
+                                        ? displayCns.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase()) || displayScs.find((p: any) => p.practitionerId?.toLowerCase() === practitionerId.toLowerCase())
+                                        : null;
+                                      return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : "0m";
+                                    })()}
+                                  </span>
+                                  <span className="text-[10px] font-medium text-[var(--text-muted)] ml-1">travel</span>
+                                </div>
+                                <button type="button" onClick={() => setIsEditingAddress(!isEditingAddress)}
+                                  className={`p-2.5 rounded-xl border transition-all ${isEditingAddress ? "bg-[var(--primary)] text-white border-transparent" : "bg-white/5 hover:bg-white/10 border-white/10 text-[var(--text-muted)]"}`}>
+                                  {isEditingAddress ? <Check className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                                </button>
+                              </div>
+                            </div>
+
+                            {isEditingAddress ? (
+                              <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-top-1 duration-300">
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
+                                  <input autoFocus value={patientAddress.street} onChange={e => setPatientAddress({ ...patientAddress, street: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
+                                </div>
+                                <div className="grid grid-cols-3 gap-4">
+                                  <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
+                                    <input value={patientAddress.city} onChange={e => setPatientAddress({ ...patientAddress, city: e.target.value })}
+                                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">State</label>
+                                    <input value={patientAddress.state} onChange={e => setPatientAddress({ ...patientAddress, state: e.target.value })}
+                                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zip Code</label>
+                                    <input value={patientAddress.postalCode} onChange={e => setPatientAddress({ ...patientAddress, postalCode: e.target.value })}
+                                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
+                                  <p className="text-sm font-semibold text-[var(--text-primary)]">{patientAddress.street || "No address recorded"}</p>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4">
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
+                                    <p className="text-[13px] font-medium text-[var(--text-secondary)]">{patientAddress.city || "--"}</p>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">State</label>
+                                    <p className="text-[13px] font-medium text-[var(--text-secondary)]">{patientAddress.state || "--"}</p>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zip Code</label>
+                                    <p className="text-[13px] font-medium text-[var(--text-secondary)]">{patientAddress.postalCode || "--"}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-3">
+                            <Info className="w-4 h-4 text-amber-500" />
+                            <p className="text-xs font-bold text-amber-600 uppercase tracking-widest leading-relaxed">
+                              Blocks do not require a patient record. You are reserving this time as 'Unavailable'.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {!isBlockMode && (
+                        <>
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-3 mb-2">
+                              <Activity className="w-4 h-4 text-[var(--primary)]" />
+                              <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Visit Modality</span>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                              {[
+                                { id: "IN_PERSON_HOME_VISIT", label: "Home Visit", icon: <Home className="w-3.5 h-3.5" /> },
+                                { id: "IN_PERSON_FACILITY", label: "Facility", icon: <Building2 className="w-3.5 h-3.5" /> },
+                                { id: "TELEHEALTH_VIDEO", label: "Video Call", icon: <Video className="w-3.5 h-3.5" /> },
+                                { id: "TELEPHONE", label: "Audio Only", icon: <Phone className="w-3.5 h-3.5" /> },
+                              ].map((m) => (
+                                <button key={m.id} type="button" onClick={() => { setModality(m.id); setPeriod(null); }}
+                                  className={`flex flex-col items-center justify-center gap-1.5 px-3 py-3 rounded-xl border text-[10px] font-bold transition-all
+                                          ${modality === m.id ? "bg-[var(--primary)] border-transparent text-white shadow-lg shadow-[var(--primary-glow)]" : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10"}`}>
+                                  {React.cloneElement(m.icon as React.ReactElement, { className: "w-4 h-4 shrink-0" })}
+                                  {m.label}
+                                </button>
+                              ))}
                             </div>
                           </div>
 
-                          {isEditingAddress ? (
-                            <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-top-1 duration-300">
-                              <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
-                                <input autoFocus value={patientAddress.street} onChange={e => setPatientAddress({ ...patientAddress, street: e.target.value })}
-                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
-                              </div>
-                              <div className="grid grid-cols-3 gap-4">
-                                <div className="space-y-2">
-                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
-                                  <input value={patientAddress.city} onChange={e => setPatientAddress({ ...patientAddress, city: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
-                                </div>
-                                <div className="space-y-2">
-                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">State</label>
-                                  <input value={patientAddress.state} onChange={e => setPatientAddress({ ...patientAddress, state: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
-                                </div>
-                                <div className="space-y-2">
-                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zip Code</label>
-                                  <input value={patientAddress.postalCode} onChange={e => setPatientAddress({ ...patientAddress, postalCode: e.target.value })}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
-                                </div>
-                              </div>
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-3 mb-2">
+                              <Stethoscope className="w-4 h-4 text-[var(--primary)]" />
+                              <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Visit Type</span>
                             </div>
-                          ) : (
-                            <div className="space-y-3">
-                              <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
-                                <p className="text-sm font-semibold text-[var(--text-primary)]">{patientAddress.street || "No address recorded"}</p>
+                            <div className="flex flex-wrap gap-2">
+                              {[
+                                { id: "INITIAL_HOSPICE_INTAKE", label: "Initial Intake", icon: <Zap className="w-3 h-3" /> },
+                                { id: "ROUTINE_SYMPTOM_MANAGEMENT", label: "Routine Management", icon: <Activity className="w-3 h-3" /> },
+                                { id: "BEREAVEMENT_FOLLOW_UP", label: "Bereavement", icon: <Shield className="w-3 h-3" /> },
+                                { id: "EMERGENCY_TRIAGE", label: "Emergency", icon: <AlertCircle className="w-3 h-3" /> },
+                                { id: "ADVANCE_CARE_PLANNING", label: "Advance Care", icon: <Target className="w-3 h-3" /> },
+                                { id: "SPIRITUAL_ASSESSMENT", label: "Spiritual", icon: <Activity className="w-3 h-3" /> },
+                                { id: "PSYCHOSOCIAL_ASSESSMENT", label: "Psychosocial", icon: <Users className="w-3 h-3" /> },
+                              ].map((t) => (
+                                <button key={t.id} type="button" onClick={() => setVisitType(t.id)}
+                                  className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-bold transition-all
+                                          ${visitType === t.id ? "bg-[var(--primary)] border-transparent text-white shadow-lg shadow-[var(--primary-glow)]" : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10"}`}>
+                                  {t.icon}
+                                  {t.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Clock className="w-4 h-4 text-[var(--primary)]" />
+                          <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Time & Duration</span>
+                        </div>
+                        <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-6 space-y-6">
+                          {isBlockMode && (
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Start Time</label>
+                                <div className="flex items-center gap-2">
+                                  <select value={startHour} onChange={e => setStartHour(parseInt(e.target.value))}
+                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all appearance-none cursor-pointer">
+                                    {Array.from({ length: 24 }, (_, i) => (
+                                      <option key={i} value={i} className="bg-[var(--sidebar-bg)]">{i % 12 || 12}:00 {i < 12 ? "AM" : "PM"}</option>
+                                    ))}
+                                  </select>
+                                  <select value={startMinute} onChange={e => setStartMinute(parseInt(e.target.value))}
+                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all appearance-none cursor-pointer">
+                                    {[0, 15, 30, 45].map(m => (
+                                      <option key={m} value={m} className="bg-[var(--sidebar-bg)]">{m.toString().padStart(2, '0')}</option>
+                                    ))}
+                                  </select>
+                                </div>
                               </div>
-                              <div className="grid grid-cols-3 gap-4">
-                                <div className="space-y-1">
-                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
-                                  <p className="text-[13px] font-medium text-[var(--text-secondary)]">{patientAddress.city || "--"}</p>
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">State</label>
-                                  <p className="text-[13px] font-medium text-[var(--text-secondary)]">{patientAddress.state || "--"}</p>
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zip Code</label>
-                                  <p className="text-[13px] font-medium text-[var(--text-secondary)]">{patientAddress.postalCode || "--"}</p>
-                                </div>
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Duration (Min)</label>
+                                <input type="number" step="15" min="15" value={duration} onChange={e => setDuration(parseInt(e.target.value))}
+                                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
                               </div>
                             </div>
                           )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Activity className="w-4 h-4 text-[var(--primary)]" />
-                          <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Visit Modality</span>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-                          {[
-                            { id: "IN_PERSON_HOME_VISIT", label: "Home Visit", icon: <Home className="w-3.5 h-3.5" /> },
-                            { id: "IN_PERSON_FACILITY", label: "Facility", icon: <Building2 className="w-3.5 h-3.5" /> },
-                            { id: "TELEHEALTH_VIDEO", label: "Video Call", icon: <Video className="w-3.5 h-3.5" /> },
-                            { id: "TELEPHONE", label: "Audio Only", icon: <Phone className="w-3.5 h-3.5" /> },
-                          ].map((m) => (
-                            <button key={m.id} type="button" onClick={() => { setModality(m.id); setPeriod(null); }}
-                              className={`flex flex-col items-center justify-center gap-1.5 px-3 py-3 rounded-xl border text-[10px] font-bold transition-all
-                                      ${modality === m.id ? "bg-[var(--primary)] border-transparent text-white shadow-lg shadow-[var(--primary-glow)]" : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10"}`}>
-                              {React.cloneElement(m.icon as React.ReactElement, { className: "w-4 h-4 shrink-0" })}
-                              {m.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 mb-2">
-                          <Stethoscope className="w-4 h-4 text-[var(--primary)]" />
-                          <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Visit Type</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {[
-                            { id: "INITIAL_HOSPICE_INTAKE", label: "Initial Intake", icon: <Zap className="w-3 h-3" /> },
-                            { id: "ROUTINE_SYMPTOM_MANAGEMENT", label: "Routine Management", icon: <Activity className="w-3 h-3" /> },
-                            { id: "BEREAVEMENT_FOLLOW_UP", label: "Bereavement", icon: <Shield className="w-3 h-3" /> },
-                            { id: "EMERGENCY_TRIAGE", label: "Emergency", icon: <AlertCircle className="w-3 h-3" /> },
-                            { id: "ADVANCE_CARE_PLANNING", label: "Advance Care", icon: <Target className="w-3 h-3" /> },
-                            { id: "SPIRITUAL_ASSESSMENT", label: "Spiritual", icon: <Activity className="w-3 h-3" /> },
-                            { id: "PSYCHOSOCIAL_ASSESSMENT", label: "Psychosocial", icon: <Users className="w-3 h-3" /> },
-                          ].map((t) => (
-                            <button key={t.id} type="button" onClick={() => setVisitType(t.id)}
-                              className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-bold transition-all
-                                      ${visitType === t.id ? "bg-[var(--primary)] border-transparent text-white shadow-lg shadow-[var(--primary-glow)]" : "bg-white/5 border-white/10 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10"}`}>
-                              {t.icon}
-                              {t.label}
-                            </button>
-                          ))}
                         </div>
                       </div>
                     </div>
                   )}
                 </section>
 
-                {!patientId || !period ? (
+                {!isBlockMode && (!patientId || !period) ? (
                   <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-3xl bg-white/[0.01]">
                     <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6">
                       <Search className="w-8 h-8 text-[var(--text-muted)] opacity-30" />
@@ -743,7 +870,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">02</span>
-                          <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Clinical Lead Assignment</h3>
+                          <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">{isBlockMode ? "Assign Clinician" : "Clinical Lead Assignment"}</h3>
                         </div>
                         <div className="relative group">
                           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
@@ -880,59 +1007,61 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         </div>
                       </div>
                     </section>
-                    <section className="space-y-6">
-                      <div className="flex items-center gap-4">
-                        <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">04</span>
-                        <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Palliative Assessment Selection</h3>
-                        <div className="flex-1 h-px bg-[var(--card-border)]" />
-                      </div>
+                    {!isBlockMode && (
+                      <section className="space-y-6">
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">04</span>
+                          <h3 className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">Palliative Assessment Selection</h3>
+                          <div className="flex-1 h-px bg-[var(--card-border)]" />
+                        </div>
 
-                      <div className="space-y-8 pb-10">
-                        {ASSESSMENT_OPTIONS.map((cat) => (
-                          <div key={cat.category} className="space-y-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 bg-[var(--primary)]/10 rounded-lg text-[var(--primary)]">
-                                {cat.icon}
+                        <div className="space-y-8 pb-10">
+                          {ASSESSMENT_OPTIONS.map((cat) => (
+                            <div key={cat.category} className="space-y-4">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-[var(--primary)]/10 rounded-lg text-[var(--primary)]">
+                                  {cat.icon}
+                                </div>
+                                <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{cat.category}</span>
                               </div>
-                              <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{cat.category}</span>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {cat.items.map((item) => {
-                                const isSelected = plannedAssessments.includes(item.id);
-                                return (
-                                  <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setPlannedAssessments(prev =>
-                                        isSelected ? prev.filter(id => id !== item.id) : [...prev, item.id]
-                                      );
-                                    }}
-                                    className={`flex flex-col p-3 rounded-xl border text-left transition-all group
-                                      ${isSelected
-                                        ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm"
-                                        : "bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/[0.07]"}`}
-                                  >
-                                    <div className="flex items-center justify-between mb-1.5">
-                                      <span className={`text-xs font-bold ${isSelected ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
-                                        {item.label}
-                                      </span>
-                                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all
-                                        ${isSelected ? "bg-[var(--primary)] border-transparent" : "border-white/20 group-hover:border-white/40"}`}>
-                                        {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {cat.items.map((item) => {
+                                  const isSelected = plannedAssessments.includes(item.id);
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      onClick={() => {
+                                        setPlannedAssessments(prev =>
+                                          isSelected ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                                        );
+                                      }}
+                                      className={`flex flex-col p-3 rounded-xl border text-left transition-all group
+                                        ${isSelected
+                                          ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 shadow-sm"
+                                          : "bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/[0.07]"}`}
+                                    >
+                                      <div className="flex items-center justify-between mb-1.5">
+                                        <span className={`text-xs font-bold ${isSelected ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                                          {item.label}
+                                        </span>
+                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all
+                                          ${isSelected ? "bg-[var(--primary)] border-transparent" : "border-white/20 group-hover:border-white/40"}`}>
+                                          {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                                        </div>
                                       </div>
-                                    </div>
-                                    <p className="text-[10px] font-medium text-[var(--text-muted)] leading-tight">
-                                      {item.fullName || item.description}
-                                    </p>
-                                  </button>
-                                );
-                              })}
+                                      <p className="text-[10px] font-medium text-[var(--text-muted)] leading-tight">
+                                        {item.fullName || item.description}
+                                      </p>
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
+                          ))}
+                        </div>
+                      </section>
+                    )}
                   </div>
                 )}
               </form>

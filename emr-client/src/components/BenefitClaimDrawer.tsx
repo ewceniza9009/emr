@@ -1,8 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { X, Search, FileText, CheckCircle2, AlertCircle, DollarSign, CreditCard } from "lucide-react";
+import { useSettings } from "@/lib/SettingsContext";
 
 const GET_PATIENTS = gql`
   query GetPatients {
@@ -55,6 +56,7 @@ interface Props {
 }
 
 export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialData }: Props) {
+  const { formatCurrency } = useSettings();
   const [selectedPatientId, setSelectedPatientId] = useState(initialData?.patientId || "");
   const [philhealthNumber, setPhilhealthNumber] = useState(initialData?.philhealthNumber || "");
   const [selectedPackage, setSelectedPackage] = useState(
@@ -221,7 +223,7 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
                        <h4 className="text-xs font-bold">{pkg.label}</h4>
                     </div>
                     <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
-                      <DollarSign className="w-3 h-3" /> {pkg.amount.toLocaleString()} Coverage
+                      {formatCurrency(pkg.amount)} Coverage
                     </p>
                   </div>
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${

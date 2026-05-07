@@ -2,9 +2,10 @@ using Domain.Common;
 
 namespace Domain.Entities;
 
-public class VitalSign : BaseEntity
+public class VitalSign : BaseEntity, ITenantEntity
 {
     public Guid VitalId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid EncounterId { get; set; }
     public decimal? HeartRate { get; set; }
     public decimal? BloodPressureSystolic { get; set; }

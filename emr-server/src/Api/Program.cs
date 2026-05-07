@@ -48,12 +48,33 @@ builder
         "Bearer",
         options =>
         {
-            options.Authority = builder.Configuration["Jwt:Authority"];
             options.TokenValidationParameters =
                 new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                 {
+                    ValidateIssuer = false,
                     ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
+                        System.Text.Encoding.UTF8.GetBytes(
+                            builder.Configuration["Jwt:Key"]
+                                ?? "SUPER_SECRET_KEY_FOR_DEVELOPMENT_ONLY_123!"
+                        )
+                    ),
                 };
+            options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    var accessToken = context.Request.Query["access_token"];
+                    var path = context.HttpContext.Request.Path;
+                    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                    {
+                        context.Token = accessToken;
+                    }
+                    return Task.CompletedTask;
+                },
+            };
         }
     );
 
@@ -138,9 +159,11 @@ app.MapGraphQL("/graphql");
 app.MapHub<TelemetryHub>("/hubs/telemetry");
 
 // Seed the database
-var wipeDb = builder.Configuration.GetValue<bool>("EMR_WIPE_DB", false);
-var seedDb = builder.Configuration.GetValue<bool>("EMR_SEED_DB", false);
-
-await DbInitializer.InitializeAsync(app.Services, wipeDb, seedDb);
+using (var scope = app.Services.CreateScope())
+{
+    var wipeDb = builder.Configuration.GetValue<bool>("EMR_WIPE_DB", true);
+    var seedDb = builder.Configuration.GetValue<bool>("EMR_SEED_DB", true);
+    await DbInitializer.InitializeAsync(scope.ServiceProvider, wipeDb, seedDb);
+}
 
 app.Run();

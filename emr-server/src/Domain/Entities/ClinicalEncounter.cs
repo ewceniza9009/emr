@@ -3,9 +3,10 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class ClinicalEncounter : BaseEntity
+public class ClinicalEncounter : BaseEntity, ITenantEntity
 {
     public Guid EncounterId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PatientId { get; set; }
     public Guid PractitionerId { get; set; }
     public Guid? AppointmentId { get; set; }

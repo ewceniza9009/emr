@@ -57,4 +57,10 @@ public class SetupQuery
     [UseSorting]
     public IQueryable<IntegrationProfile> GetIntegrationProfiles([Service] IApplicationDbContext context) =>
         context.IntegrationProfiles.AsNoTracking();
+
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<TenantConfiguration> GetTenantConfigurations([Service] IApplicationDbContext context) =>
+        context.TenantConfigurations.AsNoTracking();
 }

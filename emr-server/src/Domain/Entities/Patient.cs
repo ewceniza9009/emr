@@ -3,9 +3,10 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class Patient : BaseEntity
+public class Patient : BaseEntity, ITenantEntity
 {
     public Guid PatientId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; } // Multi-tenant isolation key
     public string? ExternalId { get; set; } // For Elation/CareSource Mapping
     public string Mrn { get; set; } = string.Empty;
     public string FirstName { get; set; } = string.Empty;
@@ -21,10 +22,9 @@ public class Patient : BaseEntity
     public string? Nationality { get; set; }
     public string? Language { get; set; }
     public bool IsActive { get; set; } = true;
+
     // Navigation Properties
     public ICollection<EntityAddress> Addresses { get; set; } = new List<EntityAddress>();
-
-
 
     public Guid? HealthPlanId { get; set; }
     public Guid? FacilityId { get; set; }
@@ -34,7 +34,8 @@ public class Patient : BaseEntity
 
     public HealthPlan? HealthPlan { get; set; }
     public Facility? Facility { get; set; }
-    public ICollection<AdvanceDirective> AdvanceDirectives { get; set; } = new List<AdvanceDirective>();
+    public ICollection<AdvanceDirective> AdvanceDirectives { get; set; } =
+        new List<AdvanceDirective>();
     public ICollection<EsasAssessment> EsasAssessments { get; set; } = new List<EsasAssessment>();
 
     // Navigation Properties
@@ -42,10 +43,16 @@ public class Patient : BaseEntity
     public ICollection<PatientEmail> Emails { get; set; } = new List<PatientEmail>();
     public ICollection<PatientContact> Contacts { get; set; } = new List<PatientContact>();
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
-    public ICollection<PatientDocument> PatientDocuments { get; set; } = new List<PatientDocument>();
+    public ICollection<PatientDocument> PatientDocuments { get; set; } =
+        new List<PatientDocument>();
     public ICollection<ClinicalEncounter> Encounters { get; set; } = new List<ClinicalEncounter>();
 
-    public static Patient CreateFromOutreach(PatientOutreach outreach, string mrn, Guid healthPlanId, DateTimeOffset createdAt)
+    public static Patient CreateFromOutreach(
+        PatientOutreach outreach,
+        string mrn,
+        Guid healthPlanId,
+        DateTimeOffset createdAt
+    )
     {
         return new Patient
         {
@@ -62,31 +69,49 @@ public class Patient : BaseEntity
                         City = outreach.MailingAddress.City,
                         State = outreach.MailingAddress.State,
                         PostalCode = outreach.MailingAddress.PostalCode,
-                        Country = outreach.MailingAddress.Country
+                        Country = outreach.MailingAddress.Country,
                     },
                     Type = AddressType.Home,
-                    IsPrimary = true
-                }
+                    IsPrimary = true,
+                },
             },
             HealthPlanId = healthPlanId,
             CreatedAt = createdAt,
-            Phones = outreach.PrimaryPhone != null ? new List<PatientPhone> 
-            { 
-                new PatientPhone { PhoneNumber = outreach.PrimaryPhone, Type = AddressType.Mobile, IsPrimary = true } 
-            } : new List<PatientPhone>(),
-            Emails = outreach.PrimaryEmail != null ? new List<PatientEmail> 
-            { 
-                new PatientEmail { EmailAddress = outreach.PrimaryEmail, Type = AddressType.Home, IsPrimary = true } 
-            } : new List<PatientEmail>(),
-            Contacts = outreach.OtherContacts.Select(c => new PatientContact
-            {
-                FirstName = c.FirstName,
-                LastName = c.LastName,
-                Relationship = c.Relationship,
-                PhoneNumber = c.PhoneNumber ?? string.Empty,
-                Email = c.Email ?? string.Empty,
-                IsPrimaryContact = c.IsPrimaryContact
-            }).ToList()
+            Phones =
+                outreach.PrimaryPhone != null
+                    ? new List<PatientPhone>
+                    {
+                        new PatientPhone
+                        {
+                            PhoneNumber = outreach.PrimaryPhone,
+                            Type = AddressType.Mobile,
+                            IsPrimary = true,
+                        },
+                    }
+                    : new List<PatientPhone>(),
+            Emails =
+                outreach.PrimaryEmail != null
+                    ? new List<PatientEmail>
+                    {
+                        new PatientEmail
+                        {
+                            EmailAddress = outreach.PrimaryEmail,
+                            Type = AddressType.Home,
+                            IsPrimary = true,
+                        },
+                    }
+                    : new List<PatientEmail>(),
+            Contacts = outreach
+                .OtherContacts.Select(c => new PatientContact
+                {
+                    FirstName = c.FirstName,
+                    LastName = c.LastName,
+                    Relationship = c.Relationship,
+                    PhoneNumber = c.PhoneNumber ?? string.Empty,
+                    Email = c.Email ?? string.Empty,
+                    IsPrimaryContact = c.IsPrimaryContact,
+                })
+                .ToList(),
         };
     }
 }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery, gql } from "@apollo/client";
 import {
@@ -18,6 +18,7 @@ import {
   X
 } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
+import { useSettings } from "@/lib/SettingsContext";
 import { useState } from "react";
 import Link from "next/link";
 import BenefitClaimDrawer from "@/components/BenefitClaimDrawer";
@@ -82,6 +83,7 @@ const GET_CLAIM_HISTORY = gql`
 
 export default function BillingPage() {
   const { showToast } = useToast();
+  const { formatCurrency } = useSettings();
   const [statusFilter, setStatusFilter] = useState("All");
   const [periodFilter, setPeriodFilter] = useState("All Time");
   const [searchTerm, setSearchTerm] = useState("");
@@ -131,7 +133,7 @@ export default function BillingPage() {
   const stats = [
     {
       label: "Total Receivables",
-      value: `$${invoices.reduce((acc: number, inv: any) => acc + (inv.status !== 'Cancelled' ? inv.patientResponsibility : 0), 0).toLocaleString()}`,
+      value: formatCurrency(invoices.reduce((acc: number, inv: any) => acc + (inv.status !== 'Cancelled' ? inv.patientResponsibility : 0), 0)),
       icon: TrendingUp,
       trend: "+8.2%",
       desc: "Outstanding Balances"
@@ -145,7 +147,7 @@ export default function BillingPage() {
     },
     {
       label: "Benefit Coverage",
-      value: `$${claims.filter((c: any) => c.status === "Paid").reduce((acc: number, c: any) => acc + c.totalAmount, 0).toLocaleString()}`,
+      value: formatCurrency(claims.filter((c: any) => c.status === "Paid").reduce((acc: number, c: any) => acc + c.totalAmount, 0)),
       icon: CheckCircle2,
       trend: "100%",
       desc: "Released Funds"
@@ -346,7 +348,7 @@ export default function BillingPage() {
                       </span>
                     </td>
                     <td className="py-5 px-4 text-right">
-                      <p className="text-sm font-black tracking-tight">${invoice.patientResponsibility.toLocaleString()}</p>
+                      <p className="text-sm font-black tracking-tight">{formatCurrency(invoice.patientResponsibility)}</p>
                       <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Settlement Required</p>
                     </td>
                     <td className="py-5 px-4 text-center">
@@ -406,7 +408,7 @@ export default function BillingPage() {
                       </span>
                     </td>
                     <td className="py-5 px-4 text-right">
-                      <p className="text-sm font-black text-[var(--text-primary)]">${claim.totalAmount.toLocaleString()}</p>
+                      <p className="text-sm font-black text-[var(--text-primary)]">{formatCurrency(claim.totalAmount)}</p>
                       <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Expected Release</p>
                     </td>
                     <td className="py-5 px-4 text-center">

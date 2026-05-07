@@ -3,9 +3,10 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class CareNavigationCase : BaseEntity
+public class CareNavigationCase : BaseEntity, ITenantEntity
 {
     public Guid CaseId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PatientId { get; set; }
     public Guid NavigatorId { get; set; }
     public AcuityLevel AcuityLevel { get; set; } = AcuityLevel.Moderate;

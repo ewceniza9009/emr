@@ -3,9 +3,10 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class ClinicalNote : BaseEntity
+public class ClinicalNote : BaseEntity, ITenantEntity
 {
     public Guid NoteId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid EncounterId { get; set; }
     public Guid AuthorId { get; set; }
     public NoteType Type { get; set; } = NoteType.Progress;

@@ -3,9 +3,10 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class PatientContact : BaseEntity
+public class PatientContact : BaseEntity, ITenantEntity
 {
     public Guid ContactId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PatientId { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;

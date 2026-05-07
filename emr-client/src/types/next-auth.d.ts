@@ -1,4 +1,4 @@
-﻿import NextAuth, { DefaultSession } from "next-auth";
+import NextAuth, { DefaultSession } from "next-auth";
 import { JWT } from "next-auth/jwt";
 
 declare module "next-auth" {
@@ -9,6 +9,7 @@ declare module "next-auth" {
       roles?: string[];
       token?: string;
       practitionerId?: string;
+      tenantId?: string;
     } & DefaultSession["user"];
   }
 
@@ -18,6 +19,7 @@ declare module "next-auth" {
     roles?: string[];
     token?: string;
     practitionerId?: string;
+    tenantId?: string;
   }
 }
 
@@ -28,6 +30,7 @@ declare module "next-auth/jwt" {
     roles?: string[];
     token?: string;
     practitionerId?: string;
+    tenantId?: string;
   }
 }
 

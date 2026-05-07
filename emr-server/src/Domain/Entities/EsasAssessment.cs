@@ -2,9 +2,10 @@ using Domain.Common;
 
 namespace Domain.Entities;
 
-public class EsasAssessment : BaseEntity
+public class EsasAssessment : BaseEntity, ITenantEntity
 {
     public Guid AssessmentId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PatientId { get; set; }
     public Guid? EncounterId { get; set; }
     

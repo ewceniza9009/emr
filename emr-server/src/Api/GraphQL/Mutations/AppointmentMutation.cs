@@ -54,7 +54,31 @@ public class AppointmentMutation
             cancellationToken
         );
     }
+
+    public async Task<ScheduleBlock> CreateScheduleBlock(
+        CreateScheduleBlockInput input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(
+            new CreateScheduleBlockCommand(
+                input.PractitionerId,
+                input.StartTime,
+                input.EndTime,
+                input.Status
+            ),
+            cancellationToken
+        );
+    }
 }
+
+public record CreateScheduleBlockInput(
+    Guid PractitionerId,
+    DateTimeOffset StartTime,
+    DateTimeOffset EndTime,
+    ScheduleBlockStatus Status = ScheduleBlockStatus.Blocked
+);
 
 public record BookAppointmentInput(
     Guid PatientId,

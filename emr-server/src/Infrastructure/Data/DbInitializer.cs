@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.Common.Utils;
 using Bogus;
 using Domain.Entities;
@@ -15,26 +16,68 @@ namespace Infrastructure.Data
             "c79b9090-6725-460d-8531-1554c46f6f96"
         );
 
+        private static readonly Guid defaultTenantId = new Guid(
+            "a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0"
+        );
+
         public static async Task InitializeAsync(
             IServiceProvider serviceProvider,
             bool wipeDb = true,
             bool seedDb = true
         )
         {
-            // FORCE WIPE FOR SYNCHRONIZATION
-            wipeDb = true;
-            seedDb = true;
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            // SOLID INFRASTRUCTURE: Always ensure migrations are applied before anything else
+            await context.Database.MigrateAsync();
+
+            // SCHEMA INTEGRITY: Explicitly verify and fix core clinical columns to prevent crashes
+            var integrityFixes = new[] 
+            { 
+                "ALTER TABLE schedule_blocks ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL;",
+                "ALTER TABLE schedule_blocks ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;",
+                "ALTER TABLE schedule_blocks ADD COLUMN IF NOT EXISTS created_by TEXT;",
+                "ALTER TABLE schedule_blocks ADD COLUMN IF NOT EXISTS updated_by TEXT;",
+                "ALTER TABLE schedule_blocks ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE NOT NULL;",
+                "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL;",
+                "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE NOT NULL;"
+            };
+
+            foreach (var sql in integrityFixes)
+            {
+                try { await context.Database.ExecuteSqlRawAsync(sql); } catch { /* Ignore if already handled */ }
+            }
+
+            // Check if identity is already initialized to avoid unnecessary wipes
+            var isInitialized = await context.Users.AnyAsync();
+            if (isInitialized && !wipeDb)
+            {
+                // Identity exists, skip full initialization but still sync tenants
+                await SeedIdentityAsync(
+                    context,
+                    scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
+                    scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>()
+                );
+
+                if (seedDb && !await context.Patients.IgnoreQueryFilters().AnyAsync())
+                {
+                    await SeedDatabaseAsync(context);
+                }
+                return;
+            }
             var userManager = scope.ServiceProvider.GetRequiredService<
                 UserManager<ApplicationUser>
             >();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            // Ensure the database is up to date with all migrations before wiping or seeding
-            await context.Database.MigrateAsync();
+            // WIPE logic moved after migration to ensure we are wiping the correct schema
+            if (wipeDb)
+            {
+                await WipeDatabaseAsync(context);
+            }
 
-            // RESILIENCE: Drop the PascalCase shadow column that sometimes gets orphaned in spiritual_assessments
+            // RESILIENCE: Drop the PascalCase shadow column that sometimes gets orphaned
             try
             {
                 await context.Database.ExecuteSqlRawAsync(
@@ -95,6 +138,54 @@ namespace Infrastructure.Data
                 }
             }
 
+            // Seed Default Tenant Configuration
+            if (
+                !await context
+                    .TenantConfigurations.IgnoreQueryFilters()
+                    .AnyAsync(t => t.TenantId == defaultTenantId)
+            )
+            {
+                context.TenantConfigurations.Add(
+                    new TenantConfiguration
+                    {
+                        TenantId = defaultTenantId,
+                        OrganizationName = "Halcyon Clinical",
+                        Currency = "PHP",
+                        Timezone = "Asia/Manila",
+                        Language = "en",
+                        DateFormat = "MM/DD/YYYY",
+                    }
+                );
+                await context.SaveChangesAsync();
+            }
+
+            // --- UNIVERSAL TENANT SYNCHRONIZATION ---
+            // Ensure EVERY existing user has the correct TenantId and Claim
+            var allUsers = await userManager.Users.ToListAsync();
+            foreach (var user in allUsers)
+            {
+                bool updated = false;
+                if (user.TenantId == null || user.TenantId == Guid.Empty)
+                {
+                    user.TenantId = defaultTenantId;
+                    updated = true;
+                }
+
+                var claims = await userManager.GetClaimsAsync(user);
+                if (!claims.Any(c => c.Type == "tenantId"))
+                {
+                    await userManager.AddClaimAsync(
+                        user,
+                        new Claim("tenantId", defaultTenantId.ToString())
+                    );
+                }
+
+                if (updated)
+                {
+                    await userManager.UpdateAsync(user);
+                }
+            }
+
             // Seed Admin User & Practitioner
             var adminEmail = "admin@palliative.emr";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
@@ -110,6 +201,7 @@ namespace Infrastructure.Data
                     LastName = "Admin",
                     EmailConfirmed = true,
                     PractitionerId = adminPractitionerId,
+                    TenantId = defaultTenantId,
                 };
 
                 var result = await userManager.CreateAsync(adminUser, "P@ssword123!");
@@ -128,9 +220,9 @@ namespace Infrastructure.Data
                 }
             }
 
-            var existingAdminPractitioner = await context.Practitioners.FirstOrDefaultAsync(p =>
-                p.UserId == Guid.Parse(adminUser.Id)
-            );
+            var existingAdminPractitioner = await context
+                .Practitioners.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.UserId == Guid.Parse(adminUser.Id));
 
             if (
                 existingAdminPractitioner != null
@@ -147,14 +239,15 @@ namespace Infrastructure.Data
             {
                 var adminPractitioner = new Practitioner
                 {
-                    PractitionerId = adminUser.PractitionerId ?? adminPractitionerId,
-                    UserId = Guid.Parse(adminUser.Id),
+                    PractitionerId = adminPractitionerId,
+                    TenantId = defaultTenantId,
                     FirstName = "System",
-                    LastName = "Admin",
+                    LastName = "Administrator",
+                    UserId = new Guid(adminUser.Id),
+                    Position = PractitionerPosition.Admin,
                     IsActive = true,
                     IsCareNavigator = true,
                     IsSupportingClinician = false,
-                    Position = PractitionerPosition.Admin,
                 };
                 context.Practitioners.Add(adminPractitioner);
             }
@@ -236,6 +329,7 @@ namespace Infrastructure.Data
                         LastName = acc.Last,
                         EmailConfirmed = true,
                         PractitionerId = pId,
+                        TenantId = defaultTenantId,
                     };
 
                     var result = await userManager.CreateAsync(user, "Practitioner@123!");
@@ -258,16 +352,19 @@ namespace Infrastructure.Data
                     }
                 }
 
-                var existingPractitioner = await context.Practitioners
+                var existingPractitioner = await context
+                    .Practitioners.IgnoreQueryFilters()
                     .Include(p => p.Addresses)
                         .ThenInclude(a => a.Address)
-                    .FirstOrDefaultAsync(p =>
-                        p.UserId == Guid.Parse(user.Id)
-                    );
+                    .FirstOrDefaultAsync(p => p.UserId == Guid.Parse(user.Id));
 
                 if (
                     existingPractitioner != null
-                    && (existingPractitioner.PractitionerId == Guid.Empty || existingPractitioner.PractitionerId == Guid.Parse("00000000-0000-0000-0000-000000000000"))
+                    && (
+                        existingPractitioner.PractitionerId == Guid.Empty
+                        || existingPractitioner.PractitionerId
+                            == Guid.Parse("00000000-0000-0000-0000-000000000000")
+                    )
                 )
                 {
                     context.Practitioners.Remove(existingPractitioner);
@@ -280,6 +377,7 @@ namespace Infrastructure.Data
                     var practitioner = new Practitioner
                     {
                         PractitionerId = pId,
+                        TenantId = defaultTenantId,
                         UserId = Guid.Parse(user.Id),
                         FirstName = acc.First,
                         LastName = acc.Last,
@@ -288,13 +386,13 @@ namespace Infrastructure.Data
                         IsSupportingClinician = acc.Role == "Practitioner",
                         Position = acc.Position,
                     };
-                    
+
                     // SEED CLINICAL BASE OPERATIONS
                     // Every clinician needs a primary address for the Geospatial Radar
                     var isCebu = acc.First == "Shaun" || acc.First == "Leonard"; // Simulated regional diversity
                     var city = isCebu ? "Cebu City" : "Quezon City";
                     var state = isCebu ? "Central Visayas" : "Metro Manila";
-                    
+
                     var entityAddr = new EntityAddress
                     {
                         EntityAddressId = Guid.NewGuid(),
@@ -308,10 +406,10 @@ namespace Infrastructure.Data
                             State = state,
                             PostalCode = isCebu ? "6000" : "1100",
                             Latitude = isCebu ? 10.3157 : 14.6760,
-                            Longitude = isCebu ? 123.8854 : 121.0437
-                        }
+                            Longitude = isCebu ? 123.8854 : 121.0437,
+                        },
                     };
-                    
+
                     practitioner.Addresses.Add(entityAddr);
                     context.Practitioners.Add(practitioner);
                 }
@@ -335,14 +433,97 @@ namespace Infrastructure.Data
                             State = state,
                             PostalCode = isCebu ? "6000" : "1100",
                             Latitude = isCebu ? 10.3157 : 14.6760,
-                            Longitude = isCebu ? 123.8854 : 121.0437
-                        }
+                            Longitude = isCebu ? 123.8854 : 121.0437,
+                        },
                     };
                     existingPractitioner.Addresses.Add(entityAddr);
                 }
             }
 
             await context.SaveChangesAsync(default);
+
+            // Seed Schedule Blocks for the next 7 days
+            await SeedScheduleBlocksAsync(context, defaultTenantId);
+        }
+
+        private static async Task SeedScheduleBlocksAsync(
+            ApplicationDbContext context,
+            Guid tenantId
+        )
+        {
+            if (await context.ScheduleBlocks.IgnoreQueryFilters().AnyAsync())
+                return;
+
+            var practitioners = await context.Practitioners.IgnoreQueryFilters().ToListAsync();
+            var startDate = DateTimeOffset.UtcNow.Date;
+
+            foreach (var practitioner in practitioners)
+            {
+                for (int i = 0; i < 7; i++)
+                {
+                    var date = startDate.AddDays(i);
+
+                    // Morning Shift: 08:00 - 12:00
+                    context.ScheduleBlocks.Add(
+                        new ScheduleBlock
+                        {
+                            BlockId = Guid.NewGuid(),
+                            TenantId = tenantId,
+                            PractitionerId = practitioner.PractitionerId,
+                            StartTime = new DateTimeOffset(
+                                date.Year,
+                                date.Month,
+                                date.Day,
+                                8,
+                                0,
+                                0,
+                                TimeSpan.Zero
+                            ),
+                            EndTime = new DateTimeOffset(
+                                date.Year,
+                                date.Month,
+                                date.Day,
+                                12,
+                                0,
+                                0,
+                                TimeSpan.Zero
+                            ),
+                            Status = ScheduleBlockStatus.Available,
+                        }
+                    );
+
+                    // Afternoon Shift: 13:00 - 17:00
+                    context.ScheduleBlocks.Add(
+                        new ScheduleBlock
+                        {
+                            BlockId = Guid.NewGuid(),
+                            TenantId = tenantId,
+                            PractitionerId = practitioner.PractitionerId,
+                            StartTime = new DateTimeOffset(
+                                date.Year,
+                                date.Month,
+                                date.Day,
+                                13,
+                                0,
+                                0,
+                                TimeSpan.Zero
+                            ),
+                            EndTime = new DateTimeOffset(
+                                date.Year,
+                                date.Month,
+                                date.Day,
+                                17,
+                                0,
+                                0,
+                                TimeSpan.Zero
+                            ),
+                            Status = ScheduleBlockStatus.Available,
+                        }
+                    );
+                }
+            }
+
+            await context.SaveChangesAsync();
         }
 
         public static async Task WipeDatabaseAsync(ApplicationDbContext context)
@@ -376,7 +557,7 @@ namespace Infrastructure.Data
             var faker = new Faker();
 
             // Fetch practitioners seeded in Identity phase
-            var allPractitioners = await context.Practitioners.ToListAsync();
+            var allPractitioners = await context.Practitioners.IgnoreQueryFilters().ToListAsync();
             var practitioners = allPractitioners
                 .Where(p => p.PractitionerId != Guid.Empty)
                 .ToList();
@@ -395,7 +576,7 @@ namespace Infrastructure.Data
             var practitionerIds = practitioners.Select(p => p.PractitionerId).ToList();
 
             // Guard for Patient Seeding
-            if (!await context.Patients.AnyAsync())
+            if (!await context.Patients.IgnoreQueryFilters().AnyAsync())
             {
                 // ==========================================
                 // SETUP TABLES (5 Records Each)
@@ -403,6 +584,7 @@ namespace Infrastructure.Data
 
                 var healthPlans = new Faker<HealthPlan>()
                     .RuleFor(x => x.HealthPlanId, Guid.NewGuid)
+                    .RuleFor(x => x.TenantId, defaultTenantId)
                     .RuleFor(x => x.Name, f => f.Company.CompanyName() + " Health")
                     .RuleFor(x => x.Code, f => f.Random.String2(5))
                     .Generate(5);
@@ -410,6 +592,7 @@ namespace Infrastructure.Data
 
                 var facilities = new Faker<Facility>()
                     .RuleFor(x => x.FacilityId, Guid.NewGuid)
+                    .RuleFor(x => x.TenantId, defaultTenantId)
                     .RuleFor(x => x.Name, f => f.Company.CompanyName() + " Medical Center")
                     .RuleFor(x => x.Type, f => f.PickRandom<FacilityType>())
                     .Generate(5);
@@ -417,6 +600,7 @@ namespace Infrastructure.Data
 
                 var dme = new Faker<DurableMedicalEquipment>()
                     .RuleFor(x => x.EquipmentId, Guid.NewGuid)
+                    .RuleFor(x => x.TenantId, defaultTenantId)
                     .RuleFor(
                         x => x.SerialNumber,
                         f => $"SN-{f.IndexGlobal}-{f.Random.AlphaNumeric(5)}"
@@ -553,7 +737,8 @@ namespace Infrastructure.Data
                 // TRANSACTIONAL TABLES (10 Records Each)
                 // ==========================================
                 var patients = new Faker<Patient>()
-                    .RuleFor(p => p.PatientId, Guid.NewGuid)
+                    .RuleFor(p => p.PatientId, f => Guid.NewGuid())
+                    .RuleFor(p => p.TenantId, f => defaultTenantId)
                     .RuleFor(p => p.FirstName, f => f.Name.FirstName())
                     .RuleFor(p => p.LastName, f => f.Name.LastName())
                     .RuleFor(p => p.Mrn, f => $"MRN-{f.IndexGlobal + 50000}")
@@ -593,6 +778,7 @@ namespace Infrastructure.Data
                         {
                             ContactId = Guid.NewGuid(),
                             PatientId = p.PatientId,
+                            TenantId = defaultTenantId,
                             FirstName = faker.Name.FirstName(),
                             LastName = p.LastName,
                             Relationship = RelationshipType.Spouse,
@@ -611,6 +797,7 @@ namespace Infrastructure.Data
                         {
                             ContactId = Guid.NewGuid(),
                             PatientId = p.PatientId,
+                            TenantId = defaultTenantId,
                             FirstName = faker.Name.FirstName(),
                             LastName = p.LastName,
                             Relationship = RelationshipType.Sibling,
@@ -629,6 +816,7 @@ namespace Infrastructure.Data
                         {
                             ContactId = Guid.NewGuid(),
                             PatientId = p.PatientId,
+                            TenantId = defaultTenantId,
                             FirstName = faker.Name.FirstName(),
                             LastName = faker.Name.LastName(),
                             Relationship = RelationshipType.Lawyer,
@@ -650,6 +838,7 @@ namespace Infrastructure.Data
                     {
                         PatientDocumentId = Guid.NewGuid(),
                         PatientId = c.PatientId,
+                        TenantId = defaultTenantId,
                         PatientContactId = c.ContactId,
                         Title = "Durable Power of Attorney - Legal.pdf",
                         DocumentType = "POA",
@@ -662,14 +851,21 @@ namespace Infrastructure.Data
                 context.PatientDocuments.AddRange(poaDocuments);
 
                 var patientOutreaches = new Faker<PatientOutreach>()
-                    .RuleFor(x => x.PatientOutreachId, Guid.NewGuid)
+                    .RuleFor(x => x.PatientOutreachId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.FirstName, f => f.Name.FirstName())
                     .RuleFor(x => x.LastName, f => f.Name.LastName())
                     .RuleFor(x => x.Status, f => f.PickRandom<OutreachStatus>())
                     .RuleFor(x => x.Disposition, f => f.PickRandom<EnrollmentDisposition>())
-                    .RuleFor(x => x.DateOfBirth, f => f.Date.Past(80, DateTime.UtcNow.AddYears(-20)))
+                    .RuleFor(
+                        x => x.DateOfBirth,
+                        f => f.Date.Past(80, DateTime.UtcNow.AddYears(-20))
+                    )
                     .RuleFor(x => x.BiologicalSex, f => f.PickRandom("Male", "Female"))
-                    .RuleFor(x => x.GenderIdentity, f => f.PickRandom(new[] { "Cisgender", "Non-binary", null }))
+                    .RuleFor(
+                        x => x.GenderIdentity,
+                        f => f.PickRandom(new[] { "Cisgender", "Non-binary", null })
+                    )
                     .RuleFor(x => x.Language, f => f.PickRandom("English", "Spanish", "Tagalog"))
                     .RuleFor(x => x.CivilStatus, f => f.PickRandom("Single", "Married", "Widowed"))
                     .RuleFor(x => x.HealthPlanId, f => f.PickRandom(healthPlans).HealthPlanId)
@@ -718,7 +914,8 @@ namespace Infrastructure.Data
                 await context.SaveChangesAsync(default);
 
                 var outreachContacts = new Faker<OutreachContact>()
-                    .RuleFor(x => x.OutreachContactId, Guid.NewGuid)
+                    .RuleFor(x => x.OutreachContactId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(
                         x => x.PatientOutreachId,
                         (f, u) => f.PickRandom(patientOutreaches).PatientOutreachId
@@ -731,7 +928,8 @@ namespace Infrastructure.Data
                 context.Set<OutreachContact>().AddRange(outreachContacts);
 
                 var outreachActivities = new Faker<OutreachActivity>()
-                    .RuleFor(x => x.OutreachActivityId, Guid.NewGuid)
+                    .RuleFor(x => x.OutreachActivityId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(
                         x => x.OutreachId,
                         (f, u) => f.PickRandom(patientOutreaches).PatientOutreachId
@@ -754,14 +952,16 @@ namespace Infrastructure.Data
                 context.Set<OutreachActivity>().AddRange(outreachActivities);
 
                 var patientPhones = new Faker<PatientPhone>()
-                    .RuleFor(x => x.PhoneId, Guid.NewGuid)
+                    .RuleFor(x => x.PhoneId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.PhoneNumber, f => f.Phone.PhoneNumber())
                     .Generate(10);
                 context.Set<PatientPhone>().AddRange(patientPhones);
 
                 var entityAddresses = new Faker<EntityAddress>()
-                    .RuleFor(x => x.EntityAddressId, Guid.NewGuid)
+                    .RuleFor(x => x.EntityAddressId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(
                         x => x.PatientId,
                         (f, u) => patients[f.IndexFaker % patients.Count].PatientId
@@ -809,14 +1009,16 @@ namespace Infrastructure.Data
                 context.Set<EntityAddress>().AddRange(entityAddresses);
 
                 var patientEmails = new Faker<PatientEmail>()
-                    .RuleFor(x => x.EmailId, Guid.NewGuid)
+                    .RuleFor(x => x.EmailId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.EmailAddress, f => f.Internet.Email())
                     .Generate(10);
                 context.Set<PatientEmail>().AddRange(patientEmails);
 
                 var advanceDirectives = new Faker<AdvanceDirective>()
-                    .RuleFor(x => x.AdvanceDirectiveId, Guid.NewGuid)
+                    .RuleFor(x => x.AdvanceDirectiveId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.Type, f => f.PickRandom<DirectiveType>())
                     .RuleFor(x => x.EffectiveDate, f => f.Date.PastOffset().ToUniversalTime())
@@ -824,7 +1026,8 @@ namespace Infrastructure.Data
                 context.Set<AdvanceDirective>().AddRange(advanceDirectives);
 
                 var diagnosesList = new Faker<Diagnosis>()
-                    .RuleFor(x => x.DiagnosisId, Guid.NewGuid)
+                    .RuleFor(x => x.DiagnosisId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.Icd10Code, f => f.Random.AlphaNumeric(5))
                     .RuleFor(x => x.Description, f => f.Lorem.Sentence())
@@ -832,7 +1035,8 @@ namespace Infrastructure.Data
                 context.Set<Diagnosis>().AddRange(diagnosesList);
 
                 var allergiesList = new Faker<Allergy>()
-                    .RuleFor(x => x.AllergyId, Guid.NewGuid)
+                    .RuleFor(x => x.AllergyId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.Allergen, f => f.Lorem.Word())
                     .RuleFor(x => x.Severity, f => f.PickRandom<SeverityLevel>())
@@ -889,7 +1093,8 @@ namespace Infrastructure.Data
 
                 // Phase 1: System Admin Tactical Roster
                 var adminAppointments = new Faker<Appointment>()
-                    .RuleFor(a => a.AppointmentId, Guid.NewGuid)
+                    .RuleFor(a => a.AppointmentId, f => Guid.NewGuid())
+                    .RuleFor(a => a.TenantId, f => defaultTenantId)
                     .RuleFor(a => a.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(a => a.PractitionerId, adminPrac.PractitionerId)
                     .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
@@ -931,7 +1136,8 @@ namespace Infrastructure.Data
 
                 // Phase 2: General Roster Diversity
                 var otherAppointments = new Faker<Appointment>()
-                    .RuleFor(a => a.AppointmentId, Guid.NewGuid)
+                    .RuleFor(a => a.AppointmentId, f => Guid.NewGuid())
+                    .RuleFor(a => a.TenantId, f => defaultTenantId)
                     .RuleFor(a => a.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(
                         a => a.PractitionerId,
@@ -1003,6 +1209,7 @@ namespace Infrastructure.Data
                     // Allergies
                     var pAllergies = new Faker<Allergy>()
                         .RuleFor(a => a.PatientId, p.PatientId)
+                        .RuleFor(a => a.TenantId, defaultTenantId)
                         .RuleFor(
                             a => a.Allergen,
                             f =>
@@ -1039,6 +1246,7 @@ namespace Infrastructure.Data
                     // Diagnoses (Problem List)
                     var pDiagnoses = new Faker<Diagnosis>()
                         .RuleFor(d => d.PatientId, p.PatientId)
+                        .RuleFor(d => d.TenantId, defaultTenantId)
                         .RuleFor(
                             d => d.Icd10Code,
                             f =>
@@ -1066,6 +1274,7 @@ namespace Infrastructure.Data
                     // Medications (Prescriptions)
                     var pPrescriptions = new Faker<Prescription>()
                         .RuleFor(pr => pr.PatientId, p.PatientId)
+                        .RuleFor(pr => pr.TenantId, defaultTenantId)
                         .RuleFor(pr => pr.MedicationId, f => f.PickRandom(meds).MedicationId)
                         .RuleFor(pr => pr.PrescribedById, f => f.PickRandom(practitionerIds))
                         .RuleFor(
@@ -1084,13 +1293,14 @@ namespace Infrastructure.Data
                 await context.SaveChangesAsync(default);
 
                 // --- CLINICAL HISTORY RECONCILIATION ---
-                if (!await context.ClinicalEncounters.AnyAsync())
+                if (!await context.ClinicalEncounters.IgnoreQueryFilters().AnyAsync())
                 {
                     var allEncounters = new List<ClinicalEncounter>();
                     foreach (var p in patients)
                     {
                         var pEncounters = new Faker<ClinicalEncounter>()
                             .RuleFor(e => e.EncounterId, Guid.NewGuid)
+                            .RuleFor(e => e.TenantId, defaultTenantId)
                             .RuleFor(e => e.PatientId, p.PatientId)
                             .RuleFor(
                                 e => e.PractitionerId,
@@ -1129,6 +1339,7 @@ namespace Infrastructure.Data
                             var v = new VitalSign
                             {
                                 VitalId = Guid.NewGuid(),
+                                TenantId = defaultTenantId,
                                 EncounterId = e.EncounterId,
                                 HeartRate = new Random().Next(60, 110),
                                 BloodPressureSystolic = new Random().Next(105, 150),
@@ -1146,7 +1357,9 @@ namespace Infrastructure.Data
                     await context.SaveChangesAsync(default);
                 }
 
-                var encountersList = await context.ClinicalEncounters.ToListAsync();
+                var encountersList = await context
+                    .ClinicalEncounters.IgnoreQueryFilters()
+                    .ToListAsync();
 
                 var clinicalSummaries = new[]
                 {
@@ -1169,6 +1382,7 @@ namespace Infrastructure.Data
 
                 var notes = new Faker<ClinicalNote>()
                     .RuleFor(n => n.NoteId, Guid.NewGuid)
+                    .RuleFor(n => n.TenantId, defaultTenantId)
                     .RuleFor(n => n.EncounterId, (f, u) => f.PickRandom(encountersList).EncounterId)
                     .RuleFor(n => n.AuthorId, f => f.PickRandom(practitioners).PractitionerId)
                     .RuleFor(n => n.Type, f => f.PickRandom<NoteType>())
@@ -1177,7 +1391,8 @@ namespace Infrastructure.Data
                 context.Set<ClinicalNote>().AddRange(notes);
 
                 var esas = new Faker<EsasAssessment>()
-                    .RuleFor(x => x.AssessmentId, Guid.NewGuid)
+                    .RuleFor(x => x.AssessmentId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(encountersList).EncounterId)
                     .RuleFor(x => x.Pain, f => f.Random.Number(0, 10))
@@ -1194,7 +1409,8 @@ namespace Infrastructure.Data
                 context.Set<EsasAssessment>().AddRange(esas);
 
                 var deliveries = new Faker<EquipmentDelivery>()
-                    .RuleFor(x => x.DeliveryId, Guid.NewGuid)
+                    .RuleFor(x => x.DeliveryId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.EquipmentId, f => f.PickRandom(dme).EquipmentId)
                     .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.Status, f => f.PickRandom<DeliveryStatus>())
@@ -1202,7 +1418,8 @@ namespace Infrastructure.Data
                 context.Set<EquipmentDelivery>().AddRange(deliveries);
 
                 var telemetry = new Faker<TelemetryLog>()
-                    .RuleFor(x => x.LogId, Guid.NewGuid)
+                    .RuleFor(x => x.LogId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.EquipmentId, f => f.PickRandom(dme).EquipmentId)
                     .RuleFor(x => x.Value, f => f.Random.Decimal(1, 100))
                     .RuleFor(x => x.RecordedAt, f => f.Date.RecentOffset().ToUniversalTime())
@@ -1210,7 +1427,8 @@ namespace Infrastructure.Data
                 context.Set<TelemetryLog>().AddRange(telemetry);
 
                 var cases = new Faker<CareNavigationCase>()
-                    .RuleFor(x => x.CaseId, Guid.NewGuid)
+                    .RuleFor(x => x.CaseId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.NavigatorId, f => f.PickRandom(practitioners).PractitionerId)
                     .RuleFor(x => x.Status, f => f.PickRandom<CaseStatus>())
@@ -1220,14 +1438,16 @@ namespace Infrastructure.Data
                 await context.SaveChangesAsync(default);
 
                 var barriers = new Faker<BarrierLog>()
-                    .RuleFor(x => x.BarrierId, Guid.NewGuid)
+                    .RuleFor(x => x.BarrierId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
                     .RuleFor(x => x.BarrierCategory, f => f.Lorem.Word())
                     .Generate(10);
                 context.Set<BarrierLog>().AddRange(barriers);
 
                 var navTasks = new Faker<NavigationTask>()
-                    .RuleFor(x => x.TaskId, Guid.NewGuid)
+                    .RuleFor(x => x.TaskId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
                     .RuleFor(x => x.AssignedToId, f => f.PickRandom(practitioners).PractitionerId)
                     .RuleFor(x => x.Status, f => f.PickRandom<NavigationTaskStatus>())
@@ -1235,14 +1455,16 @@ namespace Infrastructure.Data
                 context.Set<NavigationTask>().AddRange(navTasks);
 
                 var interventions = new Faker<InterventionLog>()
-                    .RuleFor(x => x.InterventionId, Guid.NewGuid)
+                    .RuleFor(x => x.InterventionId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
                     .RuleFor(x => x.ActionTaken, f => f.Lorem.Sentence())
                     .Generate(10);
                 context.Set<InterventionLog>().AddRange(interventions);
 
                 var sdoh = new Faker<SdohAssessment>()
-                    .RuleFor(x => x.SdohId, Guid.NewGuid)
+                    .RuleFor(x => x.SdohId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
                     .RuleFor(x => x.AssessorId, f => f.PickRandom(practitioners).PractitionerId)
                     .Generate(10);
@@ -1257,6 +1479,7 @@ namespace Infrastructure.Data
                             new ProviderShift
                             {
                                 ProviderShiftId = Guid.NewGuid(),
+                                TenantId = defaultTenantId,
                                 PractitionerId = p.PractitionerId,
                                 DayOfWeek = (DayOfWeek)day,
                                 StartTime = new TimeSpan(8, 0, 0),
@@ -1268,7 +1491,8 @@ namespace Infrastructure.Data
                 context.Set<ProviderShift>().AddRange(shifts);
 
                 var licenses = new Faker<PractitionerLicensure>()
-                    .RuleFor(x => x.LicensureId, Guid.NewGuid)
+                    .RuleFor(x => x.LicensureId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
                     .RuleFor(x => x.LicenseNumber, f => f.Random.AlphaNumeric(8))
                     .Generate(10);
@@ -1277,22 +1501,24 @@ namespace Infrastructure.Data
             }
 
             // Fetch patients for RCM seeding (required even if seeding was skipped above)
-            var patientsRegistry = await context.Patients.ToListAsync();
+            var patientsRegistry = await context.Patients.IgnoreQueryFilters().ToListAsync();
             if (!patientsRegistry.Any())
                 return;
 
             var areas = new Faker<PractitionerServiceArea>()
-                .RuleFor(x => x.ServiceAreaId, Guid.NewGuid)
+                .RuleFor(x => x.ServiceAreaId, f => Guid.NewGuid())
+                .RuleFor(x => x.TenantId, f => defaultTenantId)
                 .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
                 .RuleFor(x => x.ZipCode, f => f.Address.ZipCode())
                 .Generate(10);
             context.Set<PractitionerServiceArea>().AddRange(areas);
 
             // --- RCM & BENEFIT SEEDING ---
-            if (!await context.Set<BillingInvoice>().AnyAsync())
+            if (!await context.Set<BillingInvoice>().IgnoreQueryFilters().AnyAsync())
             {
                 var claims = new Faker<ZBenefitClaim>()
-                    .RuleFor(x => x.ClaimId, Guid.NewGuid)
+                    .RuleFor(x => x.ClaimId, f => Guid.NewGuid())
+                    .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, f => f.PickRandom(patientsRegistry).PatientId)
                     .RuleFor(x => x.PhilhealthNumber, f => f.Random.Replace("##-#########-#"))
                     .RuleFor(
@@ -1319,6 +1545,7 @@ namespace Infrastructure.Data
                     var inv = new BillingInvoice
                     {
                         InvoiceId = Guid.NewGuid(),
+                        TenantId = defaultTenantId,
                         PatientId = patient.PatientId,
                         ClaimId = claim?.ClaimId,
                         InvoiceNumber = $"INV-{2026}{faker.Random.Number(1000, 9999)}",
@@ -1383,6 +1610,7 @@ namespace Infrastructure.Data
                 new OutreachScript
                 {
                     ScriptTitle = "Urgent Follow-up Protocol",
+                    TenantId = defaultTenantId,
                     LocationName = "Mandaue City",
                     PostalCode = "84111",
                     Content =
@@ -1393,13 +1621,14 @@ namespace Infrastructure.Data
             context.Set<OutreachScript>().AddRange(scripts);
             await context.SaveChangesAsync(default);
 
-            if (!await context.SmartPhrases.AnyAsync())
+            if (!await context.SmartPhrases.IgnoreQueryFilters().AnyAsync())
             {
                 var phrases = new List<SmartPhrase>
                 {
                     new SmartPhrase
                     {
                         Shortcut = "/hpi",
+                        TenantId = defaultTenantId,
                         Label = "History of Present Illness",
                         TemplateText =
                             "Chief Complaint: \nHistory: \nRelevant Symptoms: \nTimeline: ",
@@ -1452,31 +1681,36 @@ namespace Infrastructure.Data
 
         public static async Task SeedOutreachScriptsAsync(ApplicationDbContext context)
         {
-            if (await context.OutreachScripts.AnyAsync()) return;
+            if (await context.OutreachScripts.IgnoreQueryFilters().AnyAsync())
+                return;
 
             var scripts = new List<OutreachScript>
             {
                 new OutreachScript
                 {
                     OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Standard Intro Protocol",
-                    Content = "Hello {firstName}, I'm calling from Halcyon Health regarding your referral from {referralSource}. I wanted to discuss our specialized clinical programs...",
-                    IsDefault = true
+                    Content =
+                        "Hello {firstName}, I'm calling from Halcyon Health regarding your referral from {referralSource}. I wanted to discuss our specialized clinical programs...",
+                    IsDefault = true,
                 },
                 new OutreachScript
                 {
                     OutreachScriptId = Guid.NewGuid(),
                     ScriptTitle = "Benefits Review Mission",
-                    Content = "Hi {firstName}, we've verified your coverage with your health plan. I'd like to walk through how your benefits align with our mission-critical care model...",
-                    IsDefault = false
+                    Content =
+                        "Hi {firstName}, we've verified your coverage with your health plan. I'd like to walk through how your benefits align with our mission-critical care model...",
+                    IsDefault = false,
                 },
                 new OutreachScript
                 {
                     OutreachScriptId = Guid.NewGuid(),
                     ScriptTitle = "Clinical Triage Assessment",
-                    Content = "Mr./Ms. {lastName}, I'm following up on your clinical intake. We're finalizing your acuity profile and want to ensure your home environment is ready for deployment...",
-                    IsDefault = false
-                }
+                    Content =
+                        "Mr./Ms. {lastName}, I'm following up on your clinical intake. We're finalizing your acuity profile and want to ensure your home environment is ready for deployment...",
+                    IsDefault = false,
+                },
             };
 
             context.OutreachScripts.AddRange(scripts);
@@ -1484,7 +1718,7 @@ namespace Infrastructure.Data
 
         private static async Task SeedQuestionnairesAsync(ApplicationDbContext context)
         {
-            if (await context.Questionnaires.AnyAsync())
+            if (await context.Questionnaires.IgnoreQueryFilters().AnyAsync())
                 return;
 
             // 1. Symptom and Pain
@@ -1493,12 +1727,14 @@ namespace Infrastructure.Data
                 new Questionnaire
                 {
                     Name = "ESAS-R",
+                    TenantId = defaultTenantId,
                     Description = "Edmonton Symptom Assessment System (Revised) - 9-item scale.",
                     AssessmentType = AssessmentType.Esas,
                 },
                 new Questionnaire
                 {
                     Name = "BPI",
+                    TenantId = defaultTenantId,
                     Description =
                         "Brief Pain Inventory - Evaluates pain severity and functional impact.",
                     AssessmentType = AssessmentType.Bpi,
@@ -1506,6 +1742,7 @@ namespace Infrastructure.Data
                 new Questionnaire
                 {
                     Name = "MSAS",
+                    TenantId = defaultTenantId,
                     Description =
                         "Memorial Symptom Assessment Scale - Physical/psychological burden.",
                     AssessmentType = AssessmentType.Msas,
@@ -1513,6 +1750,7 @@ namespace Infrastructure.Data
                 new Questionnaire
                 {
                     Name = "VBPS",
+                    TenantId = defaultTenantId,
                     Description = "Victoria Bowel Performance Scale - Constipation management.",
                     AssessmentType = AssessmentType.VictoriaBowel,
                 },
@@ -1539,6 +1777,7 @@ namespace Infrastructure.Data
                     new Question
                     {
                         Questionnaire = esas,
+                        TenantId = defaultTenantId,
                         Text = esasQuestions[i],
                         Subtext = "0 = No Symptom | 10 = Worst Possible",
                         Type = QuestionType.Scale,
@@ -1553,6 +1792,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = bpi,
+                    TenantId = defaultTenantId,
                     Text = "Worst pain in last 24 hours",
                     Subtext = "0 (No Pain) - 10 (Worst)",
                     Type = QuestionType.Scale,
@@ -1563,6 +1803,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = bpi,
+                    TenantId = defaultTenantId,
                     Text = "Average pain in last 24 hours",
                     Subtext = "0 (No Pain) - 10 (Worst)",
                     Type = QuestionType.Scale,
@@ -1576,6 +1817,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = vbps,
+                    TenantId = defaultTenantId,
                     Text = "Bowel movement frequency",
                     OptionsJson =
                         "[\"Regular\", \"Decreased\", \"Constipated\", \"No BM > 3 days\"]",
@@ -1590,6 +1832,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = msas,
+                    TenantId = defaultTenantId,
                     Text = "Physical Symptom Burden",
                     Subtext = "Frequency/Severity of physical symptoms",
                     Type = QuestionType.Scale,
@@ -1600,6 +1843,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = msas,
+                    TenantId = defaultTenantId,
                     Text = "Psychological Symptom Burden",
                     Subtext = "Distress from psychological symptoms",
                     Type = QuestionType.Scale,
@@ -1613,12 +1857,14 @@ namespace Infrastructure.Data
                 new Questionnaire
                 {
                     Name = "PPSv2",
+                    TenantId = defaultTenantId,
                     Description = "Palliative Performance Scale - Functional Assessment.",
                     AssessmentType = AssessmentType.Pps,
                 },
                 new Questionnaire
                 {
                     Name = "KPS",
+                    TenantId = defaultTenantId,
                     Description =
                         "Karnofsky Performance Scale - Functional impairment classification (0-100).",
                     AssessmentType = AssessmentType.Kps,
@@ -1626,12 +1872,14 @@ namespace Infrastructure.Data
                 new Questionnaire
                 {
                     Name = "ECOG",
+                    TenantId = defaultTenantId,
                     Description = "Eastern Cooperative Oncology Group Performance Status.",
                     AssessmentType = AssessmentType.Ecog,
                 },
                 new Questionnaire
                 {
                     Name = "FAST",
+                    TenantId = defaultTenantId,
                     Description = "Functional Assessment Staging Tool - Dementia progression.",
                     AssessmentType = AssessmentType.Fast,
                 },
@@ -1674,6 +1922,7 @@ namespace Infrastructure.Data
                     new Question
                     {
                         Questionnaire = pps,
+                        TenantId = defaultTenantId,
                         Text = ppsQuestions[i].T,
                         Type = QuestionType.MultipleChoice,
                         OptionsJson = ppsQuestions[i].O,
@@ -1688,6 +1937,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = kps,
+                    TenantId = defaultTenantId,
                     Text = "Karnofsky Performance Status",
                     OptionsJson =
                         "[\"100% - Normal\", \"90% - Minor Symptoms\", \"80% - Effort required\", \"70% - Unable to carry on normal activity\", \"60% - Requires occasional assistance\", \"50% - Requires considerable assistance\", \"40% - Disabled\", \"30% - Severely disabled\", \"20% - Very sick\", \"10% - Moribund\", \"0% - Dead\"]",
@@ -1702,6 +1952,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = ecog,
+                    TenantId = defaultTenantId,
                     Text = "Performance Status",
                     OptionsJson =
                         "[\"0 - Fully Active\", \"1 - Restricted Heavy Labor\", \"2 - Capable of Self-Care\", \"3 - Limited Self-Care\", \"4 - Completely Disabled\", \"5 - Dead\"]",
@@ -1716,6 +1967,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = fast,
+                    TenantId = defaultTenantId,
                     Text = "Functional Staging",
                     OptionsJson =
                         "[\"Stage 1 - Normal\", \"Stage 2 - Subjective Deficit\", \"Stage 3 - Early AD\", \"Stage 4 - Mild AD\", \"Stage 5 - Moderate AD\", \"Stage 6 - Moderately Severe AD\", \"Stage 7 - Severe AD\"]",
@@ -1730,18 +1982,21 @@ namespace Infrastructure.Data
                 new Questionnaire
                 {
                     Name = "HADS",
+                    TenantId = defaultTenantId,
                     Description = "Hospital Anxiety and Depression Scale.",
                     AssessmentType = AssessmentType.Hads,
                 },
                 new Questionnaire
                 {
                     Name = "PHQ-9",
+                    TenantId = defaultTenantId,
                     Description = "Patient Health Questionnaire-9 Depression Screening.",
                     AssessmentType = AssessmentType.Phq9,
                 },
                 new Questionnaire
                 {
                     Name = "MMSE-MoCA",
+                    TenantId = defaultTenantId,
                     Description = "Cognitive Assessment - Impairment and decision capacity.",
                     AssessmentType = AssessmentType.MmseMoca,
                 },
@@ -1754,6 +2009,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = hads,
+                    TenantId = defaultTenantId,
                     Text = "Anxiety Score",
                     Subtext = "Combined score (0-21)",
                     Type = QuestionType.Scale,
@@ -1764,6 +2020,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = hads,
+                    TenantId = defaultTenantId,
                     Text = "Depression Score",
                     Subtext = "Combined score (0-21)",
                     Type = QuestionType.Scale,
@@ -1793,6 +2050,7 @@ namespace Infrastructure.Data
                     new Question
                     {
                         Questionnaire = phq9,
+                        TenantId = defaultTenantId,
                         Text = phq9Questions[i],
                         Type = QuestionType.MultipleChoice,
                         OptionsJson = phq9Options,
@@ -1807,6 +2065,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = mmse,
+                    TenantId = defaultTenantId,
                     Text = "Orientation to Time & Place",
                     OptionsJson =
                         "[\"Intact\", \"Mild Impairment\", \"Moderate Impairment\", \"Severe Impairment\"]",
@@ -1818,6 +2077,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = mmse,
+                    TenantId = defaultTenantId,
                     Text = "Memory Recall (3 items)",
                     OptionsJson =
                         "[\"3 items recall\", \"2 items recall\", \"1 item recall\", \"0 items recall\"]",
@@ -1832,12 +2092,14 @@ namespace Infrastructure.Data
                 new Questionnaire
                 {
                     Name = "MQOL",
+                    TenantId = defaultTenantId,
                     Description = "McGill Quality of Life Questionnaire.",
                     AssessmentType = AssessmentType.Mqol,
                 },
                 new Questionnaire
                 {
                     Name = "FACIT-PAL",
+                    TenantId = defaultTenantId,
                     Description = "Functional Assessment of Chronic Illness Therapy.",
                     AssessmentType = AssessmentType.FacitPal,
                 },
@@ -1847,6 +2109,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = qolInstruments[0],
+                    TenantId = defaultTenantId,
                     Text = "Overall Quality of Life",
                     Subtext = "How would you rate your life quality over the past 2 days?",
                     Type = QuestionType.Scale,
@@ -1857,6 +2120,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = qolInstruments[1],
+                    TenantId = defaultTenantId,
                     Text = "Functional Well-being Score",
                     Subtext = "FACIT-Pal standardized score",
                     Type = QuestionType.Scale,
@@ -1870,12 +2134,14 @@ namespace Infrastructure.Data
                 new Questionnaire
                 {
                     Name = "FICA",
+                    TenantId = defaultTenantId,
                     Description = "FICA Spiritual History Tool.",
                     AssessmentType = AssessmentType.Fica,
                 },
                 new Questionnaire
                 {
                     Name = "HOPE",
+                    TenantId = defaultTenantId,
                     Description = "HOPE Questions - Meaning and practices.",
                     AssessmentType = AssessmentType.Hope,
                 },
@@ -1913,6 +2179,7 @@ namespace Infrastructure.Data
                     new Question
                     {
                         Questionnaire = fica,
+                        TenantId = defaultTenantId,
                         Text = ficaQuestions[i].T,
                         Subtext = ficaQuestions[i].S,
                         Type = QuestionType.Text,
@@ -1927,6 +2194,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = hope,
+                    TenantId = defaultTenantId,
                     Text = "Sources of Hope, meaning, comfort, strength",
                     Type = QuestionType.Text,
                     Order = 0,
@@ -1936,6 +2204,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = hope,
+                    TenantId = defaultTenantId,
                     Text = "Organized religion / Personal spirituality",
                     Type = QuestionType.Text,
                     Order = 1,
@@ -1948,12 +2217,14 @@ namespace Infrastructure.Data
                 new Questionnaire
                 {
                     Name = "PPI",
+                    TenantId = defaultTenantId,
                     Description = "Palliative Prognostic Index.",
                     AssessmentType = AssessmentType.Ppi,
                 },
                 new Questionnaire
                 {
                     Name = "PaP",
+                    TenantId = defaultTenantId,
                     Description = "Palliative Prognostic Score.",
                     AssessmentType = AssessmentType.Pap,
                 },
@@ -1963,6 +2234,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = prognosticInstruments[0],
+                    TenantId = defaultTenantId,
                     Text = "Estimated survival (clinician prediction)",
                     Subtext = "Predict based on current clinical status",
                     Type = QuestionType.Text,

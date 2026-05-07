@@ -15,7 +15,7 @@ public record BookAppointmentCommand(
     AppointmentModality Modality,
     double? TravelTimeMinutes = null,
     double? DistanceInMiles = null,
-    List<AssessmentType> PlannedAssessments = null,
+    List<AssessmentType>? PlannedAssessments = null,
     Guid? AppointmentId = null
 ) : IRequest<Appointment>;
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery, gql } from "@apollo/client";
 import {
@@ -30,6 +30,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ToastProvider";
+import { useSettings } from "@/lib/SettingsContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
@@ -103,6 +104,7 @@ export default function Dashboard() {
   const router = useRouter();
   const { data: session } = useSession();
   const { showToast } = useToast();
+  const { tenantConfig } = useSettings();
   const { data, loading } = useQuery(GET_DASHBOARD_STATS);
   const { recentPatients } = useRecentlyBrowsed();
   const [greeting, setGreeting] = useState("Good morning");
@@ -140,7 +142,7 @@ export default function Dashboard() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-bold text-white/70 uppercase tracking-[0.2em]">HALCYON CLINICAL</span>
+              <span className="text-[9px] font-bold text-white/70 uppercase tracking-[0.2em]">{tenantConfig.organizationName}</span>
             </div>
             <h1 className="text-sm font-bold text-white tracking-tight uppercase">
               {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">{session?.user?.name?.split(' ')[0] || "Practitioner"}</span>

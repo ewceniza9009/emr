@@ -22,9 +22,10 @@ public class Medication : BaseEntity
     public MedicationRoute DefaultRoute { get; set; }
 }
 
-public class Prescription : BaseEntity
+public class Prescription : BaseEntity, ITenantEntity
 {
     public Guid PrescriptionId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PatientId { get; set; }
     public Guid MedicationId { get; set; }
     public Guid PrescribedById { get; set; }

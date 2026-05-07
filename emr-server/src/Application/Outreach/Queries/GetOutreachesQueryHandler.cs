@@ -28,7 +28,7 @@ public class GetOutreachesQueryHandler
             query = query.Where(o =>
                 o.FirstName.Contains(request.Search)
                 || o.LastName.Contains(request.Search)
-                || o.ReferralSource.Contains(request.Search)
+                || (o.ReferralSource != null && o.ReferralSource.Contains(request.Search))
             );
         }
 

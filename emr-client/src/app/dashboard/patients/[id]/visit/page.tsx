@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
@@ -562,19 +562,26 @@ export default function GuidedVisitPage() {
                 const isActive = step === s.id;
                 const isCompleted = currentStepIndex > idx;
                 const isUnlocked = idx <= steps.findIndex(st => st.id === maxStepReached);
+                const isAssessment = s.type === "ASSESSMENT_WRAPPER";
 
                 return (
                   <div key={s.id} className="flex items-center gap-2">
                     <button
                       onClick={() => (isUnlocked || isActive) && setStep(s.id)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${isActive
-                        ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20 scale-105"
+                        ? isAssessment 
+                          ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 scale-105"
+                          : "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20 scale-105"
                         : isUnlocked
-                          ? "text-[var(--primary)] hover:bg-[var(--primary)]/5"
+                          ? isAssessment
+                            ? "text-indigo-500 hover:bg-indigo-500/5"
+                            : "text-[var(--primary)] hover:bg-[var(--primary)]/5"
                           : "text-[var(--text-muted)] opacity-40 cursor-not-allowed"
                         }`}
                     >
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border text-[9px] font-black ${isActive ? "bg-white text-[var(--primary)] border-white" : "border-current"
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border text-[9px] font-black ${isActive 
+                        ? "bg-white border-white " + (isAssessment ? "text-indigo-500" : "text-[var(--primary)]")
+                        : "border-current"
                         }`}>
                         {isCompleted ? <CheckCircle2 className="w-3 h-3" /> : String(idx + 1).padStart(2, '0')}
                       </div>
@@ -590,7 +597,7 @@ export default function GuidedVisitPage() {
           </div>
           <button
             onClick={() => setIsAssessmentModalOpen(true)}
-            className="ml-4 p-2 rounded-full border border-dashed border-[var(--border-color,rgba(0,0,0,0.2))] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all"
+            className="ml-4 p-2 rounded-full border border-dashed border-[var(--border-color,rgba(0,0,0,0.2))] text-[var(--text-muted)] hover:text-indigo-500 hover:border-indigo-500/50 transition-all shadow-sm hover:shadow-indigo-500/10"
             title="Add Protocol"
           >
             <Plus className="w-4 h-4" />
@@ -627,10 +634,10 @@ export default function GuidedVisitPage() {
                       <div className="grid grid-cols-2 gap-4">
                         {appointment.plannedAssessments.map((code: string) => (
                           <div key={code} className="flex flex-col items-center gap-2 group cursor-default">
-                            <div className="w-8 h-8 rounded-full bg-[var(--primary)]/5 border border-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] group-hover:bg-[var(--primary)]/10 transition-all">
+                            <div className="w-8 h-8 rounded-full bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500/10 transition-all">
                               <ClipboardList className="w-3.5 h-3.5" />
                             </div>
-                            <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-widest group-hover:text-[var(--foreground)] transition-colors">{code}</span>
+                            <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-widest group-hover:text-indigo-400 transition-colors">{code}</span>
                           </div>
                         ))}
                       </div>
@@ -776,7 +783,7 @@ export default function GuidedVisitPage() {
                 <div className="h-full flex flex-col animate-in fade-in slide-in-from-right-4 duration-500">
                   {!executingAssessment ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-center space-y-12">
-                      <div className="w-24 h-24 rounded-[2rem] bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                      <div className="w-24 h-24 rounded-[2rem] bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 shadow-[0_0_50px_rgba(99,102,241,0.1)]">
                         <ClipboardList className="w-12 h-12" />
                       </div>
                       <div className="space-y-4">
@@ -789,7 +796,7 @@ export default function GuidedVisitPage() {
                       <div className="w-full max-w-[320px] space-y-3">
                         <button
                           onClick={() => setExecutingAssessment(true)}
-                          className="w-full py-3.5 rounded-xl bg-[var(--primary)] text-white font-black text-[10px] uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[var(--primary-glow)]"
+                          className="w-full py-3.5 rounded-xl bg-indigo-500 text-white font-black text-[10px] uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
                         >
                           Start Assessment <ChevronRight className="w-4 h-4" />
                         </button>

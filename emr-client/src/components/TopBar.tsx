@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useSession } from "next-auth/react";
-import { Bell, Search, User, Shield, Zap, Activity, Moon, Sun } from "lucide-react";
+import { Bell, Search, User, Shield, Zap, Activity, Moon, Sun, Settings } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -66,6 +66,14 @@ export function TopBar() {
             <Bell className="w-5 h-5" />
             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[var(--sidebar-bg)]"></span>
             <div className="absolute inset-0 bg-[var(--primary)]/5 opacity-0 group-hover:opacity-100 rounded-xl transition-opacity" />
+          </button>
+
+          <button 
+            onClick={() => router.push('/dashboard/settings')}
+            className="p-2.5 rounded-xl hover:bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all group active:scale-95"
+            title="Settings"
+          >
+            <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-500" />
           </button>
 
           <div className="flex items-center gap-4 pl-4 border-l border-[var(--card-border)]">

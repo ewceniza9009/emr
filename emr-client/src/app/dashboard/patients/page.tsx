@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery, gql } from "@apollo/client";
 import Link from "next/link";
@@ -55,7 +55,9 @@ export default function PatientsPage() {
   const { data, loading, error, refetch } = useQuery(GET_PATIENTS, {
     variables: {
       search: searchQuery || undefined
-    }
+    },
+    fetchPolicy: "network-only",
+    notifyOnNetworkStatusChange: true
   });
 
   const patients = data?.patients?.items || [];

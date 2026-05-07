@@ -3,9 +3,10 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class Questionnaire : BaseEntity
+public class Questionnaire : BaseEntity, ITenantEntity
 {
     public Guid QuestionnaireId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public AssessmentType AssessmentType { get; set; }
@@ -14,9 +15,10 @@ public class Questionnaire : BaseEntity
     public ICollection<Question> Questions { get; set; } = new List<Question>();
 }
 
-public class Question : BaseEntity
+public class Question : BaseEntity, ITenantEntity
 {
     public Guid QuestionId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid QuestionnaireId { get; set; }
     public string Text { get; set; } = null!;
     public string? Subtext { get; set; }
@@ -27,9 +29,10 @@ public class Question : BaseEntity
     public Questionnaire Questionnaire { get; set; } = null!;
 }
 
-public class AssessmentResponse : BaseEntity
+public class AssessmentResponse : BaseEntity, ITenantEntity
 {
     public Guid AssessmentResponseId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid QuestionnaireId { get; set; }
     public Guid PatientId { get; set; }
     public Guid? EncounterId { get; set; }

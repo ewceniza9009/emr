@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
+import { useSettings } from "@/lib/SettingsContext";
 import { useCommandModal } from "@/components/CommandModalProvider";
 import {
   ArrowLeft,
@@ -81,6 +82,7 @@ export default function InvoiceDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const { showToast } = useToast();
+  const { formatCurrency, tenantConfig } = useSettings();
   const [voidInvoice, { loading: isVoiding }] = useMutation(VOID_INVOICE);
   const [updateInvoice, { loading: isUpdating }] = useMutation(UPDATE_INVOICE);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -300,8 +302,8 @@ export default function InvoiceDetailsPage() {
                       <p className="text-[9px] font-medium text-slate-400 mt-0.5">Clinical Service Instrumentation</p>
                     </td>
                     <td className="py-5 text-center text-xs font-bold text-slate-600">{item.quantity}</td>
-                    <td className="py-5 text-right text-xs font-bold text-slate-600">${item.unitPrice.toLocaleString()}</td>
-                    <td className="py-5 text-right text-xs font-black text-slate-900">${(item.totalPrice || (item.quantity * item.unitPrice)).toLocaleString()}</td>
+                    <td className="py-5 text-right text-xs font-bold text-slate-600">{formatCurrency(item.unitPrice)}</td>
+                    <td className="py-5 text-right text-xs font-black text-slate-900">{formatCurrency(item.totalPrice || (item.quantity * item.unitPrice))}</td>
                   </tr>
                 ))}
                 {(!invoice.items || invoice.items.length === 0) && (
@@ -310,8 +312,8 @@ export default function InvoiceDetailsPage() {
                       <p className="text-xs font-black uppercase text-slate-800">General Consultation & Instrumentation</p>
                     </td>
                     <td className="py-5 text-center text-xs font-bold text-slate-600">1</td>
-                    <td className="py-5 text-right text-xs font-bold text-slate-600">${invoice.subtotalAmount.toLocaleString()}</td>
-                    <td className="py-5 text-right text-xs font-black text-slate-900">${invoice.subtotalAmount.toLocaleString()}</td>
+                    <td className="py-5 text-right text-xs font-bold text-slate-600">{formatCurrency(invoice.subtotalAmount)}</td>
+                    <td className="py-5 text-right text-xs font-black text-slate-900">{formatCurrency(invoice.subtotalAmount)}</td>
                   </tr>
                 )}
               </tbody>
@@ -323,15 +325,15 @@ export default function InvoiceDetailsPage() {
             <div className="w-80 space-y-3">
               <div className="flex justify-between items-center py-2">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gross Subtotal</span>
-                <span className="text-xs font-black text-slate-800">${invoice.subtotalAmount.toLocaleString()}</span>
+                <span className="text-xs font-black text-slate-800">{formatCurrency(invoice.subtotalAmount)}</span>
               </div>
               <div className="flex justify-between items-center py-2 text-emerald-600 bg-emerald-50 px-3 rounded-lg">
                 <span className="text-[10px] font-black uppercase tracking-widest">Insurance Coverage</span>
-                <span className="text-xs font-black">-${invoice.coveredAmount.toLocaleString()}</span>
+                <span className="text-xs font-black">-{formatCurrency(invoice.coveredAmount)}</span>
               </div>
               <div className="flex justify-between items-center py-4 border-t-2 border-slate-900">
                 <span className="text-xs font-black uppercase tracking-widest text-slate-900">Patient Liability</span>
-                <span className="text-2xl font-black text-slate-900">${invoice.patientResponsibility.toLocaleString()}</span>
+                <span className="text-2xl font-black text-slate-900">{formatCurrency(invoice.patientResponsibility)}</span>
               </div>
             </div>
           </div>
@@ -381,6 +383,7 @@ export default function InvoiceDetailsPage() {
 }
 
 function EditInvoiceDrawer({ invoice, isOpen, onClose, onUpdate, isUpdating }: any) {
+  const { tenantConfig, currencySymbol } = useSettings();
   const [subtotal, setSubtotal] = useState(invoice.subtotalAmount);
   const [covered, setCovered] = useState(invoice.coveredAmount);
   const [dueInDays, setDueInDays] = useState(30);
@@ -414,7 +417,7 @@ function EditInvoiceDrawer({ invoice, isOpen, onClose, onUpdate, isUpdating }: a
           });
         }} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gross Subtotal ($)</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gross Subtotal ({currencySymbol})</label>
             <input
               type="number"
               value={subtotal}
@@ -424,7 +427,7 @@ function EditInvoiceDrawer({ invoice, isOpen, onClose, onUpdate, isUpdating }: a
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Insurance Coverage ($)</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Insurance Coverage ({currencySymbol})</label>
             <input
               type="number"
               value={covered}

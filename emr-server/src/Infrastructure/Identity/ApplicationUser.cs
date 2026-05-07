@@ -10,4 +10,5 @@ public class ApplicationUser : IdentityUser
 
     // Links this Identity User to the Practitioner domain entity if applicable
     public Guid? PractitionerId { get; set; }
+    public Guid? TenantId { get; set; }
 }

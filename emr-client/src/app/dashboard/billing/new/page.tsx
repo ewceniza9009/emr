@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
+import { useSettings } from "@/lib/SettingsContext";
 import PatientLookup from "@/components/PatientLookup";
 
 const GET_PATIENT_CLAIMS = gql`
@@ -57,6 +58,7 @@ interface LineItem {
 export default function NewInvoicePage() {
    const router = useRouter();
    const { showToast } = useToast();
+   const { formatCurrency, tenantConfig, currencySymbol } = useSettings();
    const [isPatientLookupOpen, setIsPatientLookupOpen] = useState(false);
    const [selectedPatient, setSelectedPatient] = useState<any>(null);
    const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
@@ -253,7 +255,7 @@ export default function NewInvoicePage() {
                                  </div>
                                  <div className="col-span-2">
                                     <div className="relative group/input">
-                                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-black opacity-30">$</span>
+                                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-black opacity-30">{currencySymbol}</span>
                                        <input
                                           type="number"
                                           step="0.01"
@@ -265,7 +267,7 @@ export default function NewInvoicePage() {
                                  </div>
                                  <div className="col-span-2 text-right px-4">
                                     <span className="text-sm font-black text-[var(--text-primary)] tracking-tighter">
-                                       ${(item.quantity * item.unitPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                       {formatCurrency(item.quantity * item.unitPrice)}
                                     </span>
                                  </div>
                                  <div className="col-span-1 flex justify-center">
@@ -298,12 +300,12 @@ export default function NewInvoicePage() {
                            <div className="space-y-4">
                               <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.3em] opacity-40 px-4">
                                  <span>Operational Subtotal</span>
-                                 <span>${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                 <span>{formatCurrency(subtotal)}</span>
                               </div>
                               <div className="flex justify-between items-center px-6 py-4 bg-[var(--input-bg)]/50 rounded-2xl border border-[var(--card-border)]">
                                  <span className="text-[9px] font-black uppercase tracking-[0.3em] opacity-40">Adjustments</span>
                                  <div className="relative w-32">
-                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[9px] font-black opacity-20">$</span>
+                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[9px] font-black opacity-20">{currencySymbol}</span>
                                     <input
                                        type="number"
                                        value={discount}
@@ -314,7 +316,7 @@ export default function NewInvoicePage() {
                               </div>
                               <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-[0.3em] opacity-40 px-4">
                                  <span>Tax Liability ({taxRate}%)</span>
-                                 <span>${taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                 <span>{formatCurrency(taxAmount)}</span>
                               </div>
                            </div>
 
@@ -322,7 +324,7 @@ export default function NewInvoicePage() {
                               <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24 blur-3xl" />
                               <div className="relative">
                                  <p className="text-[9px] font-black uppercase tracking-[0.4em] opacity-60 mb-2">Total Billing Liability</p>
-                                 <h3 className="text-5xl font-black tracking-tighter">${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
+                                 <h3 className="text-5xl font-black tracking-tighter">{formatCurrency(totalAmount)}</h3>
                               </div>
                               <Calculator className="w-20 h-20 opacity-20 relative rotate-12" />
                            </div>
@@ -434,7 +436,7 @@ export default function NewInvoicePage() {
                                        </div>
                                        <div className="text-right">
                                           <p className={`text-[9px] font-black uppercase tracking-widest ${selectedClaimId === claim.claimId ? 'text-white/60' : 'text-[var(--text-muted)]'}`}>Coverage</p>
-                                          <p className="text-sm font-black tracking-tighter">${claim.totalAmount.toLocaleString()}</p>
+                                          <p className="text-sm font-black tracking-tighter">{formatCurrency(claim.totalAmount)}</p>
                                        </div>
                                     </div>
                                  </button>

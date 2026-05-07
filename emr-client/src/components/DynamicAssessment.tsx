@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { ChevronRight, CheckCircle2, Circle, HelpCircle } from "lucide-react";
@@ -99,7 +99,7 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
         </div>
         {calculateScore() !== undefined && (
           <div className="flex flex-col items-end gap-1">
-            <div className="px-6 py-2.5 rounded-2xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] font-black text-2xl shadow-2xl shadow-[var(--primary-glow)]">
+            <div className="px-6 py-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 font-black text-2xl shadow-2xl shadow-indigo-500/10">
               {calculateScore()}
             </div>
             <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mt-1">Registry Score</span>
@@ -113,7 +113,7 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
           <div key={q.questionId} className="space-y-4">
             <div className="space-y-2">
               <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shadow-[0_0_8px_var(--primary)]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
                 {q.text}
               </label>
               {q.subtext && <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest ml-4 font-bold">{q.subtext}</p>}
@@ -124,7 +124,7 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
               <div className="ml-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">0 - Baseline</span>
-                  <div className="px-6 py-2 rounded-xl bg-[var(--primary)]/5 text-[var(--primary)] border border-[var(--primary)]/20 font-black text-lg">
+                  <div className="px-6 py-2 rounded-xl bg-indigo-500/5 text-indigo-500 border border-indigo-500/20 font-black text-lg">
                     {answers[q.questionId] ?? "--"}
                   </div>
                   <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">10 - Peak</span>
@@ -136,7 +136,7 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
                   step="1"
                   value={answers[q.questionId] ?? 0}
                   onChange={(e) => handleAnswer(q.questionId, parseInt(e.target.value))}
-                  className="w-full h-1.5 bg-[var(--divider-color)] rounded-full appearance-none cursor-pointer accent-[var(--primary)]"
+                  className="w-full h-1.5 bg-[var(--divider-color)] rounded-full appearance-none cursor-pointer accent-indigo-500"
                 />
               </div>
             )}
@@ -150,8 +150,8 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
                     onClick={() => handleAnswer(q.questionId, opt)}
                     className={`flex-1 py-3 rounded-xl border font-black text-[10px] uppercase tracking-widest transition-all ${
                       answers[q.questionId] === opt
-                        ? "bg-[var(--primary)]/20 border-[var(--primary)] text-[var(--primary)] shadow-2xl shadow-[var(--primary-glow)]"
-                        : "bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] hover:border-[var(--primary)]/30 hover:bg-[var(--primary)]/5"
+                        ? "bg-indigo-500/20 border-indigo-500 text-indigo-500 shadow-2xl shadow-indigo-500/10"
+                        : "bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] hover:border-indigo-500/30 hover:bg-indigo-500/5"
                     }`}
                   >
                     {opt}
@@ -169,13 +169,13 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
                     onClick={() => handleAnswer(q.questionId, opt)}
                     className={`p-3.5 rounded-xl border text-left text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${
                       answers[q.questionId] === opt
-                        ? "bg-[var(--primary)]/20 border-[var(--primary)] text-[var(--primary)] shadow-xl shadow-[var(--primary-glow)]"
-                        : "bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] hover:border-[var(--primary)]/30 hover:bg-[var(--primary)]/5"
+                        ? "bg-indigo-500/20 border-indigo-500 text-indigo-500 shadow-xl shadow-indigo-500/10"
+                        : "bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] hover:border-indigo-500/30 hover:bg-indigo-500/5"
                     }`}
                   >
                     <span className="max-w-[80%]">{opt}</span>
                     {answers[q.questionId] === opt ? (
-                      <CheckCircle2 className="w-4 h-4 text-[var(--primary)]" />
+                      <CheckCircle2 className="w-4 h-4 text-indigo-500" />
                     ) : (
                       <Circle className="w-4 h-4 text-[var(--text-muted)]/20 group-hover:text-[var(--text-muted)]/40" />
                     )}
@@ -190,7 +190,7 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
                 value={answers[q.questionId] ?? ""}
                 onChange={(e) => handleAnswer(q.questionId, e.target.value)}
                 placeholder="INPUT CLINICAL OBSERVATIONS..."
-                className="ml-4 w-full bg-[var(--background)] border border-[var(--divider-color)] rounded-xl p-6 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/30 focus:border-[var(--primary)]/50 outline-none transition-all min-h-[120px] uppercase tracking-tighter"
+                className="ml-4 w-full bg-[var(--background)] border border-[var(--divider-color)] rounded-xl p-6 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/30 focus:border-indigo-500/50 outline-none transition-all min-h-[120px] uppercase tracking-tighter"
               />
             )}
           </div>
@@ -209,7 +209,7 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
           onClick={() => onComplete(answers, calculateScore())}
           className={`flex-1 py-3.5 rounded-xl text-white font-black text-[10px] uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 ${
             isComplete 
-              ? "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90 active:scale-[0.98]" 
+              ? "bg-indigo-500 shadow-indigo-500/20 hover:opacity-90 active:scale-[0.98]" 
               : "bg-slate-700/20 text-slate-500/50 cursor-not-allowed grayscale"
           }`}
           disabled={!isComplete}

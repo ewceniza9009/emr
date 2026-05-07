@@ -104,8 +104,7 @@ public class SchedulingService : ISchedulingService
             var scheduleBlocks = await _context
                 .ScheduleBlocks.AsNoTracking()
                 .Where(b =>
-                    b.PractitionerId != null
-                    && b.StartTime >= startOfToday
+                    b.StartTime >= startOfToday
                     && b.StartTime < endOfToday
                     && b.Status == ScheduleBlockStatus.Blocked
                 )
@@ -156,7 +155,8 @@ public class SchedulingService : ISchedulingService
                 )
                 {
                     // Check cancellation inside the tight loop for ultra-responsiveness
-                    if (allSlots.Count % 10 == 0) cancellationToken.ThrowIfCancellationRequested();
+                    if (allSlots.Count % 10 == 0)
+                        cancellationToken.ThrowIfCancellationRequested();
 
                     // 1. Conflict Check (In Memory) - Appointments & OOF Blocks
                     var hasConflict = staffAppts.Any(a =>
@@ -202,7 +202,10 @@ public class SchedulingService : ISchedulingService
                     double travelTime = 15; // Buffer
 
                     var patientAddr = patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
-                    if (patientAddr?.Latitude.HasValue == true)
+                    if (
+                        patientAddr?.Latitude.HasValue == true
+                        && patientAddr?.Longitude.HasValue == true
+                    )
                     {
                         distance = GeoUtils.CalculateDistance(
                             startLat,
@@ -226,7 +229,12 @@ public class SchedulingService : ISchedulingService
 
                     var appointmentEnd = time.Add(duration);
                     double returnDistance = 0;
-                    if (patientAddr?.Latitude.HasValue == true && staff.Latitude.HasValue)
+                    if (
+                        patientAddr?.Latitude.HasValue == true
+                        && patientAddr?.Longitude.HasValue == true
+                        && staff.Latitude.HasValue
+                        && staff.Longitude.HasValue
+                    )
                     {
                         returnDistance = GeoUtils.CalculateDistance(
                             patientAddr.Latitude.Value,

@@ -2,9 +2,10 @@ using Domain.Common;
 
 namespace Domain.Entities;
 
-public class SpiritualAssessment : BaseEntity
+public class SpiritualAssessment : BaseEntity, ITenantEntity
 {
     public Guid SpiritualAssessmentId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid EncounterId { get; set; }
     public Guid PatientId { get; set; }
     

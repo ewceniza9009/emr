@@ -36,7 +36,9 @@ public class TelemetrySimulatorService : BackgroundService
 
                 // Get all patients to simulate data for
                 var patientIds = await dbContext
-                    .Patients.Select(p => p.PatientId)
+                    .Patients
+                    .IgnoreQueryFilters()
+                    .Select(p => p.PatientId)
                     .ToListAsync(stoppingToken);
 
                 foreach (var patientId in patientIds)

@@ -52,6 +52,11 @@ public class AuthController : ControllerBase
                 authClaims.Add(new Claim("practitionerId", user.PractitionerId.Value.ToString()));
             }
 
+            if (user.TenantId.HasValue)
+            {
+                authClaims.Add(new Claim("tenantId", user.TenantId.Value.ToString()));
+            }
+
             foreach (var userRole in userRoles)
             {
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
@@ -86,7 +91,8 @@ public class AuthController : ControllerBase
                         user.LastName,
                         user.Email,
                         roles = userRoles,
-                        practitionerId = user.PractitionerId
+                        practitionerId = user.PractitionerId,
+                        tenantId = user.TenantId
                     },
                 }
             );

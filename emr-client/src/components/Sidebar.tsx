@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -18,7 +18,8 @@ import {
   Zap,
   Activity,
   Shield,
-  Building2
+  Building2,
+  Globe
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useSidebar } from "@/lib/SidebarContext";
@@ -35,6 +36,7 @@ const navItems = [
   { icon: Navigation2, label: "Navigation", href: "/dashboard/navigation" },
   { icon: FileText, label: "Clinical Notes", href: "/dashboard/notes" },
   { icon: Stethoscope, label: "Billing", href: "/dashboard/billing" },
+  { icon: Globe, label: "Settings", href: "/dashboard/settings" },
 ];
 
 export function Sidebar() {
@@ -74,8 +76,8 @@ export function Sidebar() {
               href={item.href}
               title={isCollapsed ? item.label : ""}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${isActive
-                  ? "bg-[var(--primary)]/10 text-[var(--primary)]"
-                  : "text-[var(--text-muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--text-primary)]"
+                ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                : "text-[var(--text-muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--text-primary)]"
                 }`}
             >
               <div className="relative">

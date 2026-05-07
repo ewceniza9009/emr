@@ -343,4 +343,39 @@ public class SetupMutation
         await context.SaveChangesAsync(default);
         return true;
     }
+
+    // --- Tenant Configuration ---
+    public record UpdateTenantConfigurationInput(
+        Guid TenantId,
+        string OrganizationName,
+        string Currency,
+        string Timezone,
+        string Language,
+        string DateFormat,
+        bool IsActive,
+        string? ContactEmail,
+        string? ExtendedSettingsJson
+    );
+
+    public async Task<bool> UpdateTenantConfiguration(
+        UpdateTenantConfigurationInput input,
+        [Service] IApplicationDbContext context)
+    {
+        var existing = await context.TenantConfigurations
+            .FirstOrDefaultAsync(t => t.TenantId == input.TenantId);
+            
+        if (existing == null) return false;
+
+        existing.OrganizationName = input.OrganizationName;
+        existing.Currency = input.Currency;
+        existing.Timezone = input.Timezone;
+        existing.Language = input.Language;
+        existing.DateFormat = input.DateFormat;
+        existing.IsActive = input.IsActive;
+        existing.ContactEmail = input.ContactEmail;
+        existing.ExtendedSettingsJson = input.ExtendedSettingsJson;
+
+        await context.SaveChangesAsync(default);
+        return true;
+    }
 }

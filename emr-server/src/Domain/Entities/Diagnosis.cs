@@ -3,9 +3,10 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class Diagnosis : BaseEntity
+public class Diagnosis : BaseEntity, ITenantEntity
 {
     public Guid DiagnosisId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PatientId { get; set; }
     public Guid? EncounterId { get; set; }
     public string Icd10Code { get; set; } = string.Empty;

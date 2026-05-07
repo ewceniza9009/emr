@@ -11,9 +11,10 @@ public enum PractitionerPosition
     Chaplain
 }
 
-public class Practitioner : BaseEntity
+public class Practitioner : BaseEntity, ITenantEntity
 {
     public Guid PractitionerId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }           // Links to the Organization/Tenant
     public Guid UserId { get; set; }          // Links to the system user account
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;

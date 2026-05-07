@@ -1,8 +1,11 @@
+using Domain.Common;
+
 namespace Domain.Entities;
 
-public class ProviderShift
+public class ProviderShift : BaseEntity, ITenantEntity
 {
     public Guid ProviderShiftId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PractitionerId { get; set; }
     public DayOfWeek DayOfWeek { get; set; }
     public TimeSpan StartTime { get; set; }

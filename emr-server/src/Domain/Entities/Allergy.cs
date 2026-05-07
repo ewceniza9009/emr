@@ -3,9 +3,10 @@ using Domain.Enums;
 
 namespace Domain.Entities;
 
-public class Allergy : BaseEntity
+public class Allergy : BaseEntity, ITenantEntity
 {
     public Guid AllergyId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
     public Guid PatientId { get; set; }
     public string Allergen { get; set; } = string.Empty;
     public SeverityLevel Severity { get; set; } = SeverityLevel.Moderate;
