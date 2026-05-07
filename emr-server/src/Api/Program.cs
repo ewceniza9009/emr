@@ -78,10 +78,29 @@ builder
         }
     );
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        "CanViewPatients",
+        policy => policy.RequireClaim("permission", "patients:view")
+    );
+    options.AddPolicy(
+        "CanEditPatients",
+        policy => policy.RequireClaim("permission", "patients:edit")
+    );
+    options.AddPolicy(
+        "CanOrderMeds",
+        policy => policy.RequireClaim("permission", "clinical:order")
+    );
+    options.AddPolicy(
+        "CanManageSetup",
+        policy => policy.RequireClaim("permission", "setup:manage")
+    );
+});
 
 builder
     .Services.AddGraphQLServer()
+    .AddAuthorization()
     .AddApolloFederation()
     .AddQueryType<Query>()
     .AddTypeExtension<PatientQuery>()
@@ -93,6 +112,7 @@ builder
     .AddTypeExtension<OutreachQuery>()
     .AddTypeExtension<QuestionnaireQuery>()
     .AddTypeExtension<SetupQuery>()
+    .AddTypeExtension<IdentityQuery>()
     .AddMutationType<Mutation>()
     .AddTypeExtension<PatientMutation>()
     .AddTypeExtension<AppointmentMutation>()
@@ -103,6 +123,7 @@ builder
     .AddTypeExtension<OutreachMutation>()
     .AddTypeExtension<DocumentMutation>()
     .AddTypeExtension<SetupMutation>()
+    .AddTypeExtension<IdentityMutation>()
     .AddTypeExtension<LogisticsMutation>()
     .AddProjections()
     .AddFiltering()

@@ -2,6 +2,7 @@ using Application.Common.Interfaces;
 using Application.Patients.Dtos;
 using Application.Patients.Queries;
 using Domain.Entities;
+using HotChocolate.Authorization;
 using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
+[Authorize(Policy = "CanViewPatients")]
 public class PatientQuery
 {
     public async Task<PatientDto?> GetPatientById(

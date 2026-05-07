@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import {
@@ -16,11 +16,13 @@ import {
   Globe,
   ClipboardList,
   Sun,
-  Moon
+  Moon,
+  Lock
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
+import { PermissionGate } from "./PermissionGate";
 
 interface Props {
   activeTab: string;
@@ -41,6 +43,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
     { id: "equipment", label: "Equipment", icon: Zap },
     { id: "outreachScripts", label: "Scripts", icon: MessageSquare },
     { id: "integrationProfiles", label: "Integrations", icon: Globe },
+    { id: "identity", label: "Identity & Roles", icon: Lock },
   ];
 
   return (
@@ -74,29 +77,30 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              title={isCollapsed ? item.label : ""}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${isActive
-                  ? "bg-[var(--primary)]/10 text-[var(--primary)]"
-                  : "text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--text-secondary)]"
-                }`}
-            >
-              <div className="relative">
-                <item.icon className={`w-5 h-5 shrink-0 transition-all ${isActive ? "text-[var(--primary)]" : "group-hover:text-[var(--text-secondary)]"}`} />
-              </div>
+            <PermissionGate key={item.id} role="Admin" permission={item.id === 'identity' ? 'setup:manage' : undefined}>
+              <button
+                onClick={() => setActiveTab(item.id)}
+                title={isCollapsed ? item.label : ""}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${isActive
+                    ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                    : "text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--text-secondary)]"
+                  }`}
+              >
+                <div className="relative">
+                  <item.icon className={`w-5 h-5 shrink-0 transition-all ${isActive ? "text-[var(--primary)]" : "group-hover:text-[var(--text-secondary)]"}`} />
+                </div>
 
-              {!isCollapsed && (
-                <span className={`text-[12px] font-bold tracking-tight transition-all ${isActive ? "text-[var(--text-primary)]" : ""}`}>
-                  {item.label}
-                </span>
-              )}
+                {!isCollapsed && (
+                  <span className={`text-[12px] font-bold tracking-tight transition-all ${isActive ? "text-[var(--text-primary)]" : ""}`}>
+                    {item.label}
+                  </span>
+                )}
 
-              {isActive && !isCollapsed && (
-                <div className="absolute right-3 w-1 h-1 rounded-full bg-[var(--primary)]" />
-              )}
-            </button>
+                {isActive && !isCollapsed && (
+                  <div className="absolute right-3 w-1 h-1 rounded-full bg-[var(--primary)]" />
+                )}
+              </button>
+            </PermissionGate>
           );
         })}
 
@@ -148,4 +152,3 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
     </aside>
   );
 }
-

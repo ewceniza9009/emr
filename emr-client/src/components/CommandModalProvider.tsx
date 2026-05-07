@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useState, useCallback } from "react";
 import CommandModal from "./CommandModal";
@@ -14,6 +14,7 @@ interface ModalOptions {
 interface CommandModalContextType {
   confirm: (options: ModalOptions) => Promise<boolean>;
   alert: (options: ModalOptions) => Promise<void>;
+  prompt: (options: ModalOptions) => Promise<string | null>;
 }
 
 const CommandModalContext = createContext<CommandModalContextType | undefined>(undefined);
@@ -22,8 +23,9 @@ export function CommandModalProvider({ children }: { children: React.ReactNode }
   const [state, setState] = useState<{
     isOpen: boolean;
     options: ModalOptions;
-    resolve: (value: boolean) => void;
+    resolve: (value: any) => void;
     isAlert: boolean;
+    isPrompt: boolean;
   } | null>(null);
 
   const confirm = useCallback((options: ModalOptions) => {
@@ -32,7 +34,8 @@ export function CommandModalProvider({ children }: { children: React.ReactNode }
         isOpen: true,
         options,
         resolve,
-        isAlert: false
+        isAlert: false,
+        isPrompt: false
       });
     });
   }, []);
@@ -43,7 +46,20 @@ export function CommandModalProvider({ children }: { children: React.ReactNode }
         isOpen: true,
         options,
         resolve: () => resolve(),
-        isAlert: true
+        isAlert: true,
+        isPrompt: false
+      });
+    });
+  }, []);
+
+  const prompt = useCallback((options: ModalOptions) => {
+    return new Promise<string | null>((resolve) => {
+      setState({
+        isOpen: true,
+        options,
+        resolve,
+        isAlert: false,
+        isPrompt: true
       });
     });
   }, []);
@@ -63,19 +79,24 @@ export function CommandModalProvider({ children }: { children: React.ReactNode }
   };
 
   return (
-    <CommandModalContext.Provider value={{ confirm, alert }}>
+    <CommandModalContext.Provider value={{ confirm, alert, prompt }}>
       {children}
       {state && (
         <CommandModal
           isOpen={state.isOpen}
           onClose={handleClose}
           onConfirm={handleConfirm}
+          onConfirmWithValue={(val) => {
+            state.resolve(val);
+            setState(null);
+          }}
           title={state.options.title}
           message={state.options.message}
           type={state.options.type}
           confirmText={state.options.confirmText}
           cancelText={state.options.cancelText}
           isAlert={state.isAlert}
+          isPrompt={state.isPrompt}
         />
       )}
     </CommandModalContext.Provider>

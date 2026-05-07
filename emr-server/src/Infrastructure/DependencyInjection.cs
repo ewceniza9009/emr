@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<IPdfService, Infrastructure.Services.QuestPdfService>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
+        services.AddScoped<ISecurityAuditService, Infrastructure.Services.SecurityAuditService>();
 
         return services;
     }

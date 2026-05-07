@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Domain.Entities;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +13,17 @@ namespace Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IConfiguration _configuration;
 
-    public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public AuthController(
+        UserManager<ApplicationUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        IConfiguration configuration
+    )
     {
         _userManager = userManager;
+        _roleManager = roleManager;
         _configuration = configuration;
     }
 
@@ -60,6 +65,32 @@ public class AuthController : ControllerBase
             foreach (var userRole in userRoles)
             {
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+
+                // Inherit permissions from roles
+                var role = await _roleManager.FindByNameAsync(userRole);
+                if (role != null)
+                {
+                    var roleClaims = await _roleManager.GetClaimsAsync(role);
+                    foreach (var claim in roleClaims.Where(c => c.Type == "permission"))
+                    {
+                        if (!authClaims.Any(c => c.Type == "permission" && c.Value == claim.Value))
+                        {
+                            authClaims.Add(new Claim("permission", claim.Value));
+                        }
+                    }
+                }
+            }
+
+            // Check for Break-Glass / Emergency Access
+            if (
+                user.EmergencyAccessExpiry.HasValue
+                && user.EmergencyAccessExpiry.Value > DateTimeOffset.UtcNow
+            )
+            {
+                authClaims.Add(new Claim("emergency_access", "true"));
+                authClaims.Add(new Claim("permission", "patients:view"));
+                authClaims.Add(new Claim("permission", "clinical:view"));
+                authClaims.Add(new Claim("permission", "clinical:chart"));
             }
 
             var authSigningKey = new SymmetricSecurityKey(
@@ -91,8 +122,14 @@ public class AuthController : ControllerBase
                         user.LastName,
                         user.Email,
                         roles = userRoles,
+                        permissions = authClaims
+                            .Where(c => c.Type == "permission")
+                            .Select(c => c.Value)
+                            .ToList(),
                         practitionerId = user.PractitionerId,
-                        tenantId = user.TenantId
+                        tenantId = user.TenantId,
+                        emergencyAccessActive = user.EmergencyAccessExpiry.HasValue
+                            && user.EmergencyAccessExpiry.Value > DateTimeOffset.UtcNow,
                     },
                 }
             );

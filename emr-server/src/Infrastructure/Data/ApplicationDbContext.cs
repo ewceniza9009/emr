@@ -15,7 +15,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService
+    )
         : base(options)
     {
         _currentUserService = currentUserService;
@@ -69,6 +70,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<OutreachScript> OutreachScripts => Set<OutreachScript>();
     public DbSet<OutreachActivity> OutreachActivities => Set<OutreachActivity>();
     public DbSet<OutreachContact> OutreachContacts => Set<OutreachContact>();
+    public DbSet<SecurityAuditLog> SecurityAuditLogs => Set<SecurityAuditLog>();
 
     public DbSet<Facility> Facilities => Set<Facility>();
     public DbSet<AdvanceDirective> AdvanceDirectives => Set<AdvanceDirective>();
@@ -92,7 +94,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
             {
                 case EntityState.Added:
                     entry.Entity.CreatedAt = DateTimeOffset.UtcNow;
-                    if (entry.Entity is ITenantEntity tenantEntity && tenantEntity.TenantId == Guid.Empty)
+                    if (
+                        entry.Entity is ITenantEntity tenantEntity
+                        && tenantEntity.TenantId == Guid.Empty
+                    )
                     {
                         tenantEntity.TenantId = _currentUserService.TenantId ?? Guid.Empty;
                     }
@@ -157,15 +162,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
             if (typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
             {
                 var method = typeof(ApplicationDbContext)
-                    .GetMethod(nameof(ApplyTenantFilter), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    .GetMethod(
+                        nameof(ApplyTenantFilter),
+                        System.Reflection.BindingFlags.NonPublic
+                            | System.Reflection.BindingFlags.Instance
+                    )
                     ?.MakeGenericMethod(entityType.ClrType);
-                
+
                 method?.Invoke(this, new object[] { modelBuilder });
             }
         }
     }
 
-    private void ApplyTenantFilter<T>(ModelBuilder modelBuilder) where T : class, ITenantEntity
+    private void ApplyTenantFilter<T>(ModelBuilder modelBuilder)
+        where T : class, ITenantEntity
     {
         modelBuilder.Entity<T>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
     }

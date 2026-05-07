@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Application.Common.Utils;
 using Bogus;
+using Domain.Common;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructure.Identity;
@@ -26,28 +27,10 @@ namespace Infrastructure.Data
             bool seedDb = true
         )
         {
-            using var scope = serviceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
             // SOLID INFRASTRUCTURE: Always ensure migrations are applied before anything else
             await context.Database.MigrateAsync();
-
-            // SCHEMA INTEGRITY: Explicitly verify and fix core clinical columns to prevent crashes
-            var integrityFixes = new[] 
-            { 
-                "ALTER TABLE schedule_blocks ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL;",
-                "ALTER TABLE schedule_blocks ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ;",
-                "ALTER TABLE schedule_blocks ADD COLUMN IF NOT EXISTS created_by TEXT;",
-                "ALTER TABLE schedule_blocks ADD COLUMN IF NOT EXISTS updated_by TEXT;",
-                "ALTER TABLE schedule_blocks ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE NOT NULL;",
-                "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL;",
-                "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE NOT NULL;"
-            };
-
-            foreach (var sql in integrityFixes)
-            {
-                try { await context.Database.ExecuteSqlRawAsync(sql); } catch { /* Ignore if already handled */ }
-            }
 
             // Check if identity is already initialized to avoid unnecessary wipes
             var isInitialized = await context.Users.AnyAsync();
@@ -56,8 +39,8 @@ namespace Infrastructure.Data
                 // Identity exists, skip full initialization but still sync tenants
                 await SeedIdentityAsync(
                     context,
-                    scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
-                    scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>()
+                    serviceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
+                    serviceProvider.GetRequiredService<RoleManager<IdentityRole>>()
                 );
 
                 if (seedDb && !await context.Patients.IgnoreQueryFilters().AnyAsync())
@@ -66,10 +49,10 @@ namespace Infrastructure.Data
                 }
                 return;
             }
-            var userManager = scope.ServiceProvider.GetRequiredService<
+            var userManager = serviceProvider.GetRequiredService<
                 UserManager<ApplicationUser>
             >();
-            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
             // WIPE logic moved after migration to ensure we are wiping the correct schema
             if (wipeDb)
@@ -128,13 +111,127 @@ namespace Infrastructure.Data
             RoleManager<IdentityRole> roleManager
         )
         {
-            // Seed Roles
-            var roles = new[] { "Admin", "CareNavigator", "Practitioner" };
-            foreach (var role in roles)
+            // Seed Roles and Permissions
+            var rolePermissions = new Dictionary<string, string[]>
             {
-                if (!await roleManager.RoleExistsAsync(role))
+                { Roles.Admin, GetAllPermissions() },
                 {
-                    await roleManager.CreateAsync(new IdentityRole(role));
+                    Roles.MedicalDirector,
+                    new[]
+                    {
+                        Permissions.Patients.View,
+                        Permissions.Patients.Edit,
+                        Permissions.Patients.Enrollment,
+                        Permissions.Clinical.View,
+                        Permissions.Clinical.Order,
+                        Permissions.Clinical.Chart,
+                        Permissions.Clinical.Assessments,
+                        Permissions.Scheduling.View,
+                        Permissions.Logistics.View,
+                        Permissions.Documentation.View,
+                        Permissions.Documentation.Edit,
+                        Permissions.Documentation.Sign,
+                        Permissions.Pharmacy.View,
+                        Permissions.Pharmacy.Order,
+                        Permissions.Pharmacy.Audit,
+                        Permissions.Analytics.View,
+                        Permissions.Analytics.Export,
+                    }
+                },
+                {
+                    Roles.CareNavigator,
+                    new[]
+                    {
+                        Permissions.Patients.View,
+                        Permissions.Patients.Edit,
+                        Permissions.Patients.Enrollment,
+                        Permissions.Clinical.View,
+                        Permissions.Scheduling.View,
+                        Permissions.Scheduling.Manage,
+                        Permissions.Logistics.View,
+                        Permissions.Documentation.View,
+                    }
+                },
+                {
+                    Roles.Nurse,
+                    new[]
+                    {
+                        Permissions.Patients.View,
+                        Permissions.Clinical.View,
+                        Permissions.Clinical.Chart,
+                        Permissions.Clinical.Assessments,
+                        Permissions.Scheduling.View,
+                        Permissions.Documentation.View,
+                        Permissions.Documentation.Edit,
+                        Permissions.Documentation.Sign,
+                        Permissions.Pharmacy.View,
+                    }
+                },
+                {
+                    Roles.SocialWorker,
+                    new[]
+                    {
+                        Permissions.Patients.View,
+                        Permissions.Clinical.View,
+                        Permissions.Clinical.Assessments,
+                        Permissions.Scheduling.View,
+                        Permissions.Documentation.View,
+                        Permissions.Documentation.Edit,
+                    }
+                },
+                {
+                    Roles.Chaplain,
+                    new[]
+                    {
+                        Permissions.Patients.View,
+                        Permissions.Clinical.View,
+                        Permissions.Clinical.Assessments,
+                        Permissions.Scheduling.View,
+                        Permissions.Documentation.View,
+                        Permissions.Documentation.Edit,
+                    }
+                },
+                {
+                    Roles.AdminCoordinator,
+                    new[]
+                    {
+                        Permissions.Patients.View,
+                        Permissions.Scheduling.View,
+                        Permissions.Scheduling.Manage,
+                        Permissions.Billing.View,
+                        Permissions.Logistics.View,
+                        Permissions.Analytics.View,
+                    }
+                },
+                {
+                    Roles.Practitioner,
+                    new[]
+                    {
+                        Permissions.Patients.View,
+                        Permissions.Clinical.View,
+                        Permissions.Scheduling.View,
+                        Permissions.Documentation.View,
+                    }
+                },
+            };
+
+            foreach (var rp in rolePermissions)
+            {
+                var role = await roleManager.FindByNameAsync(rp.Key);
+                if (role == null)
+                {
+                    role = new IdentityRole(rp.Key);
+                    await roleManager.CreateAsync(role);
+                }
+
+                // Sync permissions (claims) for the role
+                var existingClaims = await roleManager.GetClaimsAsync(role);
+                foreach (var permission in rp.Value)
+                {
+                    if (!existingClaims.Any(c => c.Type == "permission" && c.Value == permission))
+                    {
+                        await roleManager.AddClaimAsync(role, new Claim("permission", permission));
+                    }
                 }
             }
 
@@ -207,7 +304,7 @@ namespace Infrastructure.Data
                 var result = await userManager.CreateAsync(adminUser, "P@ssword123!");
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                    await userManager.AddToRoleAsync(adminUser, Roles.Admin);
                 }
             }
             else
@@ -260,7 +357,7 @@ namespace Infrastructure.Data
                     Email = "dr.house@palliative.emr",
                     First = "Gregory",
                     Last = "House",
-                    Role = "CareNavigator",
+                    Role = Roles.MedicalDirector,
                     Position = PractitionerPosition.Physician,
                 },
                 new
@@ -268,7 +365,7 @@ namespace Infrastructure.Data
                     Email = "dr.wilson@palliative.emr",
                     First = "James",
                     Last = "Wilson",
-                    Role = "Practitioner",
+                    Role = Roles.Chaplain,
                     Position = PractitionerPosition.Physician,
                 },
                 new
@@ -276,7 +373,7 @@ namespace Infrastructure.Data
                     Email = "dr.grey@palliative.emr",
                     First = "Meredith",
                     Last = "Grey",
-                    Role = "Practitioner",
+                    Role = Roles.Nurse,
                     Position = PractitionerPosition.Physician,
                 },
                 new
@@ -284,7 +381,7 @@ namespace Infrastructure.Data
                     Email = "dr.murphy@palliative.emr",
                     First = "Shaun",
                     Last = "Murphy",
-                    Role = "Practitioner",
+                    Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
                 },
                 new
@@ -292,7 +389,7 @@ namespace Infrastructure.Data
                     Email = "dr.dorian@palliative.emr",
                     First = "John",
                     Last = "Dorian",
-                    Role = "Practitioner",
+                    Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
                 },
                 new
@@ -300,7 +397,7 @@ namespace Infrastructure.Data
                     Email = "dr.yang@palliative.emr",
                     First = "Cristina",
                     Last = "Yang",
-                    Role = "Practitioner",
+                    Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
                 },
                 new
@@ -308,7 +405,7 @@ namespace Infrastructure.Data
                     Email = "dr.mccoy@palliative.emr",
                     First = "Leonard",
                     Last = "McCoy",
-                    Role = "Practitioner",
+                    Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
                 },
             };
@@ -382,8 +479,8 @@ namespace Infrastructure.Data
                         FirstName = acc.First,
                         LastName = acc.Last,
                         IsActive = true,
-                        IsCareNavigator = acc.Role == "CareNavigator",
-                        IsSupportingClinician = acc.Role == "Practitioner",
+                        IsCareNavigator = acc.Role == Roles.CareNavigator,
+                        IsSupportingClinician = acc.Role == Roles.Practitioner,
                         Position = acc.Position,
                     };
 
@@ -2337,6 +2434,41 @@ namespace Infrastructure.Data
                     Order = 4,
                 }
             );
+        }
+
+        private static string[] GetAllPermissions()
+        {
+            return new[]
+            {
+                Permissions.Patients.View,
+                Permissions.Patients.Edit,
+                Permissions.Patients.Delete,
+                Permissions.Patients.Enrollment,
+                Permissions.Clinical.View,
+                Permissions.Clinical.Order,
+                Permissions.Clinical.Chart,
+                Permissions.Clinical.Assessments,
+                Permissions.Scheduling.View,
+                Permissions.Scheduling.Manage,
+                Permissions.Billing.View,
+                Permissions.Billing.Manage,
+                Permissions.Setup.View,
+                Permissions.Setup.Manage,
+                Permissions.Logistics.View,
+                Permissions.Logistics.Manage,
+                Permissions.Documentation.View,
+                Permissions.Documentation.Edit,
+                Permissions.Documentation.Delete,
+                Permissions.Documentation.Sign,
+                Permissions.Pharmacy.View,
+                Permissions.Pharmacy.Order,
+                Permissions.Pharmacy.Audit,
+                Permissions.Analytics.View,
+                Permissions.Analytics.Export,
+                Permissions.Integrations.View,
+                Permissions.Integrations.Manage,
+                Permissions.Integrations.Sync,
+            };
         }
     }
 }

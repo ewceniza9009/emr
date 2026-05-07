@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, ShieldAlert, X, Check, Info } from "lucide-react";
@@ -14,6 +14,8 @@ interface CommandModalProps {
   confirmText?: string;
   cancelText?: string;
   isAlert?: boolean;
+  isPrompt?: boolean;
+  onConfirmWithValue?: (value: string) => void;
 }
 
 export default function CommandModal({
@@ -25,9 +27,12 @@ export default function CommandModal({
   type = "warning",
   confirmText = "Proceed",
   cancelText = "Cancel",
-  isAlert = false
+  isAlert = false,
+  isPrompt = false,
+  onConfirmWithValue
 }: CommandModalProps) {
   const [mounted, setMounted] = useState(false);
+  const [promptValue, setPromptValue] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -111,13 +116,30 @@ export default function CommandModal({
                 </p>
               </div>
 
+              {isPrompt && (
+                <div className="w-full px-4">
+                  <textarea
+                    autoFocus
+                    value={promptValue}
+                    onChange={(e) => setPromptValue(e.target.value)}
+                    placeholder="Enter mandatory justification..."
+                    className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:outline-none focus:border-[var(--primary)] transition-all resize-none font-medium"
+                  />
+                </div>
+              )}
+
               <div className="flex flex-col w-full gap-3">
                 <button
                   onClick={() => {
-                    if (onConfirm) onConfirm();
+                    if (isPrompt && onConfirmWithValue) {
+                      onConfirmWithValue(promptValue);
+                    } else if (onConfirm) {
+                      onConfirm();
+                    }
                     onClose();
                   }}
-                  className={`w-full py-4 rounded-2xl text-white font-black text-xs uppercase tracking-[0.2em] shadow-lg transition-all active:scale-[0.98] ${style.btn}`}
+                  disabled={isPrompt && !promptValue.trim()}
+                  className={`w-full py-4 rounded-2xl text-white font-black text-xs uppercase tracking-[0.2em] shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none ${style.btn}`}
                 >
                   {confirmText}
                 </button>

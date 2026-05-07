@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useState, useEffect } from "react";
@@ -15,10 +15,14 @@ import {
   LogOut,
   MessageSquare,
   ChevronRight,
-  ClipboardList
+  ClipboardList,
+  Edit,
+  Trash2
 } from "lucide-react";
 import SetupDrawer from "@/components/SetupDrawer";
 import AdminSidebar from "@/components/AdminSidebar";
+import IdentityManagement from "@/components/IdentityManagement";
+import { PermissionGate } from "@/components/PermissionGate";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -104,7 +108,7 @@ const GET_SETUP_DATA = gql`
   }
 `;
 
-type TabType = "practitioners" | "facilities" | "healthPlans" | "medications" | "smartPhrases" | "questionnaires" | "equipment" | "outreachScripts" | "integrationProfiles";
+type TabType = "practitioners" | "facilities" | "healthPlans" | "medications" | "smartPhrases" | "questionnaires" | "equipment" | "outreachScripts" | "integrationProfiles" | "identity";
 
 const DELETE_MUTATIONS = {
   practitioners: gql`mutation DeletePractitioner($id: Guid!) { deletePractitioner(id: $id) }`,
@@ -138,8 +142,9 @@ export default function AdminDashboardPage() {
   };
 
   const { data, loading, error, refetch } = useQuery(GET_SETUP_DATA);
-
-  const [deleteItem] = useMutation(DELETE_MUTATIONS[activeTab], {
+  
+  const mutation = (DELETE_MUTATIONS as any)[activeTab] || gql`mutation { __typename }`;
+  const [deleteItem] = useMutation(mutation, {
     onCompleted: () => refetch()
   });
 
@@ -354,6 +359,8 @@ export default function AdminDashboardPage() {
             ]}
           />
         );
+      case "identity":
+        return <IdentityManagement />;
     }
   };
 
@@ -394,13 +401,15 @@ export default function AdminDashboardPage() {
                 </span>
               </div>
             </div>
-            <button
-              className="h-10 px-6 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white font-bold uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center gap-2 group"
-              onClick={() => { setEditItem(null); setIsDrawerOpen(true); }}
-            >
-              <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-              <span className="text-[10px]">Add Entry</span>
-            </button>
+            <PermissionGate permission="setup:manage">
+              <button
+                className="h-10 px-6 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white font-bold uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center gap-2 group"
+                onClick={() => { setEditItem(null); setIsDrawerOpen(true); }}
+              >
+                <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+                <span className="text-[10px]">Add Entry</span>
+              </button>
+            </PermissionGate>
           </div>
 
           <div className="flex items-center justify-between gap-6 bg-[var(--card-bg)]/40 p-4 rounded-2xl border border-[var(--card-border)]">
@@ -428,18 +437,20 @@ export default function AdminDashboardPage() {
         </main>
       </div>
 
-      <SetupDrawer
-        open={isDrawerOpen}
-        type={activeTab}
-        initialData={editItem}
-        onClose={() => { setIsDrawerOpen(false); setEditItem(null); }}
-        onSuccess={() => refetch()}
-      />
+      {activeTab !== 'identity' && (
+        <SetupDrawer
+          open={isDrawerOpen}
+          type={activeTab as any}
+          initialData={editItem}
+          onClose={() => { setIsDrawerOpen(false); setEditItem(null); }}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 }
 
-import { Edit, Trash2 } from "lucide-react";
+
 
 function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns: any[], onEdit: (item: any) => void, onDelete: (item: any) => void }) {
   return (
@@ -475,22 +486,24 @@ function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns:
                 </td>
               ))}
               <td className="px-6 py-3.5 text-right">
-                <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                  <button
-                    onClick={() => onEdit(item)}
-                    className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)] text-[var(--text-muted)] hover:text-white border border-[var(--card-border)] hover:border-[var(--primary)] transition-all shadow-xl"
-                    title="Edit Record"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => onDelete(item)}
-                    className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--input-bg)] hover:bg-rose-600 text-[var(--text-muted)] hover:text-white border border-[var(--card-border)] hover:border-rose-500 transition-all shadow-xl"
-                    title="Delete Record"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                <PermissionGate permission="setup:manage">
+                  <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                    <button
+                      onClick={() => onEdit(item)}
+                      className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)] text-[var(--text-muted)] hover:text-white border border-[var(--card-border)] hover:border-[var(--primary)] transition-all shadow-xl"
+                      title="Edit Record"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => onDelete(item)}
+                      className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--input-bg)] hover:bg-rose-600 text-[var(--text-muted)] hover:text-white border border-[var(--card-border)] hover:border-rose-500 transition-all shadow-xl"
+                      title="Delete Record"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </PermissionGate>
               </td>
             </tr>
           ))}

@@ -7,9 +7,11 @@ declare module "next-auth" {
       id: string;
       role?: string;
       roles?: string[];
+      permissions?: string[];
       token?: string;
       practitionerId?: string;
       tenantId?: string;
+      emergencyAccessActive?: boolean;
     } & DefaultSession["user"];
   }
 
@@ -17,9 +19,11 @@ declare module "next-auth" {
     id: string;
     role?: string;
     roles?: string[];
+    permissions?: string[];
     token?: string;
     practitionerId?: string;
     tenantId?: string;
+    emergencyAccessActive?: boolean;
   }
 }
 
@@ -28,9 +32,10 @@ declare module "next-auth/jwt" {
     id: string;
     role?: string;
     roles?: string[];
+    permissions?: string[];
     token?: string;
     practitionerId?: string;
     tenantId?: string;
+    emergencyAccessActive?: boolean;
   }
 }
-

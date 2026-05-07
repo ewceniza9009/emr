@@ -8,14 +8,16 @@ public enum PractitionerPosition
     Physician,
     Admin,
     SocialWorker,
-    Chaplain
+    Chaplain,
+    MedicalDirector,
+    AdminCoordinator,
 }
 
 public class Practitioner : BaseEntity, ITenantEntity
 {
     public Guid PractitionerId { get; set; } = Guid.NewGuid();
-    public Guid TenantId { get; set; }           // Links to the Organization/Tenant
-    public Guid UserId { get; set; }          // Links to the system user account
+    public Guid TenantId { get; set; } // Links to the Organization/Tenant
+    public Guid UserId { get; set; } // Links to the system user account
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string? PrcLicenseNumber { get; set; }
@@ -27,16 +29,15 @@ public class Practitioner : BaseEntity, ITenantEntity
 
     // Computed — used by GraphQL
     public string FullName => $"{FirstName} {LastName}".Trim();
-    
+
     // Geospatial Coordinates (Clinician Base)
     // Navigation Properties
     public ICollection<EntityAddress> Addresses { get; set; } = new List<EntityAddress>();
 
-
-
-
     // Navigation Properties
-    public ICollection<PractitionerLicensure> Licensures { get; set; } = new List<PractitionerLicensure>();
-    public ICollection<PractitionerServiceArea> ServiceAreas { get; set; } = new List<PractitionerServiceArea>();
+    public ICollection<PractitionerLicensure> Licensures { get; set; } =
+        new List<PractitionerLicensure>();
+    public ICollection<PractitionerServiceArea> ServiceAreas { get; set; } =
+        new List<PractitionerServiceArea>();
     public ICollection<ProviderShift> Shifts { get; set; } = new List<ProviderShift>();
 }

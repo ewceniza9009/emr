@@ -66,9 +66,15 @@ public class FinalizeEnrollmentCommandTests
 
         var outreaches = new List<PatientOutreach> { outreach }.BuildMockDbSet();
         var patients = new List<Patient>().BuildMockDbSet();
+        var practitioners = new List<Practitioner>().BuildMockDbSet();
+        var careCases = new List<CareNavigationCase>().BuildMockDbSet();
+        var navTasks = new List<NavigationTask>().BuildMockDbSet();
 
         _mockContext.Setup(c => c.PatientOutreaches).Returns(outreaches.Object);
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
+        _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
+        _mockContext.Setup(c => c.CareNavigationCases).Returns(careCases.Object);
+        _mockContext.Setup(c => c.NavigationTasks).Returns(navTasks.Object);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -79,7 +85,7 @@ public class FinalizeEnrollmentCommandTests
         outreach.EnrolledPatientId.Should().Be(result);
 
         _mockContext.Verify(c => c.Patients.Add(It.IsAny<Patient>()), Times.Once);
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
     [Fact]
