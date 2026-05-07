@@ -19,6 +19,7 @@ public class OutreachActivity : BaseEntity
     public Guid PractitionerId { get; set; }
     public OutreachMethod Method { get; set; }
     public string? Outcome { get; set; } // e.g., No Answer, Interested, Scheduled
+    public string? Reason { get; set; } // e.g., Not interested, busy, DNC request
     public string? Notes { get; set; }
     public DateTimeOffset ActivityDate { get; set; } = DateTimeOffset.UtcNow;
     

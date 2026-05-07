@@ -311,3 +311,4 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
     </div>
   );
 }
+

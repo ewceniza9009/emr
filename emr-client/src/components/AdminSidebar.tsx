@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import {
@@ -148,3 +148,4 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
     </aside>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useToast } from "./ToastProvider";
 
-// ─── CONFIG ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ CONFIG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const GRID_CONFIG = {
   START_HOUR: 8,
@@ -55,7 +55,7 @@ const getStatusConfig = (statusStr: string) => {
   return { label: "SCHED", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]", text: "text-[var(--text-muted)]", dot: "bg-[var(--text-muted)]/40", isLive: false };
 };
 
-// ─── GraphQL ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ GraphQL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const GET_SCHEDULE_DATA = gql`
   query GetScheduleData($startDate: DateTime!, $endDate: DateTime!) {
@@ -154,7 +154,7 @@ export default function SchedulingCalendar() {
   const [localBlocks, setLocalBlocks] = useState<any[]>([]);
 
   const [reschedule] = useMutation(RESCHEDULE_APPOINTMENT, {
-    onCompleted: () => { refetch(); showToast("Appointment Rescheduled // Vector Updated", "success"); },
+    onCompleted: () => { refetch(); showToast("Appointment Rescheduled · Vector Updated", "success"); },
     onError: (err) => { refetch(); showToast(`Reschedule Failed: ${err.message}`, "error"); }
   });
 
@@ -717,3 +717,4 @@ export default function SchedulingCalendar() {
     </div>
   );
 }
+

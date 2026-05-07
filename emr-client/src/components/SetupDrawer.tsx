@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
@@ -176,7 +176,7 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
               </div>
               <div>
                 <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">{isEdit ? 'Edit' : 'New'} {title}</h2>
-                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Setup Registry // Clinical Master</p>
+                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Setup Registry · Clinical Master</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all">
@@ -465,4 +465,5 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
     </HalcyonPortal>
   );
 }
+
 

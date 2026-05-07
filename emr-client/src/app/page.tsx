@@ -1,14 +1,14 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
-import { 
-  ShieldCheck, 
-  Activity, 
-  Map, 
-  CreditCard, 
-  ChevronRight, 
-  ArrowRight, 
-  Zap, 
+import {
+  ShieldCheck,
+  Activity,
+  Map,
+  CreditCard,
+  ChevronRight,
+  ArrowRight,
+  Zap,
   Lock,
   BarChart3,
   Globe,
@@ -57,7 +57,7 @@ export default function HomePage() {
       {/* NAVBAR */}
       <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 border-b ${isScrolled ? "bg-black/60 backdrop-blur-2xl border-white/10 py-3" : "bg-transparent border-transparent py-6"}`}>
         <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3 group cursor-pointer"
@@ -100,26 +100,26 @@ export default function HomePage() {
       <section className="relative pt-48 pb-32 lg:pt-64 lg:pb-56 overflow-hidden">
         {/* MOVING LIGHT BEAMS */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <motion.div 
-            animate={{ 
+          <motion.div
+            animate={{
               x: [0, 100, 0],
               opacity: [0.1, 0.3, 0.1]
             }}
             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-            className="absolute top-[-20%] left-[-10%] w-[1px] h-[150%] bg-white/20 rotate-[35deg] blur-[80px]" 
+            className="absolute top-[-20%] left-[-10%] w-[1px] h-[150%] bg-white/20 rotate-[35deg] blur-[80px]"
           />
-          <motion.div 
-            animate={{ 
+          <motion.div
+            animate={{
               x: [0, -150, 0],
               opacity: [0.05, 0.2, 0.05]
             }}
             transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-            className="absolute top-[-20%] right-[20%] w-[1px] h-[150%] bg-[var(--primary)]/30 rotate-[35deg] blur-[100px]" 
+            className="absolute top-[-20%] right-[20%] w-[1px] h-[150%] bg-[var(--primary)]/30 rotate-[35deg] blur-[100px]"
           />
         </div>
 
         <div className="max-w-7xl mx-auto px-8 relative z-10">
-          <motion.div 
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -129,12 +129,12 @@ export default function HomePage() {
               <div className="w-2 h-2 rounded-full bg-[var(--primary)] shadow-[0_0_10px_var(--primary)] animate-pulse" />
               <span className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.4em]">System Status: Online</span>
             </motion.div>
-            
+
             <motion.h1 variants={itemVariants} className="text-7xl lg:text-[120px] font-black text-white leading-[0.9] tracking-[-0.05em] mb-12 max-w-6xl">
               <span className="inline-block text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/20">The future of</span> <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] via-blue-400 to-emerald-400 animate-gradient-x">clinical operations.</span>
             </motion.h1>
-            
+
             <motion.p variants={itemVariants} className="text-xl lg:text-2xl text-slate-400 font-medium leading-relaxed mb-16 max-w-3xl">
               A beautifully engineered clinical operating system designed to unify workflows and empower high-performance medical teams.
             </motion.p>
@@ -181,7 +181,7 @@ export default function HomePage() {
               <p className="text-lg text-slate-500 leading-relaxed mb-12">
                 Halcyon's core engine handles complex clinical synchronization at scale, ensuring your providers stay connected across disparate clinical environments and geospatial boundaries.
               </p>
-              
+
               <div className="grid grid-cols-2 gap-8">
                 {[
                   { label: "Uptime SLA", val: "99.999%", icon: Zap },
@@ -196,7 +196,7 @@ export default function HomePage() {
               </div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1 }}
@@ -206,26 +206,26 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/20 to-blue-600/20 rounded-[3rem] blur-3xl opacity-30" />
               <div className="relative h-full w-full bg-white/[0.01] border border-white/10 rounded-[3rem] p-8 backdrop-blur-3xl overflow-hidden flex items-center justify-center">
                 <div className="relative w-full h-full border border-white/5 rounded-2xl flex items-center justify-center">
-                   <div className="w-48 h-48 rounded-full border border-[var(--primary)]/30 flex items-center justify-center animate-[spin_20s_linear_infinite]">
-                      <div className="w-4 h-4 rounded-full bg-[var(--primary)] absolute top-0 shadow-[0_0_15px_var(--primary-glow)]" />
-                   </div>
-                   <div className="w-32 h-32 rounded-full border border-blue-500/30 flex items-center justify-center animate-[spin_15s_linear_infinite_reverse]">
-                      <div className="w-3 h-3 rounded-full bg-blue-500 absolute bottom-0 shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
-                   </div>
-                   <ShieldCheck className="w-16 h-16 text-white opacity-20 absolute" />
+                  <div className="w-48 h-48 rounded-full border border-[var(--primary)]/30 flex items-center justify-center animate-[spin_20s_linear_infinite]">
+                    <div className="w-4 h-4 rounded-full bg-[var(--primary)] absolute top-0 shadow-[0_0_15px_var(--primary-glow)]" />
+                  </div>
+                  <div className="w-32 h-32 rounded-full border border-blue-500/30 flex items-center justify-center animate-[spin_15s_linear_infinite_reverse]">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 absolute bottom-0 shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+                  </div>
+                  <ShieldCheck className="w-16 h-16 text-white opacity-20 absolute" />
                 </div>
-                
+
                 {/* DATA STREAM DECOR */}
                 <div className="absolute bottom-8 left-8 right-8">
-                   <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ x: "-100%" }}
-                        animate={{ x: "100%" }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                        className="h-full w-1/2 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent"
-                      />
-                   </div>
-                   <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mt-4 text-center">Encrypted Telemetry Stream</p>
+                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ x: "-100%" }}
+                      animate={{ x: "100%" }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                      className="h-full w-1/2 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent"
+                    />
+                  </div>
+                  <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mt-4 text-center">Encrypted Telemetry Stream</p>
                 </div>
               </div>
             </motion.div>
@@ -237,8 +237,8 @@ export default function HomePage() {
       <section id="network" className="py-32 border-y border-white/[0.03] bg-white/[0.01]">
         <div className="max-w-7xl mx-auto px-8">
           <div className="text-center mb-24">
-             <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.5em] mb-6 block">Capability Matrix</span>
-             <h2 className="text-5xl font-black text-white tracking-tighter">Unified clinical workflows.</h2>
+            <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.5em] mb-6 block">Capability Matrix</span>
+            <h2 className="text-5xl font-black text-white tracking-tighter">Unified clinical workflows.</h2>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -248,7 +248,7 @@ export default function HomePage() {
               { title: "Node Telemetry", desc: "Low-latency clinical IoT connectivity.", icon: Cpu },
               { title: "Identity Vault", desc: "Level 1 security for patient records.", icon: Fingerprint }
             ].map((card, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 whileHover={{ y: -10 }}
                 className="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/10 hover:bg-white/[0.04] hover:border-[var(--primary)]/30 transition-all group"
@@ -274,7 +274,7 @@ export default function HomePage() {
             <h2 className="text-5xl lg:text-7xl font-black text-white tracking-tighter mb-16 max-w-4xl">
               Engineered for the <span className="text-slate-700 italic">mission critical.</span>
             </h2>
-            
+
             <div className="grid md:grid-cols-3 gap-16 w-full max-w-5xl">
               {[
                 { label: "Active Deployments", val: "148" },
@@ -294,25 +294,25 @@ export default function HomePage() {
       {/* CTA SECTION */}
       <section className="py-40 relative">
         <div className="max-w-4xl mx-auto px-8">
-           <motion.div 
-             initial={{ opacity: 0, y: 50 }}
-             whileInView={{ opacity: 1, y: 0 }}
-             transition={{ duration: 0.8 }}
-             viewport={{ once: true }}
-             className="relative rounded-[3rem] p-16 overflow-hidden"
-           >
-             <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-blue-800 opacity-90" />
-             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
-             
-             <div className="relative z-10 flex flex-col items-center text-center">
-                <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tight mb-8">Ready to modernize?</h2>
-                <p className="text-white/70 text-lg mb-12 font-medium">Join the fleet of high-performance clinical teams running on Halcyon.</p>
-                <Link href="/login" className="h-16 px-12 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-3xl shadow-black/20 group">
-                  Get Started Now
-                  <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1 transition-transform" />
-                </Link>
-             </div>
-           </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="relative rounded-[3rem] p-16 overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-blue-800 opacity-90" />
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
+
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tight mb-8">Ready to modernize?</h2>
+              <p className="text-white/70 text-lg mb-12 font-medium">Join the fleet of high-performance clinical teams running on Halcyon.</p>
+              <Link href="/login" className="h-16 px-12 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-3xl shadow-black/20 group">
+                Get Started Now
+                <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -328,7 +328,7 @@ export default function HomePage() {
               <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest">Next-Gen Protocol</span>
             </div>
           </div>
-          
+
           <div className="flex flex-wrap items-center justify-center gap-10 text-[10px] font-black text-slate-700 uppercase tracking-widest">
             {['Status', 'Security', 'Privacy', 'Network', 'API', 'Legal'].map(link => (
               <Link key={link} href="#" className="hover:text-[var(--primary)] transition-colors tracking-[0.2em]">{link}</Link>
@@ -347,3 +347,4 @@ export default function HomePage() {
     </div>
   );
 }
+

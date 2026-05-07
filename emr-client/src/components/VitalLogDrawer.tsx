@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { X, Activity, Calendar, Clock, Heart, Wind, Droplets, Scale, Thermometer } from "lucide-react";
 import HalcyonPortal from "./Portal";
@@ -85,7 +85,7 @@ export default function VitalLogDrawer({ isOpen, onClose, encounters }: Props) {
                         <div className="flex items-center gap-2 text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
                           <Thermometer className="w-3 h-3 text-amber-500" /> Temperature
                         </div>
-                        <p className="text-xl font-black text-[var(--text-primary)]">{v.temperature}°F</p>
+                        <p className="text-xl font-black text-[var(--text-primary)]">{v.temperature}Â°F</p>
                       </div>
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
@@ -105,3 +105,4 @@ export default function VitalLogDrawer({ isOpen, onClose, encounters }: Props) {
     </HalcyonPortal>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
@@ -143,7 +143,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                 <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">
                   {initialData ? "Update Trusted Contact" : "Add Trusted Contact"}
                 </h2>
-                <span className="text-[10px] font-bold text-[var(--primary)] tracking-[0.2em] mt-1 uppercase">Governance // POA Registration</span>
+                <span className="text-[10px] font-bold text-[var(--primary)] tracking-[0.2em] mt-1 uppercase">Governance · POA Registration</span>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
@@ -364,3 +364,4 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
     </HalcyonPortal>
   );
 }
+

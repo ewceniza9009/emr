@@ -304,7 +304,7 @@ export default function PatientDetailPage() {
           <div>
             <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight uppercase leading-none">{patient.firstName} {patient.lastName}</h1>
             <div className="flex items-center gap-3 mt-2">
-              <p className="text-[var(--text-muted)] text-[9px] font-black tracking-[0.2em] uppercase">{patient.mrn} // {patient.biologicalSex}</p>
+              <p className="text-[var(--text-muted)] text-[9px] font-black tracking-[0.2em] uppercase">{patient.mrn} • {patient.biologicalSex}</p>
               <span className="w-1 h-1 rounded-full bg-[var(--card-border)]" />
               <div className="flex items-center gap-4">
                 {(() => {
@@ -655,7 +655,7 @@ export default function PatientDetailPage() {
                             <div className="flex items-center justify-between">
                               <h4 className="text-sm font-black uppercase text-[var(--text-primary)]">{evt.type.replace('_', ' ')}</h4>
                               <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
-                                {date.toLocaleDateString()} // {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {date.toLocaleDateString()} • {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
                             <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">

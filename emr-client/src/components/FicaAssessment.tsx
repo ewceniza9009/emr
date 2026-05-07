@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Heart, Info } from "lucide-react";
@@ -100,3 +100,4 @@ export default function FicaAssessment({ initialData, onDataChange }: FicaAssess
     </div>
   );
 }
+

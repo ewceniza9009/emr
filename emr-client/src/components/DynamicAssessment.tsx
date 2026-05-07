@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { ChevronRight, CheckCircle2, Circle, HelpCircle } from "lucide-react";
@@ -220,3 +220,4 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
     </div>
   );
 }
+

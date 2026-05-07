@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
@@ -417,3 +417,4 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
     </HalcyonPortal>
   );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import {
   Truck,
@@ -173,4 +173,5 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
     </div>
   );
 }
+
 

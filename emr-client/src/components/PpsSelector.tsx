@@ -124,3 +124,4 @@ export default function PpsSelector({ onScoreChange }: PpsSelectorProps) {
     </div>
   );
 }
+

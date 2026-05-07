@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
@@ -188,7 +188,7 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
                 disabled={downloading}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-50"
               >
-                {downloading ? <span className="animate-spin">⏳</span> : <FileText className="w-4 h-4" />}
+                {downloading ? <span className="animate-spin">â³</span> : <FileText className="w-4 h-4" />}
                 Export PDF
               </button>
             )}
@@ -329,3 +329,4 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useState, useEffect } from "react";
@@ -499,3 +499,4 @@ function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns:
     </div>
   );
 }
+

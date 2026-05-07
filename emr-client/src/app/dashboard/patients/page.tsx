@@ -1,12 +1,12 @@
-"use client";
+﻿"use client";
 
 import { useQuery, gql } from "@apollo/client";
 import Link from "next/link";
-import { 
-  Search, 
-  Filter, 
-  Plus, 
-  MoreHorizontal, 
+import {
+  Search,
+  Filter,
+  Plus,
+  MoreHorizontal,
   UserCircle,
   Mail,
   Phone
@@ -51,7 +51,7 @@ export default function PatientsPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  
+
   const { data, loading, error, refetch } = useQuery(GET_PATIENTS, {
     variables: {
       search: searchQuery || undefined
@@ -69,7 +69,7 @@ export default function PatientsPage() {
           <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Patient Registry</h1>
           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Master record of all patients under clinical supervision.</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsAddOpen(true)}
           className="premium-button premium-gradient px-5 h-10 rounded-xl text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20"
         >
@@ -78,19 +78,19 @@ export default function PatientsPage() {
         </button>
       </div>
 
-      <AddPatientDrawer 
-        open={isAddOpen} 
-        onClose={() => setIsAddOpen(false)} 
-        onSuccess={() => refetch()} 
+      <AddPatientDrawer
+        open={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onSuccess={() => refetch()}
       />
 
       {/* Search & Filter Bar */}
       <div className="flex flex-wrap gap-3 items-center bg-[var(--card-bg)] p-3 rounded-2xl border border-[var(--card-border)]">
         <div className="flex-1 min-w-[300px] relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-          <input 
-            type="text" 
-            placeholder="Search by name, MRN, or phone..." 
+          <input
+            type="text"
+            placeholder="Search by name, MRN, or phone..."
             className="w-full premium-input rounded-xl py-2 pl-10 pr-4 text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -128,22 +128,22 @@ export default function PatientsPage() {
               ) : error ? (
                 <tr>
                   <td colSpan={6} className="px-8 py-24 text-center bg-red-500/5">
-                     <div className="flex flex-col items-center justify-center gap-4 max-w-md mx-auto w-full">
-                       <div className="w-16 h-16 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-600 mb-2 border border-red-500/20">
-                         <Filter className="w-8 h-8 opacity-50 absolute" />
-                         <Search className="w-8 h-8" />
-                       </div>
-                       <h3 className="text-xl font-bold text-[var(--text-primary)]">Connection Error</h3>
-                       <p className="text-[var(--text-muted)] text-sm leading-relaxed">
-                         We're having trouble connecting to the medical registry. This usually happens when the backend clinical service is offline or restarting.
-                       </p>
-                       <button 
-                          onClick={() => refetch()}
-                          className="mt-4 px-6 py-2 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white text-sm font-semibold transition-all"
-                       >
-                         Try Reconnecting
-                       </button>
-                     </div>
+                    <div className="flex flex-col items-center justify-center gap-4 max-w-md mx-auto w-full">
+                      <div className="w-16 h-16 rounded-3xl bg-red-500/10 flex items-center justify-center text-red-600 mb-2 border border-red-500/20">
+                        <Filter className="w-8 h-8 opacity-50 absolute" />
+                        <Search className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-xl font-bold text-[var(--text-primary)]">Connection Error</h3>
+                      <p className="text-[var(--text-muted)] text-sm leading-relaxed">
+                        We're having trouble connecting to the medical registry. This usually happens when the backend clinical service is offline or restarting.
+                      </p>
+                      <button
+                        onClick={() => refetch()}
+                        className="mt-4 px-6 py-2 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white text-sm font-semibold transition-all"
+                      >
+                        Try Reconnecting
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ) : filteredPatients.map((patient: any) => (
@@ -197,7 +197,7 @@ export default function PatientsPage() {
                     )}
                   </td>
                   <td className="px-8 py-5 relative">
-                    <button 
+                    <button
                       onClick={() => setOpenMenuId(openMenuId === patient.patientId ? null : patient.patientId)}
                       className={`p-2 rounded-xl transition-all ${openMenuId === patient.patientId ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20" : "hover:bg-[var(--primary-glow)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
                     >
@@ -210,9 +210,9 @@ export default function PatientsPage() {
                         <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
                         <div className="absolute right-8 top-16 w-56 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl shadow-2xl z-20 py-2 animate-in fade-in zoom-in-95 duration-200">
                           <div className="px-4 py-2 border-b border-[var(--card-border)] mb-1">
-                             <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Patient Actions</p>
+                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Patient Actions</p>
                           </div>
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setOpenMenuId(null);
@@ -223,7 +223,7 @@ export default function PatientsPage() {
                             <UserCircle className="w-4 h-4 text-blue-400" />
                             View Clinical Profile
                           </button>
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setOpenMenuId(null);
@@ -235,7 +235,7 @@ export default function PatientsPage() {
                             Schedule Encounter
                           </button>
                           <div className="h-px bg-[var(--card-border)] my-1" />
-                          <button 
+                          <button
                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-all font-semibold text-left"
                             onClick={async (e) => {
                               e.stopPropagation();
@@ -264,10 +264,10 @@ export default function PatientsPage() {
                   </td>
                 </tr>
               ))}
-          </tbody>
+            </tbody>
           </table>
         </div>
-        
+
         {!loading && patients.length === 0 && (
           <div className="px-8 py-20 text-center text-[var(--text-muted)] bg-[var(--input-bg)]">
             No patients found in the registry.

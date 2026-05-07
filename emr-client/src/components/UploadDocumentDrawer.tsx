@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { 
   X, 
@@ -79,7 +79,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
               <div className="w-1.5 h-10 bg-blue-500 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.3)]" />
               <div className="flex flex-col">
                 <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight uppercase leading-none">Ingest Document</h2>
-                <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Clinical Data Vault // Patient Record</span>
+                <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Clinical Data Vault · Patient Record</span>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-[var(--text-primary)]">
@@ -194,3 +194,4 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
     </HalcyonPortal>
   );
 }
+

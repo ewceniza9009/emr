@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQuery, gql } from "@apollo/client";
 import {
@@ -220,7 +220,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                     {[
                       { label: 'Heart Rate', value: encounter.vitalSigns?.[0]?.heartRate, unit: 'BPM', icon: Heart, color: 'text-rose-500', glow: 'shadow-rose-500/20' },
                       { label: 'BP', value: encounter.vitalSigns?.[0]?.bloodPressureSystolic ? `${encounter.vitalSigns[0].bloodPressureSystolic}/${encounter.vitalSigns[0].bloodPressureDiastolic}` : null, unit: 'mmHg', icon: Activity, color: 'text-blue-500', glow: 'shadow-blue-500/20' },
-                      { label: 'Body Temp', value: encounter.vitalSigns?.[0]?.temperature, unit: '°F', icon: Thermometer, color: 'text-amber-500', glow: 'shadow-amber-500/20' },
+                      { label: 'Body Temp', value: encounter.vitalSigns?.[0]?.temperature, unit: 'Â°F', icon: Thermometer, color: 'text-amber-500', glow: 'shadow-amber-500/20' },
                       { label: 'Oxygen Sat', value: encounter.vitalSigns?.[0]?.oxygenSaturation, unit: '% SpO2', icon: Wind, color: 'text-emerald-500', glow: 'shadow-emerald-500/20' },
                     ].map((v, i) => (
                       <div key={i} className="p-5 rounded-3xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/40 transition-all duration-300 group/v">
@@ -361,3 +361,4 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
     </HalcyonPortal>
   );
 }
+

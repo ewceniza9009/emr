@@ -16,6 +16,14 @@ public class OutreachMutation
         return await mediator.Send(input);
     }
 
+    public async Task<bool> UnenrollPatient(
+        UnenrollPatientCommand input,
+        [Service] IMediator mediator
+    )
+    {
+        return await mediator.Send(input);
+    }
+
     public async Task<Guid> CreateOutreach(
         CreateOutreachCommand input,
         [Service] IMediator mediator

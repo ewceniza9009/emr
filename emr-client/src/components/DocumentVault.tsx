@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQuery, gql } from "@apollo/client";
 import { 
@@ -169,3 +169,4 @@ export default function DocumentVault({ patientId }: Props) {
     </div>
   );
 }
+

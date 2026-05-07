@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";

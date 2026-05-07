@@ -39,6 +39,26 @@ public class GetOutreachesQueryHandler
             .Take(request.Take)
             .ToListAsync(cancellationToken);
 
+        // Aggressive retroactive fill for legacy data
+        foreach (var item in items)
+        {
+            if (string.IsNullOrEmpty(item.LatestActivityOutcome))
+            {
+                var last = await _context.OutreachActivities
+                    .Where(a => a.OutreachId == item.PatientOutreachId)
+                    .OrderByDescending(a => a.ActivityDate)
+                    .FirstOrDefaultAsync(cancellationToken);
+                
+                if (last != null)
+                {
+                    item.LatestActivityOutcome = last.Outcome;
+                    item.LatestActivityReason = last.Reason;
+                    // Heal the missing activity date if possible
+                    item.LastActivityDate ??= last.ActivityDate;
+                }
+            }
+        }
+
         return new PagedResponse<PatientOutreach> { Items = items, TotalCount = totalCount };
     }
 }

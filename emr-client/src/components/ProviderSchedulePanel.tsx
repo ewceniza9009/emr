@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
@@ -96,7 +96,7 @@ export default function ProviderSchedulePanel({
         </h3>
         {!loading && (
           <span className="text-[10px] text-[var(--text-muted)] font-mono">
-            {providers.length} FOUND · SORTED BY PROXIMITY
+            {providers.length} FOUND Â· SORTED BY PROXIMITY
           </span>
         )}
       </div>
@@ -175,7 +175,7 @@ export default function ProviderSchedulePanel({
                       hour: "2-digit",
                       minute: "2-digit",
                     })}{" "}
-                    –{" "}
+                    â€“{" "}
                     {new Date(provider.shiftEnd).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -183,7 +183,7 @@ export default function ProviderSchedulePanel({
                   </p>
                 </div>
 
-                {/* Distance & Travel — only shown for in-person */}
+                {/* Distance & Travel â€” only shown for in-person */}
                 {isInPerson && (
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <div
@@ -221,3 +221,4 @@ export default function ProviderSchedulePanel({
     </div>
   );
 }
+

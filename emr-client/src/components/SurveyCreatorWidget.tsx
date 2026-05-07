@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo } from "react";
 import { SurveyCreator, SurveyCreatorComponent } from "survey-creator-react";
@@ -69,3 +69,4 @@ export default function SurveyCreatorWidget({ initialJson, onSave }: Props) {
     </div>
   );
 }
+

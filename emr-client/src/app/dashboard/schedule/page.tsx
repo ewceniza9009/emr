@@ -1,4 +1,4 @@
-import SchedulingCalendar from "@/components/SchedulingCalendar";
+﻿import SchedulingCalendar from "@/components/SchedulingCalendar";
 
 export const metadata = {
   title: "Halcyon",
@@ -8,3 +8,4 @@ export const metadata = {
 export default function SchedulePage() {
   return <SchedulingCalendar />;
 }
+

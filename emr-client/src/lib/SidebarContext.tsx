@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
@@ -39,3 +39,4 @@ export function useSidebar() {
   if (!context) throw new Error("useSidebar must be used within a SidebarProvider");
   return context;
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import * as signalR from "@microsoft/signalr";
@@ -84,9 +84,10 @@ export default function LiveHeartbeat({ patientId }: { patientId: string }) {
            <div className="flex items-center gap-1.5 text-[8px] font-black text-[var(--text-secondary)] uppercase">
              <Thermometer className="w-3 h-3 text-amber-400" /> Temp
            </div>
-           <div className="text-xs font-black text-[var(--text-primary)]">{vitals.temp} <span className="text-[9px] font-bold text-[var(--text-muted)]">°F</span></div>
+           <div className="text-xs font-black text-[var(--text-primary)]">{vitals.temp} <span className="text-[9px] font-bold text-[var(--text-muted)]">Â°F</span></div>
         </div>
       </div>
     </div>
   );
 }
+

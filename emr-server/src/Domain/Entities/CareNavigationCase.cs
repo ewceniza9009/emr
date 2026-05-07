@@ -11,6 +11,8 @@ public class CareNavigationCase : BaseEntity
     public AcuityLevel AcuityLevel { get; set; } = AcuityLevel.Moderate;
     public CaseStatus Status { get; set; } = CaseStatus.Open;
     public DateTimeOffset OpenedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? ClosedAt { get; set; }
+    public string? ResolutionNotes { get; set; }
 
     public Patient Patient { get; set; } = null!;
     public Practitioner Navigator { get; set; } = null!;

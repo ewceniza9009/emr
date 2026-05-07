@@ -77,7 +77,7 @@ export default function AdminLoginPage() {
              </div>
              <div>
                 <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Security Protocol</p>
-                <p className="text-xs font-bold text-white uppercase tracking-tight">RSA-4096 // TLS 1.3</p>
+                <p className="text-xs font-bold text-white uppercase tracking-tight">RSA-4096 · TLS 1.3</p>
              </div>
           </div>
 
@@ -158,3 +158,4 @@ export default function AdminLoginPage() {
     </div>
   );
 }
+

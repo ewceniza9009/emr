@@ -1,12 +1,12 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { Search, X, User, CheckCircle2, Hash, MapPin, Phone, Activity, ShieldCheck, ChevronRight, Zap } from "lucide-react";
 import HalcyonPortal from "./Portal";
 
-const GET_PATIENTS = gql`
-  query GetPatients {
+const GET_REGISTRY_DATA = gql`
+  query GetRegistryData {
     patients {
       items {
         patientId
@@ -26,6 +26,19 @@ const GET_PATIENTS = gql`
         }
       }
     }
+    outreaches {
+      items {
+        patientOutreachId
+        firstName
+        lastName
+        status
+        primaryPhone
+        mailingAddress {
+          city
+          state
+        }
+      }
+    }
   }
 `;
 
@@ -37,15 +50,20 @@ interface Props {
 
 export default function PatientLookup({ open, onClose, onSelect }: Props) {
    const [search, setSearch] = useState("");
-   const { data, loading } = useQuery(GET_PATIENTS);
+   const { data, loading } = useQuery(GET_REGISTRY_DATA, { skip: !open });
 
    const patients = data?.patients?.items || [];
-   const filtered = useMemo(() => {
-      return patients.filter((p: any) =>
-         `${p.firstName} ${p.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
-         p.mrn.toLowerCase().includes(search.toLowerCase())
+   const leads = data?.outreaches?.items || [];
+
+   const combined = useMemo(() => {
+      const pList = patients.map((p: any) => ({ ...p, __type: 'PATIENT' }));
+      const lList = leads.map((l: any) => ({ ...l, __type: 'LEAD', patientId: l.patientOutreachId }));
+      
+      return [...pList, ...lList].filter((item: any) =>
+         `${item.firstName} ${item.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
+         (item.mrn && item.mrn.toLowerCase().includes(search.toLowerCase()))
       );
-   }, [patients, search]);
+   }, [patients, leads, search]);
 
    if (!open) return null;
 
@@ -88,40 +106,50 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                      </div>
                   ) : (
                      <div className="p-3 space-y-2">
-                        {filtered.map((p: any) => (
+                        {combined.map((p: any) => (
                            <button
-                              key={p.patientId}
-                              onClick={() => onSelect(p)}
-                              className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-[var(--primary)]/5 transition-all group border border-transparent hover:border-[var(--primary)]/20 text-left active:scale-[0.99]"
+                               key={p.__type === 'PATIENT' ? p.patientId : p.patientOutreachId}
+                               onClick={() => onSelect(p)}
+                               className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all group border border-transparent text-left active:scale-[0.99] ${p.__type === 'LEAD' ? 'hover:bg-amber-500/5 hover:border-amber-500/20' : 'hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20'}`}
                            >
-                              <div className="w-10 h-10 rounded-xl bg-[var(--input-bg)] flex items-center justify-center text-[11px] font-bold border border-[var(--card-border)] group-hover:border-[var(--primary)]/50 transition-all text-[var(--text-primary)]">
-                                 {p.firstName?.[0]}{p.lastName?.[0]}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                 <div className="flex items-center gap-2">
-                                    <p className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-tight group-hover:text-[var(--primary)] transition-colors truncate">
-                                       {p.firstName} {p.lastName}
-                                    </p>
-                                    <span className="text-[8px] px-2 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-widest border border-[var(--primary)]/20">
-                                       {p.mrn}
-                                    </span>
-                                 </div>
-                                 <div className="flex items-center gap-5 mt-1">
-                                    <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1.5">
-                                       <MapPin className="w-2.5 h-2.5 opacity-50" />
-                                       {p.addresses?.find((a: any) => a.isPrimary)?.address?.city || 'UNKNOWN'}
-                                    </p>
-                                    <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1.5">
-                                       <Phone className="w-2.5 h-2.5 opacity-50" />
-                                       {p.phones?.[0]?.phoneNumber || 'N/A'}
-                                    </p>
-                                 </div>
-                              </div>
-                              <ChevronRight className="w-4 h-4 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                               <div className={`w-10 h-10 rounded-xl bg-[var(--input-bg)] flex items-center justify-center text-[11px] font-bold border border-[var(--card-border)] transition-all text-[var(--text-primary)] ${p.__type === 'LEAD' ? 'group-hover:border-amber-500/50' : 'group-hover:border-[var(--primary)]/50'}`}>
+                                  {p.firstName?.[0]}{p.lastName?.[0]}
+                               </div>
+                               <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                     <p className={`text-xs font-bold uppercase tracking-tight transition-colors truncate ${p.__type === 'LEAD' ? 'text-amber-500/80 group-hover:text-amber-500' : 'text-[var(--text-primary)] group-hover:text-[var(--primary)]'}`}>
+                                        {p.firstName} {p.lastName}
+                                     </p>
+                                     {p.__type === 'PATIENT' ? (
+                                        <span className="text-[8px] px-2 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-widest border border-[var(--primary)]/20">
+                                           {p.mrn}
+                                        </span>
+                                     ) : (
+                                        <span className="text-[8px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 font-bold uppercase tracking-widest border border-amber-500/20">
+                                           LEAD
+                                        </span>
+                                     )}
+                                  </div>
+                                  <div className="flex items-center gap-5 mt-1">
+                                     <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1.5">
+                                        <MapPin className="w-2.5 h-2.5 opacity-50" />
+                                        {p.__type === 'PATIENT' 
+                                           ? (p.addresses?.find((a: any) => a.isPrimary)?.address?.city || 'UNKNOWN')
+                                           : (p.mailingAddress?.city || 'UNKNOWN')}
+                                     </p>
+                                     <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1.5">
+                                        <Phone className="w-2.5 h-2.5 opacity-50" />
+                                        {p.__type === 'PATIENT'
+                                           ? (p.phones?.[0]?.phoneNumber || 'N/A')
+                                           : (p.primaryPhone || 'N/A')}
+                                     </p>
+                                  </div>
+                               </div>
+                               <ChevronRight className="w-4 h-4 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
                            </button>
                         ))}
 
-                        {filtered.length === 0 && (
+                        {combined.length === 0 && (
                            <div className="py-24 text-center">
                               <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Zero registry matches found</p>
                            </div>
@@ -134,7 +162,7 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                <div className="px-8 py-4 border-t border-[var(--card-border)] bg-[var(--input-bg)]/10 flex items-center justify-between">
                   <div className="flex items-center gap-6">
                      <div className="flex items-center gap-2">
-                        <kbd className="px-1.5 py-0.5 rounded bg-[var(--card-border)] text-[8px] font-bold text-[var(--text-muted)] border-b-2 border-black/20">↑↓</kbd>
+                        <kbd className="px-1.5 py-0.5 rounded bg-[var(--card-border)] text-[8px] font-bold text-[var(--text-muted)] border-b-2 border-black/20">â†‘â†“</kbd>
                         <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Navigate</span>
                      </div>
                      <div className="flex items-center gap-2">
@@ -142,10 +170,11 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                         <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Select</span>
                      </div>
                   </div>
-                  <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Halcyon // Tactical Registry v1.1</p>
+                  <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Halcyon · Tactical Registry v1.1</p>
                </div>
             </div>
          </div>
       </HalcyonPortal>
    );
 }
+

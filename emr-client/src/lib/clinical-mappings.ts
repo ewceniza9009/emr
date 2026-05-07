@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Halcyon Clinical Mapping & Migration Utility
  * 
  * This utility handles translations between legacy client-side identifiers
@@ -23,3 +23,4 @@ export const migrateDirectiveType = (type: string): string => {
   const normalized = type.toUpperCase().replace(/_/g, "");
   return map[normalized] || type;
 };
+

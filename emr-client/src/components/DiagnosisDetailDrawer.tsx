@@ -1,4 +1,4 @@
-import { X, ClipboardList, Calendar, Activity, ShieldCheck, AlertCircle, Info, Tag } from "lucide-react";
+﻿import { X, ClipboardList, Calendar, Activity, ShieldCheck, AlertCircle, Info, Tag } from "lucide-react";
 import HalcyonPortal from "./Portal";
 
 interface Props {
@@ -26,7 +26,7 @@ export default function DiagnosisDetailDrawer({ isOpen, onClose, diagnosis }: Pr
                   <div className="w-1.5 h-10 bg-blue-500 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.3)]" />
                   <div className="flex flex-col">
                     <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">Condition Details</h2>
-                    <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Clinical Registry // {diagnosis.icd10Code}</span>
+                    <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Clinical Registry · {diagnosis.icd10Code}</span>
                   </div>
                 </div>
                 <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-[var(--text-primary)]">
@@ -113,3 +113,4 @@ export default function DiagnosisDetailDrawer({ isOpen, onClose, diagnosis }: Pr
     </HalcyonPortal>
   );
 }
+

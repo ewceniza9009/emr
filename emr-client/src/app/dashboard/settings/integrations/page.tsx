@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
@@ -133,3 +133,4 @@ export default function IntegrationsPage() {
     </div>
   );
 }
+

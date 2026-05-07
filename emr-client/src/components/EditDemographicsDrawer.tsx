@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
@@ -83,7 +83,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                 <div className="w-1.5 h-10 bg-blue-500 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.3)]" />
                 <div className="flex flex-col">
                   <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">Edit Demographics</h2>
-                  <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Core Identity // Patient Record</span>
+                  <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Core Identity · Patient Record</span>
                 </div>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
@@ -232,3 +232,4 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
     </HalcyonPortal>
   );
 }
+

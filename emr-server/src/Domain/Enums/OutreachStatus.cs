@@ -9,4 +9,6 @@ public enum OutreachStatus
     Enrolled = 4,
     Refused = 5,
     OnHold = 6,
+    DoNotCall = 7,
+    OptedOut = 8,
 }

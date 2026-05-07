@@ -11,7 +11,9 @@ public record LogOutreachActivityCommand : IRequest<Guid>
     public Guid OutreachId { get; init; }
     public OutreachMethod Method { get; init; }
     public string? Outcome { get; init; }
+    public string? Reason { get; init; }
     public string? Notes { get; init; }
+    public DateTimeOffset? NextFollowUpDate { get; init; }
 }
 
 public class LogOutreachActivityCommandHandler : IRequestHandler<LogOutreachActivityCommand, Guid>
@@ -38,17 +40,38 @@ public class LogOutreachActivityCommandHandler : IRequestHandler<LogOutreachActi
             OutreachId = request.OutreachId,
             Method = request.Method,
             Outcome = request.Outcome,
+            Reason = request.Reason,
             Notes = request.Notes,
             ActivityDate = DateTimeOffset.UtcNow,
-            // In a real app, we'd get this from the current user service
             PractitionerId = (await _context.Practitioners.FirstAsync(cancellationToken)).PractitionerId
         };
 
         outreach.CallAttemptCount++;
         outreach.LastActivityDate = DateTimeOffset.UtcNow;
         
-        // If it's a "No Answer", we might want to update status if attempts > limit
-        // but for now we just increment the counter.
+        if (request.NextFollowUpDate.HasValue)
+        {
+            outreach.NextFollowUpDate = request.NextFollowUpDate;
+        }
+
+        // Logic for DNC and Opt-Out
+        if (request.Outcome == "DNC")
+        {
+            outreach.IsDoNotCall = true;
+            outreach.Status = OutreachStatus.DoNotCall;
+        }
+        else if (request.Outcome == "OPT_OUT")
+        {
+            outreach.IsOptedOut = true;
+            outreach.Status = OutreachStatus.OptedOut;
+        }
+        else if (request.Outcome == "CONNECTED")
+        {
+            outreach.Status = OutreachStatus.Contacted;
+        }
+
+        outreach.LatestActivityOutcome = request.Outcome;
+        outreach.LatestActivityReason = request.Reason;
 
         _context.OutreachActivities.Add(activity);
         await _context.SaveChangesAsync(cancellationToken);

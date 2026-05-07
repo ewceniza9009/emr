@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
@@ -68,7 +68,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
               <div className="w-1 h-8 bg-[var(--primary)] rounded-full" />
               <div>
                 <h2 className="text-lg font-semibold text-[var(--text-primary)]">Referral Intake</h2>
-                <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-widest mt-1">Patient Outreach // Clinical Enrollment</span>
+                <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-widest mt-1">Patient Outreach · Clinical Enrollment</span>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
@@ -260,3 +260,4 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
     </HalcyonPortal>
   );
 }
+

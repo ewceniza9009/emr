@@ -1,4 +1,4 @@
-import { CLINICAL_CONFIG } from "./clinical-config";
+﻿import { CLINICAL_CONFIG } from "./clinical-config";
 
 /**
  * Formats a date string or object into a human-readable format 
@@ -34,3 +34,4 @@ export function formatClinicalDate(date: string | Date | number) {
     year: 'numeric'
   });
 }
+

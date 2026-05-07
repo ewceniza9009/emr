@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/lib/ThemeContext";
@@ -40,3 +40,4 @@ export function ThemeToggle({ isCollapsed, variant = "sidebar" }: { isCollapsed?
     </button>
   );
 }
+

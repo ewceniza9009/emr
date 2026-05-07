@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 
@@ -42,3 +42,4 @@ export function useRecentlyBrowsed() {
 
   return { recentPatients, addPatient };
 }
+

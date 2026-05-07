@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
@@ -1156,3 +1156,4 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     </HalcyonPortal>
   );
 }
+

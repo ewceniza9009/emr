@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { ShieldAlert, RefreshCcw, LogOut } from "lucide-react";
@@ -58,3 +58,4 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
 
   return <>{children}</>;
 }
+

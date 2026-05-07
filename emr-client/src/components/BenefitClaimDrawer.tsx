@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
@@ -252,3 +252,4 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
     </div>
   );
 }
+

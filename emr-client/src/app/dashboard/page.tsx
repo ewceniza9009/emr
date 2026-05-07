@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQuery, gql } from "@apollo/client";
 import {
@@ -261,7 +261,7 @@ export default function Dashboard() {
                         {isReal ? `Assessment: ${name}` : `Patient Assessment: ${mrn}`}
                       </p>
                       <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-medium truncate">
-                        {isReal ? `MRN: ${mrn} // Verified Registry` : "Clinical Review // Synchronized 2h ago"}
+                        {isReal ? `MRN: ${mrn} · Verified Registry` : "Clinical Review · Synchronized 2h ago"}
                       </p>
                     </div>
                     <div className="text-right hidden sm:block">
@@ -389,7 +389,7 @@ export default function Dashboard() {
       {/* Footer Branding - Compact */}
       <div className="pt-4 flex flex-col items-center gap-2 opacity-20">
         <div className="w-px h-8 bg-slate-500" />
-        <p className="text-[8px] font-bold text-slate-500 tracking-[0.4em] uppercase">Halcyon Clinical Operations Group // Secure Health Systems</p>
+        <p className="text-[8px] font-bold text-slate-500 tracking-[0.4em] uppercase">Halcyon Clinical Operations Group · Secure Health Systems</p>
       </div>
     </motion.div>
   );
@@ -412,5 +412,6 @@ function NavTile({ icon: Icon, label, color, href, onClick }: { icon: any, label
     </div>
   );
 }
+
 
 

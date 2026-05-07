@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { 
@@ -58,7 +58,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                   Emergency Action
                 </h2>
                 <span className="text-[10px] font-black text-red-400 tracking-[0.2em] mt-2 uppercase">
-                  Rapid Response Protocol // Active Crisis
+                  Rapid Response Protocol · Active Crisis
                 </span>
               </div>
             </div>
@@ -185,3 +185,4 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
     </HalcyonPortal>
   );
 }
+

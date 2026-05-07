@@ -30,6 +30,10 @@ public class PatientOutreach : BaseEntity
     public string? CivilStatus { get; set; }
     public DateTimeOffset? LastActivityDate { get; set; }
     public int CallAttemptCount { get; set; }
+    public bool IsDoNotCall { get; set; }
+    public bool IsOptedOut { get; set; }
+    public string? LatestActivityOutcome { get; set; }
+    public string? LatestActivityReason { get; set; }
 
     public HealthPlan? HealthPlan { get; set; }
     public ICollection<OutreachActivity> Activities { get; set; } = new List<OutreachActivity>();

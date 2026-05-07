@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
@@ -507,4 +507,5 @@ export default function NewInvoicePage() {
       </div>
    );
 }
+
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { 
   Package, 
@@ -258,3 +258,4 @@ export default function EquipmentManagementDrawer({
     </div>
   );
 }
+

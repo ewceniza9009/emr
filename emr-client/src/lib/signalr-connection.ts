@@ -1,4 +1,4 @@
-import * as signalR from '@microsoft/signalr';
+﻿import * as signalR from '@microsoft/signalr';
 
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
@@ -50,3 +50,4 @@ class SignalRService {
 }
 
 export const signalRService = SignalRService.getInstance();
+

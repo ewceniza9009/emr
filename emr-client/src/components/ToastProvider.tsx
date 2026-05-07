@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
@@ -68,3 +68,4 @@ export const useToast = () => {
   if (!context) throw new Error("useToast must be used within a ToastProvider");
   return context;
 };
+

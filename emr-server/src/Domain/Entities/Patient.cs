@@ -20,6 +20,7 @@ public class Patient : BaseEntity
     public string? PlaceOfBirth { get; set; }
     public string? Nationality { get; set; }
     public string? Language { get; set; }
+    public bool IsActive { get; set; } = true;
     // Navigation Properties
     public ICollection<EntityAddress> Addresses { get; set; } = new List<EntityAddress>();
 

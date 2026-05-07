@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useQuery, gql } from "@apollo/client";
 import { 
@@ -122,3 +122,4 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
     </div>
   );
 }
+

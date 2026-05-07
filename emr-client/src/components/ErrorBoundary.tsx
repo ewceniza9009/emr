@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertTriangle, RefreshCcw, Home } from "lucide-react";
@@ -62,3 +62,4 @@ export default class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+

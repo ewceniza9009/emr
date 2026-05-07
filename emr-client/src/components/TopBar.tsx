@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSession } from "next-auth/react";
 import { Bell, Search, User, Shield, Zap, Activity, Moon, Sun } from "lucide-react";
@@ -47,8 +47,12 @@ export function TopBar() {
       <PatientLookup
         open={isLookupOpen}
         onClose={() => setIsLookupOpen(false)}
-        onSelect={(patient) => {
-          router.push(`/dashboard/patients/${patient.patientId}`);
+        onSelect={(item) => {
+          if (item.__type === 'LEAD') {
+            router.push(`/dashboard/outreach/${item.patientOutreachId}/enroll`);
+          } else {
+            router.push(`/dashboard/patients/${item.patientId}`);
+          }
           setIsLookupOpen(false);
         }}
       />
@@ -88,3 +92,4 @@ export function TopBar() {
     </header>
   );
 }
+

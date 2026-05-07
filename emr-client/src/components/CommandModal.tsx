@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, ShieldAlert, X, Check, Info } from "lucide-react";
@@ -145,3 +145,4 @@ export default function CommandModal({
     </AnimatePresence>
   );
 }
+

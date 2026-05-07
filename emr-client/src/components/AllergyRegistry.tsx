@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useToast } from "./ToastProvider";
 import { 
@@ -222,3 +222,4 @@ export default function AllergyRegistry({ patientId }: { patientId: string }) {
     </div>
   );
 }
+

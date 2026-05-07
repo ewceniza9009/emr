@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
@@ -241,3 +241,4 @@ export default function TriageDashboard() {
     </div>
   );
 }
+

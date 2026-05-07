@@ -1,4 +1,4 @@
-import { X, Pill, Clock, Activity, ShieldCheck, Calendar, Info, Beaker } from "lucide-react";
+﻿import { X, Pill, Clock, Activity, ShieldCheck, Calendar, Info, Beaker } from "lucide-react";
 import HalcyonPortal from "./Portal";
 
 interface Props {
@@ -26,7 +26,7 @@ export default function MedicationDetailDrawer({ isOpen, onClose, prescription }
                   <div className="w-1.5 h-10 bg-emerald-500 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.3)]" />
                   <div className="flex flex-col">
                     <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">Prescription Details</h2>
-                    <span className="text-[10px] font-black text-emerald-500 tracking-[0.2em] mt-1 uppercase">Order Verification // {prescription.medication.name}</span>
+                    <span className="text-[10px] font-black text-emerald-500 tracking-[0.2em] mt-1 uppercase">Order Verification · {prescription.medication.name}</span>
                   </div>
                 </div>
                 <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-[var(--text-primary)]">
@@ -132,3 +132,4 @@ export default function MedicationDetailDrawer({ isOpen, onClose, prescription }
     </HalcyonPortal>
   );
 }
+

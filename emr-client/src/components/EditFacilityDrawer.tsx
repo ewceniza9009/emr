@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
@@ -83,7 +83,7 @@ export default function EditFacilityDrawer({ open, onClose, onSuccess, facility 
               <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
               <div className="flex flex-col">
                 <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">Configure Facility</h2>
-                <span className="text-[10px] font-black text-[var(--primary)] tracking-[0.2em] mt-1 uppercase">Infrastructure Registry // Site Meta</span>
+                <span className="text-[10px] font-black text-[var(--primary)] tracking-[0.2em] mt-1 uppercase">Infrastructure Registry · Site Meta</span>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-[var(--primary)]/10 rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
@@ -224,3 +224,4 @@ export default function EditFacilityDrawer({ open, onClose, onSuccess, facility 
     </HalcyonPortal>
   );
 }
+
