@@ -89,7 +89,7 @@ export default function TaskManagement({ patientId }: Props) {
     updateStatus({
       variables: {
         taskId,
-        status: currentStatus === 'Completed' ? 'Pending' : 'Completed'
+        status: currentStatus === 'COMPLETED' ? 'PENDING' : 'COMPLETED'
       }
     });
   };
@@ -136,17 +136,17 @@ export default function TaskManagement({ patientId }: Props) {
             <div 
               key={task.taskId} 
               className={`p-5 rounded-2xl border transition-all flex items-center justify-between group cursor-pointer
-                ${task.status === 'Completed' ? 'bg-emerald-500/5 border-emerald-500/20 opacity-60' : 'bg-white/5 border-white/5 hover:border-white/10'}`}
+                ${task.status === 'COMPLETED' ? 'bg-emerald-500/5 border-emerald-500/20 opacity-60' : 'bg-white/5 border-white/5 hover:border-white/10'}`}
               onClick={() => toggleTask(task.taskId, task.status)}
             >
               <div className="flex items-center gap-4">
-                 {task.status === 'Completed' ? (
+                 {task.status === 'COMPLETED' ? (
                    <CheckCircle2 className="w-6 h-6 text-emerald-500" />
                  ) : (
                    <Circle className="w-6 h-6 text-slate-700 group-hover:text-slate-500" />
                  )}
                  <div>
-                    <p className={`text-sm font-bold ${task.status === 'Completed' ? 'line-through text-slate-500' : 'text-[var(--text-primary)]'}`}>{task.description}</p>
+                    <p className={`text-sm font-bold ${task.status === 'COMPLETED' ? 'line-through text-slate-500' : 'text-[var(--text-primary)]'}`}>{task.description}</p>
                     <div className="flex items-center gap-3 mt-1">
                        <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1">
                          <Clock className="w-3 h-3" /> Due {new Date(task.dueDate).toLocaleDateString()}
@@ -158,8 +158,8 @@ export default function TaskManagement({ patientId }: Props) {
                  </div>
               </div>
               <div className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-tighter
-                ${task.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                {task.status}
+                ${task.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                {task.status?.replace(/_/g, ' ')}
               </div>
             </div>
           ))

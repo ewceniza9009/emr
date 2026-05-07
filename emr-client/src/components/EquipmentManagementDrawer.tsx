@@ -56,7 +56,7 @@ export default function EquipmentManagementDrawer({
   // Registration State
   const [regModelName, setRegModelName] = useState("");
   const [regSerial, setRegSerial] = useState("");
-  const [regType, setRegType] = useState("OxygenConcentrator");
+  const [regType, setRegType] = useState("OXYGEN_CONCENTRATOR");
 
   const { data, loading, refetch } = useQuery(GET_AVAILABLE_EQUIPMENT, { skip: !isOpen });
   
@@ -170,7 +170,7 @@ export default function EquipmentManagementDrawer({
                             <p className="text-xs font-black text-[var(--text-primary)] uppercase">{e.modelName}</p>
                             <p className="text-[9px] text-[var(--primary)] font-bold font-mono">{e.serialNumber}</p>
                           </div>
-                          <span className="text-[8px] font-black text-[var(--text-muted)] uppercase">{e.type.replace(/([A-Z])/g, ' $1')}</span>
+                          <span className="text-[8px] font-black text-[var(--text-muted)] uppercase">{e.type.replace(/_/g, ' ')}</span>
                         </div>
                       </button>
                     ))}
@@ -227,13 +227,13 @@ export default function EquipmentManagementDrawer({
                   onChange={(e) => setRegType(e.target.value)}
                   className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:border-[var(--primary)] transition-all outline-none appearance-none"
                 >
-                  <option value="OxygenConcentrator">Oxygen Concentrator</option>
-                  <option value="OxygenTank">Oxygen Tank</option>
-                  <option value="HospitalBed">Hospital Bed</option>
-                  <option value="Wheelchair">Wheelchair</option>
-                  <option value="InfusionPump">Infusion Pump</option>
-                  <option value="SuctionMachine">Suction Machine</option>
-                  <option value="Nebulizer">Nebulizer</option>
+                  <option value="OXYGEN_CONCENTRATOR">Oxygen Concentrator</option>
+                  <option value="OXYGEN_TANK">Oxygen Tank</option>
+                  <option value="HOSPITAL_BED">Hospital Bed</option>
+                  <option value="WHEELCHAIR">Wheelchair</option>
+                  <option value="INFUSION_PUMP">Infusion Pump</option>
+                  <option value="SUCTION_MACHINE">Suction Machine</option>
+                  <option value="NEBULIZER">Nebulizer</option>
                 </select>
               </div>
             </>

@@ -58,7 +58,7 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
   });
 
   const handleStatusUpdate = async (deliveryId: string, currentStatus: string) => {
-    const statuses = ['PENDING', 'SHIPPED', 'DELIVERED', 'FAILED', 'RETURNED'];
+    const statuses = ['PENDING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED', 'RETURNED'];
     const currentIndex = statuses.indexOf(currentStatus);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
 
@@ -131,7 +131,7 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
                         d.status === 'FAILED' ? 'bg-rose-500/20 text-rose-500 border-rose-500/30' :
                           'bg-amber-500/20 text-amber-500 border-amber-500/30'
                       }`}>
-                      {d.status}
+                      {d.status?.replace(/_/g, ' ')}
                     </span>
                     <button
                       onClick={() => handleStatusUpdate(d.deliveryId, d.status)}
@@ -146,7 +146,7 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{d.equipment?.modelName}</h3>
-                    <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">{d.equipment?.type?.replace(/([A-Z])/g, ' $1')}</p>
+                    <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">{d.equipment?.type?.replace(/_/g, ' ')}</p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[var(--card-border)]">
