@@ -55,7 +55,7 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
       <div className="relative w-full max-w-4xl bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--card-border)] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col h-[80vh]">
         <div className="p-8 border-b border-[var(--card-border)] bg-[var(--input-bg)]/50 flex items-center justify-between">
            <div>
-              <h2 className="text-2xl font-bold uppercase tracking-tight">Enterprise Patient Lookup</h2>
+              <h2 className="text-sm font-bold uppercase tracking-tight">Enterprise Patient Lookup</h2>
               <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">Select recipient for financial instrumentation</p>
            </div>
            <button onClick={onClose} className="p-3 bg-[var(--card-bg)] rounded-2xl hover:bg-[var(--card-border)] transition-all">

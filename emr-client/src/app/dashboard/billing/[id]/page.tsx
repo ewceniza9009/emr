@@ -4,6 +4,7 @@ import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ToastProvider";
+import { useCommandModal } from "@/components/CommandModalProvider";
 import {
   ArrowLeft,
   Printer,
@@ -76,6 +77,7 @@ const GET_INVOICE_DETAILS = gql`
 `;
 
 export default function InvoiceDetailsPage() {
+  const { confirm, alert } = useCommandModal();
   const params = useParams();
   const router = useRouter();
   const { showToast } = useToast();
@@ -116,13 +118,23 @@ export default function InvoiceDetailsPage() {
   };
 
   const handleVoid = async () => {
-    if (!confirm("Are you sure you want to void this invoice? This action cannot be undone.")) return;
+    const ok = await confirm({
+      title: "Void Invoice",
+      message: "Are you sure you want to void this invoice? This action cannot be undone and will officially cancel the financial record.",
+      type: "danger",
+      confirmText: "Void Invoice"
+    });
+    if (!ok) return;
     try {
       await voidInvoice({ variables: { id: params.id } });
       showToast("Invoice Voided: The status has been updated to Cancelled.", "success");
       refetch();
     } catch (err: any) {
-      showToast(err.message, "error");
+      await alert({
+        title: "Error",
+        message: err.message,
+        type: "danger"
+      });
     }
   };
 

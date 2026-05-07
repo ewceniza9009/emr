@@ -22,6 +22,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { useCommandModal } from "@/components/CommandModalProvider";
 
 const GET_SETUP_DATA = gql`
   query GetSetupData {
@@ -118,6 +119,7 @@ const DELETE_MUTATIONS = {
 };
 
 export default function AdminDashboardPage() {
+  const { confirm, alert } = useCommandModal();
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<TabType>("practitioners");
   const [searchQuery, setSearchQuery] = useState("");
@@ -155,12 +157,22 @@ export default function AdminDashboardPage() {
   const handleDelete = async (item: any) => {
     const idKey = Object.keys(item).find(k => k.toLowerCase().includes('id'));
     if (!idKey) return;
+    const ok = await confirm({
+      title: "Delete Record",
+      message: "Are you sure you want to delete this master record? This action is irreversible and may impact clinical dependencies.",
+      type: "danger",
+      confirmText: "Delete Permanently"
+    });
 
-    if (confirm(`Are you sure you want to delete this record? This action is irreversible.`)) {
+    if (ok) {
       try {
         await deleteItem({ variables: { id: item[idKey] } });
       } catch (err) {
-        alert("Deletion failed. This record may be referenced by other entities.");
+        await alert({
+          title: "Registry Conflict",
+          message: "Deletion failed. This record is currently referenced by other clinical entities and cannot be removed.",
+          type: "danger"
+        });
       }
     }
   };

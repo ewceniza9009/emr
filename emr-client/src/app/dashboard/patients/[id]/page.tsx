@@ -167,8 +167,10 @@ const DELETE_CONTACT = gql`
 `;
 
 import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
+import { useCommandModal } from "@/components/CommandModalProvider";
 
 export default function PatientDetailPage() {
+  const { confirm, alert } = useCommandModal();
   const params = useParams();
   const { addPatient } = useRecentlyBrowsed();
   const [activeTab, setActiveTab] = useState(() => {
@@ -242,7 +244,11 @@ export default function PatientDetailPage() {
       a.remove();
     } catch (err) {
       console.error(err);
-      alert("Error exporting dossier. Please try again.");
+      await alert({
+        title: "Export Failed",
+        message: "An error occurred while generating the clinical dossier. Please check connection and try again.",
+        type: "danger"
+      });
     } finally {
       setDownloadingDossier(false);
     }
@@ -296,7 +302,7 @@ export default function PatientDetailPage() {
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-black text-[var(--text-primary)] tracking-tight uppercase leading-none">{patient.firstName} {patient.lastName}</h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight uppercase leading-none">{patient.firstName} {patient.lastName}</h1>
             <div className="flex items-center gap-3 mt-2">
               <p className="text-[var(--text-muted)] text-[9px] font-black tracking-[0.2em] uppercase">{patient.mrn} // {patient.biologicalSex}</p>
               <span className="w-1 h-1 rounded-full bg-[var(--card-border)]" />
@@ -474,8 +480,14 @@ export default function PatientDetailPage() {
                         <Edit3 className="w-3 h-3" />
                       </button>
                       <button
-                        onClick={() => {
-                          if (window.confirm(`Are you sure you want to remove ${contact.firstName} ${contact.lastName}?`)) {
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: "Remove Contact",
+                            message: `Are you sure you want to remove ${contact.firstName} ${contact.lastName} from the trusted contact registry? This action cannot be undone.`,
+                            type: "danger",
+                            confirmText: "Remove Contact"
+                          });
+                          if (ok) {
                             deleteContact({ variables: { input: { patientContactId: contact.patientContactId } } });
                           }
                         }}
@@ -597,7 +609,7 @@ export default function PatientDetailPage() {
               <div className="bg-[var(--card-bg)] rounded-2xl p-6 border border-[var(--card-border)] shadow-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h2 className="text-base font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tighter">
+                    <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight">
                       <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
                       Symptom Trajectory
                     </h2>
@@ -839,7 +851,7 @@ export default function PatientDetailPage() {
               <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl">
                 <div className="flex items-center justify-between mb-8">
                   <div>
-                    <h2 className="text-2xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+                    <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tight">
                       <Users className="w-6 h-6 text-emerald-400" />
                       Trusted Contacts & POA
                     </h2>
@@ -884,12 +896,18 @@ export default function PatientDetailPage() {
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
-                              onClick={() => {
-                                if (window.confirm(`Are you sure you want to remove ${contact.firstName} ${contact.lastName}?`)) {
+                              onClick={async () => {
+                                const ok = await confirm({
+                                  title: "Remove Authorization",
+                                  message: `Are you sure you want to remove ${contact.firstName} ${contact.lastName} from authorized clinical access?`,
+                                  type: "danger",
+                                  confirmText: "Revoke Access"
+                                });
+                                if (ok) {
                                   deleteContact({ variables: { input: { patientContactId: contact.patientContactId } } });
                                 }
                               }}
-                              className="p-1.5 rounded-lg bg-white/5 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+                              className="p-1.5 rounded-lg bg-white/5 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -911,7 +929,7 @@ export default function PatientDetailPage() {
                           <div className="pt-4 border-t border-blue-500/10">
                             <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Power of Attorney Records</p>
                             <button
-                              onClick={() => {
+                              onClick={async () => {
                                 const poaDoc = patient.documents?.find((d: any) =>
                                   d.patientContactId === contact.patientContactId &&
                                   (d.documentType === 'POA' || d.title.toUpperCase().includes('POA'))
@@ -920,7 +938,11 @@ export default function PatientDetailPage() {
                                   const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${poaDoc.patientDocumentId}`;
                                   window.open(url, '_blank');
                                 } else {
-                                  alert("No POA document found for this contact. Please upload it in the Document Vault below.");
+                                  await alert({
+                                    title: "Missing Documentation",
+                                    message: "No POA document found for this contact. Please upload it in the Document Vault below.",
+                                    type: "warning"
+                                  });
                                 }
                               }}
                               className="w-full py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2"

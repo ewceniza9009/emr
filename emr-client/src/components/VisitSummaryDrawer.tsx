@@ -3,21 +3,29 @@
 import { useQuery, gql } from "@apollo/client";
 import {
   X,
-  FileText,
-  Activity,
-  ShieldCheck,
-  Heart,
+  Printer,
   Download,
-  Calendar,
+  Share2,
+  CheckCircle2,
+  History,
   User,
+  Activity,
   ClipboardList,
-  AlertCircle,
-  Thermometer,
+  Stethoscope,
+  Mail,
+  Phone,
+  Calendar,
   Wind,
+  Thermometer,
+  ShieldCheck,
+  FileText,
+  Heart,
+  AlertCircle,
   Droplets,
   Zap,
   Clock
 } from "lucide-react";
+import { useCommandModal } from "./CommandModalProvider";
 import HalcyonPortal from "./Portal";
 import { useEffect, useState } from "react";
 
@@ -88,6 +96,7 @@ interface VisitSummaryDrawerProps {
 }
 
 export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appointmentId }: VisitSummaryDrawerProps) {
+  const { alert } = useCommandModal();
   const { data, loading, error } = useQuery(GET_VISIT_SUMMARY, {
     variables: { patientId, appointmentId },
     skip: !isOpen || !patientId || !appointmentId
@@ -114,7 +123,11 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
       a.remove();
     } catch (err) {
       console.error(err);
-      alert("Error exporting clinical summary. Please try again.");
+      await alert({
+        title: "Export Failed",
+        message: "An error occurred while generating the clinical summary PDF. Please check connection and try again.",
+        type: "danger"
+      });
     } finally {
       setDownloading(false);
     }
@@ -138,7 +151,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
             <div className="flex items-center gap-6">
               <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
               <div>
-                <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight leading-none uppercase">Visit Summary</h2>
+                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight leading-none uppercase">Visit Summary</h2>
                 <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
                   <Calendar className="w-3.5 h-3.5 text-[var(--primary)]" />
                   {data?.appointment ? new Date(data.appointment.scheduledStart).toLocaleDateString(undefined, { dateStyle: 'full' }) : 'Loading...'}
@@ -185,7 +198,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest px-2 py-0.5 rounded-md bg-[var(--primary)]/10">Attending Practitioner</span>
                     </div>
-                    <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase truncate">{encounter.practitioner?.firstName} {encounter.practitioner?.lastName}</h3>
+                    <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase truncate">{encounter.practitioner?.firstName} {encounter.practitioner?.lastName}</h3>
                     <p className="text-xs font-medium text-[var(--text-muted)] italic">{encounter.practitioner?.position}</p>
                   </div>
                   <div className="hidden md:block text-right shrink-0">

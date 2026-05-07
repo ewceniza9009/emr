@@ -66,7 +66,7 @@ export default function TriageDashboard() {
       {/* Header & Stats */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Clinical Triage Command</h1>
+          <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Clinical Triage Command</h1>
           <p className="text-sm text-[var(--text-secondary)]">Prioritizing patients by symptom burden and urgency.</p>
         </div>
         <div className="flex gap-3">

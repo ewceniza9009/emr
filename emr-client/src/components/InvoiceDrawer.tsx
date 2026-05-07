@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { X, Search, FileText, CheckCircle2, AlertCircle, DollarSign, Calculator, Calendar } from "lucide-react";
+import { useCommandModal } from "./CommandModalProvider";
 
 const GET_PATIENTS = gql`
   query GetPatients {
@@ -55,6 +56,7 @@ interface Props {
 }
 
 export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }: Props) {
+  const { confirm, alert } = useCommandModal();
   const [selectedPatientId, setSelectedPatientId] = useState(initialData?.patientId || "");
   const [subtotal, setSubtotal] = useState<number>(initialData?.subtotalAmount || 0);
   const [covered, setCovered] = useState<number>(initialData?.coveredAmount || 0);
@@ -115,7 +117,13 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
 
   const handleVoid = async () => {
     if (!initialData) return;
-    if (!confirm("Are you sure you want to void this invoice? This action cannot be undone.")) return;
+    const ok = await confirm({
+      title: "Void Invoice",
+      message: "Are you sure you want to void this invoice? This action cannot be undone and will remove it from active billing.",
+      type: "danger",
+      confirmText: "Void Invoice"
+    });
+    if (!ok) return;
     
     try {
       await voidInvoice({
@@ -148,7 +156,11 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
       a.remove();
     } catch (err) {
       console.error(err);
-      alert("Error exporting invoice. Please try again.");
+      await alert({
+        title: "Export Failed",
+        message: "An error occurred while generating the invoice PDF. Please verify connection and try again.",
+        type: "danger"
+      });
     } finally {
       setDownloading(false);
     }
@@ -163,7 +175,7 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
       <div className="relative w-full max-w-md bg-[var(--card-bg)] h-full shadow-2xl border-l border-[var(--card-border)] flex flex-col animate-in slide-in-from-right duration-300">
         <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]/50">
           <div>
-            <h2 className="text-xl font-bold text-[var(--text-primary)]">
+            <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
               {isEdit ? "Edit Patient Invoice" : "Generate New Invoice"}
             </h2>
             <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-black mt-1">Patient Billing Unit</p>

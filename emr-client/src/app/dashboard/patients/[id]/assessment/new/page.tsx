@@ -142,7 +142,7 @@ export default function NewAssessmentPage() {
             <Stethoscope className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">New Clinical Assessment</h1>
+            <h1 className="text-sm font-bold text-white uppercase tracking-tight">New Clinical Assessment</h1>
             <p className="text-slate-400 text-sm">Documenting follow-up care for Patient Record</p>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function NewAssessmentPage() {
       <form onSubmit={handleSubmit(onSubmit)} method="POST" className="space-y-6">
         {/* Vitals Section */}
         <div className="glass-morphism rounded-3xl p-8 border border-blue-500/10">
-          <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <h2 className="text-sm font-bold text-white mb-6 flex items-center gap-2 uppercase tracking-tight">
             <Activity className="w-5 h-5 text-blue-400" />
             Vitals & Physical Signs
           </h2>
@@ -213,7 +213,7 @@ export default function NewAssessmentPage() {
 
         {/* SOAP Note Section */}
         <div className="glass-morphism rounded-3xl p-8">
-          <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <h2 className="text-sm font-bold text-white mb-6 flex items-center gap-2 uppercase tracking-tight">
             <MessageSquare className="w-5 h-5 text-purple-400" />
             Clinical Documentation (SOAP)
           </h2>

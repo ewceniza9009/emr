@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
 import { useSession } from "next-auth/react";
+import { useCommandModal } from "./CommandModalProvider";
 import {
   X, Calendar, Clock, User, MapPin, Video, Home,
   Building2, CheckCircle, Car, Search, ChevronRight,
@@ -196,6 +197,7 @@ interface Props {
 }
 
 export default function BookingDrawer({ open, onClose, onBooked, prefillDate, appointmentId, patientId: propPatientId }: Props) {
+  const { confirm, alert } = useCommandModal();
   const { data: session } = useSession();
   const [patientId, setPatientId] = useState("");
   const [patientAddress, setPatientAddress] = useState({
@@ -537,7 +539,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
             <div className="flex items-center gap-6">
               <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
               <div className="flex flex-col">
-                <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight leading-none">Schedule Appointment</h2>
+                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight leading-none">Schedule Appointment</h2>
                 <span className="text-xs font-medium text-[var(--text-muted)] mt-1.5">Configure encounter details and clinical team</span>
               </div>
             </div>
@@ -1052,7 +1054,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         <div>
                           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Scheduled Time</p>
                           <div className="flex items-baseline gap-2">
-                            <h4 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
+                            <h4 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">
                               {new Date(selectedSlot.shiftStart).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                             </h4>
                           </div>
@@ -1061,11 +1063,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       <div className="pt-6 flex items-center justify-between border-t border-white/5">
                         <div className="text-left space-y-1">
                           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Travel Time</p>
-                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot?.travelTimeInMinutes != null ? selectedSlot.travelTimeInMinutes : "0"}<span className="text-xs ml-1 opacity-60">m</span></p>
+                          <p className="text-sm font-bold text-[var(--text-primary)]">{selectedSlot?.travelTimeInMinutes != null ? selectedSlot.travelTimeInMinutes : "0"}<span className="text-xs ml-1 opacity-60">m</span></p>
                         </div>
                         <div className="text-right space-y-1">
                           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Distance</p>
-                          <p className="text-xl font-bold text-[var(--text-primary)]">{selectedSlot?.distanceInMiles != null ? selectedSlot.distanceInMiles.toFixed(1) : "0.0"}<span className="text-xs ml-1 opacity-60">mi</span></p>
+                          <p className="text-sm font-bold text-[var(--text-primary)]">{selectedSlot?.distanceInMiles != null ? selectedSlot.distanceInMiles.toFixed(1) : "0.0"}<span className="text-xs ml-1 opacity-60">mi</span></p>
                         </div>
                       </div>
                     </div>
@@ -1083,15 +1085,39 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               <div className="mt-auto pt-8 space-y-6">
                 {appointmentId && (
                   <div className="grid grid-cols-3 gap-2">
-                    <button type="button" onClick={() => alert("Marked as Completed")} className="p-3 bg-[var(--input-bg)] hover:bg-emerald-500/10 rounded-xl border border-[var(--card-border)] hover:border-emerald-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                    <button type="button" onClick={async () => {
+                      await alert({
+                        title: "Appointment Completed",
+                        message: "The encounter has been successfully finalized in the clinical record.",
+                        type: "success"
+                      });
+                    }} className="p-3 bg-[var(--input-bg)] hover:bg-emerald-500/10 rounded-xl border border-[var(--card-border)] hover:border-emerald-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
                       <CheckCircle className="w-4 h-4 text-emerald-500" />
                       <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-emerald-500">Done</span>
                     </button>
-                    <button type="button" onClick={() => alert("Appointment Cancelled")} className="p-3 bg-[var(--input-bg)] hover:bg-rose-500/10 rounded-xl border border-[var(--card-border)] hover:border-rose-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                    <button type="button" onClick={async () => {
+                      const ok = await confirm({
+                        title: "Cancel Appointment",
+                        message: "Are you sure you want to cancel this scheduled encounter?",
+                        type: "warning"
+                      });
+                      if (ok) {
+                        // cancellation logic here
+                      }
+                    }} className="p-3 bg-[var(--input-bg)] hover:bg-rose-500/10 rounded-xl border border-[var(--card-border)] hover:border-rose-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
                       <X className="w-4 h-4 text-rose-500" />
                       <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-rose-500">Cancel</span>
                     </button>
-                    <button type="button" onClick={() => alert("Delete Permanent")} className="p-3 bg-[var(--input-bg)] hover:bg-red-600/20 rounded-xl border border-[var(--card-border)] hover:border-red-600/50 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                    <button type="button" onClick={async () => {
+                      const ok = await confirm({
+                        title: "Delete Appointment",
+                        message: "Are you sure you want to permanently delete this appointment record? This action cannot be undone.",
+                        type: "danger"
+                      });
+                      if (ok) {
+                        // deletion logic here
+                      }
+                    }} className="p-3 bg-[var(--input-bg)] hover:bg-red-600/20 rounded-xl border border-[var(--card-border)] hover:border-red-600/50 flex flex-col items-center justify-center gap-1.5 group transition-all">
                       <AlertCircle className="w-4 h-4 text-red-600" />
                       <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-red-600">Delete</span>
                     </button>
@@ -1121,7 +1147,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mb-8 border-4 border-emerald-500/20 shadow-[0_0_50px_rgba(16,185,129,0.2)]">
                 <CheckCircle className="w-12 h-12 text-emerald-500 animate-in zoom-in duration-700" />
               </div>
-              <h2 className="text-3xl font-bold text-white tracking-tight mb-2">Schedule Confirmed</h2>
+              <h2 className="text-sm font-bold text-white tracking-tight mb-2 uppercase">Schedule Confirmed</h2>
               <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-xs">Patient records synchronized successfully</p>
             </div>
           )}

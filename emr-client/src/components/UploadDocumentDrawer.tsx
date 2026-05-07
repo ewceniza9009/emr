@@ -78,7 +78,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
             <div className="flex items-center gap-6">
               <div className="w-1.5 h-10 bg-blue-500 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.3)]" />
               <div className="flex flex-col">
-                <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Ingest Document</h2>
+                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight uppercase leading-none">Ingest Document</h2>
                 <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Clinical Data Vault // Patient Record</span>
               </div>
             </div>

@@ -74,7 +74,7 @@ export default function EsasScoring({ onScoreChange }: EsasScoringProps) {
     <div className="glass-morphism rounded-3xl p-8 border border-[var(--card-border)] space-y-8 bg-[var(--card-bg)]">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+          <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tight">
             <Activity className="w-6 h-6 text-blue-400" />
             ESAS-r Symptom Assessment
           </h2>

@@ -25,12 +25,16 @@ import {
   HeartOff,
   Zap,
   FileText,
-  UserCheck
+  UserCheck,
+  RefreshCcw,
+  Users
 } from "lucide-react";
 import { ToastProvider } from "@/components/ToastProvider";
 import ProblemList from "@/components/ProblemList";
 import MedicationRegistry from "@/components/MedicationRegistry";
 import DynamicAssessment from "@/components/DynamicAssessment";
+import CommandModal from "@/components/CommandModal";
+import { useCommandModal } from "@/components/CommandModalProvider";
 import { migrateDirectiveType } from "@/lib/clinical-mappings";
 
 const SKIP_REASONS = [
@@ -95,6 +99,12 @@ const GET_APPOINTMENT_DETAILS = gql`
       practitioner {
         firstName
         lastName
+      }
+      supportingClinicians {
+        practitionerId
+        firstName
+        lastName
+        position
       }
       plannedAssessments
     }
@@ -163,6 +173,7 @@ export default function GuidedVisitPage() {
   const [activeAssessments, setActiveAssessments] = useState<any[]>([]);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [skippingAssessment, setSkippingAssessment] = useState<{ id: string, name: string } | null>(null);
+  const { confirm, alert } = useCommandModal();
   const [navSearch, setNavSearch] = useState("");
 
   // Persistence Key
@@ -352,7 +363,11 @@ export default function GuidedVisitPage() {
 
     if (!clinicianId || clinicianId === "00000000-0000-0000-0000-000000000000") {
       console.error("Clinical Identity Missing: Encounter initialization aborted to prevent audit failure.");
-      alert("Clinician Identity Required: Please ensure you are logged in with a valid practitioner account.");
+      await alert({
+        title: "Identity Required",
+        message: "Clinician Identity Required: Please ensure you are logged in with a valid practitioner account to start an encounter.",
+        type: "danger"
+      });
       return;
     }
 
@@ -432,52 +447,111 @@ export default function GuidedVisitPage() {
 
   return (
     <div className="h-full flex flex-col bg-[var(--background)] text-[var(--foreground)] overflow-hidden font-sans transition-colors duration-300">
-      {/* Premium Clinical Header - Compact */}
-      <div className="h-16 border-b border-[var(--border-color,rgba(0,0,0,0.05))] bg-[var(--card-bg)] flex items-center justify-between px-6 z-50">
-        <div className="flex items-center gap-4">
+      {/* Tactical Clinical Header */}
+      <header className="h-20 border-b border-[var(--divider-color)] bg-[var(--background)]/80 backdrop-blur-3xl flex items-center justify-between px-8 z-[100] sticky top-0 transition-all duration-500">
+        <div className="flex items-center gap-6">
           <button
             onClick={() => router.push(`/dashboard/patients/${params.id}`)}
-            className="p-2 rounded-xl bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] hover:text-[var(--foreground)] hover:border-[var(--primary)]/30 transition-all group"
+            className="w-10 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/50 transition-all flex items-center justify-center group active:scale-95"
           >
-            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
           </button>
+          
           <div className="flex flex-col">
-            <h1 className="text-sm font-black tracking-tight uppercase">
-              {patient?.firstName} {patient?.lastName}
-            </h1>
-            <div className="flex items-center gap-3 mt-1">
-              <span className="text-[10px] font-black text-[var(--primary)] bg-[var(--primary)]/5 px-2 py-0.5 rounded-lg border border-[var(--primary)]/20 uppercase tracking-widest">
-                MRN: {patient?.mrn || 'PENDING'}
-              </span>
-              <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-bold">
-                {patient?.biologicalSex} • {patient?.dob && new Date(patient.dob).toLocaleDateString()}
-              </span>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-black text-[var(--text-primary)] tracking-tight uppercase leading-none">
+                {patient?.firstName} {patient?.lastName}
+              </h1>
+              <div className="flex items-center gap-2 px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20">
+                <span className="w-1 h-1 rounded-full bg-teal-500 animate-pulse" />
+                <span className="text-[9px] font-bold text-teal-500 uppercase tracking-widest">ACTIVE ENCOUNTER</span>
+              </div>
             </div>
-          </div>
-          <button 
-            onClick={() => { localStorage.removeItem(persistenceKey); window.location.reload(); }}
-            className="ml-4 text-[9px] font-black text-rose-500 hover:text-rose-400 uppercase tracking-widest border border-rose-500/20 px-2 py-1 rounded-lg transition-all"
-          >
-            Reset Session
-          </button>
-        </div>        <div className="flex items-center gap-8">
-          {encounterId && (
-            <div className="flex items-center gap-2.5 px-4 py-1.5 bg-[var(--primary)]/5 border border-[var(--primary)]/20 rounded-full">
-              <div className="w-2 h-2 rounded-full bg-[var(--primary)] shadow-[0_0_10px_var(--primary)] animate-pulse" />
-              <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Live Session</span>
-            </div>
-          )}
-          <div className="flex items-center gap-4 border-l border-[var(--border-color,rgba(0,0,0,0.05))] pl-8">
-            <div className="text-right">
-              <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none mb-1.5">Practitioner</p>
-              <p className="text-xs font-black uppercase tracking-tight">{session?.user?.name || "System Admin"}</p>
-            </div>
-            <div className="w-10 h-10 rounded-2xl bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] flex items-center justify-center shadow-sm">
-              <Stethoscope className="w-5 h-5 text-[var(--primary)]" />
+            
+            <div className="flex items-center gap-4 mt-2">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">MRN</span>
+                <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter bg-[var(--input-bg)] px-2 py-0.5 rounded-md border border-[var(--card-border)]">
+                  {patient?.mrn || 'PENDING'}
+                </span>
+              </div>
+              <div className="w-px h-3 bg-[var(--divider-color)]" />
+              <div className="flex items-center gap-2 text-[10px] text-[var(--text-muted)] uppercase tracking-[0.1em] font-bold">
+                <span className={patient?.biologicalSex === 'MALE' ? 'text-blue-400' : 'text-rose-400'}>{patient?.biologicalSex}</span>
+                <span className="opacity-30">•</span>
+                <span>{patient?.dob && new Date(patient.dob).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+
+        <div className="flex items-center">
+          {appointment?.supportingClinicians?.length > 0 && (
+            <div className="hidden xl:flex items-center pr-10">
+              <div className="text-right">
+                <div className="flex items-center justify-end gap-1.5 mb-1 opacity-50">
+                  <Users className="w-2.5 h-2.5 text-blue-400" />
+                  <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">Support Team</p>
+                </div>
+                <div className="flex -space-x-2 justify-end">
+                  {appointment.supportingClinicians.map((sc: any) => (
+                    <div 
+                      key={sc.practitionerId} 
+                      className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[9px] font-black text-blue-500 shadow-sm cursor-help group/sc relative"
+                      title={`${sc.firstName} ${sc.lastName} (${sc.position})`}
+                    >
+                      {sc.firstName[0]}{sc.lastName[0]}
+                      <div className="absolute top-10 right-0 bg-[var(--card-bg)] border border-[var(--card-border)] p-2 rounded-lg shadow-2xl opacity-0 group-hover/sc:opacity-100 pointer-events-none transition-all z-[110] whitespace-nowrap">
+                        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase">{sc.firstName} {sc.lastName}</p>
+                        <p className="text-[8px] text-blue-400 font-bold uppercase tracking-widest mt-0.5">{sc.position}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="w-px h-8 bg-[var(--divider-color)] hidden xl:block" />
+
+          <div className="flex items-center gap-6 pl-10">
+            <div className="text-right">
+              <div className="flex items-center justify-end gap-1.5 mb-1 opacity-50">
+                <Zap className="w-2.5 h-2.5 text-teal-400" />
+                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">Practitioner Context</p>
+              </div>
+              <p className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{session?.user?.name || "System Admin"}</p>
+            </div>
+            
+            <div className="relative group">
+              <div className="w-10 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center shadow-2xl group-hover:border-teal-500/30 transition-all cursor-pointer">
+                <Stethoscope className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[var(--background)]" />
+            </div>
+          </div>
+          
+          <div className="flex items-center ml-6 border-l border-[var(--divider-color)] pl-6">
+            <button 
+              onClick={async () => {
+                const ok = await confirm({
+                  title: "Abort Mission",
+                  message: "This will clear all unsaved clinical data for this session and refresh the page. This action cannot be undone. Proceed?",
+                  type: "danger"
+                });
+                if (ok) {
+                  localStorage.removeItem(persistenceKey);
+                  window.location.reload();
+                }
+              }}
+              className="w-10 h-10 rounded-xl bg-rose-500/5 border border-rose-500/10 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/30 transition-all group active:scale-95 flex items-center justify-center"
+              title="Reset Session"
+            >
+              <RefreshCcw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+            </button>
+          </div>
+        </div>
+      </header>
 
       <div className="flex-1 flex flex-col overflow-hidden bg-[var(--background)]">
         {/* Top Sequence Navigator - Scalable Rail */}
@@ -524,27 +598,27 @@ export default function GuidedVisitPage() {
         </div>
 
         <main className="flex-1 overflow-y-auto relative custom-scrollbar">
-          <div className="max-w-4xl mx-auto p-10 h-full">
-            <div className="flex-1 rounded-xl p-6 border border-white/5 bg-[var(--card-bg)] shadow-xl overflow-y-auto">
+          <div className="max-w-[1600px] mx-auto p-4 sm:p-8 h-full">
+            <div className="min-h-[600px] h-full rounded-[2.5rem] p-8 sm:p-12 border border-[var(--divider-color)] bg-[var(--card-bg)] shadow-2xl overflow-y-auto flex flex-col">
               {currentStep?.type === "INIT" && (
-                <div className="h-full flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-500">
-                  <div className="w-12 h-12 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)]">
-                    <Stethoscope className="w-6 h-6" />
+                <div className="h-full flex flex-col items-center justify-center space-y-8 animate-in fade-in duration-500 py-12">
+                  <div className="w-20 h-20 rounded-2xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] shadow-[0_0_50px_rgba(var(--primary-rgb),0.1)]">
+                    <Stethoscope className="w-10 h-10" />
                   </div>
-                  <div className="text-center">
-                    <h2 className="text-sm font-bold uppercase tracking-tight">Ready to Begin</h2>
-                    <p className="text-[8px] text-[var(--text-muted)] uppercase tracking-widest font-bold mt-1">Select Start to establish clinical session</p>
+                  <div className="text-center space-y-2">
+                    <h2 className="text-sm font-bold uppercase tracking-tight text-[var(--text-primary)]">Ready to Begin</h2>
+                    <p className="text-xs text-[var(--text-muted)] uppercase tracking-[0.4em] font-bold">Select Start to establish secure clinical session</p>
                   </div>
-
+ 
                   <button
                     onClick={handleStart}
                     disabled={starting || (!session?.user?.practitionerId && process.env.NODE_ENV !== 'development')}
-                    className={`w-full max-w-[220px] py-3.5 rounded-xl text-white font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg ${(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') || starting
-                      ? "bg-slate-700/50 text-white/30 cursor-not-allowed grayscale"
-                      : "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90 active:scale-[0.98]"
+                    className={`w-full max-w-sm py-6 rounded-2xl text-white font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl ${(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') || starting
+                      ? "bg-[var(--input-bg)] text-[var(--text-muted)] cursor-not-allowed grayscale"
+                      : "premium-gradient shadow-[var(--primary-glow)] hover:scale-[1.02] active:scale-[0.98]"
                       }`}
                   >
-                    {(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') ? "Identifying..." : (starting ? "Establishing..." : "Start Encounter")} <ChevronRight className="w-4 h-4" />
+                    {(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') ? "Identifying..." : (starting ? "Establishing..." : "Start Encounter")} <ChevronRight className="w-5 h-5" />
                   </button>
 
                   {appointment?.plannedAssessments?.length > 0 && (
@@ -562,6 +636,25 @@ export default function GuidedVisitPage() {
                       </div>
                     </div>
                   )}
+                  
+                  {appointment?.supportingClinicians?.length > 0 && (
+                    <div className="w-full max-w-sm pt-8 border-t border-[var(--border-color,rgba(0,0,0,0.05))] space-y-6 text-center">
+                      <p className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-[0.5em]">Clinical Team</p>
+                      <div className="flex flex-wrap justify-center gap-6">
+                        {appointment.supportingClinicians.map((sc: any) => (
+                          <div key={sc.practitionerId} className="flex flex-col items-center gap-2 group cursor-default">
+                            <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20 transition-all">
+                              <Users className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="text-center">
+                              <p className="text-[9px] font-black text-[var(--foreground)] uppercase">{sc.firstName} {sc.lastName}</p>
+                              <p className="text-[8px] text-blue-400 font-bold uppercase tracking-widest">{sc.position}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -571,7 +664,7 @@ export default function GuidedVisitPage() {
                     <h2 className="text-sm font-bold uppercase tracking-tight">Legal Directives</h2>
                     <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest font-bold">Advance Care Planning</p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {[
                       { id: "DNR", label: "DNR", icon: HeartOff, desc: "Do Not Resuscitate" },
                       { id: "DNI", label: "DNI", icon: Wind, desc: "Do Not Intubate" },
@@ -633,7 +726,7 @@ export default function GuidedVisitPage() {
                     <h2 className="text-sm font-bold uppercase tracking-tight">Clinical Encounter Summary</h2>
                     <p className="text-[8px] text-[var(--text-muted)] uppercase tracking-widest font-bold">SOAP Methodology Documentation</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {[
                       { id: 'hr', label: 'Heart Rate', icon: Heart, color: 'text-rose-500', unit: 'BPM', placeholder: '72' },
                       { id: 'sbp', label: 'Blood Pressure', icon: Activity, color: 'text-blue-500', unit: 'mmHg', double: true },
@@ -687,7 +780,7 @@ export default function GuidedVisitPage() {
                         <ClipboardList className="w-12 h-12" />
                       </div>
                       <div className="space-y-4">
-                        <h2 className="text-3xl font-black text-[var(--foreground)] uppercase tracking-tight">{currentStep.label}</h2>
+                        <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-tight">{currentStep.label}</h2>
                         <p className="text-[var(--text-muted)] max-w-sm mx-auto leading-relaxed text-sm">
                           {questionnaireData?.questionnaireByType?.description || "Select an action to proceed with this clinical protocol."}
                         </p>
@@ -782,8 +875,8 @@ export default function GuidedVisitPage() {
               {currentStep?.type === "CLINICAL" && (
                 <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="space-y-2">
-                    <h2 className="text-3xl font-black text-[var(--foreground)] uppercase tracking-tight">Profile Reconnaissance</h2>
-                    <p className="text-[var(--text-muted)] text-sm">Audit active diagnoses and therapeutic medications.</p>
+                    <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-tight">Profile Reconnaissance</h2>
+                    <p className="text-[var(--text-muted)] text-xs uppercase tracking-widest font-bold">Audit active diagnoses and therapeutic medications.</p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-12">
@@ -793,10 +886,10 @@ export default function GuidedVisitPage() {
                     </ToastProvider>
                   </div>
 
-                  <div className="pt-6 flex gap-2 border-t border-[var(--border-color,rgba(0,0,0,0.05))]">
-                    <button onClick={() => setStep(prevStep.id)} className="flex-1 py-2 rounded-lg bg-[var(--card-bg)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] font-bold text-[9px] hover:text-[var(--foreground)] transition-all uppercase tracking-widest">Back</button>
-                    <button onClick={() => setStep(nextStep.id)} className="flex-[2] py-2 rounded-lg bg-[var(--primary)] text-white font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all">
-                      Continue to Final SOAP <ChevronRight className="w-3.5 h-3.5" />
+                  <div className="pt-8 flex gap-4 border-t border-[var(--border-color,rgba(0,0,0,0.05))]">
+                    <button onClick={() => setStep(prevStep.id)} className="flex-1 py-3.5 rounded-xl bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:text-[var(--foreground)] hover:bg-[var(--background)]/80 transition-all">Back</button>
+                    <button onClick={() => setStep(nextStep.id)} className="flex-1 py-3.5 rounded-xl bg-[var(--primary)] text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] flex items-center justify-center gap-2 hover:opacity-90 transition-all">
+                      Continue to Final SOAP <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -809,8 +902,8 @@ export default function GuidedVisitPage() {
                       <CheckCircle2 className="w-8 h-8" />
                     </div>
                     <div>
-                      <h2 className="text-3xl font-black text-[var(--foreground)] uppercase tracking-tight">Visit Summary</h2>
-                      <p className="text-[var(--text-muted)] text-sm">Review all captured data before final submission.</p>
+                      <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-tight">Visit Summary</h2>
+                      <p className="text-[var(--text-muted)] text-[8px] uppercase tracking-widest font-bold">Review all captured data before final submission.</p>
                     </div>
                   </div>
 
@@ -849,6 +942,28 @@ export default function GuidedVisitPage() {
                       </div>
                     </div>
                   </div>
+                  
+                  {appointment?.supportingClinicians?.length > 0 && (
+                    <div className="p-8 rounded-[2rem] bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.05))] space-y-6">
+                      <div className="flex items-center gap-3 border-b border-[var(--border-color,rgba(0,0,0,0.05))] pb-4">
+                        <Users className="w-5 h-5 text-blue-400" />
+                        <h4 className="text-xs font-black text-[var(--foreground)] uppercase tracking-widest">Supporting Clinical Team</h4>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {appointment.supportingClinicians.map((sc: any) => (
+                          <div key={sc.practitionerId} className="flex items-center gap-3 p-3 rounded-xl bg-blue-600/5 border border-blue-600/10">
+                            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-[10px] font-black text-white shadow-sm">
+                              {sc.firstName[0]}{sc.lastName[0]}
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black text-[var(--foreground)] uppercase">{sc.firstName} {sc.lastName}</p>
+                              <p className="text-[8px] text-blue-400 font-bold uppercase tracking-widest">{sc.position}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="p-8 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10 flex items-center justify-between">
                     <div className="space-y-1">
@@ -868,8 +983,8 @@ export default function GuidedVisitPage() {
               {currentStep?.type === "NOTE" && (
                 <div className="space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="space-y-2">
-                    <h2 className="text-3xl font-black text-[var(--foreground)] uppercase tracking-tight">Clinical Documentation</h2>
-                    <p className="text-[var(--text-muted)] text-sm">Synthesize encounter findings into a permanent SOAP record.</p>
+                    <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-tight">Clinical Documentation</h2>
+                    <p className="text-[var(--text-muted)] text-[8px] uppercase tracking-widest font-bold">Synthesize encounter findings into a permanent SOAP record.</p>
                   </div>
                   <div className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -902,14 +1017,14 @@ export default function GuidedVisitPage() {
                       <p className="text-[11px] text-[var(--text-muted)] leading-relaxed italic">By finalizing this record, I attest that the clinical data documented reflects the true status of the encounter and the patient's condition.</p>
                     </div>
                   </div>
-                  <div className="pt-6 flex gap-2 border-t border-[var(--border-color,rgba(0,0,0,0.05))]">
-                    <button onClick={() => setStep(prevStep.id)} className="flex-1 py-2 rounded-lg bg-[var(--card-bg)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] font-bold text-[9px] hover:text-[var(--foreground)] transition-all uppercase tracking-widest">Back</button>
+                  <div className="pt-8 flex gap-4 border-t border-[var(--border-color,rgba(0,0,0,0.05))]">
+                    <button onClick={() => setStep(prevStep.id)} className="flex-1 py-3.5 rounded-xl bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:text-[var(--foreground)] hover:bg-[var(--background)]/80 transition-all">Back</button>
                     <button
                       onClick={handleFinish}
                       disabled={savingNote || !note.signature}
-                      className="flex-[2] py-2 rounded-lg bg-[var(--primary)] text-white font-bold text-[10px] uppercase tracking-[0.2em] shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-all"
+                      className="flex-1 py-3.5 rounded-xl bg-[var(--primary)] text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-all"
                     >
-                      {savingNote ? "Securing..." : "Finalize & Save Encounter"} <Save className="w-3.5 h-3.5" />
+                      {savingNote ? "Securing..." : "Finalize & Save Encounter"} <Save className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -940,7 +1055,7 @@ export default function GuidedVisitPage() {
           <div className="bg-[var(--card-bg)] border border-[var(--divider-color)] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl shadow-black">
             <div className="p-8 space-y-6">
               <div className="space-y-2">
-                <h3 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tight">Skip Assessment</h3>
+                <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Skip Assessment</h3>
                 <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Select reason for bypassing <span className="text-[var(--primary)]">{skippingAssessment.name}</span></p>
               </div>
 
@@ -994,7 +1109,7 @@ function AssessmentSelectionModal({ isOpen, onClose, onSelect, selectedIds, ques
         <div className="p-6 border-b border-[var(--border-color,rgba(0,0,0,0.05))] space-y-5 bg-[var(--background)]/50">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-black uppercase tracking-tight">Assessments</h3>
+              <h3 className="text-sm font-bold uppercase tracking-tight">Assessments</h3>
               <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-[0.3em] font-bold mt-1">Select clinical instruments to add to encounter</p>
             </div>
             <button onClick={onClose} className="p-2 rounded-xl bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.05))] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all">

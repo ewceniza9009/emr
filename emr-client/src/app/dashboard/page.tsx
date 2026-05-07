@@ -28,6 +28,7 @@ import {
   Settings
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ToastProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -100,6 +101,7 @@ const itemVariants = {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { data: session } = useSession();
   const { showToast } = useToast();
   const { data, loading } = useQuery(GET_DASHBOARD_STATS);
   const { recentPatients } = useRecentlyBrowsed();
@@ -138,13 +140,13 @@ export default function Dashboard() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-bold text-white/70 uppercase tracking-[0.2em]">Operational Nexus v4.2</span>
+              <span className="text-[9px] font-bold text-white/70 uppercase tracking-[0.2em]">HALCYON CLINICAL</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
-              {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">Practitioner</span>
+            <h1 className="text-sm font-bold text-white tracking-tight uppercase">
+              {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">{session?.user?.name?.split(' ')[0] || "Practitioner"}</span>
             </h1>
             <p className="max-w-xl text-slate-400 text-sm leading-relaxed">
-              Clinical systems synchronized. Your caseload is optimized for the current rotation.
+              Your clinical command center is synchronized and optimized for today's caseload.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -387,7 +389,7 @@ export default function Dashboard() {
       {/* Footer Branding - Compact */}
       <div className="pt-4 flex flex-col items-center gap-2 opacity-20">
         <div className="w-px h-8 bg-slate-500" />
-        <p className="text-[8px] font-bold text-slate-500 tracking-[0.4em] uppercase">Halcyon Clinical Operations Group // Nexus</p>
+        <p className="text-[8px] font-bold text-slate-500 tracking-[0.4em] uppercase">Halcyon Clinical Operations Group // Secure Health Systems</p>
       </div>
     </motion.div>
   );

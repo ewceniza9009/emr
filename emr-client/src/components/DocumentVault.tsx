@@ -62,7 +62,7 @@ export default function DocumentVault({ patientId }: Props) {
       
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 relative z-10">
         <div>
-          <h2 className="text-2xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+          <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tight">
             <ShieldCheck className="w-6 h-6 text-blue-400" />
             Clinical Document Vault
           </h2>

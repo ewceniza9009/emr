@@ -41,7 +41,7 @@ export default function ProblemList({ patientId }: { patientId: string }) {
   return (
     <div className="glass-morphism rounded-2xl border border-[var(--card-border)] relative">
       <div className="px-6 py-2 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)] rounded-t-2xl">
-        <h2 className="text-base font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tighter">
+        <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight">
           <ClipboardList className="w-4 h-4 text-blue-400" />
           Problem List (Diagnoses)
         </h2>

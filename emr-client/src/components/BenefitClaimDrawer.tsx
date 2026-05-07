@@ -120,7 +120,7 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
       <div className="relative w-full max-w-md bg-[var(--card-bg)] h-full shadow-2xl border-l border-[var(--card-border)] flex flex-col animate-in slide-in-from-right duration-300">
         <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]/50">
           <div>
-            <h2 className="text-xl font-bold text-[var(--text-primary)]">
+            <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
               {isEdit ? "Manage Claim Status" : "Submit Z-Benefit Claim"}
             </h2>
             <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-black mt-1">PhilHealth Integration</p>

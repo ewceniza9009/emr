@@ -187,7 +187,7 @@ export default function BillingPage() {
         <div className="flex items-center gap-4">
           <div className="w-1 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_15px_var(--primary-glow)]" />
           <div>
-            <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight uppercase">Billing & Financials</h1>
+            <h1 className="text-sm font-bold text-[var(--text-primary)] tracking-tight uppercase">Billing & Financials</h1>
             <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-1 flex items-center gap-2">
               <FileText className="w-3.5 h-3.5 text-[var(--primary)]" />
               Halcyon Revenue Cycle Management

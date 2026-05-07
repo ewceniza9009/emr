@@ -50,7 +50,7 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
   return (
     <div className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] space-y-3">
        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-base font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tighter">
+          <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight">
             <Activity className="w-4 h-4 text-blue-400" />
             Vital Sign History
           </h2>

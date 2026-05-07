@@ -60,7 +60,7 @@ export default function PpsSelector({ onScoreChange }: PpsSelectorProps) {
     <div className="glass-morphism rounded-3xl p-8 border border-[var(--card-border)] space-y-6 bg-[var(--card-bg)]">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+          <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tight">
             <Accessibility className="w-6 h-6 text-purple-400" />
             PPSv2 Functional Scale
           </h2>

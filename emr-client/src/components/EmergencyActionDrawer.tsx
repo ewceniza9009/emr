@@ -54,7 +54,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
             <div className="flex items-center gap-6 relative z-10">
               <div className="w-1.5 h-12 bg-red-500 rounded-full shadow-[0_0_25px_rgba(239,68,68,0.5)]" />
               <div className="flex flex-col">
-                <h2 className="text-2xl font-black text-white tracking-tighter uppercase leading-none italic">
+                <h2 className="text-sm font-bold text-white tracking-tight uppercase leading-none italic">
                   Emergency Action
                 </h2>
                 <span className="text-[10px] font-black text-red-400 tracking-[0.2em] mt-2 uppercase">
@@ -81,7 +81,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
               </div>
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Goal of Care</p>
-                <h3 className={`text-xl font-black uppercase tracking-tighter ${
+                <h3 className={`text-sm font-bold uppercase tracking-tight ${
                   dnrStatus ? "text-amber-400" : "text-red-400"
                 }`}>
                   {dnrStatus ? "DO NOT RESUSCITATE (DNR)" : "FULL CODE PROTOCOL"}

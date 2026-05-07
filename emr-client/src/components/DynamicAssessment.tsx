@@ -92,7 +92,7 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
       {/* Tactical Header */}
       <div className="flex items-start justify-between border-b border-[var(--divider-color)] pb-6">
         <div className="space-y-1.5">
-          <h2 className="text-3xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none">
+          <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">
             {questionnaire.name}
           </h2>
           <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.3em]">{questionnaire.description || "Dynamic Clinical Assessment Node"}</p>

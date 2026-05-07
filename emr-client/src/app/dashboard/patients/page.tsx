@@ -15,6 +15,7 @@ import {
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import AddPatientDrawer from "@/components/AddPatientDrawer";
+import { useCommandModal } from "@/components/CommandModalProvider";
 
 const GET_PATIENTS = gql`
   query GetPatients($search: String) {
@@ -45,6 +46,7 @@ const GET_PATIENTS = gql`
 `;
 
 export default function PatientsPage() {
+  const { confirm, alert } = useCommandModal();
   const router = useRouter();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,7 +66,7 @@ export default function PatientsPage() {
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Patient Registry</h1>
+          <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Patient Registry</h1>
           <p className="text-sm text-[var(--text-secondary)]">Master record of all patients under clinical supervision.</p>
         </div>
         <button 
@@ -235,11 +237,21 @@ export default function PatientsPage() {
                           <div className="h-px bg-[var(--card-border)] my-1" />
                           <button 
                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-all font-semibold text-left"
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.stopPropagation();
-                              if (confirm(`Are you sure you want to archive ${patient.firstName} ${patient.lastName}?`)) {
+                              const ok = await confirm({
+                                title: "Archive Patient",
+                                message: `Are you sure you want to archive ${patient.firstName} ${patient.lastName}? This will remove them from the active clinical roster.`,
+                                type: "warning",
+                                confirmText: "Archive"
+                              });
+                              if (ok) {
                                 setOpenMenuId(null);
-                                alert("Patient archived successfully.");
+                                await alert({
+                                  title: "Patient Archived",
+                                  message: "The patient record has been moved to clinical archives successfully.",
+                                  type: "success"
+                                });
                               }
                             }}
                           >

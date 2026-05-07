@@ -96,7 +96,7 @@ export default function OutreachPage() {
       {/* Refined Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Outreach & Enrollment</h1>
+          <h1 className="text-sm font-bold tracking-tight text-[var(--text-primary)] uppercase">Outreach & Enrollment</h1>
           <p className="text-sm text-[var(--text-secondary)]">Manage patient referral pipeline and clinical conversions.</p>
         </div>
         <button 

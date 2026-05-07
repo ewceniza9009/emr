@@ -93,7 +93,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
             <div className="flex items-center gap-6">
               <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
               <div className="flex flex-col">
-                <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Patient Registration</h2>
+                <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">Patient Registration</h2>
                 <span className="text-[10px] font-black text-[var(--primary)] tracking-[0.2em] mt-1 uppercase">Clinical Data Entry // Master Record</span>
               </div>
             </div>

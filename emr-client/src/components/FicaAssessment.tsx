@@ -33,7 +33,7 @@ export default function FicaAssessment({ initialData, onDataChange }: FicaAssess
     <div className="glass-morphism rounded-3xl p-8 border border-[var(--card-border)] space-y-8 bg-[var(--card-bg)]">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+          <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tight">
             <Heart className="w-6 h-6 text-rose-400" />
             FICA Spiritual Assessment
           </h2>

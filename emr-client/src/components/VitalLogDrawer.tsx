@@ -23,7 +23,7 @@ export default function VitalLogDrawer({ isOpen, onClose, encounters }: Props) {
 
           <div className="p-8 border-b border-[var(--card-border)] flex items-center justify-between shrink-0">
             <div>
-              <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3">
+              <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight flex items-center gap-3">
                 <Activity className="w-6 h-6 text-blue-500" />
                 Complete Vital History
               </h2>

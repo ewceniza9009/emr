@@ -25,7 +25,7 @@ export default function MedicationDetailDrawer({ isOpen, onClose, prescription }
                 <div className="flex items-center gap-6">
                   <div className="w-1.5 h-10 bg-emerald-500 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.3)]" />
                   <div className="flex flex-col">
-                    <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Prescription Details</h2>
+                    <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">Prescription Details</h2>
                     <span className="text-[10px] font-black text-emerald-500 tracking-[0.2em] mt-1 uppercase">Order Verification // {prescription.medication.name}</span>
                   </div>
                 </div>

@@ -57,7 +57,7 @@ export default function Phq9Scoring({ onScoreChange }: Phq9ScoringProps) {
     <div className="glass-morphism rounded-3xl p-8 border border-[var(--card-border)] space-y-8 bg-[var(--card-bg)]">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+          <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tight">
             <Brain className="w-6 h-6 text-pink-400" />
             PHQ-9 Depression Screening
           </h2>

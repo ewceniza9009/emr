@@ -140,7 +140,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
             <div className="flex items-center gap-6">
               <div className="w-1.5 h-10 bg-emerald-500 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.3)]" />
               <div className="flex flex-col">
-                <h2 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">
+                <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">
                   {initialData ? "Update Trusted Contact" : "Add Trusted Contact"}
                 </h2>
                 <span className="text-[10px] font-black text-emerald-500 tracking-[0.2em] mt-1 uppercase">Governance // POA Registration</span>

@@ -75,7 +75,7 @@ export default function AllergyRegistry({ patientId }: { patientId: string }) {
   return (
     <div className="glass-morphism rounded-2xl border border-[var(--card-border)] relative">
       <div className="px-6 py-2 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)] rounded-t-2xl">
-        <h2 className="text-base font-black text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tighter">
+        <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight">
           <ShieldAlert className="w-4 h-4 text-rose-500" />
           Allergy Registry
         </h2>
@@ -151,7 +151,7 @@ export default function AllergyRegistry({ patientId }: { patientId: string }) {
                   <div className="flex items-center gap-6">
                     <div className="w-1.5 h-10 bg-rose-500 rounded-full shadow-[0_0_20px_rgba(244,63,94,0.3)]" />
                     <div>
-                      <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none">
+                      <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">
                         New Allergy Entry
                       </h2>
                       <p className="text-rose-500 text-[10px] font-black uppercase tracking-widest mt-1">Critical safety record initialization</p>

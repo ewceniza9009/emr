@@ -9,6 +9,7 @@ import { ToastProvider } from "./ToastProvider";
 import { SidebarProvider } from "@/lib/SidebarContext";
 import { ThemeProvider } from "@/lib/ThemeContext";
 import SessionGuard from "./SessionGuard";
+import { CommandModalProvider } from "./CommandModalProvider";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -18,9 +19,11 @@ export function Providers({ children }: { children: ReactNode }) {
           <ThemeProvider>
             <SidebarProvider>
               <ToastProvider>
-                <SessionGuard>
-                  {children}
-                </SessionGuard>
+                <CommandModalProvider>
+                  <SessionGuard>
+                    {children}
+                  </SessionGuard>
+                </CommandModalProvider>
               </ToastProvider>
             </SidebarProvider>
           </ThemeProvider>

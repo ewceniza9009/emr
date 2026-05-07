@@ -98,7 +98,7 @@ export default function TaskManagement({ patientId }: Props) {
     <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 border border-[var(--card-border)] shadow-xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+          <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tight">
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
             Clinical Coordination Tasks
           </h2>
