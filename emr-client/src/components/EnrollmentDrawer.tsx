@@ -1,30 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import HalcyonPortal from "./Portal";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { 
-  X,
-  PhoneCall, 
-  CheckCircle2, 
-  Calendar, 
-  Stethoscope, 
-  ChevronRight,
-  ChevronLeft,
-  ClipboardCheck, 
-  ShieldCheck,
-  Activity,
-  User,
-  MapPin,
-  Users,
-  AlertCircle,
-  UserPlus,
-  Hash,
-  Target,
-  Zap,
-  PhoneOff,
-  PhoneForwarded,
-  Trash2
+  X, PhoneCall, CheckCircle2, Calendar, Stethoscope, ChevronRight, ChevronLeft,
+  ClipboardCheck, ShieldCheck, Activity, User, MapPin, Users, AlertCircle,
+  UserPlus, Hash, Target, Zap, PhoneOff, PhoneForwarded, Trash2, Mic, Wifi,
+  Smartphone, BrainCircuit, MessageSquare, Clock, Video, Home, Building2, Timer,
+  Search, Plus, History, Check, HeartPulse, HeartHandshake, Shield, Edit3, Car, Navigation,
+  Sun, Wind, Info, Fingerprint
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -34,25 +19,24 @@ const GET_LEAD_DETAILS = gql`
       patientOutreachId
       firstName
       lastName
+      primaryPhone
+      primaryEmail
+      referralSource
+      techAccess
+      barriersToCare
+      communicationStatus
       mailingAddress {
         street
         city
         state
         postalCode
       }
-      primaryPhone
-      primaryEmail
-      referralSource
-      communicationStatus
-      techAccess
-      barriersToCare
       otherContacts {
         outreachContactId
         firstName
         lastName
         relationship
         phoneNumber
-        email
         isPrimaryContact
       }
       activities {
@@ -62,6 +46,29 @@ const GET_LEAD_DETAILS = gql`
         method
         notes
       }
+    }
+  }
+`;
+
+const GET_ENROLLMENT_DATA = gql`
+  query GetEnrollmentData {
+    healthPlans {
+      healthPlanId
+      name
+    }
+    outreachScripts {
+      outreachScriptId
+      scriptTitle
+      content
+    }
+    practitioners {
+      practitionerId
+      fullName
+      firstName
+      lastName
+      position
+      isCareNavigator
+      isSupportingClinician
     }
   }
 `;
@@ -90,30 +97,13 @@ const UPDATE_OUTREACH_LEAD = gql`
   }
 `;
 
-const GET_ENROLLMENT_DATA = gql`
-  query GetEnrollmentData {
-    healthPlans {
-      healthPlanId
-      name
-    }
-  }
-`;
-
 const FINALIZE_ENROLLMENT = gql`
   mutation FinalizeEnrollment($input: FinalizeEnrollmentCommandInput!) {
     finalizeEnrollment(input: $input)
   }
 `;
 
-const RELATIONSHIP_LABELS: Record<string, string> = {
-  Spouse: "Spouse",
-  Parent: "Parent",
-  Child: "Child",
-  Sibling: "Sibling",
-  Friend: "Friend",
-  Guardian: "Guardian",
-  Other: "Other",
-};
+const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
 
 interface Props {
   open: boolean;
@@ -125,83 +115,80 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState("");
-  const [selectedModality, setSelectedModality] = useState("HOME_CARE");
-  
-  // Dialer State
+  const [modality, setModality] = useState("IN_PERSON_HOME_VISIT");
   const [activeCall, setActiveCall] = useState<any>(null);
-  const [isDialPadOpen, setIsDialPadOpen] = useState(false);
-  const [dialedNumber, setDialedNumber] = useState("");
+  const [isAddingContact, setIsAddingContact] = useState(false);
+  const [editingContactId, setEditingContactId] = useState<string | null>(null);
+  const [selectedScriptId, setSelectedScriptId] = useState<string | null>(null);
+  
+  // Phase 3 Advanced Scheduling State
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [viewDate, setViewDate] = useState(new Date());
+  const [period, setPeriod] = useState<"AM" | "PM" | null>("AM");
+  const [duration, setDuration] = useState(45);
+  const [visitType, setVisitType] = useState("INITIAL_HOSPICE_INTAKE");
+  const [primaryClinicianId, setPrimaryClinicianId] = useState("");
+  const [careNavigatorId, setCareNavigatorId] = useState("");
+  const [staffSearch, setStaffSearch] = useState("");
 
-  // Wizard State
-  const [disposition, setDisposition] = useState("COOPERATIVE");
-  const [communicationStatus, setCommunicationStatus] = useState("VERBAL");
-  const [techAccess, setTechAccess] = useState("SMARTPHONE_ONLY");
-  const [barriersToCare, setBarriersToCare] = useState("");
-  const [orientationDate, setOrientationDate] = useState("");
-
-  // Wizard State
-  const [isAddingRelative, setIsAddingRelative] = useState(false);
-  const [isLoggingNoAnswer, setIsLoggingNoAnswer] = useState(false);
-  const [newRelativeForm, setNewRelativeForm] = useState({ firstName: '', lastName: '', relationship: 'Other', phoneNumber: '' });
-
-  const [finalize, { loading: finalizing }] = useMutation(FINALIZE_ENROLLMENT);
-  const [logActivity] = useMutation(LOG_OUTREACH_ACTIVITY);
-  const [addContact] = useMutation(ADD_OUTREACH_CONTACT);
-  const [removeContact] = useMutation(REMOVE_OUTREACH_CONTACT);
-  const [updateLead] = useMutation(UPDATE_OUTREACH_LEAD);
-
-  const [tempNumbers, setTempNumbers] = useState<Record<string, string>>({});
-
-  const { data: leadData, loading: leadLoading, error: leadError } = useQuery(GET_LEAD_DETAILS, {
-    variables: { id: outreachId },
-    skip: !outreachId || !open,
-    fetchPolicy: "network-only"
+  // Address Controlled State
+  const [address, setAddress] = useState({
+    street: "", city: "", state: "", postalCode: ""
   });
 
-  const { data: planData } = useQuery(GET_ENROLLMENT_DATA, { skip: !open });
-  const lead = leadData?.outreachById;
+  // Assessment State
+  const [disposition, setDisposition] = useState("COOPERATIVE");
+  const [techAccess, setTechAccess] = useState("SMARTPHONE");
+  const [cognitive, setCognitive] = useState("AUTONOMOUS");
+  
+  const [newContact, setNewContact] = useState({
+    firstName: "", lastName: "", relationship: "Spouse", phoneNumber: ""
+  });
+
+  const { data: leadData, loading: leadLoading } = useQuery(GET_LEAD_DETAILS, {
+    variables: { id: outreachId },
+    skip: !outreachId || !open,
+    fetchPolicy: "network-only",
+    onCompleted: (data) => {
+      if (data?.outreachById?.mailingAddress) {
+        setAddress({
+          street: data.outreachById.mailingAddress.street || "",
+          city: data.outreachById.mailingAddress.city || "",
+          state: data.outreachById.mailingAddress.state || "",
+          postalCode: data.outreachById.mailingAddress.postalCode || ""
+        });
+      }
+    }
+  });
+
+  const { data: enrollmentData } = useQuery(GET_ENROLLMENT_DATA, { skip: !open });
+  
+  const [logActivity] = useMutation(LOG_OUTREACH_ACTIVITY);
+  const [updateLead] = useMutation(UPDATE_OUTREACH_LEAD);
+  const [addContact, { loading: addingContact }] = useMutation(ADD_OUTREACH_CONTACT);
+  const [removeContact] = useMutation(REMOVE_OUTREACH_CONTACT);
+  const [finalize, { loading: finalizing }] = useMutation(FINALIZE_ENROLLMENT);
 
   useEffect(() => {
     if (open) {
       setCurrentStep(1);
-      setSelectedPlan("");
-      setSelectedModality("HOME_CARE");
-      setDisposition("COOPERATIVE");
-      setCommunicationStatus("VERBAL");
-      setTechAccess("SMARTPHONE_ONLY");
-      setBarriersToCare("");
-      setOrientationDate("");
-      setTempNumbers({});
-      setIsDialPadOpen(false);
-      setDialedNumber("");
       setActiveCall(null);
+      setIsAddingContact(false);
+      setPrimaryClinicianId("");
+      setCareNavigatorId("");
     }
   }, [open, outreachId]);
 
-  useEffect(() => {
-    if (lead) {
-      if (lead.selectedModality) setSelectedModality(lead.selectedModality);
-      if (lead.healthPlanId) setSelectedPlan(lead.healthPlanId);
-      if (lead.disposition) setDisposition(lead.disposition);
-      if (lead.communicationStatus) setCommunicationStatus(lead.communicationStatus);
-      if (lead.techAccess) setTechAccess(lead.techAccess);
-      if (lead.barriersToCare) setBarriersToCare(lead.barriersToCare);
-    }
-  }, [lead]);
+  const lead = leadData?.outreachById;
+  const practitioners = enrollmentData?.practitioners || [];
+  const scripts = enrollmentData?.outreachScripts || [];
+  const activeScript = scripts.find((s: any) => s.outreachScriptId === selectedScriptId) || scripts[0];
 
-  const handleUpdateLead = async (fields: any) => {
-    try {
-      await updateLead({
-        variables: {
-          input: {
-            patientOutreachId: outreachId,
-            ...fields
-          }
-        }
-      });
-    } catch (e) {
-      console.error(e);
-    }
+  const handleCall = (contact: any) => {
+    setActiveCall({ ...contact, status: 'CONNECTING...' });
+    setTimeout(() => {
+      setActiveCall((prev: any) => prev ? { ...prev, status: 'ON LINE' } : null);
+    }, 1500);
   };
 
   const handleLogActivity = async (outcome: string) => {
@@ -213,472 +200,456 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
             outreachId: outreachId,
             method: "TELEPHONE",
             outcome: outcome,
-            notes: `Logged outcome: ${outcome}`
-          }
-        },
-        refetchQueries: ["GetLeadDetails", "GetOutreachLeads"]
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleFinalize = async () => {
-    try {
-      const { data: finalizeData } = await finalize({
-        variables: {
-          input: {
-            patientOutreachId: outreachId,
-            modality: selectedModality,
-            healthPlanId: selectedPlan,
-            disposition: disposition,
-            communicationStatus: communicationStatus,
-            techAccess: techAccess,
-            barriersToCare: barriersToCare
-          }
-        }
-      });
-      if (finalizeData?.finalizeEnrollment) {
-        onClose();
-        router.push(`/dashboard/patients/${finalizeData.finalizeEnrollment}`);
-      }
-    } catch (err) {
-      console.error("Enrollment failed:", err);
-    }
-  };
-
-  const handleAddRelative = async () => {
-    try {
-      await addContact({
-        variables: {
-          input: {
-            patientOutreachId: outreachId,
-            ...newRelativeForm
+            notes: `Enrollment outcome: ${outcome}`
           }
         },
         refetchQueries: ["GetLeadDetails"]
       });
-      setIsAddingRelative(false);
-      setNewRelativeForm({ firstName: '', lastName: '', relationship: 'Other', phoneNumber: '' });
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
-  const handleTempNumberChange = (id: string, val: string) => {
-    setTempNumbers(prev => ({ ...prev, [id]: val }));
+  const handleUpdateLead = async (fields: any) => {
+    try {
+      await updateLead({
+        variables: {
+          input: { patientOutreachId: outreachId, ...fields }
+        }
+      });
+    } catch (e) { console.error(e); }
   };
 
-  const handleCall = (contact: any) => {
-    setActiveCall({
-      ...contact,
-      status: 'Connecting...'
+  const handleAddContact = async () => {
+    if (!newContact.firstName || !newContact.phoneNumber) return;
+    try {
+      if (editingContactId) {
+        await removeContact({
+          variables: { input: { outreachContactId: editingContactId } }
+        });
+      }
+      await addContact({
+        variables: {
+          input: { patientOutreachId: outreachId, ...newContact }
+        },
+        refetchQueries: ["GetLeadDetails"]
+      });
+      setIsAddingContact(false);
+      setEditingContactId(null);
+      setNewContact({ firstName: "", lastName: "", relationship: "Family", phoneNumber: "" });
+    } catch (e) { console.error(e); }
+  };
+
+  const handleEditContact = (contact: any) => {
+    setNewContact({
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      relationship: contact.relationship,
+      phoneNumber: contact.phoneNumber
     });
-    setTimeout(() => {
-      setActiveCall((prev: any) => prev ? { ...prev, status: 'Active' } : null);
-    }, 1500);
+    setEditingContactId(contact.outreachContactId);
+    setIsAddingContact(true);
   };
 
   const handleRemoveContact = async (id: string) => {
     try {
       await removeContact({
-        variables: {
-          input: {
-            outreachContactId: id
-          }
-        },
+        variables: { input: { outreachContactId: id } },
         refetchQueries: ["GetLeadDetails"]
       });
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
-  const plans = planData?.healthPlans || [];
+  const handleFinalize = async () => {
+    try {
+      const scheduledDate = new Date(selectedDate);
+      scheduledDate.setHours(period === "AM" ? 9 : 14, 0, 0, 0);
+      
+      const { data } = await finalize({
+        variables: {
+          input: {
+            patientOutreachId: outreachId,
+            modality: modality,
+            healthPlanId: selectedPlan,
+            disposition: disposition,
+            techAccess: techAccess,
+            orientationDate: scheduledDate.toISOString(),
+            primaryClinicianId: primaryClinicianId,
+            careNavigatorId: careNavigatorId
+          }
+        }
+      });
+      if (data?.finalizeEnrollment) {
+        onClose();
+        router.push(`/dashboard/patients/${data.finalizeEnrollment}`);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const renderCalendar = () => {
+    const days = [];
+    const count = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+    const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+    for (let i = 0; i < first; i++) days.push(<div key={`empty-${i}`} className="h-10" />);
+    for (let d = 1; d <= count; d++) {
+      const isSelected = selectedDate.getDate() === d && selectedDate.getMonth() === viewDate.getMonth();
+      days.push(
+        <button key={d} type="button" onClick={() => setSelectedDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), d))}
+          className={`h-10 w-full rounded-2xl text-[10px] font-bold transition-all flex items-center justify-center
+            ${isSelected ? "bg-[var(--primary)] text-black shadow-xl shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+          {d}
+        </button>
+      );
+    }
+    return days;
+  };
 
   if (!open) return null;
 
-  const hasNoContacts = lead && !lead.primaryPhone && (!lead.otherContacts || lead.otherContacts.length === 0);
-
   return (
-    <>
-      <HalcyonPortal>
-        <div className="fixed inset-0 z-[9999999] flex justify-end">
-          <div className="absolute inset-0 bg-black/5 backdrop-blur-sm transition-opacity" onClick={onClose} />
-          <div className="relative h-full w-full max-w-[460px] bg-[var(--card-bg)] border-l border-[var(--card-border)] flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
-            
-            {/* Header */}
-            <div className="h-14 flex items-center justify-between px-6 border-b border-[var(--card-border)] shrink-0">
-              <div className="flex items-center gap-3">
-                 <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
-                    <Target className="w-4 h-4" />
-                 </div>
-                 <div>
-                    <h2 className="text-sm font-semibold text-[var(--text-primary)]">Enrollment Workflow</h2>
-                    <p className="text-[10px] font-medium text-[var(--text-muted)]">Lead Conversion</p>
-                 </div>
-              </div>
-              <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/5 transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-                <X className="w-4 h-4" />
-              </button>
+    <HalcyonPortal>
+      <div className="fixed inset-0 z-[9999999] flex justify-end">
+        <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" onClick={onClose} />
+        <div className={`relative h-full bg-[var(--sidebar-bg)] border-l border-[var(--card-border)] flex flex-col shadow-2xl transition-all duration-500 ease-in-out ${currentStep === 3 ? 'w-full max-w-[1100px]' : 'w-full max-w-[480px]'}`}>
+          
+          {/* Tactical Header */}
+          <div className="h-14 flex items-center justify-between px-6 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)] shrink-0">
+            <div className="flex items-center gap-3">
+               <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] border border-[var(--primary)]/20 shadow-[0_0_15px_rgba(var(--primary-rgb),0.1)]">
+                  {currentStep === 3 ? <Calendar className="w-4 h-4" /> : <Target className="w-4 h-4" />}
+               </div>
+               <div>
+                  <h2 className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em] leading-none">
+                    {currentStep === 3 ? "Mission Scheduling" : "Enrollment Mission"}
+                  </h2>
+                  <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1 opacity-60">Lead • {lead?.firstName || "Unknown"} {lead?.lastName || "Patient"}</p>
+               </div>
             </div>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-[var(--input-bg)] transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-            {/* Lead Snapshot */}
-            {lead && (
-              <div className="px-6 py-4 bg-white/[0.02] border-b border-[var(--card-border)] flex items-center justify-between shrink-0">
-                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white font-semibold text-xs">
-                       {lead.firstName[0]}{lead.lastName[0]}
-                    </div>
-                    <div>
-                       <span className="text-sm font-semibold text-[var(--text-primary)]">{lead.firstName} {lead.lastName}</span>
-                       <p className="text-xs text-[var(--text-muted)]">{lead.referralSource || "Direct Intake"}</p>
-                    </div>
-                 </div>
-                 <span className="px-2 py-1 rounded bg-[var(--primary)]/10 text-[10px] font-medium text-[var(--primary)]">Priority Lead</span>
-              </div>
-            )}
-
-            {/* Clinical Workspace */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-hide">
-              {leadLoading ? (
-                <div className="h-full flex flex-col items-center justify-center space-y-4">
-                   <div className="animate-spin w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full" />
-                   <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Synchronizing Lead Data...</p>
-                </div>
-              ) : lead && (
-                <div className="space-y-8">
-                  {currentStep === 1 && (
-                    <div className="space-y-6 animate-in fade-in duration-500">
-                       <div className="flex items-center justify-between">
-                          <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-2">
-                             <PhoneCall className="w-4 h-4 text-[var(--primary)]" /> Outbound Engagement
-                          </h3>
-                          <div className="flex gap-2">
-                             <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`w-10 h-10 rounded-xl border transition-all flex items-center justify-center ${isDialPadOpen ? 'bg-[var(--primary)] border-[var(--primary)] text-white' : 'bg-white/5 border-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10'}`}><Hash className="w-4 h-4" /></button>
-                             <button onClick={() => setIsAddingRelative(true)} className="flex items-center gap-2 px-4 h-10 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-xs font-medium hover:bg-[var(--primary)]/20 transition-all"><UserPlus className="w-4 h-4" /> Add Contact</button>
-                          </div>
-                       </div>
-
-                       {/* Active Call HUD */}
-                       {activeCall && (
-                         <div className="bg-teal-600 rounded-2xl p-5 flex items-center justify-between shadow-2xl shadow-teal-900/40 animate-pulse-primary ring-1 ring-teal-400/50">
-                            <div className="flex items-center gap-5">
-                               <div className="w-12 h-12 rounded-full bg-black/20 flex items-center justify-center text-white">
-                                  <PhoneForwarded className="w-6 h-6 animate-bounce" />
+          {/* Clinical Workspace */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {leadLoading ? (
+               <div className="flex-1 flex items-center justify-center"><Activity className="w-5 h-5 text-[var(--primary)] animate-spin opacity-50" /></div>
+            ) : !lead ? (
+               <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-4 opacity-40">
+                  <AlertCircle className="w-10 h-10 text-rose-500" />
+                  <p className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-widest">Lead Not Found</p>
+                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tight">Mission Aborted // Verify Registry ID</p>
+               </div>
+            ) : (
+              <>
+                {currentStep < 3 ? (
+                  <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-hide">
+                    {/* PHASE 1 & 2 UI */}
+                    {currentStep === 1 && (
+                      <div className="space-y-5 animate-in fade-in duration-300">
+                         {activeCall && (
+                           <div className="bg-teal-600 rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-teal-900/40 animate-pulse ring-1 ring-teal-400/50">
+                              <div className="flex items-center gap-4">
+                                 <div className="w-10 h-10 rounded-full bg-black/20 flex items-center justify-center text-white"><PhoneForwarded className="w-5 h-5 animate-bounce" /></div>
+                                 <div><p className="text-white font-black text-[10px] uppercase tracking-widest leading-none">{activeCall.status}</p><p className="text-teal-100 text-[11px] font-bold mt-1.5 opacity-80">{activeCall.phone || activeCall.phoneNumber}</p></div>
+                              </div>
+                              <button onClick={() => setActiveCall(null)} className="w-10 h-10 rounded-xl bg-red-500 text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform"><PhoneOff className="w-4 h-4" /></button>
+                           </div>
+                         )}
+                         
+                         {/* DEMOGRAPHIC IDENTITY HUD */}
+                         <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] space-y-4 shadow-sm">
+                            <div className="flex items-center gap-3">
+                               <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center text-black font-bold text-xs shadow-lg shadow-[var(--primary-glow)]">
+                                  {lead.firstName?.[0] || "?"}{lead.lastName?.[0] || "?"}
                                </div>
                                <div>
-                                  <p className="text-white font-black text-sm uppercase tracking-widest leading-none">{activeCall.status}</p>
-                                  <p className="text-teal-100 text-xs font-bold mt-2 opacity-80">{activeCall.phone}</p>
+                                 <h3 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-tight">{lead.firstName || "Unknown"} {lead.lastName || "Patient"}</h3>
+                                 <div className="flex items-center gap-2 mt-1">
+                                    <p className="text-[9px] font-bold text-[var(--primary)] uppercase tracking-widest opacity-80">{lead.referralSource || "Internal Lead"}</p>
+                                    <span className="w-1 h-1 rounded-full bg-[var(--card-border)]" />
+                                    <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                                       {lead.dateOfBirth ? `${new Date(lead.dateOfBirth).toLocaleDateString()} (${Math.floor((new Date().getTime() - new Date(lead.dateOfBirth).getTime()) / 31557600000)}Y)` : "DOB: --"}
+                                    </p>
+                                    {lead.gender && (
+                                       <>
+                                          <span className="w-1 h-1 rounded-full bg-[var(--card-border)]" />
+                                          <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{lead.gender}</p>
+                                       </>
+                                    )}
+                                 </div>
                                </div>
                             </div>
-                            <button onClick={() => setActiveCall(null)} className="w-12 h-12 rounded-xl bg-red-500 text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform"><PhoneOff className="w-5 h-5" /></button>
+                            <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl p-3 shadow-inner">
+                               <p className="text-[10px] font-bold text-[var(--text-secondary)] leading-relaxed italic opacity-80">
+                                  {activeScript?.content ? activeScript.content.replace("{firstName}", lead.firstName).replace("{lastName}", lead.lastName) : `"Hello ${lead.firstName}, I'm calling from Halcyon Health..."`}
+                               </p>
+                            </div>
                          </div>
-                       )}
 
-                       {/* Manual Dialer */}
-                       {isDialPadOpen && (
-                         <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl p-5 animate-in slide-in-from-top-4 relative group/dialer">
-                            <button onClick={() => setIsDialPadOpen(false)} className="absolute top-3 right-3 p-1 rounded bg-black/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all opacity-0 group-hover/dialer:opacity-100"><X className="w-3 h-3" /></button>
-                            <div className="flex gap-4">
-                               <input placeholder="Dial Number..." className="flex-1 bg-transparent text-2xl font-black text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] tracking-tighter" value={dialedNumber} onChange={e => setDialedNumber(e.target.value)} autoFocus />
-                               <button onClick={() => handleCall({phone: dialedNumber})} className="w-12 h-12 rounded-xl bg-teal-500 text-black flex items-center justify-center shadow-xl shadow-teal-500/20"><PhoneCall className="w-5 h-5" /></button>
-                                 <div className="h-10 w-[1px] bg-[var(--card-border)]" />
-                                 <div>
-                                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Contact History</p>
-                                    <div className="flex gap-1 mt-2">
-                                       {lead.activities?.length === 0 ? (
-                                          <div className="w-2 h-2 rounded-full bg-[var(--card-border)]" />
-                                       ) : (
-                                          [...lead.activities].sort((a, b) => new Date(b.activityDate).getTime() - new Date(a.activityDate).getTime()).slice(0, 5).map((activity: any) => (
-                                             <div key={activity.outreachActivityId} title={activity.outcome} className={`w-2 h-2 rounded-full ${activity.outcome === 'NO_ANSWER' ? 'bg-rose-500' : 'bg-teal-500'}`} />
-                                          ))
-                                       )}
-                                    </div>
-                                 </div>
-                              </div>
-                           </div>
-                       )}
-
-                        {/* Engagement Profile */}
-                        <div className="space-y-4">
-                           <div className="flex items-center justify-between">
-                              <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Historical Audit</label>
-                              <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase">{lead.activities?.length || 0} Events</span>
-                           </div>
-                           <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl p-3 space-y-3 max-h-[120px] overflow-y-auto scrollbar-hide">
-                              {lead.activities?.length === 0 ? (
-                                 <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase text-center py-2">No history logged.</p>
-                              ) : (
-                                 [...lead.activities].sort((a, b) => new Date(b.activityDate).getTime() - new Date(a.activityDate).getTime()).map((activity: any) => (
-                                    <div key={activity.outreachActivityId} className="flex items-center justify-between border-l-2 border-[var(--card-border)] pl-3 py-0.5">
-                                       <div>
-                                          <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-wider">{activity.outcome?.replace('_', ' ') || 'LOGGED'}</p>
-                                          <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase mt-0.5">{new Date(activity.activityDate).toLocaleDateString()}</p>
-                                       </div>
-                                       <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase">{activity.method}</span>
-                                    </div>
-                                 ))
-                              )}
-                           </div>
-                        </div>
-
-                        {/* Contact List */}
-                        <div className="space-y-3">
-                           {/* Primary Patient */}
-                           <div className="p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-center justify-between group">
-                              <div className="flex items-center gap-4">
-                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-black font-black text-xs ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-teal-500' : 'bg-amber-500'}`}>
-                                    <User className="w-5 h-5" />
-                                 </div>
-                                 <div>
-                                    <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-tight">Primary: {lead.firstName}</p>
-                                    <p className="text-[10px] font-bold text-[var(--text-muted)] tracking-widest mt-1">{lead.primaryPhone || tempNumbers['patient'] || "No Vector Logged"}</p>
-                                 </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                 {!lead.primaryPhone && !tempNumbers['patient'] && (
-                                   <input 
-                                     placeholder="Enter Phone..." 
-                                     className="w-32 h-10 bg-[var(--background)] border border-[var(--card-border)] rounded-xl px-3 text-xs text-[var(--text-primary)] outline-none focus:border-teal-500" 
-                                     value={tempNumbers['patient'] || ""} 
-                                     onChange={e => handleTempNumberChange('patient', e.target.value)} 
-                                   />
-                                 )}
-                                 <button 
-                                   onClick={() => handleCall({phone: lead.primaryPhone || tempNumbers['patient']})} 
-                                   disabled={!(lead.primaryPhone || tempNumbers['patient'])} 
-                                   className={`w-10 h-10 rounded-xl transition-all flex items-center justify-center ${lead.primaryPhone || tempNumbers['patient'] ? 'bg-teal-500 text-black shadow-lg shadow-teal-500/20 active:scale-90' : 'bg-slate-800 text-[var(--text-muted)]'}`}
-                                 >
-                                   <PhoneCall className="w-5 h-5" />
-                                 </button>
-                              </div>
-                           </div>
-
-                           {/* Other Contacts */}
-                           {(lead.otherContacts || []).map((contact: any) => (
-                             <div key={contact.outreachContactId} className="p-4 rounded-xl border border-[var(--card-border)] bg-[var(--input-bg)] flex items-center justify-between hover:bg-teal-500/5 transition-all group">
-                                <div className="flex items-center gap-4">
-                                   <div className="w-10 h-10 rounded-lg bg-[var(--background)] flex items-center justify-center text-[var(--text-muted)] group-hover:text-teal-500 transition-colors"><Users className="w-5 h-5" /></div>
-                                   <div>
-                                      <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-tight">{contact.firstName} {contact.lastName}</p>
-                                      <p className="text-[10px] font-bold text-[var(--text-muted)] tracking-widest mt-1">{contact.phoneNumber || tempNumbers[contact.outreachContactId] || "No Vector"}</p>
-                                   </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                   {!contact.phoneNumber && !tempNumbers[contact.outreachContactId] && (
-                                     <input 
-                                       placeholder="Enter..." 
-                                       className="w-24 h-10 bg-[var(--background)] border border-[var(--card-border)] rounded-xl px-3 text-xs text-[var(--text-primary)] outline-none focus:border-teal-500" 
-                                       value={tempNumbers[contact.outreachContactId] || ""} 
-                                       onChange={e => handleTempNumberChange(contact.outreachContactId, e.target.value)} 
-                                     />
-                                   )}
-                                   <button onClick={() => handleCall({phone: contact.phoneNumber || tempNumbers[contact.outreachContactId]})} disabled={!(contact.phoneNumber || tempNumbers[contact.outreachContactId])} className={`w-10 h-10 rounded-xl transition-all flex items-center justify-center ${contact.phoneNumber || tempNumbers[contact.outreachContactId] ? 'bg-white/10 text-[var(--text-primary)] hover:bg-teal-500 hover:text-black active:scale-90' : 'bg-slate-900 text-[var(--text-muted)]'}`}><PhoneCall className="w-5 h-5" /></button>
-                                   <button onClick={() => handleRemoveContact(contact.outreachContactId)} className="w-10 h-10 rounded-xl bg-white/5 text-[var(--text-muted)] hover:bg-rose-500 hover:text-white transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"><Trash2 className="w-4 h-4" /></button>
-                                </div>
-                             </div>
-                           ))}
-                        </div>
-
-                        {/* Outcome Grid */}
-                        <div className="pt-4 border-t border-[var(--card-border)]">
-                           <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3 ml-1">Engagement Outcome</p>
-                           <div className="grid grid-cols-2 gap-3">
-                              <button onClick={() => setCurrentStep(2)} className="h-12 rounded-xl bg-teal-500/10 border border-teal-500/20 hover:bg-teal-500/20 transition-all flex items-center justify-center gap-3">
-                                 <CheckCircle2 className="w-4 h-4 text-teal-500" />
-                                 <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">Connected</span>
-                              </button>
-                              <button onClick={() => handleLogActivity("NO_ANSWER")} className="h-12 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-white/10 transition-all flex items-center justify-center gap-3">
-                                 <PhoneOff className="w-4 h-4 text-[var(--text-secondary)]" />
-                                 <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">No Answer</span>
-                              </button>
-                              <button onClick={() => handleLogActivity("VOICEMAIL")} className="h-12 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-white/10 transition-all flex items-center justify-center gap-3">
-                                 <Activity className="w-4 h-4 text-[var(--text-secondary)]" />
-                                 <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Voicemail</span>
-                              </button>
-                              <button onClick={() => handleLogActivity("WRONG_NUMBER")} className="h-12 rounded-xl bg-[var(--input-bg)] border border-rose-500/20 hover:bg-rose-500/10 transition-all flex items-center justify-center gap-3">
-                                 <X className="w-4 h-4 text-rose-500" />
-                                 <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Wrong #</span>
-                              </button>
-                           </div>
-                        </div>
-                    </div>
-                  )}
-
-                  {currentStep > 1 && (
-                    <div className="space-y-8 animate-in fade-in duration-500">
-                       {currentStep === 2 && (
-                         <div className="space-y-6">
-                            <h3 className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] flex items-center gap-2">
-                               <ShieldCheck className="w-4 h-4 text-teal-500" /> Lead Disposition
-                            </h3>
-                            <div className="grid grid-cols-1 gap-3">
-                               {["EAGER", "COOPERATIVE", "HESITANT", "RESISTANT", "REFUSED"].map((v) => (
-                                 <button
-                                   key={v}
-                                   onClick={() => {
-                                     setDisposition(v);
-                                     handleUpdateLead({ disposition: v });
-                                   }}
-                                   className={`px-4 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all flex items-center justify-between ${disposition === v ? 'bg-teal-500 border-teal-400 text-black shadow-lg shadow-teal-500/20' : 'bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-                                 >
-                                    <span className="text-sm font-black uppercase tracking-widest">{v}</span>
-                                    <ChevronRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${disposition === v ? 'text-teal-500' : 'text-[var(--text-muted)]'}`} />
-                                 </button>
+                         {/* OUTBOUND & TRUSTED CONTACTS PANEL */}
+                         <div className="space-y-3">
+                            <div className="flex items-center justify-between px-1">
+                               <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Communication Channels</p>
+                               <button onClick={() => setIsAddingContact(!isAddingContact)} className={`text-[9px] font-bold uppercase tracking-widest hover:underline flex items-center gap-1.5 transition-colors ${isAddingContact ? 'text-rose-500' : 'text-[var(--primary)]'}`}>
+                                  {isAddingContact ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />} 
+                                  {isAddingContact ? 'Abort' : 'Add Contact'}
+                               </button>
+                            </div>
+                            {isAddingContact && (
+                               <div className="bg-[var(--input-bg)] border border-[var(--primary)]/30 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
+                                  <div className="grid grid-cols-2 gap-2"><input placeholder="First Name" className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.firstName} onChange={e => setNewContact({...newContact, firstName: e.target.value})} /><input placeholder="Last Name" className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.lastName} onChange={e => setNewContact({...newContact, lastName: e.target.value})} /></div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                     <select className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.relationship} onChange={e => setNewContact({...newContact, relationship: e.target.value})}>
+                                        <option value="Spouse" className="bg-[var(--sidebar-bg)]">Spouse</option>
+                                        <option value="Child" className="bg-[var(--sidebar-bg)]">Child</option>
+                                        <option value="Parent" className="bg-[var(--sidebar-bg)]">Parent</option>
+                                        <option value="Sibling" className="bg-[var(--sidebar-bg)]">Sibling</option>
+                                        <option value="Relative" className="bg-[var(--sidebar-bg)]">Relative</option>
+                                        <option value="Friend" className="bg-[var(--sidebar-bg)]">Friend</option>
+                                        <option value="Lawyer" className="bg-[var(--sidebar-bg)]">Lawyer</option>
+                                        <option value="LegalRepresentative" className="bg-[var(--sidebar-bg)]">Legal Representative</option>
+                                        <option value="Other" className="bg-[var(--sidebar-bg)]">Other</option>
+                                     </select>
+                                     <input placeholder="Phone" className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.phoneNumber} onChange={e => setNewContact({...newContact, phoneNumber: e.target.value})} />
+                                  </div>
+                                  <div className="flex gap-2">
+                                     <button onClick={() => { setIsAddingContact(false); setEditingContactId(null); }} className="flex-1 h-8 bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] font-bold text-[9px] uppercase tracking-widest rounded-lg">Cancel</button>
+                                     <button onClick={handleAddContact} disabled={addingContact} className="flex-1 h-8 bg-teal-500 text-black font-bold text-[9px] uppercase tracking-widest rounded-lg shadow-lg shadow-teal-500/10">
+                                        {editingContactId ? "Update Contact" : "Commit Contact"}
+                                     </button>
+                                  </div>
+                               </div>
+                            )}
+                            
+                            {/* TRUSTED CONTACT LIST */}
+                            <div className="space-y-2">
+                               <button onClick={() => handleCall({phone: lead.primaryPhone})} className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[var(--primary)]/5 border border-[var(--primary)]/10 hover:bg-[var(--primary)]/10 transition-all group active:scale-[0.98]">
+                                  <div className="flex items-center gap-3"><PhoneCall className="w-3.5 h-3.5 text-[var(--primary)]" /><div className="text-left"><p className="text-[9px] font-bold text-[var(--text-primary)] uppercase tracking-widest">Primary Patient</p><p className="text-[10px] font-bold text-[var(--text-secondary)] mt-0.5">{lead.primaryPhone || "No Phone Registered"}</p></div></div>
+                                  <ChevronRight className="w-3.5 h-3.5 text-[var(--primary)] opacity-40" />
+                               </button>
+                               
+                               {lead.otherContacts?.map((c: any) => (
+                                  <div key={c.outreachContactId} className="flex items-center justify-between p-3.5 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] group">
+                                     <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-[var(--card-bg)] flex items-center justify-center text-[var(--text-muted)]"><User className="w-4 h-4" /></div>
+                                        <div className="text-left">
+                                           <p className="text-[9px] font-bold text-[var(--text-primary)] uppercase tracking-widest">{c.firstName} {c.lastName}</p>
+                                           <p className="text-[10px] font-bold text-[var(--text-muted)] mt-0.5">{c.relationship} • {c.phoneNumber}</p>
+                                        </div>
+                                     </div>
+                                     <div className="flex items-center gap-2">
+                                        <button onClick={() => handleCall(c)} className="w-8 h-8 rounded-lg bg-teal-500/10 text-teal-500 flex items-center justify-center border border-teal-500/20 hover:bg-teal-500 hover:text-black transition-all" title="Call Contact"><PhoneCall className="w-3.5 h-3.5" /></button>
+                                        <button onClick={() => handleEditContact(c)} className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center border border-[var(--primary)]/20 hover:bg-[var(--primary)] hover:text-black transition-all" title="Edit Contact"><Edit3 className="w-3.5 h-3.5" /></button>
+                                        <button onClick={() => handleRemoveContact(c.outreachContactId)} className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all" title="Remove Contact"><Trash2 className="w-3.5 h-3.5" /></button>
+                                     </div>
+                                  </div>
                                ))}
                             </div>
                          </div>
-                       )}
-                       {currentStep === 3 && (
-                         <div className="space-y-8">
-                            <h3 className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-[0.2em] flex items-center gap-2">
-                               <Activity className="w-4 h-4 text-teal-500" /> Clinical Readiness
-                            </h3>
-                            <div className="grid grid-cols-2 gap-6">
-                               <div className="space-y-3">
-                                  <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Communication</p>
-                                  <div className="grid grid-cols-1 gap-2">
-                                     {["VERBAL", "APHASIC", "COGNITIVE"].map((v) => (
-                                       <button
-                                         key={v}
-                                         onClick={() => {
-                                           setCommunicationStatus(v);
-                                           handleUpdateLead({ communicationStatus: v });
-                                         }}
-                                         className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${communicationStatus === v ? 'bg-teal-500 border-teal-400 text-black' : 'bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-secondary)]'}`}
-                                       >
-                                         {v}
-                                       </button>
-                                     ))}
-                                  </div>
-                               </div>
-                               <div className="space-y-3">
-                                  <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Technology Access</p>
-                                  <div className="grid grid-cols-1 gap-2">
-                                     {["SMARTPHONE", "TABLET", "NONE"].map((v) => (
-                                       <button
-                                         key={v}
-                                         onClick={() => {
-                                           setTechAccess(v);
-                                           handleUpdateLead({ techAccess: v });
-                                         }}
-                                         className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${techAccess === v ? 'bg-teal-500 border-teal-400 text-black' : 'bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-secondary)]'}`}
-                                       >
-                                         {v}
-                                       </button>
-                                     ))}
-                                  </div>
-                               </div>
-                            </div>
-                            <div className="space-y-3">
-                               <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Clinical Barriers / Obstacles</p>
-                               <textarea 
-                                 className="w-full h-32 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-6 text-sm text-[var(--text-primary)] focus:border-teal-500 outline-none transition-all placeholder:text-[var(--text-muted)]"
-                                 placeholder="Log clinical barriers or logistical obstacles..."
-                                 value={barriersToCare}
-                                 onChange={e => setBarriersToCare(e.target.value)}
-                                 onBlur={() => handleUpdateLead({ barriersToCare })}
-                               />
-                            </div>
-                            <button onClick={() => setCurrentStep(4)} className="w-full bg-teal-500 h-14 rounded-xl text-black text-xs font-semibold shadow-xl shadow-teal-500/20 hover:bg-teal-600 transition-all active:scale-95">Next Protocol Step</button>
+
+                         {/* MISSION RESULT SECTION */}
+                         <div className="pt-5 border-t border-[var(--card-border)] space-y-4">
+                            <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1 text-center">Mission Result</p>
+                            <button onClick={() => setCurrentStep(2)} className="w-full h-12 rounded-xl bg-teal-500 text-black font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-lg shadow-teal-500/20 active:scale-[0.98] mb-3"><CheckCircle2 className="w-4 h-4" /> Connected & Assessment Started</button>
+                            <div className="grid grid-cols-3 gap-2">{[{id:"NO_ANSWER",label:"No Answer",c:"hover:text-amber-500"},{id:"VOICEMAIL",label:"Voicemail",c:"hover:text-amber-500"},{id:"BUSY",label:"Busy Line",c:"hover:text-amber-500"},{id:"WRONG_NUMBER",label:"Wrong #",c:"hover:text-rose-500"},{id:"DISCONNECTED",label:"Disconnected",c:"hover:text-rose-500"},{id:"LANGUAGE_BARRIER",label:"Lang. Barrier",c:"hover:text-purple-500"},{id:"DNC",label:"Do Not Call",c:"hover:text-rose-600"},{id:"CALL_BACK",label:"Call Back",c:"hover:text-[var(--primary)]"}].map(btn=>(<button key={btn.id} onClick={()=>handleLogActivity(btn.id)} className={`h-8 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest transition-all ${btn.c}`}>{btn.label}</button>))}</div>
                          </div>
-                       )}
-                       {currentStep === 4 && (
-                          <div className="space-y-6 text-center">
-                             <h3 className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-2 justify-center">
-                                <Calendar className="w-4 h-4 text-teal-500" /> Orientation Scheduling
-                             </h3>
-                             <div className="bg-white/[0.02] border border-[var(--card-border)] rounded-2xl p-8 space-y-6">
-                                <div className="w-16 h-16 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal-500 mx-auto">
-                                   <Calendar className="w-8 h-8" />
-                                </div>
-                                <div className="space-y-2">
-                                   <label className="text-xs font-medium text-[var(--text-muted)]">Select Orientation Date & Time</label>
-                                   <input type="datetime-local" value={orientationDate} onChange={e => setOrientationDate(e.target.value)} className="w-full bg-white/5 border border-white/5 rounded-xl py-3 px-4 text-sm text-[var(--text-primary)] outline-none focus:border-teal-500 text-center" />
-                                </div>
-                             </div>
-                             <button onClick={() => setCurrentStep(5)} className="w-full bg-teal-500 h-12 rounded-xl text-black text-sm font-semibold shadow-lg shadow-teal-500/20 hover:opacity-90 transition-all active:scale-[0.98]">Confirm Appointment</button>
+                      </div>
+                    )}
+                    {currentStep === 2 && (
+                      <div className="space-y-6 animate-in fade-in duration-300">
+                         <div className="flex items-center gap-3"><Target className="w-4 h-4 text-[var(--primary)]" /><h3 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-widest">Interest & Capability</h3></div>
+                         <div className="grid grid-cols-1 gap-2">{[{id:"EAGER",label:"Eager / Urgent",icon:<Zap className="w-3 h-3"/>},{id:"COOPERATIVE",label:"COOPERATIVE",icon:<CheckCircle2 className="w-3 h-3"/>},{id:"HESITANT",label:"HESITANT",icon:<Clock className="w-3 h-3"/>},{id:"REFUSED",label:"DECLINED CARE",icon:<PhoneOff className="w-3 h-3"/>}].map(v=>(<button key={v.id} onClick={()=>{setDisposition(v.id);handleUpdateLead({disposition:v.id});}} className={`h-11 px-4 rounded-xl flex items-center justify-between border transition-all ${disposition===v.id?'bg-[var(--primary)] border-transparent text-black shadow-md shadow-[var(--primary-glow)]':'bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--primary)]/30'}`}><div className="flex items-center gap-3">{v.icon}<span className="text-[9px] font-bold uppercase tracking-widest">{v.label}</span></div></button>))}</div>
+                         <div className="pt-4 border-t border-[var(--card-border)] space-y-3"><div className="flex items-center gap-2 px-1"><MapPin className="w-3.5 h-3.5 text-[var(--primary)]" /><p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Service Address Command</p></div><div className="bg-[var(--input-bg)] rounded-2xl p-4 border border-[var(--card-border)] space-y-3 shadow-inner"><div className="space-y-1"><label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Street Address</label><input type="text" value={address.street} onChange={(e)=>setAddress({...address,street:e.target.value})} onBlur={()=>handleUpdateLead({mailingAddress:address})} className="w-full bg-transparent text-[11px] font-bold text-[var(--text-primary)] outline-none border-b border-[var(--card-border)] focus:border-[var(--primary)]/50 pb-1" placeholder="STREET..." /></div><div className="grid grid-cols-3 gap-3"><div><label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">City</label><input type="text" value={address.city} onChange={(e)=>setAddress({...address,city:e.target.value})} onBlur={()=>handleUpdateLead({mailingAddress:address})} className="w-full bg-transparent text-[10px] font-bold text-[var(--text-primary)] outline-none border-b border-[var(--card-border)]" /></div><div><label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">State</label><input type="text" value={address.state} onChange={(e)=>setAddress({...address,state:e.target.value})} onBlur={()=>handleUpdateLead({mailingAddress:address})} className="w-full bg-transparent text-[10px] font-bold text-[var(--text-primary)] outline-none border-b border-[var(--card-border)]" /></div><div><label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Zip</label><input type="text" value={address.postalCode} onChange={(e)=>setAddress({...address,postalCode:e.target.value})} onBlur={()=>handleUpdateLead({mailingAddress:address})} className="w-full bg-transparent text-[10px] font-bold text-[var(--text-primary)] outline-none border-b border-[var(--card-border)]" /></div></div></div></div>
+                         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[var(--card-border)]"><div className="space-y-2"><label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Hardware</label>{["SMARTPHONE","TABLET","COMPUTER"].map(v=>(<button key={v} onClick={()=>setTechAccess(v)} className={`w-full h-8 rounded-lg text-[8px] font-bold uppercase tracking-widest border transition-all ${techAccess===v?'bg-[var(--primary)]/10 border-[var(--primary)] text-[var(--primary)]':'bg-[var(--input-bg)]'}`}>{v}</button>))}</div><div className="space-y-2"><label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Autonomy</label>{[{id:"AUTONOMOUS",l:"Autonomous"},{id:"CAREGIVER",l:"Caregiver"}].map(v=>(<button key={v.id} onClick={()=>setCognitive(v.id)} className={`w-full h-8 rounded-lg text-[8px] font-bold uppercase tracking-widest border transition-all ${cognitive===v.id?'bg-[var(--primary)]/10 border-[var(--primary)] text-[var(--primary)]':'bg-[var(--input-bg)]'}`}>{v.l}</button>))}</div></div>
+                         <button onClick={() => setCurrentStep(3)} className="w-full h-12 bg-[var(--primary)] rounded-xl text-black font-bold text-[9px] uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] active:scale-95 transition-all">Next: Team & Schedule</button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* PHASE 3: INDUSTRIAL SPLIT COMMAND CENTER */
+                  <div className="flex-1 flex flex-row overflow-hidden animate-in slide-in-from-right duration-500">
+                    
+                    {/* LEFT PANEL: ASSIGNMENT & CLASSIFICATION */}
+                    <div className="flex-1 flex flex-col border-r border-[var(--card-border)] bg-[var(--sidebar-bg)] overflow-y-auto p-6 space-y-8 scrollbar-hide">
+                      
+                      {/* 01: VISIT MODALITY */}
+                      <section className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">01</span>
+                          <h3 className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Visit Modality</h3>
+                        </div>
+                        <div className="grid grid-cols-4 gap-2.5">
+                           {[
+                              { id: "IN_PERSON_HOME_VISIT", label: "Home Visit", icon: <Home className="w-4 h-4" /> },
+                              { id: "IN_PERSON_FACILITY", label: "Facility", icon: <Building2 className="w-4 h-4" /> },
+                              { id: "TELEHEALTH_VIDEO", label: "Video Call", icon: <Video className="w-4 h-4" /> },
+                              { id: "TELEPHONE", label: "Audio Only", icon: <PhoneCall className="w-4 h-4" /> },
+                           ].map((m) => (
+                             <button key={m.id} onClick={() => setModality(m.id)} className={`flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-2xl border text-[9px] font-bold transition-all
+                                     ${modality === m.id ? "bg-[var(--primary)] border-transparent text-black shadow-lg shadow-[var(--primary-glow)]" : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--card-bg)]"}`}>
+                               {m.icon}
+                               {m.label}
+                             </button>
+                           ))}
+                        </div>
+                      </section>
+
+                      {/* 02: CLINICAL TEAM ASSIGNMENT */}
+                      <section className="space-y-5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">02</span>
+                            <h3 className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Clinical Team assignment</h3>
                           </div>
-                       )}
-                       {currentStep === 5 && (
-                         <div className="space-y-8">
-                            <h3 className="text-xs font-semibold text-[var(--text-secondary)] flex items-center gap-2">
-                               <Stethoscope className="w-4 h-4 text-teal-500" /> Modality & Payer
-                            </h3>
-                            <div className="space-y-3">
-                               <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Assigned Health Plan</p>
-                               <select 
-                                 className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl py-4 px-6 text-sm font-bold text-[var(--text-primary)] uppercase tracking-widest outline-none focus:border-teal-500 shadow-xl cursor-pointer"
-                                 value={selectedPlan}
-                                 onChange={e => {
-                                   setSelectedPlan(e.target.value);
-                                   handleUpdateLead({ healthPlanId: e.target.value });
-                                 }}
-                               >
-                                  <option value="">SELECT PAYOR...</option>
-                                  {plans.map((p: any) => <option key={p.healthPlanId} value={p.healthPlanId}>{p.name}</option>)}
-                               </select>
-                            </div>
-                            <div className="space-y-3">
-                               <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Select Care Modality</p>
-                               <div className="grid grid-cols-2 gap-3">
-                                  {["TELEPHONE", "VIDEO", "IN_PERSON"].map((m) => (
-                                    <button
-                                      key={m}
-                                      onClick={() => {
-                                        setSelectedModality(m);
-                                        handleUpdateLead({ modality: m });
-                                      }}
-                                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${selectedModality === m ? 'bg-teal-500 border-teal-400 text-black' : 'bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-                                    >
-                                       <span className="text-[10px] font-black uppercase tracking-widest">{m}</span>
-                                       <ChevronRight className={`w-3 h-3 transition-transform group-hover:translate-x-1 ${selectedModality === m ? 'text-teal-500' : 'text-[var(--text-muted)]'}`} />
-                                    </button>
-                                  ))}
-                               </div>
-                            </div>
-                         </div>
-                       )}
-                       {currentStep === 6 && (
-                         <div className="text-center py-10 space-y-8 animate-in fade-in duration-300">
-                            <div className="w-24 h-24 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-500 mx-auto shadow-[0_0_40px_rgba(20,184,166,0.1)]">
-                               <ClipboardCheck className="w-12 h-12" />
-                            </div>
-                            <div>
-                               <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tight">Final Validation</h2>
-                               <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-widest mt-3 px-10">Verification of all clinical and logistical vectors complete. Ready for official patient enrollment.</p>
-                            </div>
-                            <button onClick={handleFinalize} disabled={finalizing || !selectedPlan} className="w-full bg-teal-500 h-14 rounded-xl text-black font-black text-sm uppercase tracking-[0.3em] shadow-2xl shadow-teal-500/40 hover:bg-teal-600 transition-all active:scale-95 disabled:opacity-30">
-                               {finalizing ? "PROVISIONING..." : "FINALIZE ENROLLMENT"}
-                            </button>
-                         </div>
-                       )}
+                          <div className="relative group">
+                             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
+                             <input placeholder="Filter Practitioners..." value={staffSearch} onChange={e => setStaffSearch(e.target.value)} className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-full py-1.5 pl-9 pr-4 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/40 w-32 focus:w-48 transition-all" />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-5">
+                           {/* Care Navigator Selection */}
+                           <div>
+                              <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 px-1">02-A • Care Navigator Assignment</p>
+                              <div className="grid grid-cols-3 gap-2">
+                                 {practitioners
+                                    .filter((p: any) => p.isCareNavigator && (!staffSearch || p.fullName.toLowerCase().includes(staffSearch.toLowerCase())))
+                                    .slice(0, 3)
+                                    .map((p: any) => (
+                                       <button key={p.practitionerId} onClick={() => setCareNavigatorId(p.practitionerId)} className={`p-2.5 rounded-xl border text-left transition-all group relative overflow-hidden ${careNavigatorId === p.practitionerId ? 'bg-teal-500/10 border-teal-500 shadow-sm' : 'bg-[var(--input-bg)] border-[var(--card-border)] hover:border-teal-500/30'}`}>
+                                          <div className="flex items-center justify-between mb-1.5">
+                                             <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${careNavigatorId === p.practitionerId ? 'bg-teal-500 text-black' : 'bg-[var(--card-bg)] text-[var(--text-muted)]'}`}><Users className="w-3.5 h-3.5" /></div>
+                                             {careNavigatorId === p.practitionerId && <Check className="w-3.5 h-3.5 text-teal-500" />}
+                                          </div>
+                                          <p className={`text-[10px] font-black truncate leading-none ${careNavigatorId === p.practitionerId ? 'text-teal-500' : 'text-[var(--text-primary)]'}`}>{p.fullName}</p>
+                                          <p className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] mt-1 opacity-60">Patient Navigation</p>
+                                       </button>
+                                    ))}
+                              </div>
+                           </div>
+
+                           {/* Primary Lead Selection */}
+                           <div>
+                              <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 px-1">02-B • Primary Clinician Lead</p>
+                              <div className="grid grid-cols-3 gap-2">
+                                 {practitioners
+                                    .filter((p: any) => p.isSupportingClinician && (!staffSearch || p.fullName.toLowerCase().includes(staffSearch.toLowerCase())))
+                                    .slice(0, 3)
+                                    .map((p: any) => (
+                                       <button key={p.practitionerId} onClick={() => setPrimaryClinicianId(p.practitionerId)} className={`p-2.5 rounded-xl border text-left transition-all group relative overflow-hidden ${primaryClinicianId === p.practitionerId ? 'bg-[var(--primary)]/10 border-[var(--primary)] shadow-sm' : 'bg-[var(--input-bg)] border-[var(--card-border)] hover:border-[var(--primary)]/30'}`}>
+                                          <div className="flex items-center justify-between mb-1.5">
+                                             <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${primaryClinicianId === p.practitionerId ? 'bg-[var(--primary)] text-black' : 'bg-[var(--card-bg)] text-[var(--text-muted)]'}`}><User className="w-3.5 h-3.5" /></div>
+                                             {primaryClinicianId === p.practitionerId && <Check className="w-3.5 h-3.5 text-[var(--primary)]" />}
+                                          </div>
+                                          <p className={`text-[10px] font-black truncate leading-none ${primaryClinicianId === p.practitionerId ? 'text-[var(--primary)]' : 'text-[var(--text-primary)]'}`}>{p.fullName}</p>
+                                          <p className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] mt-1 opacity-60">Lead Practitioner</p>
+                                          <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-[var(--card-border)] opacity-60">
+                                             <Car className="w-2 h-2" /><span className="text-[7px] font-bold uppercase tracking-tighter">20m • 2.6mi</span>
+                                          </div>
+                                       </button>
+                                    ))}
+                              </div>
+                           </div>
+                        </div>
+                      </section>
+
+                      {/* 03: CLINICAL GUIDANCE SCRIPTS */}
+                      <section className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center">03</span>
+                            <h3 className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Outreach Guidance</h3>
+                          </div>
+                          <select className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-full px-4 py-1.5 text-[9px] font-bold text-[var(--primary)] uppercase tracking-widest outline-none" value={selectedScriptId || ""} onChange={e => setSelectedScriptId(e.target.value)}>
+                             {scripts.map((s: any) => <option key={s.outreachScriptId} value={s.outreachScriptId}>{s.scriptTitle.replace('PROTOCOL', '').trim()}</option>)}
+                          </select>
+                        </div>
+                        <div className="bg-teal-500/5 border border-teal-500/10 rounded-2xl p-5 shadow-inner">
+                           <p className="text-[11px] font-medium text-[var(--text-secondary)] leading-loose italic opacity-80">"{activeScript?.content}"</p>
+                        </div>
+                      </section>
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
 
-            {/* Action Footer */}
-            <div className="h-12 px-6 border-t border-[var(--card-border)] flex items-center justify-between bg-[var(--card-bg)] shrink-0">
-              {currentStep > 1 && (
-                <button onClick={() => setCurrentStep(prev => prev - 1)} className="flex items-center gap-2 px-3 py-1 rounded bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all">
-                  <ChevronLeft className="w-3 h-3" />
-                  <span className="text-[8px] font-black uppercase tracking-widest">Back</span>
-                </button>
-              )}
-              <div className="flex-1" />
-              <div className="flex gap-1.5">
-                 {[1,2,3,4,5,6].map(i => (
-                   <div key={i} className={`h-1 rounded-full transition-all duration-300 ${currentStep === i ? 'w-4 bg-teal-500' : 'w-1 bg-white/10'}`} />
-                 ))}
-              </div>
-            </div>
+                    {/* RIGHT PANEL: GEOSPATIAL INTELLIGENCE & TIMELINE */}
+                    <div className="w-[420px] flex flex-col bg-[var(--sidebar-bg)] p-6 space-y-6 overflow-y-auto scrollbar-hide border-l border-[var(--card-border)]">
+                      
+                      {/* MISSION TELEMETRY HUD */}
+                      <div className="grid grid-cols-3 gap-4 pb-6 border-b border-[var(--card-border)] shrink-0">
+                         <div className="space-y-1.5"><p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Travel</p><p className="text-base font-bold text-[var(--text-primary)]">20m</p></div>
+                         <div className="space-y-1.5 border-l border-[var(--card-border)] pl-4"><p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Distance</p><p className="text-base font-bold text-[var(--text-primary)]">2.6mi</p></div>
+                         <div className="space-y-1.5 border-l border-[var(--card-border)] pl-4"><p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Duration</p><p className="text-base font-bold text-[var(--text-primary)]">{duration}m</p></div>
+                      </div>
 
+                      {/* GEOSPATIAL CALENDAR */}
+                      <div className="space-y-4">
+                        <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Encounter Slot</h3>
+                        <div className="bg-[var(--input-bg)] rounded-3xl border border-[var(--card-border)] p-5 space-y-4 shadow-inner">
+                           <div className="flex items-center justify-between px-1">
+                              <span className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-widest">{monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}</span>
+                              <div className="flex gap-1">
+                                 <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="p-2 hover:bg-[var(--card-bg)] rounded-xl border border-[var(--card-border)] transition-all"><ChevronLeft className="w-3.5 h-3.5" /></button>
+                                 <button onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="p-2 hover:bg-[var(--card-bg)] rounded-xl border border-[var(--card-border)] transition-all"><ChevronRight className="w-3.5 h-3.5" /></button>
+                              </div>
+                           </div>
+                           <div className="grid grid-cols-7 gap-1">{renderCalendar()}</div>
+                        </div>
+                        <div className="flex bg-[var(--input-bg)] rounded-2xl p-1.5 border border-[var(--card-border)] gap-1.5">
+                           <button onClick={() => setPeriod("AM")} className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-[0.2em] transition-all ${period === "AM" ? "bg-teal-500 text-black shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>MORNING</button>
+                           <button onClick={() => setPeriod("PM")} className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-[0.2em] transition-all ${period === "PM" ? "bg-teal-500 text-black shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>AFTERNOON</button>
+                        </div>
+                      </div>
+
+                      {/* MISSION ACTIVITY TIMELINE */}
+                      <div className="flex-1 space-y-4 overflow-hidden flex flex-col pt-4 border-t border-[var(--card-border)]">
+                        <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] flex items-center gap-2"><History className="w-3.5 h-3.5" /> Engagement Timeline</h3>
+                        <div className="flex-1 overflow-y-auto pr-2 space-y-5 scrollbar-hide">
+                           {lead.activities?.length === 0 ? (
+                              <div className="h-full flex flex-col items-center justify-center opacity-30 text-center space-y-2">
+                                 <Clock className="w-6 h-6" />
+                                 <p className="text-[9px] font-bold uppercase tracking-widest">No Activity History Registered</p>
+                              </div>
+                           ) : lead.activities.map((a: any) => (
+                              <div key={a.outreachActivityId} className="flex gap-4 group">
+                                 <div className="flex flex-col items-center">
+                                    <div className={`w-2 h-2 rounded-full mt-1 ${a.outcome === 'CONNECTED' ? 'bg-teal-500 shadow-[0_0_8px_var(--primary)]' : 'bg-[var(--card-border)]'}`} />
+                                    <div className="w-px flex-1 bg-[var(--card-border)] my-1.5" />
+                                 </div>
+                                 <div className="pb-4 border-b border-[var(--card-border)]/50 flex-1">
+                                    <div className="flex justify-between items-baseline mb-1">
+                                       <p className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-wider">{a.outcome.replace('_', ' ')}</p>
+                                       <p className="text-[8px] font-bold text-[var(--text-muted)]">{new Date(a.activityDate).toLocaleDateString()}</p>
+                                    </div>
+                                    <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed italic opacity-70">"{a.notes}"</p>
+                                 </div>
+                              </div>
+                           ))}
+                        </div>
+                      </div>
+
+                      <button onClick={handleFinalize} disabled={finalizing || !primaryClinicianId} className="w-full h-14 bg-[var(--primary)] rounded-2xl text-black font-bold text-[11px] uppercase tracking-[0.3em] shadow-xl shadow-[var(--primary-glow)] hover:scale-[1.01] transition-all active:scale-95 disabled:opacity-20 mt-auto">
+                        {finalizing ? "PROVISIONING..." : "COMMIT ENROLLMENT"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Tactical Navigation Control */}
+          <div className="h-14 px-6 flex items-center justify-between border-t border-[var(--card-border)] bg-[var(--sidebar-bg)] shrink-0">
+             {currentStep > 1 ? (
+               <button onClick={() => setCurrentStep(prev => prev - 1)} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--input-bg)] text-[var(--text-muted)] font-bold text-[9px] uppercase tracking-widest hover:text-[var(--text-primary)] transition-all active:scale-95">
+                  <ChevronLeft className="w-3.5 h-3.5" /> Back
+               </button>
+             ) : <div />}
+             <div className="flex gap-1.5">
+                {[1,2,3].map(i => (
+                  <div key={i} className={`h-1 rounded-full transition-all duration-300 ${currentStep === i ? 'w-4 bg-[var(--primary)] shadow-[0_0_10px_var(--primary)]' : 'w-1 bg-[var(--card-border)]'}`} />
+                ))}
+             </div>
           </div>
         </div>
-      </HalcyonPortal>
-    </>
+      </div>
+    </HalcyonPortal>
   );
 }
