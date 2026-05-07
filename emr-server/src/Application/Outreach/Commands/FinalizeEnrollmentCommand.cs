@@ -17,6 +17,11 @@ public record FinalizeEnrollmentCommand : IRequest<Guid>
     public string CommunicationStatus { get; init; } = string.Empty;
     public string TechAccess { get; init; } = string.Empty;
     public string? BarriersToCare { get; init; }
+    public DateTime DateOfBirth { get; init; }
+    public string BiologicalSex { get; init; } = string.Empty;
+    public string? GenderIdentity { get; init; }
+    public string? Language { get; init; }
+    public string? CivilStatus { get; init; }
 }
 
 public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollmentCommand, Guid>
@@ -79,6 +84,11 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         );
         patient.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess, true);
         patient.BarriersToCare = request.BarriersToCare;
+        patient.Dob = request.DateOfBirth;
+        patient.BiologicalSex = request.BiologicalSex;
+        patient.GenderIdentity = request.GenderIdentity;
+        patient.Language = request.Language;
+        patient.CivilStatus = request.CivilStatus;
 
         _context.Patients.Add(patient);
         await _context.SaveChangesAsync(cancellationToken);

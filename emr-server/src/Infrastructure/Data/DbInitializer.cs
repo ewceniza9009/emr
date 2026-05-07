@@ -369,6 +369,7 @@ namespace Infrastructure.Data
         public static async Task SeedDatabaseAsync(ApplicationDbContext context)
         {
             await SeedQuestionnairesAsync(context);
+            await SeedOutreachScriptsAsync(context);
             await context.SaveChangesAsync(default);
 
             Randomizer.Seed = new Random(8675309); // Deterministic test data
@@ -666,6 +667,11 @@ namespace Infrastructure.Data
                     .RuleFor(x => x.LastName, f => f.Name.LastName())
                     .RuleFor(x => x.Status, f => f.PickRandom<OutreachStatus>())
                     .RuleFor(x => x.Disposition, f => f.PickRandom<EnrollmentDisposition>())
+                    .RuleFor(x => x.DateOfBirth, f => f.Date.Past(80, DateTime.UtcNow.AddYears(-20)))
+                    .RuleFor(x => x.BiologicalSex, f => f.PickRandom("Male", "Female"))
+                    .RuleFor(x => x.GenderIdentity, f => f.PickRandom(new[] { "Cisgender", "Non-binary", null }))
+                    .RuleFor(x => x.Language, f => f.PickRandom("English", "Spanish", "Tagalog"))
+                    .RuleFor(x => x.CivilStatus, f => f.PickRandom("Single", "Married", "Widowed"))
                     .RuleFor(x => x.HealthPlanId, f => f.PickRandom(healthPlans).HealthPlanId)
                     .RuleFor(x => x.PrimaryPhone, f => f.Phone.PhoneNumber("###-###-####"))
                     .RuleFor(x => x.PrimaryEmail, f => f.Internet.Email())
@@ -715,7 +721,7 @@ namespace Infrastructure.Data
                     .RuleFor(x => x.OutreachContactId, Guid.NewGuid)
                     .RuleFor(
                         x => x.PatientOutreachId,
-                        f => f.PickRandom(patientOutreaches).PatientOutreachId
+                        (f, u) => f.PickRandom(patientOutreaches).PatientOutreachId
                     )
                     .RuleFor(x => x.FirstName, f => f.Name.FirstName())
                     .RuleFor(x => x.LastName, f => f.Name.LastName())
@@ -728,7 +734,7 @@ namespace Infrastructure.Data
                     .RuleFor(x => x.OutreachActivityId, Guid.NewGuid)
                     .RuleFor(
                         x => x.OutreachId,
-                        f => f.PickRandom(patientOutreaches).PatientOutreachId
+                        (f, u) => f.PickRandom(patientOutreaches).PatientOutreachId
                     )
                     .RuleFor(x => x.PractitionerId, f => f.PickRandom(practitioners).PractitionerId)
                     .RuleFor(x => x.Method, f => f.PickRandom<OutreachMethod>())
@@ -1442,6 +1448,38 @@ namespace Infrastructure.Data
                 context.SmartPhrases.AddRange(phrases);
                 await context.SaveChangesAsync(default);
             }
+        }
+
+        public static async Task SeedOutreachScriptsAsync(ApplicationDbContext context)
+        {
+            if (await context.OutreachScripts.AnyAsync()) return;
+
+            var scripts = new List<OutreachScript>
+            {
+                new OutreachScript
+                {
+                    OutreachScriptId = Guid.NewGuid(),
+                    ScriptTitle = "Standard Intro Protocol",
+                    Content = "Hello {firstName}, I'm calling from Halcyon Health regarding your referral from {referralSource}. I wanted to discuss our specialized clinical programs...",
+                    IsDefault = true
+                },
+                new OutreachScript
+                {
+                    OutreachScriptId = Guid.NewGuid(),
+                    ScriptTitle = "Benefits Review Mission",
+                    Content = "Hi {firstName}, we've verified your coverage with your health plan. I'd like to walk through how your benefits align with our mission-critical care model...",
+                    IsDefault = false
+                },
+                new OutreachScript
+                {
+                    OutreachScriptId = Guid.NewGuid(),
+                    ScriptTitle = "Clinical Triage Assessment",
+                    Content = "Mr./Ms. {lastName}, I'm following up on your clinical intake. We're finalizing your acuity profile and want to ensure your home environment is ready for deployment...",
+                    IsDefault = false
+                }
+            };
+
+            context.OutreachScripts.AddRange(scripts);
         }
 
         private static async Task SeedQuestionnairesAsync(ApplicationDbContext context)
