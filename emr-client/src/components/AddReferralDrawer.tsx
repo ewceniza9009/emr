@@ -71,7 +71,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                 <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-widest mt-1">Patient Outreach // Clinical Enrollment</span>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-all text-slate-500 hover:text-white">
+            <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -85,50 +85,50 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                    <label className="block text-[11px] font-medium text-slate-500">First Name</label>
+                  <div className="space-y-2">
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">First Name</label>
                     <div className="relative group">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                       <input 
                         required
-                        className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)] transition-all"
+                        className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)] transition-all"
                         value={form.firstName}
                         onChange={e => setForm({...form, firstName: e.target.value})}
                         placeholder="John"
                       />
                     </div>
-                 </div>
-                 <div className="space-y-2">
-                    <label className="block text-[11px] font-medium text-slate-500">Last Name</label>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Last Name</label>
                     <div className="relative group">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                       <input 
                         required
-                        className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)] transition-all"
+                        className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)] transition-all"
                         value={form.lastName}
                         onChange={e => setForm({...form, lastName: e.target.value})}
                         placeholder="Doe"
                       />
                     </div>
-                 </div>
+                  </div>
               </div>
 
               <div className="space-y-2">
-                 <label className="block text-[11px] font-medium text-slate-500">Referral Channel</label>
+                 <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Referral Channel</label>
                  <div className="relative group">
-                   <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                   <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                    <select 
-                     className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white appearance-none focus:outline-none focus:border-[var(--primary)] transition-all"
+                     className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-sm text-[var(--text-primary)] appearance-none focus:outline-none focus:border-[var(--primary)] transition-all"
                      value={form.referralSource}
                      onChange={e => setForm({...form, referralSource: e.target.value})}
                    >
-                     <option value="Hospital Discharge">Hospital Discharge</option>
-                     <option value="Primary Care Physician">Primary Care Physician</option>
-                     <option value="Self-Referral">Self-Referral</option>
-                     <option value="Community Agency">Community Agency</option>
-                     <option value="Other">Other</option>
+                     <option value="Hospital Discharge" className="bg-[var(--sidebar-bg)] text-[var(--text-primary)]">Hospital Discharge</option>
+                     <option value="Primary Care Physician" className="bg-[var(--sidebar-bg)] text-[var(--text-primary)]">Primary Care Physician</option>
+                     <option value="Self-Referral" className="bg-[var(--sidebar-bg)] text-[var(--text-primary)]">Self-Referral</option>
+                     <option value="Community Agency" className="bg-[var(--sidebar-bg)] text-[var(--text-primary)]">Community Agency</option>
+                     <option value="Other" className="bg-[var(--sidebar-bg)] text-[var(--text-primary)]">Other</option>
                    </select>
-                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-600">
+                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-muted)]">
                      <ChevronRight className="w-4 h-4 rotate-90" />
                    </div>
                  </div>
@@ -144,11 +144,11 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
 
               <div className="grid grid-cols-1 gap-4">
                  <div className="space-y-2">
-                    <label className="block text-[11px] font-medium text-slate-500">Primary Phone</label>
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Primary Phone</label>
                     <div className="relative group">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                       <input 
-                        className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)] transition-all"
+                        className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)] transition-all"
                         value={form.primaryPhone}
                         onChange={e => setForm({...form, primaryPhone: e.target.value})}
                         placeholder="+63 9XX XXXX XXX"
@@ -156,12 +156,12 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                     </div>
                  </div>
                  <div className="space-y-2">
-                    <label className="block text-[11px] font-medium text-slate-500">Email Address</label>
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Email Address</label>
                     <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                       <input 
                         type="email"
-                        className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)] transition-all"
+                        className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)] transition-all"
                         value={form.primaryEmail}
                         onChange={e => setForm({...form, primaryEmail: e.target.value})}
                         placeholder="patient@email.com"
@@ -179,11 +179,11 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
               </div>
 
               <div className="space-y-2">
-                 <label className="block text-[11px] font-medium text-slate-500">Street Address</label>
+                 <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
                  <div className="relative group">
-                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                    <input 
-                     className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-[var(--primary)] transition-all"
+                     className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)] transition-all"
                      value={form.street}
                      onChange={e => setForm({...form, street: e.target.value})}
                      placeholder="123 Street Name"
@@ -193,17 +193,17 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
               
               <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
-                    <label className="block text-[11px] font-medium text-slate-500">City</label>
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
                     <input 
-                      className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-all"
                       value={form.city}
                       onChange={e => setForm({...form, city: e.target.value})}
                     />
                  </div>
                  <div className="space-y-2">
-                    <label className="block text-[11px] font-medium text-slate-500">Region</label>
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Region</label>
                     <input 
-                      className="w-full bg-white/[0.03] border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-[var(--primary)] transition-all"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)] transition-all"
                       value={form.state}
                       onChange={e => setForm({...form, state: e.target.value})}
                     />
@@ -219,11 +219,11 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
               </div>
 
               <div className="space-y-2">
-                 <label className="block text-[11px] font-medium text-slate-500">Initial Context</label>
+                 <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Initial Context</label>
                  <div className="relative group">
-                   <ClipboardList className="absolute left-4 top-4 w-4 h-4 text-slate-600 group-focus-within:text-[var(--primary)] transition-colors" />
+                   <ClipboardList className="absolute left-4 top-4 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                    <textarea 
-                     className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-slate-700 h-32 focus:outline-none focus:border-[var(--primary)] transition-all resize-none scrollbar-hide"
+                     className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl py-4 pl-12 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 h-32 focus:outline-none focus:border-[var(--primary)] transition-all resize-none scrollbar-hide"
                      value={form.notes}
                      onChange={e => setForm({...form, notes: e.target.value})}
                      placeholder="Enter any additional patient context..."
@@ -251,7 +251,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                 </>
               )}
             </button>
-            <p className="text-[10px] font-medium text-slate-500 text-center uppercase tracking-widest">
+            <p className="text-[10px] font-bold text-[var(--text-muted)] text-center uppercase tracking-[0.2em]">
               Authorized Clinical Personnel Only
             </p>
           </div>

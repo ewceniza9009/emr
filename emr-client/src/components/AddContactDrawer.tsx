@@ -143,11 +143,11 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                 <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">
                   {initialData ? "Update Trusted Contact" : "Add Trusted Contact"}
                 </h2>
-                <span className="text-[10px] font-black text-emerald-500 tracking-[0.2em] mt-1 uppercase">Governance // POA Registration</span>
+                <span className="text-[10px] font-bold text-[var(--primary)] tracking-[0.2em] mt-1 uppercase">Governance // POA Registration</span>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-white">
-              <X className="w-6 h-6" />
+            <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                <X className="w-6 h-6" />
             </button>
           </div>
 
@@ -164,25 +164,25 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
             {/* Identity */}
             <section className="space-y-6">
               <div className="flex items-center gap-4">
-                <h3 className="text-[10px] font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Identity & Relationship</h3>
+                <h3 className="text-[10px] font-bold text-[var(--text-primary)] tracking-[0.3em] uppercase">Identity & Relationship</h3>
                 <div className="flex-1 h-px bg-[var(--card-border)]" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">First Name</label>
+                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">First Name</label>
                     <input 
                       required
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/50 transition-all uppercase"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.firstName}
                       onChange={e => setForm({...form, firstName: e.target.value})}
                     />
                  </div>
                  <div className="space-y-2">
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Last Name</label>
+                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Last Name</label>
                     <input 
                       required
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/50 transition-all uppercase"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.lastName}
                       onChange={e => setForm({...form, lastName: e.target.value})}
                     />
@@ -190,21 +190,21 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Relationship Type</label>
+                <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Relationship Type</label>
                 <select 
-                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] appearance-none focus:outline-none focus:border-emerald-500/50 transition-all uppercase"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] appearance-none focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                   value={form.relationship}
                   onChange={e => setForm({...form, relationship: e.target.value})}
                 >
-                  <option value="Spouse">Spouse</option>
-                  <option value="Child">Child</option>
-                  <option value="Parent">Parent</option>
-                  <option value="Sibling">Sibling</option>
-                  <option value="Relative">Relative</option>
-                  <option value="Friend">Friend</option>
-                  <option value="Lawyer">Lawyer</option>
-                  <option value="LegalRepresentative">Legal Representative</option>
-                  <option value="Other">Other</option>
+                  <option value="Spouse" className="bg-[var(--sidebar-bg)]">Spouse</option>
+                  <option value="Child" className="bg-[var(--sidebar-bg)]">Child</option>
+                  <option value="Parent" className="bg-[var(--sidebar-bg)]">Parent</option>
+                  <option value="Sibling" className="bg-[var(--sidebar-bg)]">Sibling</option>
+                  <option value="Relative" className="bg-[var(--sidebar-bg)]">Relative</option>
+                  <option value="Friend" className="bg-[var(--sidebar-bg)]">Friend</option>
+                  <option value="Lawyer" className="bg-[var(--sidebar-bg)]">Lawyer</option>
+                  <option value="LegalRepresentative" className="bg-[var(--sidebar-bg)]">Legal Representative</option>
+                  <option value="Other" className="bg-[var(--sidebar-bg)]">Other</option>
                 </select>
               </div>
             </section>
@@ -212,18 +212,18 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
             {/* Communications */}
             <section className="space-y-6">
               <div className="flex items-center gap-4">
-                <h3 className="text-[10px] font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Communications</h3>
+                <h3 className="text-[10px] font-bold text-[var(--text-primary)] tracking-[0.3em] uppercase">Communications</h3>
                 <div className="flex-1 h-px bg-[var(--card-border)]" />
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Phone Number</label>
+                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Phone Number</label>
                   <div className="relative group">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-emerald-500" />
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)]" />
                     <input 
                       required
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/50 transition-all"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all"
                       value={form.phoneNumber}
                       onChange={e => setForm({...form, phoneNumber: e.target.value})}
                       placeholder="###-###-####"
@@ -231,12 +231,12 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Email Address</label>
+                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Email Address</label>
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-emerald-500" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)]" />
                     <input 
                       type="email"
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/50 transition-all"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all"
                       value={form.email}
                       onChange={e => setForm({...form, email: e.target.value})}
                       placeholder="EMAIL@EXAMPLE.COM"
@@ -249,7 +249,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
             {/* Legal Governance */}
             <section className="space-y-6">
               <div className="flex items-center gap-4">
-                <h3 className="text-[10px] font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Legal Governance</h3>
+                <h3 className="text-[10px] font-bold text-[var(--text-primary)] tracking-[0.3em] uppercase">Legal Governance</h3>
                 <div className="flex-1 h-px bg-[var(--card-border)]" />
               </div>
 
@@ -257,13 +257,13 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                 <label className="flex items-center gap-3 p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer hover:bg-white/[0.04] transition-all">
                   <input 
                     type="checkbox"
-                    className="w-4 h-4 rounded border-[var(--card-border)] bg-black checked:bg-emerald-500 transition-all"
+                    className="w-4 h-4 rounded border-[var(--card-border)] bg-black checked:bg-[var(--primary)] transition-all"
                     checked={form.isPrimaryContact}
                     onChange={e => setForm({...form, isPrimaryContact: e.target.checked})}
                   />
                   <div>
-                    <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">Primary Contact</p>
-                    <p className="text-[9px] text-slate-500 uppercase tracking-tight">Main person to contact for alerts</p>
+                    <p className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-widest">Primary Contact</p>
+                    <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-tight">Main person to contact for alerts</p>
                   </div>
                 </label>
 
@@ -275,7 +275,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                     onChange={e => setForm({...form, hasPowerOfAttorney: e.target.checked})}
                   />
                   <div>
-                    <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Power of Attorney (POA)</p>
+                    <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Power of Attorney (POA)</p>
                     <p className="text-[9px] text-blue-400/50 uppercase tracking-tight">Authorized medical decision maker</p>
                   </div>
                 </label>
@@ -288,7 +288,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                     onChange={e => setForm({...form, isLegalGuardian: e.target.checked})}
                   />
                   <div>
-                    <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Legal Guardian</p>
+                    <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Legal Guardian</p>
                     <p className="text-[9px] text-purple-400/50 uppercase tracking-tight">Court-appointed representative</p>
                   </div>
                 </label>
@@ -300,7 +300,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                         <Upload className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">POA Documentation</p>
+                        <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">POA Documentation</p>
                         <p className="text-[9px] text-blue-400/50 uppercase tracking-tight">Upload signed legal authority (PDF)</p>
                       </div>
                     </div>
@@ -313,14 +313,14 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                       />
                       <div className="w-full py-4 px-4 rounded-xl border border-[var(--card-border)] bg-[var(--input-bg)] flex items-center justify-between group-hover:border-blue-500/30 transition-all">
-                        <span className="text-[10px] font-black text-slate-500 uppercase truncate pr-4">
+                        <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase truncate pr-4">
                           {selectedFile ? selectedFile.name : "Select POA File..."}
                         </span>
-                        <Plus className="w-4 h-4 text-slate-500 group-hover:text-blue-500 transition-all" />
+                        <Plus className="w-4 h-4 text-[var(--text-muted)] group-hover:text-blue-500 transition-all" />
                       </div>
                     </div>
                     {selectedFile && (
-                      <p className="mt-2 text-[8px] font-black text-blue-400/50 uppercase tracking-widest text-right">
+                      <p className="mt-2 text-[8px] font-bold text-blue-400/50 uppercase tracking-widest text-right">
                         Size: {(selectedFile.size / 1024).toFixed(1)} KB
                       </p>
                     )}
@@ -329,9 +329,9 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Administrative Notes</label>
+                <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Administrative Notes</label>
                 <textarea 
-                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-emerald-500/50 transition-all h-24 resize-none"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all h-24 resize-none"
                   value={form.notes}
                   onChange={e => setForm({...form, notes: e.target.value})}
                   placeholder="ADDITIONAL GOVERNANCE DETAILS..."
@@ -346,8 +346,8 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
               type="submit" 
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full py-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50
-                        text-white font-black text-[10px] uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_rgba(16,185,129,0.2)] flex items-center justify-center gap-3 active:scale-[0.98]"
+              className="w-full py-4 rounded-xl bg-[var(--primary)] hover:opacity-90 disabled:opacity-50
+                        text-white font-bold text-[10px] uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_var(--primary-glow)] flex items-center justify-center gap-3 active:scale-[0.98]"
             >
               {loading ? (
                 <Activity className="w-4 h-4 animate-spin" />

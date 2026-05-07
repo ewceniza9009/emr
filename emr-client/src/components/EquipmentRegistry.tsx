@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
-import { 
-  Truck, 
-  Package, 
-  CheckCircle2, 
-  Clock, 
+import {
+  Truck,
+  Package,
+  CheckCircle2,
+  Clock,
   Settings,
   Activity,
   AlertCircle,
@@ -61,7 +61,7 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
     const statuses = ['PENDING', 'SHIPPED', 'DELIVERED', 'FAILED', 'RETURNED'];
     const currentIndex = statuses.indexOf(currentStatus);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
-    
+
     await updateStatus({
       variables: {
         input: {
@@ -86,21 +86,17 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
           Medical Equipment & Logistics
         </h2>
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => setIsDrawerOpen(true)}
             className="px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all flex items-center gap-2"
           >
             <Plus className="w-3.5 h-3.5" />
             Manage Inventory
           </button>
-          <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-             <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Global Inventory Linked</span>
-          </div>
         </div>
       </div>
 
-      <EquipmentManagementDrawer 
+      <EquipmentManagementDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         patientId={patientId}
@@ -120,26 +116,24 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
             {deliveries.map((d: any) => (
               <div key={d.deliveryId} className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/30 transition-all group relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity">
-                   <Settings className="w-12 h-12 rotate-90" />
+                  <Settings className="w-12 h-12 rotate-90" />
                 </div>
-                
+
                 <div className="flex items-start justify-between mb-6">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${
-                    d.status === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
-                    d.status === 'FAILED' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
-                    'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                  }`}>
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${d.status === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                      d.status === 'FAILED' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
+                        'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                    }`}>
                     <Package className="w-6 h-6" />
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${
-                      d.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' : 
-                      d.status === 'FAILED' ? 'bg-rose-500/20 text-rose-500 border-rose-500/30' :
-                      'bg-amber-500/20 text-amber-500 border-amber-500/30'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${d.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' :
+                        d.status === 'FAILED' ? 'bg-rose-500/20 text-rose-500 border-rose-500/30' :
+                          'bg-amber-500/20 text-amber-500 border-amber-500/30'
+                      }`}>
                       {d.status}
                     </span>
-                    <button 
+                    <button
                       onClick={() => handleStatusUpdate(d.deliveryId, d.status)}
                       className="text-[7px] font-black uppercase tracking-tighter text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors flex items-center gap-1"
                     >

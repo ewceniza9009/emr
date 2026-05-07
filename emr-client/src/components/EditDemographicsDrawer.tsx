@@ -86,7 +86,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                   <span className="text-[10px] font-black text-blue-500 tracking-[0.2em] mt-1 uppercase">Core Identity // Patient Record</span>
                 </div>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-500 hover:text-[var(--text-primary)]">
+              <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -104,96 +104,96 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
               {/* Identity Details */}
               <section className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <h3 className="text-[10px] font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Status & Identity</h3>
+                  <h3 className="text-[10px] font-bold text-[var(--text-primary)] tracking-[0.3em] uppercase">Status & Identity</h3>
                   <div className="flex-1 h-px bg-[var(--card-border)]" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Civil Status</label>
+                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Civil Status</label>
                     <select 
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.civilStatus}
                       onChange={e => setForm({...form, civilStatus: e.target.value})}
                     >
-                      <option value="Single">Single</option>
-                      <option value="Married">Married</option>
-                      <option value="Divorced">Divorced</option>
-                      <option value="Widowed">Widowed</option>
+                      <option value="Single" className="bg-[var(--sidebar-bg)]">Single</option>
+                      <option value="Married" className="bg-[var(--sidebar-bg)]">Married</option>
+                      <option value="Divorced" className="bg-[var(--sidebar-bg)]">Divorced</option>
+                      <option value="Widowed" className="bg-[var(--sidebar-bg)]">Widowed</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Religion</label>
+                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Religion</label>
                     <select 
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.religion}
                       onChange={e => setForm({...form, religion: e.target.value})}
                     >
-                      <option value="">Select Religion</option>
-                      <option value="Catholic">Catholic</option>
-                      <option value="Christian">Christian</option>
-                      <option value="Muslim">Muslim</option>
-                      <option value="Buddhist">Buddhist</option>
-                      <option value="Hindu">Hindu</option>
-                      <option value="Jewish">Jewish</option>
-                      <option value="Atheist">Atheist</option>
-                      <option value="Other">Other</option>
+                      <option value="" className="bg-[var(--sidebar-bg)]">Select Religion</option>
+                      <option value="Catholic" className="bg-[var(--sidebar-bg)]">Catholic</option>
+                      <option value="Christian" className="bg-[var(--sidebar-bg)]">Christian</option>
+                      <option value="Muslim" className="bg-[var(--sidebar-bg)]">Muslim</option>
+                      <option value="Buddhist" className="bg-[var(--sidebar-bg)]">Buddhist</option>
+                      <option value="Hindu" className="bg-[var(--sidebar-bg)]">Hindu</option>
+                      <option value="Jewish" className="bg-[var(--sidebar-bg)]">Jewish</option>
+                      <option value="Atheist" className="bg-[var(--sidebar-bg)]">Atheist</option>
+                      <option value="Other" className="bg-[var(--sidebar-bg)]">Other</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Biological Sex</label>
+                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Biological Sex</label>
                     <select 
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.biologicalSex}
                       onChange={e => setForm({...form, biologicalSex: e.target.value})}
                     >
-                      <option value="">Select Sex</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Intersex">Intersex</option>
+                      <option value="" className="bg-[var(--sidebar-bg)]">Select Sex</option>
+                      <option value="Male" className="bg-[var(--sidebar-bg)]">Male</option>
+                      <option value="Female" className="bg-[var(--sidebar-bg)]">Female</option>
+                      <option value="Intersex" className="bg-[var(--sidebar-bg)]">Intersex</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Gender Identity</label>
+                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Gender Identity</label>
                     <select 
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.genderIdentity}
                       onChange={e => setForm({...form, genderIdentity: e.target.value})}
                     >
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Non-Binary">Non-Binary</option>
-                      <option value="Transgender">Transgender</option>
-                      <option value="Other">Other</option>
+                      <option value="" className="bg-[var(--sidebar-bg)]">Select Gender</option>
+                      <option value="Male" className="bg-[var(--sidebar-bg)]">Male</option>
+                      <option value="Female" className="bg-[var(--sidebar-bg)]">Female</option>
+                      <option value="Non-Binary" className="bg-[var(--sidebar-bg)]">Non-Binary</option>
+                      <option value="Transgender" className="bg-[var(--sidebar-bg)]">Transgender</option>
+                      <option value="Other" className="bg-[var(--sidebar-bg)]">Other</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Primary Language</label>
+                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Primary Language</label>
                     <select 
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.language}
                       onChange={e => setForm({...form, language: e.target.value})}
                     >
-                      <option value="English">English</option>
-                      <option value="Tagalog">Tagalog</option>
-                      <option value="Spanish">Spanish</option>
-                      <option value="French">French</option>
-                      <option value="Chinese">Chinese</option>
-                      <option value="Japanese">Japanese</option>
-                      <option value="Other">Other</option>
+                      <option value="English" className="bg-[var(--sidebar-bg)]">English</option>
+                      <option value="Tagalog" className="bg-[var(--sidebar-bg)]">Tagalog</option>
+                      <option value="Spanish" className="bg-[var(--sidebar-bg)]">Spanish</option>
+                      <option value="French" className="bg-[var(--sidebar-bg)]">French</option>
+                      <option value="Chinese" className="bg-[var(--sidebar-bg)]">Chinese</option>
+                      <option value="Japanese" className="bg-[var(--sidebar-bg)]">Japanese</option>
+                      <option value="Other" className="bg-[var(--sidebar-bg)]">Other</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Nationality</label>
+                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Nationality</label>
                     <input 
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all"
                       value={form.nationality}
                       onChange={e => setForm({...form, nationality: e.target.value})}
                     />
@@ -201,11 +201,11 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Occupation</label>
+                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Occupation</label>
                   <div className="relative group">
-                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500" />
+                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)]" />
                     <input 
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all"
                       value={form.occupation}
                       onChange={e => setForm({...form, occupation: e.target.value})}
                       placeholder="Current job title..."
@@ -220,7 +220,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
               <button 
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full h-14 bg-blue-500 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                className="w-full h-14 bg-[var(--primary)] text-white rounded-2xl font-bold text-xs uppercase tracking-[0.2em] shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
               >
                 {loading ? <Save className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                 Save Demographics

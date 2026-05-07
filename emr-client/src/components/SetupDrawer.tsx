@@ -175,11 +175,11 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                 <Icon className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-[var(--text-primary)]">{isEdit ? 'Edit' : 'New'} {title}</h2>
-                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Setup Registry // Clinical Master</p>
+                <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">{isEdit ? 'Edit' : 'New'} {title}</h2>
+                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Setup Registry // Clinical Master</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-all">
+            <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all">
               <X className="w-6 h-6 text-[var(--text-muted)]" />
             </button>
           </div>
@@ -189,7 +189,7 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
               <div className="space-y-8">
                 {/* Basic Identity */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em] border-b border-[var(--card-border)] pb-2">Basic Identity</h3>
+                  <h3 className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] border-b border-[var(--card-border)] pb-2">Basic Identity</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">First Name</label>
@@ -203,11 +203,11 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Position</label>
                     <select className="premium-input w-full rounded-xl p-3 text-sm appearance-none" value={form.position} onChange={e => setForm({...form, position: e.target.value})}>
-                      <option value="Nurse">Nurse</option>
-                      <option value="Physician">Physician</option>
-                      <option value="Admin">Admin</option>
-                      <option value="SocialWorker">Social Worker</option>
-                      <option value="Chaplain">Chaplain</option>
+                      <option value="Nurse" className="bg-[var(--sidebar-bg)]">Nurse</option>
+                      <option value="Physician" className="bg-[var(--sidebar-bg)]">Physician</option>
+                      <option value="Admin" className="bg-[var(--sidebar-bg)]">Admin</option>
+                      <option value="SocialWorker" className="bg-[var(--sidebar-bg)]">Social Worker</option>
+                      <option value="Chaplain" className="bg-[var(--sidebar-bg)]">Chaplain</option>
                     </select>
                   </div>
                 </div>
@@ -215,11 +215,11 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                 {/* Clinical Governance */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-2">
-                    <h3 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Clinical Governance</h3>
+                    <h3 className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.2em]">Clinical Governance</h3>
                     <button type="button" onClick={() => setForm({...form, licensures: [...(form.licensures || []), { licenseNumber: "", state: "", expiryDate: new Date().toISOString() }]})} className="text-[9px] font-bold text-[var(--primary)] hover:underline uppercase tracking-widest">+ Add License</button>
                   </div>
                   {(form.licensures || []).map((lic: any, idx: number) => (
-                    <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/5 space-y-3 relative group">
+                    <div key={idx} className="p-4 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] space-y-3 relative group">
                       <button type="button" onClick={() => setForm({...form, licensures: form.licensures.filter((_: any, i: number) => i !== idx)})} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-rose-500 hover:text-rose-400 transition-all text-[10px] font-bold uppercase">Remove</button>
                       <div className="grid grid-cols-2 gap-3">
                         <input placeholder="License #" className="premium-input w-full rounded-lg p-2 text-xs" value={lic.licenseNumber} onChange={e => {
@@ -235,13 +235,13 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                       </div>
                     </div>
                   ))}
-                  {(!form.licensures || form.licensures.length === 0) && <p className="text-[10px] text-center text-slate-600 italic py-2">No regional licensures defined.</p>}
+                  {(!form.licensures || form.licensures.length === 0) && <p className="text-[10px] text-center text-[var(--text-muted)] italic py-2">No regional licensures defined.</p>}
                 </div>
 
                 {/* Service Deployment Zones */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-2">
-                    <h3 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Deployment Zones</h3>
+                    <h3 className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.2em]">Deployment Zones</h3>
                     <button type="button" onClick={() => setForm({...form, serviceAreas: [...(form.serviceAreas || []), { zipCode: "", county: "" }]})} className="text-[9px] font-bold text-[var(--primary)] hover:underline uppercase tracking-widest">+ Add Zipcode</button>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -260,7 +260,7 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
 
                 {/* Base Operations Address */}
                 <div className="space-y-4">
-                  <h3 className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em] border-b border-[var(--card-border)] pb-2">Base Operations</h3>
+                  <h3 className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] border-b border-[var(--card-border)] pb-2">Base Operations</h3>
                   <div className="space-y-3">
                     <input placeholder="Street Address" className="premium-input w-full rounded-xl p-3 text-sm" value={form.addresses?.[0]?.address?.street || ""} onChange={e => {
                       const newAddrs = [...(form.addresses || [{address: {street: "", city: "", state: "", postalCode: ""}}])];
@@ -298,10 +298,10 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Type</label>
                   <select className="premium-input w-full rounded-xl p-3 text-sm" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
-                    <option value="Hospital">Hospital</option>
-                    <option value="Clinic">Clinic</option>
-                    <option value="HomeHealth">Home Health</option>
-                    <option value="Hospice">Hospice</option>
+                    <option value="Hospital" className="bg-[var(--sidebar-bg)]">Hospital</option>
+                    <option value="Clinic" className="bg-[var(--sidebar-bg)]">Clinic</option>
+                    <option value="HomeHealth" className="bg-[var(--sidebar-bg)]">Home Health</option>
+                    <option value="Hospice" className="bg-[var(--sidebar-bg)]">Hospice</option>
                   </select>
                 </div>
               </>
@@ -333,11 +333,11 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Default Route</label>
                   <select className="premium-input w-full rounded-xl p-3 text-sm" value={form.defaultRoute} onChange={e => setForm({...form, defaultRoute: e.target.value})}>
-                    <option value="Oral">Oral</option>
-                    <option value="Sublingual">Sublingual</option>
-                    <option value="Transdermal">Transdermal</option>
-                    <option value="Subcutaneous">Subcutaneous</option>
-                    <option value="Intravenous">Intravenous</option>
+                    <option value="Oral" className="bg-[var(--sidebar-bg)]">Oral</option>
+                    <option value="Sublingual" className="bg-[var(--sidebar-bg)]">Sublingual</option>
+                    <option value="Transdermal" className="bg-[var(--sidebar-bg)]">Transdermal</option>
+                    <option value="Subcutaneous" className="bg-[var(--sidebar-bg)]">Subcutaneous</option>
+                    <option value="Intravenous" className="bg-[var(--sidebar-bg)]">Intravenous</option>
                   </select>
                 </div>
               </>
@@ -369,14 +369,14 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Assessment Type</label>
                   <select className="premium-input w-full rounded-xl p-3 text-sm" value={form.assessmentType} onChange={e => setForm({...form, assessmentType: e.target.value})}>
-                    <option value="Esas">ESAS</option>
-                    <option value="Bpi">BPI</option>
-                    <option value="Msas">MSAS</option>
-                    <option value="Pps">PPS</option>
-                    <option value="Kps">KPS</option>
-                    <option value="Ecog">ECOG</option>
-                    <option value="Phq9">PHQ-9</option>
-                    <option value="Hads">HADS</option>
+                    <option value="Esas" className="bg-[var(--sidebar-bg)]">ESAS</option>
+                    <option value="Bpi" className="bg-[var(--sidebar-bg)]">BPI</option>
+                    <option value="Msas" className="bg-[var(--sidebar-bg)]">MSAS</option>
+                    <option value="Pps" className="bg-[var(--sidebar-bg)]">PPS</option>
+                    <option value="Kps" className="bg-[var(--sidebar-bg)]">KPS</option>
+                    <option value="Ecog" className="bg-[var(--sidebar-bg)]">ECOG</option>
+                    <option value="Phq9" className="bg-[var(--sidebar-bg)]">PHQ-9</option>
+                    <option value="Hads" className="bg-[var(--sidebar-bg)]">HADS</option>
                   </select>
                 </div>
               </>
@@ -395,11 +395,11 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Equipment Type</label>
                   <select className="premium-input w-full rounded-xl p-3 text-sm" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
-                    <option value="VitalsMonitor">Vitals Monitor</option>
-                    <option value="OxygenConcentrator">Oxygen Concentrator</option>
-                    <option value="HospitalBed">Hospital Bed</option>
-                    <option value="Wheelchair">Wheelchair</option>
-                    <option value="InfusionPump">Infusion Pump</option>
+                    <option value="VitalsMonitor" className="bg-[var(--sidebar-bg)]">Vitals Monitor</option>
+                    <option value="OxygenConcentrator" className="bg-[var(--sidebar-bg)]">Oxygen Concentrator</option>
+                    <option value="HospitalBed" className="bg-[var(--sidebar-bg)]">Hospital Bed</option>
+                    <option value="Wheelchair" className="bg-[var(--sidebar-bg)]">Wheelchair</option>
+                    <option value="InfusionPump" className="bg-[var(--sidebar-bg)]">Infusion Pump</option>
                   </select>
                 </div>
               </>
@@ -427,10 +427,10 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Integration Partner</label>
                   <select className="premium-input w-full rounded-xl p-3 text-sm" value={form.partner} onChange={e => setForm({...form, partner: e.target.value})}>
-                    <option value="ElationHealth">Elation Health</option>
-                    <option value="CareSource">CareSource</option>
-                    <option value="Surescripts">Surescripts</option>
-                    <option value="HealthGorilla">Health Gorilla</option>
+                    <option value="ElationHealth" className="bg-[var(--sidebar-bg)]">Elation Health</option>
+                    <option value="CareSource" className="bg-[var(--sidebar-bg)]">CareSource</option>
+                    <option value="Surescripts" className="bg-[var(--sidebar-bg)]">Surescripts</option>
+                    <option value="HealthGorilla" className="bg-[var(--sidebar-bg)]">Health Gorilla</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
