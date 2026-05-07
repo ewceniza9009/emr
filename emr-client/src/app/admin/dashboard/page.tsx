@@ -375,27 +375,27 @@ export default function AdminDashboardPage() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8 space-y-8 scroll-smooth">
-          <div className="flex items-end justify-between">
+        <main className="flex-1 overflow-y-auto p-8 space-y-4 scroll-smooth">
+          <div className="flex items-end justify-between border-b border-[var(--card-border)] pb-4">
             <div>
-              <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">
-                {activeTab.replace(/([A-Z])/g, ' $1')}
+              <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
+                {activeTab.replace(/([A-Z])/g, ' $1')} Registry Segment
               </h1>
-              <div className="flex items-center gap-4 mt-3">
+              <div className="flex items-center gap-4 mt-1.5">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shadow-[0_0_8px_rgba(var(--primary-rgb),0.6)]" />
-                  <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">
-                    {data?.[activeTab]?.length || 0} Records Registered
+                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                    {data?.[activeTab]?.length || 0} Nodes Registered
                   </span>
                 </div>
-                <div className="w-px h-3 bg-white/10" />
+                <div className="w-px h-3 bg-[var(--card-border)]" />
                 <span className="text-[10px] font-bold text-[var(--text-muted)] opacity-50 uppercase tracking-widest">
-                  Node: Master Registry
+                  Master Terminal
                 </span>
               </div>
             </div>
             <button
-              className="h-11 px-8 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white font-black uppercase tracking-[0.15em] shadow-2xl shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center gap-3 group"
+              className="h-10 px-6 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white font-bold uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center gap-2 group"
               onClick={() => { setEditItem(null); setIsDrawerOpen(true); }}
             >
               <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
@@ -403,19 +403,19 @@ export default function AdminDashboardPage() {
             </button>
           </div>
 
-          <div className="flex items-center justify-between gap-6">
+          <div className="flex items-center justify-between gap-6 bg-[var(--card-bg)]/40 p-4 rounded-2xl border border-[var(--card-border)]">
             <div className="relative flex-1 max-w-md group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
               <input
                 type="text"
                 placeholder={`Query master registry for ${activeTab}...`}
-                className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl py-3 pl-12 pr-4 text-[12px] font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/40 focus:bg-[var(--card-bg)] transition-all placeholder:text-[var(--text-muted)]/50"
+                className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 pl-11 pr-4 text-[11px] font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/40 focus:bg-[var(--card-bg)] transition-all placeholder:text-[var(--text-muted)]/50"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <div className="flex items-center gap-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
-              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl">
+              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl">
                 <Activity className="w-3.5 h-3.5 text-[var(--primary)]" />
                 Last Sync: {new Date().toLocaleTimeString()}
               </div>
