@@ -41,13 +41,18 @@ const getModalityConfig = (modalityStr: string) => {
 };
 
 const getStatusConfig = (statusStr: string) => {
-  if (!statusStr) return { label: "SCHED", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]", text: "text-[var(--text-muted)]", dot: "bg-[var(--text-muted)]/40" };
-  const s = statusStr.toUpperCase();
-  if (s.includes("INPROGRESS")) return { label: "LIVE", bg: "bg-emerald-500/15", border: "border-emerald-500/40", text: "text-emerald-700", dot: "bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" };
-  if (s.includes("HOLD")) return { label: "HOLD", bg: "bg-amber-500/15", border: "border-amber-500/40", text: "text-amber-700", dot: "bg-amber-500 shadow-[0_0_10px_#fbbf24]" };
-  if (s.includes("COMPLETE")) return { label: "DONE", bg: "bg-blue-500/15", border: "border-blue-500/40", text: "text-blue-700", dot: "bg-blue-500 shadow-[0_0_10px_#60a5fa]" };
-  if (s.includes("CANCEL")) return { label: "CANC", bg: "bg-rose-500/15", border: "border-rose-500/40", text: "text-rose-700", dot: "bg-rose-500 shadow-[0_0_10px_#f43f5e]" };
-  return { label: "SCHED", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]", text: "text-[var(--text-muted)]", dot: "bg-[var(--text-muted)]/40" };
+  if (!statusStr) return { label: "SCHED", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]", text: "text-[var(--text-muted)]", dot: "bg-[var(--text-muted)]/40", isLive: false };
+  
+  // Normalize: IN_PROGRESS -> INPROGRESS
+  const s = statusStr.toUpperCase().replace(/[^A-Z]/g, "");
+  
+  if (["INPROGRESS", "ARRIVED", "STARTED", "LIVE"].includes(s)) 
+    return { label: "LIVE", bg: "bg-emerald-500/15", border: "border-emerald-500/40", text: "text-emerald-700", dot: "bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]", isLive: true };
+  if (s.includes("HOLD")) return { label: "HOLD", bg: "bg-amber-500/15", border: "border-amber-500/40", text: "text-amber-700", dot: "bg-amber-500 shadow-[0_0_10px_#fbbf24]", isLive: false };
+  if (s.includes("COMPLETE") || s === "DONE") return { label: "DONE", bg: "bg-blue-500/15", border: "border-blue-500/40", text: "text-blue-700", dot: "bg-blue-500 shadow-[0_0_10px_#60a5fa]", isLive: false };
+  if (s.includes("CANCEL")) return { label: "CANC", bg: "bg-rose-500/15", border: "border-rose-500/40", text: "text-rose-700", dot: "bg-rose-500 shadow-[0_0_10px_#f43f5e]", isLive: false };
+  
+  return { label: "SCHED", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]", text: "text-[var(--text-muted)]", dot: "bg-[var(--text-muted)]/40", isLive: false };
 };
 
 // ─── GraphQL ─────────────────────────────────────────────────────────────────
@@ -346,7 +351,7 @@ export default function SchedulingCalendar() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-1 h-6 bg-[var(--primary)] rounded-full" />
-            <h1 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">Clinical Scheduling</h1>
+            <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Clinical Scheduling</h1>
             <div className="flex items-center gap-3 ml-4 border-l border-[var(--card-border)] pl-4">
               <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))} className="p-1 hover:bg-[var(--primary)]/10 rounded-lg text-[var(--text-muted)]"><ChevronLeft className="w-4 h-4" /></button>
               <span className="text-sm font-bold text-[var(--text-primary)] min-w-[120px] text-center">{monthLabel}</span>
@@ -573,7 +578,7 @@ export default function SchedulingCalendar() {
                             </div>
                           )}
 
-                          <div className={`absolute z-20 hover:z-[100] group ${hasConflict ? "ring-2 ring-red-500" : ""}`}
+                          <div className={`absolute z-20 hover:z-[100] group ${hasConflict ? "ring-2 ring-red-500" : ""} ${statusConfig.isLive ? "ring-2 ring-emerald-500 animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.2)]" : ""}`}
                             style={{
                               top: `${topPx}px`,
                               height: `${heightPx}px`,

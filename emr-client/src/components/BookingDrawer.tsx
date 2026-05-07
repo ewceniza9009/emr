@@ -546,7 +546,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2 px-4 py-2 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)]">
                 <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />
-                <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Engine Active</span>
+                <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Booking Engine Active</span>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                 <X className="w-6 h-6" />
@@ -972,15 +972,15 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                   </div>
                 </div>
                 {patientId && (
-                  <div className="flex bg-white/5 rounded-2xl p-1.5 border border-white/10 gap-1.5 shadow-inner">
+                  <div className="flex bg-[var(--input-bg)] rounded-2xl p-1.5 border border-[var(--card-border)] gap-1.5 shadow-inner">
                     <button type="button" onClick={() => { if (period !== "AM") { setPeriod("AM"); setPractitionerId(""); setSupportingIds([]); } }}
                       className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
-                                   ${period === "AM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"}`}>
+                                   ${period === "AM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--input-bg)]"}`}>
                       {amLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "MORNING SLOT"}
                     </button>
                     <button type="button" onClick={() => { if (period !== "PM") { setPeriod("PM"); setPractitionerId(""); setSupportingIds([]); } }}
                       className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
-                                   ${period === "PM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"}`}>
+                                   ${period === "PM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--input-bg)]"}`}>
                       {pmLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "AFTERNOON SLOT"}
                     </button>
                   </div>
@@ -992,7 +992,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                   </div>
                   <input type="range" min="15" max="60" step="15" value={duration}
                     onChange={e => setDuration(parseInt(e.target.value))}
-                    className="w-full h-1.5 rounded-full appearance-none transition-colors accent-[var(--primary)] bg-white/5 border border-white/10 cursor-pointer" />
+                    className="w-full h-1.5 rounded-full appearance-none transition-colors accent-[var(--primary)] bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer" />
                   <div className="flex justify-between mt-4 text-[9px] font-bold text-[var(--text-muted)] tracking-widest uppercase">
                     <span>15m</span>
                     <span>Standard Visit</span>
@@ -1000,7 +1000,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                   </div>
                 </div>
               </section>
-              
+
               {plannedAssessments.length > 0 && (
                 <section className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
                   <div className="flex items-center justify-between">
@@ -1017,7 +1017,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       const category = ASSESSMENT_OPTIONS.find(cat => cat.items.some(i => i.id === id));
                       const item = category?.items.find(i => i.id === id);
                       return (
-                        <div key={id} className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/[0.08] transition-colors group">
+                        <div key={id} className="flex items-center gap-2 px-3 py-1.5 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl hover:bg-[var(--input-bg)]/80 transition-colors group">
                           <div className="text-[var(--primary)] group-hover:scale-110 transition-transform">
                             {category?.icon}
                           </div>

@@ -67,7 +67,7 @@ export default function PatientsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Patient Registry</h1>
-          <p className="text-sm text-[var(--text-secondary)]">Master record of all patients under clinical supervision.</p>
+          <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Master record of all patients under clinical supervision.</p>
         </div>
         <button 
           onClick={() => setIsAddOpen(true)}
@@ -104,7 +104,7 @@ export default function PatientsPage() {
       {/* Patient Table */}
       <div className="glass-morphism rounded-2xl overflow-hidden shadow-2xl border border-[var(--card-border)]">
         <div className="px-6 py-3 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
-          <h2 className="text-base font-bold text-[var(--text-primary)]">Active Clinical Roster</h2>
+          <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Active Clinical Roster</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">

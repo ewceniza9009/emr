@@ -57,8 +57,8 @@ export default function FacilitiesPage() {
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Facility Management</h1>
-          <p className="text-sm text-[var(--text-secondary)]">Oversee multi-site clinical operations and facility-specific patient volumes.</p>
+          <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Facility Management</h1>
+          <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Oversee multi-site clinical operations and facility-specific patient volumes.</p>
         </div>
         <button className="premium-button premium-gradient px-5 h-10 rounded-xl text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20">
           <Plus className="w-4 h-4" />
@@ -110,7 +110,7 @@ export default function FacilitiesPage() {
             </div>
             
             <div className="mb-4">
-              <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:text-[var(--primary)] transition-colors line-clamp-1">{f.name}</h3>
+              <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight mb-1 group-hover:text-[var(--primary)] transition-colors line-clamp-1">{f.name}</h3>
               <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                 <MapPin className="w-3.5 h-3.5" />
                 {f.facilityAddress?.city || "Metro Manila"}

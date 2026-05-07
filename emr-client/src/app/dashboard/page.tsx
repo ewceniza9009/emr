@@ -145,7 +145,7 @@ export default function Dashboard() {
             <h1 className="text-sm font-bold text-white tracking-tight uppercase">
               {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">{session?.user?.name?.split(' ')[0] || "Practitioner"}</span>
             </h1>
-            <p className="max-w-xl text-slate-400 text-sm leading-relaxed">
+            <p className="max-w-xl text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest leading-relaxed">
               Your clinical command center is synchronized and optimized for today's caseload.
             </p>
           </div>
@@ -204,7 +204,7 @@ export default function Dashboard() {
             <motion.div variants={itemVariants} className="glass-morphism rounded-[2rem] p-4 border border-[var(--card-border)]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-1 h-4 bg-teal-500 rounded-full" />
-                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">Recently Browsed</h2>
+                <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Recently Browsed</h2>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {recentPatients.map((p) => (
@@ -229,7 +229,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-1 h-4 bg-[var(--primary)] rounded-full shadow-[0_0_10px_var(--primary-glow)]" />
-                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">Recent Activity Log</h2>
+                <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Recent Activity Log</h2>
               </div>
               <button
                 onClick={() => router.push("/dashboard/patients")}
@@ -285,8 +285,8 @@ export default function Dashboard() {
           <motion.div variants={itemVariants} className="glass-morphism rounded-[2rem] border border-[var(--card-border)] p-5 overflow-hidden relative">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-sm font-bold text-[var(--text-primary)]">Operational Pulse</h2>
-                <p className="text-[10px] text-[var(--text-muted)] mt-0.5 font-medium tracking-tight">Real-time engagement metrics</p>
+                <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Operational Pulse</h2>
+                <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-bold uppercase tracking-widest">Real-time engagement metrics</p>
               </div>
             </div>
             <div className="h-[140px] w-full">

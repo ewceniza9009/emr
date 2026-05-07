@@ -65,7 +65,7 @@ export default function VitalsIoTPage() {
             <Heart className="w-5 h-5 text-rose-500" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Clinical Telemetry</h1>
+            <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Clinical Telemetry</h1>
             <div className="flex items-center gap-3 mt-0.5">
               <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 rounded-full border border-emerald-500/10">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -141,7 +141,7 @@ export default function VitalsIoTPage() {
             <Activity className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-[var(--text-primary)] tracking-tight text-white">Clinical Integrity Guard</h3>
+            <h3 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Clinical Integrity Guard</h3>
             <p className="text-[10px] text-[var(--text-secondary)]">Live data is strictly driven by IoT sensor connectivity. Manual records show as pending until synchronized.</p>
           </div>
         </div>
