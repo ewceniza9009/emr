@@ -1,9 +1,11 @@
 using Application.Navigation.Commands;
+using HotChocolate.Authorization;
 using MediatR;
 
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
+[Authorize(Policy = "CanViewPatients")]
 public class NavigationMutation
 {
     public async Task<Guid> CreateCareNavigationCase(

@@ -1,7 +1,9 @@
+using Application.Common.Dtos;
 using Application.Common.Interfaces;
 using Domain.Common;
 using HotChocolate.Authorization;
 using Infrastructure.Identity;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -78,6 +80,16 @@ public class IdentityQuery
         }
 
         return roleDtos;
+    }
+
+    [UseOffsetPaging(DefaultPageSize = 50)]
+    [UseFiltering]
+    [UseSorting]
+    public IQueryable<SecurityAuditLogDto> GetSecurityAuditLogs(
+        [Service] IApplicationDbContext context
+    )
+    {
+        return context.SecurityAuditLogs.AsNoTracking().ProjectToType<SecurityAuditLogDto>();
     }
 }
 

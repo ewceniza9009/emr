@@ -1,9 +1,11 @@
 using Application.Logistics.Commands;
+using HotChocolate.Authorization;
 using MediatR;
 
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
+[Authorize(Policy = "CanManageLogistics")]
 public class LogisticsMutation
 {
     public async Task<Guid> RegisterEquipment(

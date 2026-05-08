@@ -24,6 +24,12 @@ public class ClinicalNoteDto
     public Guid NoteId { get; set; }
     public Guid EncounterId { get; set; }
     public NoteType Type { get; set; }
+    public string? Subjective { get; set; }
+    public string? Objective { get; set; }
+    public string? Assessment { get; set; }
+    public string? Plan { get; set; }
     public string Content { get; set; } = string.Empty;
+    public bool IsSigned { get; set; }
+    public DateTimeOffset? SignedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }

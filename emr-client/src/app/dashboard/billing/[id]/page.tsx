@@ -43,35 +43,37 @@ const VOID_INVOICE = gql`
 const GET_INVOICE_DETAILS = gql`
   query GetInvoiceDetails($id: UUID!) {
     billingInvoices(id: $id) {
-      invoiceId
-      invoiceNumber
-      status
-      subtotalAmount
-      coveredAmount
-      patientResponsibility
-      generatedAt
-      dueDate
-      patient {
-        firstName
-        lastName
-        mrn
-        dob
-        addresses {
-          isPrimary
-          address {
-            street
-            city
-            state
-            postalCode
+      items {
+        invoiceId
+        invoiceNumber
+        status
+        subtotalAmount
+        coveredAmount
+        patientResponsibility
+        generatedAt
+        dueDate
+        patient {
+          firstName
+          lastName
+          mrn
+          dob
+          addresses {
+            isPrimary
+            address {
+              street
+              city
+              state
+              postalCode
+            }
           }
         }
-      }
-      items {
-        itemId
-        description
-        quantity
-        unitPrice
-        totalPrice
+        items {
+          itemId
+          description
+          quantity
+          unitPrice
+          totalPrice
+        }
       }
     }
   }
@@ -91,7 +93,7 @@ export default function InvoiceDetailsPage() {
     variables: { id: params.id }
   });
 
-  const invoice = data?.billingInvoices?.[0];
+  const invoice = data?.billingInvoices?.items?.[0];
 
   const [downloading, setDownloading] = useState(false);
 

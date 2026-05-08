@@ -25,4 +25,5 @@ public class ClinicalEncounter : BaseEntity, ITenantEntity
     public ICollection<Diagnosis> Diagnoses { get; set; } = new List<Diagnosis>();
     public ICollection<VitalSign> VitalSigns { get; set; } = new List<VitalSign>();
     public ICollection<ClinicalNote> ClinicalNotes { get; set; } = new List<ClinicalNote>();
+    public ICollection<AssessmentResponse> AssessmentResponses { get; set; } = new List<AssessmentResponse>();
 }

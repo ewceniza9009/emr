@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using Application.Common.Interfaces;
 using Domain.Entities;
 using Infrastructure.Identity;
@@ -8,21 +9,18 @@ namespace Infrastructure.Services;
 
 public class SecurityAuditService : ISecurityAuditService
 {
-    private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public SecurityAuditService(
-        IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IHttpContextAccessor httpContextAccessor,
-        UserManager<ApplicationUser> userManager)
+        IServiceScopeFactory scopeFactory)
     {
-        _context = context;
         _currentUserService = currentUserService;
         _httpContextAccessor = httpContextAccessor;
-        _userManager = userManager;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task LogActionAsync(
@@ -34,10 +32,18 @@ public class SecurityAuditService : ISecurityAuditService
         var userId = _currentUserService.UserId;
         var userName = "System";
 
+        using var scope = _scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+
         if (!string.IsNullOrEmpty(userId))
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            userName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown";
+            try {
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+                var user = await userManager.FindByIdAsync(userId);
+                userName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown";
+            } catch {
+                userName = "System/Auth-Error";
+            }
         }
 
         var log = new SecurityAuditLog
@@ -54,7 +60,7 @@ public class SecurityAuditService : ISecurityAuditService
             TenantId = _currentUserService.TenantId ?? Guid.Empty
         };
 
-        _context.SecurityAuditLogs.Add(log);
-        await _context.SaveChangesAsync(CancellationToken.None);
+        context.SecurityAuditLogs.Add(log);
+        await context.SaveChangesAsync(CancellationToken.None);
     }
 }

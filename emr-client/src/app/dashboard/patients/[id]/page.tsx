@@ -27,6 +27,8 @@ import {
   Truck,
   Package,
   ShieldCheck,
+  ShieldAlert,
+  Lock as LockIcon,
   Users,
   User,
   FileText,
@@ -49,6 +51,7 @@ import EditDemographicsDrawer from "@/components/EditDemographicsDrawer";
 import EditCommunicationsDrawer from "@/components/EditCommunicationsDrawer";
 import VisitSummaryDrawer from "@/components/VisitSummaryDrawer";
 import EmergencyActionDrawer from "@/components/EmergencyActionDrawer";
+import BreakGlassDrawer from "@/components/BreakGlassDrawer";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -126,7 +129,7 @@ const GET_PATIENT_DETAILS = gql`
 // Separate query for appointments to prevent primary query failure
 const GET_PATIENT_APPOINTMENTS = gql`
   query GetPatientAppointments($id: UUID!) {
-    appointments(where: { patientId: { eq: $id } }) {
+    appointments(patientId: $id) {
       items {
         appointmentId
         scheduledStart
@@ -194,6 +197,7 @@ export default function PatientDetailPage() {
   const [downloadingDossier, setDownloadingDossier] = useState(false);
   const [showEmergencyDrawer, setShowEmergencyDrawer] = useState(false);
   const [isEmergency, setIsEmergency] = useState(false);
+  const [showBreakGlass, setShowBreakGlass] = useState(false);
 
   const isUuid = (val: any) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
 
@@ -261,23 +265,78 @@ export default function PatientDetailPage() {
     </div>
   );
 
-  if (error) return (
-    <div className="p-10 space-y-4">
-      <div className="text-rose-500 font-black uppercase tracking-widest flex items-center gap-2">
-        <AlertCircle className="w-5 h-5" />
-        Clinical Access Error
+  if (error) {
+    const isUnauthorized = error.message.includes("Unauthorized") || error.message.includes("Access Denied") || error.message.includes("Clinical context verification failed");
+
+    return (
+      <div className="p-10 space-y-8 animate-in fade-in duration-700">
+        <div className="flex flex-col gap-2">
+          <div className="text-rose-500 font-black uppercase tracking-[0.4em] flex items-center gap-3 text-lg">
+            <ShieldAlert className="w-6 h-6" />
+            Security Access Violation
+          </div>
+          <div className="h-1 w-32 bg-rose-500/20 rounded-full" />
+        </div>
+
+        <div className="p-8 bg-slate-950 border border-white/5 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:scale-110 transition-transform duration-1000">
+            <LockIcon className="w-64 h-64" />
+          </div>
+          
+          <div className="relative z-10 space-y-6 max-w-2xl">
+            <h3 className="text-xl font-bold text-white tracking-tight uppercase">Patient record is restricted</h3>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              Your current session does not have an active clinical assignment for this patient. 
+              To protect patient privacy, full chart access is restricted to the assigned Care Team.
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+              <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col gap-3">
+                <div className="text-xs font-black text-slate-500 uppercase tracking-widest">Option 01</div>
+                <h4 className="text-xs font-black text-white uppercase italic">Contact Care Coordination</h4>
+                <p className="text-[10px] text-slate-500 leading-normal">Request to be added to the Care Navigation Team for this patient via the Registry Manager.</p>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-rose-500/5 border border-rose-500/10 flex flex-col gap-3">
+                <div className="text-xs font-black text-rose-500 uppercase tracking-widest">Option 02 (Emergency)</div>
+                <h4 className="text-xs font-black text-rose-400 uppercase italic">Activate Break-Glass Protocol</h4>
+                <p className="text-[10px] text-rose-500/60 leading-normal">Override restrictions immediately with mandatory forensic justification and auditing.</p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 pt-6">
+              <button
+                onClick={() => setShowBreakGlass(true)}
+                className="px-8 py-3 rounded-xl bg-rose-600 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-rose-600/20 hover:bg-rose-500 transition-all flex items-center gap-3 active:scale-95"
+              >
+                <Zap className="w-4 h-4" />
+                Initialize Emergency Bypass
+              </button>
+              
+              <Link
+                href="/dashboard/patients"
+                className="px-8 py-3 rounded-xl bg-white/[0.05] text-slate-400 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] hover:text-white hover:bg-white/10 transition-all"
+              >
+                Return to Registry
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl max-w-fit">
+          <p className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">
+            Diagnostic Payload: {error.message}
+          </p>
+        </div>
+
+        <BreakGlassDrawer 
+          open={showBreakGlass} 
+          onClose={() => setShowBreakGlass(false)} 
+          onSuccess={() => refetch()} 
+        />
       </div>
-      <pre className="p-4 bg-rose-500/5 border border-rose-500/20 rounded-xl text-rose-400 text-xs font-mono overflow-auto max-w-2xl">
-        {error.message}
-      </pre>
-      <button
-        onClick={() => window.location.reload()}
-        className="px-6 py-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5"
-      >
-        Retry Connection
-      </button>
-    </div>
-  );
+    );
+  }
 
   const patient = data?.patientById;
   if (!patient) return <div className="p-10 text-[var(--text-primary)] font-black uppercase tracking-widest">Patient record not found in registry.</div>;

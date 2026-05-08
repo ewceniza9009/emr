@@ -1,6 +1,7 @@
 using Application.Common.Interfaces;
 using Application.Common.Models;
 using Application.Patients.Dtos;
+using Domain.Enums;
 using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -25,18 +26,19 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
 
         if (!string.IsNullOrEmpty(request.Search))
         {
+            var searchTerm = request.Search.ToLower();
             query = query.Where(p =>
-                p.FirstName.Contains(request.Search)
-                || p.LastName.Contains(request.Search)
-                || p.Mrn.Contains(request.Search)
+                p.FirstName.ToLower().Contains(searchTerm)
+                || p.LastName.ToLower().Contains(searchTerm)
+                || p.Mrn.ToLower().Contains(searchTerm)
             );
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
         var items = await query
-            .Include(p => p.Appointments)
             .OrderBy(p => p.LastName)
+            .ThenBy(p => p.FirstName)
             .Skip(request.Skip)
             .Take(request.Take)
             .ProjectToType<PatientDto>()
@@ -46,13 +48,13 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
         foreach (var item in items)
         {
             var latestAppt = item.Appointments
-                .Where(a => a.Status != "Cancelled")
+                .Where(a => a.Status != AppointmentStatus.Cancelled)
                 .OrderByDescending(a => a.ScheduledStart)
                 .FirstOrDefault();
 
             if (latestAppt != null)
             {
-                item.VisitStatus = latestAppt.Status;
+                item.VisitStatus = latestAppt.Status.ToString();
             }
             else
             {

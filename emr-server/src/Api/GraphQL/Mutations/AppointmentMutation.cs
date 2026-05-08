@@ -1,11 +1,13 @@
 using Application.Appointments.Commands;
 using Domain.Entities;
 using Domain.Enums;
+using HotChocolate.Authorization;
 using MediatR;
 
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
+[Authorize(Policy = "CanManageScheduling")]
 public class AppointmentMutation
 {
     public async Task<Appointment> BookAppointment(

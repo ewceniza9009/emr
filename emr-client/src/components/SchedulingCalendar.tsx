@@ -62,7 +62,15 @@ const GET_SCHEDULE_DATA = gql`
   query GetScheduleData($startDate: DateTime!, $endDate: DateTime!) {
     appointments(startDate: $startDate, endDate: $endDate) {
       items {
-        appointmentId scheduledStart scheduledEnd modality status travelTimeMinutes distanceInMiles practitionerId plannedAssessments
+        appointmentId 
+        scheduledStart 
+        scheduledEnd 
+        modality 
+        status 
+        travelTimeMinutes 
+        distanceInMiles 
+        practitionerId 
+        plannedAssessments
         practitioner { practitionerId firstName lastName position }
         supportingClinicians { practitionerId firstName lastName position }
         encounters { practitioner { practitionerId firstName lastName position } }
@@ -70,10 +78,8 @@ const GET_SCHEDULE_DATA = gql`
       }
     }
     scheduleBlocks(startDate: $startDate, endDate: $endDate) {
-      items {
-        blockId startTime endTime status practitionerId
-        practitioner { practitionerId firstName lastName position }
-      }
+      blockId startTime endTime status practitionerId
+      practitioner { practitionerId firstName lastName position }
     }
     practitioners {
       practitionerId firstName lastName position
@@ -166,7 +172,7 @@ export default function SchedulingCalendar() {
 
   useEffect(() => {
     if (data?.appointments?.items) setLocalAppointments(data.appointments.items);
-    if (data?.scheduleBlocks?.items) setLocalBlocks(data.scheduleBlocks.items);
+    if (data?.scheduleBlocks) setLocalBlocks(data.scheduleBlocks);
   }, [data]);
 
   const apiPositions = useMemo(() =>

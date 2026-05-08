@@ -23,8 +23,8 @@ import { useToast } from "@/components/ToastProvider";
 import AddReferralDrawer from "@/components/AddReferralDrawer";
 
 const GET_OUTREACH_LEADS = gql`
-  query GetOutreachLeads($search: String) {
-    outreaches(search: $search) {
+  query GetOutreachLeads($where: PatientOutreachFilterInput) {
+    outreaches(where: $where) {
       items {
         patientOutreachId
         firstName
@@ -70,7 +70,13 @@ export default function OutreachPage() {
 
   const { data, loading, error, refetch } = useQuery(GET_OUTREACH_LEADS, {
     variables: {
-      search: filters.search || undefined
+      where: filters.search ? {
+        or: [
+          { firstName: { contains: filters.search } },
+          { lastName: { contains: filters.search } },
+          { referralSource: { contains: filters.search } }
+        ]
+      } : undefined
     }
   });
 

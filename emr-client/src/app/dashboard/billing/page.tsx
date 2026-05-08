@@ -24,43 +24,47 @@ import Link from "next/link";
 import BenefitClaimDrawer from "@/components/BenefitClaimDrawer";
 
 const GET_INVOICES = gql`
-  query GetInvoices($search: String, $status: String) {
-    billingInvoices(search: $search, status: $status) {
-      invoiceId
-      invoiceNumber
-      patientId
-      status
-      subtotalAmount
-      coveredAmount
-      patientResponsibility
-      generatedAt
-      dueDate
-      patient {
-        firstName
-        lastName
-        mrn
-      }
+  query GetInvoices($where: BillingInvoiceFilterInput) {
+    billingInvoices(where: $where) {
       items {
-        itemId
+        invoiceId
+        invoiceNumber
+        patientId
+        status
+        subtotalAmount
+        coveredAmount
+        patientResponsibility
+        generatedAt
+        dueDate
+        patient {
+          firstName
+          lastName
+          mrn
+        }
+        items {
+          itemId
+        }
       }
     }
   }
 `;
 
 const GET_CLAIMS = gql`
-  query GetClaims($search: String, $status: String) {
-    zBenefitClaims(search: $search, status: $status) {
-      claimId
-      patientId
-      philhealthNumber
-      packageCode
-      status
-      totalAmount
-      submittedAt
-      patient {
-        firstName
-        lastName
-        mrn
+  query GetClaims($where: ZBenefitClaimFilterInput) {
+    zBenefitClaims(where: $where) {
+      items {
+        claimId
+        patientId
+        philhealthNumber
+        packageCode
+        status
+        totalAmount
+        submittedAt
+        patient {
+          firstName
+          lastName
+          mrn
+        }
       }
     }
   }
@@ -69,13 +73,15 @@ const GET_CLAIMS = gql`
 const GET_CLAIM_HISTORY = gql`
   query GetClaimHistory($claimId: UUID!) {
     zBenefitClaims(id: $claimId) {
-      statusLogs {
-        logId
-        previousStatus
-        newStatus
-        changedBy
-        remarks
-        changedAt
+      items {
+        statusLogs {
+          logId
+          previousStatus
+          newStatus
+          changedBy
+          remarks
+          changedAt
+        }
       }
     }
   }
@@ -94,21 +100,41 @@ export default function BillingPage() {
 
   const { data: invoiceData, loading: loadingInvoices, refetch: refetchInvoices } = useQuery(GET_INVOICES, {
     variables: {
-      search: searchTerm,
-      status: statusFilter
+      where: {
+        and: [
+          statusFilter !== "All" ? { status: { eq: statusFilter } } : {},
+          searchTerm ? {
+            or: [
+              { invoiceNumber: { contains: searchTerm } },
+              { patient: { firstName: { contains: searchTerm } } },
+              { patient: { lastName: { contains: searchTerm } } }
+            ]
+          } : {}
+        ].filter(x => Object.keys(x).length > 0)
+      }
     }
   });
 
   const { data: claimData, loading: loadingClaims, refetch: refetchClaims } = useQuery(GET_CLAIMS, {
     variables: {
-      search: searchTerm,
-      status: statusFilter
+      where: {
+        and: [
+          statusFilter !== "All" ? { status: { eq: statusFilter } } : {},
+          searchTerm ? {
+            or: [
+              { philhealthNumber: { contains: searchTerm } },
+              { patient: { firstName: { contains: searchTerm } } },
+              { patient: { lastName: { contains: searchTerm } } }
+            ]
+          } : {}
+        ].filter(x => Object.keys(x).length > 0)
+      }
     }
   });
 
   const loading = loadingInvoices || loadingClaims;
-  const invoices = invoiceData?.billingInvoices || [];
-  const claims = claimData?.zBenefitClaims || [];
+  const invoices = invoiceData?.billingInvoices?.items || [];
+  const claims = claimData?.zBenefitClaims?.items || [];
 
   const refetch = () => {
     refetchInvoices();
@@ -463,7 +489,7 @@ function ClaimHistoryModal({ claimId, onClose, getStatusColor }: { claimId: stri
     variables: { claimId }
   });
 
-  const logs = data?.zBenefitClaims?.[0]?.statusLogs || [];
+  const logs = data?.zBenefitClaims?.items?.[0]?.statusLogs || [];
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">

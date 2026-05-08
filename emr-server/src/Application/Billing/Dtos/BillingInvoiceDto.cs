@@ -22,6 +22,15 @@ public record BillingInvoiceDto(
 
 public record BillingInvoiceItemDto(
     Guid ItemId,
+    Guid InvoiceId,
+    Guid PatientId,
+    string InvoiceNumber,
+    InvoiceStatus Status,
+    decimal SubtotalAmount,
+    decimal CoveredAmount,
+    decimal PatientResponsibility,
+    DateTimeOffset GeneratedAt,
+    DateTimeOffset DueDate,
     string Description,
     decimal Quantity,
     decimal UnitPrice,

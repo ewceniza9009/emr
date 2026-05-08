@@ -19,7 +19,7 @@ public record BookAppointmentCommand(
     Guid? AppointmentId = null
 ) : IRequest<Appointment>;
 
-public class BookAppointmentCommandHandler(IApplicationDbContext context)
+public class BookAppointmentCommandHandler(IApplicationDbContext context, ISchedulingService schedulingService)
     : IRequestHandler<BookAppointmentCommand, Appointment>
 {
     public async Task<Appointment> Handle(
@@ -34,7 +34,7 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context)
                            && a.AppointmentId != request.AppointmentId
                            && request.ScheduledStart < a.ScheduledEnd 
                            && request.ScheduledEnd > a.ScheduledStart, 
-                      cancellationToken);
+                       cancellationToken);
 
         if (hasConflict)
         {
@@ -46,6 +46,9 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context)
             .ToListAsync(cancellationToken);
 
         Appointment appointment;
+        bool isNew = false;
+        bool needsRecalculation = false;
+        
         if (request.AppointmentId.HasValue && request.AppointmentId.Value != Guid.Empty)
         {
             appointment =
@@ -57,18 +60,41 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context)
                     )
                 ?? throw new KeyNotFoundException($"Appointment {request.AppointmentId} not found");
 
+            // Check if fields that impact logistics changed
+            if (appointment.ScheduledStart != request.ScheduledStart || 
+                appointment.PractitionerId != request.PractitionerId ||
+                appointment.Modality != request.Modality)
+            {
+                needsRecalculation = true;
+            }
+
             appointment.PatientId = request.PatientId;
             appointment.PractitionerId = request.PractitionerId;
             appointment.ScheduledStart = request.ScheduledStart;
             appointment.ScheduledEnd = request.ScheduledEnd;
             appointment.Modality = request.Modality;
             appointment.SupportingClinicians = supporting;
-            appointment.PlannedAssessments = request.PlannedAssessments ?? new();
-            appointment.TravelTimeMinutes = request.TravelTimeMinutes;
-            appointment.DistanceInMiles = request.DistanceInMiles;
+            
+            if (request.PlannedAssessments != null)
+                appointment.PlannedAssessments = request.PlannedAssessments;
+            
+            // Only update if provided, otherwise preserve or allow recalculation
+            if (request.TravelTimeMinutes.HasValue)
+            {
+                appointment.TravelTimeMinutes = request.TravelTimeMinutes;
+                needsRecalculation = false; // User explicitly provided it
+            }
+            
+            if (request.DistanceInMiles.HasValue)
+            {
+                appointment.DistanceInMiles = request.DistanceInMiles;
+                needsRecalculation = false; // User explicitly provided it
+            }
         }
         else
         {
+            isNew = true;
+            needsRecalculation = true;
             appointment = new Appointment
             {
                 AppointmentId = Guid.NewGuid(),
@@ -83,10 +109,33 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context)
                 TravelTimeMinutes = request.TravelTimeMinutes,
                 DistanceInMiles = request.DistanceInMiles,
             };
+            
+            if (request.TravelTimeMinutes.HasValue || request.DistanceInMiles.HasValue)
+            {
+                needsRecalculation = false; // User explicitly provided it
+            }
+            
             context.Appointments.Add(appointment);
         }
 
         await context.SaveChangesAsync(cancellationToken);
+
+        // Recalculate if needed (new appointment or location-impacting change)
+        if (needsRecalculation)
+        {
+            try 
+            {
+                var stats = await schedulingService.RecalculateAppointmentStatsAsync(appointment.AppointmentId, cancellationToken);
+                appointment.TravelTimeMinutes = stats.travelTime;
+                appointment.DistanceInMiles = stats.distance;
+                await context.SaveChangesAsync(cancellationToken);
+            }
+            catch 
+            {
+                // Fallback: don't fail the whole booking if stats service is down
+            }
+        }
+
         return appointment;
     }
 }

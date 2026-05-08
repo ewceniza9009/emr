@@ -5,6 +5,7 @@ using MediatR;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
+[Authorize(Policy = "CanManageSetup")]
 public class IntegrationMutation
 {
     public async Task<bool> SyncAllPartners(
@@ -13,10 +14,7 @@ public class IntegrationMutation
         CancellationToken cancellationToken
     )
     {
-        // In a real app, this might queue background jobs.
-        // For now we trigger them sequentially for demonstration.
-
-        // 1. Sync demographics for a dummy patient to prove it's working
+        // 1. Sync demographics for a dummy patient
         await elationClient.SyncPatientDemographicsAsync(Guid.Empty, cancellationToken);
 
         // 2. Report metrics for a dummy period

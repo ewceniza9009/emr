@@ -1,9 +1,11 @@
 using Application.Common.Interfaces;
+using HotChocolate.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
+[Authorize(Policy = "CanViewPatients")]
 public class DashboardQuery
 {
     public async Task<DashboardStatsDto> GetDashboardStats([Service] IApplicationDbContext context)

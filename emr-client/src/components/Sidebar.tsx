@@ -133,8 +133,7 @@ export function Sidebar() {
         <div className="h-px bg-white/5 mx-3 my-4" />
         <PermissionGate role="Admin">
           <Link
-            href="/admin"
-            target="_blank"
+            href="/admin/audit"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300"
           >
             <div className="relative">
@@ -142,7 +141,20 @@ export function Sidebar() {
               <div className="absolute -top-1 -right-1 w-2 h-2 bg-indigo-500 rounded-full border-2 border-[var(--sidebar-bg)] animate-pulse" />
             </div>
             {!isCollapsed && (
-              <span className="text-[13px] font-bold">Admin Portal</span>
+              <span className="text-[13px] font-bold">Audit Vault</span>
+            )}
+          </Link>
+
+          <Link
+            href="/admin"
+            target="_blank"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative text-slate-400 hover:bg-white/5 hover:text-white"
+          >
+            <div className="relative">
+              <Building2 className="w-5 h-5 shrink-0" />
+            </div>
+            {!isCollapsed && (
+              <span className="text-[13px] font-medium">Admin Portal</span>
             )}
           </Link>
         </PermissionGate>

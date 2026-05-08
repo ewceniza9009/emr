@@ -823,7 +823,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Time & Duration</span>
                         </div>
                         <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-6 space-y-6">
-                          {isBlockMode && (
+                          {isBlockMode ? (
                             <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-1.5">
                                 <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Start Time</label>
@@ -846,6 +846,35 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                 <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Duration (Min)</label>
                                 <input type="number" step="15" min="15" value={duration} onChange={e => setDuration(parseInt(e.target.value))}
                                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
+                                </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
+                                  <Clock className="w-6 h-6" />
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1">Scheduled Time</p>
+                                  <p className="text-sm font-bold text-[var(--text-primary)]">
+                                    {selectedSlot?.shiftStart ? format(new Date(selectedSlot.shiftStart), "hh:mm a") : (period ? (period === "AM" ? "08:00 AM (Target)" : "01:00 PM (Target)") : "Select Window")}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-6 pr-2">
+                                <div className="text-right">
+                                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1">Encounter Date</p>
+                                  <p className="text-xs font-bold text-[var(--text-secondary)]">
+                                    {format(selectedDate, "EEE, MMM do")}
+                                  </p>
+                                </div>
+                                <div className="w-px h-8 bg-[var(--card-border)]" />
+                                <div className="text-right">
+                                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1">Window</p>
+                                  <p className={`text-xs font-bold ${period ? "text-[var(--primary)]" : "text-rose-500"}`}>
+                                    {period ? (period === "AM" ? "MORNING" : "AFTERNOON") : "PENDING"}
+                                  </p>
+                                </div>
                               </div>
                             </div>
                           )}

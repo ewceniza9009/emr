@@ -30,11 +30,13 @@ import PatientLookup from "@/components/PatientLookup";
 const GET_PATIENT_CLAIMS = gql`
   query GetPatientClaims($patientId: Guid!) {
     zBenefitClaims(where: { patientId: { eq: $patientId } }, order: [{ createdAt: DESC }]) {
-      claimId
-      philhealthNumber
-      packageCode
-      status
-      totalAmount
+      items {
+        claimId
+        philhealthNumber
+        packageCode
+        status
+        totalAmount
+      }
     }
   }
 `;
@@ -77,7 +79,7 @@ export default function NewInvoicePage() {
       skip: !selectedPatient?.patientId
    });
 
-   const claims = claimsData?.zBenefitClaims || [];
+   const claims = claimsData?.zBenefitClaims?.items || [];
 
    useEffect(() => {
       if (selectedPatient?.patientId) {

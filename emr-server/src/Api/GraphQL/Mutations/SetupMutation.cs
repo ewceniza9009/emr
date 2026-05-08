@@ -3,11 +3,13 @@ using Domain.Entities;
 using Domain.Enums;
 using HotChocolate;
 using HotChocolate.Types;
+using HotChocolate.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType(typeof(Mutation))]
+[Authorize(Policy = "CanManageSetup")]
 public class SetupMutation
 {
     // --- Practitioner ---

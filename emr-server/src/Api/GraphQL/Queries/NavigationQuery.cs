@@ -1,15 +1,19 @@
 using Application.Common.Interfaces;
 using Application.Navigation.Dtos;
 using Domain.Entities;
+using HotChocolate;
+using HotChocolate.Authorization;
+using HotChocolate.Data;
+using HotChocolate.Types;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
+[Authorize(Policy = "CanViewPatients")]
 public class NavigationQuery
 {
-    [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<CareNavigationCaseDto> GetCareNavigationCases(

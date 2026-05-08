@@ -31,7 +31,8 @@ public class SchedulingService : ISchedulingService
         {
             await _semaphore.WaitAsync(cancellationToken);
 
-            // HARDENED DATE LOGIC: Use the date part of the targetStart in the clinician's timezone context
+            // HARDENED DATE LOGIC: Respect the offset provided by the caller (Clinical Timezone)
+            var offset = targetStart.Offset;
             var targetDate = targetStart.Date;
             var dayOfWeek = targetDate.DayOfWeek;
 
@@ -40,18 +41,19 @@ public class SchedulingService : ISchedulingService
             var isAm = targetStart.Hour < 13;
             var slotWindowStart = new DateTimeOffset(
                 targetDate.AddHours(scanWholeDay ? 8 : (isAm ? 8 : 13)),
-                TimeSpan.Zero
+                offset
             );
             var slotWindowEnd = new DateTimeOffset(
                 targetDate.AddHours(scanWholeDay ? 18 : (isAm ? 13 : 18)),
-                TimeSpan.Zero
+                offset
             );
 
             _logger.LogInformation(
-                ">>> GEOSPATIAL RADAR: Scanning for {Day} (Range: {Start} - {End})",
+                ">>> GEOSPATIAL RADAR: Scanning for {Day} (Range: {Start} - {End} Offset: {Offset})",
                 dayOfWeek,
                 slotWindowStart.ToString("t"),
-                slotWindowEnd.ToString("t")
+                slotWindowEnd.ToString("t"),
+                offset
             );
 
             // 1. Fetch Target Patient Coordinates
@@ -181,9 +183,9 @@ public class SchedulingService : ISchedulingService
                         .OrderByDescending(a => a.ScheduledEnd)
                         .FirstOrDefault();
 
-                    // Fallback to localized Utah center (Salt Lake City)
-                    double startLat = staff.Latitude ?? 40.7608;
-                    double startLon = staff.Longitude ?? -111.8910;
+                    // Fallback to localized Philippine center (Quezon City)
+                    double startLat = staff.Latitude ?? 14.6760;
+                    double startLon = staff.Longitude ?? 121.0437;
 
                     var anchorAddr = anchor
                         ?.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)
@@ -337,9 +339,9 @@ public class SchedulingService : ISchedulingService
                         cancellationToken
                     );
                 var home = practitioner?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
-                // Fallback to localized Utah center (Salt Lake City)
-                startLat = home?.Latitude ?? 40.7608;
-                startLon = home?.Longitude ?? -111.8910;
+                // Fallback to localized Philippine center (Quezon City)
+                startLat = home?.Latitude ?? 14.6760;
+                startLon = home?.Longitude ?? 121.0437;
             }
         }
         else
@@ -353,9 +355,9 @@ public class SchedulingService : ISchedulingService
                     cancellationToken
                 );
             var home = practitioner?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
-            // Fallback to localized Utah center (Salt Lake City)
-            startLat = home?.Latitude ?? 40.7608;
-            startLon = home?.Longitude ?? -111.8910;
+            // Fallback to localized Philippine center (Quezon City)
+            startLat = home?.Latitude ?? 14.6760;
+            startLon = home?.Longitude ?? 121.0437;
         }
 
         double distance = GeoUtils.CalculateDistance(

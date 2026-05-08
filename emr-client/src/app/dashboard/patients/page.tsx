@@ -18,27 +18,26 @@ import AddPatientDrawer from "@/components/AddPatientDrawer";
 import { useCommandModal } from "@/components/CommandModalProvider";
 
 const GET_PATIENTS = gql`
-  query GetPatients($search: String) {
-    patients(search: $search) {
+  query GetPatients($search: String, $skip: Int, $take: Int) {
+    patients(search: $search, skip: $skip, take: $take) {
       items {
-      patientId
-      mrn
-      firstName
-      lastName
-      dob
-      addresses {
-        type
-        isPrimary
-        address {
-          city
+        patientId
+        mrn
+        firstName
+        lastName
+        dob
+        addresses {
+          type
+          isPrimary
+          address {
+            city
+          }
         }
-      }
-
-      phones {
-        phoneNumber
-        type
-      }
-      visitStatus
+        phones {
+          phoneNumber
+          type
+        }
+        visitStatus
       }
       totalCount
     }
@@ -54,7 +53,9 @@ export default function PatientsPage() {
 
   const { data, loading, error, refetch } = useQuery(GET_PATIENTS, {
     variables: {
-      search: searchQuery || undefined
+      search: searchQuery,
+      skip: 0,
+      take: 50
     },
     fetchPolicy: "network-only",
     notifyOnNetworkStatusChange: true

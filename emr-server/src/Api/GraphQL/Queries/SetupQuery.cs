@@ -1,4 +1,5 @@
 using Application.Common.Interfaces;
+using HotChocolate.Authorization;
 using Domain.Entities;
 using HotChocolate;
 using HotChocolate.Data;
@@ -8,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
+[Authorize(Policy = "CanViewPatients")]
 public class SetupQuery
 {
     [UseProjection]

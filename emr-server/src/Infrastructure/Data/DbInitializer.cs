@@ -493,6 +493,7 @@ namespace Infrastructure.Data
                     var entityAddr = new EntityAddress
                     {
                         EntityAddressId = Guid.NewGuid(),
+                        TenantId = defaultTenantId,
                         PractitionerId = pId,
                         IsPrimary = true,
                         Type = AddressType.Home,
@@ -780,6 +781,7 @@ namespace Infrastructure.Data
                     var entityAddr = new EntityAddress
                     {
                         EntityAddressId = Guid.NewGuid(),
+                        TenantId = defaultTenantId,
                         PractitionerId = p.PractitionerId,
                         IsPrimary = true,
                         Type = AddressType.Home,
@@ -1150,6 +1152,12 @@ namespace Infrastructure.Data
                         p.FirstName == "System" && p.LastName == "Admin"
                     ) ?? practitioners[0];
 
+                // PRE-FETCH: Load all addresses into memory to avoid Local context misses and N+1 issues
+                var allAddresses = await context.EntityAddresses
+                    .Include(ea => ea.Address)
+                    .IgnoreQueryFilters()
+                    .ToListAsync();
+
                 // Helper: Unified Geospatial Logic
                 double GetDistance(Guid pId, Guid patId, AppointmentModality mod)
                 {
@@ -1158,20 +1166,18 @@ namespace Infrastructure.Data
                         && mod != AppointmentModality.InPersonFacility
                     )
                         return 0;
-                    var pA = context
-                        .EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == pId)
-                        ?.Address;
-                    var ptA = context
-                        .EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == patId)
-                        ?.Address;
-                    return (pA == null || ptA == null)
-                        ? 5.0
-                        : Application.Common.Utils.GeoUtils.CalculateDistance(
-                            pA.Latitude ?? 14.5,
-                            pA.Longitude ?? 121.0,
-                            ptA.Latitude ?? 14.5,
-                            ptA.Longitude ?? 121.0
-                        );
+
+                    var pA = allAddresses.FirstOrDefault(ea => ea.PractitionerId == pId)?.Address;
+                    var ptA = allAddresses.FirstOrDefault(ea => ea.PatientId == patId)?.Address;
+
+                    if (pA == null || ptA == null) return 5.0;
+
+                    return Application.Common.Utils.GeoUtils.CalculateDistance(
+                        pA.Latitude ?? 14.5,
+                        pA.Longitude ?? 121.0,
+                        ptA.Latitude ?? 14.5,
+                        ptA.Longitude ?? 121.0
+                    );
                 }
 
                 int GetTravelTime(double dist, AppointmentModality mod, bool isAdmin, Faker f)
@@ -1182,17 +1188,29 @@ namespace Infrastructure.Data
                     )
                         return 0;
                     var baseT = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(dist);
-                    var multiplier = isAdmin
-                        ? f.Random.Double(2.5, 4.0)
-                        : f.Random.Double(1.2, 3.5);
-                    return (int)Math.Clamp(baseT * multiplier, 15, 45);
+                    // Add some jitter for traffic (1.2x to 2.5x base time)
+                    var multiplier = f.Random.Double(1.2, 2.5);
+                    return (int)Math.Clamp(baseT * multiplier, 10, 45);
                 }
 
                 // Phase 1: System Admin Tactical Roster
                 var adminAppointments = new Faker<Appointment>()
                     .RuleFor(a => a.AppointmentId, f => Guid.NewGuid())
                     .RuleFor(a => a.TenantId, f => defaultTenantId)
-                    .RuleFor(a => a.PatientId, f => f.PickRandom(patients).PatientId)
+                    .RuleFor(
+                        a => a.PatientId,
+                        f =>
+                        {
+                            var adminAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == adminPrac.PractitionerId)?.Address;
+                            var regionalPatients = patients
+                                .Where(p => {
+                                    var pAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == p.PatientId)?.Address;
+                                    return pAddr?.State == adminAddr?.State;
+                                })
+                                .ToList();
+                            return f.PickRandom(regionalPatients.Any() ? regionalPatients : patients).PatientId;
+                        }
+                    )
                     .RuleFor(a => a.PractitionerId, adminPrac.PractitionerId)
                     .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
                     .RuleFor(a => a.Status, AppointmentStatus.Scheduled)
@@ -1214,11 +1232,22 @@ namespace Infrastructure.Data
                     .RuleFor(
                         a => a.SupportingClinicians,
                         (f, a) =>
-                            practitioners
+                        {
+                            // Try to find a supporting clinician in the same region
+                            var patAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == a.PatientId)?.Address;
+                            var sameRegion = practitioners
                                 .Where(p => p.PractitionerId != a.PractitionerId)
+                                .Where(p => {
+                                    var pAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == p.PractitionerId)?.Address;
+                                    return pAddr?.State == patAddr?.State;
+                                })
+                                .ToList();
+                            
+                            return (sameRegion.Any() ? sameRegion : practitioners)
                                 .OrderBy(x => Guid.NewGuid())
                                 .Take(1)
-                                .ToList()
+                                .ToList();
+                        }
                     )
                     .RuleFor(
                         a => a.DistanceInMiles,
@@ -1238,12 +1267,20 @@ namespace Infrastructure.Data
                     .RuleFor(a => a.PatientId, f => f.PickRandom(patients).PatientId)
                     .RuleFor(
                         a => a.PractitionerId,
-                        f =>
-                            f.PickRandom(
-                                practitioners.Where(p =>
-                                    p.PractitionerId != adminPrac.PractitionerId
-                                )
-                            ).PractitionerId
+                        (f, a) =>
+                        {
+                            // STRATEGIC: Match practitioner region to patient region
+                            var patAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == a.PatientId)?.Address;
+                            var regionalPractitioners = practitioners
+                                .Where(p => p.PractitionerId != adminPrac.PractitionerId)
+                                .Where(p => {
+                                    var pAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == p.PractitionerId)?.Address;
+                                    return pAddr?.State == patAddr?.State;
+                                })
+                                .ToList();
+                            
+                            return f.PickRandom(regionalPractitioners.Any() ? regionalPractitioners : practitioners).PractitionerId;
+                        }
                     )
                     .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
                     .RuleFor(a => a.Status, f => f.PickRandom<AppointmentStatus>())
@@ -1271,16 +1308,23 @@ namespace Infrastructure.Data
                     .RuleFor(
                         a => a.SupportingClinicians,
                         (f, a) =>
-                            f.Random.Bool(0.8f)
-                                ? practitioners
-                                    .Where(pr =>
-                                        pr.PractitionerId != a.PractitionerId
-                                        && pr.Position != PractitionerPosition.Admin
-                                    )
+                        {
+                             var patAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == a.PatientId)?.Address;
+                             var sameRegion = practitioners
+                                .Where(pr => pr.PractitionerId != a.PractitionerId && pr.Position != PractitionerPosition.Admin)
+                                .Where(p => {
+                                    var pAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == p.PractitionerId)?.Address;
+                                    return pAddr?.State == patAddr?.State;
+                                })
+                                .ToList();
+
+                            return f.Random.Bool(0.8f)
+                                ? (sameRegion.Any() ? sameRegion : practitioners)
                                     .OrderBy(x => Guid.NewGuid())
                                     .Take(1)
                                     .ToList()
-                                : new List<Practitioner>()
+                                : new List<Practitioner>();
+                        }
                     )
                     .RuleFor(
                         a => a.DistanceInMiles,
