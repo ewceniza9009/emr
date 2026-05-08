@@ -191,9 +191,14 @@ public class SchedulingService : ISchedulingService
                         .OrderByDescending(a => a.ScheduledEnd)
                         .FirstOrDefault();
 
-                    // Fallback to localized Philippine center (Quezon City)
-                    double startLat = staff.Latitude ?? 10.3157; // Cebu Fallback
-                    double startLon = staff.Longitude ?? 123.8854;
+                    if (!staff.Latitude.HasValue || !staff.Longitude.HasValue)
+                    {
+                        _logger.LogWarning(">>> EXCLUDING: Practitioner {Id} lacks a valid primary address for geospatial routing.", staff.PractitionerId);
+                        continue;
+                    }
+
+                    double startLat = staff.Latitude.Value;
+                    double startLon = staff.Longitude.Value;
 
                     var anchorAddr = anchor
                         ?.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)

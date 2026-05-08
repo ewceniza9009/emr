@@ -276,8 +276,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setPatientId("");
       setPatientSearch("");
       setPatientAddress({ street: "", city: "", state: "", postalCode: "" });
-      const userPracId = (session?.user as any)?.practitionerId;
-      setPractitionerId(userPracId || "");
+      setPractitionerId("");
       setSupportingIds([]);
       setPlannedAssessments([]);
       setPeriod(null);

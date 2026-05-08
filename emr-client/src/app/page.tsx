@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import {
@@ -46,7 +46,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#02040a] text-slate-400 font-sans selection:bg-[var(--primary)] selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#020617] text-slate-400 font-sans selection:bg-[var(--primary)] selection:text-white overflow-x-hidden">
       {/* AMBIENT BACKGROUND GLOWS */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[var(--primary)]/5 rounded-full blur-[160px] animate-pulse" />
@@ -62,12 +62,15 @@ export default function HomePage() {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3 group cursor-pointer"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--primary)] to-blue-600 flex items-center justify-center shadow-xl shadow-[var(--primary-glow)]/40 group-hover:scale-110 transition-transform duration-500">
-              <ShieldCheck className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary-glow)] animate-halcyon-pulse group-hover:scale-110 transition-transform duration-500">
+              <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z" />
+                <path d="M8 12h3l1-3 2 6 1-3h2" />
+              </svg>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black text-white tracking-tighter leading-none">HALCYON</span>
-              <span className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em] mt-1">Clinical OS</span>
+              <span className="text-xl font-bold text-white tracking-tight leading-none uppercase">HALCYON</span>
+              <span className="text-[8px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] mt-1">Clinical OS</span>
             </div>
           </motion.div>
 
@@ -84,10 +87,10 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/admin" className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-400 transition-all mr-2">
+            <Link href="/admin" className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-400 transition-all mr-2">
               Admin Portal
             </Link>
-            <Link href="/login" className="h-11 px-8 bg-[var(--primary)] text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-xl flex items-center justify-center hover:scale-105 transition-all shadow-[0_0_30px_var(--primary-glow)] group">
+            <Link href="/login" className="h-11 px-8 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[11px] font-bold uppercase tracking-[0.2em] rounded-xl flex items-center justify-center shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] active:scale-[0.98] group">
               Launch App
               <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -129,9 +132,9 @@ export default function HomePage() {
               <span className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.4em]">System Status: Online</span>
             </motion.div>
 
-            <motion.h1 variants={itemVariants} className="text-7xl lg:text-[120px] font-black text-white leading-[0.9] tracking-[-0.05em] mb-12 max-w-6xl">
-              <span className="inline-block text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/20">The future of</span> <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] via-blue-400 to-emerald-400 animate-gradient-x">clinical operations.</span>
+            <motion.h1 variants={itemVariants} className="text-7xl lg:text-[110px] font-bold text-white leading-[1] tracking-tight mb-8 max-w-6xl drop-shadow-2xl">
+              <span className="inline-block text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">The future of</span> <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-emerald-400 animate-gradient-x drop-shadow-[0_0_40px_var(--primary-glow)]">clinical operations.</span>
             </motion.h1>
 
             <motion.p variants={itemVariants} className="text-xl lg:text-2xl text-slate-400 font-medium leading-relaxed mb-16 max-w-3xl">
@@ -139,11 +142,11 @@ export default function HomePage() {
             </motion.p>
 
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-6">
-              <Link href="/login" className="h-16 px-12 bg-white text-black text-[11px] font-black uppercase tracking-[0.25em] rounded-2xl flex items-center justify-center hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] transition-all group">
+              <Link href="/login" className="h-16 px-12 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[12px] font-bold uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center group shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] hover:shadow-[0_20px_50px_-10px_var(--primary-glow)] active:scale-[0.98]">
                 Get Started
-                <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1.5 transition-transform" />
               </Link>
-              <Link href="#engine" className="h-16 px-12 bg-white/[0.03] border border-white/10 text-white text-[11px] font-black uppercase tracking-[0.25em] rounded-2xl flex items-center justify-center hover:bg-white/[0.08] transition-all backdrop-blur-md">
+              <Link href="#engine" className="h-16 px-12 bg-slate-900/40 border border-slate-800 text-white text-[12px] font-bold uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:bg-slate-800/60 hover:border-slate-700 transition-all backdrop-blur-md shadow-inner">
                 See Features
               </Link>
             </motion.div>
@@ -172,9 +175,9 @@ export default function HomePage() {
             >
               <div className="inline-flex items-center gap-3 mb-8">
                 <div className="w-12 h-px bg-[var(--primary)]" />
-                <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.4em]">Core Architecture</span>
+                <span className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.4em]">Core Architecture</span>
               </div>
-              <h2 className="text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight mb-8">
+              <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight mb-8">
                 Distributed data. <br />Centralized control.
               </h2>
               <p className="text-lg text-slate-500 leading-relaxed mb-12">
@@ -188,8 +191,8 @@ export default function HomePage() {
                 ].map((item, i) => (
                   <div key={i} className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5">
                     <item.icon className="w-5 h-5 text-[var(--primary)] mb-4" />
-                    <p className="text-2xl font-black text-white mb-1">{item.val}</p>
-                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">{item.label}</p>
+                    <p className="text-2xl font-bold text-white mb-1">{item.val}</p>
+                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">{item.label}</p>
                   </div>
                 ))}
               </div>
@@ -224,7 +227,7 @@ export default function HomePage() {
                       className="h-full w-1/2 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent"
                     />
                   </div>
-                  <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mt-4 text-center">Encrypted Telemetry Stream</p>
+                  <p className="text-[8px] font-bold text-slate-600 uppercase tracking-[0.3em] mt-4 text-center">Encrypted Telemetry Stream</p>
                 </div>
               </div>
             </motion.div>
@@ -236,8 +239,8 @@ export default function HomePage() {
       <section id="network" className="py-32 border-y border-white/[0.03] bg-white/[0.01]">
         <div className="max-w-7xl mx-auto px-8">
           <div className="text-center mb-24">
-            <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.5em] mb-6 block">Capability Matrix</span>
-            <h2 className="text-5xl font-black text-white tracking-tighter">Unified clinical workflows.</h2>
+            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.5em] mb-6 block">Capability Matrix</span>
+            <h2 className="text-5xl font-bold text-white tracking-tighter">Unified clinical workflows.</h2>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -255,7 +258,7 @@ export default function HomePage() {
                 <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-[var(--primary)]/10 transition-all">
                   <card.icon className="w-6 h-6 text-slate-400 group-hover:text-[var(--primary)]" />
                 </div>
-                <h3 className="text-sm font-black text-white uppercase tracking-widest mb-4">{card.title}</h3>
+                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4">{card.title}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed mb-8">{card.desc}</p>
                 <div className="h-px w-8 bg-white/10 group-hover:w-full group-hover:bg-[var(--primary)] transition-all duration-700" />
               </motion.div>
@@ -270,7 +273,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-8 relative z-10">
           <div className="flex flex-col items-center text-center">
             <Globe className="w-12 h-12 text-[var(--primary)] opacity-20 mb-12 animate-pulse" />
-            <h2 className="text-5xl lg:text-7xl font-black text-white tracking-tighter mb-16 max-w-4xl">
+            <h2 className="text-5xl lg:text-7xl font-bold text-white tracking-tighter mb-16 max-w-4xl">
               Engineered for the <span className="text-slate-700 italic">mission critical.</span>
             </h2>
 
@@ -281,8 +284,8 @@ export default function HomePage() {
                 { label: "Security Layer", val: "AES-256" }
               ].map((stat, i) => (
                 <div key={i}>
-                  <p className="text-4xl font-black text-white mb-3 tracking-tighter">{stat.val}</p>
-                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">{stat.label}</p>
+                  <p className="text-4xl font-bold text-white mb-3 tracking-tighter">{stat.val}</p>
+                  <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.3em]">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -304,11 +307,11 @@ export default function HomePage() {
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
 
             <div className="relative z-10 flex flex-col items-center text-center">
-              <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tight mb-8">Ready to modernize?</h2>
+              <h2 className="text-4xl lg:text-5xl font-bold text-white tracking-tight mb-8">Ready to modernize?</h2>
               <p className="text-white/70 text-lg mb-12 font-medium">Join the fleet of high-performance clinical teams running on Halcyon.</p>
-              <Link href="/login" className="h-16 px-12 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:scale-105 transition-all shadow-3xl shadow-black/20 group">
+              <Link href="/login" className="h-16 px-12 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[12px] font-bold uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center group shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] hover:shadow-[0_20px_50px_-10px_var(--primary-glow)] active:scale-[0.98]">
                 Get Started Now
-                <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1.5 transition-transform" />
               </Link>
             </div>
           </motion.div>
@@ -323,12 +326,12 @@ export default function HomePage() {
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="text-xl font-black text-white tracking-tighter block leading-none">Halcyon</span>
-              <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest">Next-Gen Protocol</span>
+              <span className="text-xl font-bold text-white tracking-tighter block leading-none">Halcyon</span>
+              <span className="text-[8px] font-bold text-slate-700 uppercase tracking-widest">Next-Gen Protocol</span>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-10 text-[10px] font-black text-slate-700 uppercase tracking-widest">
+          <div className="flex flex-wrap items-center justify-center gap-10 text-[10px] font-bold text-slate-700 uppercase tracking-widest">
             {['Status', 'Security', 'Privacy', 'Network', 'API', 'Legal'].map(link => (
               <Link key={link} href="#" className="hover:text-[var(--primary)] transition-colors tracking-[0.2em]">{link}</Link>
             ))}
@@ -336,8 +339,8 @@ export default function HomePage() {
           </div>
 
           <div className="text-right">
-            <p className="text-[9px] font-black text-slate-800 uppercase tracking-widest leading-relaxed">
-              © 2026 Halcyon Clinical Technologies <br />
+            <p className="text-[9px] font-bold text-slate-800 uppercase tracking-widest leading-relaxed">
+              � 2026 Halcyon Clinical Technologies <br />
               All Vector Units Reserved.
             </p>
           </div>

@@ -847,43 +847,24 @@ namespace Infrastructure.Data
                         {
                             Street = "", // Set below
                             City = faker.PickRandom(
-                                "Quezon City",
-                                "Manila",
-                                "Makati",
                                 "Cebu City",
-                                "Mandaue City"
+                                "Mandaue City",
+                                "Lapu-Lapu City"
                             ),
-                            State = faker.PickRandom("Metro Manila", "Central Visayas"),
+                            State = "Central Visayas",
                         },
                     };
 
-                    // Dynamic coordinate and real street assignment based on city/state
-                    if (entityAddr.Address.State == "Central Visayas")
-                    {
-                        entityAddr.Address.Street = faker.PickRandom(
-                            "Osmeña Blvd",
-                            "Escario St",
-                            "Gorordo Ave",
-                            "Colon St",
-                            "Mango Ave",
-                            "M.C. Briones St"
-                        );
-                        entityAddr.Address.Latitude = faker.Address.Latitude(10.29, 10.33);
-                        entityAddr.Address.Longitude = faker.Address.Longitude(123.88, 123.92);
-                    }
-                    else
-                    {
-                        entityAddr.Address.Street = faker.PickRandom(
-                            "Ayala Ave",
-                            "Roxas Blvd",
-                            "EDSA",
-                            "Taft Ave",
-                            "Shaw Blvd",
-                            "Ortigas Ave"
-                        );
-                        entityAddr.Address.Latitude = faker.Address.Latitude(14.55, 14.65);
-                        entityAddr.Address.Longitude = faker.Address.Longitude(120.95, 121.05);
-                    }
+                    entityAddr.Address.Street = faker.PickRandom(
+                        "Osmeña Blvd",
+                        "Escario St",
+                        "Gorordo Ave",
+                        "Colon St",
+                        "Mango Ave",
+                        "M.C. Briones St"
+                    );
+                    entityAddr.Address.Latitude = faker.Address.Latitude(10.29, 10.33);
+                    entityAddr.Address.Longitude = faker.Address.Longitude(123.88, 123.92);
                     entityAddr.Address.PostalCode = faker.Address.ZipCode();
                     context.EntityAddresses.Add(entityAddr);
                 }
@@ -1032,37 +1013,19 @@ namespace Infrastructure.Data
                         x => x.MailingAddress,
                         (f, u) =>
                         {
-                            var city = f.PickRandom(
-                                "Quezon City",
-                                "Manila",
-                                "Cebu City",
-                                "Lapu-Lapu City"
-                            );
-                            var isCebu = city.Contains("Cebu") || city.Contains("Lapu-Lapu");
                             return new Address
                             {
-                                Street = isCebu
-                                    ? f.PickRandom(
-                                        "Salinas Dr",
-                                        "Banilad Rd",
-                                        "V. Rama Ave",
-                                        "B. Rodriguez St"
-                                    )
-                                    : f.PickRandom(
-                                        "España Blvd",
-                                        "Katipunan Ave",
-                                        "McArthur Highway",
-                                        "Quirino Ave"
-                                    ),
-                                City = city,
-                                State = isCebu ? "Central Visayas" : "Metro Manila",
+                                Street = f.PickRandom(
+                                    "Salinas Dr",
+                                    "Banilad Rd",
+                                    "V. Rama Ave",
+                                    "B. Rodriguez St"
+                                ),
+                                City = f.PickRandom("Cebu City", "Lapu-Lapu City", "Mandaue City"),
+                                State = "Central Visayas",
                                 PostalCode = f.Address.ZipCode(),
-                                Latitude = isCebu
-                                    ? f.Address.Latitude(10.29, 10.33)
-                                    : f.Address.Latitude(14.55, 14.65),
-                                Longitude = isCebu
-                                    ? f.Address.Longitude(123.88, 123.92)
-                                    : f.Address.Longitude(120.95, 121.05),
+                                Latitude = f.Address.Latitude(10.29, 10.33),
+                                Longitude = f.Address.Longitude(123.88, 123.92),
                             };
                         }
                     )
@@ -1128,37 +1091,20 @@ namespace Infrastructure.Data
                         x => x.Address,
                         (f, u) =>
                         {
-                            var city = f.PickRandom(
-                                "Quezon City",
-                                "Makati",
-                                "Cebu City",
-                                "Mandaue City"
-                            );
-                            var isCebu = city.Contains("Cebu") || city.Contains("Mandaue");
                             return new Address
                             {
-                                Street = isCebu
-                                    ? f.PickRandom(
-                                        "A.S. Fortuna St",
-                                        "Hernan Cortes St",
-                                        "Plaridel St",
-                                        "S.B. Cabahug St"
-                                    )
-                                    : f.PickRandom(
-                                        "Jupiter St",
-                                        "Paseo de Roxas",
-                                        "Kalayaan Ave",
-                                        "Sen. Gil Puyat Ave"
-                                    ),
-                                City = city,
-                                State = isCebu ? "Central Visayas" : "Metro Manila",
+                                Street = f.PickRandom(
+                                    "A.S. Fortuna St",
+                                    "Hernan Cortes St",
+                                    "Plaridel St",
+                                    "S.B. Cabahug St",
+                                    "Osmeña Blvd"
+                                ),
+                                City = f.PickRandom("Cebu City", "Mandaue City", "Lapu-Lapu City"),
+                                State = "Central Visayas",
                                 PostalCode = f.Address.ZipCode(),
-                                Latitude = isCebu
-                                    ? f.Address.Latitude(10.29, 10.33)
-                                    : f.Address.Latitude(14.55, 14.65),
-                                Longitude = isCebu
-                                    ? f.Address.Longitude(123.88, 123.92)
-                                    : f.Address.Longitude(120.95, 121.05),
+                                Latitude = f.Address.Latitude(10.29, 10.33),
+                                Longitude = f.Address.Longitude(123.88, 123.92),
                             };
                         }
                     )

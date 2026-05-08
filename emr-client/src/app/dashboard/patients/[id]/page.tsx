@@ -723,9 +723,13 @@ export default function PatientDetailPage() {
                               </span>
                             </div>
                             <div className="flex items-center gap-4">
-                              <span className="flex items-center gap-1.5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                              <span className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                                 <Clock className="w-3.5 h-3.5" />
                                 {new Date(appt.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              <span className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                                <User className="w-3.5 h-3.5" />
+                                {appt.practitioner ? `${appt.practitioner.firstName} ${appt.practitioner.lastName}` : 'Unassigned'}
                               </span>
                             </div>
                           </div>
