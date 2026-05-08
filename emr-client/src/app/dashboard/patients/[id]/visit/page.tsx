@@ -27,7 +27,8 @@ import {
   FileText,
   UserCheck,
   RefreshCcw,
-  Users
+  Users,
+  MapPin
 } from "lucide-react";
 import { ToastProvider } from "@/components/ToastProvider";
 import ProblemList from "@/components/ProblemList";
@@ -96,6 +97,8 @@ const GET_APPOINTMENT_DETAILS = gql`
     appointment(id: $id) {
       appointmentId
       scheduledStart
+      visitType
+      modality
       practitioner {
         firstName
         lastName
@@ -481,6 +484,21 @@ export default function GuidedVisitPage() {
                 <span className="opacity-30">•</span>
                 <span>{patient?.dob && new Date(patient.dob).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
               </div>
+              {appointment?.visitType && (
+                <>
+                  <div className="w-px h-3 bg-[var(--divider-color)]" />
+                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[8px] font-black uppercase tracking-wider">
+                    <ClipboardList className="w-2.5 h-2.5" />
+                    {appointment.visitType.replace(/_/g, ' ')}
+                  </span>
+                </>
+              )}
+              {appointment?.modality && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[8px] font-black uppercase tracking-wider">
+                  <MapPin className="w-2.5 h-2.5" />
+                  {appointment.modality.replace(/_/g, ' ')}
+                </span>
+              )}
             </div>
           </div>
         </div>

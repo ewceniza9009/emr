@@ -33,7 +33,8 @@ import {
   User,
   FileText,
   Trash2,
-  Thermometer
+  Thermometer,
+
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import * as signalR from "@microsoft/signalr";
@@ -138,6 +139,7 @@ const GET_PATIENT_APPOINTMENTS = gql`
         scheduledEnd
         status
         modality
+        visitType
         practitioner {
           firstName
           lastName
@@ -201,7 +203,7 @@ export default function PatientDetailPage() {
   const [showEmergencyDrawer, setShowEmergencyDrawer] = useState(false);
   const [isEmergency, setIsEmergency] = useState(false);
   const [showBreakGlass, setShowBreakGlass] = useState(false);
-  
+
   // IoT Telemetry State
   const [vitals, setVitals] = useState({ hr: 72, spo2: 98, temp: 98.6 });
   const [telemetryData, setTelemetryData] = useState<any[]>([]);
@@ -221,14 +223,14 @@ export default function PatientDetailPage() {
         await connection.start();
         setIsIotConnected(true);
         await connection.invoke("JoinPatientStream", params.id);
-        
+
         connection.on("ReceiveVitals", (data: any) => {
           const newVital = {
             hr: data.heartRate,
             spo2: data.spO2,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
           };
-          
+
           setVitals(prev => ({
             ...prev,
             hr: data.heartRate,
@@ -346,14 +348,14 @@ export default function PatientDetailPage() {
           <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:scale-110 transition-transform duration-1000">
             <LockIcon className="w-64 h-64" />
           </div>
-          
+
           <div className="relative z-10 space-y-6 max-w-2xl">
             <h3 className="text-xl font-bold text-white tracking-tight uppercase">Patient record is restricted</h3>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Your current session does not have an active clinical assignment for this patient. 
+              Your current session does not have an active clinical assignment for this patient.
               To protect patient privacy, full chart access is restricted to the assigned Care Team.
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
               <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col gap-3">
                 <div className="text-xs font-black text-slate-500 uppercase tracking-widest">Option 01</div>
@@ -376,7 +378,7 @@ export default function PatientDetailPage() {
                 <Zap className="w-4 h-4" />
                 Initialize Emergency Bypass
               </button>
-              
+
               <Link
                 href="/dashboard/patients"
                 className="px-8 py-3 rounded-xl bg-white/[0.05] text-slate-400 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] hover:text-white hover:bg-white/10 transition-all"
@@ -393,10 +395,10 @@ export default function PatientDetailPage() {
           </p>
         </div>
 
-        <BreakGlassDrawer 
-          open={showBreakGlass} 
-          onClose={() => setShowBreakGlass(false)} 
-          onSuccess={() => refetch()} 
+        <BreakGlassDrawer
+          open={showBreakGlass}
+          onClose={() => setShowBreakGlass(false)}
+          onSuccess={() => refetch()}
         />
       </div>
     );
@@ -447,8 +449,8 @@ export default function PatientDetailPage() {
         </div>
         <div className="flex items-center gap-3">
           <div className={`px-3 py-1.5 rounded-lg border flex items-center gap-2 transition-all duration-500 ${isEmergency
-              ? "bg-red-500/10 border-red-500/30 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.2)]"
-              : "bg-emerald-500/10 border-emerald-500/20"
+            ? "bg-red-500/10 border-red-500/30 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+            : "bg-emerald-500/10 border-emerald-500/20"
             }`}>
             <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isEmergency ? "bg-red-500" : "bg-emerald-500"}`} />
             <span className={`text-[9px] font-black uppercase tracking-widest ${isEmergency ? "text-red-500" : "text-emerald-500"}`}>
@@ -473,8 +475,8 @@ export default function PatientDetailPage() {
           <button
             onClick={() => setShowEmergencyDrawer(true)}
             className={`px-6 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all ${isEmergency
-                ? "bg-red-600 shadow-red-600/30 animate-pulse ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950"
-                : "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90"
+              ? "bg-red-600 shadow-red-600/30 animate-pulse ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950"
+              : "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90"
               }`}
           >
             {isEmergency ? "Protocol Active" : "Emergency Action"}
@@ -732,15 +734,51 @@ export default function PatientDetailPage() {
                                 {appt.practitioner ? `${appt.practitioner.firstName} ${appt.practitioner.lastName}` : 'Unassigned'}
                               </span>
                             </div>
+                            {(appt.visitType || appt.modality) && (
+                              <div className="flex items-center gap-2 mt-2">
+                                {appt.visitType && (
+                                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[8px] font-black uppercase tracking-wider">
+                                    <ClipboardList className="w-2.5 h-2.5" />
+                                    {appt.visitType.replace(/_/g, ' ')}
+                                  </span>
+                                )}
+                                {appt.modality && (
+                                  <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[8px] font-black uppercase tracking-wider">
+                                    <MapPin className="w-2.5 h-2.5" />
+                                    {appt.modality.replace(/_/g, ' ')}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Link
-                            href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
-                            className="px-6 py-3 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-[var(--primary-glow)] flex items-center gap-2"
-                          >
-                            <Stethoscope className="w-4 h-4" /> Start Visit
-                          </Link>
+                          <div className="flex items-center gap-3">
+                            {appt.status?.toUpperCase().includes('COMPLETE') || appt.status?.toUpperCase() === 'DONE' ? (
+                              <button
+                                onClick={() => {
+                                  setSummaryAppointmentId(appt.appointmentId);
+                                  setIsSummaryOpen(true);
+                                }}
+                                className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                              >
+                                <ClipboardList className="w-4 h-4" /> View Summary
+                              </button>
+                            ) : (
+                              <Link
+                                href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
+                                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 ${appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE'
+                                  ? 'bg-rose-500 text-white shadow-rose-500/30 animate-pulse hover:bg-rose-600'
+                                  : 'bg-[var(--primary)] text-white shadow-[var(--primary-glow)] hover:opacity-90'
+                                  }`}
+                              >
+                                <Stethoscope className="w-4 h-4" />
+                                {appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE'
+                                  ? 'Join Session'
+                                  : 'Start Visit'}
+                              </Link>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -787,12 +825,12 @@ export default function PatientDetailPage() {
                             <AreaChart data={telemetryData}>
                               <defs>
                                 <linearGradient id="colorHr" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
-                                  <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                                  <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
+                                  <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                                 </linearGradient>
                                 <linearGradient id="colorSpo2" x1="0" y1="0" x2="0" y2="1">
-                                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                                 </linearGradient>
                               </defs>
                               <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
@@ -864,22 +902,22 @@ export default function PatientDetailPage() {
                           const allDocs = [...(patient.documents || [])];
                           // Broaden search: Find ANY POA document for this patient
                           let displayDocs = allDocs.filter((d: any) => d.documentType === 'POA' || d.title?.toUpperCase().includes('POA'));
-                          
+
                           // NEW: Azurite Sovereignty - if we have even one Azurite link, kill all legacy paths
                           const hasAzurite = displayDocs.some((d: any) => d.storageUrl?.toLowerCase().includes('http'));
                           if (hasAzurite) {
                             displayDocs = displayDocs.filter((d: any) => d.storageUrl?.toLowerCase().includes('http'));
                           }
-                          
+
                           const poaDoc = displayDocs.sort((a: any, b: any) => {
                             // ULTRA PRIORITY: Any new Azurite link (http)
                             const aIsAzurite = a.storageUrl?.toLowerCase().includes('http');
                             const bIsAzurite = b.storageUrl?.toLowerCase().includes('http');
-                            
+
                             // If one is Azurite and the other is legacy, Azurite ALWAYS wins
                             if (bIsAzurite && !aIsAzurite) return 1;
                             if (aIsAzurite && !bIsAzurite) return -1;
-                            
+
                             // If both are the same type, use date
                             const aDate = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
                             const bDate = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
@@ -887,7 +925,7 @@ export default function PatientDetailPage() {
                           })[0];
 
                           // ALWAYS use the API proxy for viewing to ensure correct headers/PDF viewing
-                          const href = poaDoc 
+                          const href = poaDoc
                             ? `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${poaDoc.patientDocumentId}`
                             : '#';
 
@@ -930,20 +968,26 @@ export default function PatientDetailPage() {
       <AddContactDrawer
         isOpen={showAddContact}
         onClose={() => { setShowAddContact(false); setEditingContact(null); }}
-        onSuccess={async () => { 
-          await refetch(); 
-          setShowAddContact(false); 
+        onSuccess={async () => {
+          await refetch();
+          setShowAddContact(false);
           setEditingContact(null);
         }}
         patientId={params.id as string}
         initialData={editingContact}
-        existingPoaFile={editingContact ? (patient.documents || []).find((d: any) => 
+        existingPoaFile={editingContact ? (patient.documents || []).find((d: any) =>
           d.patientContactId === editingContact.patientContactId && (d.documentType === 'POA' || d.title?.toUpperCase().includes('POA'))
         )?.title : undefined}
       />
 
       <EditDemographicsDrawer open={showEditDemographics} onClose={() => setShowEditDemographics(false)} onSuccess={() => refetch()} patient={patient} />
       <EditCommunicationsDrawer open={showEditCommunications} onClose={() => setShowEditCommunications(false)} onSuccess={() => refetch()} patient={patient} />
+      <VisitSummaryDrawer
+        isOpen={isSummaryOpen}
+        onClose={() => { setIsSummaryOpen(false); setSummaryAppointmentId(null); }}
+        patientId={params.id as string}
+        appointmentId={summaryAppointmentId ?? ""}
+      />
       <EmergencyActionDrawer open={showEmergencyDrawer} onClose={() => setShowEmergencyDrawer(false)} patient={patient} onEscalate={() => setIsEmergency(true)} />
       <BreakGlassDrawer open={showBreakGlass} onClose={() => setShowBreakGlass(false)} onSuccess={() => refetch()} />
     </div>

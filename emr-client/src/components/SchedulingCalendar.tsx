@@ -56,8 +56,6 @@ const getStatusConfig = (statusStr: string) => {
   return { label: "SCHED", bg: "bg-[var(--input-bg)]", border: "border-[var(--card-border)]", text: "text-[var(--text-muted)]", dot: "bg-[var(--text-muted)]/40", isLive: false };
 };
 
-// â”€â”€â”€ GraphQL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 const GET_SCHEDULE_DATA = gql`
   query GetScheduleData($startDate: DateTime!, $endDate: DateTime!) {
     appointments(startDate: $startDate, endDate: $endDate) {
@@ -505,10 +503,10 @@ export default function SchedulingCalendar() {
                     {dayBlocks.map((block: any) => {
                       const start = new Date(block.startTime);
                       const end = new Date(block.endTime);
-                      
+
                       const blockHour = parseInt(formatInTimeZone(start, CLINICAL_CONFIG.TIMEZONE, "H"));
                       const blockMinute = parseInt(formatInTimeZone(start, CLINICAL_CONFIG.TIMEZONE, "m"));
-                      
+
                       const startMin = (blockHour - GRID_CONFIG.START_HOUR) * 60 + blockMinute;
                       const durMin = (end.getTime() - start.getTime()) / 60000;
                       const topPx = startMin * (GRID_CONFIG.ROW_HEIGHT / 60);

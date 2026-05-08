@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useCommandModal } from "./CommandModalProvider";
 import { format, addMinutes } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import Link from "next/link";
 import {
   X, Calendar, Clock, User, MapPin, Video, Home,
   Building2, CheckCircle, Car, Search, ChevronRight,
@@ -314,7 +315,6 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     return () => clearTimeout(handler);
   }, [duration, selectedDate, modality]);
 
-  // RESET STATE WHEN APPOINTMENT ID CHANGES TO PREVENT STALE DATA
   useEffect(() => {
     if (appointmentId) {
       setPatientId("");
@@ -466,8 +466,6 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData, scSearch]);
 
   const selectedSlot = useMemo(() => {
-    // If we are editing an existing appointment, and the practitioner hasn't changed, 
-    // prioritize the persisted travel/distance data to avoid UI flickering/inconsistency.
     const isEditingExisting = !!appointmentId && !!appointmentData?.appointment;
     const samePractitioner = isEditingExisting && appointmentData.appointment.practitionerId === practitionerId;
 
@@ -601,6 +599,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
   if (!open) return null;
 
+  const status = appointmentData?.appointment?.status?.toUpperCase();
+  const isLive = status === "LIVE" || status?.includes("PROGRESS");
+
   return (
     <HalcyonPortal>
       <div className="fixed inset-0 !m-0 !p-0 z-[9999999] flex justify-end overflow-hidden">
@@ -619,6 +620,18 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               </div>
             </div>
             <div className="flex items-center gap-6">
+              {appointmentId && (() => {
+                  const status = appointmentData?.appointment?.status?.toUpperCase();
+                  return (status === "LIVE" || status?.includes("PROGRESS")) && (
+                    <Link
+                      href={`/dashboard/patients/${appointmentData?.appointment?.patientId}/visit?appointmentId=${appointmentId}`}
+                      className="px-5 py-2.5 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all flex items-center gap-2 animate-pulse"
+                    >
+                      <Video className="w-4 h-4" />
+                      Join Session
+                    </Link>
+                  );
+                })()}
               <div className="flex items-center gap-2 px-4 py-2 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)]">
                 <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />
                 <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Booking Engine Active</span>
@@ -1280,7 +1293,6 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         type: "warning"
                       });
                       if (ok) {
-                        // cancellation logic here
                       }
                     }} className="p-3 bg-[var(--input-bg)] hover:bg-rose-500/10 rounded-xl border border-[var(--card-border)] hover:border-rose-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
                       <X className="w-4 h-4 text-rose-500" />
@@ -1338,4 +1350,3 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     </HalcyonPortal>
   );
 }
-

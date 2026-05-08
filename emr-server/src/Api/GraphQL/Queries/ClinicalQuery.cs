@@ -140,7 +140,10 @@ public class ClinicalQuery
     )
     {
         return context
-            .AssessmentResponses.Include(r => r.Questionnaire)
+            .AssessmentResponses
+            .Include(r => r.Questionnaire)
+                .ThenInclude(q => q.Questions)
+            .Include(r => r.Assessor)
             .AsNoTracking()
             .Where(r => r.EncounterId == encounterId);
     }
