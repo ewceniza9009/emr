@@ -2,6 +2,8 @@
 
 import { useQuery, gql } from "@apollo/client";
 import AssessmentDetailModal from "./AssessmentDetailModal";
+import DirectiveDetailModal from "./DirectiveDetailModal";
+import SpiritualDetailModal from "./SpiritualDetailModal";
 import {
   X,
   Printer,
@@ -89,7 +91,7 @@ const GET_VISIT_SUMMARY = gql`
 `;
 
 const GET_ASSESSMENT_RESPONSES = gql`
-  query GetAssessmentResponses($encounterId: UUID!) {
+  query GetAssessmentResponses($encounterId: UUID!, $patientId: UUID!) {
     assessmentResponses: assessmentResponsesByEncounter(encounterId: $encounterId) {
       assessmentResponseId
       totalScore
@@ -113,6 +115,20 @@ const GET_ASSESSMENT_RESPONSES = gql`
         }
       }
     }
+    spiritualAssessments: spiritualAssessmentsByEncounter(encounterId: $encounterId) {
+      spiritualAssessmentId
+      faith
+      importance
+      community
+      addressInCare
+      religiousPreference
+    }
+    advanceDirectives: advanceDirectivesByPatient(patientId: $patientId) {
+      advanceDirectiveId
+      type
+      notes
+      effectiveDate
+    }
   }
 `;
 
@@ -135,12 +151,14 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
   const esas = data?.esasHistory?.find((e: any) => e.encounterId === encounter?.encounterId);
 
   const { data: assessmentData } = useQuery(GET_ASSESSMENT_RESPONSES, {
-    variables: { encounterId: encounter?.encounterId },
+    variables: { encounterId: encounter?.encounterId, patientId },
     skip: !encounter?.encounterId
   });
 
   const [downloading, setDownloading] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
+  const [selectedDirective, setSelectedDirective] = useState<any>(null);
+  const [selectedSpiritual, setSelectedSpiritual] = useState<any>(null);
 
   const handleDownloadPdf = async () => {
     if (!appointmentId) return;
@@ -317,7 +335,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                   </div>
 
                   {/* Dynamic Clinical Assessments */}
-                  {assessmentData?.assessmentResponses?.length > 0 && (
+                  {(assessmentData?.assessmentResponses?.length > 0 || assessmentData?.spiritualAssessments?.length > 0) && (
                     <div className="space-y-6">
                       <div className="flex items-center gap-4">
                         <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] flex items-center gap-2.5">
@@ -327,7 +345,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                         <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--card-border)] to-transparent" />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {assessmentData.assessmentResponses.map((res: any) => (
+                        {assessmentData.assessmentResponses?.map((res: any) => (
                           <button
                             key={res.assessmentResponseId}
                             onClick={() => setSelectedAssessment(res)}
@@ -343,6 +361,68 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                             <span className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                               View Full Breakdown →
                             </span>
+                          </button>
+                        ))}
+                        
+                        {assessmentData.spiritualAssessments?.map((s: any) => (
+                          <button
+                            key={s.spiritualAssessmentId}
+                            onClick={() => setSelectedSpiritual(s)}
+                            className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)] relative overflow-hidden group hover:border-indigo-500/40 hover:bg-indigo-500/5 transition-all text-left cursor-pointer"
+                          >
+                             <div className="absolute top-0 right-0 p-3 group-hover:scale-110 transition-transform">
+                               <Wind className="w-4 h-4 text-indigo-400/30 group-hover:text-indigo-400" />
+                             </div>
+                             <h5 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest mb-3">Spiritual Assessment (FICA)</h5>
+                             <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">Faith</p>
+                                  <p className="text-[9px] font-bold text-[var(--text-primary)] truncate">{s.faith || 'N/A'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">Community</p>
+                                  <p className="text-[9px] font-bold text-[var(--text-primary)] truncate">{s.community || 'N/A'}</p>
+                                </div>
+                             </div>
+                             <div className="mt-4 pt-3 border-t border-[var(--card-border)]">
+                               <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Full History →</span>
+                             </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Advance Directives Section */}
+                  {assessmentData?.advanceDirectives?.length > 0 && (
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-4">
+                        <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] flex items-center gap-2.5">
+                          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                          Legal Care Planning
+                        </h4>
+                        <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--card-border)] to-transparent" />
+                      </div>
+                      <div className="grid grid-cols-1 gap-4">
+                        {assessmentData.advanceDirectives.map((d: any) => (
+                          <button
+                            key={d.advanceDirectiveId}
+                            onClick={() => setSelectedDirective(d)}
+                            className="w-full p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 hover:border-emerald-500/40 hover:bg-emerald-500/10 transition-all flex items-center justify-between group cursor-pointer text-left"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                                <FileText className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">{d.type.replace(/_/g, ' ')}</p>
+                                <p className="text-[9px] text-[var(--text-muted)] font-medium mt-1 line-clamp-1">{d.notes || 'Documented on ' + new Date(d.effectiveDate).toLocaleDateString()}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">View Details →</span>
+                              <span className="px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest">Active</span>
+                            </div>
                           </button>
                         ))}
                       </div>
@@ -450,6 +530,18 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
         isOpen={!!selectedAssessment}
         onClose={() => setSelectedAssessment(null)}
         assessment={selectedAssessment}
+      />
+
+      <DirectiveDetailModal
+        isOpen={!!selectedDirective}
+        onClose={() => setSelectedDirective(null)}
+        directive={selectedDirective}
+      />
+
+      <SpiritualDetailModal
+        isOpen={!!selectedSpiritual}
+        onClose={() => setSelectedSpiritual(null)}
+        spiritual={selectedSpiritual}
       />
     </>
   );

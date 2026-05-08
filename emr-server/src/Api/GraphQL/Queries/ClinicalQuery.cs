@@ -131,6 +131,38 @@ public class ClinicalQuery
 
     [UseFiltering]
     [UseSorting]
+    [GraphQLName("spiritualAssessmentsByEncounter")]
+    [UseClinicalAccess(argumentName: "encounterId", source: ClinicalIdSource.Encounter)]
+    public async Task<IQueryable<SpiritualAssessment>> GetSpiritualAssessmentsByEncounter(
+        Guid encounterId,
+        [Service] IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        return context
+            .SpiritualAssessments
+            .AsNoTracking()
+            .Where(r => r.EncounterId == encounterId);
+    }
+
+    [UseFiltering]
+    [UseSorting]
+    [GraphQLName("advanceDirectivesByPatient")]
+    [UseClinicalAccess]
+    public async Task<IQueryable<AdvanceDirective>> GetAdvanceDirectivesByPatient(
+        Guid patientId,
+        [Service] IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        return context
+            .AdvanceDirectives
+            .AsNoTracking()
+            .Where(r => r.PatientId == patientId);
+    }
+
+    [UseFiltering]
+    [UseSorting]
     [GraphQLName("assessmentResponsesByEncounter")]
     [UseClinicalAccess(argumentName: "encounterId", source: ClinicalIdSource.Encounter)]
     public async Task<IQueryable<AssessmentResponse>> GetAssessmentResponsesByEncounter(

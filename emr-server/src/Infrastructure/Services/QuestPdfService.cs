@@ -661,6 +661,24 @@ public class QuestPdfService : IPdfService
                     .FirstOrDefaultAsync(i => i.EncounterId == encounter.EncounterId)
                 : null;
 
+        var spiritual = encounter != null 
+            ? await _context.SpiritualAssessments
+                .IgnoreQueryFilters()
+                .Where(s => s.EncounterId == encounter.EncounterId)
+                .FirstOrDefaultAsync()
+            : null;
+
+        var directives = await _context.AdvanceDirectives
+            .IgnoreQueryFilters()
+            .Where(d => d.PatientId == patient.PatientId)
+            .ToListAsync();
+
+        var sdoh = await _context.SdohAssessments
+            .IgnoreQueryFilters()
+            .Where(s => s.CareNavigationCase.PatientId == patient.PatientId)
+            .OrderByDescending(s => s.AssessedAt)
+            .FirstOrDefaultAsync();
+
         var document = Document.Create(container =>
         {
             container.Page(page =>
@@ -903,7 +921,102 @@ public class QuestPdfService : IPdfService
                             col.Item().PaddingBottom(10);
                         }
 
-                        // Section 3b: Symptom Burden Analysis (Legacy ESAS)
+                        // Section 3b: Spiritual Assessment (FICA)
+                        if (spiritual != null)
+                        {
+                            col.Item()
+                                .PaddingBottom(10)
+                                .Text("SPIRITUAL ASSESSMENT (FICA)")
+                                .FontSize(8)
+                                .Bold()
+                                .FontColor(Colors.Teal.Medium);
+                            col.Item()
+                                .PaddingBottom(15)
+                                .Border(0.5f)
+                                .BorderColor(Colors.Grey.Lighten3)
+                                .Padding(10)
+                                .Column(c =>
+                                {
+                                    c.Item().Row(r => {
+                                        r.RelativeItem().Column(cc => {
+                                            cc.Item().Text("FAITH / BELIEF").FontSize(7).Bold().FontColor(Colors.Grey.Medium);
+                                            cc.Item().Text(spiritual.Faith ?? "Not Documented").FontSize(8);
+                                        });
+                                        r.RelativeItem().Column(cc => {
+                                            cc.Item().Text("IMPORTANCE / INFLUENCE").FontSize(7).Bold().FontColor(Colors.Grey.Medium);
+                                            cc.Item().Text(spiritual.Importance ?? "Not Documented").FontSize(8);
+                                        });
+                                    });
+                                    c.Item().PaddingTop(8).Row(r => {
+                                        r.RelativeItem().Column(cc => {
+                                            cc.Item().Text("COMMUNITY").FontSize(7).Bold().FontColor(Colors.Grey.Medium);
+                                            cc.Item().Text(spiritual.Community ?? "Not Documented").FontSize(8);
+                                        });
+                                        r.RelativeItem().Column(cc => {
+                                            cc.Item().Text("ADDRESS IN CARE").FontSize(7).Bold().FontColor(Colors.Grey.Medium);
+                                            cc.Item().Text(spiritual.AddressInCare ?? "Not Documented").FontSize(8);
+                                        });
+                                    });
+                                });
+                        }
+
+                        // Section 3c: Social Determinants of Health (SDOH)
+                        if (sdoh != null)
+                        {
+                            col.Item()
+                                .PaddingBottom(10)
+                                .Text("SOCIAL DETERMINANTS OF HEALTH (SDOH)")
+                                .FontSize(8)
+                                .Bold()
+                                .FontColor(Colors.Teal.Medium);
+                            col.Item()
+                                .PaddingBottom(15)
+                                .Row(row => {
+                                    row.RelativeItem().Column(c => {
+                                        c.Item().Text("FOOD INSECURITY").FontSize(7).Bold().FontColor(Colors.Grey.Medium);
+                                        c.Item().Text(sdoh.FoodInsecurity ? "POSITIVE" : "NEGATIVE").FontSize(8).FontColor(sdoh.FoodInsecurity ? Colors.Red.Medium : Colors.Green.Medium);
+                                    });
+                                    row.RelativeItem().Column(c => {
+                                        c.Item().Text("HOUSING INSTABILITY").FontSize(7).Bold().FontColor(Colors.Grey.Medium);
+                                        c.Item().Text(sdoh.HousingInstability ? "POSITIVE" : "NEGATIVE").FontSize(8).FontColor(sdoh.HousingInstability ? Colors.Red.Medium : Colors.Green.Medium);
+                                    });
+                                    row.RelativeItem().Column(c => {
+                                        c.Item().Text("TRANSPORTATION").FontSize(7).Bold().FontColor(Colors.Grey.Medium);
+                                        c.Item().Text(sdoh.TransportationBarrier ? "POSITIVE" : "NEGATIVE").FontSize(8).FontColor(sdoh.TransportationBarrier ? Colors.Red.Medium : Colors.Green.Medium);
+                                    });
+                                    row.RelativeItem().Column(c => {
+                                        c.Item().Text("FINANCIAL TOXICITY").FontSize(7).Bold().FontColor(Colors.Grey.Medium);
+                                        c.Item().Text(sdoh.FinancialToxicity ? "POSITIVE" : "NEGATIVE").FontSize(8).FontColor(sdoh.FinancialToxicity ? Colors.Red.Medium : Colors.Green.Medium);
+                                    });
+                                });
+                        }
+
+                        // Section 3d: Advance Directives
+                        if (directives.Any())
+                        {
+                            col.Item()
+                                .PaddingBottom(10)
+                                .Text("ADVANCE DIRECTIVES & CARE PLANNING")
+                                .FontSize(8)
+                                .Bold()
+                                .FontColor(Colors.Teal.Medium);
+                            col.Item()
+                                .PaddingBottom(15)
+                                .Table(table => {
+                                    table.ColumnsDefinition(columns => {
+                                        columns.RelativeColumn(2);
+                                        columns.RelativeColumn(3);
+                                        columns.RelativeColumn();
+                                    });
+                                    foreach(var d in directives) {
+                                        table.Cell().Text(d.Type.ToString().Replace("_", " ")).FontSize(8).Bold();
+                                        table.Cell().Text(d.Notes ?? "No specific notes documented").FontSize(8);
+                                        table.Cell().AlignRight().Text(d.EffectiveDate.ToString("MMM dd, yyyy")).FontSize(7).FontColor(Colors.Grey.Medium);
+                                    }
+                                });
+                        }
+
+                        // Section 3e: Symptom Burden Analysis (Legacy ESAS)
                         if (esas != null)
                         {
                             col.Item()
