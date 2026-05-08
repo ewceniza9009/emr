@@ -1,4 +1,5 @@
 using Api.Hubs;
+using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -35,15 +36,18 @@ public class TelemetrySimulatorService : BackgroundService
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
                 // Get all patients to simulate data for
-                var patientIds = await dbContext
-                    .Patients
-                    .IgnoreQueryFilters()
-                    .Select(p => p.PatientId)
+                var activePatientIds = await dbContext
+                    .ClinicalEncounters.Where(e =>
+                        e.Status == EncounterStatus.InProgress
+                        || e.Status == EncounterStatus.Arrived
+                        || e.Status == EncounterStatus.Triaged
+                    )
+                    .Select(e => e.PatientId)
+                    .Distinct()
                     .ToListAsync(stoppingToken);
 
-                foreach (var patientId in patientIds)
+                foreach (var patientId in activePatientIds)
                 {
-                    // Generate realistic vitals
                     var vitals = new
                     {
                         HeartRate = _random.Next(65, 86),
@@ -51,7 +55,6 @@ public class TelemetrySimulatorService : BackgroundService
                         Temperature = Math.Round(97.0 + (_random.NextDouble() * 2.5), 1),
                     };
 
-                    // Broadcast the full vitals packet
                     await _hubContext
                         .Clients.Group(patientId.ToString())
                         .SendAsync("ReceiveVitals", vitals, stoppingToken);
@@ -64,12 +67,10 @@ public class TelemetrySimulatorService : BackgroundService
 
             try
             {
-                // Pulse every 2 seconds for a realistic cadence
-                await Task.Delay(2000, stoppingToken);
+                await Task.Delay(10000, stoppingToken);
             }
             catch (OperationCanceledException)
             {
-                // Normal shutdown, ignore
                 break;
             }
         }

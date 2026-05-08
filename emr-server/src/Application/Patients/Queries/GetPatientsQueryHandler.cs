@@ -2,7 +2,6 @@ using Application.Common.Interfaces;
 using Application.Common.Models;
 using Application.Patients.Dtos;
 using Domain.Enums;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,26 +40,22 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
             .ThenBy(p => p.FirstName)
             .Skip(request.Skip)
             .Take(request.Take)
-            .ProjectToType<PatientDto>()
+            .Select(p => new PatientDto
+            {
+                PatientId = p.PatientId,
+                Mrn = p.Mrn,
+                FirstName = p.FirstName,
+                LastName = p.LastName,
+                Dob = p.Dob,
+                CreatedAt = p.CreatedAt,
+                VisitStatus =
+                    p.Appointments.Where(a => a.Status != AppointmentStatus.Cancelled)
+                        .OrderByDescending(a => a.ScheduledStart)
+                        .Select(a => a.Status.ToString())
+                        .FirstOrDefault()
+                    ?? "No Visit",
+            })
             .ToListAsync(cancellationToken);
-
-        // Map visit status manually based on the latest non-cancelled appointment
-        foreach (var item in items)
-        {
-            var latestAppt = item.Appointments
-                .Where(a => a.Status != AppointmentStatus.Cancelled)
-                .OrderByDescending(a => a.ScheduledStart)
-                .FirstOrDefault();
-
-            if (latestAppt != null)
-            {
-                item.VisitStatus = latestAppt.Status.ToString();
-            }
-            else
-            {
-                item.VisitStatus = "No Visit";
-            }
-        }
 
         return new PagedResponse<PatientDto> { Items = items, TotalCount = totalCount };
     }

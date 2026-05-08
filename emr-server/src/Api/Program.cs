@@ -39,6 +39,8 @@ builder.Services.AddApiServices(builder.Configuration);
 
 var app = builder.Build();
 
+app.UseMiddleware<Api.Middleware.ExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
