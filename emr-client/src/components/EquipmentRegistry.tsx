@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import {
   Truck,
@@ -112,22 +112,24 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
             <p className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">No Active Equipment Deployments</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {deliveries.map((d: any) => (
-              <div key={d.deliveryId} className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/30 transition-all group relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition-opacity">
-                  <Settings className="w-12 h-12 rotate-90" />
-                </div>
-
-                <div className="flex items-start justify-between mb-6">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${d.status === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                      d.status === 'FAILED' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
-                        'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                    }`}>
-                    <Package className="w-6 h-6" />
+              <div key={d.deliveryId} className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/30 transition-all group relative overflow-hidden flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${d.status === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                        d.status === 'FAILED' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
+                          'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                      }`}>
+                      <Package className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-tight truncate leading-tight">{d.equipment?.modelName}</h3>
+                      <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest leading-none mt-0.5">{d.equipment?.type?.replace(/_/g, ' ')}</p>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${d.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' :
+                  <div className="flex flex-col items-end shrink-0">
+                    <span className={`px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest border ${d.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' :
                         d.status === 'FAILED' ? 'bg-rose-500/20 text-rose-500 border-rose-500/30' :
                           'bg-amber-500/20 text-amber-500 border-amber-500/30'
                       }`}>
@@ -135,35 +137,28 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
                     </span>
                     <button
                       onClick={() => handleStatusUpdate(d.deliveryId, d.status)}
-                      className="text-[7px] font-black uppercase tracking-tighter text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors flex items-center gap-1"
+                      className="text-[6px] font-black uppercase tracking-tighter text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors flex items-center gap-1 mt-1"
                     >
-                      <Activity className="w-2.5 h-2.5" />
-                      Update Status
+                      <Activity className="w-2 h-2" />
+                      Update
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{d.equipment?.modelName}</h3>
-                    <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">{d.equipment?.type?.replace(/_/g, ' ')}</p>
+                <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[var(--card-bg)]/50 rounded-xl border border-[var(--card-border)]/50">
+                  <div className="flex flex-col">
+                    <span className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">Serial</span>
+                    <span className="text-[9px] font-mono font-bold text-[var(--text-primary)]">{d.equipment?.serialNumber}</span>
                   </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">Deployed</span>
+                    <span className="text-[9px] font-bold text-[var(--text-primary)]">{d.deliveredAt ? new Date(d.deliveredAt).toLocaleDateString() : 'PENDING'}</span>
+                  </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[var(--card-border)]">
-                    <div className="space-y-1">
-                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Serial Number</p>
-                      <p className="text-[10px] font-mono font-bold text-[var(--text-primary)]">{d.equipment?.serialNumber}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Deployment Date</p>
-                      <p className="text-[10px] font-bold text-[var(--text-primary)]">{d.deliveredAt ? new Date(d.deliveredAt).toLocaleDateString() : 'PENDING'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 mt-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest bg-[var(--card-bg)]/50 p-2 rounded-lg">
-                    <Truck className="w-3.5 h-3.5" />
-                    {d.deliveryAddress}
-                  </div>
+                <div className="flex items-center gap-2 text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tight truncate group-hover:text-[var(--text-primary)] transition-colors">
+                  <Truck className="w-3 h-3 text-[var(--primary)]" />
+                  {d.deliveryAddress}
                 </div>
               </div>
             ))}

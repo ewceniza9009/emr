@@ -32,6 +32,7 @@ import { useCommandModal } from "./CommandModalProvider";
 import HalcyonPortal from "./Portal";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 const GET_VISIT_SUMMARY = gql`
   query GetVisitSummary($patientId: UUID!, $appointmentId: UUID!) {
@@ -123,6 +124,7 @@ interface VisitSummaryDrawerProps {
 }
 
 export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appointmentId }: VisitSummaryDrawerProps) {
+  const { data: session } = useSession();
   const { alert } = useCommandModal();
   const { data, loading, error } = useQuery(GET_VISIT_SUMMARY, {
     variables: { patientId, appointmentId },
@@ -141,24 +143,35 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
   const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
 
   const handleDownloadPdf = async () => {
+    if (!appointmentId) return;
     setDownloading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clinical/export/encounter/${appointmentId}`);
-      if (!response.ok) throw new Error("Failed to export PDF");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clinical/export/encounter/${appointmentId}`, {
+        headers: {
+          Authorization: `Bearer ${(session as any)?.accessToken}`
+        }
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to export PDF");
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `encounter_summary_${appointmentId.slice(0, 8)}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch (err) {
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `visit_summary_${appointmentId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err: any) {
+      // Ignore "Failed to fetch" errors if they happen during a successful download interception by manager
+      if (err.message === "Failed to fetch") return;
+
       console.error(err);
-      await alert({
-        title: "Export Failed",
-        message: "An error occurred while generating the clinical summary PDF. Please check connection and try again.",
+      alert({
+        title: "EXPORT FAILED",
+        message: err.message || "An error occurred while generating the clinical summary PDF. Please check connection and try again.",
         type: "danger"
       });
     } finally {

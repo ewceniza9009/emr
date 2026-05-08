@@ -22,7 +22,8 @@ public class QuestPdfService : IPdfService
     public async Task<byte[]> GeneratePatientDossierAsync(Guid patientId)
     {
         var patient = await _context
-            .Patients.Include(p => p.Addresses)
+            .Patients.IgnoreQueryFilters()
+            .Include(p => p.Addresses)
                 .ThenInclude(a => a.Address)
             .Include(p => p.Phones)
             .Include(p => p.Emails)
@@ -319,7 +320,8 @@ public class QuestPdfService : IPdfService
     public async Task<byte[]> GenerateInvoiceAsync(Guid invoiceId)
     {
         var invoice = await _context
-            .BillingInvoices.Include(i => i.Items)
+            .BillingInvoices.IgnoreQueryFilters()
+            .Include(i => i.Items)
             .Include(i => i.Patient)
             .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
 
@@ -615,7 +617,8 @@ public class QuestPdfService : IPdfService
     public async Task<byte[]> GenerateEncounterSummaryAsync(Guid appointmentId)
     {
         var appointment = await _context
-            .Appointments.Include(a => a.Patient)
+            .Appointments.IgnoreQueryFilters()
+            .Include(a => a.Patient)
             .Include(a => a.Encounters)
                 .ThenInclude(e => e.VitalSigns)
             .Include(a => a.Encounters)
@@ -625,26 +628,36 @@ public class QuestPdfService : IPdfService
             .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
 
         if (appointment == null)
-            throw new Exception("Appointment record not found");
+            throw new Exception($"Appointment record not found for ID: {appointmentId}");
 
         var patient = appointment.Patient;
         var encounter = appointment
             .Encounters.OrderByDescending(e => e.EncounterDate)
             .FirstOrDefault();
 
-        var assessments = await _context.AssessmentResponses
+        var allAssessments = await _context.AssessmentResponses
+            .IgnoreQueryFilters()
             .Include(a => a.Questionnaire)
+            .Include(a => a.Assessor)
             .Where(a => a.Encounter != null && a.Encounter.AppointmentId == appointmentId)
+            .OrderByDescending(a => a.CompletedAt)
             .ToListAsync();
 
+        var assessments = allAssessments
+            .GroupBy(a => a.QuestionnaireId)
+            .Select(g => g.First())
+            .ToList();
+
         var esas = await _context.EsasAssessments
+            .IgnoreQueryFilters()
             .Where(e => e.Encounter != null && e.Encounter.AppointmentId == appointmentId)
             .FirstOrDefaultAsync();
 
         var invoice =
             encounter != null
                 ? await _context
-                    .BillingInvoices.Include(i => i.Items)
+                    .BillingInvoices.IgnoreQueryFilters()
+                    .Include(i => i.Items)
                     .FirstOrDefaultAsync(i => i.EncounterId == encounter.EncounterId)
                 : null;
 
@@ -694,7 +707,7 @@ public class QuestPdfService : IPdfService
                                     .FontColor(Colors.Grey.Darken1);
                                 col.Item()
                                     .Text(
-                                        $"ENCOUNTER DATE: {encounter?.EncounterDate:MMM dd, yyyy HH:mm}"
+                                        $"ENCOUNTER DATE: {(encounter != null ? encounter.EncounterDate.ToString("MMM dd, yyyy HH:mm") : "N/A")}"
                                     )
                                     .FontSize(7)
                                     .FontColor(Colors.Grey.Medium);
@@ -721,12 +734,12 @@ public class QuestPdfService : IPdfService
                                         c.Item()
                                             .PaddingTop(2)
                                             .Text(
-                                                $"{encounter?.Practitioner?.FirstName} {encounter?.Practitioner?.LastName}"
+                                                encounter != null ? $"{encounter.Practitioner?.FirstName} {encounter.Practitioner?.LastName}" : "Unassigned"
                                             )
                                             .FontSize(10)
                                             .SemiBold();
                                         c.Item()
-                                            .Text(encounter?.Practitioner?.Position.ToString())
+                                            .Text(encounter?.Practitioner?.Position.ToString() ?? "N/A")
                                             .FontSize(8)
                                             .Italic()
                                             .FontColor(Colors.Grey.Medium);
@@ -743,7 +756,7 @@ public class QuestPdfService : IPdfService
                                             .FontColor(Colors.Teal.Medium);
                                         c.Item()
                                             .PaddingTop(2)
-                                            .Text(encounter?.Type.ToString().Replace("_", " "))
+                                            .Text(encounter?.Type.ToString()?.Replace("_", " ") ?? "N/A")
                                             .FontSize(10)
                                             .Bold();
                                     });
@@ -866,12 +879,25 @@ public class QuestPdfService : IPdfService
                                                         .Bold()
                                                         .FontColor(Colors.Teal.Medium);
                                             });
+                                        
+                                        if (!string.IsNullOrEmpty(assessment.Questionnaire?.Description))
+                                        {
+                                            c.Item()
+                                                .PaddingTop(2)
+                                                .Text(assessment.Questionnaire.Description)
+                                                .FontSize(7)
+                                                .Italic()
+                                                .FontColor(Colors.Grey.Medium);
+                                        }
+
                                         c.Item()
-                                            .PaddingTop(2)
-                                            .Text(assessment.Questionnaire?.Description)
-                                            .FontSize(7)
-                                            .Italic()
-                                            .FontColor(Colors.Grey.Medium);
+                                            .PaddingTop(4)
+                                            .Text(t => {
+                                                t.Span("COMPLETED BY: ").FontSize(7).Bold().FontColor(Colors.Grey.Medium);
+                                                t.Span($"{assessment.Assessor?.FirstName} {assessment.Assessor?.LastName}").FontSize(7).Medium();
+                                                t.Span(" | ").FontSize(7).FontColor(Colors.Grey.Lighten1);
+                                                t.Span(assessment.CompletedAt.ToString("MMM dd, yyyy HH:mm")).FontSize(7);
+                                            });
                                     });
                             }
                             col.Item().PaddingBottom(10);

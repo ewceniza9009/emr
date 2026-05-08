@@ -55,6 +55,7 @@ import EditCommunicationsDrawer from "@/components/EditCommunicationsDrawer";
 import VisitSummaryDrawer from "@/components/VisitSummaryDrawer";
 import EmergencyActionDrawer from "@/components/EmergencyActionDrawer";
 import BreakGlassDrawer from "@/components/BreakGlassDrawer";
+import { useSession } from "next-auth/react";
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -177,6 +178,7 @@ import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
 import { useCommandModal } from "@/components/CommandModalProvider";
 
 export default function PatientDetailPage() {
+  const { data: session } = useSession();
   const { confirm, alert } = useCommandModal();
   const params = useParams();
   const { addItem } = useRecentlyBrowsed();
@@ -296,22 +298,34 @@ export default function PatientDetailPage() {
     if (!params.id) return;
     setDownloadingDossier(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clinical/export/dossier/${params.id}`);
-      if (!response.ok) throw new Error("Failed to export dossier");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/clinical/export/dossier/${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${(session as any)?.accessToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to export dossier");
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `clinical_dossier_${patient?.lastName}_${patient?.mrn}.pdf`;
+      a.download = `clinical_dossier_${patient?.lastName || 'patient'}_${patient?.mrn || 'record'}.pdf`;
       document.body.appendChild(a);
       a.click();
+      window.URL.revokeObjectURL(url);
       a.remove();
-    } catch (err) {
+    } catch (err: any) {
+      // Ignore "Failed to fetch" errors if they happen during a successful download interception
+      if (err.message === "Failed to fetch") return;
+      
       console.error(err);
-      await alert({
-        title: "Export Failed",
-        message: "An error occurred while generating the clinical dossier. Please check connection and try again.",
+      alert({
+        title: "EXPORT FAILED",
+        message: err.message || "An error occurred while generating the clinical dossier. Please check connection and try again.",
         type: "danger"
       });
     } finally {

@@ -51,6 +51,14 @@ public class SetupQuery
     [UseProjection]
     [UseFiltering]
     [UseSorting]
+    public IQueryable<DurableMedicalEquipment> GetAvailableEquipment([Service] IApplicationDbContext context) =>
+        context.DurableMedicalEquipment
+            .AsNoTracking()
+            .Where(e => !context.EquipmentDeliveries.Any(d => d.EquipmentId == e.EquipmentId && d.Status != Domain.Enums.DeliveryStatus.Returned));
+
+    [UseProjection]
+    [UseFiltering]
+    [UseSorting]
     public IQueryable<OutreachScript> GetOutreachScripts([Service] IApplicationDbContext context) =>
         context.OutreachScripts.AsNoTracking();
 
