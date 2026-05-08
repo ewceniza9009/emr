@@ -240,40 +240,42 @@ export default function BillingPage() {
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Stats Ribbon */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {stats.map((stat) => (
-          <div key={stat.label} className="bg-[var(--card-bg)] rounded-3xl p-6 border border-[var(--card-border)] group hover:border-[var(--primary)]/30 transition-all relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--primary)]/5 rounded-full -mr-12 -mt-12 blur-2xl" />
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] border border-[var(--primary)]/20">
-                <stat.icon className="w-6 h-6" />
-              </div>
-              <span className={`text-[10px] font-black px-2 py-1 rounded-lg uppercase tracking-tighter ${stat.trend.startsWith('+') ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
-                {stat.trend}
-              </span>
+          <div key={stat.label} className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] group hover:border-[var(--primary)]/30 transition-all flex items-center gap-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-16 h-16 bg-[var(--primary)]/5 rounded-full -mr-8 -mt-8 blur-xl" />
+            <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] border border-[var(--primary)]/20 shrink-0">
+              <stat.icon className="w-5 h-5" />
             </div>
-            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">{stat.label}</p>
-            <h3 className="text-3xl font-bold text-[var(--text-primary)] mt-1 tracking-tight">{stat.value}</h3>
-            <p className="text-[10px] font-black text-[var(--text-muted)] mt-2 opacity-50 uppercase tracking-widest">{stat.desc}</p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.1em]">{stat.label}</p>
+                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter ${stat.trend.startsWith('+') ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                  {stat.trend}
+                </span>
+              </div>
+              <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight leading-none mt-0.5">{stat.value}</h3>
+              <p className="text-[8px] font-black text-[var(--text-muted)] mt-1 opacity-50 uppercase tracking-widest truncate">{stat.desc}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex flex-col md:flex-row items-center gap-4 bg-[var(--input-bg)]/50 p-4 rounded-3xl border border-[var(--card-border)]">
-        <div className="flex items-center gap-2 px-4 border-r border-[var(--card-border)]">
-          <Filter className="w-4 h-4 text-[var(--primary)]" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Advanced Filters</span>
+      {/* Compact Filter Bar */}
+      <div className="flex flex-col md:flex-row items-center gap-2 bg-[var(--input-bg)]/50 p-2.5 rounded-2xl border border-[var(--card-border)]">
+        <div className="flex items-center gap-2 px-3 border-r border-[var(--card-border)] shrink-0">
+          <Filter className="w-3.5 h-3.5 text-[var(--primary)]" />
+          <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Filters</span>
         </div>
-
-        <div className="flex-1 flex items-center gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Status Lifecycle</label>
+ 
+        <div className="flex-1 flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Status:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all cursor-pointer min-w-[140px]"
+              className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-2 py-1 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all cursor-pointer min-w-[120px]"
             >
               <option value="All">All Statuses</option>
               <option value="Draft">Drafts Only</option>
@@ -283,13 +285,13 @@ export default function BillingPage() {
               <option value="Cancelled">Cancelled / Rejected</option>
             </select>
           </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Temporal Period</label>
+ 
+          <div className="flex items-center gap-2">
+            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Period:</span>
             <select
               value={periodFilter}
               onChange={(e) => setPeriodFilter(e.target.value)}
-              className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all cursor-pointer min-w-[140px]"
+              className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-2 py-1 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all cursor-pointer min-w-[120px]"
             >
               <option>All Time</option>
               <option>Current Month</option>
@@ -299,30 +301,30 @@ export default function BillingPage() {
             </select>
           </div>
         </div>
-
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+ 
+        <div className="relative w-full md:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="SEARCH ENTITY OR MRN..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-12 pr-4 py-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all w-72 placeholder:text-[var(--text-muted)]"
+            className="w-full pl-9 pr-4 py-1.5 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all placeholder:text-[var(--text-muted)]"
           />
         </div>
       </div>
-
-      {/* Tabs */}
-      <div className="flex items-center gap-1 p-1 bg-[var(--input-bg)] rounded-2xl w-fit border border-[var(--card-border)]">
+ 
+      {/* Compact Tabs */}
+      <div className="flex items-center gap-1 p-1 bg-[var(--input-bg)] rounded-xl w-fit border border-[var(--card-border)]">
         <button
           onClick={() => setActiveTab("invoices")}
-          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "invoices" ? "bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+          className={`px-6 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "invoices" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
         >
           Receivables
         </button>
         <button
           onClick={() => setActiveTab("claims")}
-          className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === "claims" ? "bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+          className={`px-6 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "claims" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
         >
           Benefit Registry
         </button>

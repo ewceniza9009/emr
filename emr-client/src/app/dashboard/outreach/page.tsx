@@ -80,6 +80,9 @@ export default function OutreachPage() {
     }
   });
 
+  const [logActivity] = useMutation(LOG_OUTREACH_ACTIVITY);
+  const { showToast } = useToast();
+
   if (loading) return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
       <div className="relative">
@@ -93,9 +96,6 @@ export default function OutreachPage() {
       </div>
     </div>
   );
-
-  const [logActivity] = useMutation(LOG_OUTREACH_ACTIVITY);
-  const { showToast } = useToast();
 
   const handleCall = async (lead: any) => {
     try {
