@@ -36,3 +36,6 @@ obj/
 ehthumbs.db
 # Credentials (DO NOT COMMIT)
 CREDENTIALS.md
+
+# Large generated/seeding files
+emr-server/src/Infrastructure/Data/DbInitializer.cs
