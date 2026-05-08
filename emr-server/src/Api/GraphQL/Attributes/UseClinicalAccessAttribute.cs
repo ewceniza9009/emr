@@ -69,7 +69,8 @@ public class UseClinicalAccessAttribute(
                         }
                     }
                     catch
-                    { /* Ignore and fail later if Guid.Empty */
+                    {
+                        /* Ignore and fail later if Guid.Empty */
                     }
                 }
 
