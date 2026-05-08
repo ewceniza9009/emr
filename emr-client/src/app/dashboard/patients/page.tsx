@@ -12,10 +12,11 @@ import {
   Phone
 } from "lucide-react";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AddPatientDrawer from "@/components/AddPatientDrawer";
 import { useCommandModal } from "@/components/CommandModalProvider";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const GET_PATIENTS = gql`
   query GetPatients($search: String, $skip: Int, $take: Int) {
@@ -49,11 +50,12 @@ export default function PatientsPage() {
   const router = useRouter();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const { data, loading, error, refetch } = useQuery(GET_PATIENTS, {
     variables: {
-      search: searchQuery,
+      search: debouncedSearch,
       skip: 0,
       take: 50
     },

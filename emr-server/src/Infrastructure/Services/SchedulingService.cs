@@ -76,13 +76,13 @@ public class SchedulingService : ISchedulingService
                 {
                     p.PractitionerId,
                     p.LastName,
-                    Latitude = p
-                        .Addresses.Where(a => a.IsPrimary)
-                        .Select(a => a.Address.Latitude)
+                    Latitude = p.Addresses
+                        .Where(a => a.IsPrimary)
+                        .Select(a => (double?)a.Address.Latitude)
                         .FirstOrDefault(),
-                    Longitude = p
-                        .Addresses.Where(a => a.IsPrimary)
-                        .Select(a => a.Address.Longitude)
+                    Longitude = p.Addresses
+                        .Where(a => a.IsPrimary)
+                        .Select(a => (double?)a.Address.Longitude)
                         .FirstOrDefault(),
                     Shifts = _context
                         .ProviderShifts.Where(s =>
@@ -126,18 +126,26 @@ public class SchedulingService : ISchedulingService
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var shift = staff.Shifts.FirstOrDefault();
+                TimeSpan shiftStartRaw;
+                TimeSpan shiftEndRaw;
+
                 if (shift == null)
                 {
-                    _logger.LogWarning(
-                        ">>> SKIP: {Name} has no shift defined for {Day}",
-                        staff.LastName,
-                        dayOfWeek
+                    _logger.LogInformation(
+                        ">>> FALLBACK: {Name} has no defined shift. Using default 08:00-17:00.",
+                        staff.LastName
                     );
-                    continue;
+                    shiftStartRaw = new TimeSpan(8, 0, 0);
+                    shiftEndRaw = new TimeSpan(17, 0, 0);
+                }
+                else
+                {
+                    shiftStartRaw = shift.StartTime;
+                    shiftEndRaw = shift.EndTime;
                 }
 
-                var shiftStart = new DateTimeOffset(targetDate.Add(shift.StartTime), TimeSpan.Zero);
-                var shiftEnd = new DateTimeOffset(targetDate.Add(shift.EndTime), TimeSpan.Zero);
+                var shiftStart = new DateTimeOffset(targetDate.Add(shiftStartRaw), offset);
+                var shiftEnd = new DateTimeOffset(targetDate.Add(shiftEndRaw), offset);
 
                 // Effective window is intersection of Slot and Shift
                 var effectiveStart = slotWindowStart > shiftStart ? slotWindowStart : shiftStart;
@@ -184,8 +192,8 @@ public class SchedulingService : ISchedulingService
                         .FirstOrDefault();
 
                     // Fallback to localized Philippine center (Quezon City)
-                    double startLat = staff.Latitude ?? 14.6760;
-                    double startLon = staff.Longitude ?? 121.0437;
+                    double startLat = staff.Latitude ?? 10.3157; // Cebu Fallback
+                    double startLon = staff.Longitude ?? 123.8854;
 
                     var anchorAddr = anchor
                         ?.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)

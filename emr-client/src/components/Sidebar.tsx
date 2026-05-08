@@ -29,16 +29,26 @@ import { useSession } from "next-auth/react";
 import { useMutation, gql } from "@apollo/client";
 import { useCommandModal } from "./CommandModalProvider";
 
-const navItems = [
+interface NavItem {
+  icon: any;
+  label: string;
+  href: string;
+  permission?: string;
+  color?: string;
+  bgColor?: string;
+  activeBg?: string;
+}
+
+const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: AlertTriangle, label: "Triage", href: "/dashboard/triage", permission: "clinical:view" },
-  { icon: PhoneCall, label: "Outreach", href: "/dashboard/outreach", permission: "patients:enrollment" },
+  { icon: AlertTriangle, label: "Triage", href: "/dashboard/triage", permission: "clinical:view", color: "text-rose-500", bgColor: "hover:bg-rose-500/10", activeBg: "bg-rose-500/10" },
+  { icon: PhoneCall, label: "Outreach", href: "/dashboard/outreach", permission: "patients:enrollment", color: "text-amber-500", bgColor: "hover:bg-amber-500/10", activeBg: "bg-amber-500/10" },
   { icon: Building2, label: "Facilities", href: "/dashboard/facilities", permission: "setup:view" },
   { icon: Users, label: "Patients", href: "/dashboard/patients", permission: "patients:view" },
   { icon: Calendar, label: "Schedule", href: "/dashboard/schedule", permission: "scheduling:view" },
-  { icon: HeartPulse, label: "Vitals & IoT", href: "/dashboard/telemetry", permission: "clinical:view" },
-  { icon: Navigation2, label: "Navigation", href: "/dashboard/navigation", permission: "scheduling:view" },
-  { icon: FileText, label: "Clinical Notes", href: "/dashboard/notes", permission: "docs:view" },
+  { icon: HeartPulse, label: "Vitals & IoT", href: "/dashboard/telemetry", permission: "clinical:view", color: "text-emerald-500", bgColor: "hover:bg-emerald-500/10", activeBg: "bg-emerald-500/10" },
+  { icon: Navigation2, label: "Navigation", href: "/dashboard/navigation", permission: "scheduling:view", color: "text-blue-500", bgColor: "hover:bg-blue-500/10", activeBg: "bg-blue-500/10" },
+  { icon: FileText, label: "Clinical Notes", href: "/dashboard/notes", permission: "docs:view", color: "text-purple-500", bgColor: "hover:bg-purple-500/10", activeBg: "bg-purple-500/10" },
   { icon: Stethoscope, label: "Billing", href: "/dashboard/billing", permission: "billing:view" },
   { icon: Globe, label: "Settings", href: "/dashboard/settings" },
 ];
@@ -105,25 +115,25 @@ export function Sidebar() {
                 href={item.href}
                 title={isCollapsed ? item.label : ""}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${isActive
-                  ? "bg-[var(--primary)]/10 text-[var(--primary)]"
-                  : "text-[var(--text-muted)] hover:bg-[var(--primary)]/10 hover:text-[var(--text-primary)]"
+                  ? (item.activeBg || "bg-[var(--primary)]/10") + " " + (item.color || "text-[var(--primary)]")
+                  : `text-[var(--text-muted)] ${item.bgColor || "hover:bg-[var(--primary)]/10"} ${item.color ? "hover:" + item.color : "hover:text-[var(--text-primary)]"}`
                   }`}
               >
                 <div className="relative">
-                  <item.icon className={`w-5 h-5 shrink-0 transition-all ${isActive ? "text-[var(--primary)]" : "group-hover:text-[var(--primary)]"}`} />
-                  {item.label === "Vitals & IoT" && (
+                  <item.icon className={`w-5 h-5 shrink-0 transition-all ${isActive ? (item.color || "text-[var(--primary)]") : "group-hover:" + (item.color || "text-[var(--primary)]")}`} />
+                  {item.label === "Vitals & IoT" && !isActive && (
                     <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-[var(--sidebar-bg)]" />
                   )}
                 </div>
 
                 {!isCollapsed && (
-                  <span className={`text-[13px] font-medium transition-all ${isActive ? "text-[var(--primary)]" : ""}`}>
+                  <span className={`text-[13px] font-medium transition-all ${isActive ? (item.color || "text-[var(--primary)]") : ""}`}>
                     {item.label}
                   </span>
                 )}
 
                 {isActive && !isCollapsed && (
-                  <div className="absolute right-3 w-1 h-1 rounded-full bg-[var(--primary)]" />
+                  <div className={`absolute right-3 w-1 h-1 rounded-full ${item.color ? item.color.replace('text-', 'bg-') : "bg-[var(--primary)]"}`} />
                 )}
               </Link>
             </PermissionGate>
@@ -133,22 +143,9 @@ export function Sidebar() {
         <div className="h-px bg-white/5 mx-3 my-4" />
         <PermissionGate role="Admin">
           <Link
-            href="/admin/audit"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative text-indigo-400 hover:bg-indigo-500/10 hover:text-indigo-300"
-          >
-            <div className="relative">
-              <Shield className="w-5 h-5 shrink-0" />
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-indigo-500 rounded-full border-2 border-[var(--sidebar-bg)] animate-pulse" />
-            </div>
-            {!isCollapsed && (
-              <span className="text-[13px] font-bold">Audit Vault</span>
-            )}
-          </Link>
-
-          <Link
             href="/admin"
             target="_blank"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative text-slate-400 hover:bg-white/5 hover:text-white"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative text-slate-400 hover:bg-white/5 hover:(--text-primary)"
           >
             <div className="relative">
               <Building2 className="w-5 h-5 shrink-0" />

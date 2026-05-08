@@ -15,8 +15,28 @@ public class SetupMutation
     // --- Practitioner ---
     public async Task<Practitioner> CreatePractitioner(
         Practitioner input,
-        [Service] IApplicationDbContext context)
+        [Service] IApplicationDbContext context,
+        [Service] Microsoft.AspNetCore.Identity.UserManager<Infrastructure.Identity.ApplicationUser> userManager)
     {
+        // SELF-HEALING: If UserId is missing, try to find a user with the same name
+        if (input.UserId == Guid.Empty)
+        {
+            var users = await userManager.Users
+                .Where(u => u.FirstName == input.FirstName && u.LastName == input.LastName)
+                .ToListAsync();
+
+            if (users.Count == 1)
+            {
+                input.UserId = Guid.Parse(users[0].Id);
+            }
+            else
+            {
+                throw new GraphQLException(users.Count > 1 
+                    ? "Ambiguous identity detected: Multiple users found with this name. Please provide an explicit UserId."
+                    : "No system identity found for this name. A user account must be created before registering a practitioner.");
+            }
+        }
+
         context.Practitioners.Add(input);
         await context.SaveChangesAsync(default);
         return input;
@@ -26,13 +46,17 @@ public class SetupMutation
         Practitioner input,
         [Service] IApplicationDbContext context)
     {
+        var db = (DbContext)context;
         var existing = await context.Practitioners
             .Include(p => p.Addresses)
             .Include(p => p.Licensures)
             .Include(p => p.ServiceAreas)
             .FirstOrDefaultAsync(p => p.PractitionerId == input.PractitionerId);
-            
+
         if (existing == null) return false;
+
+        // PROTECT IDENTITY: Only update UserId if a non-empty Guid is provided
+        if (input.UserId != Guid.Empty) existing.UserId = input.UserId;
 
         existing.FirstName = input.FirstName;
         existing.LastName = input.LastName;
@@ -45,20 +69,50 @@ public class SetupMutation
 
         // Atomic Sync of Addresses
         if (input.Addresses != null) {
-            existing.Addresses.Clear();
-            foreach(var addr in input.Addresses) existing.Addresses.Add(addr);
+            var inputIds = input.Addresses.Select(a => a.EntityAddressId).ToList();
+            var toRemove = existing.Addresses.Where(a => !inputIds.Contains(a.EntityAddressId)).ToList();
+            foreach(var r in toRemove) existing.Addresses.Remove(r);
+            
+            foreach (var addr in input.Addresses) {
+                var existingAddr = existing.Addresses.FirstOrDefault(a => a.EntityAddressId == addr.EntityAddressId);
+                if (existingAddr != null) {
+                    db.Entry(existingAddr).CurrentValues.SetValues(addr);
+                } else {
+                    existing.Addresses.Add(addr);
+                }
+            }
         }
 
         // Atomic Sync of Licensures
         if (input.Licensures != null) {
-            existing.Licensures.Clear();
-            foreach(var lic in input.Licensures) existing.Licensures.Add(lic);
+            var inputIds = input.Licensures.Select(l => l.LicensureId).ToList();
+            var toRemove = existing.Licensures.Where(l => !inputIds.Contains(l.LicensureId)).ToList();
+            foreach(var r in toRemove) existing.Licensures.Remove(r);
+            
+            foreach (var lic in input.Licensures) {
+                var existingLic = existing.Licensures.FirstOrDefault(l => l.LicensureId == lic.LicensureId);
+                if (existingLic != null) {
+                    db.Entry(existingLic).CurrentValues.SetValues(lic);
+                } else {
+                    existing.Licensures.Add(lic);
+                }
+            }
         }
 
         // Atomic Sync of Service Areas (Zipcodes)
         if (input.ServiceAreas != null) {
-            existing.ServiceAreas.Clear();
-            foreach(var area in input.ServiceAreas) existing.ServiceAreas.Add(area);
+            var inputIds = input.ServiceAreas.Select(s => s.ServiceAreaId).ToList();
+            var toRemove = existing.ServiceAreas.Where(s => !inputIds.Contains(s.ServiceAreaId)).ToList();
+            foreach(var r in toRemove) existing.ServiceAreas.Remove(r);
+            
+            foreach (var area in input.ServiceAreas) {
+                var existingArea = existing.ServiceAreas.FirstOrDefault(a => a.ServiceAreaId == area.ServiceAreaId);
+                if (existingArea != null) {
+                    db.Entry(existingArea).CurrentValues.SetValues(area);
+                } else {
+                    existing.ServiceAreas.Add(area);
+                }
+            }
         }
 
         await context.SaveChangesAsync(default);
@@ -84,6 +138,16 @@ public class SetupMutation
 
         existing.Name = input.Name;
         existing.Type = input.Type;
+        
+        if (input.FacilityAddress != null) {
+            existing.FacilityAddress.Street = input.FacilityAddress.Street;
+            existing.FacilityAddress.City = input.FacilityAddress.City;
+            existing.FacilityAddress.State = input.FacilityAddress.State;
+            existing.FacilityAddress.PostalCode = input.FacilityAddress.PostalCode;
+            existing.FacilityAddress.Country = input.FacilityAddress.Country;
+            existing.FacilityAddress.Latitude = input.FacilityAddress.Latitude;
+            existing.FacilityAddress.Longitude = input.FacilityAddress.Longitude;
+        }
 
         await context.SaveChangesAsync(default);
         return true;

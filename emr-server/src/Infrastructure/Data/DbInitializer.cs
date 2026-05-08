@@ -487,8 +487,8 @@ namespace Infrastructure.Data
                     // SEED CLINICAL BASE OPERATIONS
                     // Every clinician needs a primary address for the Geospatial Radar
                     var isCebu = acc.First == "Shaun" || acc.First == "Leonard"; // Simulated regional diversity
-                    var city = isCebu ? "Cebu City" : "Quezon City";
-                    var state = isCebu ? "Central Visayas" : "Metro Manila";
+                    var city = "Cebu City";
+                    var state = "Cebu";
 
                     var entityAddr = new EntityAddress
                     {
@@ -499,12 +499,13 @@ namespace Infrastructure.Data
                         Type = AddressType.Home,
                         Address = new Address
                         {
-                            Street = isCebu ? "Osmeña Blvd" : "Ayala Ave",
+                            Street = "Osmeña Blvd",
                             City = city,
                             State = state,
-                            PostalCode = isCebu ? "6000" : "1100",
-                            Latitude = isCebu ? 10.3157 : 14.6760,
-                            Longitude = isCebu ? 123.8854 : 121.0437,
+                            PostalCode = "6000",
+                            Latitude = 10.3157,
+                            Longitude = 123.8854,
+                            Country = "Philippines"
                         },
                     };
 
@@ -515,23 +516,25 @@ namespace Infrastructure.Data
                 {
                     // Repair existing practitioners missing addresses
                     var isCebu = acc.First == "Shaun" || acc.First == "Leonard";
-                    var city = isCebu ? "Cebu City" : "Quezon City";
-                    var state = isCebu ? "Central Visayas" : "Metro Manila";
+                    var city = "Cebu City";
+                    var state = "Cebu";
 
                     var entityAddr = new EntityAddress
                     {
                         EntityAddressId = Guid.NewGuid(),
+                        TenantId = defaultTenantId,
                         PractitionerId = existingPractitioner.PractitionerId,
                         IsPrimary = true,
                         Type = AddressType.Home,
                         Address = new Address
                         {
-                            Street = isCebu ? "Osmeña Blvd" : "Ayala Ave",
+                            Street = "Osmeña Blvd",
                             City = city,
                             State = state,
-                            PostalCode = isCebu ? "6000" : "1100",
-                            Latitude = isCebu ? 10.3157 : 14.6760,
-                            Longitude = isCebu ? 123.8854 : 121.0437,
+                            PostalCode = "6000",
+                            Latitude = 10.3157,
+                            Longitude = 123.8854,
+                            Country = "Philippines"
                         },
                     };
                     existingPractitioner.Addresses.Add(entityAddr);
@@ -540,8 +543,40 @@ namespace Infrastructure.Data
 
             await context.SaveChangesAsync(default);
 
+            // Seed Recurring Provider Shifts (Base Availability)
+            await SeedProviderShiftsAsync(context, defaultTenantId);
+
             // Seed Schedule Blocks for the next 7 days
             await SeedScheduleBlocksAsync(context, defaultTenantId);
+        }
+
+        private static async Task SeedProviderShiftsAsync(
+            ApplicationDbContext context,
+            Guid tenantId
+        )
+        {
+            if (await context.ProviderShifts.IgnoreQueryFilters().AnyAsync())
+                return;
+
+            var practitioners = await context.Practitioners.IgnoreQueryFilters().ToListAsync();
+            foreach (var p in practitioners)
+            {
+                // Give every practitioner a standard 8 AM - 5 PM shift every day
+                for (int i = 0; i < 7; i++)
+                {
+                    context.ProviderShifts.Add(new ProviderShift
+                    {
+                        ProviderShiftId = Guid.NewGuid(),
+                        TenantId = tenantId,
+                        PractitionerId = p.PractitionerId,
+                        DayOfWeek = (DayOfWeek)i,
+                        StartTime = new TimeSpan(8, 0, 0),
+                        EndTime = new TimeSpan(17, 0, 0),
+                        IsActive = true
+                    });
+                }
+            }
+            await context.SaveChangesAsync();
         }
 
         private static async Task SeedScheduleBlocksAsync(
@@ -1173,10 +1208,10 @@ namespace Infrastructure.Data
                     if (pA == null || ptA == null) return 5.0;
 
                     return Application.Common.Utils.GeoUtils.CalculateDistance(
-                        pA.Latitude ?? 14.5,
-                        pA.Longitude ?? 121.0,
-                        ptA.Latitude ?? 14.5,
-                        ptA.Longitude ?? 121.0
+                        pA.Latitude ?? 10.3157,
+                        pA.Longitude ?? 123.8854,
+                        ptA.Latitude ?? 10.3157,
+                        ptA.Longitude ?? 123.8854
                     );
                 }
 

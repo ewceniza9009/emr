@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery, useMutation, gql } from "@apollo/client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   Shield,
   Plus,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import SetupDrawer from "@/components/SetupDrawer";
 import AdminSidebar from "@/components/AdminSidebar";
+import SecurityAuditVault from "@/components/SecurityAuditVault";
 import IdentityManagement from "@/components/IdentityManagement";
 import { PermissionGate } from "@/components/PermissionGate";
 import { signOut, useSession } from "next-auth/react";
@@ -37,20 +39,28 @@ const GET_SETUP_DATA = gql`
       position
       isActive
       prcLicenseNumber
+      npiNumber
+      isCareNavigator
+      isSupportingClinician
+      userId
       addresses {
+        entityAddressId
         address {
           street
           city
           state
           postalCode
+          country
         }
       }
       licensures {
+        licensureId
         licenseNumber
         state
         expiryDate
       }
       serviceAreas {
+        serviceAreaId
         zipCode
         county
       }
@@ -59,11 +69,22 @@ const GET_SETUP_DATA = gql`
       facilityId
       name
       type
+      facilityAddress {
+        street
+        city
+        state
+        postalCode
+        country
+      }
+      contactPerson
+      contactPhone
+      contactEmail
     }
     healthPlans {
       healthPlanId
       name
       code
+      isActive
     }
     medications {
       medicationId
@@ -76,6 +97,7 @@ const GET_SETUP_DATA = gql`
       shortcut
       templateText
       label
+      isActive
     }
     questionnaires {
       questionnaireId
@@ -108,7 +130,7 @@ const GET_SETUP_DATA = gql`
   }
 `;
 
-type TabType = "practitioners" | "facilities" | "healthPlans" | "medications" | "smartPhrases" | "questionnaires" | "equipment" | "outreachScripts" | "integrationProfiles" | "identity";
+type TabType = "practitioners" | "facilities" | "healthPlans" | "medications" | "smartPhrases" | "questionnaires" | "equipment" | "outreachScripts" | "integrationProfiles" | "identity" | "audit";
 
 const DELETE_MUTATIONS = {
   practitioners: gql`mutation DeletePractitioner($id: Guid!) { deletePractitioner(id: $id) }`,
@@ -147,6 +169,21 @@ export default function AdminDashboardPage() {
   const [deleteItem] = useMutation(mutation, {
     onCompleted: () => refetch()
   });
+
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
+  const filteredData = useMemo(() => {
+    const rawData = data?.[activeTab] || [];
+    if (!debouncedSearch) return rawData;
+    
+    const query = debouncedSearch.toLowerCase();
+    return rawData.filter((item: any) => {
+      // Search across all string values in the item
+      return Object.values(item).some(val => 
+        val && typeof val === 'string' && val.toLowerCase().includes(query)
+      ) || (item.firstName && `${item.firstName} ${item.lastName}`.toLowerCase().includes(query));
+    });
+  }, [data, activeTab, debouncedSearch]);
 
   if (status === "loading") return <div className="min-h-screen bg-[var(--background)] flex items-center justify-center font-black text-[var(--text-muted)] uppercase tracking-widest animate-pulse">Initializing Security Session...</div>;
 
@@ -188,7 +225,8 @@ export default function AdminDashboardPage() {
 
     const tableProps = {
       onEdit: handleEdit,
-      onDelete: handleDelete
+      onDelete: handleDelete,
+      data: filteredData
     };
 
     switch (activeTab) {
@@ -196,7 +234,6 @@ export default function AdminDashboardPage() {
         return (
           <SetupTable
             {...tableProps}
-            data={data?.practitioners || []}
             columns={[
               { key: "fullName", label: "Name", render: (item: any) => `${item.firstName} ${item.lastName}` },
               { key: "position", label: "Position" },
@@ -215,7 +252,6 @@ export default function AdminDashboardPage() {
         return (
           <SetupTable
             {...tableProps}
-            data={data?.facilities || []}
             columns={[
               { key: "name", label: "Facility Name" },
               { key: "type", label: "Type" }
@@ -226,7 +262,6 @@ export default function AdminDashboardPage() {
         return (
           <SetupTable
             {...tableProps}
-            data={data?.healthPlans || []}
             columns={[
               { key: "name", label: "Plan Name" },
               { key: "code", label: "Code" }
@@ -237,7 +272,6 @@ export default function AdminDashboardPage() {
         return (
           <SetupTable
             {...tableProps}
-            data={data?.medications || []}
             columns={[
               { key: "name", label: "Medication" },
               { key: "strength", label: "Strength" },
@@ -249,7 +283,6 @@ export default function AdminDashboardPage() {
         return (
           <SetupTable
             {...tableProps}
-            data={data?.smartPhrases || []}
             columns={[
               { key: "shortcut", label: "Trigger Key", render: (item: any) => <span className="font-mono text-[var(--primary)]">{item.shortcut}</span> },
               { key: "templateText", label: "Full Phrase" },
@@ -261,7 +294,6 @@ export default function AdminDashboardPage() {
         return (
           <SetupTable
             {...tableProps}
-            data={data?.questionnaires || []}
             columns={[
               { key: "name", label: "Form Name" },
               { key: "assessmentType", label: "Type" },
@@ -314,7 +346,6 @@ export default function AdminDashboardPage() {
         return (
           <SetupTable
             {...tableProps}
-            data={data?.equipment || []}
             columns={[
               { key: "modelName", label: "Model" },
               { key: "serialNumber", label: "Serial #" },
@@ -333,7 +364,6 @@ export default function AdminDashboardPage() {
         return (
           <SetupTable
             {...tableProps}
-            data={data?.outreachScripts || []}
             columns={[
               { key: "scriptTitle", label: "Title" },
               { key: "locationName", label: "Region" },
@@ -345,7 +375,6 @@ export default function AdminDashboardPage() {
         return (
           <SetupTable
             {...tableProps}
-            data={data?.integrationProfiles || []}
             columns={[
               { key: "partner", label: "Partner" },
               { key: "apiKey", label: "Key Fragment", render: (item: any) => `****${item.apiKey.slice(-4)}` },
@@ -361,11 +390,14 @@ export default function AdminDashboardPage() {
         );
       case "identity":
         return <IdentityManagement />;
+      case "audit":
+        return <SecurityAuditVault />;
     }
   };
 
   return (
     <div className="flex min-h-screen bg-[var(--background)]">
+      <title>Halcyon - Admin Portal</title>
       <AdminSidebar activeTab={activeTab} setActiveTab={handleTabChange} />
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
@@ -382,13 +414,13 @@ export default function AdminDashboardPage() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8 space-y-4 scroll-smooth">
-          <div className="flex items-end justify-between border-b border-[var(--card-border)] pb-4">
+        <main className="flex-1 overflow-y-auto p-5 space-y-4 scroll-smooth">
+          <div className="flex items-end justify-between border-b border-[var(--card-border)] pb-3">
             <div>
               <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
                 {activeTab.replace(/([A-Z])/g, ' $1')} Registry Segment
               </h1>
-              <div className="flex items-center gap-4 mt-1.5">
+              <div className="flex items-center gap-3 mt-1">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shadow-[0_0_8px_rgba(var(--primary-rgb),0.6)]" />
                   <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
@@ -412,19 +444,19 @@ export default function AdminDashboardPage() {
             </PermissionGate>
           </div>
 
-          <div className="flex items-center justify-between gap-6 bg-[var(--card-bg)]/40 p-4 rounded-2xl border border-[var(--card-border)]">
+          <div className="flex items-center justify-between gap-6 bg-[var(--card-bg)]/40 p-3 rounded-2xl border border-[var(--card-border)]">
             <div className="relative flex-1 max-w-md group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
               <input
                 type="text"
                 placeholder={`Query master registry for ${activeTab}...`}
-                className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 pl-11 pr-4 text-[11px] font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/40 focus:bg-[var(--card-bg)] transition-all placeholder:text-[var(--text-muted)]/50"
+                className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2 pl-11 pr-4 text-[11px] font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/40 focus:bg-[var(--card-bg)] transition-all placeholder:text-[var(--text-muted)]/50"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <div className="flex items-center gap-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
-              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl">
                 <Activity className="w-3.5 h-3.5 text-[var(--primary)]" />
                 Last Sync: {new Date().toLocaleTimeString()}
               </div>
@@ -437,11 +469,12 @@ export default function AdminDashboardPage() {
         </main>
       </div>
 
-      {activeTab !== 'identity' && (
+      {activeTab !== 'identity' && activeTab !== 'audit' && (
         <SetupDrawer
           open={isDrawerOpen}
           type={activeTab as any}
           initialData={editItem}
+          tenantId={session?.user?.tenantId}
           onClose={() => { setIsDrawerOpen(false); setEditItem(null); }}
           onSuccess={() => refetch()}
         />
@@ -459,11 +492,11 @@ function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns:
         <thead>
           <tr className="bg-[var(--background)]/50 border-b border-[var(--divider-color)]">
             {columns.map((col) => (
-              <th key={col.key} className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">
+              <th key={col.key} className="px-5 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">
                 {col.label}
               </th>
             ))}
-            <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] text-right">
+            <th className="px-5 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] text-right">
               Management
             </th>
           </tr>
@@ -479,13 +512,13 @@ function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns:
           ) : data.map((item, idx) => (
             <tr key={idx} className="group hover:bg-white/[0.02] transition-all duration-300 relative">
               {columns.map((col, colIdx) => (
-                <td key={col.key} className={`px-6 py-3.5 text-[11px] transition-all ${colIdx === 0 ? 'border-l-2 border-transparent group-hover:border-[var(--primary)]' : ''}`}>
+                <td key={col.key} className={`px-5 py-2.5 text-[11px] transition-all ${colIdx === 0 ? 'border-l-2 border-transparent group-hover:border-[var(--primary)]' : ''}`}>
                   <div className="text-[var(--text-secondary)] font-bold tracking-tight uppercase group-hover:text-[var(--text-primary)] transition-colors">
                     {col.render ? col.render(item) : item[col.key]}
                   </div>
                 </td>
               ))}
-              <td className="px-6 py-3.5 text-right">
+              <td className="px-5 py-2.5 text-right">
                 <PermissionGate permission="setup:manage">
                   <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                     <button

@@ -7,7 +7,6 @@ import {
   ChevronLeft, ChevronRight, Lock, Zap
 } from "lucide-react";
 import { useState } from "react";
-import Link from "next/link";
 
 const GET_AUDIT_LOGS = gql`
   query GetSecurityAuditLogs($skip: Int, $take: Int) {
@@ -32,7 +31,7 @@ const GET_AUDIT_LOGS = gql`
   }
 `;
 
-export default function AuditLogPage() {
+export default function SecurityAuditVault() {
   const [page, setPage] = useState(0);
   const take = 20;
 
@@ -55,16 +54,15 @@ export default function AuditLogPage() {
   const totalCount = data?.securityAuditLogs?.totalCount || 0;
 
   return (
-    <div className="p-8 space-y-8 animate-in fade-in duration-700">
-      <title>Halcyon - Security Audit Vault</title>
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-4 animate-in fade-in duration-700">
+      {/* Table Header Section */}
+      <div className="p-5 pb-0 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-6">
-          <div className="w-1.5 h-12 bg-[var(--primary)] rounded-full shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]" />
+          <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]" />
           <div>
-            <h1 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">Security Audit Vault</h1>
-            <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-2 flex items-center gap-2">
-              <Shield className="w-3.5 h-3.5 text-emerald-500" />
+            <h1 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Security Audit Vault</h1>
+            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1.5 flex items-center gap-2">
+              <Shield className="w-3 h-3 text-emerald-500" />
               Forensic Integrity Active · {totalCount} Events Logged
             </p>
           </div>
@@ -74,28 +72,25 @@ export default function AuditLogPage() {
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[var(--primary)] transition-colors" />
             <input 
-              placeholder="Search actions or users..." 
+              placeholder="Search actions..." 
               className="bg-white/[0.03] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-[var(--primary)]/50 transition-all w-64"
             />
           </div>
-          <button className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-slate-400 hover:text-white transition-all">
-            <Filter className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
       {/* Main Forensic Table */}
-      <div className="bg-slate-950/50 border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden">
+      <div className="mx-5 bg-slate-950/50 border border-white/5 rounded-[2rem] shadow-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-white/[0.02] border-b border-white/5">
-                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Timestamp</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Actor</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Action</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Details</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">Entity</th>
-                <th className="px-8 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Diagnostic</th>
+                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Timestamp</th>
+                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Actor</th>
+                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Action</th>
+                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Details</th>
+                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Entity</th>
+                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Diagnostic</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -107,13 +102,13 @@ export default function AuditLogPage() {
                 ))
               ) : logs.map((log: any) => (
                 <tr key={log.auditLogId} className="hover:bg-white/[0.02] transition-all group">
-                  <td className="px-8 py-5">
+                  <td className="px-6 py-2.5">
                     <div className="flex flex-col">
                       <span className="text-[11px] font-black text-white">{new Date(log.timestamp).toLocaleDateString()}</span>
                       <span className="text-[9px] font-black text-slate-500 uppercase">{new Date(log.timestamp).toLocaleTimeString()}</span>
                     </div>
                   </td>
-                  <td className="px-8 py-5">
+                  <td className="px-6 py-2.5">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
                         <User className="w-4 h-4" />
@@ -124,8 +119,8 @@ export default function AuditLogPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="px-8 py-5">
-                    <span className={`px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${
+                  <td className="px-6 py-2.5">
+                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${
                       log.action.includes('UNAUTHORIZED') 
                         ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' 
                         : log.action.includes('ACTIVATED') 
@@ -135,12 +130,12 @@ export default function AuditLogPage() {
                       {log.action}
                     </span>
                   </td>
-                  <td className="px-8 py-5">
+                  <td className="px-6 py-2.5">
                     <p className="text-[10px] text-slate-400 font-medium max-w-xs leading-normal">
                       {log.details}
                     </p>
                   </td>
-                  <td className="px-8 py-5">
+                  <td className="px-6 py-2.5">
                     {log.targetName ? (
                       <div className="flex flex-col">
                         <span className="text-[11px] font-black text-white uppercase">{log.targetName}</span>
@@ -150,16 +145,11 @@ export default function AuditLogPage() {
                       <span className="text-[9px] text-slate-700 italic">Global System</span>
                     )}
                   </td>
-                  <td className="px-8 py-5 text-right">
+                  <td className="px-6 py-2.5 text-right">
                     <div className="flex flex-col items-end gap-1">
                       <div className="flex items-center gap-1.5 text-[8px] font-mono text-slate-600">
                         <Activity className="w-2.5 h-2.5" />
                         {log.ipAddress || '0.0.0.0'}
-                      </div>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest hover:underline">
-                           View Trace
-                         </button>
                       </div>
                     </div>
                   </td>
@@ -170,7 +160,7 @@ export default function AuditLogPage() {
         </div>
 
         {/* Footer / Pagination */}
-        <div className="p-8 bg-white/[0.01] border-t border-white/5 flex items-center justify-between">
+        <div className="p-5 bg-white/[0.01] border-t border-white/5 flex items-center justify-between">
           <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
             Showing {page * take + 1} to {Math.min((page + 1) * take, totalCount)} of {totalCount} events
           </p>
@@ -178,9 +168,9 @@ export default function AuditLogPage() {
             <button 
               disabled={page === 0}
               onClick={() => setPage(p => p - 1)}
-              className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-slate-500 hover:text-white disabled:opacity-20 transition-all"
+              className="p-2 rounded-xl bg-white/[0.03] border border-white/10 text-slate-500 hover:text-white disabled:opacity-20 transition-all"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-1 px-4">
                <span className="text-xs font-black text-white">{page + 1}</span>
@@ -189,45 +179,45 @@ export default function AuditLogPage() {
             <button 
               disabled={!data?.securityAuditLogs?.pageInfo?.hasNextPage}
               onClick={() => setPage(p => p + 1)}
-              className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-slate-500 hover:text-white disabled:opacity-20 transition-all"
+              className="p-2 rounded-xl bg-white/[0.03] border border-white/10 text-slate-500 hover:text-white disabled:opacity-20 transition-all"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Intelligence Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 space-y-4">
+      <div className="mx-5 grid grid-cols-1 md:grid-cols-3 gap-6 pb-8">
+        <div className="p-5 rounded-[1.5rem] bg-indigo-500/5 border border-indigo-500/10 space-y-3">
           <div className="flex items-center gap-4 text-indigo-400">
-            <Shield className="w-5 h-5" />
+            <Shield className="w-4 h-4" />
             <h3 className="text-[10px] font-black uppercase tracking-widest">Integrity Status</h3>
           </div>
-          <p className="text-2xl font-black text-white uppercase tracking-tighter">Verified</p>
-          <p className="text-[10px] text-slate-500 font-medium">Chain of custody validated for last 30,000 events.</p>
+          <p className="text-xl font-black text-white uppercase tracking-tighter">Verified</p>
+          <p className="text-[10px] text-slate-500 font-medium">Chain of custody validated.</p>
         </div>
 
-        <div className="p-6 rounded-[2rem] bg-rose-500/5 border border-rose-500/10 space-y-4">
+        <div className="p-5 rounded-[1.5rem] bg-rose-500/5 border border-rose-500/10 space-y-3">
           <div className="flex items-center gap-4 text-rose-400">
-            <AlertCircle className="w-5 h-5" />
+            <AlertCircle className="w-4 h-4" />
             <h3 className="text-[10px] font-black uppercase tracking-widest">Unauthorized Attempts</h3>
           </div>
-          <p className="text-2xl font-black text-white uppercase tracking-tighter">
+          <p className="text-xl font-black text-white uppercase tracking-tighter">
             {logs.filter((l: any) => l.action.includes('UNAUTHORIZED')).length}
           </p>
-          <p className="text-[10px] text-slate-500 font-medium">High-risk access attempts flagged for immediate review.</p>
+          <p className="text-[10px] text-slate-500 font-medium">High-risk access flagged.</p>
         </div>
 
-        <div className="p-6 rounded-[2rem] bg-emerald-500/5 border border-emerald-500/10 space-y-4">
+        <div className="p-5 rounded-[1.5rem] bg-emerald-500/5 border border-emerald-500/10 space-y-3">
           <div className="flex items-center gap-4 text-emerald-400">
-            <Zap className="w-5 h-5" />
+            <Zap className="w-4 h-4" />
             <h3 className="text-[10px] font-black uppercase tracking-widest">Break-Glass usage</h3>
           </div>
-          <p className="text-2xl font-black text-white uppercase tracking-tighter">
+          <p className="text-xl font-black text-white uppercase tracking-tighter">
             {logs.filter((l: any) => l.action.includes('ACTIVATED')).length}
           </p>
-          <p className="text-[10px] text-slate-500 font-medium">Emergency bypass sessions active within current cycle.</p>
+          <p className="text-[10px] text-slate-500 font-medium">Active bypass sessions.</p>
         </div>
       </div>
     </div>
