@@ -55,15 +55,15 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
         }`}
     >
       {/* Brand Section */}
-      <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-5 h-12 border-b border-[var(--card-border)] shrink-0`}>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)]">
-            <Shield className="w-5 h-5 text-white" />
+      <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-14 border-b border-[var(--card-border)] shrink-0`}>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)] animate-halcyon-pulse">
+            <Shield className="w-5 h-5 text-white" strokeWidth={2} />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none">Halcyon Setup</h2>
-              <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-0.5">Admin Terminal</span>
+              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALCYON SETUP</h2>
+              <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-0.5">Admin Terminal</span>
             </div>
           )}
         </div>

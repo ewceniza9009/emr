@@ -63,13 +63,16 @@ export default function LoginPage() {
           </button>
 
           <div className="flex items-center gap-3 mb-12 group cursor-default">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-emerald-400 flex items-center justify-center shadow-[0_0_30px_var(--primary-glow)] group-hover:scale-110 transition-transform duration-500">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary-glow)] animate-halcyon-pulse group-hover:scale-110 transition-transform duration-500">
+              <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z" />
                 <path d="M8 12h3l1-3 2 6 1-3h2" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight uppercase bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Halcyon</h1>
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-bold text-white tracking-tight leading-none uppercase">HALCYON</h1>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Clinical OS</span>
+            </div>
           </div>
 
           <div className="space-y-2 mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
