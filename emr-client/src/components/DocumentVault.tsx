@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useQuery, gql } from "@apollo/client";
+import { useQuery, useMutation, gql } from "@apollo/client";
 import { 
   FileText, 
   Download, 
@@ -10,9 +10,11 @@ import {
   Search,
   FileCode,
   Image as ImageIcon,
-  FileBox
+  FileBox,
+  Trash2
 } from "lucide-react";
 import { useState } from "react";
+import { useCommandModal } from "./CommandModalProvider";
 import UploadDocumentDrawer from "./UploadDocumentDrawer";
 
 const GET_DOCUMENTS = gql`
@@ -29,16 +31,29 @@ const GET_DOCUMENTS = gql`
   }
 `;
 
+const DELETE_DOCUMENT = gql`
+  mutation DeleteDocument($id: UUID!) {
+    deleteDocument(patientDocumentId: $id)
+  }
+`;
+
 interface Props {
   patientId: string;
 }
 
 export default function DocumentVault({ patientId }: Props) {
+  const { confirm } = useCommandModal();
   const [search, setSearch] = useState("");
    const [isUploadOpen, setIsUploadOpen] = useState(false);
    const { data, loading, refetch } = useQuery(GET_DOCUMENTS, {
      variables: { patientId },
-     skip: !patientId
+     skip: !patientId,
+     fetchPolicy: "network-only",
+     notifyOnNetworkStatusChange: true
+   });
+
+   const [deleteDoc] = useMutation(DELETE_DOCUMENT, {
+     onCompleted: () => refetch()
    });
 
   const documents = data?.documentsByPatient || [];
@@ -124,6 +139,26 @@ export default function DocumentVault({ patientId }: Props) {
                         title="View Record"
                       >
                          <ExternalLink className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          const confirmed = await confirm({
+                            title: "Purge Document?",
+                            message: "Are you sure you want to permanently remove this record from the clinical vault?",
+                            type: "danger",
+                            confirmText: "Purge Permanently",
+                            cancelText: "Keep Record"
+                          });
+                          
+                          if (confirmed) {
+                            deleteDoc({ variables: { id: doc.patientDocumentId } });
+                          }
+                        }}
+                        className="p-2 rounded-lg hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 transition-all"
+                        title="Delete Record"
+                      >
+                         <Trash2 className="w-4 h-4" />
                       </button>
                    </div>
                </div>

@@ -45,7 +45,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();
+// app.UseStaticFiles(); // Disabled as per instruction to use Azurite exclusively
 app.UseCors("PalliativeCorsPolicy");
 app.UseRouting();
 

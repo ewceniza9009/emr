@@ -39,7 +39,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
     formData.append("documentType", type);
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:34731';
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:34732';
       console.log(`[UploadDocumentDrawer] Initiating general upload for patient ${patientId} to: ${baseUrl}`);
       
       const response = await fetch(`${baseUrl}/api/upload/general/${patientId}`, {
@@ -47,9 +47,12 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
         body: formData,
       });
 
+      console.log(`[UploadDocumentDrawer] Server Response Status: ${response.status} ${response.statusText}`);
+
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(errorText || "Upload failed");
+        console.error(`[UploadDocumentDrawer] Upload failed with status ${response.status}:`, errorText);
+        throw new Error(errorText || `Upload failed (Status: ${response.status})`);
       }
 
       onSuccess();
@@ -150,7 +153,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
                   {file ? (
                     <>
                       <CheckCircle2 className="w-10 h-10 text-blue-500" />
-                      <p className="text-xs font-black text-[var(--text-primary)] uppercase">{file.name}</p>
+                      <p className="text-xs font-black text-[var(--text-primary)] uppercase text-center px-8 break-all">{file.name}</p>
                       <button onClick={() => setFile(null)} className="text-[9px] text-rose-500 font-black uppercase hover:underline relative z-20">Remove File</button>
                     </>
                   ) : (

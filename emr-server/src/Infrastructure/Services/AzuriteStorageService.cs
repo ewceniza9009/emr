@@ -47,32 +47,74 @@ public class AzuriteStorageService : IStorageService
     {
         _logger.LogInformation("Azurite: Attempting to download from {Url}", storageUrl);
 
+        BlobClient blobClient;
+
         if (Uri.TryCreate(storageUrl, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
         {
-            _logger.LogInformation("Azurite: URI detected, using BlobClient.");
-            try 
-            {
-                var blobClient = new BlobClient(uri);
-                var response = await blobClient.DownloadStreamingAsync(cancellationToken: cancellationToken);
-                return response.Value.Content;
-            }
-            catch (Azure.RequestFailedException ex) when (ex.Status == 404)
-            {
-                _logger.LogWarning("Azurite: Blob not found in container.");
-                throw new FileNotFoundException("Blob not found in Azurite.", storageUrl);
-            }
+            _logger.LogInformation("Azurite: Absolute URI detected.");
+            blobClient = new BlobClient(uri);
         }
         else
         {
-            _logger.LogError("Azurite: Relative path or invalid URI detected. Storage provider requires absolute Azurite URI.");
-            throw new FileNotFoundException("Document not found. Storage requires absolute Azurite URI.", storageUrl);
+            // Handle relative paths by treating the filename as the blob name
+            _logger.LogInformation("Azurite: Relative path detected. Attempting to resolve blob name.");
+            var blobName = Path.GetFileName(storageUrl);
+            var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+            blobClient = containerClient.GetBlobClient(blobName);
+        }
+
+        try 
+        {
+            var response = await blobClient.DownloadStreamingAsync(cancellationToken: cancellationToken);
+            return response.Value.Content;
+        }
+        catch (Azure.RequestFailedException ex) 
+        {
+            _logger.LogError(ex, "Azurite: Azure-specific failure downloading {Url}. Status: {Status}, ErrorCode: {ErrorCode}", storageUrl, ex.Status, ex.ErrorCode);
+            if (ex.Status == 404)
+            {
+                throw new FileNotFoundException($"Document not found in storage: {storageUrl}", storageUrl);
+            }
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Azurite: Critical non-Azure failure downloading {Url}. Message: {Message}", storageUrl, ex.Message);
+            throw;
         }
     }
 
     public async Task DeleteFileAsync(string storageUrl, CancellationToken cancellationToken = default)
     {
-        var blobClient = new BlobClient(new Uri(storageUrl));
-        await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, cancellationToken: cancellationToken);
-        _logger.LogInformation("Azurite: Deleted blob at {Url}", storageUrl);
+        if (string.IsNullOrEmpty(storageUrl)) return;
+
+        BlobClient blobClient;
+
+        if (Uri.TryCreate(storageUrl, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+        {
+            // For absolute URIs, we use the service client's credentials but target the specific URI
+            _logger.LogInformation("Azurite: Authorized delete for absolute URI: {Url}", storageUrl);
+            var blobUriBuilder = new BlobUriBuilder(uri);
+            var containerClient = _blobServiceClient.GetBlobContainerClient(blobUriBuilder.BlobContainerName);
+            blobClient = containerClient.GetBlobClient(blobUriBuilder.BlobName);
+        }
+        else
+        {
+            // For relative paths, we assume the clinical-documents container
+            _logger.LogInformation("Azurite: Authorized delete for relative path: {Url}", storageUrl);
+            var containerClient = _blobServiceClient.GetBlobContainerClient("clinical-documents");
+            var blobName = Path.GetFileName(storageUrl);
+            blobClient = containerClient.GetBlobClient(blobName);
+        }
+
+        try 
+        {
+            await blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, cancellationToken: cancellationToken);
+            _logger.LogInformation("Azurite: Successfully deleted blob at {Url}", storageUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Azurite: Non-critical failure during blob deletion for {Url}. It might have already been removed.", storageUrl);
+        }
     }
 }

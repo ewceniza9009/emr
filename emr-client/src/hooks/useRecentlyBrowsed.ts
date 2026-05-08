@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export interface RecentItem {
   id: string;
@@ -18,17 +18,17 @@ export function useRecentlyBrowsed() {
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
         setRecentItems(JSON.parse(stored));
-      } catch (e) {
-        console.error("Failed to parse recently browsed items", e);
       }
+    } catch (e) {
+      console.warn("[useRecentlyBrowsed] localStorage access denied:", e);
     }
   }, []);
 
-  const addItem = (item: Omit<RecentItem, "browsedAt">) => {
+  const addItem = useCallback((item: Omit<RecentItem, "browsedAt">) => {
     setRecentItems((prev) => {
       // Filter out existing item with same ID AND type
       const filtered = prev.filter((p) => !(p.id === item.id && p.type === item.type));
@@ -37,10 +37,14 @@ export function useRecentlyBrowsed() {
         ...filtered,
       ].slice(0, MAX_RECENT);
       
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.warn("[useRecentlyBrowsed] could not save to localStorage:", e);
+      }
       return updated;
     });
-  };
+  }, []);
 
   return { recentItems, addItem };
 }

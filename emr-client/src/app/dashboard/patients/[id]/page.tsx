@@ -35,6 +35,8 @@ import {
   Trash2,
   Thermometer
 } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import * as signalR from "@microsoft/signalr";
 import Link from "next/link";
 import SymptomTrendChart from "@/components/SymptomTrendChart";
 import MedicationRegistry from "@/components/MedicationRegistry";
@@ -104,8 +106,9 @@ const GET_PATIENT_DETAILS = gql`
       documents {
         patientDocumentId
         title
-        storageUrl
         documentType
+        storageUrl
+        uploadedAt
         patientContactId
       }
       encounters {
@@ -126,7 +129,6 @@ const GET_PATIENT_DETAILS = gql`
   }
 `;
 
-// Separate query for appointments to prevent primary query failure
 const GET_PATIENT_APPOINTMENTS = gql`
   query GetPatientAppointments($id: UUID!) {
     appointments(patientId: $id) {
@@ -186,6 +188,7 @@ export default function PatientDetailPage() {
   useEffect(() => {
     localStorage.setItem("halcyon_patient_dashboard_active_tab", activeTab);
   }, [activeTab]);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
   const [showEditDemographics, setShowEditDemographics] = useState(false);
@@ -198,6 +201,59 @@ export default function PatientDetailPage() {
   const [showEmergencyDrawer, setShowEmergencyDrawer] = useState(false);
   const [isEmergency, setIsEmergency] = useState(false);
   const [showBreakGlass, setShowBreakGlass] = useState(false);
+  
+  // IoT Telemetry State
+  const [vitals, setVitals] = useState({ hr: 72, spo2: 98, temp: 98.6 });
+  const [telemetryData, setTelemetryData] = useState<any[]>([]);
+  const [isIotConnected, setIsIotConnected] = useState(false);
+
+  useEffect(() => {
+    if (!params.id) return;
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(process.env.NEXT_PUBLIC_SIGNALR_ENDPOINT || "http://localhost:34732/hubs/telemetry")
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.None)
+      .build();
+
+    const startConnection = async () => {
+      try {
+        await connection.start();
+        setIsIotConnected(true);
+        await connection.invoke("JoinPatientStream", params.id);
+        
+        connection.on("ReceiveVitals", (data: any) => {
+          const newVital = {
+            hr: data.heartRate,
+            spo2: data.spO2,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+          };
+          
+          setVitals(prev => ({
+            ...prev,
+            hr: data.heartRate,
+            spo2: data.spO2,
+            temp: data.temperature || prev.temp
+          }));
+
+          setTelemetryData(prev => {
+            const updated = [...prev, newVital];
+            if (updated.length > 20) return updated.slice(1);
+            return updated;
+          });
+        });
+
+      } catch (err) {
+        console.error("[IoT] Connection Failure:", err);
+      }
+    };
+
+    startConnection();
+
+    return () => {
+      connection.stop();
+    };
+  }, [params.id]);
 
   const isUuid = (val: any) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
 
@@ -206,17 +262,19 @@ export default function PatientDetailPage() {
     skip: !params.id || !isUuid(params.id)
   });
 
+  const patient = data?.patientById;
+
   useEffect(() => {
-    if (data?.patientById) {
+    if (patient?.patientId) {
       addItem({
-        id: data.patientById.patientId,
-        firstName: data.patientById.firstName,
-        lastName: data.patientById.lastName,
-        subtitle: data.patientById.mrn,
+        id: patient.patientId,
+        firstName: patient.firstName,
+        lastName: patient.lastName,
+        subtitle: patient.mrn,
         type: 'PATIENT'
       });
     }
-  }, [data?.patientById]);
+  }, [patient?.patientId, addItem]);
 
   const { data: summaryData } = useQuery(GET_CLINICAL_SUMMARY, {
     variables: { patientId: params.id },
@@ -274,8 +332,6 @@ export default function PatientDetailPage() {
   );
 
   if (error) {
-    const isUnauthorized = error.message.includes("Unauthorized") || error.message.includes("Access Denied") || error.message.includes("Clinical context verification failed");
-
     return (
       <div className="p-10 space-y-8 animate-in fade-in duration-700">
         <div className="flex flex-col gap-2">
@@ -346,7 +402,6 @@ export default function PatientDetailPage() {
     );
   }
 
-  const patient = data?.patientById;
   if (!patient) return <div className="p-10 text-[var(--text-primary)] font-black uppercase tracking-widest">Patient record not found in registry.</div>;
 
   const appointments = [...(apptData?.appointments?.items || [])].sort(
@@ -374,29 +429,18 @@ export default function PatientDetailPage() {
               <p className="text-[var(--text-muted)] text-[9px] font-black tracking-[0.2em] uppercase">{patient.mrn} • {patient.biologicalSex}</p>
               <span className="w-1 h-1 rounded-full bg-[var(--card-border)]" />
               <div className="flex items-center gap-4">
-                {(() => {
-                  const vitals = summaryData?.patientClinicalSummary?.recentVitals || [];
-                  const hr = vitals.find((v: any) => v.type.toUpperCase() === 'HEART RATE' || v.type.toUpperCase() === 'HR');
-                  const spo2 = vitals.find((v: any) => v.type.toUpperCase() === 'SPO2' || v.type.toUpperCase() === 'O2');
-                  const temp = vitals.find((v: any) => v.type.toUpperCase() === 'TEMPERATURE' || v.type.toUpperCase() === 'TEMP');
-
-                  return (
-                    <>
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/5 border border-rose-500/10">
-                        <Activity className="w-3 h-3 text-rose-500" />
-                        <span className="text-[9px] font-black text-rose-500 uppercase">{hr?.value || '--'} BPM</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/5 border border-emerald-500/10">
-                        <Wind className="w-3 h-3 text-emerald-500" />
-                        <span className="text-[9px] font-black text-emerald-500 uppercase">{spo2?.value || '--'}% SpO2</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/5 border border-amber-500/10">
-                        <Thermometer className="w-3 h-3 text-amber-500" />
-                        <span className="text-[9px] font-black text-amber-500 uppercase">{temp?.value || '--'}°F</span>
-                      </div>
-                    </>
-                  );
-                })()}
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/5 border border-rose-500/10">
+                  <Activity className="w-3 h-3 text-rose-500" />
+                  <span className="text-[9px] font-black text-rose-500 uppercase">{vitals.hr} BPM</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/5 border border-emerald-500/10">
+                  <Wind className="w-3 h-3 text-emerald-500" />
+                  <span className="text-[9px] font-black text-emerald-500 uppercase">{vitals.spo2}% SpO2</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/5 border border-amber-500/10">
+                  <Thermometer className="w-3 h-3 text-amber-500" />
+                  <span className="text-[9px] font-black text-amber-500 uppercase">{vitals.temp}°F</span>
+                </div>
               </div>
             </div>
           </div>
@@ -534,9 +578,6 @@ export default function PatientDetailPage() {
                       {contact.isPoa && (
                         <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 uppercase tracking-tighter">POA</span>
                       )}
-                      {contact.isLegalGuardian && (
-                        <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/20 uppercase tracking-tighter">Guardian</span>
-                      )}
                       <button
                         onClick={() => {
                           setEditingContact(contact);
@@ -546,22 +587,6 @@ export default function PatientDetailPage() {
                       >
                         <Edit3 className="w-3 h-3" />
                       </button>
-                      <button
-                        onClick={async () => {
-                          const ok = await confirm({
-                            title: "Remove Contact",
-                            message: `Are you sure you want to remove ${contact.firstName} ${contact.lastName} from the trusted contact registry? This action cannot be undone.`,
-                            type: "danger",
-                            confirmText: "Remove Contact"
-                          });
-                          if (ok) {
-                            deleteContact({ variables: { input: { patientContactId: contact.patientContactId } } });
-                          }
-                        }}
-                        className="p-1.5 rounded-lg bg-white/5 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
                     </div>
                   </div>
                 ))
@@ -570,49 +595,10 @@ export default function PatientDetailPage() {
               )}
             </div>
           </div>
-
-          <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-                Patient Demographics
-              </h2>
-              <button
-                className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all"
-                onClick={() => setShowEditDemographics(true)}
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-0.5">
-                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Civil Status</p>
-                <p className="text-[10px] font-black text-[var(--text-primary)]">{patient.civilStatus || "Not recorded"}</p>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Religion</p>
-                <p className="text-[10px] font-black text-[var(--text-primary)]">{patient.religion || "Not recorded"}</p>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Language</p>
-                <p className="text-[10px] font-black text-[var(--text-primary)]">{patient.language || "English"}</p>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Nationality</p>
-                <p className="text-[10px] font-black text-[var(--text-primary)]">{patient.nationality || "Filipino"}</p>
-              </div>
-              <div className="col-span-2 space-y-0.5 pt-2 border-t border-white/5">
-                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Occupation</p>
-                <p className="text-[10px] font-black text-[var(--text-primary)]">{patient.occupation || "Unspecified"}</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Center/Right Column: High-Density Clinical Tabs */}
         <div className="lg:col-span-3 space-y-4">
-          {/* Tab Navigation */}
           <div className="flex items-center gap-1 p-1 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl w-fit">
             <button
               onClick={() => setActiveTab("snapshot")}
@@ -646,135 +632,84 @@ export default function PatientDetailPage() {
             </button>
           </div>
 
-          {/* Tab Content */}
-          {activeTab === "snapshot" && (
-            <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">                 {/* Quick Vitals */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {(summaryData?.patientClinicalSummary?.recentVitals?.slice(0, 5) || [
-                  { type: "Pain", value: "--", unit: "/10" },
-                  { type: "Anxiety", value: "--", unit: "/10" },
-                  { type: "BP", value: "--", unit: "mmHg" },
-                  { type: "SpO2", value: "--", unit: "%" },
-                  { type: "Weight", value: "--", unit: "kg" },
-                ]).map((v: any, i: number) => (
-                  <div key={i} className="bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--card-border)] shadow-md">
-                    <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{v.type}</p>
-                    <div className="flex items-baseline gap-1">
-                      <span className={`text-lg font-black text-[var(--text-primary)] ${v.type === 'SpO2' ? 'text-emerald-500' : ''}`}>{v.value}</span>
-                      <span className="text-[9px] font-black text-[var(--text-muted)]">{v.unit}</span>
+          <div className="min-h-[600px]">
+            {activeTab === "snapshot" && (
+              <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  {(summaryData?.patientClinicalSummary?.recentVitals?.slice(0, 5) || [
+                    { type: "Pain", value: "--", unit: "/10" },
+                    { type: "Anxiety", value: "--", unit: "/10" },
+                    { type: "BP", value: "--", unit: "mmHg" },
+                    { type: "SpO2", value: "--", unit: "%" },
+                    { type: "Weight", value: "--", unit: "kg" },
+                  ]).map((v: any, i: number) => (
+                    <div key={i} className="bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--card-border)] shadow-md">
+                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">{v.type}</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className={`text-lg font-black text-[var(--text-primary)] ${v.type === 'SpO2' ? 'text-emerald-500' : ''}`}>{v.value}</span>
+                        <span className="text-[9px] font-black text-[var(--text-muted)]">{v.unit}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-
-              <AllergyRegistry patientId={params.id as string} />
-              <MedicationRegistry patientId={params.id as string} />
-              <ProblemList patientId={params.id as string} />
-              <VitalSignTimeline patientId={params.id as string} />
-
-              <div className="bg-[var(--card-bg)] rounded-2xl p-6 border border-[var(--card-border)] shadow-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight">
-                      <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
-                      Symptom Trajectory
-                    </h2>
-                    <p className="text-[var(--text-muted)] text-[9px] font-black uppercase tracking-widest mt-1">ESAS-R Standardized Trends</p>
-                  </div>
+                  ))}
                 </div>
-                <SymptomTrendChart patientId={params.id as string} />
-              </div>
-            </div>
-          )}
-
-          {activeTab === "history" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl min-h-[500px]">
-                <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
-                  <Activity className="w-4 h-4 text-[var(--primary)]" />
-                  Clinical Activity Log
-                </h2>
-
-                <div className="space-y-8 relative">
-                  <div className="absolute left-[21px] top-0 w-px h-full bg-[var(--card-border)]" />
-
-                  {(patient.encounters || [])
-                    .slice()
-                    .sort((a: any, b: any) => new Date(a.encounterDate).getTime() - new Date(b.encounterDate).getTime())
-                    .map((evt: any, i: number) => {
-                      const note = evt.clinicalNotes?.[0]?.content || "Visit completed without supplemental clinical narrative.";
-                      const date = new Date(evt.encounterDate);
-
-                      // Determine icon based on type
-                      const getIcon = (type: string) => {
-                        if (type.includes('ASSESSMENT')) return <ClipboardList className="w-4 h-4" />;
-                        if (type.includes('FOLLOWUP')) return <History className="w-4 h-4" />;
-                        return <CheckCircle2 className="w-4 h-4" />;
-                      };
-
-                      return (
-                        <div key={evt.encounterId} className="flex gap-8 relative z-10 group cursor-pointer">
-                          <div className="w-11 h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--primary)] group-hover:text-[var(--primary)] transition-all">
-                            {getIcon(evt.type)}
-                          </div>
-                          <div className="pt-1 flex-1">
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-sm font-black uppercase text-[var(--text-primary)]">{evt.type.replace('_', ' ')}</h4>
-                              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
-                                {date.toLocaleDateString()} • {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">
-                              Provider: {evt.practitioner ? `${evt.practitioner.firstName} ${evt.practitioner.lastName}` : "System Automated"}
-                            </p>
-                            <div className="mt-4 p-4 rounded-xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] group-hover:bg-[var(--primary)]/5 transition-all">
-                              <p className="text-xs text-[var(--text-secondary)] italic">
-                                {note}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "activity" && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl min-h-[500px]">
-                <div className="flex items-center justify-between mb-10">
-                  <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-3">
-                    <Calendar className="w-4 h-4 text-[var(--primary)]" />
-                    Patient Visit Registry
+                <AllergyRegistry patientId={params.id as string} />
+                <MedicationRegistry patientId={params.id as string} />
+                <ProblemList patientId={params.id as string} />
+                <VitalSignTimeline patientId={params.id as string} />
+                <div className="bg-[var(--card-bg)] rounded-2xl p-6 border border-[var(--card-border)] shadow-xl">
+                  <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight mb-4">
+                    <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+                    Symptom Trajectory
                   </h2>
-                  <button
-                    onClick={() => {
-                      setSelectedAppointmentId(undefined);
-                      setDrawerOpen(true);
-                    }}
-                    className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)]">
-                    <Plus className="w-4 h-4" /> Schedule visit
-                  </button>
+                  <SymptomTrendChart patientId={params.id as string} />
                 </div>
+              </div>
+            )}
 
-                <div className="space-y-4">
-                  {apptLoading ? (
-                    <div className="flex items-center justify-center py-20">
-                      <Loader2 className="w-8 h-8 text-[var(--primary)] animate-spin" />
-                    </div>
-                  ) : appointments.length > 0 ? (
-                    appointments.map((appt: any) => (
-                      <div
-                        key={appt.appointmentId}
-                        className="p-6 rounded-[2rem] border border-[var(--card-border)] bg-[var(--input-bg)]/50 flex items-center justify-between hover:border-[var(--primary)]/30 transition-all group cursor-pointer active:scale-[0.99]"
-                      >
-                        <Link
-                          href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
-                          className="flex-1 flex items-center gap-6"
-                        >
+            {activeTab === "history" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl min-h-[500px]">
+                  <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
+                    <Activity className="w-4 h-4 text-[var(--primary)]" />
+                    Clinical Activity Log
+                  </h2>
+                  <div className="space-y-8 relative">
+                    <div className="absolute left-[21px] top-0 w-px h-full bg-[var(--card-border)]" />
+                    {(patient.encounters || []).map((evt: any, i: number) => (
+                      <div key={evt.encounterId} className="flex gap-8 relative z-10 group">
+                        <div className="w-11 h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--primary)] transition-all">
+                          <CheckCircle2 className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-black uppercase text-[var(--text-primary)]">{evt.type}</h4>
+                            <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{new Date(evt.encounterDate).toLocaleDateString()}</span>
+                          </div>
+                          <p className="text-xs text-[var(--text-secondary)] mt-2">{evt.clinicalNotes?.[0]?.content}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "activity" && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl min-h-[500px]">
+                  <div className="flex items-center justify-between mb-10">
+                    <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-3">
+                      <Calendar className="w-4 h-4 text-[var(--primary)]" />
+                      Patient Visit Registry
+                    </h2>
+                    <button onClick={() => setDrawerOpen(true)} className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)]">
+                      <Plus className="w-4 h-4" /> Schedule Visit
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {appointments.map((appt: any) => (
+                      <div key={appt.appointmentId} className="p-6 rounded-[2rem] border border-[var(--card-border)] bg-[var(--input-bg)]/50 flex items-center justify-between hover:border-[var(--primary)]/30 transition-all group">
+                        <div className="flex items-center gap-6">
                           <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors
                                              ${appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE' ? 'bg-[var(--primary)] text-white animate-pulse' : 'bg-[var(--card-border)] text-[var(--text-muted)]'}`}>
                             <Calendar className="w-6 h-6" />
@@ -792,149 +727,107 @@ export default function PatientDetailPage() {
                                 <Clock className="w-3.5 h-3.5" />
                                 {new Date(appt.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
-                              <span className="flex items-center gap-1.5 text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">
-                                <UserCircle className="w-3.5 h-3.5" />
-                                {appt.status?.toUpperCase() === 'COMPLETED' && appt.encounters?.[0]?.practitioner
-                                  ? `${appt.encounters[0].practitioner.firstName} ${appt.encounters[0].practitioner.lastName}`
-                                  : `${appt.practitioner?.firstName} ${appt.practitioner?.lastName}`}
-                              </span>
                             </div>
                           </div>
-                        </Link>
-
+                        </div>
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2 pr-4 border-r border-[var(--card-border)]">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedAppointmentId(appt.appointmentId);
-                                setDrawerOpen(true);
-                              }}
-                              className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)]/30 transition-all"
-                              title="Edit Schedule"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                          </div>
-
-                          {appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE' ? (
-                            <Link
-                              href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
-                              className="px-6 py-3 rounded-xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2"
-                            >
-                              <Zap className="w-4 h-4" /> Join Visit
-                            </Link>
-                          ) : appt.status?.toUpperCase().includes('SCHEDULED') ? (
-                            <>
-                              <Link
-                                href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
-                                className="px-6 py-3 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-[var(--primary-glow)] flex items-center gap-2"
-                              >
-                                <Stethoscope className="w-4 h-4" /> Start Visit
-                              </Link>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedAppointmentId(appt.appointmentId);
-                                  setDrawerOpen(true);
-                                }}
-                                className="px-4 py-3 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/20 transition-all"
-                              >
-                                Cancel
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                setSummaryAppointmentId(appt.appointmentId);
-                                setIsSummaryOpen(true);
-                              }}
-                              className="px-6 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest hover:text-[var(--text-primary)] transition-all"
-                            >
-                              View Summary
-                            </button>
-                          )}
+                          <Link
+                            href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
+                            className="px-6 py-3 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-[var(--primary-glow)] flex items-center gap-2"
+                          >
+                            <Stethoscope className="w-4 h-4" /> Start Visit
+                          </Link>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="py-20 text-center opacity-30">
-                      <Calendar className="w-12 h-12 mx-auto mb-4 text-[var(--text-muted)]" />
-                      <p className="text-xs font-black uppercase tracking-widest">No Historical Appointments Found</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "logistics" && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <EquipmentRegistry patientId={params.id as string} />
-
-              <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-[var(--primary)]" />
-                <div className="flex items-center justify-between mb-8">
-                  <div>
-                    <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
-                      <Activity className="w-5 h-5 text-emerald-500" />
-                      IoT Telemetry Stream
-                    </h2>
-                    <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mt-1">Live Sensor Network (Oxygen/Vitals)</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
-                      <div className="flex items-center gap-3">
-                        <Wind className="w-5 h-5 text-blue-400" />
-                        <span className="text-xs font-black uppercase tracking-tighter">O2 Saturation Feed</span>
-                      </div>
-                      <span className="text-xl font-black text-emerald-500">98%</span>
-                    </div>
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
-                      <div className="flex items-center gap-3">
-                        <Activity className="w-5 h-5 text-rose-400" />
-                        <span className="text-xs font-black uppercase tracking-tighter">Cardiac Pulse Rate</span>
-                      </div>
-                      <span className="text-xl font-black text-rose-500">72 <span className="text-[10px]">BPM</span></span>
-                    </div>
-                  </div>
-                  <div className="bg-black/5 rounded-3xl border border-[var(--card-border)] flex items-center justify-center p-8">
-                    <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] text-center">
-                      Waiting for active IoT Handshake...
-                    </p>
+                    ))}
                   </div>
                 </div>
               </div>
+            )}
 
-              <DocumentVault patientId={params.id as string} />
-            </div>
-          )}
-
-          {activeTab === "coordination" && (
-            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl">
-                <div className="flex items-center justify-between mb-8">
-                  <div>
-                    <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tight">
-                      <Users className="w-6 h-6 text-emerald-400" />
-                      Trusted Contacts & POA
-                    </h2>
-                    <p className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest mt-1">Authorized Representatives & Family</p>
+            {activeTab === "logistics" && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <EquipmentRegistry patientId={params.id as string} />
+                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-[var(--primary)]" />
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+                        <Activity className="w-5 h-5 text-emerald-500" />
+                        IoT Telemetry Stream
+                      </h2>
+                      <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mt-1">Live Sensor Network (Oxygen/Vitals)</p>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => setShowAddContact(true)}
-                    className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-600/20 flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all"
-                  >
-                    <Plus className="w-4 h-4" /> Add Contact
-                  </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] group hover:border-emerald-500/30 transition-all">
+                        <div className="flex items-center gap-3">
+                          <Wind className={`w-5 h-5 ${isIotConnected ? 'text-emerald-400 animate-pulse' : 'text-slate-500'}`} />
+                          <span className="text-xs font-black uppercase tracking-tighter">O2 Saturation Feed</span>
+                        </div>
+                        <span className="text-xl font-black text-emerald-500">{vitals.spo2}%</span>
+                      </div>
+                      <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] group hover:border-rose-500/30 transition-all">
+                        <div className="flex items-center gap-3">
+                          <Activity className={`w-5 h-5 ${isIotConnected ? 'text-rose-400 animate-bounce' : 'text-slate-500'}`} />
+                          <span className="text-xs font-black uppercase tracking-tighter">Cardiac Pulse Rate</span>
+                        </div>
+                        <span className="text-xl font-black text-rose-500">{vitals.hr} <span className="text-[10px]">BPM</span></span>
+                      </div>
+                    </div>
+                    <div className="bg-black/20 rounded-3xl border border-[var(--card-border)] overflow-hidden h-[180px] relative">
+                      {telemetryData.length > 0 ? (
+                        <div className="absolute inset-0 p-4">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={telemetryData}>
+                              <defs>
+                                <linearGradient id="colorHr" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
+                                  <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                                </linearGradient>
+                                <linearGradient id="colorSpo2" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                              <Tooltip contentStyle={{ backgroundColor: '#000', border: '1px solid #ffffff10', borderRadius: '12px', fontSize: '10px' }} />
+                              <Area type="monotone" dataKey="hr" stroke="#f43f5e" fillOpacity={1} fill="url(#colorHr)" strokeWidth={3} isAnimationActive={false} />
+                              <Area type="monotone" dataKey="spo2" stroke="#10b981" fillOpacity={1} fill="url(#colorSpo2)" strokeWidth={2} isAnimationActive={false} />
+                            </AreaChart>
+                          </ResponsiveContainer>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full gap-4 opacity-50">
+                          <div className="w-12 h-12 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
+                          <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Waiting for active IoT Handshake...</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
+                <DocumentVault patientId={params.id as string} />
+              </div>
+            )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {patient.contacts?.length > 0 ? (
-                    patient.contacts.map((contact: any) => (
+            {activeTab === "coordination" && (
+              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tight">
+                        <Users className="w-6 h-6 text-emerald-400" />
+                        Trusted Contacts & POA
+                      </h2>
+                      <p className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest mt-1">Authorized Representatives & Family</p>
+                    </div>
+                    <button onClick={() => setShowAddContact(true)} className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-600/20 flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all">
+                      <Plus className="w-4 h-4" /> Add Contact
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {patient.contacts?.map((contact: any) => (
                       <div key={contact.patientContactId} className={`p-6 rounded-3xl border transition-all ${contact.isPoa ? 'bg-blue-500/5 border-blue-500/20' : 'bg-white/5 border-white/5'}`}>
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
@@ -947,40 +840,12 @@ export default function PatientDetailPage() {
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            {contact.isPoa && (
-                              <span className="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[8px] font-black uppercase tracking-widest border border-blue-500/20">POA</span>
-                            )}
-                            {contact.isLegalGuardian && (
-                              <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-400 text-[8px] font-black uppercase tracking-widest border border-purple-500/20">Guardian</span>
-                            )}
-                            <button
-                              onClick={() => {
-                                setEditingContact(contact);
-                                setShowAddContact(true);
-                              }}
-                              className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-white hover:bg-[var(--primary)]/20 transition-all"
-                            >
+                            {contact.isPoa && <span className="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[8px] font-black uppercase tracking-widest border border-blue-500/20">POA</span>}
+                            <button onClick={() => { setEditingContact(contact); setShowAddContact(true); }} className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-white hover:bg-[var(--primary)]/20 transition-all">
                               <Edit3 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={async () => {
-                                const ok = await confirm({
-                                  title: "Remove Authorization",
-                                  message: `Are you sure you want to remove ${contact.firstName} ${contact.lastName} from authorized clinical access?`,
-                                  type: "danger",
-                                  confirmText: "Revoke Access"
-                                });
-                                if (ok) {
-                                  deleteContact({ variables: { command: { patientContactId: contact.patientContactId } } });
-                                }
-                              }}
-                              className="p-1.5 rounded-lg bg-white/5 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
-
                         <div className="space-y-2 mb-4">
                           <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)]">
                             <Phone className="w-3 h-3 opacity-50" />
@@ -991,177 +856,92 @@ export default function PatientDetailPage() {
                             <span className="font-bold">{contact.email || "No email recorded"}</span>
                           </div>
                         </div>
+                        {contact.isPoa && (() => {
+                          const allDocs = [...(patient.documents || [])];
+                          // Broaden search: Find ANY POA document for this patient
+                          let displayDocs = allDocs.filter((d: any) => d.documentType === 'POA' || d.title?.toUpperCase().includes('POA'));
+                          
+                          // NEW: Azurite Sovereignty - if we have even one Azurite link, kill all legacy paths
+                          const hasAzurite = displayDocs.some((d: any) => d.storageUrl?.toLowerCase().includes('http'));
+                          if (hasAzurite) {
+                            displayDocs = displayDocs.filter((d: any) => d.storageUrl?.toLowerCase().includes('http'));
+                          }
+                          
+                          const poaDoc = displayDocs.sort((a: any, b: any) => {
+                            // ULTRA PRIORITY: Any new Azurite link (http)
+                            const aIsAzurite = a.storageUrl?.toLowerCase().includes('http');
+                            const bIsAzurite = b.storageUrl?.toLowerCase().includes('http');
+                            
+                            // If one is Azurite and the other is legacy, Azurite ALWAYS wins
+                            if (bIsAzurite && !aIsAzurite) return 1;
+                            if (aIsAzurite && !bIsAzurite) return -1;
+                            
+                            // If both are the same type, use date
+                            const aDate = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
+                            const bDate = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
+                            return bDate - aDate;
+                          })[0];
 
-                        {contact.isPoa && (
-                          <div className="pt-4 border-t border-blue-500/10">
-                            <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-3">Power of Attorney Records</p>
-                            <button
-                              onClick={async () => {
-                                const poaDoc = patient.documents?.find((d: any) =>
-                                  d.patientContactId === contact.patientContactId &&
-                                  (d.documentType === 'POA' || d.title.toUpperCase().includes('POA'))
-                                );
-                                if (poaDoc) {
-                                  const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${poaDoc.patientDocumentId}`;
-                                  window.open(url, '_blank');
-                                } else {
-                                  await alert({
-                                    title: "Missing Documentation",
-                                    message: "No POA document found for this contact. Please upload it in the Document Vault below.",
-                                    type: "warning"
-                                  });
+                          // ALWAYS use the API proxy for viewing to ensure correct headers/PDF viewing
+                          const href = poaDoc 
+                            ? `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${poaDoc.patientDocumentId}`
+                            : '#';
+
+                          return (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => {
+                                if (!poaDoc) {
+                                  e.preventDefault();
+                                  alert({ title: "Missing Documentation", message: "No POA document found for this contact.", type: "warning" });
                                 }
                               }}
                               className="w-full py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2"
                             >
-                              <FileText className="w-3.5 h-3.5" /> View POA Document (PDF)
-                            </button>
-                          </div>
-                        )}
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              View POA Documentation ({displayDocs.length})
+                            </a>
+                          );
+                        })()}
                       </div>
-                    ))
-                  ) : (
-                    <div className="col-span-full py-12 text-center border-2 border-dashed border-white/5 rounded-3xl">
-                      <p className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">No additional contacts registered.</p>
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </div>
+                <DocumentVault patientId={params.id as string} />
               </div>
-
-              <DocumentVault patientId={params.id as string} />
-            </div>
-          )}
-
-          {/* Intervention Action Area */}
-          {!activeAppointment && (
-            <div className="bg-[var(--card-bg)] rounded-2xl p-6 border border-[var(--card-border)] border-dashed flex flex-col items-center justify-center text-center relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-b from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center mb-4 text-[var(--primary)] relative z-10">
-                <ClipboardList className="w-6 h-6" />
-              </div>
-
-              {nextScheduledAppointment ? (
-                <div className="relative z-10 space-y-2">
-                  <h3 className="text-[var(--text-primary)] font-black text-xl uppercase tracking-tighter">Next Scheduled Visit</h3>
-                  <div className="flex items-center justify-center gap-4 py-2">
-                    <div className="flex items-center gap-2 px-3 py-1 bg-[var(--input-bg)] rounded-lg border border-[var(--card-border)]">
-                      <Calendar className="w-3.5 h-3.5 text-[var(--primary)]" />
-                      <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">
-                        {new Date(nextScheduledAppointment.scheduledStart).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-1 bg-[var(--input-bg)] rounded-lg border border-[var(--card-border)]">
-                      <Clock className="w-3.5 h-3.5 text-[var(--primary)]" />
-                      <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">
-                        {new Date(nextScheduledAppointment.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mt-2">
-                    Provider: {nextScheduledAppointment.practitioner?.firstName} {nextScheduledAppointment.practitioner?.lastName}
-                  </p>
-
-                  <div className="flex gap-4 mt-8">
-                    <Link
-                      href={`/dashboard/patients/${params.id}/visit?appointmentId=${nextScheduledAppointment.appointmentId}`}
-                      className="px-8 py-4 rounded-2xl bg-[var(--primary)] text-white font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-[var(--primary-glow)]"
-                    >
-                      <Zap className="w-5 h-5" />
-                      Start Scheduled Visit
-                    </Link>
-                    <button
-                      onClick={() => {
-                        setSelectedAppointmentId(nextScheduledAppointment.appointmentId);
-                        setDrawerOpen(true);
-                      }}
-                      className="px-8 py-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-primary)] font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 hover:bg-[var(--primary-glow)] transition-all">
-                      <Edit3 className="w-4 h-4" />
-                      Adjust Schedule
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative z-10">
-                  <h3 className="text-[var(--text-primary)] font-black text-xl uppercase tracking-tighter">Encounter Registry</h3>
-                  <p className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest mt-2 max-w-xs leading-relaxed">No upcoming visits detected in the registry. Schedule a new encounter to begin assessment.</p>
-                  <div className="flex gap-4 mt-10">
-                    <button
-                      onClick={() => {
-                        setSelectedAppointmentId(undefined);
-                        setDrawerOpen(true);
-                      }}
-                      className="px-10 py-4 rounded-2xl bg-[var(--primary)] text-white font-black uppercase text-xs tracking-[0.2em] flex items-center gap-3 hover:opacity-90 transition-all shadow-xl shadow-[var(--primary-glow)]"
-                    >
-                      <Plus className="w-5 h-5" />
-                      Schedule & Start Visit
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
       <BookingDrawer
         open={drawerOpen}
-        onClose={() => {
-          setDrawerOpen(false);
-          refetch();
-          refetchAppts();
-        }}
-        onBooked={() => {
-          setDrawerOpen(false);
-          refetch();
-          refetchAppts();
-        }}
-        appointmentId={selectedAppointmentId}
+        onClose={() => { setDrawerOpen(false); refetchAppts(); }}
+        onBooked={() => { setDrawerOpen(false); refetchAppts(); }}
         patientId={params.id as string}
       />
 
       <AddContactDrawer
-        open={showAddContact}
-        onClose={() => {
-          setShowAddContact(false);
+        isOpen={showAddContact}
+        onClose={() => { setShowAddContact(false); setEditingContact(null); }}
+        onSuccess={async () => { 
+          await refetch(); 
+          setShowAddContact(false); 
           setEditingContact(null);
         }}
-        onSuccess={() => {
-          refetch();
-          setShowAddContact(false);
-          setEditingContact(null);
-        }}
-        initialData={editingContact}
         patientId={params.id as string}
+        initialData={editingContact}
+        existingPoaFile={editingContact ? (patient.documents || []).find((d: any) => 
+          d.patientContactId === editingContact.patientContactId && (d.documentType === 'POA' || d.title?.toUpperCase().includes('POA'))
+        )?.title : undefined}
       />
 
-      <EditDemographicsDrawer
-        open={showEditDemographics}
-        onClose={() => setShowEditDemographics(false)}
-        onSuccess={() => refetch()}
-        patient={patient}
-      />
-      <EditCommunicationsDrawer
-        open={showEditCommunications}
-        onClose={() => setShowEditCommunications(false)}
-        onSuccess={() => refetch()}
-        patient={patient}
-      />
-      {summaryAppointmentId && (
-        <VisitSummaryDrawer
-          isOpen={isSummaryOpen}
-          onClose={() => setIsSummaryOpen(false)}
-          patientId={params.id as string}
-          appointmentId={summaryAppointmentId}
-        />
-      )}
-
-      <EmergencyActionDrawer
-        open={showEmergencyDrawer}
-        onClose={() => setShowEmergencyDrawer(false)}
-        patient={patient}
-        onEscalate={() => setIsEmergency(true)}
-      />
+      <EditDemographicsDrawer open={showEditDemographics} onClose={() => setShowEditDemographics(false)} onSuccess={() => refetch()} patient={patient} />
+      <EditCommunicationsDrawer open={showEditCommunications} onClose={() => setShowEditCommunications(false)} onSuccess={() => refetch()} patient={patient} />
+      <EmergencyActionDrawer open={showEmergencyDrawer} onClose={() => setShowEmergencyDrawer(false)} patient={patient} onEscalate={() => setIsEmergency(true)} />
+      <BreakGlassDrawer open={showBreakGlass} onClose={() => setShowBreakGlass(false)} onSuccess={() => refetch()} />
     </div>
   );
 }

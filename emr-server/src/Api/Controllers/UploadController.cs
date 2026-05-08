@@ -19,8 +19,9 @@ public class UploadController : ControllerBase
     }
 
     [HttpPost("poa/{contactId}")]
-    public async Task<IActionResult> UploadPoaDocument(Guid contactId, IFormFile file)
+    public async Task<IActionResult> UploadPoaDocument(Guid contactId, [FromForm] IFormFile file)
     {
+        Console.WriteLine($"[UploadController] Received POA upload request for Contact: {contactId}");
         if (file == null || file.Length == 0)
             return BadRequest("No file uploaded");
 
@@ -41,10 +42,23 @@ public class UploadController : ControllerBase
             file.ContentType
         );
 
+        // CLEANUP: Find and remove any existing POA for this contact to prevent storage bloat
+        var existingPoa = await _context.PatientDocuments
+            .FirstOrDefaultAsync(d => d.PatientContactId == contactId && (d.DocumentType == "POA" || d.Title.Contains("POA")));
+
+        if (existingPoa != null)
+        {
+            // Delete the physical blob from Azurite
+            await _storageService.DeleteFileAsync(existingPoa.StorageUrl);
+            // Remove the record from DB
+            _context.PatientDocuments.Remove(existingPoa);
+        }
+
         var document = new PatientDocument
         {
             PatientId = contact.PatientId,
             PatientContactId = contact.ContactId,
+            TenantId = contact.TenantId,
             Title = $"POA - {file.FileName}",
             DocumentType = "POA",
             StorageUrl = storageUrl,
@@ -64,16 +78,32 @@ public class UploadController : ControllerBase
         Guid patientId, 
         [FromForm] string title, 
         [FromForm] string documentType, 
-        IFormFile file)
+        [FromForm] IFormFile file)
     {
+        Console.WriteLine($"[UploadController] Received General upload request for Patient: {patientId} (Title: {title}, Type: {documentType})");
         if (file == null || file.Length == 0)
             return BadRequest("No file uploaded");
 
-        var patientExists = await _context.Patients
+        var patient = await _context.Patients
             .IgnoreQueryFilters()
-            .AnyAsync(p => p.PatientId == patientId);
-        if (!patientExists)
+            .FirstOrDefaultAsync(p => p.PatientId == patientId);
+        if (patient == null)
             return NotFound("Patient not found");
+
+        var resolvedTitle = title ?? file.FileName;
+
+        // DEDUPLICATION: Remove any existing document with the exact same title for this patient
+        var existingDoc = await _context.PatientDocuments
+            .FirstOrDefaultAsync(d => d.PatientId == patientId && d.Title == resolvedTitle);
+
+        if (existingDoc != null)
+        {
+            Console.WriteLine($"[UploadController] Found duplicate document '{resolvedTitle}'. Purging before upload...");
+            await _storageService.DeleteFileAsync(existingDoc.StorageUrl);
+            _context.PatientDocuments.Remove(existingDoc);
+            // Save changes here so the remove takes effect before we add the new one, avoiding unique constraint issues if any
+            await _context.SaveChangesAsync(default);
+        }
 
         using var stream = file.OpenReadStream();
         var storageUrl = await _storageService.UploadFileAsync(
@@ -85,7 +115,8 @@ public class UploadController : ControllerBase
         var document = new PatientDocument
         {
             PatientId = patientId,
-            Title = title ?? file.FileName,
+            TenantId = patient.TenantId,
+            Title = resolvedTitle,
             DocumentType = documentType ?? "OTHER",
             StorageUrl = storageUrl,
             ContentType = file.ContentType,
@@ -102,12 +133,18 @@ public class UploadController : ControllerBase
     [HttpGet("document/{documentId}")]
     public async Task<IActionResult> GetDocument(Guid documentId, [FromQuery] bool download = false)
     {
+        Console.WriteLine($"[UploadController] Requesting document: {documentId}");
         var document = await _context.PatientDocuments
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(d => d.PatientDocumentId == documentId);
 
         if (document == null)
+        {
+            Console.WriteLine($"[UploadController] Document NOT FOUND in database: {documentId}");
             return NotFound("Document record not found");
+        }
+
+        Console.WriteLine($"[UploadController] Found document: {document.Title}. StorageUrl: {document.StorageUrl}");
 
         try
         {

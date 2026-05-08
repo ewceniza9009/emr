@@ -1,4 +1,4 @@
-﻿import * as signalR from '@microsoft/signalr';
+import * as signalR from '@microsoft/signalr';
 
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
@@ -19,7 +19,7 @@ class SignalRService {
     }
 
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl(process.env.NEXT_PUBLIC_SIGNALR_ENDPOINT || 'http://localhost:5000/hubs/telemetry', {
+      .withUrl(process.env.NEXT_PUBLIC_SIGNALR_ENDPOINT || 'http://localhost:34732/hubs/telemetry', {
         accessTokenFactory: () => token,
         transport: signalR.HttpTransportType.WebSockets,
       })
