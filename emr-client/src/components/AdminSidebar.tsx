@@ -17,7 +17,8 @@ import {
   ClipboardList,
   Sun,
   Moon,
-  Lock
+  Lock,
+  Settings
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
@@ -45,6 +46,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
     { id: "integrationProfiles", label: "Integrations", icon: Globe },
     { id: "audit", label: "Security Audit", icon: Shield },
     { id: "identity", label: "Identity & Roles", icon: Lock },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   return (

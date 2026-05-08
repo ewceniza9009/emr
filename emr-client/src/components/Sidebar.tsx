@@ -50,7 +50,6 @@ const navItems: NavItem[] = [
   { icon: Navigation2, label: "Navigation", href: "/dashboard/navigation", permission: "scheduling:view", color: "text-blue-500", bgColor: "hover:bg-blue-500/10", activeBg: "bg-blue-500/10" },
   { icon: FileText, label: "Clinical Notes", href: "/dashboard/notes", permission: "docs:view", color: "text-purple-500", bgColor: "hover:bg-purple-500/10", activeBg: "bg-purple-500/10" },
   { icon: Stethoscope, label: "Billing", href: "/dashboard/billing", permission: "billing:view" },
-  { icon: Globe, label: "Settings", href: "/dashboard/settings" },
 ];
 
 export function Sidebar() {

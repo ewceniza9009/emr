@@ -106,7 +106,7 @@ export default function Dashboard() {
   const { showToast } = useToast();
   const { tenantConfig } = useSettings();
   const { data, loading } = useQuery(GET_DASHBOARD_STATS);
-  const { recentPatients } = useRecentlyBrowsed();
+  const { recentItems } = useRecentlyBrowsed();
   const [greeting, setGreeting] = useState("Good morning");
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
@@ -201,25 +201,30 @@ export default function Dashboard() {
         {/* Main Operational Pulse & Log */}
         <div className="lg:col-span-8 space-y-4">
 
-          {/* Recently Browsed - NEW */}
-          {recentPatients.length > 0 && (
+          {/* Recently Browsed - Enhanced */}
+          {recentItems.length > 0 && (
             <motion.div variants={itemVariants} className="glass-morphism rounded-[2rem] p-4 border border-[var(--card-border)]">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-1 h-4 bg-teal-500 rounded-full" />
                 <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Recently Browsed</h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                {recentPatients.map((p) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                {recentItems.map((item) => (
                   <div
-                    key={p.patientId}
-                    onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}
-                    className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-teal-500/30 hover:bg-teal-500/5 transition-all cursor-pointer group text-center"
+                    key={`${item.type}-${item.id}`}
+                    onClick={() => router.push(item.type === 'PATIENT' ? `/dashboard/patients/${item.id}` : `/dashboard/outreach/${item.id}/enroll`)}
+                    className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-teal-500/30 hover:bg-teal-500/5 transition-all cursor-pointer group text-center flex flex-col items-center gap-2"
                   >
-                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-2 text-teal-400 group-hover:scale-110 transition-transform">
-                      <UserCircle className="w-4 h-4" />
+                    <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-teal-400 group-hover:scale-110 group-hover:bg-teal-500/10 transition-all`}>
+                      {item.type === 'PATIENT' ? <UserCircle className="w-5 h-5" /> : <Target className="w-5 h-5" />}
                     </div>
-                    <p className="text-[10px] font-bold text-[var(--text-primary)] truncate">{p.firstName} {p.lastName}</p>
-                    <p className="text-[8px] font-bold text-[var(--text-muted)] mt-0.5 tracking-tighter">{p.mrn}</p>
+                    <div className="min-w-0 w-full">
+                      <p className="text-[10px] font-black text-[var(--text-primary)] truncate uppercase tracking-tight">{item.firstName} {item.lastName}</p>
+                      <div className="flex items-center justify-center gap-1.5 mt-1">
+                        <span className={`w-1 h-1 rounded-full ${item.type === 'PATIENT' ? 'bg-blue-500' : 'bg-teal-500'}`} />
+                        <p className="text-[8px] font-bold text-[var(--text-muted)] truncate tracking-widest uppercase">{item.subtitle || 'NO MRN'}</p>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

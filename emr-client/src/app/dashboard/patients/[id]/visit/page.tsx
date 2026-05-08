@@ -826,11 +826,17 @@ export default function GuidedVisitPage() {
                         </div>
                       </div>
                     </div>
-                  ) : (
-                    loadingQuestionnaire ? (
-                      <div className="flex-1 flex flex-col items-center justify-center py-20 space-y-6">
-                        <div className="w-16 h-16 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin" />
-                        <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-widest">Loading protocol metadata...</p>
+                  ) : loadingQuestionnaire ? (
+                      <div className="flex-1 flex flex-col items-center justify-center py-20 space-y-6 animate-in fade-in duration-500">
+                        <div className="relative">
+                          <div className="w-16 h-16 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin" />
+                          <ClipboardList className="w-6 h-6 text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                          <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Hydrating Protocol Schema</p>
+                          <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+                          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Syncing Clinical Metadata</p>
+                        </div>
                       </div>
                     ) : questionnaireData?.questionnaireByType ? (
                       <DynamicAssessment
@@ -874,8 +880,7 @@ export default function GuidedVisitPage() {
                         <p className="text-[var(--text-muted)] italic text-xs">Protocol metadata missing in backend.</p>
                         <button onClick={() => setExecutingAssessment(false)} className="px-6 py-3 rounded-xl bg-[var(--background)] text-[var(--text-muted)] font-bold text-xs">Cancel</button>
                       </div>
-                    )
-                  )}
+                    )}
                 </div>
               )}
 

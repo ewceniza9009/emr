@@ -1,37 +1,39 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 
-export interface RecentPatient {
-  patientId: string;
+export interface RecentItem {
+  id: string;
   firstName: string;
   lastName: string;
-  mrn: string;
+  subtitle?: string; // MRN for patients, Referral Source for outreach
+  type: 'PATIENT' | 'OUTREACH';
   browsedAt: string;
 }
 
-const STORAGE_KEY = "halcyon_recently_browsed_patients";
-const MAX_RECENT = 6;
+const STORAGE_KEY = "halcyon_recently_browsed_items";
+const MAX_RECENT = 8;
 
 export function useRecentlyBrowsed() {
-  const [recentPatients, setRecentPatients] = useState<RecentPatient[]>([]);
+  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        setRecentPatients(JSON.parse(stored));
+        setRecentItems(JSON.parse(stored));
       } catch (e) {
-        console.error("Failed to parse recently browsed patients", e);
+        console.error("Failed to parse recently browsed items", e);
       }
     }
   }, []);
 
-  const addPatient = (patient: Omit<RecentPatient, "browsedAt">) => {
-    setRecentPatients((prev) => {
-      const filtered = prev.filter((p) => p.patientId !== patient.patientId);
+  const addItem = (item: Omit<RecentItem, "browsedAt">) => {
+    setRecentItems((prev) => {
+      // Filter out existing item with same ID AND type
+      const filtered = prev.filter((p) => !(p.id === item.id && p.type === item.type));
       const updated = [
-        { ...patient, browsedAt: new Date().toISOString() },
+        { ...item, browsedAt: new Date().toISOString() },
         ...filtered,
       ].slice(0, MAX_RECENT);
       
@@ -40,6 +42,6 @@ export function useRecentlyBrowsed() {
     });
   };
 
-  return { recentPatients, addPatient };
+  return { recentItems, addItem };
 }
 

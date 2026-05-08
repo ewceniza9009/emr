@@ -175,7 +175,7 @@ import { useCommandModal } from "@/components/CommandModalProvider";
 export default function PatientDetailPage() {
   const { confirm, alert } = useCommandModal();
   const params = useParams();
-  const { addPatient } = useRecentlyBrowsed();
+  const { addItem } = useRecentlyBrowsed();
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem("halcyon_patient_dashboard_active_tab") || "snapshot";
@@ -208,11 +208,12 @@ export default function PatientDetailPage() {
 
   useEffect(() => {
     if (data?.patientById) {
-      addPatient({
-        patientId: data.patientById.patientId,
+      addItem({
+        id: data.patientById.patientId,
         firstName: data.patientById.firstName,
         lastName: data.patientById.lastName,
-        mrn: data.patientById.mrn
+        subtitle: data.patientById.mrn,
+        type: 'PATIENT'
       });
     }
   }, [data?.patientById]);
@@ -259,9 +260,16 @@ export default function PatientDetailPage() {
   };
 
   if (loading) return (
-    <div className="p-20 flex flex-col items-center justify-center space-y-4">
-      <Zap className="w-12 h-12 text-[var(--primary)] animate-pulse" />
-      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Initializing Clinical Profile...</p>
+    <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
+      <div className="relative">
+        <Zap className="w-16 h-16 text-[var(--primary)] animate-pulse" />
+        <div className="absolute inset-0 bg-[var(--primary)]/20 blur-2xl animate-pulse rounded-full" />
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Initializing Clinical Profile</p>
+        <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent" />
+        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Secure Handshake in Progress</p>
+      </div>
     </div>
   );
 

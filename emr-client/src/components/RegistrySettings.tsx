@@ -21,9 +21,9 @@ import {
   Layout,
   RefreshCw,
   Zap,
-  Activity,
   Building2,
-  ServerCrash
+  ServerCrash,
+  Activity
 } from "lucide-react";
 import { useTheme } from "@/lib/ThemeContext";
 import { useSettings } from "@/lib/SettingsContext";
@@ -50,7 +50,7 @@ const languages = [
   { value: "es", label: "SPANISH" },
 ];
 
-export default function SettingsPage() {
+export default function RegistrySettings() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "Admin";
   
@@ -97,34 +97,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="h-full flex flex-col space-y-4 animate-in fade-in duration-500 w-full">
-      {/* Tactical Header */}
-      <header className="flex items-center justify-between px-6 py-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
-            <Settings className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight leading-none">Application Command</h1>
-            <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Configure clinical workstation parameters</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end pr-4 border-r border-[var(--card-border)]">
-            <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Protocol Integrity</span>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <div className={`w-1.5 h-1.5 ${isAdmin ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} rounded-full />
-              <span className={`text-[9px] font-black uppercase ${isAdmin ? 'text-emerald-500/80' : 'text-amber-500/80'}`}>
-                {isAdmin ? 'Full Authorization' : 'Restricted Access'}
-              </span>
-            </div>
-          </div>
-          <button className="p-2 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all">
-            <RefreshCw className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </header>
-
+    <div className="h-full flex flex-col space-y-4 animate-in fade-in duration-500 w-full p-6">
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-4 flex-1">
         {/* Compact Navigation */}
         <nav className="space-y-1">

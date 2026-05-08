@@ -28,6 +28,8 @@ import {
   Clock,
   HeartPulse
 } from "lucide-react";
+import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
+import EnrollmentDrawer from "@/components/EnrollmentDrawer";
 
 const GET_LEAD_DETAILS = gql`
   query GetLeadDetails($id: UUID!) {
@@ -137,7 +139,7 @@ export default function OutreachDetail() {
   const [selectedPlan, setSelectedPlan] = useState("");
   const [selectedModality, setSelectedModality] = useState("HOME_CARE");
 
-  // Dialer State
+  const { addItem } = useRecentlyBrowsed();
   const [activeCall, setActiveCall] = useState<any>(null);
   const [isDialPadOpen, setIsDialPadOpen] = useState(false);
   const [dialedNumber, setDialedNumber] = useState("");
@@ -153,6 +155,7 @@ export default function OutreachDetail() {
   const [tempNumbers, setTempNumbers] = useState<Record<string, string>>({});
   const [isAddingRelative, setIsAddingRelative] = useState(false);
   const [isLoggingNoAnswer, setIsLoggingNoAnswer] = useState(false);
+  const [isEnrollmentOpen, setIsEnrollmentOpen] = useState(false);
   const [newRelativeForm, setNewRelativeForm] = useState({ firstName: '', lastName: '', relationship: 'Other', phoneNumber: '' });
 
   const [finalize, { loading: finalizing }] = useMutation(FINALIZE_ENROLLMENT);
@@ -297,6 +300,14 @@ export default function OutreachDetail() {
       if (lead.communicationStatus) setCommunicationStatus(lead.communicationStatus);
       if (lead.techAccess) setTechAccess(lead.techAccess);
       if (lead.barriersToCare) setBarriersToCare(lead.barriersToCare);
+
+      addItem({
+        id: lead.patientOutreachId,
+        firstName: lead.firstName,
+        lastName: lead.lastName,
+        subtitle: lead.referralSource,
+        type: 'OUTREACH'
+      });
     }
   }, [lead]);
 
@@ -316,24 +327,32 @@ export default function OutreachDetail() {
   };
   const plans = planData?.healthPlans || [];
 
-  if (leadLoading) return <div className="p-20 text-center"><div className="animate-spin w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-4" /> <p className="text-slate-400 font-black uppercase tracking-widest text-8px">Synchronizing Outreach Context...</p></div>;
-
-  if (leadError || (!lead && !leadLoading)) {
-    return (
-      <div className="max-w-md mx-auto mt-20 p-8 glass-morphism rounded-3xl text-center space-y-6 animate-in zoom-in duration-300 border border-rose-500/20">
-        <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
-        <h2 className="text-xl font-black text-white uppercase tracking-tight">Access Protocol Failed</h2>
-        <p className="text-sm text-slate-400 uppercase tracking-widest font-bold">The specified outreach vector could not be identified.</p>
-        <button onClick={() => router.push('/dashboard/outreach')} className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all">Abort & Return</button>
-      </div>
-    );
-  }
-
-  const hasNoContacts = !lead.primaryPhone && (!lead.otherContacts || lead.otherContacts.length === 0);
+  const hasNoContacts = lead ? (!lead.primaryPhone && (!lead.otherContacts || lead.otherContacts.length === 0)) : true;
 
   return (
     <div className="min-h-screen bg-[var(--sidebar-bg)] flex flex-col p-5 space-y-5 overflow-hidden">
-      {/* High-Density Workstation Header */}
+      {leadLoading ? (
+        <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-teal-500/10 border-t-teal-500 rounded-full animate-spin" />
+            <HeartPulse className="w-6 h-6 text-teal-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Synchronizing Outreach Context</p>
+            <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-teal-500 to-transparent" />
+            <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Establishing Secure Clinical Handshake</p>
+          </div>
+        </div>
+      ) : leadError || !lead ? (
+        <div className="max-w-md mx-auto mt-20 p-8 glass-morphism rounded-3xl text-center space-y-6 animate-in zoom-in duration-300 border border-rose-500/20">
+          <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
+          <h2 className="text-xl font-black text-white uppercase tracking-tight">Access Protocol Failed</h2>
+          <p className="text-sm text-slate-400 uppercase tracking-widest font-bold">The specified outreach vector could not be identified.</p>
+          <button onClick={() => router.push('/dashboard/outreach')} className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all">Abort & Return</button>
+        </div>
+      ) : (
+        <>
+          {/* High-Density Workstation Header */}
       <div className="flex items-center justify-between bg-[var(--card-bg)] backdrop-blur-2xl border border-[var(--card-border)] px-6 py-3 rounded-xl shrink-0 shadow-lg">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center border border-teal-500/20 shadow-sm relative overflow-hidden">
@@ -579,16 +598,11 @@ export default function OutreachDetail() {
                <div className="flex gap-3">
                   <button onClick={handleNoAnswer} disabled={isLoggingNoAnswer} className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-[var(--text-muted)] text-[8px] font-black uppercase tracking-[0.2em] hover:bg-rose-500/10 hover:text-rose-500 transition-all">Log No Answer</button>
                   <button 
-                    onClick={handleFinalize} 
-                    disabled={finalizing || !selectedPlan} 
-                    className="px-10 py-3 rounded-xl bg-teal-500 text-black font-black text-[9px] uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:bg-teal-600 transition-all active:scale-[0.98] disabled:opacity-30 flex items-center gap-3"
+                    onClick={() => setIsEnrollmentOpen(true)} 
+                    className="px-10 py-3 rounded-xl bg-teal-500 text-black font-black text-[9px] uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:bg-teal-600 transition-all active:scale-[0.98] flex items-center gap-3"
                   >
-                    {finalizing ? (
-                      <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="w-4 h-4" />
-                    )}
-                    Finalize Enrollment
+                    <UserPlus className="w-4 h-4" />
+                    Enroll Patient
                   </button>
                </div>
             </div>
@@ -704,8 +718,15 @@ export default function OutreachDetail() {
               </p>
             </div>
           </div>
+          </div>
         </div>
-      </div>
+        </>
+      )}
+      <EnrollmentDrawer 
+        open={isEnrollmentOpen} 
+        onClose={() => setIsEnrollmentOpen(false)} 
+        outreachId={params.id as string} 
+      />
     </div>
   );
 }

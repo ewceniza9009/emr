@@ -27,8 +27,10 @@ import IdentityManagement from "@/components/IdentityManagement";
 import { PermissionGate } from "@/components/PermissionGate";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { useCommandModal } from "@/components/CommandModalProvider";
+import RegistrySettings from "@/components/RegistrySettings";
+import IntegrationsSync from "@/components/IntegrationsSync";
 
 const GET_SETUP_DATA = gql`
   query GetSetupData {
@@ -130,7 +132,7 @@ const GET_SETUP_DATA = gql`
   }
 `;
 
-type TabType = "practitioners" | "facilities" | "healthPlans" | "medications" | "smartPhrases" | "questionnaires" | "equipment" | "outreachScripts" | "integrationProfiles" | "identity" | "audit";
+type TabType = "practitioners" | "facilities" | "healthPlans" | "medications" | "smartPhrases" | "questionnaires" | "equipment" | "outreachScripts" | "integrationProfiles" | "identity" | "audit" | "settings";
 
 const DELETE_MUTATIONS = {
   practitioners: gql`mutation DeletePractitioner($id: Guid!) { deletePractitioner(id: $id) }`,
@@ -151,11 +153,18 @@ export default function AdminDashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editItem, setEditItem] = useState<any>(null);
-  // Persistence Hook
+  const searchParams = useSearchParams();
+  const urlTab = searchParams.get("tab");
+
+  // Persistence & URL Hook
   useEffect(() => {
-    const savedTab = localStorage.getItem("halcyon_admin_active_tab");
-    if (savedTab) setActiveTab(savedTab as TabType);
-  }, []);
+    if (urlTab) {
+      setActiveTab(urlTab as TabType);
+    } else {
+      const savedTab = localStorage.getItem("halcyon_admin_active_tab");
+      if (savedTab) setActiveTab(savedTab as TabType);
+    }
+  }, [urlTab]);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -373,25 +382,33 @@ export default function AdminDashboardPage() {
         );
       case "integrationProfiles":
         return (
-          <SetupTable
-            {...tableProps}
-            columns={[
-              { key: "partner", label: "Partner" },
-              { key: "apiKey", label: "Key Fragment", render: (item: any) => `****${item.apiKey.slice(-4)}` },
-              {
-                key: "isActive", label: "Status", render: (item: any) => (
-                  <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${item.isActive ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border-rose-500/20"}`}>
-                    {item.isActive ? "Active" : "Inactive"}
-                  </span>
-                )
-              }
-            ]}
-          />
+          <div className="space-y-8">
+            <IntegrationsSync />
+            <div className="px-8 pb-8">
+              <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] mb-4">Registry Endpoints</h3>
+              <SetupTable
+                {...tableProps}
+                columns={[
+                  { key: "partner", label: "Partner" },
+                  { key: "apiKey", label: "Key Fragment", render: (item: any) => `****${item.apiKey.slice(-4)}` },
+                  {
+                    key: "isActive", label: "Status", render: (item: any) => (
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${item.isActive ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-rose-500/10 text-rose-500 border-rose-500/20"}`}>
+                        {item.isActive ? "Active" : "Inactive"}
+                      </span>
+                    )
+                  }
+                ]}
+              />
+            </div>
+          </div>
         );
       case "identity":
         return <IdentityManagement />;
       case "audit":
         return <SecurityAuditVault />;
+      case "settings":
+        return <RegistrySettings />;
     }
   };
 
@@ -415,61 +432,65 @@ export default function AdminDashboardPage() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-5 space-y-4 scroll-smooth">
-          <div className="flex items-end justify-between border-b border-[var(--card-border)] pb-3">
-            <div>
-              <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
-                {activeTab.replace(/([A-Z])/g, ' $1')} Registry Segment
-              </h1>
-              <div className="flex items-center gap-3 mt-1">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shadow-[0_0_8px_rgba(var(--primary-rgb),0.6)]" />
-                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
-                    {data?.[activeTab]?.length || 0} Nodes Registered
+          {activeTab !== "settings" && (
+            <div className="flex items-end justify-between border-b border-[var(--card-border)] pb-3">
+              <div>
+                <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
+                  {activeTab.replace(/([A-Z])/g, ' $1')} Registry Segment
+                </h1>
+                <div className="flex items-center gap-3 mt-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)] shadow-[0_0_8px_rgba(var(--primary-rgb),0.6)]" />
+                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                      {data?.[activeTab]?.length || 0} Nodes Registered
+                    </span>
+                  </div>
+                  <div className="w-px h-3 bg-[var(--card-border)]" />
+                  <span className="text-[10px] font-bold text-[var(--text-muted)] opacity-50 uppercase tracking-widest">
+                    Master Terminal
                   </span>
                 </div>
-                <div className="w-px h-3 bg-[var(--card-border)]" />
-                <span className="text-[10px] font-bold text-[var(--text-muted)] opacity-50 uppercase tracking-widest">
-                  Master Terminal
-                </span>
+              </div>
+              <PermissionGate permission="setup:manage">
+                <button
+                  className="h-10 px-6 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white font-bold uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center gap-2 group"
+                  onClick={() => { setEditItem(null); setIsDrawerOpen(true); }}
+                >
+                  <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
+                  <span className="text-[10px]">Add Entry</span>
+                </button>
+              </PermissionGate>
+            </div>
+          )}
+
+          {activeTab !== "settings" && (
+            <div className="flex items-center justify-between gap-6 bg-[var(--card-bg)]/40 p-3 rounded-2xl border border-[var(--card-border)]">
+              <div className="relative flex-1 max-w-md group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+                <input
+                  type="text"
+                  placeholder={`Query master registry for ${activeTab}...`}
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2 pl-11 pr-4 text-[11px] font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/40 focus:bg-[var(--card-bg)] transition-all placeholder:text-[var(--text-muted)]/50"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center gap-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl">
+                  <Activity className="w-3.5 h-3.5 text-[var(--primary)]" />
+                  Last Sync: {new Date().toLocaleTimeString()}
+                </div>
               </div>
             </div>
-            <PermissionGate permission="setup:manage">
-              <button
-                className="h-10 px-6 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white font-bold uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center gap-2 group"
-                onClick={() => { setEditItem(null); setIsDrawerOpen(true); }}
-              >
-                <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-                <span className="text-[10px]">Add Entry</span>
-              </button>
-            </PermissionGate>
-          </div>
+          )}
 
-          <div className="flex items-center justify-between gap-6 bg-[var(--card-bg)]/40 p-3 rounded-2xl border border-[var(--card-border)]">
-            <div className="relative flex-1 max-w-md group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
-              <input
-                type="text"
-                placeholder={`Query master registry for ${activeTab}...`}
-                className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2 pl-11 pr-4 text-[11px] font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/40 focus:bg-[var(--card-bg)] transition-all placeholder:text-[var(--text-muted)]/50"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center gap-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl">
-                <Activity className="w-3.5 h-3.5 text-[var(--primary)]" />
-                Last Sync: {new Date().toLocaleTimeString()}
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[var(--card-bg)]/40 border border-[var(--card-border)] rounded-3xl overflow-hidden shadow-2xl backdrop-blur-3xl animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          <div className={`${(activeTab === "settings" || activeTab === "integrationProfiles") ? "" : "bg-[var(--card-bg)]/40 border border-[var(--card-border)] rounded-3xl overflow-hidden shadow-2xl backdrop-blur-3xl"} animate-in fade-in slide-in-from-bottom-4 duration-1000`}>
             {renderContent()}
           </div>
         </main>
       </div>
 
-      {activeTab !== 'identity' && activeTab !== 'audit' && (
+      {activeTab !== 'identity' && activeTab !== 'audit' && activeTab !== 'settings' && (
         <SetupDrawer
           open={isDrawerOpen}
           type={activeTab as any}

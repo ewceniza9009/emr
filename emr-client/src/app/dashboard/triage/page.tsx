@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
@@ -45,6 +45,21 @@ export default function TriageDashboard() {
   const { data, loading, refetch } = useQuery(GET_TRIAGE_WORKLIST, {
     variables: { search: searchQuery || undefined }
   });
+
+  if (loading) return (
+    <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
+      <div className="relative">
+        <AlertTriangle className="w-16 h-16 text-amber-500 animate-pulse" />
+        <div className="absolute inset-0 bg-amber-500/20 blur-2xl animate-pulse rounded-full" />
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Analyzing Clinical Urgency</p>
+        <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Sorting Critical Vectors</p>
+      </div>
+    </div>
+  );
+
   const triageItems = data?.triageWorklist?.items || [];
 
   const handleLogDnr = (patientId: string) => {

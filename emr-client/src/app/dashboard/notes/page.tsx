@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
@@ -224,8 +224,16 @@ export default function ClinicalNotesPage() {
   };
 
   if (loading) return (
-    <div className="h-full flex items-center justify-center">
-      <Loader2 className="w-12 h-12 text-[var(--primary)] animate-spin" />
+    <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
+      <div className="relative">
+        <Loader2 className="w-16 h-16 text-[var(--primary)] animate-spin" />
+        <div className="absolute inset-0 bg-[var(--primary)]/20 blur-2xl animate-pulse rounded-full" />
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Synchronizing Clinical Records</p>
+        <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent" />
+        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Fetching Medical Intelligence</p>
+      </div>
     </div>
   );
 

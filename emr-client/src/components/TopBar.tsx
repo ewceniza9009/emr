@@ -68,13 +68,6 @@ export function TopBar() {
             <div className="absolute inset-0 bg-[var(--primary)]/5 opacity-0 group-hover:opacity-100 rounded-xl transition-opacity" />
           </button>
 
-          <button 
-            onClick={() => router.push('/dashboard/settings')}
-            className="p-2.5 rounded-xl hover:bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all group active:scale-95"
-            title="Settings"
-          >
-            <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-500" />
-          </button>
 
           <div className="flex items-center gap-4 pl-4 border-l border-[var(--card-border)]">
             <div className="text-right">

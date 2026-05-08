@@ -80,6 +80,20 @@ export default function OutreachPage() {
     }
   });
 
+  if (loading) return (
+    <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
+      <div className="relative">
+        <Target className="w-16 h-16 text-teal-500 animate-pulse" />
+        <div className="absolute inset-0 bg-teal-500/20 blur-2xl animate-pulse rounded-full" />
+      </div>
+      <div className="flex flex-col items-center gap-2">
+        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Optimizing Outreach Worklist</p>
+        <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-teal-500 to-transparent" />
+        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Syncing Referral Pipeline</p>
+      </div>
+    </div>
+  );
+
   const [logActivity] = useMutation(LOG_OUTREACH_ACTIVITY);
   const { showToast } = useToast();
 
