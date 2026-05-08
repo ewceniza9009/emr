@@ -525,16 +525,20 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     e.preventDefault();
     if (!practitionerId) return;
 
-    const slot: { shiftStart: string; shiftEnd: string; travelTimeInMinutes?: number | null; distanceInMiles?: number | null } = (isBlockMode ? null : selectedSlot) || {
-      shiftStart: createZonedISO(selectedDate, isBlockMode ? startHour : (period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START), isBlockMode ? startMinute : 0),
-      shiftEnd: "", // Calculated below
-      travelTimeInMinutes: 0,
-      distanceInMiles: 0
+    const baseSlot = isBlockMode ? null : selectedSlot;
+
+    const slot = {
+      shiftStart: baseSlot?.shiftStart || createZonedISO(
+        selectedDate,
+        isBlockMode ? startHour : (period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START),
+        isBlockMode ? startMinute : 0
+      ),
+      shiftEnd: "",
+      travelTimeInMinutes: baseSlot?.travelTimeInMinutes || 0,
+      distanceInMiles: baseSlot?.distanceInMiles || 0
     };
 
-    if (isBlockMode || !selectedSlot) {
-      slot.shiftEnd = addMinutes(new Date(slot.shiftStart), duration).toISOString();
-    }
+    slot.shiftEnd = addMinutes(new Date(slot.shiftStart), duration).toISOString();
 
     if (isBlockMode) {
       createBlock({
@@ -551,10 +555,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     }
 
     if (!patientId) return;
+
     const clinicalHour = parseInt(formatInTimeZone(new Date(slot.shiftStart), CLINICAL_CONFIG.TIMEZONE, "H"));
     const isSlotAM = clinicalHour < CLINICAL_CONFIG.CUTOFF_HOUR;
+
     if (period === "AM" && !isSlotAM) return;
     if (period === "PM" && isSlotAM) return;
+
     book({
       variables: {
         input: {
@@ -859,7 +866,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                 <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Duration (Min)</label>
                                 <input type="number" step="15" min="15" value={duration} onChange={e => setDuration(parseInt(e.target.value))}
                                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
-                                </div>
+                              </div>
                             </div>
                           ) : (
                             <div className="flex items-center justify-between">
