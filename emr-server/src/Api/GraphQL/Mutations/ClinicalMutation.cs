@@ -225,6 +225,32 @@ public class ClinicalMutation
         );
         return result;
     }
+
+    [GraphQLName("addDiagnosis")]
+    [UseClinicalAccess(argumentName: "PatientId")]
+    public async Task<Guid> AddDiagnosis(
+        AddDiagnosisCommandInput input,
+        [Service] IMediator mediator,
+        [Service] ISecurityAuditService auditService,
+        CancellationToken cancellationToken
+    )
+    {
+        var command = new AddDiagnosisCommand(
+            input.PatientId,
+            input.Icd10Code,
+            input.Description,
+            input.IsPrimary,
+            input.DiagnosedAt
+        );
+
+        var result = await mediator.Send(command, cancellationToken);
+        await auditService.LogActionAsync(
+            "PATIENT_DIAGNOSIS_RECORDED",
+            $"Diagnosis added: {input.Icd10Code} - {input.Description}",
+            input.PatientId.ToString()
+        );
+        return result;
+    }
 }
 
 public record AddAllergyCommandInput(
@@ -304,4 +330,12 @@ public record SaveClinicalNoteCommandInput(
     string? Plan,
     string? Content,
     string? Signature
+);
+
+public record AddDiagnosisCommandInput(
+    Guid PatientId,
+    string Icd10Code,
+    string Description,
+    bool IsPrimary,
+    DateTimeOffset DiagnosedAt
 );

@@ -53,7 +53,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState<any>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const [newMed, setNewMed] = useState({ name: "", strength: "", dose: "", frequency: "", route: "Oral", indications: "", signature: "" });
+  const [newMed, setNewMed] = useState({ name: "", strength: "", dose: "", frequency: "", route: "ORAL", indications: "", signature: "" });
   
   const { data, loading, refetch } = useQuery(GET_PRESCRIPTIONS, {
     variables: { patientId },
@@ -260,10 +260,10 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                               onChange={(e) => setNewMed({...newMed, route: e.target.value})}
                               className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl py-3.5 px-5 text-[var(--text-primary)] text-sm font-black appearance-none focus:border-emerald-500/50 transition-all outline-none uppercase"
                             >
-                               <option value="Oral">Oral</option>
-                               <option value="Sublingual">SL</option>
-                               <option value="Subcutaneous">SQ</option>
-                               <option value="Transdermal">TD</option>
+                                <option value="ORAL">Oral</option>
+                               <option value="SUBLINGUAL">SL</option>
+                               <option value="SUBCUTANEOUS">SQ</option>
+                               <option value="TRANSDERMAL">TD</option>
                             </select>
                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 rotate-90 text-slate-500 pointer-events-none" />
                          </div>

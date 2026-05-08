@@ -7,5 +7,5 @@ public record AddDiagnosisCommand(
     string Icd10Code,
     string Description,
     bool IsPrimary,
-    DateTime DiagnosedAt
+    DateTimeOffset DiagnosedAt
 ) : IRequest<Guid>;

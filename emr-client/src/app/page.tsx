@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { useState, useEffect } from "react";
+import Dev from "@/components/Dev";
 
 export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -51,7 +52,6 @@ export default function HomePage() {
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[var(--primary)]/5 rounded-full blur-[160px] animate-pulse" />
         <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/5 rounded-full blur-[140px] animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-emerald-500/5 rounded-full blur-[120px]" />
       </div>
 
       {/* NAVBAR */}
@@ -62,7 +62,7 @@ export default function HomePage() {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-3 group cursor-pointer"
           >
-            <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary-glow)] animate-halcyon-pulse group-hover:scale-110 transition-transform duration-500">
+            <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary-glow)] group-hover:scale-110 transition-transform duration-500">
               <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z" />
                 <path d="M8 12h3l1-3 2 6 1-3h2" />
@@ -87,9 +87,6 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/admin" className="hidden sm:flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-indigo-400 transition-all mr-2">
-              Admin Portal
-            </Link>
             <Link href="/login" className="h-11 px-8 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[11px] font-bold uppercase tracking-[0.2em] rounded-xl flex items-center justify-center shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] active:scale-[0.98] group">
               Launch App
               <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -100,26 +97,6 @@ export default function HomePage() {
 
       {/* HERO SECTION */}
       <section className="relative pt-48 pb-32 lg:pt-64 lg:pb-56 overflow-hidden">
-        {/* MOVING LIGHT BEAMS */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <motion.div
-            animate={{
-              x: [0, 100, 0],
-              opacity: [0.1, 0.3, 0.1]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-            className="absolute top-[-20%] left-[-10%] w-[1px] h-[150%] bg-white/20 rotate-[35deg] blur-[80px]"
-          />
-          <motion.div
-            animate={{
-              x: [0, -150, 0],
-              opacity: [0.05, 0.2, 0.05]
-            }}
-            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-            className="absolute top-[-20%] right-[20%] w-[1px] h-[150%] bg-[var(--primary)]/30 rotate-[35deg] blur-[100px]"
-          />
-        </div>
-
         <div className="max-w-7xl mx-auto px-8 relative z-10">
           <motion.div
             variants={containerVariants}
@@ -127,9 +104,8 @@ export default function HomePage() {
             animate="visible"
             className="flex flex-col items-center text-center"
           >
-            <motion.div variants={itemVariants} className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/[0.03] border border-white/10 mb-12 backdrop-blur-2xl shadow-2xl">
-              <div className="w-2 h-2 rounded-full bg-[var(--primary)] shadow-[0_0_10px_var(--primary)] animate-pulse" />
-              <span className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.4em]">System Status: Online</span>
+            <motion.div variants={itemVariants} className="mb-12">
+              <Dev>{"<DEV>ERWIN WILSON E. CENIZA</DEV>"}</Dev>
             </motion.div>
 
             <motion.h1 variants={itemVariants} className="text-7xl lg:text-[110px] font-bold text-white leading-[1] tracking-tight mb-8 max-w-6xl drop-shadow-2xl">
@@ -151,15 +127,6 @@ export default function HomePage() {
               </Link>
             </motion.div>
           </motion.div>
-        </div>
-
-        {/* HERO VISUAL DECOR */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] opacity-20 pointer-events-none">
-          <div className="absolute inset-0 border border-white/[0.03] rounded-full" />
-          <div className="absolute inset-[15%] border border-white/[0.03] rounded-full" />
-          <div className="absolute inset-[30%] border border-white/[0.03] rounded-full" />
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-gradient-to-b from-transparent via-white/10 to-transparent" />
-          <div className="absolute top-1/2 left-0 -translate-y-1/2 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         </div>
       </section>
 
@@ -335,12 +302,11 @@ export default function HomePage() {
             {['Status', 'Security', 'Privacy', 'Network', 'API', 'Legal'].map(link => (
               <Link key={link} href="#" className="hover:text-[var(--primary)] transition-colors tracking-[0.2em]">{link}</Link>
             ))}
-            <Link href="/admin" className="text-indigo-950 hover:text-indigo-500 transition-colors tracking-[0.2em]">Admin Portal</Link>
           </div>
 
           <div className="text-right">
             <p className="text-[9px] font-bold text-slate-800 uppercase tracking-widest leading-relaxed">
-              � 2026 Halcyon Clinical Technologies <br />
+              © 2026 Halcyon Clinical Technologies <br />
               All Vector Units Reserved.
             </p>
           </div>
@@ -349,4 +315,3 @@ export default function HomePage() {
     </div>
   );
 }
-

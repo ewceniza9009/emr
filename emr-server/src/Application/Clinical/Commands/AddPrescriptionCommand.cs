@@ -21,10 +21,12 @@ public record AddPrescriptionCommand : IRequest<Guid>
 public class AddPrescriptionCommandHandler : IRequestHandler<AddPrescriptionCommand, Guid>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public AddPrescriptionCommandHandler(IApplicationDbContext context)
+    public AddPrescriptionCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<Guid> Handle(
@@ -54,7 +56,7 @@ public class AddPrescriptionCommandHandler : IRequestHandler<AddPrescriptionComm
         {
             PatientId = request.PatientId,
             MedicationId = medication.MedicationId,
-            PrescribedById = Guid.Empty, // Should be from Current User context
+            PrescribedById = _currentUserService.PractitionerId ?? Guid.Empty,
             Dose = request.Dose,
             Frequency = request.Frequency,
             Route = request.Route,

@@ -1,10 +1,11 @@
-﻿import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import type { Metadata } from "next";
+import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 
 export const metadata: Metadata = {
   title: "Halcyon",
@@ -35,7 +36,7 @@ export default function RootLayout({
           })()
         ` }} />
       </head>
-      <body className={`${inter.variable} ${outfit.variable} antialiased`}>
+      <body className={`${inter.variable} ${outfit.variable} ${jetbrains.variable} antialiased`}>
         <Providers>
           {children}
         </Providers>

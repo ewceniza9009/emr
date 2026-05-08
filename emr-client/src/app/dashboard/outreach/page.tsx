@@ -238,21 +238,21 @@ export default function OutreachPage() {
                         <span className="text-[10px] text-[var(--text-muted)]">• {new Date(lead.lastActivityDate).toLocaleDateString()}</span>
                       </div>
                     ) : (
-                      <span className="text-slate-500 italic text-[10px] uppercase tracking-widest opacity-50">No activity</span>
+                      <span className="text-[var(--text-muted)] italic text-[10px] uppercase tracking-widest">No activity</span>
                     )}
                   </td>
                   <td className="px-6 py-4">
                     {lead.latestActivityReason ? (
                       <p className="text-[11px] font-bold text-[var(--primary)] uppercase tracking-widest truncate max-w-[150px]">{lead.latestActivityReason}</p>
                     ) : (
-                      <span className="text-slate-600 text-[10px]">—</span>
+                      <span className="text-[var(--text-muted)] opacity-30 text-[10px]">—</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-sm">
                     {lead.nextFollowUpDate ? (
                       <span className="text-[var(--primary)] font-medium text-[11px]">{new Date(lead.nextFollowUpDate).toLocaleDateString()}</span>
                     ) : (
-                      <span className="text-slate-600 italic text-xs">Unscheduled</span>
+                      <span className="text-[var(--text-muted)] italic text-xs">Unscheduled</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-center">

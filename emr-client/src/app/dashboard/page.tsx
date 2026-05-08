@@ -395,8 +395,8 @@ export default function Dashboard() {
 
       {/* Footer Branding - Compact */}
       <div className="pt-4 flex flex-col items-center gap-2 opacity-20">
-        <div className="w-px h-8 bg-slate-500" />
-        <p className="text-[8px] font-bold text-slate-500 tracking-[0.4em] uppercase">Halcyon Clinical Operations Group · Secure Health Systems</p>
+        <div className="w-px h-8 bg-[var(--card-border)]" />
+        <p className="text-[8px] font-bold text-[var(--text-muted)] tracking-[0.4em] uppercase">Halcyon Clinical Operations Group · Secure Health Systems</p>
       </div>
     </motion.div>
   );
