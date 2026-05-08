@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
@@ -10,14 +10,14 @@ import {
 import HalcyonPortal from "./Portal";
 
 const ADD_CONTACT = gql`
-  mutation AddContact($input: AddContactCommandInput!) {
-    addContact(input: $input)
+  mutation AddContact($command: AddContactCommandInput!) {
+    addContact(command: $command)
   }
 `;
 
 const UPDATE_CONTACT = gql`
-  mutation UpdateContact($input: UpdateContactCommandInput!) {
-    updateContact(input: $input)
+  mutation UpdateContact($command: UpdateContactCommandInput!) {
+    updateContact(command: $command)
   }
 `;
 
@@ -85,7 +85,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
         contactId = initialData.patientContactId;
         await updateContact({
           variables: {
-            input: {
+            command: {
               ...form,
               patientContactId: contactId
             }
@@ -94,7 +94,7 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
       } else {
         const result = await addContact({
           variables: {
-            input: {
+            command: {
               ...form,
               patientId
             }
@@ -108,10 +108,19 @@ export default function AddContactDrawer({ open, onClose, onSuccess, patientId, 
         const formData = new FormData();
         formData.append("file", selectedFile);
         
-        await fetch(`/api/upload/poa/${contactId}`, {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:34731';
+        console.log(`[AddContactDrawer] Initiating POA upload to: ${baseUrl}/api/upload/poa/${contactId}`);
+        
+        const uploadResponse = await fetch(`${baseUrl}/api/upload/poa/${contactId}`, {
           method: "POST",
           body: formData
         });
+
+        if (!uploadResponse.ok) {
+          const errorText = await uploadResponse.text();
+          console.error("[AddContactDrawer] POA Upload Failed:", errorText);
+          throw new Error(errorText || "POA Upload failed");
+        }
       }
 
       onSuccess();

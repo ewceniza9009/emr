@@ -85,38 +85,38 @@ const GET_ENROLLMENT_DATA = gql`
 `;
 
 const LOG_OUTREACH_ACTIVITY = gql`
-  mutation LogActivity($input: LogOutreachActivityCommandInput!) {
-    logOutreachActivity(input: $input)
+  mutation LogActivity($command: LogOutreachActivityCommandInput!) {
+    logOutreachActivity(command: $command)
   }
 `;
 
 const ADD_OUTREACH_CONTACT = gql`
-  mutation AddContact($input: AddOutreachContactCommandInput!) {
-    addOutreachContact(input: $input)
+  mutation AddContact($command: AddOutreachContactCommandInput!) {
+    addOutreachContact(command: $command)
   }
 `;
 
 const REMOVE_OUTREACH_CONTACT = gql`
-  mutation RemoveContact($input: RemoveOutreachContactCommandInput!) {
-    removeOutreachContact(input: $input)
+  mutation RemoveContact($command: RemoveOutreachContactCommandInput!) {
+    removeOutreachContact(command: $command)
   }
 `;
 
 const UPDATE_OUTREACH_LEAD = gql`
-  mutation UpdateLead($input: UpdateOutreachLeadCommandInput!) {
-    updateOutreachLead(input: $input)
+  mutation UpdateLead($command: UpdateOutreachLeadCommandInput!) {
+    updateOutreachLead(command: $command)
   }
 `;
 
 const UNENROLL_PATIENT = gql`
-  mutation UnenrollPatient($input: UnenrollPatientCommandInput!) {
-    unenrollPatient(input: $input)
+  mutation UnenrollPatient($command: UnenrollPatientCommandInput!) {
+    unenrollPatient(command: $command)
   }
 `;
 
 const FINALIZE_ENROLLMENT = gql`
-  mutation FinalizeEnrollment($input: FinalizeEnrollmentCommandInput!) {
-    finalizeEnrollment(input: $input)
+  mutation FinalizeEnrollment($command: FinalizeEnrollmentCommandInput!) {
+    finalizeEnrollment(command: $command)
   }
 `;
 
@@ -259,7 +259,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     try {
       await logActivity({
         variables: {
-          input: {
+          command: {
             outreachId: outreachId,
             method: "TELEPHONE",
             outcome: outcome,
@@ -302,7 +302,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     try {
       await updateLead({
         variables: {
-          input: { patientOutreachId: outreachId, ...fields }
+          command: { patientOutreachId: outreachId, ...fields }
         }
       });
     } catch (e) { console.error(e); }
@@ -313,12 +313,12 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     try {
       if (editingContactId) {
         await removeContact({
-          variables: { input: { outreachContactId: editingContactId } }
+          variables: { command: { outreachContactId: editingContactId } }
         });
       }
       await addContact({
         variables: {
-          input: { patientOutreachId: outreachId, ...newContact }
+          command: { patientOutreachId: outreachId, ...newContact }
         },
         refetchQueries: ["GetLeadDetails"]
       });
@@ -332,7 +332,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const handleRemoveContact = async (id: string) => {
     try {
       await removeContact({
-        variables: { input: { outreachContactId: id } },
+        variables: { command: { outreachContactId: id } },
         refetchQueries: ["GetLeadDetails"]
       });
     } catch (e) { console.error(e); }
@@ -345,7 +345,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     try {
       await unenrollPatient({
         variables: {
-          input: {
+          command: {
             patientOutreachId: outreachId,
             reason: logNotes || "Manual unenrollment"
           }
@@ -367,7 +367,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
 
       const { data } = await finalize({
         variables: {
-          input: {
+          command: {
             patientOutreachId: outreachId,
             modality: modality,
             healthPlanId: selectedPlan,

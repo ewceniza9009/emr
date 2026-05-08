@@ -164,8 +164,8 @@ const GET_CLINICAL_SUMMARY = gql`
 `;
 
 const DELETE_CONTACT = gql`
-  mutation DeleteContact($input: DeleteContactCommandInput!) {
-    deleteContact(input: $input)
+  mutation DeleteContact($command: DeleteContactCommandInput!) {
+    deleteContact(command: $command)
   }
 `;
 
@@ -971,7 +971,7 @@ export default function PatientDetailPage() {
                                   confirmText: "Revoke Access"
                                 });
                                 if (ok) {
-                                  deleteContact({ variables: { input: { patientContactId: contact.patientContactId } } });
+                                  deleteContact({ variables: { command: { patientContactId: contact.patientContactId } } });
                                 }
                               }}
                               className="p-1.5 rounded-lg bg-white/5 text-rose-500/50 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100"

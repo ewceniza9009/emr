@@ -46,10 +46,17 @@ public class UseClinicalAccessAttribute(
                 }
                 catch
                 {
-                    // Nested Input Case (e.g. input.PatientId)
+                    // Nested Input Case (e.g. input.PatientId or command.PatientId)
                     try
                     {
-                        var input = ctx.ArgumentValue<object>("input");
+                        object input = null;
+                        try { input = ctx.ArgumentValue<object>("input"); } catch { }
+                        
+                        if (input == null)
+                        {
+                            try { input = ctx.ArgumentValue<object>("command"); } catch { }
+                        }
+
                         if (input != null)
                         {
                             var prop = input

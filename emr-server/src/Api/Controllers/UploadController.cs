@@ -25,6 +25,7 @@ public class UploadController : ControllerBase
             return BadRequest("No file uploaded");
 
         var contact = await _context.PatientContacts
+            .IgnoreQueryFilters()
             .FirstOrDefaultAsync(c => c.ContactId == contactId);
 
         if (contact == null)
@@ -68,7 +69,9 @@ public class UploadController : ControllerBase
         if (file == null || file.Length == 0)
             return BadRequest("No file uploaded");
 
-        var patientExists = await _context.Patients.AnyAsync(p => p.PatientId == patientId);
+        var patientExists = await _context.Patients
+            .IgnoreQueryFilters()
+            .AnyAsync(p => p.PatientId == patientId);
         if (!patientExists)
             return NotFound("Patient not found");
 
@@ -100,6 +103,7 @@ public class UploadController : ControllerBase
     public async Task<IActionResult> GetDocument(Guid documentId, [FromQuery] bool download = false)
     {
         var document = await _context.PatientDocuments
+            .IgnoreQueryFilters()
             .FirstOrDefaultAsync(d => d.PatientDocumentId == documentId);
 
         if (document == null)

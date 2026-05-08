@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
@@ -8,8 +8,8 @@ import {
 import HalcyonPortal from "./Portal";
 
 const UPDATE_COMMUNICATIONS = gql`
-  mutation UpdatePatient($input: UpdatePatientCommandInput!) {
-    updatePatient(input: $input)
+  mutation UpdatePatient($command: UpdatePatientCommandInput!) {
+    updatePatient(command: $command)
   }
 `;
 
@@ -48,7 +48,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
     e.preventDefault();
     updateCommunications({
       variables: {
-        input: {
+        command: {
           patientId: patient.patientId,
           ...form
         }

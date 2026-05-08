@@ -64,20 +64,8 @@ public class AzuriteStorageService : IStorageService
         }
         else
         {
-            _logger.LogInformation("Azurite: Relative path detected, using local fallback.");
-            // Fallback to local storage for legacy files
-            var fileName = Path.GetFileName(storageUrl);
-            var localPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "documents", fileName);
-            
-            _logger.LogInformation("Azurite: Looking for local file at {Path}", localPath);
-
-            if (File.Exists(localPath))
-            {
-                return new FileStream(localPath, FileMode.Open, FileAccess.Read);
-            }
-            
-            _logger.LogError("Azurite: Document not found in local vault at {Path}", localPath);
-            throw new FileNotFoundException("Document not found in Azurite or local vault.", storageUrl);
+            _logger.LogError("Azurite: Relative path or invalid URI detected. Storage provider requires absolute Azurite URI.");
+            throw new FileNotFoundException("Document not found. Storage requires absolute Azurite URI.", storageUrl);
         }
     }
 

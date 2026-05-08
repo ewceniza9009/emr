@@ -94,8 +94,8 @@ const GET_OUTREACH_SCRIPTS = gql`
 `;
 
 const FINALIZE_ENROLLMENT = gql`
-  mutation FinalizeEnrollment($input: FinalizeEnrollmentCommandInput!) {
-    finalizeEnrollment(command: $input)
+  mutation FinalizeEnrollment($command: FinalizeEnrollmentCommandInput!) {
+    finalizeEnrollment(command: $command)
   }
 `;
 

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { 
   X, 
@@ -39,7 +39,10 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
     formData.append("documentType", type);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/general/${patientId}`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:34731';
+      console.log(`[UploadDocumentDrawer] Initiating general upload for patient ${patientId} to: ${baseUrl}`);
+      
+      const response = await fetch(`${baseUrl}/api/upload/general/${patientId}`, {
         method: "POST",
         body: formData,
       });
@@ -56,6 +59,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
       setTitle("");
       setType("CLINICAL_RECORD");
     } catch (err: any) {
+      console.error("[UploadDocumentDrawer] Upload failed:", err);
       setError(err.message);
     } finally {
       setIsUploading(false);
