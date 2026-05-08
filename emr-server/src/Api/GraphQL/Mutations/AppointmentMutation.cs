@@ -1,3 +1,4 @@
+using Api.GraphQL.Attributes;
 using Application.Appointments.Commands;
 using Domain.Entities;
 using Domain.Enums;
@@ -10,6 +11,7 @@ namespace Api.GraphQL.Mutations;
 [Authorize(Policy = "CanManageScheduling")]
 public class AppointmentMutation
 {
+    [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Appointment> BookAppointment(
         BookAppointmentInput input,
         [Service] IMediator mediator,
@@ -33,6 +35,7 @@ public class AppointmentMutation
         );
     }
 
+    [UseClinicalAccess(argumentName: "AppointmentId", source: ClinicalIdSource.Appointment)]
     public async Task<Appointment> RescheduleAppointment(
         RescheduleAppointmentInput input,
         [Service] IMediator mediator,
@@ -73,6 +76,8 @@ public class AppointmentMutation
             cancellationToken
         );
     }
+
+    [UseClinicalAccess(argumentName: "id", source: ClinicalIdSource.Appointment)]
     public async Task<bool> DeleteAppointment(
         Guid id,
         [Service] IMediator mediator,
@@ -97,7 +102,7 @@ public record BookAppointmentInput(
     DateTimeOffset ScheduledStart,
     DateTimeOffset ScheduledEnd,
     AppointmentModality Modality,
-    List<AssessmentType> PlannedAssessments = null,
+    List<AssessmentType>? PlannedAssessments = null,
     Guid? AppointmentId = null
 );
 

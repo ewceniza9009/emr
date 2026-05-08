@@ -50,7 +50,6 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
             .ToListAsync(cancellationToken);
 
         Appointment appointment;
-        bool isNew = false;
         bool needsRecalculation = false;
         
         if (request.AppointmentId.HasValue && request.AppointmentId.Value != Guid.Empty)
@@ -97,7 +96,6 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
         }
         else
         {
-            isNew = true;
             needsRecalculation = true;
             appointment = new Appointment
             {

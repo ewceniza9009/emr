@@ -97,7 +97,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="h-full flex flex-col space-y-4 animate-in fade-in duration-500 max-w-[1400px] mx-auto p-4">
+    <div className="h-full flex flex-col space-y-4 animate-in fade-in duration-500 w-full">
       {/* Tactical Header */}
       <header className="flex items-center justify-between px-6 py-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-sm">
         <div className="flex items-center gap-4">

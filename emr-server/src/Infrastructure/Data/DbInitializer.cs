@@ -51,9 +51,7 @@ namespace Infrastructure.Data
                 }
                 return;
             }
-            var userManager = serviceProvider.GetRequiredService<
-                UserManager<ApplicationUser>
-            >();
+            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
             // WIPE logic moved after migration to ensure we are wiping the correct schema
@@ -349,6 +347,27 @@ namespace Infrastructure.Data
                     IsSupportingClinician = false,
                 };
                 context.Practitioners.Add(adminPractitioner);
+
+                // SEED ADMIN CLINICAL BASE: System Admin resides in Cebu
+                var adminAddr = new EntityAddress
+                {
+                    EntityAddressId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
+                    PractitionerId = adminPractitionerId,
+                    IsPrimary = true,
+                    Type = AddressType.Home,
+                    Address = new Address
+                    {
+                        Street = "Gorordo Avenue",
+                        City = "Cebu City",
+                        State = "Cebu",
+                        PostalCode = "6000",
+                        Latitude = 10.3157,
+                        Longitude = 123.8854,
+                        Country = "Philippines",
+                    },
+                };
+                context.EntityAddresses.Add(adminAddr);
             }
 
             // Seed Other Practitioners from CREDENTIALS.md
@@ -507,7 +526,7 @@ namespace Infrastructure.Data
                             PostalCode = "6000",
                             Latitude = 10.3157,
                             Longitude = 123.8854,
-                            Country = "Philippines"
+                            Country = "Philippines",
                         },
                     };
 
@@ -536,7 +555,7 @@ namespace Infrastructure.Data
                             PostalCode = "6000",
                             Latitude = 10.3157,
                             Longitude = 123.8854,
-                            Country = "Philippines"
+                            Country = "Philippines",
                         },
                     };
                     existingPractitioner.Addresses.Add(entityAddr);
@@ -566,16 +585,18 @@ namespace Infrastructure.Data
                 // Give every practitioner a standard 8 AM - 5 PM shift every day
                 for (int i = 0; i < 7; i++)
                 {
-                    context.ProviderShifts.Add(new ProviderShift
-                    {
-                        ProviderShiftId = Guid.NewGuid(),
-                        TenantId = tenantId,
-                        PractitionerId = p.PractitionerId,
-                        DayOfWeek = (DayOfWeek)i,
-                        StartTime = new TimeSpan(8, 0, 0),
-                        EndTime = new TimeSpan(17, 0, 0),
-                        IsActive = true
-                    });
+                    context.ProviderShifts.Add(
+                        new ProviderShift
+                        {
+                            ProviderShiftId = Guid.NewGuid(),
+                            TenantId = tenantId,
+                            PractitionerId = p.PractitionerId,
+                            DayOfWeek = (DayOfWeek)i,
+                            StartTime = new TimeSpan(8, 0, 0),
+                            EndTime = new TimeSpan(17, 0, 0),
+                            IsActive = true,
+                        }
+                    );
                 }
             }
             await context.SaveChangesAsync();
@@ -1190,8 +1211,8 @@ namespace Infrastructure.Data
                     ) ?? practitioners[0];
 
                 // PRE-FETCH: Load all addresses into memory to avoid Local context misses and N+1 issues
-                var allAddresses = await context.EntityAddresses
-                    .Include(ea => ea.Address)
+                var allAddresses = await context
+                    .EntityAddresses.Include(ea => ea.Address)
                     .IgnoreQueryFilters()
                     .ToListAsync();
 
@@ -1202,12 +1223,21 @@ namespace Infrastructure.Data
                         mod != AppointmentModality.InPersonHomeVisit
                         && mod != AppointmentModality.InPersonFacility
                     )
-                        return 0;
+                        return 0.0;
 
-                    var pA = allAddresses.FirstOrDefault(ea => ea.PractitionerId == pId)?.Address;
-                    var ptA = allAddresses.FirstOrDefault(ea => ea.PatientId == patId)?.Address;
+                    var pA =
+                        allAddresses.FirstOrDefault(ea => ea.PractitionerId == pId)?.Address
+                        ?? context
+                            .EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == pId)
+                            ?.Address;
+                    var ptA =
+                        allAddresses.FirstOrDefault(ea => ea.PatientId == patId)?.Address
+                        ?? context
+                            .EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == patId)
+                            ?.Address;
 
-                    if (pA == null || ptA == null) return 5.0;
+                    if (pA == null || ptA == null)
+                        return 5.0;
 
                     return Application.Common.Utils.GeoUtils.CalculateDistance(
                         pA.Latitude ?? 10.3157,
@@ -1227,7 +1257,7 @@ namespace Infrastructure.Data
                     var baseT = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(dist);
                     // Add some jitter for traffic (1.2x to 2.5x base time)
                     var multiplier = f.Random.Double(1.2, 2.5);
-                    return (int)Math.Clamp(baseT * multiplier, 10, 45);
+                    return (int)Math.Clamp(baseT * multiplier, 15, 45);
                 }
 
                 // Phase 1: System Admin Tactical Roster
@@ -1238,14 +1268,32 @@ namespace Infrastructure.Data
                         a => a.PatientId,
                         f =>
                         {
-                            var adminAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == adminPrac.PractitionerId)?.Address;
+                            var adminAddr =
+                                allAddresses
+                                    .FirstOrDefault(ea =>
+                                        ea.PractitionerId == adminPrac.PractitionerId
+                                    )
+                                    ?.Address
+                                ?? context
+                                    .EntityAddresses.Local.FirstOrDefault(ea =>
+                                        ea.PractitionerId == adminPrac.PractitionerId
+                                    )
+                                    ?.Address;
+
                             var regionalPatients = patients
-                                .Where(p => {
-                                    var pAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == p.PatientId)?.Address;
+                                .Where(p =>
+                                {
+                                    var pAddr = context
+                                        .EntityAddresses.Local.FirstOrDefault(ea =>
+                                            ea.PatientId == p.PatientId
+                                        )
+                                        ?.Address;
                                     return pAddr?.State == adminAddr?.State;
                                 })
                                 .ToList();
-                            return f.PickRandom(regionalPatients.Any() ? regionalPatients : patients).PatientId;
+                            return f.PickRandom(
+                                regionalPatients.Any() ? regionalPatients : patients
+                            ).PatientId;
                         }
                     )
                     .RuleFor(a => a.PractitionerId, adminPrac.PractitionerId)
@@ -1264,22 +1312,31 @@ namespace Infrastructure.Data
                     )
                     .RuleFor(
                         a => a.ScheduledEnd,
-                        (f, a) => a.ScheduledStart.AddMinutes(f.Random.Bool(0.6f) ? 60 : 45)
+                        (f, a) => a.ScheduledStart.AddMinutes(f.Random.Number(15, 60))
                     )
                     .RuleFor(
                         a => a.SupportingClinicians,
                         (f, a) =>
                         {
                             // Try to find a supporting clinician in the same region
-                            var patAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == a.PatientId)?.Address;
+                            var patAddr = context
+                                .EntityAddresses.Local.FirstOrDefault(ea =>
+                                    ea.PatientId == a.PatientId
+                                )
+                                ?.Address;
                             var sameRegion = practitioners
                                 .Where(p => p.PractitionerId != a.PractitionerId)
-                                .Where(p => {
-                                    var pAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == p.PractitionerId)?.Address;
+                                .Where(p =>
+                                {
+                                    var pAddr = context
+                                        .EntityAddresses.Local.FirstOrDefault(ea =>
+                                            ea.PractitionerId == p.PractitionerId
+                                        )
+                                        ?.Address;
                                     return pAddr?.State == patAddr?.State;
                                 })
                                 .ToList();
-                            
+
                             return (sameRegion.Any() ? sameRegion : practitioners)
                                 .OrderBy(x => Guid.NewGuid())
                                 .Take(1)
@@ -1307,16 +1364,27 @@ namespace Infrastructure.Data
                         (f, a) =>
                         {
                             // STRATEGIC: Match practitioner region to patient region
-                            var patAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == a.PatientId)?.Address;
+                            var patAddr = context
+                                .EntityAddresses.Local.FirstOrDefault(ea =>
+                                    ea.PatientId == a.PatientId
+                                )
+                                ?.Address;
                             var regionalPractitioners = practitioners
                                 .Where(p => p.PractitionerId != adminPrac.PractitionerId)
-                                .Where(p => {
-                                    var pAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == p.PractitionerId)?.Address;
+                                .Where(p =>
+                                {
+                                    var pAddr = context
+                                        .EntityAddresses.Local.FirstOrDefault(ea =>
+                                            ea.PractitionerId == p.PractitionerId
+                                        )
+                                        ?.Address;
                                     return pAddr?.State == patAddr?.State;
                                 })
                                 .ToList();
-                            
-                            return f.PickRandom(regionalPractitioners.Any() ? regionalPractitioners : practitioners).PractitionerId;
+
+                            return f.PickRandom(
+                                regionalPractitioners.Any() ? regionalPractitioners : practitioners
+                            ).PractitionerId;
                         }
                     )
                     .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
@@ -1334,23 +1402,29 @@ namespace Infrastructure.Data
                     )
                     .RuleFor(
                         a => a.ScheduledEnd,
-                        (f, a) =>
-                            a.ScheduledStart.AddMinutes(
-                                f.Random.WeightedRandom(
-                                    new[] { 15, 30, 45, 60 },
-                                    new[] { 0.1f, 0.2f, 0.3f, 0.4f }
-                                )
-                            )
+                        (f, a) => a.ScheduledStart.AddMinutes(f.Random.Number(15, 60))
                     )
                     .RuleFor(
                         a => a.SupportingClinicians,
                         (f, a) =>
                         {
-                             var patAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == a.PatientId)?.Address;
-                             var sameRegion = practitioners
-                                .Where(pr => pr.PractitionerId != a.PractitionerId && pr.Position != PractitionerPosition.Admin)
-                                .Where(p => {
-                                    var pAddr = context.EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == p.PractitionerId)?.Address;
+                            var patAddr = context
+                                .EntityAddresses.Local.FirstOrDefault(ea =>
+                                    ea.PatientId == a.PatientId
+                                )
+                                ?.Address;
+                            var sameRegion = practitioners
+                                .Where(pr =>
+                                    pr.PractitionerId != a.PractitionerId
+                                    && pr.Position != PractitionerPosition.Admin
+                                )
+                                .Where(p =>
+                                {
+                                    var pAddr = context
+                                        .EntityAddresses.Local.FirstOrDefault(ea =>
+                                            ea.PractitionerId == p.PractitionerId
+                                        )
+                                        ?.Address;
                                     return pAddr?.State == patAddr?.State;
                                 })
                                 .ToList();
@@ -1795,6 +1869,66 @@ namespace Infrastructure.Data
                         "This is a priority follow-up regarding your recent health inquiry. We need to finalize your clinical orientation to ensure uninterrupted access to your care navigator and supporting clinical staff.",
                     IsDefault = false,
                 },
+                new OutreachScript
+                {
+                    ScriptTitle = "Hospice Eligibility Mission",
+                    Content =
+                        "Hello {firstName}, I am calling to confirm your eligibility for our hospice benefit program. We've received your referral and would like to explain how our team can support you and your family during this transition.",
+                },
+                new OutreachScript
+                {
+                    ScriptTitle = "Assessment Deployment",
+                    Content =
+                        "Hi {firstName}, we are ready to deploy a clinician to your location for a comprehensive health assessment. Would {day} at {time} work for your schedule?",
+                },
+                new OutreachScript
+                {
+                    ScriptTitle = "Caregiver Support Pulse",
+                    Content =
+                        "Hello, I'm calling to check in on the caregiver support systems. We want to ensure you have all the resources needed to maintain the care protocol at home.",
+                },
+                new OutreachScript
+                {
+                    ScriptTitle = "DME Logistics Sync",
+                    Content =
+                        "This is Halcyon Logistics. We are confirming the delivery of your medical equipment scheduled for today. Our technician will arrive within the next 2 hours.",
+                },
+                new OutreachScript
+                {
+                    ScriptTitle = "Post-Discharge Verification",
+                    Content =
+                        "Hello {firstName}, we've noted your recent discharge from the facility. We're calling to ensure your home care plan is fully synchronized and you have all your medications.",
+                },
+                new OutreachScript
+                {
+                    ScriptTitle = "Insurance Alignment",
+                    Content =
+                        "Hi, we are updating our records regarding your health plan coverage. We want to ensure all clinical services remain fully covered under your current policy.",
+                },
+                new OutreachScript
+                {
+                    ScriptTitle = "Community Resource Link",
+                    Content =
+                        "Hello, following our recent discussion, we've identified several community resources that align with your needs. I'd like to share these details with you.",
+                },
+                new OutreachScript
+                {
+                    ScriptTitle = "Bereavement Outreach",
+                    Content =
+                        "Hello, I am calling from the Halcyon Bereavement Team. We wanted to reach out and offer our support and resources during this difficult time.",
+                },
+                new OutreachScript
+                {
+                    ScriptTitle = "Telehealth Tech Support",
+                    Content =
+                        "Hi {firstName}, we have a scheduled video visit coming up. I'm calling to help you test your connection and ensure the platform is ready for the clinician.",
+                },
+                new OutreachScript
+                {
+                    ScriptTitle = "Appointment Tactical Reminder",
+                    Content =
+                        "Strategic reminder: You have a clinical encounter scheduled for tomorrow at {time}. Please ensure the environment is ready for the practitioner's arrival.",
+                },
             };
             context.Set<OutreachScript>().AddRange(scripts);
             await context.SaveChangesAsync(default);
@@ -1849,6 +1983,85 @@ namespace Infrastructure.Data
                         Label = "Telehealth Disclosure",
                         TemplateText =
                             "Patient consented to telehealth visit. Identity verified. Connection secure. Location: Home.",
+                        Category = "Admin",
+                    },
+                    new SmartPhrase
+                    {
+                        Shortcut = "/death",
+                        Label = "Death Pronouncement",
+                        TemplateText =
+                            "Date/Time of Death: \nCalled by: \nRespiration absent. Pulses absent. Pupils fixed/dilated. \nNotified: \nMortuary: ",
+                        Category = "Clinical",
+                    },
+                    new SmartPhrase
+                    {
+                        Shortcut = "/code",
+                        Label = "Code Status Discussion",
+                        TemplateText =
+                            "Status: [DNR/DNI/Full Code]\nDiscussion: Patient/Family understanding of prognosis and goals. Directives reviewed and updated.",
+                        Category = "Clinical",
+                    },
+                    new SmartPhrase
+                    {
+                        Shortcut = "/dme",
+                        Label = "Equipment Request",
+                        TemplateText =
+                            "Item: \nJustification: \nEstimated duration of use: \nDelivery Location: ",
+                        Category = "Logistics",
+                    },
+                    new SmartPhrase
+                    {
+                        Shortcut = "/idre",
+                        Label = "IDG Record Entry",
+                        TemplateText =
+                            "Interdisciplinary Group Review: \nGoals met: \nBarriers to care: \nPlan update: ",
+                        Category = "Clinical",
+                    },
+                    new SmartPhrase
+                    {
+                        Shortcut = "/plan",
+                        Label = "Care Plan Goals",
+                        TemplateText =
+                            "Short-term: \nLong-term: \nInterventions: \nMeasurable Outcome: ",
+                        Category = "Clinical",
+                    },
+                    new SmartPhrase
+                    {
+                        Shortcut = "/fam",
+                        Label = "Family Meeting Summary",
+                        TemplateText =
+                            "Attendees: \nDiscussion: \nDecisions made: \nFollow-up items: ",
+                        Category = "Psychosocial",
+                    },
+                    new SmartPhrase
+                    {
+                        Shortcut = "/meds",
+                        Label = "Medication Reconciliation",
+                        TemplateText =
+                            "Meds reviewed from home list vs system. \nChanges: \nEducation provided: \nPharmacy: ",
+                        Category = "Clinical",
+                    },
+                    new SmartPhrase
+                    {
+                        Shortcut = "/wound",
+                        Label = "Wound Assessment",
+                        TemplateText = "Location: \nDimensions: \nStage: \nExudate: \nTreatment: ",
+                        Category = "Clinical",
+                    },
+                    new SmartPhrase
+                    {
+                        Shortcut = "/intake",
+                        Label = "Clinical Intake Summary",
+                        TemplateText =
+                            "Primary Diagnosis: \nSecondary Conditions: \nSocial support: \nFunctional status: ",
+                        Category = "Clinical",
+                    },
+                    new SmartPhrase
+                    {
+                        Shortcut = "/discharge",
+                        Label = "Transition/Discharge Summary",
+                        TemplateText =
+                            "Reason for transition: \nFinal assessment: \nHand-off to: \nEquipment retrieved: ",
                         Category = "Admin",
                     },
                 };

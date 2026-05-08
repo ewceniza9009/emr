@@ -2,22 +2,20 @@ using Application.Common.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
-using HotChocolate.Types;
 
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType(typeof(Query))]
 public class QuestionnaireQuery
 {
-
-
     public async Task<Questionnaire?> GetQuestionnaireByType(
         AssessmentType type,
         IApplicationDbContext context,
-        CancellationToken ct)
+        CancellationToken ct
+    )
     {
-        return await context.Questionnaires
-            .Include(q => q.Questions)
+        return await context
+            .Questionnaires.Include(q => q.Questions)
             .FirstOrDefaultAsync(q => q.AssessmentType == type, ct);
     }
 }

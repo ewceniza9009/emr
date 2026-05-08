@@ -4,10 +4,9 @@ using Application.Patients.Commands;
 using Domain.Entities;
 using Domain.Enums;
 using HotChocolate.Authorization;
-using Infrastructure.Identity;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Api.GraphQL.Attributes;
 
 namespace Api.GraphQL.Mutations;
 
@@ -15,76 +14,15 @@ namespace Api.GraphQL.Mutations;
 [Authorize(Policy = "CanChart")]
 public class ClinicalMutation
 {
-    private async Task<bool> VerifyClinicalAccess(
-        Guid patientId,
-        ICurrentUserService currentUserService,
-        UserManager<ApplicationUser> userManager,
-        IApplicationDbContext context,
-        CancellationToken cancellationToken
-    )
-    {
-        var userIdStr = currentUserService.UserId;
-        if (string.IsNullOrEmpty(userIdStr))
-            return false;
-
-        var user = await userManager.FindByIdAsync(userIdStr);
-        if (user == null)
-            return false;
-
-        if (user.EmergencyAccessExpiry > DateTimeOffset.UtcNow)
-            return true;
-
-        var roles = await userManager.GetRolesAsync(user);
-        if (
-            roles.Contains("Administrator")
-            || roles.Contains("System Admin")
-            || roles.Contains("Admin")
-        )
-            return true;
-
-        if (!Guid.TryParse(userIdStr, out var userId))
-            return false;
-
-        var isAssigned = await context.CareNavigationCases.AnyAsync(
-            c => c.PatientId == patientId && c.NavigatorId == userId && c.Status == CaseStatus.Open,
-            cancellationToken
-        );
-
-        if (isAssigned)
-            return true;
-
-        var hasAppointment = await context.Appointments.AnyAsync(
-            a => a.PatientId == patientId && a.PractitionerId == userId,
-            cancellationToken
-        );
-
-        return hasAppointment;
-    }
-
     [GraphQLName("createClinicalEncounter")]
+    [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Guid> CreateClinicalEncounter(
         CreateClinicalEncounterCommandInput input,
         [Service] IMediator mediator,
         [Service] ISecurityAuditService auditService,
-        [Service] ICurrentUserService currentUserService,
-        [Service] UserManager<ApplicationUser> userManager,
-        [Service] IApplicationDbContext context,
         CancellationToken cancellationToken
     )
     {
-        if (
-            !await VerifyClinicalAccess(
-                input.PatientId,
-                currentUserService,
-                userManager,
-                context,
-                cancellationToken
-            )
-        )
-            throw new UnauthorizedAccessException(
-                "Clinical assignment required to start an encounter."
-            );
-
         var command = new CreateClinicalEncounterCommand
         {
             PatientId = input.PatientId,
@@ -105,27 +43,14 @@ public class ClinicalMutation
     }
 
     [GraphQLName("addAllergy")]
+    [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Guid> AddAllergy(
         AddAllergyCommandInput input,
         [Service] IMediator mediator,
         [Service] ISecurityAuditService auditService,
-        [Service] ICurrentUserService currentUserService,
-        [Service] UserManager<ApplicationUser> userManager,
-        [Service] IApplicationDbContext context,
         CancellationToken cancellationToken
     )
     {
-        if (
-            !await VerifyClinicalAccess(
-                input.PatientId,
-                currentUserService,
-                userManager,
-                context,
-                cancellationToken
-            )
-        )
-            throw new UnauthorizedAccessException("Clinical assignment required for charting.");
-
         var command = new AddAllergyCommand
         {
             PatientId = input.PatientId,
@@ -145,34 +70,14 @@ public class ClinicalMutation
     }
 
     [GraphQLName("logVitalSign")]
+    [UseClinicalAccess(argumentName: "EncounterId", source: ClinicalIdSource.Encounter)]
     public async Task<Guid> LogVitalSign(
         LogVitalSignCommandInput input,
         [Service] IMediator mediator,
         [Service] ISecurityAuditService auditService,
-        [Service] ICurrentUserService currentUserService,
-        [Service] UserManager<ApplicationUser> userManager,
-        [Service] IApplicationDbContext context,
         CancellationToken cancellationToken
     )
     {
-        var encounter = await context
-            .ClinicalEncounters.AsNoTracking()
-            .FirstOrDefaultAsync(e => e.EncounterId == input.EncounterId, cancellationToken);
-
-        if (encounter == null)
-            throw new Exception("Encounter not found.");
-
-        if (
-            !await VerifyClinicalAccess(
-                encounter.PatientId,
-                currentUserService,
-                userManager,
-                context,
-                cancellationToken
-            )
-        )
-            throw new UnauthorizedAccessException("Clinical assignment required for charting.");
-
         var command = new LogVitalSignCommand(
             input.EncounterId,
             input.HeartRate,
@@ -185,43 +90,24 @@ public class ClinicalMutation
         );
 
         var result = await mediator.Send(command, cancellationToken);
+        
         await auditService.LogActionAsync(
             "PATIENT_VITALS_LOGGED",
             "Vital signs recorded during encounter.",
-            encounter.PatientId.ToString()
+            input.EncounterId.ToString()
         );
         return result;
     }
 
     [GraphQLName("completeGuidedEncounter")]
+    [UseClinicalAccess(argumentName: "EncounterId", source: ClinicalIdSource.Encounter)]
     public async Task<Guid> CompleteGuidedEncounter(
         CompleteGuidedEncounterCommandInput input,
         [Service] IMediator mediator,
         [Service] ISecurityAuditService auditService,
-        [Service] ICurrentUserService currentUserService,
-        [Service] UserManager<ApplicationUser> userManager,
-        [Service] IApplicationDbContext context,
         CancellationToken cancellationToken
     )
     {
-        var encounter = await context
-            .ClinicalEncounters.AsNoTracking()
-            .FirstOrDefaultAsync(e => e.EncounterId == input.EncounterId, cancellationToken);
-
-        if (encounter == null)
-            throw new Exception("Encounter not found.");
-
-        if (
-            !await VerifyClinicalAccess(
-                encounter.PatientId,
-                currentUserService,
-                userManager,
-                context,
-                cancellationToken
-            )
-        )
-            throw new UnauthorizedAccessException("Clinical assignment required for charting.");
-
         var command = new CompleteGuidedEncounterCommand
         {
             EncounterId = input.EncounterId,
@@ -246,35 +132,20 @@ public class ClinicalMutation
         await auditService.LogActionAsync(
             "CLINICAL_ENCOUNTER_COMPLETED",
             "Guided encounter finalized.",
-            encounter.PatientId.ToString()
+            input.EncounterId.ToString()
         );
         return result;
     }
 
     [GraphQLName("addPrescription")]
+    [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Guid> AddPrescription(
         AddPrescriptionCommandInput input,
         [Service] IMediator mediator,
         [Service] ISecurityAuditService auditService,
-        [Service] ICurrentUserService currentUserService,
-        [Service] UserManager<ApplicationUser> userManager,
-        [Service] IApplicationDbContext context,
         CancellationToken cancellationToken
     )
     {
-        if (
-            !await VerifyClinicalAccess(
-                input.PatientId,
-                currentUserService,
-                userManager,
-                context,
-                cancellationToken
-            )
-        )
-            throw new UnauthorizedAccessException(
-                "Clinical assignment required for medication management."
-            );
-
         var command = new AddPrescriptionCommand
         {
             PatientId = input.PatientId,
@@ -298,27 +169,14 @@ public class ClinicalMutation
     }
 
     [GraphQLName("logAssessmentResponse")]
+    [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Guid> LogAssessmentResponse(
         LogAssessmentResponseCommandInput input,
         [Service] IMediator mediator,
         [Service] ISecurityAuditService auditService,
-        [Service] ICurrentUserService currentUserService,
-        [Service] UserManager<ApplicationUser> userManager,
-        [Service] IApplicationDbContext context,
         CancellationToken cancellationToken
     )
     {
-        if (
-            !await VerifyClinicalAccess(
-                input.PatientId,
-                currentUserService,
-                userManager,
-                context,
-                cancellationToken
-            )
-        )
-            throw new UnauthorizedAccessException("Clinical assignment required for assessments.");
-
         var command = new LogAssessmentResponseCommand
         {
             QuestionnaireId = input.QuestionnaireId,
@@ -339,34 +197,14 @@ public class ClinicalMutation
     }
 
     [GraphQLName("saveClinicalNote")]
+    [UseClinicalAccess(argumentName: "EncounterId", source: ClinicalIdSource.Encounter)]
     public async Task<Guid> SaveClinicalNote(
         SaveClinicalNoteCommandInput input,
         [Service] IMediator mediator,
         [Service] ISecurityAuditService auditService,
-        [Service] ICurrentUserService currentUserService,
-        [Service] UserManager<ApplicationUser> userManager,
-        [Service] IApplicationDbContext context,
         CancellationToken cancellationToken
     )
     {
-        var encounter = await context
-            .ClinicalEncounters.AsNoTracking()
-            .FirstOrDefaultAsync(e => e.EncounterId == input.EncounterId, cancellationToken);
-
-        if (encounter == null)
-            throw new Exception("Encounter not found.");
-
-        if (
-            !await VerifyClinicalAccess(
-                encounter.PatientId,
-                currentUserService,
-                userManager,
-                context,
-                cancellationToken
-            )
-        )
-            throw new UnauthorizedAccessException("Clinical assignment required for charting.");
-
         var command = new SaveClinicalNoteCommand
         {
             EncounterId = input.EncounterId,
@@ -383,7 +221,7 @@ public class ClinicalMutation
         await auditService.LogActionAsync(
             "CLINICAL_NOTE_SAVED",
             "Clinical encounter note updated/signed.",
-            encounter.PatientId.ToString()
+            input.EncounterId.ToString()
         );
         return result;
     }

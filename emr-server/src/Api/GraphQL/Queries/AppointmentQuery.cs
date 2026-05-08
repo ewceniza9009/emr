@@ -5,11 +5,10 @@ using Application.Common.Models;
 using Domain.Entities;
 using Domain.Enums;
 using HotChocolate.Authorization;
-using Infrastructure.Identity;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Api.GraphQL.Attributes;
 
 namespace Api.GraphQL.Queries;
 
@@ -18,60 +17,10 @@ namespace Api.GraphQL.Queries;
 public class AppointmentQuery
 {
     private readonly ISecurityAuditService _auditService;
-    private readonly ICurrentUserService _currentUserService;
 
-    public AppointmentQuery(
-        ISecurityAuditService auditService,
-        ICurrentUserService currentUserService
-    )
+    public AppointmentQuery(ISecurityAuditService auditService)
     {
         _auditService = auditService;
-        _currentUserService = currentUserService;
-    }
-
-    private async Task<bool> VerifyClinicalAccess(
-        Guid patientId,
-        UserManager<ApplicationUser> userManager,
-        IApplicationDbContext context,
-        CancellationToken cancellationToken
-    )
-    {
-        var userIdStr = _currentUserService.UserId;
-        if (string.IsNullOrEmpty(userIdStr))
-            return false;
-
-        var user = await userManager.FindByIdAsync(userIdStr);
-        if (user == null)
-            return false;
-
-        if (user.EmergencyAccessExpiry > DateTimeOffset.UtcNow)
-            return true;
-
-        var roles = await userManager.GetRolesAsync(user);
-        if (
-            roles.Contains("Administrator")
-            || roles.Contains("System Admin")
-            || roles.Contains("Admin")
-        )
-            return true;
-
-        if (!Guid.TryParse(userIdStr, out var userId))
-            return false;
-
-        var isAssigned = await context.CareNavigationCases.AnyAsync(
-            c => c.PatientId == patientId && c.NavigatorId == userId && c.Status == CaseStatus.Open,
-            cancellationToken
-        );
-
-        if (isAssigned)
-            return true;
-
-        var hasAppointment = await context.Appointments.AnyAsync(
-            a => a.PatientId == patientId && a.PractitionerId == userId,
-            cancellationToken
-        );
-
-        return hasAppointment;
     }
 
     [GraphQLName("appointments")]
@@ -79,7 +28,6 @@ public class AppointmentQuery
     [UseSorting]
     public async Task<PagedResponse<AppointmentDto>> GetAppointments(
         [Service] IApplicationDbContext context,
-        [Service] UserManager<ApplicationUser> userManager,
         DateTime? startDate = null,
         DateTime? endDate = null,
         Guid? patientId = null,
@@ -116,15 +64,12 @@ public class AppointmentQuery
     }
 
     [GraphQLName("appointment")]
+    [UseClinicalAccess(argumentName: "id", source: ClinicalIdSource.Appointment)]
     public async Task<AppointmentDto?> GetAppointmentById(
         Guid id, 
-        [Service] UserManager<ApplicationUser> userManager,
         [Service] IApplicationDbContext context,
         CancellationToken cancellationToken)
     {
-        if (!await VerifyClinicalAccess(id, userManager, context, cancellationToken))
-             throw new UnauthorizedAccessException("Clinical assignment required for scheduling access.");
-
         return await context.Appointments
             .Include(a => a.Patient)
             .Include(a => a.Practitioner)
@@ -142,7 +87,6 @@ public class AppointmentQuery
         int durationMinutes,
         AppointmentModality modality,
         [Service] IMediator mediator,
-        [Service] IApplicationDbContext context,
         CancellationToken cancellationToken
     )
     {

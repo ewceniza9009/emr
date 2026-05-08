@@ -5,19 +5,23 @@ using Domain.Enums;
 using FluentAssertions;
 using MockQueryable.Moq;
 using Moq;
-using Xunit;
 
 namespace Application.UnitTests.Appointments.Commands;
 
 public class BookAppointmentCommandTests
 {
     private readonly Mock<IApplicationDbContext> _mockContext;
+    private readonly Mock<ISchedulingService> _mockSchedulingService;
     private readonly BookAppointmentCommandHandler _handler;
 
     public BookAppointmentCommandTests()
     {
         _mockContext = new Mock<IApplicationDbContext>();
-        _handler = new BookAppointmentCommandHandler(_mockContext.Object);
+        _mockSchedulingService = new Mock<ISchedulingService>();
+        _handler = new BookAppointmentCommandHandler(
+            _mockContext.Object,
+            _mockSchedulingService.Object
+        );
     }
 
     [Fact]
