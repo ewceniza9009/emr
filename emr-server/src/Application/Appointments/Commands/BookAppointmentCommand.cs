@@ -27,13 +27,17 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
         CancellationToken cancellationToken
     )
     {
+        // CRITICAL: Normalize to UTC for PostgreSQL compatibility
+        var startTime = request.ScheduledStart.ToUniversalTime();
+        var endTime = request.ScheduledEnd.ToUniversalTime();
+
         // --- COLLISION PROOF GUARD ---
         // Check for any overlapping appointments for the same practitioner
         var hasConflict = await context.Appointments
             .AnyAsync(a => a.PractitionerId == request.PractitionerId 
                            && a.AppointmentId != request.AppointmentId
-                           && request.ScheduledStart < a.ScheduledEnd 
-                           && request.ScheduledEnd > a.ScheduledStart, 
+                           && startTime < a.ScheduledEnd 
+                           && endTime > a.ScheduledStart, 
                        cancellationToken);
 
         if (hasConflict)
@@ -70,8 +74,8 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
 
             appointment.PatientId = request.PatientId;
             appointment.PractitionerId = request.PractitionerId;
-            appointment.ScheduledStart = request.ScheduledStart;
-            appointment.ScheduledEnd = request.ScheduledEnd;
+            appointment.ScheduledStart = startTime;
+            appointment.ScheduledEnd = endTime;
             appointment.Modality = request.Modality;
             appointment.SupportingClinicians = supporting;
             
@@ -100,8 +104,8 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
                 AppointmentId = Guid.NewGuid(),
                 PatientId = request.PatientId,
                 PractitionerId = request.PractitionerId,
-                ScheduledStart = request.ScheduledStart,
-                ScheduledEnd = request.ScheduledEnd,
+                ScheduledStart = startTime,
+                ScheduledEnd = endTime,
                 Modality = request.Modality,
                 Status = AppointmentStatus.Scheduled,
                 SupportingClinicians = supporting,

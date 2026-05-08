@@ -43,8 +43,10 @@ namespace Infrastructure.Data
                     serviceProvider.GetRequiredService<RoleManager<IdentityRole>>()
                 );
 
-                if (seedDb && !await context.Patients.IgnoreQueryFilters().AnyAsync())
+                if (seedDb)
                 {
+                    // FORCE RE-SEED: Clear existing appointments using EF-native command to avoid SQL naming issues
+                    await context.Appointments.IgnoreQueryFilters().ExecuteDeleteAsync();
                     await SeedDatabaseAsync(context);
                 }
                 return;

@@ -73,6 +73,14 @@ public class AppointmentMutation
             cancellationToken
         );
     }
+    public async Task<bool> DeleteAppointment(
+        Guid id,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(new DeleteAppointmentCommand(id), cancellationToken);
+    }
 }
 
 public record CreateScheduleBlockInput(

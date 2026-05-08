@@ -31,6 +31,12 @@ const BOOK_APPOINTMENT = gql`
   }
 `;
 
+const DELETE_APPOINTMENT = gql`
+  mutation DeleteAppointment($id: UUID!) {
+    deleteAppointment(id: $id)
+  }
+`;
+
 const CREATE_SCHEDULE_BLOCK = gql`
   mutation CreateScheduleBlock($input: CreateScheduleBlockInput!) {
     createScheduleBlock(input: $input) {
@@ -141,61 +147,61 @@ const ASSESSMENT_OPTIONS = [
     category: "Symptom and Pain",
     icon: <HeartPulse className="w-4 h-4" />,
     items: [
-      { id: "Esas", label: "ESAS", fullName: "Edmonton Symptom Assessment", description: "Pain, tiredness, nausea, appetite, well-being" },
-      { id: "Bpi", label: "BPI", fullName: "Brief Pain Inventory", description: "Pain severity and impact on functions" },
-      { id: "Msas", label: "MSAS", fullName: "Memorial Symptom Scale", description: "Physical and psychological symptom burden" },
-      { id: "VictoriaBowel", label: "Victoria Bowel", fullName: "Victoria Bowel Scale", description: "Assessment of constipation severity" },
+      { id: "ESAS", label: "ESAS", fullName: "Edmonton Symptom Assessment", description: "Pain, tiredness, nausea, appetite, well-being" },
+      { id: "BPI", label: "BPI", fullName: "Brief Pain Inventory", description: "Pain severity and impact on functions" },
+      { id: "MSAS", label: "MSAS", fullName: "Memorial Symptom Scale", description: "Physical and psychological symptom burden" },
+      { id: "VICTORIA_BOWEL", label: "Victoria Bowel", fullName: "Victoria Bowel Scale", description: "Assessment of constipation severity" },
     ]
   },
   {
     category: "Functional Status",
     icon: <Navigation className="w-4 h-4" />,
     items: [
-      { id: "Pps", label: "PPS", fullName: "Palliative Performance Scale", description: "Ambulation, self-care, and intake" },
-      { id: "Kps", label: "KPS", fullName: "Karnofsky Performance Scale", description: "Functional impairment classification" },
-      { id: "Ecog", label: "ECOG", fullName: "ECOG Performance Status", description: "Impact of disease on daily living" },
-      { id: "Fast", label: "FAST", fullName: "Functional Assessment Staging", description: "Alzheimer's and dementia progression" },
+      { id: "PPS", label: "PPS", fullName: "Palliative Performance Scale", description: "Ambulation, self-care, and intake" },
+      { id: "KPS", label: "KPS", fullName: "Karnofsky Performance Scale", description: "Functional impairment classification" },
+      { id: "ECOG", label: "ECOG", fullName: "ECOG Performance Status", description: "Impact of disease on daily living" },
+      { id: "FAST", label: "FAST", fullName: "Functional Assessment Staging", description: "Alzheimer's and dementia progression" },
     ]
   },
   {
     category: "Psychological & Cognitive",
     icon: <Brain className="w-4 h-4" />,
     items: [
-      { id: "Hads", label: "HADS", fullName: "Hospital Anxiety & Depression", description: "Detecting anxiety and depression states" },
-      { id: "Phq9", label: "PHQ-9", fullName: "Patient Health Questionnaire-9", description: "Screening and measuring depression severity" },
-      { id: "MmseMoca", label: "MMSE/MoCA", fullName: "Mini-Mental / MoCA", description: "Cognitive impairment assessment" },
+      { id: "HADS", label: "HADS", fullName: "Hospital Anxiety & Depression", description: "Detecting anxiety and depression states" },
+      { id: "PHQ9", label: "PHQ-9", fullName: "Patient Health Questionnaire-9", description: "Screening and measuring depression severity" },
+      { id: "MMSE_MOCA", label: "MMSE/MoCA", fullName: "Mini-Mental / MoCA", description: "Cognitive impairment assessment" },
     ]
   },
   {
     category: "Quality of Life",
     icon: <Sun className="w-4 h-4" />,
     items: [
-      { id: "Mqol", label: "MQOL", fullName: "McGill Quality of Life", description: "Physical, psychological, existential domains" },
-      { id: "FacitPal", label: "FACIT-Pal", description: "Palliative-specific well-being concerns" },
+      { id: "MQOL", label: "MQOL", fullName: "McGill Quality of Life", description: "Physical, psychological, existential domains" },
+      { id: "FACIT_PAL", label: "FACIT-Pal", description: "Palliative-specific well-being concerns" },
     ]
   },
   {
     category: "Spiritual & Existential",
     icon: <Wind className="w-4 h-4" />,
     items: [
-      { id: "Fica", label: "FICA", fullName: "FICA Spiritual History", description: "Faith, Importance, Community, Address" },
-      { id: "Hope", label: "HOPE", fullName: "HOPE Questions", description: "Hope, Organized religion, Practices, Effects" },
+      { id: "FICA", label: "FICA", fullName: "FICA Spiritual History", description: "Faith, Importance, Community, Address" },
+      { id: "HOPE", label: "HOPE", fullName: "HOPE Questions", description: "Hope, Organized religion, Practices, Effects" },
     ]
   },
   {
     category: "Prognostic Indices",
     icon: <Timer className="w-4 h-4" />,
     items: [
-      { id: "Ppi", label: "PPI", fullName: "Palliative Prognostic Index", description: "Survival prediction based on PPS and clinicals" },
-      { id: "Pap", label: "PaP", fullName: "Palliative Prognostic Score", description: "KPS and survival prediction markers" },
+      { id: "PPI", label: "PPI", fullName: "Palliative Prognostic Index", description: "Survival prediction based on PPS and clinicals" },
+      { id: "PAP", label: "PaP", fullName: "Palliative Prognostic Score", description: "KPS and survival prediction markers" },
     ]
   },
   {
     category: "Caregiver Assessment",
     icon: <HeartHandshake className="w-4 h-4" />,
     items: [
-      { id: "Zbi", label: "ZBI", fullName: "Zarit Burden Interview", description: "Family caregiver stress and strain" },
-      { id: "Csi", label: "CSI", fullName: "Caregiver Strain Index", description: "Physical, financial, and emotional stress" },
+      { id: "ZBI", label: "ZBI", fullName: "Zarit Burden Interview", description: "Family caregiver stress and strain" },
+      { id: "CSI", label: "CSI", fullName: "Caregiver Strain Index", description: "Physical, financial, and emotional stress" },
     ]
   }
 ];
@@ -506,6 +512,14 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setBooked(true);
       setTimeout(() => { setBooked(false); onBooked(); onClose(); }, 1500);
     },
+  });
+
+  const [deleteAppt] = useMutation(DELETE_APPOINTMENT, {
+    refetchQueries: ["GetScheduleData"],
+    onCompleted: () => {
+      setBooked(true);
+      setTimeout(() => { setBooked(false); onBooked(); onClose(); }, 1500);
+    }
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1272,8 +1286,12 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         message: "Are you sure you want to permanently delete this appointment record? This action cannot be undone.",
                         type: "danger"
                       });
-                      if (ok) {
-                        // deletion logic here
+                      if (ok && appointmentId) {
+                        try {
+                          await deleteAppt({ variables: { id: appointmentId } });
+                        } catch (err) {
+                          alert({ title: "Error", message: "Failed to delete appointment.", type: "danger" });
+                        }
                       }
                     }} className="p-3 bg-[var(--input-bg)] hover:bg-red-600/20 rounded-xl border border-[var(--card-border)] hover:border-red-600/50 flex flex-col items-center justify-center gap-1.5 group transition-all">
                       <AlertCircle className="w-4 h-4 text-red-600" />
