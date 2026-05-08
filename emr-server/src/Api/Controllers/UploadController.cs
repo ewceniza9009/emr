@@ -157,9 +157,9 @@ public class UploadController : ControllerBase
                     Inline = false
                 };
                 Response.Headers.Append("Content-Disposition", contentDisposition.ToString());
-                return File(stream, document.ContentType);
+                return File(stream, document.ContentType ?? "application/octet-stream");
             }
-            return File(stream, document.ContentType);
+            return File(stream, document.ContentType ?? "application/octet-stream");
         }
         catch (Exception ex)
         {

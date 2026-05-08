@@ -55,6 +55,7 @@ import EditCommunicationsDrawer from "@/components/EditCommunicationsDrawer";
 import VisitSummaryDrawer from "@/components/VisitSummaryDrawer";
 import EmergencyActionDrawer from "@/components/EmergencyActionDrawer";
 import BreakGlassDrawer from "@/components/BreakGlassDrawer";
+import BenefitClaimDrawer from "@/components/BenefitClaimDrawer";
 import { useSession } from "next-auth/react";
 
 const GET_PATIENT_DETAILS = gql`
@@ -205,6 +206,7 @@ export default function PatientDetailPage() {
   const [showEmergencyDrawer, setShowEmergencyDrawer] = useState(false);
   const [isEmergency, setIsEmergency] = useState(false);
   const [showBreakGlass, setShowBreakGlass] = useState(false);
+  const [showBenefitClaim, setShowBenefitClaim] = useState(false);
 
   // IoT Telemetry State
   const [vitals, setVitals] = useState({ hr: 72, spo2: 98, temp: 98.6 });
@@ -471,6 +473,13 @@ export default function PatientDetailPage() {
               Status: {isEmergency ? "Critical" : "Stable"}
             </span>
           </div>
+          <button
+            onClick={() => setShowBenefitClaim(true)}
+            className="px-6 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all flex items-center gap-2"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Tag Z-Benefit
+          </button>
           <Link
             href={`/dashboard/patients/${params.id}/assessment/new`}
             className="px-6 py-2 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all flex items-center gap-2"
@@ -1004,6 +1013,15 @@ export default function PatientDetailPage() {
       />
       <EmergencyActionDrawer open={showEmergencyDrawer} onClose={() => setShowEmergencyDrawer(false)} patient={patient} onEscalate={() => setIsEmergency(true)} />
       <BreakGlassDrawer open={showBreakGlass} onClose={() => setShowBreakGlass(false)} onSuccess={() => refetch()} />
+      <BenefitClaimDrawer 
+        open={showBenefitClaim}
+        onClose={() => setShowBenefitClaim(false)}
+        initialData={{ patientId: params.id as string }}
+        onSuccess={() => {
+          setShowBenefitClaim(false);
+          refetch();
+        }}
+      />
     </div>
   );
 }

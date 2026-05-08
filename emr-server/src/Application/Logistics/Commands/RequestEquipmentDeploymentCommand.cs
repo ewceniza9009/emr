@@ -43,6 +43,39 @@ public class RequestEquipmentDeploymentCommandHandler : IRequestHandler<RequestE
         equipment.Status = EquipmentStatus.InUse;
 
         _context.EquipmentDeliveries.Add(delivery);
+
+        // --- AUTOMATED BILLING WORKFLOW ---
+        // Find or create an active invoice for this patient
+        var activeInvoice = await _context.BillingInvoices
+            .FirstOrDefaultAsync(i => i.PatientId == request.PatientId && i.Status == InvoiceStatus.Draft, cancellationToken);
+
+        if (activeInvoice == null)
+        {
+            activeInvoice = new BillingInvoice
+            {
+                PatientId = request.PatientId,
+                Status = InvoiceStatus.Draft,
+                GeneratedAt = DateTimeOffset.UtcNow,
+                DueDate = DateTimeOffset.UtcNow.AddDays(30),
+                SubtotalAmount = 0
+            };
+            _context.BillingInvoices.Add(activeInvoice);
+        }
+
+        // Add the equipment deployment fee/rental item
+        var billingItem = new BillingInvoiceItem
+        {
+            InvoiceId = activeInvoice.InvoiceId,
+            Description = $"Medical Equipment Deployment: {equipment.ModelName} ({equipment.SerialNumber})",
+            UnitPrice = 150.00m, // Standard base deployment & rental fee
+            Quantity = 1,
+            TotalPrice = 150.00m
+        };
+        
+        activeInvoice.SubtotalAmount += billingItem.TotalPrice;
+        _context.BillingInvoiceItems.Add(billingItem);
+        // ----------------------------------
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return delivery.DeliveryId;

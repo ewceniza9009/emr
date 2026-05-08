@@ -46,12 +46,12 @@ interface Props {
   onClose: () => void;
   onSuccess: () => void;
   initialData?: {
-    claimId: string;
+    claimId?: string;
     patientId: string;
-    philhealthNumber: string;
-    packageCode: string;
-    totalAmount: number;
-    status: string;
+    philhealthNumber?: string;
+    packageCode?: string;
+    totalAmount?: number;
+    status?: string;
   };
 }
 
@@ -71,7 +71,7 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
 
   const isLoading = submitting || updating;
 
-  const isEdit = !!initialData;
+  const isEdit = !!initialData?.claimId;
 
   const patients = patientData?.patients?.items || [];
   const filteredPatients = patients.filter((p: any) => 

@@ -58,7 +58,7 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
   });
 
   const handleStatusUpdate = async (deliveryId: string, currentStatus: string) => {
-    const statuses = ['PENDING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED', 'RETURNED'];
+    const statuses = ['PENDING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED'];
     const currentIndex = statuses.indexOf(currentStatus);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
 
@@ -67,6 +67,17 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
         input: {
           deliveryId,
           newStatus: nextStatus
+        }
+      }
+    });
+  };
+
+  const handleReturnAsset = async (deliveryId: string) => {
+    await updateStatus({
+      variables: {
+        input: {
+          deliveryId,
+          newStatus: 'RETURNED'
         }
       }
     });
@@ -142,6 +153,15 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
                       <Activity className="w-2 h-2" />
                       Update
                     </button>
+                    {d.status === 'DELIVERED' && (
+                      <button
+                        onClick={() => handleReturnAsset(d.deliveryId)}
+                        className="text-[6px] font-black uppercase tracking-tighter text-emerald-500 hover:text-emerald-400 transition-colors flex items-center gap-1 mt-1"
+                      >
+                        <CheckCircle2 className="w-2 h-2" />
+                        Return Asset
+                      </button>
+                    )}
                   </div>
                 </div>
 
