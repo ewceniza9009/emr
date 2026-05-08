@@ -66,7 +66,7 @@ export default function HomePage() {
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-black text-white tracking-tighter leading-none">Halcyon</span>
+              <span className="text-xl font-black text-white tracking-tighter leading-none">HALCYON</span>
               <span className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em] mt-1">Clinical OS</span>
             </div>
           </motion.div>
@@ -75,8 +75,7 @@ export default function HomePage() {
             {[
               { label: 'Features', id: 'engine' },
               { label: 'Workflows', id: 'network' },
-              { label: 'Safety', id: 'security' },
-              { label: 'Platform', id: 'security' }
+              { label: 'Platform & Safety', id: 'security' }
             ].map((item) => (
               <Link key={item.id} href={`#${item.id}`} className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all">
                 {item.label}
