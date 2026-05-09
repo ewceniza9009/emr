@@ -35,6 +35,7 @@ import {
   FileText,
   Trash2,
   Thermometer,
+  ArrowUpDown,
 
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -234,6 +235,7 @@ export default function PatientDetailPage() {
   const [isEmergency, setIsEmergency] = useState(false);
   const [showBreakGlass, setShowBreakGlass] = useState(false);
   const [showBenefitClaim, setShowBenefitClaim] = useState(false);
+  const [historySortOrder, setHistorySortOrder] = useState<"desc" | "asc">("desc");
 
   // IoT Telemetry State
   const [vitals, setVitals] = useState({ hr: 72, spo2: 98, temp: 98.6 });
@@ -779,13 +781,28 @@ export default function PatientDetailPage() {
             {activeTab === "history" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl min-h-[500px]">
-                  <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
-                    <Activity className="w-4 h-4 text-[var(--primary)]" />
-                    Clinical Activity Log
-                  </h2>
+                  <div className="flex items-center justify-between mb-10">
+                    <h2 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-3">
+                      <Activity className="w-4 h-4 text-[var(--primary)]" />
+                      Clinical Activity Log
+                    </h2>
+                    <button 
+                      onClick={() => setHistorySortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                      className="px-4 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all flex items-center gap-2 text-[9px] font-black uppercase tracking-widest"
+                    >
+                      <ArrowUpDown className="w-3.5 h-3.5 text-[var(--primary)]" />
+                      Sort: {historySortOrder === 'desc' ? 'Newest First' : 'Oldest First'}
+                    </button>
+                  </div>
                   <div className="space-y-8 relative">
                     <div className="absolute left-[21px] top-0 w-px h-full bg-[var(--card-border)]" />
-                    {(patient.encounters || []).map((evt: any, i: number) => (
+                    {[...(patient.encounters || [])]
+                      .sort((a: any, b: any) => {
+                        const dateA = new Date(a.encounterDate).getTime();
+                        const dateB = new Date(b.encounterDate).getTime();
+                        return historySortOrder === "desc" ? dateB - dateA : dateA - dateB;
+                      })
+                      .map((evt: any, i: number) => (
                       <div key={evt.encounterId} className="flex gap-8 relative z-10 group">
                         <div className="w-11 h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--primary)] transition-all">
                           <CheckCircle2 className="w-4 h-4" />

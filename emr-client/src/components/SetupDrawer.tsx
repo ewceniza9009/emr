@@ -285,12 +285,12 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                   <h3 className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] border-b border-[var(--card-border)] pb-2">Basic Identity</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">First Name</label>
-                      <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} />
+                      <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">First Name</label>
+                      <input required placeholder="Enter first name..." className="premium-input w-full rounded-xl p-4 text-sm font-bold" value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})} />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Last Name</label>
-                      <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} />
+                      <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Last Name</label>
+                      <input required placeholder="Enter last name..." className="premium-input w-full rounded-xl p-4 text-sm font-bold" value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -408,8 +408,8 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                 <div className="space-y-4">
                   <h3 className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] border-b border-[var(--card-border)] pb-2">Facility Profile</h3>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Facility Name</label>
-                    <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Facility Name</label>
+                    <input required placeholder="Enter official facility name..." className="premium-input w-full rounded-xl p-4 text-sm font-bold" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Type</label>
@@ -457,27 +457,39 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
             )}
 
             {type === "healthPlans" && (
-              <>
+              <div className="space-y-6">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Plan Name</label>
-                  <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Plan Name</label>
+                  <input 
+                    required 
+                    placeholder="Enter official health plan name..."
+                    className="premium-input w-full rounded-xl p-4 text-sm font-bold shadow-sm" 
+                    value={form.name} 
+                    onChange={e => setForm({...form, name: e.target.value})} 
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Plan Code</label>
-                  <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.code} onChange={e => setForm({...form, code: e.target.value})} />
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Plan Code</label>
+                  <input 
+                    required 
+                    placeholder="Unique alphanumeric identifier..."
+                    className="premium-input w-full rounded-xl p-4 text-sm font-mono shadow-sm" 
+                    value={form.code} 
+                    onChange={e => setForm({...form, code: e.target.value})} 
+                  />
                 </div>
-              </>
+              </div>
             )}
 
             {type === "medications" && (
               <>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Medication Name</label>
-                  <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Medication Name</label>
+                  <input required placeholder="Generic or Brand name..." className="premium-input w-full rounded-xl p-4 text-sm font-bold" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Strength</label>
-                  <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.strength} onChange={e => setForm({...form, strength: e.target.value})} />
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Strength</label>
+                  <input required placeholder="e.g. 500mg, 10ml..." className="premium-input w-full rounded-xl p-4 text-sm font-mono" value={form.strength} onChange={e => setForm({...form, strength: e.target.value})} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Default Route</label>
@@ -495,16 +507,16 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
             {type === "smartPhrases" && (
               <>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Trigger Shortcut (e.g. /soap)</label>
-                  <input required className="premium-input w-full rounded-xl p-3 text-sm font-mono" value={form.shortcut} onChange={e => setForm({...form, shortcut: e.target.value})} />
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Trigger Shortcut (e.g. /soap)</label>
+                  <input required placeholder="/trigger..." className="premium-input w-full rounded-xl p-4 text-sm font-mono text-[var(--primary)]" value={form.shortcut} onChange={e => setForm({...form, shortcut: e.target.value})} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Label</label>
-                  <input className="premium-input w-full rounded-xl p-3 text-sm" value={form.label} onChange={e => setForm({...form, label: e.target.value})} />
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Label</label>
+                  <input placeholder="Short descriptive label..." className="premium-input w-full rounded-xl p-4 text-sm font-bold" value={form.label} onChange={e => setForm({...form, label: e.target.value})} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Template Text</label>
-                  <textarea required rows={4} className="premium-input w-full rounded-xl p-3 text-sm" value={form.templateText} onChange={e => setForm({...form, templateText: e.target.value})} />
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Template Text</label>
+                  <textarea required placeholder="Write clinical template here..." rows={4} className="premium-input w-full rounded-xl p-4 text-sm leading-relaxed" value={form.templateText} onChange={e => setForm({...form, templateText: e.target.value})} />
                 </div>
               </>
             )}
@@ -557,16 +569,16 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
             {type === "outreachScripts" && (
               <>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Script Title</label>
-                  <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.scriptTitle} onChange={e => setForm({...form, scriptTitle: e.target.value})} />
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Script Title</label>
+                  <input required placeholder="Enter descriptive script title..." className="premium-input w-full rounded-xl p-4 text-sm font-bold" value={form.scriptTitle} onChange={e => setForm({...form, scriptTitle: e.target.value})} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Target Location (City/Region)</label>
-                  <input required className="premium-input w-full rounded-xl p-3 text-sm" value={form.locationName} onChange={e => setForm({...form, locationName: e.target.value})} />
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Target Location (City/Region)</label>
+                  <input required placeholder="Region VII, Mandaue, etc..." className="premium-input w-full rounded-xl p-4 text-sm" value={form.locationName} onChange={e => setForm({...form, locationName: e.target.value})} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Script Content</label>
-                  <textarea required rows={6} className="premium-input w-full rounded-xl p-3 text-sm" value={form.content} onChange={e => setForm({...form, content: e.target.value})} />
+                  <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Script Content</label>
+                  <textarea required placeholder="Draft clinical outreach script content..." rows={6} className="premium-input w-full rounded-xl p-4 text-sm leading-relaxed" value={form.content} onChange={e => setForm({...form, content: e.target.value})} />
                 </div>
               </>
             )}

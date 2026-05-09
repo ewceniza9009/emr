@@ -676,7 +676,6 @@ namespace Infrastructure.Data
         public static async Task SeedDatabaseAsync(ApplicationDbContext context)
         {
             await SeedQuestionnairesAsync(context);
-            await SeedOutreachScriptsAsync(context);
             await context.SaveChangesAsync(default);
 
             Randomizer.Seed = new Random(8675309); // Deterministic test data
@@ -1788,6 +1787,8 @@ namespace Infrastructure.Data
             {
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Standard Orientation Script",
                     LocationName = "Mandaue City",
                     PostalCode = "84101",
@@ -1797,8 +1798,9 @@ namespace Infrastructure.Data
                 },
                 new OutreachScript
                 {
-                    ScriptTitle = "Urgent Follow-up Protocol",
+                    OutreachScriptId = Guid.NewGuid(),
                     TenantId = defaultTenantId,
+                    ScriptTitle = "Urgent Follow-up Protocol",
                     LocationName = "Mandaue City",
                     PostalCode = "84111",
                     Content =
@@ -1807,61 +1809,91 @@ namespace Infrastructure.Data
                 },
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Hospice Eligibility Mission",
+                    LocationName = "Cebu City",
                     Content =
                         "Hello {firstName}, I am calling to confirm your eligibility for our hospice benefit program. We've received your referral and would like to explain how our team can support you and your family during this transition.",
                 },
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Assessment Deployment",
+                    LocationName = "Lapu-Lapu City",
                     Content =
                         "Hi {firstName}, we are ready to deploy a clinician to your location for a comprehensive health assessment. Would {day} at {time} work for your schedule?",
                 },
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Caregiver Support Pulse",
+                    LocationName = "Mandaue City",
                     Content =
                         "Hello, I'm calling to check in on the caregiver support systems. We want to ensure you have all the resources needed to maintain the care protocol at home.",
                 },
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "DME Logistics Sync",
+                    LocationName = "Cebu City",
                     Content =
                         "This is Halcyon Logistics. We are confirming the delivery of your medical equipment scheduled for today. Our technician will arrive within the next 2 hours.",
                 },
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Post-Discharge Verification",
+                    LocationName = "Mandaue City",
                     Content =
                         "Hello {firstName}, we've noted your recent discharge from the facility. We're calling to ensure your home care plan is fully synchronized and you have all your medications.",
                 },
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Insurance Alignment",
+                    LocationName = "Region VII",
                     Content =
                         "Hi, we are updating our records regarding your health plan coverage. We want to ensure all clinical services remain fully covered under your current policy.",
                 },
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Community Resource Link",
+                    LocationName = "Cebu City",
                     Content =
                         "Hello, following our recent discussion, we've identified several community resources that align with your needs. I'd like to share these details with you.",
                 },
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Bereavement Outreach",
+                    LocationName = "Region VII",
                     Content =
                         "Hello, I am calling from the Halcyon Bereavement Team. We wanted to reach out and offer our support and resources during this difficult time.",
                 },
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Telehealth Tech Support",
+                    LocationName = "Remote",
                     Content =
                         "Hi {firstName}, we have a scheduled video visit coming up. I'm calling to help you test your connection and ensure the platform is ready for the clinician.",
                 },
                 new OutreachScript
                 {
+                    OutreachScriptId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
                     ScriptTitle = "Appointment Tactical Reminder",
+                    LocationName = "Global",
                     Content =
                         "Strategic reminder: You have a clinical encounter scheduled for tomorrow at {time}. Please ensure the environment is ready for the practitioner's arrival.",
                 },
@@ -1869,12 +1901,14 @@ namespace Infrastructure.Data
             context.Set<OutreachScript>().AddRange(scripts);
             await context.SaveChangesAsync(default);
 
+
             if (!await context.SmartPhrases.IgnoreQueryFilters().AnyAsync())
             {
                 var phrases = new List<SmartPhrase>
                 {
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/hpi",
                         TenantId = defaultTenantId,
                         Label = "History of Present Illness",
@@ -1884,14 +1918,18 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/soap",
+                        TenantId = defaultTenantId,
                         Label = "SOAP Note Template",
                         TemplateText = "S: \nO: \nA: \nP: ",
                         Category = "Clinical",
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/ros",
+                        TenantId = defaultTenantId,
                         Label = "Review of Systems",
                         TemplateText =
                             "General: \nHEENT: \nRespiratory: \nCardiovascular: \nGastrointestinal: \nMusculoskeletal: ",
@@ -1899,7 +1937,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/pain",
+                        TenantId = defaultTenantId,
                         Label = "Pain Assessment",
                         TemplateText =
                             "Intensity: /10\nCharacter: \nRadiation: \nAggravating Factors: \nRelieving Factors: ",
@@ -1907,7 +1947,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/phys",
+                        TenantId = defaultTenantId,
                         Label = "Physical Exam (Brief)",
                         TemplateText =
                             "General: \nLungs: Clear to auscultation.\nHeart: RRR, no murmurs.\nAbdomen: Soft, non-tender.\nExtremities: No edema.",
@@ -1915,7 +1957,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/tele",
+                        TenantId = defaultTenantId,
                         Label = "Telehealth Disclosure",
                         TemplateText =
                             "Patient consented to telehealth visit. Identity verified. Connection secure. Location: Home.",
@@ -1923,7 +1967,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/death",
+                        TenantId = defaultTenantId,
                         Label = "Death Pronouncement",
                         TemplateText =
                             "Date/Time of Death: \nCalled by: \nRespiration absent. Pulses absent. Pupils fixed/dilated. \nNotified: \nMortuary: ",
@@ -1931,7 +1977,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/code",
+                        TenantId = defaultTenantId,
                         Label = "Code Status Discussion",
                         TemplateText =
                             "Status: [DNR/DNI/Full Code]\nDiscussion: Patient/Family understanding of prognosis and goals. Directives reviewed and updated.",
@@ -1939,7 +1987,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/dme",
+                        TenantId = defaultTenantId,
                         Label = "Equipment Request",
                         TemplateText =
                             "Item: \nJustification: \nEstimated duration of use: \nDelivery Location: ",
@@ -1947,7 +1997,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/idre",
+                        TenantId = defaultTenantId,
                         Label = "IDG Record Entry",
                         TemplateText =
                             "Interdisciplinary Group Review: \nGoals met: \nBarriers to care: \nPlan update: ",
@@ -1955,7 +2007,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/plan",
+                        TenantId = defaultTenantId,
                         Label = "Care Plan Goals",
                         TemplateText =
                             "Short-term: \nLong-term: \nInterventions: \nMeasurable Outcome: ",
@@ -1963,7 +2017,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/fam",
+                        TenantId = defaultTenantId,
                         Label = "Family Meeting Summary",
                         TemplateText =
                             "Attendees: \nDiscussion: \nDecisions made: \nFollow-up items: ",
@@ -1971,7 +2027,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/meds",
+                        TenantId = defaultTenantId,
                         Label = "Medication Reconciliation",
                         TemplateText =
                             "Meds reviewed from home list vs system. \nChanges: \nEducation provided: \nPharmacy: ",
@@ -1979,14 +2037,18 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/wound",
+                        TenantId = defaultTenantId,
                         Label = "Wound Assessment",
                         TemplateText = "Location: \nDimensions: \nStage: \nExudate: \nTreatment: ",
                         Category = "Clinical",
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/intake",
+                        TenantId = defaultTenantId,
                         Label = "Clinical Intake Summary",
                         TemplateText =
                             "Primary Diagnosis: \nSecondary Conditions: \nSocial support: \nFunctional status: ",
@@ -1994,7 +2056,9 @@ namespace Infrastructure.Data
                     },
                     new SmartPhrase
                     {
+                        PhraseId = Guid.NewGuid(),
                         Shortcut = "/discharge",
+                        TenantId = defaultTenantId,
                         Label = "Transition/Discharge Summary",
                         TemplateText =
                             "Reason for transition: \nFinal assessment: \nHand-off to: \nEquipment retrieved: ",
@@ -2004,44 +2068,9 @@ namespace Infrastructure.Data
                 context.SmartPhrases.AddRange(phrases);
                 await context.SaveChangesAsync(default);
             }
+
         }
 
-        public static async Task SeedOutreachScriptsAsync(ApplicationDbContext context)
-        {
-            if (await context.OutreachScripts.IgnoreQueryFilters().AnyAsync())
-                return;
-
-            var scripts = new List<OutreachScript>
-            {
-                new OutreachScript
-                {
-                    OutreachScriptId = Guid.NewGuid(),
-                    TenantId = defaultTenantId,
-                    ScriptTitle = "Standard Intro Protocol",
-                    Content =
-                        "Hello {firstName}, I'm calling from Halcyon Health regarding your referral from {referralSource}. I wanted to discuss our specialized clinical programs...",
-                    IsDefault = true,
-                },
-                new OutreachScript
-                {
-                    OutreachScriptId = Guid.NewGuid(),
-                    ScriptTitle = "Benefits Review Mission",
-                    Content =
-                        "Hi {firstName}, we've verified your coverage with your health plan. I'd like to walk through how your benefits align with our mission-critical care model...",
-                    IsDefault = false,
-                },
-                new OutreachScript
-                {
-                    OutreachScriptId = Guid.NewGuid(),
-                    ScriptTitle = "Clinical Triage Assessment",
-                    Content =
-                        "Mr./Ms. {lastName}, I'm following up on your clinical intake. We're finalizing your acuity profile and want to ensure your home environment is ready for deployment...",
-                    IsDefault = false,
-                },
-            };
-
-            context.OutreachScripts.AddRange(scripts);
-        }
 
         private static async Task SeedQuestionnairesAsync(ApplicationDbContext context)
         {
