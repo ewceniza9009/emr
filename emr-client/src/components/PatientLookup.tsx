@@ -1,43 +1,18 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { Search, X, User, CheckCircle2, Hash, MapPin, Phone, Activity, ShieldCheck, ChevronRight, Zap } from "lucide-react";
 import HalcyonPortal from "./Portal";
 
-const GET_REGISTRY_DATA = gql`
-  query GetRegistryData {
-    patients {
-      items {
-        patientId
-        mrn
-        firstName
-        lastName
-        dob
-        addresses {
-          isPrimary
-          address {
-            city
-            state
-          }
-        }
-        phones {
-          phoneNumber
-        }
-      }
-    }
-    outreaches {
-      items {
-        patientOutreachId
-        firstName
-        lastName
-        status
-        primaryPhone
-        mailingAddress {
-          city
-          state
-        }
-      }
+const GLOBAL_SEARCH = gql`
+  query GlobalSearch($term: String!) {
+    globalSearch(term: $term) {
+      id
+      type
+      title
+      subtitle
+      metadata
     }
   }
 `;
@@ -50,20 +25,12 @@ interface Props {
 
 export default function PatientLookup({ open, onClose, onSelect }: Props) {
    const [search, setSearch] = useState("");
-   const { data, loading } = useQuery(GET_REGISTRY_DATA, { skip: !open });
+   const { data, loading } = useQuery(GLOBAL_SEARCH, { 
+      variables: { term: search },
+      skip: !open || search.length < 2 
+   });
 
-   const patients = data?.patients?.items || [];
-   const leads = data?.outreaches?.items || [];
-
-   const combined = useMemo(() => {
-      const pList = patients.map((p: any) => ({ ...p, __type: 'PATIENT' }));
-      const lList = leads.map((l: any) => ({ ...l, __type: 'LEAD', patientId: l.patientOutreachId }));
-      
-      return [...pList, ...lList].filter((item: any) =>
-         `${item.firstName} ${item.lastName}`.toLowerCase().includes(search.toLowerCase()) ||
-         (item.mrn && item.mrn.toLowerCase().includes(search.toLowerCase()))
-      );
-   }, [patients, leads, search]);
+   const results = data?.globalSearch || [];
 
    if (!open) return null;
 
@@ -106,42 +73,34 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                      </div>
                   ) : (
                      <div className="p-3 space-y-2">
-                        {combined.map((p: any) => (
+                        {results.map((item: any) => (
                            <button
-                               key={p.__type === 'PATIENT' ? p.patientId : p.patientOutreachId}
-                               onClick={() => onSelect(p)}
-                               className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all group border border-transparent text-left active:scale-[0.99] ${p.__type === 'LEAD' ? 'hover:bg-amber-500/5 hover:border-amber-500/20' : 'hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20'}`}
+                               key={item.id}
+                               onClick={() => onSelect(item)}
+                               className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all group border border-transparent text-left active:scale-[0.99] ${item.type === 'LEAD' ? 'hover:bg-amber-500/5 hover:border-amber-500/20' : 'hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20'}`}
                            >
-                               <div className={`w-10 h-10 rounded-xl bg-[var(--input-bg)] flex items-center justify-center text-[11px] font-bold border border-[var(--card-border)] transition-all text-[var(--text-primary)] ${p.__type === 'LEAD' ? 'group-hover:border-amber-500/50' : 'group-hover:border-[var(--primary)]/50'}`}>
-                                  {p.firstName?.[0]}{p.lastName?.[0]}
+                               <div className={`w-10 h-10 rounded-xl bg-[var(--input-bg)] flex items-center justify-center text-[11px] font-bold border border-[var(--card-border)] transition-all text-[var(--text-primary)] ${item.type === 'LEAD' ? 'group-hover:border-amber-500/50' : 'group-hover:border-[var(--primary)]/50'}`}>
+                                   {item.title.split(' ').map((n: string) => n[0]).join('')}
                                </div>
                                <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
-                                     <p className={`text-xs font-bold uppercase tracking-tight transition-colors truncate ${p.__type === 'LEAD' ? 'text-amber-500/80 group-hover:text-amber-500' : 'text-[var(--text-primary)] group-hover:text-[var(--primary)]'}`}>
-                                        {p.firstName} {p.lastName}
+                                     <p className={`text-xs font-bold uppercase tracking-tight transition-colors truncate ${item.type === 'LEAD' ? 'text-amber-500/80 group-hover:text-amber-500' : 'text-[var(--text-primary)] group-hover:text-[var(--primary)]'}`}>
+                                        {item.title}
                                      </p>
-                                     {p.__type === 'PATIENT' ? (
+                                     {item.type === 'PATIENT' ? (
                                         <span className="text-[8px] px-2 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-widest border border-[var(--primary)]/20">
-                                           {p.mrn}
+                                           {item.subtitle}
                                         </span>
                                      ) : (
                                         <span className="text-[8px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 font-bold uppercase tracking-widest border border-amber-500/20">
-                                           LEAD
+                                           {item.subtitle}
                                         </span>
                                      )}
                                   </div>
                                   <div className="flex items-center gap-5 mt-1">
                                      <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1.5">
-                                        <MapPin className="w-2.5 h-2.5 opacity-50" />
-                                        {p.__type === 'PATIENT' 
-                                           ? (p.addresses?.find((a: any) => a.isPrimary)?.address?.city || 'UNKNOWN')
-                                           : (p.mailingAddress?.city || 'UNKNOWN')}
-                                     </p>
-                                     <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1.5">
-                                        <Phone className="w-2.5 h-2.5 opacity-50" />
-                                        {p.__type === 'PATIENT'
-                                           ? (p.phones?.[0]?.phoneNumber || 'N/A')
-                                           : (p.primaryPhone || 'N/A')}
+                                        {item.type === 'PATIENT' ? <Activity className="w-2.5 h-2.5 opacity-50" /> : <Phone className="w-2.5 h-2.5 opacity-50" />}
+                                        {item.metadata}
                                      </p>
                                   </div>
                                </div>
@@ -149,9 +108,15 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                            </button>
                         ))}
 
-                        {combined.length === 0 && (
+                        {results.length === 0 && search.length >= 2 && (
                            <div className="py-24 text-center">
                               <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Zero registry matches found</p>
+                           </div>
+                        )}
+                        {search.length < 2 && (
+                           <div className="py-24 text-center">
+                              <Search className="w-8 h-8 text-[var(--text-muted)] mx-auto mb-4 opacity-20" />
+                              <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Enter at least 2 characters to search</p>
                            </div>
                         )}
                      </div>

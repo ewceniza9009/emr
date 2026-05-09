@@ -16,6 +16,7 @@ public class TenantConfiguration : BaseEntity, ITenantEntity
     
     // Operational Flags
     public bool IsActive { get; set; } = true;
+    public bool EnableElasticsearch { get; set; } = false;
     public string? ContactEmail { get; set; }
     
     // Extended Settings (Serialized JSON for future-proofing)

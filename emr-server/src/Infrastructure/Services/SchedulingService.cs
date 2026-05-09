@@ -214,7 +214,7 @@ public class SchedulingService : ISchedulingService
                     }
 
                     double distance = 0;
-                    double travelTime = 15; // Buffer
+                    double travelTime = 5; // Buffer
 
                     var patientAddr = patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
                     if (
@@ -270,7 +270,7 @@ public class SchedulingService : ISchedulingService
                             StartTime = time,
                             EndTime = appointmentEnd,
                             DistanceInMiles = Math.Round(distance, 2),
-                            TravelTimeInMinutes = Math.Max(15, Math.Round(travelTime, 0)),
+                            TravelTimeInMinutes = Math.Max(5, Math.Round(travelTime, 0)),
                         }
                     );
                 }
@@ -379,7 +379,7 @@ public class SchedulingService : ISchedulingService
             patientAddr.Latitude.Value,
             patientAddr.Longitude.Value
         );
-        double travelTime = Math.Max(15, GeoUtils.EstimateTravelTimeMinutes(distance));
+        double travelTime = Math.Max(5, GeoUtils.EstimateTravelTimeMinutes(distance));
 
         return (Math.Round(distance, 2), Math.Round(travelTime, 0));
     }

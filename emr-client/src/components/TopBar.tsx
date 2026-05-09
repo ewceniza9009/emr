@@ -48,10 +48,10 @@ export function TopBar() {
         open={isLookupOpen}
         onClose={() => setIsLookupOpen(false)}
         onSelect={(item) => {
-          if (item.__type === 'LEAD') {
-            router.push(`/dashboard/outreach/${item.patientOutreachId}/enroll`);
+          if (item.type === 'LEAD') {
+            router.push(`/dashboard/outreach/${item.id}/enroll`);
           } else {
-            router.push(`/dashboard/patients/${item.patientId}`);
+            router.push(`/dashboard/patients/${item.id}`);
           }
           setIsLookupOpen(false);
         }}

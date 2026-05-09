@@ -12,14 +12,17 @@ namespace Infrastructure.Data;
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
 {
     private readonly ICurrentUserService _currentUserService;
+    private readonly ISearchService _searchService;
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
-        ICurrentUserService currentUserService
+        ICurrentUserService currentUserService,
+        ISearchService searchService
     )
         : base(options)
     {
         _currentUserService = currentUserService;
+        _searchService = searchService;
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -109,7 +112,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
             }
         }
 
-        return await base.SaveChangesAsync(cancellationToken);
+        var patientsToIndex = ChangeTracker.Entries<Patient>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+            .Select(e => e.Entity)
+            .ToList();
+
+        var outreachToIndex = ChangeTracker.Entries<PatientOutreach>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
+            .Select(e => e.Entity)
+            .ToList();
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        // BACKGROUND INDEXING: We trigger these after DB persistence
+        // We use CancellationToken.None to ensure indexing completes even if the original request is cancelled
+        foreach (var p in patientsToIndex) _ = _searchService.IndexPatientAsync(p, CancellationToken.None);
+        foreach (var o in outreachToIndex) _ = _searchService.IndexOutreachAsync(o, CancellationToken.None);
+
+        return result;
     }
 
     public Guid CurrentTenantId => _currentUserService.TenantId ?? Guid.Empty;

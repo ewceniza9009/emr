@@ -79,10 +79,10 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
 
         // Map remaining command-specific fields
         patient.CommunicationStatus = Enum.Parse<CommunicationAbility>(
-            request.CommunicationStatus,
+            request.CommunicationStatus.Replace("_", ""),
             true
         );
-        patient.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess, true);
+        patient.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess.Replace("_", ""), true);
         patient.BarriersToCare = request.BarriersToCare;
         patient.Dob = request.DateOfBirth;
         patient.BiologicalSex = request.BiologicalSex;
@@ -125,14 +125,14 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         // 4. Update Outreach Lead
         outreach.Status = OutreachStatus.Enrolled;
         outreach.EnrolledPatientId = patient.PatientId;
-        outreach.SelectedModality = Enum.Parse<CareModality>(request.Modality, true);
+        outreach.SelectedModality = Enum.Parse<CareModality>(request.Modality.Replace("_", ""), true);
         outreach.HealthPlanId = request.HealthPlanId;
-        outreach.Disposition = Enum.Parse<EnrollmentDisposition>(request.Disposition, true);
+        outreach.Disposition = Enum.Parse<EnrollmentDisposition>(request.Disposition.Replace("_", ""), true);
         outreach.CommunicationStatus = Enum.Parse<CommunicationAbility>(
-            request.CommunicationStatus,
+            request.CommunicationStatus.Replace("_", ""),
             true
         );
-        outreach.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess, true);
+        outreach.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess.Replace("_", ""), true);
         outreach.BarriersToCare = request.BarriersToCare;
         outreach.UpdatedAt = _dateTimeProvider.UtcNow;
 

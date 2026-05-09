@@ -103,8 +103,8 @@ const REMOVE_OUTREACH_CONTACT = gql`
 `;
 
 const UPDATE_OUTREACH_LEAD = gql`
-  mutation UpdateLead($command: UpdateOutreachLeadCommandInput!) {
-    updateOutreachLead(command: $command)
+  mutation UpdateLead($input: UpdateOutreachLeadCommandInput!) {
+    updateOutreachLead(input: $input)
   }
 `;
 
@@ -134,7 +134,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("OUTREACH");
   const [selectedPlan, setSelectedPlan] = useState("");
-  const [modality, setModality] = useState("IN_PERSON_HOME_VISIT");
+  const [modality, setModality] = useState("HomeCare");
   const [activeCall, setActiveCall] = useState<any>(null);
   const [isAddingContact, setIsAddingContact] = useState(false);
   const [editingContactId, setEditingContactId] = useState<string | null>(null);
@@ -171,9 +171,9 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   });
 
   // Assessment State
-  const [disposition, setDisposition] = useState("COOPERATIVE");
-  const [techAccess, setTechAccess] = useState("SMARTPHONE");
-  const [cognitive, setCognitive] = useState("AUTONOMOUS");
+  const [disposition, setDisposition] = useState("Cooperative");
+  const [techAccess, setTechAccess] = useState("SmartphoneOnly");
+  const [cognitive, setCognitive] = useState("Autonomous");
 
   const [newContact, setNewContact] = useState({
     firstName: "", lastName: "", relationship: "Spouse", phoneNumber: ""
@@ -302,7 +302,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     try {
       await updateLead({
         variables: {
-          command: { patientOutreachId: outreachId, ...fields }
+          input: { patientOutreachId: outreachId, ...fields }
         }
       });
     } catch (e) { console.error(e); }
@@ -401,7 +401,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     const count = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
     const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
     const today = new Date();
-    
+
     const headers = ["S", "M", "T", "W", "T", "F", "S"];
     const headerRow = headers.map(h => (
       <div key={h} className="h-10 flex items-center justify-center text-[9px] font-black text-[var(--text-muted)] opacity-50 uppercase tracking-[0.2em]">{h}</div>
@@ -411,11 +411,11 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     for (let d = 1; d <= count; d++) {
       const isSelected = selectedDate.getDate() === d && selectedDate.getMonth() === viewDate.getMonth() && selectedDate.getFullYear() === viewDate.getFullYear();
       const isToday = today.getDate() === d && today.getMonth() === viewDate.getMonth() && today.getFullYear() === viewDate.getFullYear();
-      
+
       days.push(
-        <button 
-          key={d} 
-          type="button" 
+        <button
+          key={d}
+          type="button"
           onClick={() => setSelectedDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), d))}
           className={`h-12 w-full rounded-xl text-[11px] font-black transition-all flex flex-col items-center justify-center gap-1 relative
             ${isSelected ? "bg-teal-500 text-black shadow-lg shadow-teal-500/30" : "text-[var(--text-primary)] hover:bg-[var(--card-bg)] hover:text-teal-500"}`}
@@ -578,16 +578,16 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
 
                         {isAddingContact && (
                           <div className="bg-[var(--input-bg)] border border-[var(--primary)]/30 rounded-2xl p-4 space-y-3 animate-in slide-in-from-top-2">
-                            <div className="grid grid-cols-2 gap-2"><input placeholder="First Name" className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.firstName} onChange={e => setNewContact({ ...newContact, firstName: e.target.value })} /><input placeholder="Last Name" className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.lastName} onChange={e => setNewContact({ ...newContact, lastName: e.target.value })} /></div>
+                            <div className="grid grid-cols-2 gap-2"><input placeholder="First Name" className="bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.firstName} onChange={e => setNewContact({ ...newContact, firstName: e.target.value })} /><input placeholder="Last Name" className="bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.lastName} onChange={e => setNewContact({ ...newContact, lastName: e.target.value })} /></div>
                             <div className="grid grid-cols-2 gap-2">
-                              <select className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.relationship} onChange={e => setNewContact({ ...newContact, relationship: e.target.value })}>
+                              <select className="bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.relationship} onChange={e => setNewContact({ ...newContact, relationship: e.target.value })}>
                                 <option value="Spouse">Spouse</option>
                                 <option value="Child">Child</option>
                                 <option value="Parent">Parent</option>
                                 <option value="Sibling">Sibling</option>
                                 <option value="Other">Other</option>
                               </select>
-                              <input placeholder="Phone" className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.phoneNumber} onChange={e => setNewContact({ ...newContact, phoneNumber: e.target.value })} />
+                              <input placeholder="Phone" className="bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-lg px-3 py-2 text-[10px] text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" value={newContact.phoneNumber} onChange={e => setNewContact({ ...newContact, phoneNumber: e.target.value })} />
                             </div>
                             <div className="flex gap-2">
                               <button onClick={() => setIsAddingContact(false)} className="flex-1 h-8 bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] font-bold text-[9px] uppercase tracking-widest rounded-lg">Cancel</button>
@@ -602,7 +602,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                           </button>
                           {lead.otherContacts?.map((c: any) => (
                             <div key={c.outreachContactId} className="flex items-center justify-between p-4 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] group">
-                              <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-lg bg-[var(--card-bg)] flex items-center justify-center text-[var(--text-muted)]"><User className="w-3.5 h-3.5" /></div><div className="text-left"><p className="text-[9px] font-bold text-[var(--text-primary)] uppercase tracking-widest leading-none">{c.firstName}</p><p className="text-[10px] font-bold text-[var(--text-muted)] mt-1">{c.relationship}</p></div></div>
+                              <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-lg bg-[var(--card-bg)] flex items-center justify-center text-[var(--text-muted)]"><User className="w-3.5 h-3.5" /></div><div className="text-left"><p className="text-[9px] font-bold text-[var(--text-primary)] uppercase tracking-widest leading-none">{c.firstName} {c.lastName}</p><p className="text-[10px] font-bold text-[var(--text-muted)] mt-1">{c.relationship}</p></div></div>
                               <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
                                 <button onClick={() => handleCall(c)} className="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-500 flex items-center justify-center border border-teal-500/20"><PhoneCall className="w-3 h-3" /></button>
                                 <button onClick={() => handleEditContact(c)} className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20"><Edit3 className="w-3 h-3" /></button>
@@ -701,11 +701,11 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                   <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Date of Birth</label>
-                                  <input type="date" value={patientDob} onChange={e => setPatientDob(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" />
+                                  <input type="date" value={patientDob} onChange={e => setPatientDob(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" />
                                 </div>
                                 <div className="space-y-1.5">
                                   <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Biological Sex</label>
-                                  <select value={patientSex} onChange={e => setPatientSex(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 appearance-none">
+                                  <select value={patientSex} onChange={e => setPatientSex(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 appearance-none">
                                     <option value="">Select...</option>
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
@@ -716,16 +716,16 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                   <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Gender Identity</label>
-                                  <input type="text" value={genderIdentity} onChange={e => setGenderIdentity(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Identity..." />
+                                  <input type="text" value={genderIdentity} onChange={e => setGenderIdentity(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Identity..." />
                                 </div>
                                 <div className="space-y-1.5">
                                   <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Primary Language</label>
-                                  <input type="text" value={patientLanguage} onChange={e => setPatientLanguage(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Language..." />
+                                  <input type="text" value={patientLanguage} onChange={e => setPatientLanguage(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Language..." />
                                 </div>
                               </div>
                               <div className="space-y-1.5">
                                 <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Marital / Civil Status</label>
-                                <select value={civilStatus} onChange={e => setCivilStatus(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 appearance-none">
+                                <select value={civilStatus} onChange={e => setCivilStatus(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 appearance-none">
                                   <option value="">Select...</option>
                                   <option value="Single">Single</option>
                                   <option value="Married">Married</option>
@@ -768,16 +768,16 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                             <div className="space-y-5 animate-in fade-in duration-300">
                               <div className="space-y-1.5">
                                 <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Street Address</label>
-                                <input type="text" value={address.street} onChange={e => setAddress({ ...address, street: e.target.value })} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Street..." />
+                                <input type="text" value={address.street} onChange={e => setAddress({ ...address, street: e.target.value })} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2.5 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Street..." />
                               </div>
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                   <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">City / Region</label>
-                                  <input type="text" value={address.city} onChange={e => setAddress({ ...address, city: e.target.value })} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="City..." />
+                                  <input type="text" value={address.city} onChange={e => setAddress({ ...address, city: e.target.value })} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="City..." />
                                 </div>
                                 <div className="space-y-1.5">
                                   <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Postal Code</label>
-                                  <input type="text" value={address.postalCode} onChange={e => setAddress({ ...address, postalCode: e.target.value })} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Zip..." />
+                                  <input type="text" value={address.postalCode} onChange={e => setAddress({ ...address, postalCode: e.target.value })} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Zip..." />
                                 </div>
                               </div>
                               <div className="flex gap-2">
@@ -918,10 +918,10 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                         </div>
                         <div className="grid grid-cols-4 gap-2.5">
                           {[
-                            { id: "IN_PERSON_HOME_VISIT", label: "Home Visit", icon: <Home className="w-4 h-4" /> },
-                            { id: "IN_PERSON_FACILITY", label: "Facility", icon: <Building2 className="w-4 h-4" /> },
-                            { id: "TELEHEALTH_VIDEO", label: "Video Call", icon: <Video className="w-4 h-4" /> },
-                            { id: "TELEPHONE", label: "Audio Only", icon: <PhoneCall className="w-4 h-4" /> },
+                            { id: "HomeCare", label: "Home Visit", icon: <Home className="w-4 h-4" /> },
+                            { id: "InPatientHospice", label: "Facility", icon: <Building2 className="w-4 h-4" /> },
+                            { id: "VirtualCare", label: "Video Call", icon: <Video className="w-4 h-4" /> },
+                            { id: "HybridCare", label: "Audio Only", icon: <PhoneCall className="w-4 h-4" /> },
                           ].map((m) => (
                             <button key={m.id} onClick={() => setModality(m.id)} className={`flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-2xl border text-[9px] font-bold transition-all
                                      ${modality === m.id ? "bg-[var(--primary)] border-transparent text-black shadow-lg shadow-[var(--primary-glow)]" : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--card-bg)]"}`}>
@@ -992,12 +992,12 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                   {/* TOP METRICS (2-COLUMN) */}
                   <div className="grid grid-cols-2 gap-4 pb-6 border-b border-[var(--card-border)] shrink-0">
                     <div className="space-y-1.5">
-                       <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Travel Distance</p>
-                       <p className="text-xl font-black text-[var(--text-primary)]">2.6<span className="text-[10px] opacity-40 ml-1">mi</span></p>
+                      <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Travel Distance</p>
+                      <p className="text-xl font-black text-[var(--text-primary)]">2.6<span className="text-[10px] opacity-40 ml-1">mi</span></p>
                     </div>
                     <div className="space-y-1.5">
-                       <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Travel Duration</p>
-                       <p className="text-xl font-black text-[var(--text-primary)]">20<span className="text-[10px] opacity-40 ml-1">min</span></p>
+                      <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Travel Duration</p>
+                      <p className="text-xl font-black text-[var(--text-primary)]">20<span className="text-[10px] opacity-40 ml-1">min</span></p>
                     </div>
                   </div>
 
@@ -1023,8 +1023,8 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                       <div className="grid grid-cols-7 gap-1">{renderCalendar()}</div>
                     </div>
                     <div className="flex bg-[var(--input-bg)] rounded-2xl p-1.5 border border-[var(--card-border)] gap-1.5 shadow-inner">
-                       <button onClick={() => setPeriod("AM")} className={`flex-1 py-4 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all uppercase ${period === "AM" ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>Morning</button>
-                       <button onClick={() => setPeriod("PM")} className={`flex-1 py-4 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all uppercase ${period === "PM" ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>Afternoon</button>
+                      <button onClick={() => setPeriod("AM")} className={`flex-1 py-4 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all uppercase ${period === "AM" ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>Morning</button>
+                      <button onClick={() => setPeriod("PM")} className={`flex-1 py-4 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all uppercase ${period === "PM" ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>Afternoon</button>
                     </div>
                   </div>
 

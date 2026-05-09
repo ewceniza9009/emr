@@ -364,15 +364,15 @@ export default function SchedulingCalendar() {
     <div className="flex-1 min-h-0 flex flex-col text-[var(--text-primary)] gap-3 overflow-hidden">
 
       {/* Ultra-Compact Tactical Header */}
-      <div className="shrink-0 flex flex-col gap-2 bg-[var(--card-bg)] px-4 py-2 rounded-xl border border-[var(--card-border)] shadow-sm">
+      <div className="shrink-0 flex flex-col gap-2 bg-[var(--card-bg)] px-4 py-3 rounded-2xl border border-[var(--card-border)] shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-1 h-6 bg-[var(--primary)] rounded-full" />
-            <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Clinical Scheduling</h1>
+            <div className="w-1.5 h-6 bg-[var(--primary)] rounded-full shadow-sm shadow-[var(--primary-glow)]" />
+            <h1 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter">Clinical Scheduling</h1>
             <div className="flex items-center gap-3 ml-4 border-l border-[var(--card-border)] pl-4">
-              <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))} className="p-1 hover:bg-[var(--primary)]/10 rounded-lg text-[var(--text-muted)]"><ChevronLeft className="w-4 h-4" /></button>
-              <span className="text-sm font-bold text-[var(--text-primary)] min-w-[120px] text-center">{monthLabel}</span>
-              <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() + 7)))} className="p-1 hover:bg-[var(--primary)]/10 rounded-lg text-[var(--text-muted)]"><ChevronRight className="w-4 h-4" /></button>
+              <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))} className="p-1.5 hover:bg-[var(--primary)]/10 rounded-xl text-[var(--text-muted)] transition-all"><ChevronLeft className="w-4 h-4" /></button>
+              <span className="text-sm font-black text-[var(--text-primary)] min-w-[140px] text-center tracking-tight">{monthLabel}</span>
+              <button onClick={() => setAnchor(new Date(anchor.setDate(anchor.getDate() + 7)))} className="p-1.5 hover:bg-[var(--primary)]/10 rounded-xl text-[var(--text-muted)] transition-all"><ChevronRight className="w-4 h-4" /></button>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -457,19 +457,19 @@ export default function SchedulingCalendar() {
       {/* Calendar Grid */}
       <div className="flex-1 min-h-0 bg-[var(--background)] rounded-2xl border border-[var(--card-border)] flex flex-col overflow-hidden relative">
         {/* Header Row */}
-        <div className="grid grid-cols-[80px_1fr] bg-[var(--card-bg)] border-b border-white/10 shrink-0 sticky top-0 z-[60] backdrop-blur-md">
-          <div className="flex items-center justify-center border-r border-white/10"><Clock className="w-4 h-4 text-[var(--text-muted)] opacity-50" /></div>
-          <div className="grid grid-cols-7 divide-x divide-white/10">
+        <div className="grid grid-cols-[80px_1fr] bg-[var(--card-bg)] border-b border-slate-200 dark:border-white/10 shrink-0 sticky top-0 z-[60] backdrop-blur-md">
+          <div className="flex items-center justify-center border-r border-slate-200 dark:border-white/10"><Clock className="w-4 h-4 text-[var(--text-muted)] opacity-50" /></div>
+          <div className="grid grid-cols-7 divide-x divide-slate-200 dark:divide-white/10">
             {weekDates.map((date, i) => {
               const isToday = date.toDateString() === new Date().toDateString();
               return (
-                <div key={i} className={`flex flex-col items-center py-1.5 transition-all relative ${isToday ? "bg-[var(--primary)]/[0.05]" : ""}`}>
-                  {isToday && <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--primary)]" />}
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${isToday ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}>
+                <div key={i} className={`flex flex-col items-center py-2.5 transition-all relative ${isToday ? "bg-[var(--primary)]/[0.05]" : ""}`}>
+                  {isToday && <div className="absolute top-0 left-0 right-0 h-1.5 bg-[var(--primary)] shadow-sm shadow-[var(--primary-glow)]" />}
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${isToday ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}>
                       {GRID_CONFIG.DAYS[i]}
                     </span>
-                    <span className={`text-sm font-bold ${isToday ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
+                    <span className={`text-base font-black tracking-tighter ${isToday ? "text-[var(--primary)] scale-110" : "text-[var(--text-primary)]"} transition-transform`}>
                       {date.getDate()}
                     </span>
                   </div>
@@ -482,19 +482,19 @@ export default function SchedulingCalendar() {
         {/* Scrollable Body */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hide relative">
           <div className="flex" style={{ height: `${(GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR) * GRID_CONFIG.ROW_HEIGHT}px` }}>
-            <div className="w-[80px] border-r border-white/10 bg-[var(--input-bg)] sticky left-0 z-50">
+            <div className="w-[80px] border-r border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[var(--input-bg)] sticky left-0 z-50">
               {HOURS.map(h => (
-                <div key={h} className="h-[80px] relative border-t border-white/10 first:border-t-0">
+                <div key={h} className="h-[80px] relative border-t border-slate-200 dark:border-white/10 first:border-t-0">
                   <span className="absolute top-0 left-0 right-0 text-center text-[10px] text-[var(--text-muted)] font-bold tracking-tight pt-1.5">
                     {h % 12 || 12} {h < 12 ? "AM" : "PM"}
                   </span>
                 </div>
               ))}
               {/* Closing line for the last hour (18:00) */}
-              <div className="h-0 border-t border-white/10" />
+              <div className="h-0 border-t border-slate-200 dark:border-white/10" />
             </div>
 
-            <div className="flex-1 grid grid-cols-7 relative divide-x divide-white/10">
+            <div className="flex-1 grid grid-cols-7 relative divide-x divide-slate-200 dark:divide-white/10">
               {weekDates.map((d, dayIdx) => {
                 const dayAppts = visibleAppointments
                   .filter((a: any) => new Date(a.scheduledStart).toDateString() === d.toDateString())
@@ -508,12 +508,12 @@ export default function SchedulingCalendar() {
                     onDrop={(e) => handleDrop(e, d)}
                   >
                     {HOURS.map(h => (
-                      <div key={h} className="h-[80px] border-t border-white/10 first:border-t-0 relative">
+                      <div key={h} className="h-[80px] border-t border-slate-200 dark:border-white/10 first:border-t-0 relative">
                         <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-white/5" />
                       </div>
                     ))}
                     {/* Closing line for the last hour */}
-                    <div className="h-0 border-t border-white/10" />
+                    <div className="h-0 border-t border-slate-200 dark:border-white/10" />
 
                     {/* Busy Blocks */}
                     {dayBlocks.map((block: any) => {
@@ -534,15 +534,15 @@ export default function SchedulingCalendar() {
                             e.dataTransfer.setData("blockId", block.blockId);
                             e.dataTransfer.setData("duration", durMin.toString());
                           }}
-                          className="absolute left-1.5 right-1.5 z-10 rounded-xl bg-slate-900 border border-white/10 p-3 pr-2 flex flex-col gap-2 cursor-grab active:cursor-grabbing hover:border-[var(--primary)]/40 transition-all shadow-sm"
+                          className="absolute left-1.5 right-1.5 z-10 rounded-xl bg-[var(--input-bg)]/80 border border-[var(--card-border)] p-3 pr-2 flex flex-col gap-2 cursor-grab active:cursor-grabbing hover:bg-[var(--input-bg)] transition-all shadow-sm group/block"
                           style={{ top: `${topPx}px`, height: `${heightPx}px` }}>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2.5 text-[var(--text-secondary)]">
-                              <Shield className="w-4 h-4 text-[var(--text-muted)]" />
-                              <span className="text-xs font-bold uppercase tracking-wider">Unavailable</span>
+                            <div className="flex items-center gap-2.5 text-[var(--text-muted)]">
+                              <Shield className="w-4 h-4 opacity-50 group-hover/block:text-[var(--text-primary)] transition-colors" />
+                              <span className="text-[10px] font-bold uppercase tracking-widest">Unavailable</span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <span className="text-[11px] font-bold text-[var(--text-primary)] bg-[var(--input-bg)] px-2 py-1 rounded">
+                              <span className="text-[11px] font-bold text-[var(--text-primary)] bg-[var(--card-bg)] border border-[var(--card-border)] px-2 py-1 rounded">
                                 {blockHour % 12 || 12}:{blockMinute.toString().padStart(2, '0')}
                               </span>
                               <button
@@ -606,20 +606,32 @@ export default function SchedulingCalendar() {
 
                       return (
                         <React.Fragment key={appt.appointmentId}>
-                          {/* Drive Time Indicator */}
+                          {/* Redesigned Glassmorphic Travel Time Indicator */}
                           {driveMin > 0 && modality.label !== "TELEHEALTH" && !isViewedAsSc && (
-                            <div className="absolute border-l-4 border-[var(--primary)] bg-[var(--primary)]/[0.08] flex items-start justify-center z-10 shadow-[inset_0_0_15px_rgba(var(--primary-rgb),0.03)] overflow-visible"
+                            <div className="absolute z-10 overflow-visible"
                               style={{
                                 left: `${leftPct}%`,
                                 width: `${widthPct}%`,
                                 top: `${(startMin - driveMin) * (GRID_CONFIG.ROW_HEIGHT / 60)}px`,
                                 height: `${driveMin * (GRID_CONFIG.ROW_HEIGHT / 60)}px`,
-                                minHeight: '26px',
-                                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(var(--primary-rgb), 0.03) 10px, rgba(var(--primary-rgb), 0.05) 20px)`
+                                minHeight: '28px',
                               }}>
-                              <div className="flex items-center gap-1.5 px-2 py-1 bg-[var(--primary)] text-white shadow-xl ring-1 ring-white/10 rounded-sm whitespace-nowrap transform scale-90 origin-top mt-0.5">
-                                <Navigation className="w-3 h-3 fill-white" />
-                                <span className="text-[9px] font-black uppercase tracking-tighter">{driveMin}m Travel</span>
+                              {/* Connector Line */}
+                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-400/30 rounded-full" />
+                              
+                              {/* Tactical Glass Badge */}
+                              <div className="ml-2 flex items-center gap-2 px-3 py-1.5 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] group/travel transition-all hover:bg-white/60 dark:hover:bg-slate-800/60">
+                                <div className="w-5 h-5 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                                  <Navigation className="w-3 h-3 text-indigo-500 fill-indigo-500/20" />
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest leading-none">
+                                    {driveMin}m Transit
+                                  </span>
+                                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter mt-0.5">
+                                    Clinical Vector
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           )}
@@ -634,42 +646,42 @@ export default function SchedulingCalendar() {
 
                             <div draggable onDragStart={(e) => { e.dataTransfer.setData("appointmentId", appt.appointmentId); e.dataTransfer.setData("duration", durMin.toString()); }}
                               onClick={() => { setDrawerPrefill(appt.appointmentId); setDrawerOpen(true); }}
-                              className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px]
-                                    ${(isViewedAsSc || isViewedAsAttending) ? "bg-[#1e1b4b] border-indigo-500/40 group-hover:bg-[var(--card-bg)]" : style.bg.replace('/5', '/10') + " " + style.border + " group-hover:bg-[var(--card-bg)]"} group-hover:border-[var(--primary)]/40`}>
+                              className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px] backdrop-blur-[2px]
+                                    ${isViewedAsAttending ? "bg-sky-500/10 border-sky-400 group-hover:bg-sky-950 group-hover:border-sky-500" : isViewedAsSc ? "bg-indigo-500/10 border-indigo-300 group-hover:bg-indigo-950 group-hover:border-indigo-500" : style.bg.replace('/5', '/10') + " " + style.border + " group-hover:bg-[var(--card-bg)] dark:group-hover:bg-slate-900 group-hover:shadow-2xl"} group-hover:border-[var(--primary)]/40`}>
 
                               {/* Header Section */}
                               <div className="flex flex-nowrap items-center justify-between shrink-0 mb-1 gap-1">
                                 <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                                  <div className={`px-2 py-1 bg-[var(--input-bg)] border border-[var(--card-border)] text-[10px] font-bold text-[var(--text-secondary)] flex items-center gap-1 shrink-0`} title={modality.label}>
-                                    {React.cloneElement(modality.icon as React.ReactElement, { className: `w-3 h-3 ${isViewedAsSc ? "text-indigo-500" : "text-[var(--primary)]"}` })}
+                                  <div className={`px-2 py-1 ${isViewedAsAttending ? "bg-sky-500/10 border-sky-400/20" : isViewedAsSc ? "bg-indigo-500/10 border-indigo-400/20" : "bg-[var(--input-bg)] border-[var(--card-border)]"} text-[10px] font-bold flex items-center gap-1 shrink-0`} title={modality.label}>
+                                    {React.cloneElement(modality.icon as React.ReactElement, { className: `w-3 h-3 ${isViewedAsAttending ? "text-sky-400" : isViewedAsSc ? "text-indigo-400" : "text-[var(--primary)]"}` })}
                                   </div>
                                   {appt.plannedAssessments?.length > 0 && (
-                                    <div className="px-2 py-1 bg-[var(--primary)]/15 border border-[var(--primary)]/30 text-[9px] font-black text-[var(--primary)] flex items-center gap-1.5 shadow-sm shrink-0" title={`${appt.plannedAssessments.length} Assessments Planned`}>
+                                    <div className={`px-2 py-1 ${isViewedAsAttending ? "bg-sky-500/10 border-sky-400/20 text-sky-400" : isViewedAsSc ? "bg-indigo-500/10 border-indigo-400/20 text-indigo-400" : "bg-[var(--primary)]/15 border-[var(--primary)]/30 text-[var(--primary)]"} text-[9px] font-black flex items-center gap-1.5 shadow-sm shrink-0`} title={`${appt.plannedAssessments.length} Assessments Planned`}>
                                       <ClipboardList className="w-2.5 h-2.5" />
                                       <span>{appt.plannedAssessments.length}</span>
                                     </div>
                                   )}
-                                  <div className={`px-2 py-1 ${(isViewedAsSc || isViewedAsAttending) ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-600 dark:text-indigo-300" : statusConfig.bg + " " + statusConfig.border + " " + statusConfig.text} text-[10px] font-bold flex items-center gap-1 border shadow-sm shrink-0`}>
-                                    <div className={`w-2 h-2 rounded-full ${(isViewedAsSc || isViewedAsAttending) ? "bg-indigo-500" : statusConfig.dot}`} />
-                                    <span className="whitespace-nowrap">{isViewedAsAttending ? "YOU PERFORMED" : isViewedAsSc ? "YOU SUPPORTED" : statusConfig.label}</span>
+                                  <div className={`px-2 py-1 ${isViewedAsAttending ? "bg-sky-500/20 border-sky-400/30 text-sky-400" : isViewedAsSc ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-400" : statusConfig.bg + " " + statusConfig.border + " " + statusConfig.text} text-[10px] font-bold flex items-center gap-1 border shadow-sm shrink-0`}>
+                                    <div className={`w-2 h-2 rounded-full ${isViewedAsAttending ? "bg-sky-400" : isViewedAsSc ? "bg-indigo-400" : statusConfig.dot}`} />
+                                    <span className="whitespace-nowrap uppercase tracking-widest">{isViewedAsAttending ? "PERFORMED" : isViewedAsSc ? "SUPPORTING" : statusConfig.label}</span>
                                   </div>
                                 </div>
-                                <span className="text-xs font-bold text-[var(--text-primary)] shrink-0 ml-auto whitespace-nowrap">
+                                <span className={`text-xs font-bold ${isViewedAsAttending ? "text-sky-400" : isViewedAsSc ? "text-indigo-400" : "text-[var(--text-primary)]"} shrink-0 ml-auto whitespace-nowrap`}>
                                   {start.getHours() % 12 || 12}:{start.getMinutes().toString().padStart(2, '0')}
                                 </span>
                               </div>
 
                               {/* Patient Data */}
                               <div className="flex flex-col mb-1">
-                                <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.2em] mb-1">Patient</p>
-                                <h4 className="text-base font-black text-[var(--text-primary)] tracking-tight group-hover:text-[var(--primary)] transition-colors leading-tight">{appt.patient?.firstName} {appt.patient?.lastName}</h4>
+                                <p className="tactical-label mb-1">Patient</p>
+                                <h4 className={`text-base font-black ${isViewedAsAttending ? "text-sky-400" : isViewedAsSc ? "text-indigo-400" : "text-[var(--text-primary)]"} tracking-tight group-hover:text-[var(--primary)] transition-colors leading-tight`}>{appt.patient?.firstName} {appt.patient?.lastName}</h4>
                                 <div className="flex items-center gap-1.5 mt-1.5">
-                                  <MapPin className="w-3 h-3 text-[var(--text-muted)]" />
-                                  <p className="text-[10px] text-[var(--text-muted)] font-bold leading-tight line-clamp-1 uppercase tracking-wider">{appt.patient?.addresses?.[0]?.address?.street || "No address recorded"}</p>
+                                  <MapPin className={`w-3 h-3 ${isViewedAsAttending ? "text-sky-500/50" : isViewedAsSc ? "text-indigo-500/50" : "text-[var(--text-muted)]"}`} />
+                                  <p className={`text-[10px] ${isViewedAsAttending ? "text-sky-400/70" : isViewedAsSc ? "text-indigo-400/70" : "text-[var(--text-muted)]"} font-bold leading-tight line-clamp-1 uppercase tracking-wider`}>{appt.patient?.addresses?.[0]?.address?.street || "No address recorded"}</p>
                                 </div>
                                 <div className="mt-3 flex flex-col gap-1">
-                                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.1em]">{isViewedAsAttending ? "Performed By" : "Clinical Lead"}</p>
-                                  <p className="text-xs font-semibold text-[var(--text-primary)]">
+                                  <p className="tactical-label">{isViewedAsAttending ? "Performed By" : "Clinical Lead"}</p>
+                                  <p className={`text-xs font-semibold ${isViewedAsAttending ? "text-sky-400/90" : isViewedAsSc ? "text-indigo-400/90" : "text-[var(--text-primary)]"}`}>
                                     {isViewedAsAttending
                                       ? `${appt.encounters[0].practitioner.firstName} ${appt.encounters[0].practitioner.lastName}`
                                       : `${appt.practitioner?.firstName} ${appt.practitioner?.lastName}`}
@@ -681,13 +693,13 @@ export default function SchedulingCalendar() {
                               <div className="hidden group-hover:flex flex-col gap-4 mt-2 pb-4 border-t border-[var(--card-border)] pt-4 animate-in fade-in slide-in-from-top-1 duration-300">
                                 {isViewedAsAttending && (
                                   <div className="flex flex-col gap-1">
-                                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Scheduled Lead</p>
+                                    <p className="tactical-label">Scheduled Lead</p>
                                     <p className="text-xs font-semibold text-[var(--text-primary)]">{appt.practitioner?.firstName} {appt.practitioner?.lastName}</p>
                                   </div>
                                 )}
                                 {appt.supportingClinicians?.length > 0 && !isViewedAsAttending && (
                                   <div className="flex flex-col gap-1">
-                                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Support Team</p>
+                                    <p className="tactical-label">Support Team</p>
                                     <div className="flex flex-col gap-1">
                                       {appt.supportingClinicians.map((sc: any) => (
                                         <p key={sc.practitionerId} className="text-xs font-semibold text-[var(--text-primary)]">{sc.firstName} {sc.lastName}</p>
@@ -701,13 +713,13 @@ export default function SchedulingCalendar() {
                               <div className="mt-auto pt-2 border-t border-[var(--card-border)] flex items-center justify-between shrink-0">
                                 <div className="flex -space-x-2">
                                   {appt.practitionerId === viewedPractitionerId && (
-                                    <div className="w-7 h-7 bg-[var(--primary)] border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You are the Primary Lead">YOU</div>
+                                    <div className="w-7 h-7 bg-[var(--primary)] border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-white shadow-sm rounded-full" title="You are the Primary Lead">YOU</div>
                                   )}
                                   {isViewedAsSc && (
-                                    <div className="w-7 h-7 bg-blue-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You are Supporting">SS</div>
+                                    <div className="w-7 h-7 bg-sky-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-white shadow-sm rounded-full" title="You are Supporting">SS</div>
                                   )}
                                   {isViewedAsAttending && (
-                                    <div className="w-7 h-7 bg-emerald-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-[var(--text-primary)] shadow-sm" title="You performed this encounter">AP</div>
+                                    <div className="w-7 h-7 bg-emerald-600 border-2 border-[var(--card-bg)] flex items-center justify-center text-[9px] font-bold text-white shadow-sm rounded-full" title="You performed this encounter">AP</div>
                                   )}
                                 </div>
                                 <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--primary)] transition-colors" />

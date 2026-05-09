@@ -13,6 +13,7 @@ const GET_TENANT_CONFIG = gql`
       timezone
       language
       dateFormat
+      enableElasticsearch
     }
   }
 `;
@@ -41,6 +42,7 @@ export interface TenantSettings {
   language: string;
   dateFormat: string;
   organizationName: string;
+  enableElasticsearch: boolean;
 }
 
 const currencySymbols: Record<string, string> = {
@@ -73,6 +75,7 @@ const DEFAULT_TENANT: TenantSettings = {
   language: "en",
   dateFormat: "MM/DD/YYYY",
   organizationName: "Halcyon Clinical Center",
+  enableElasticsearch: false,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -98,7 +101,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         timezone: config.timezone,
         language: config.language,
         dateFormat: config.dateFormat,
-        organizationName: config.organizationName
+        organizationName: config.organizationName,
+        enableElasticsearch: config.enableElasticsearch
       });
     }
   }, [tenantData]);
@@ -146,6 +150,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             timezone: merged.timezone,
             language: merged.language,
             dateFormat: merged.dateFormat,
+            enableElasticsearch: merged.enableElasticsearch,
             isActive: true
           }
         }

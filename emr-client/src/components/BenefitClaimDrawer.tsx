@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { X, Search, FileText, CheckCircle2, AlertCircle, DollarSign, CreditCard } from "lucide-react";
 import { useSettings } from "@/lib/SettingsContext";
+import HalcyonPortal from "./Portal";
 
 const GET_PATIENTS = gql`
   query GetPatients {
@@ -74,7 +75,7 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
   const isEdit = !!initialData?.claimId;
 
   const patients = patientData?.patients?.items || [];
-  const filteredPatients = patients.filter((p: any) => 
+  const filteredPatients = patients.filter((p: any) =>
     `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.mrn.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -116,142 +117,140 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex justify-end">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      
-      <div className="relative w-full max-w-md bg-[var(--card-bg)] h-full shadow-2xl border-l border-[var(--card-border)] flex flex-col animate-in slide-in-from-right duration-300">
-        <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]/50">
-          <div>
-            <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
-              {isEdit ? "Manage Claim Status" : "Submit Z-Benefit Claim"}
-            </h2>
-            <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-black mt-1">PhilHealth Integration</p>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-[var(--card-border)] rounded-xl transition-all">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <HalcyonPortal>
+      <div className="fixed inset-0 !m-0 !p-0 z-[9999999] flex justify-end overflow-hidden">
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8">
-          {isEdit ? (
-            <div className="space-y-4">
-              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Update Claim Status</label>
-              <div className="grid grid-cols-2 gap-2">
-                {["Submitted", "Approved", "Rejected", "Paid"].map(status => (
-                  <button
-                    key={status}
-                    type="button"
-                    onClick={() => setNewStatus(status)}
-                    className={`py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-                      newStatus === status ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--primary)]/30'
-                    }`}
-                  >
-                    {status}
-                  </button>
-                ))}
-              </div>
+        <div className="relative w-full max-w-md bg-[var(--card-bg)] h-full shadow-2xl border-l border-[var(--card-border)] flex flex-col animate-in slide-in-from-right duration-500">
+          <div className="p-6 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]/50">
+            <div>
+              <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
+                {isEdit ? "Manage Claim Status" : "Submit Z-Benefit Claim"}
+              </h2>
+              <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-black mt-1">PhilHealth Integration</p>
             </div>
-          ) : (
-            <>
-              {/* Patient Selection */}
+            <button onClick={onClose} className="p-2 hover:bg-[var(--card-border)] rounded-xl transition-all">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+            {isEdit ? (
               <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Select Patient</label>
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-                  <input 
-                    type="text"
-                    placeholder="Search patient name or MRN..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full premium-input rounded-2xl py-3 pl-12 pr-4 text-sm"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                  {filteredPatients.map((p: any) => (
+                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Update Claim Status</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {["Submitted", "Approved", "Rejected", "Paid"].map(status => (
                     <button
-                      key={p.patientId}
+                      key={status}
                       type="button"
-                      onClick={() => setSelectedPatientId(p.patientId)}
-                      className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between group ${
-                        selectedPatientId === p.patientId ? 'border-[var(--primary)] bg-[var(--primary)]/10' : 'border-[var(--card-border)] hover:border-[var(--primary)]/30'
-                      }`}
+                      onClick={() => setNewStatus(status)}
+                      className={`py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${newStatus === status ? 'bg-[var(--primary)] text-white border-[var(--primary)]' : 'border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--primary)]/30'
+                        }`}
                     >
-                      <div>
-                        <p className="text-xs font-bold">{p.firstName} {p.lastName}</p>
-                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{p.mrn}</p>
-                      </div>
-                      {selectedPatientId === p.patientId && <CheckCircle2 className="w-4 h-4 text-[var(--primary)]" />}
+                      {status}
                     </button>
                   ))}
                 </div>
               </div>
+            ) : (
+              <>
+                {/* Patient Selection */}
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Select Patient</label>
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+                    <input
+                      type="text"
+                      placeholder="Search patient name or MRN..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full premium-input rounded-2xl py-3 pl-12 pr-4 text-sm"
+                    />
+                  </div>
 
-              {/* PhilHealth Number */}
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">PhilHealth Identification Number (PIN)</label>
-                <div className="relative">
-                  <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-                  <input 
-                    required
-                    placeholder="00-000000000-0"
-                    value={philhealthNumber}
-                    onChange={(e) => setPhilhealthNumber(e.target.value)}
-                    className="w-full premium-input rounded-2xl py-3 pl-12 pr-4 text-sm font-mono"
-                  />
+                  <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                    {filteredPatients.map((p: any) => (
+                      <button
+                        key={p.patientId}
+                        type="button"
+                        onClick={() => setSelectedPatientId(p.patientId)}
+                        className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between group ${selectedPatientId === p.patientId ? 'border-[var(--primary)] bg-[var(--primary)]/10' : 'border-[var(--card-border)] hover:border-[var(--primary)]/30'
+                          }`}
+                      >
+                        <div>
+                          <p className="text-xs font-bold">{p.firstName} {p.lastName}</p>
+                          <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{p.mrn}</p>
+                        </div>
+                        {selectedPatientId === p.patientId && <CheckCircle2 className="w-4 h-4 text-[var(--primary)]" />}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
 
-          {/* Package Selection - Shared but disabled in edit if desired */}
-          <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Z-Benefit Package</label>
-            <div className={`grid grid-cols-1 gap-3 ${isEdit ? 'opacity-50 pointer-events-none' : ''}`}>
-              {PACKAGES.map((pkg) => (
-                <button
-                  key={pkg.code}
-                  type="button"
-                  onClick={() => setSelectedPackage(pkg)}
-                  className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between group ${
-                    selectedPackage.code === pkg.code ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-[var(--card-border)] hover:border-[var(--primary)]/30'
-                  }`}
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                       <span className="text-[10px] font-black bg-[var(--primary)]/10 text-[var(--primary)] px-2 py-0.5 rounded uppercase tracking-widest">{pkg.code}</span>
-                       <h4 className="text-xs font-bold">{pkg.label}</h4>
+                {/* PhilHealth Number */}
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">PhilHealth Identification Number (PIN)</label>
+                  <div className="relative">
+                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+                    <input
+                      required
+                      placeholder="00-000000000-0"
+                      value={philhealthNumber}
+                      onChange={(e) => setPhilhealthNumber(e.target.value)}
+                      className="w-full premium-input rounded-2xl py-3 pl-12 pr-4 text-sm font-mono"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Package Selection - Shared but disabled in edit if desired */}
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">Z-Benefit Package</label>
+              <div className={`grid grid-cols-1 gap-3 ${isEdit ? 'opacity-50 pointer-events-none' : ''}`}>
+                {PACKAGES.map((pkg) => (
+                  <button
+                    key={pkg.code}
+                    type="button"
+                    onClick={() => setSelectedPackage(pkg)}
+                    className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between group ${selectedPackage.code === pkg.code ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-[var(--card-border)] hover:border-[var(--primary)]/30'
+                      }`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-black bg-[var(--primary)]/10 text-[var(--primary)] px-2 py-0.5 rounded uppercase tracking-widest">{pkg.code}</span>
+                        <h4 className="text-xs font-bold">{pkg.label}</h4>
+                      </div>
+                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
+                        {formatCurrency(pkg.amount)} Coverage
+                      </p>
                     </div>
-                    <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
-                      {formatCurrency(pkg.amount)} Coverage
-                    </p>
-                  </div>
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                    selectedPackage.code === pkg.code ? 'border-[var(--primary)] bg-[var(--primary)]' : 'border-[var(--card-border)]'
-                  }`}>
-                    {selectedPackage.code === pkg.code && <div className="w-2 h-2 bg-white rounded-full" />}
-                  </div>
-                </button>
-              ))}
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedPackage.code === pkg.code ? 'border-[var(--primary)] bg-[var(--primary)]' : 'border-[var(--card-border)]'
+                      }`}>
+                      {selectedPackage.code === pkg.code && <div className="w-2 h-2 bg-white rounded-full" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
 
-        <div className="p-6 border-t border-[var(--card-border)] bg-[var(--input-bg)]/50">
-          <button
-            onClick={handleSubmit}
-            disabled={isLoading || !selectedPatientId || !philhealthNumber}
-            className="w-full h-12 bg-[var(--primary)] text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl shadow-[var(--primary-glow)] hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-          >
-            {isLoading ? "Processing Submission..." : isEdit ? "Update Claim Status" : "Submit Claim to PhilHealth"}
-          </button>
-          <div className="mt-4 flex items-center gap-2 justify-center text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
-            <AlertCircle className="w-3 h-3" />
-            E-Claims submission is subject to validation
+          <div className="p-6 border-t border-[var(--card-border)] bg-[var(--input-bg)]/50">
+            <button
+              onClick={handleSubmit}
+              disabled={isLoading || !selectedPatientId || !philhealthNumber}
+              className="w-full h-12 bg-[var(--primary)] text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl shadow-[var(--primary-glow)] hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+            >
+              {isLoading ? "Processing Submission..." : isEdit ? "Update Claim Status" : "Submit Claim to PhilHealth"}
+            </button>
+            <div className="mt-4 flex items-center gap-2 justify-center text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+              <AlertCircle className="w-3 h-3" />
+              E-Claims submission is subject to validation
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </HalcyonPortal>
   );
 }
 

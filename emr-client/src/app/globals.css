@@ -15,6 +15,8 @@
   --primary: #14b8a6;
   --primary-rgb: 20, 184, 166;
   --primary-glow: rgba(20, 184, 166, 0.12);
+  --elegant-blue: #2563eb;
+  --elegant-blue-glow: rgba(37, 99, 235, 0.4);
   --sidebar-bg: #020408;
   --input-bg: rgba(255, 255, 255, 0.02);
   --divider-color: rgba(255, 255, 255, 0.03);
@@ -28,11 +30,13 @@
   --card-bg: #fdfdfd;
   --card-border: rgba(15, 23, 42, 0.08);
   --text-primary: #020617;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-secondary: #1e293b; /* Darkened Slate-800 for absolute contrast */
+  --text-muted: #64748b; /* Sharpened Slate-500 */
   --primary: #0891b2;
   --primary-rgb: 8, 145, 178;
   --primary-glow: rgba(8, 145, 178, 0.05);
+  --elegant-blue: #2563eb;
+  --elegant-blue-glow: rgba(37, 99, 235, 0.25);
   --sidebar-bg: #ffffff;
   --input-bg: #f8fafc;
   --divider-color: rgba(15, 23, 42, 0.04);
@@ -53,11 +57,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-code, pre, .font-mono {
+code,
+pre,
+.font-mono {
   font-family: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   font-family: var(--font-outfit), var(--font-inter), sans-serif;
   letter-spacing: -0.04em;
   font-weight: 800;
@@ -88,32 +97,61 @@ h1, h2, h3, h4 {
   box-shadow: 0 4px 20px var(--primary-glow);
 }
 
-.standard-input {
-  background: var(--input-bg);
-  border: 1px solid var(--card-border);
-  color: var(--text-primary);
-  font-size: 0.875rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  transition: all 0.2s ease;
+.tactical-label {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.15em !important;
+  color: #64748b !important;
+  /* Authoritative Slate */
+  margin-bottom: 10px !important;
+  display: block !important;
 }
 
-.standard-input:focus {
-  border-color: var(--primary);
-  outline: none;
+/* Outreach Workstation Specifics - Scoped to prevent scheduler collisions */
+.outreach-workstation .premium-input,
+.outreach-workstation .field-container {
+  background: var(--input-bg) !important;
+  border: 1px solid rgba(175, 132, 132, 0.08) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-select option {
-  background-color: var(--card-bg);
-  color: var(--text-primary);
+.light .outreach-workstation .premium-input,
+.light .outreach-workstation .field-container {
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03) !important;
 }
 
-.premium-input {
-  background: var(--input-bg);
-  border: 1px solid var(--card-border);
-  color: var(--text-primary);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
+.outreach-workstation select option {
+  background-color: #0f172a !important;
+  /* Force deep slate for dark mode */
+  color: #f8fafc !important;
+}
+
+.light .outreach-workstation select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Global Elegant Utility */
+.elegant-blue-block {
+  background: var(--elegant-blue) !important;
+  border: 1px solid rgba(56, 189, 248, 0.2) !important;
+  box-shadow: 0 4px 20px var(--elegant-blue-glow) !important;
+  color: white !important;
+}
+
+.elegant-blue-block:hover {
+  background: #075985 !important;
+}
+
+.premium-input:focus,
+.field-container:focus-within {
+  border-color: var(--primary) !important;
+  background: var(--input-bg) !important;
+  box-shadow: 0 0 0 1px var(--primary) !important;
 }
 
 .premium-input:focus {
@@ -157,9 +195,20 @@ select option {
 }
 
 @keyframes halcyon-pulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4); }
-  50% { transform: scale(1.05); box-shadow: 0 0 20px 10px rgba(var(--primary-rgb), 0.1); }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4); }
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px 10px rgba(var(--primary-rgb), 0.1);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+  }
 }
 
 .animate-halcyon-pulse {

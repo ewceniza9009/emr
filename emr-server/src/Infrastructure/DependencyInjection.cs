@@ -49,6 +49,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
         services.AddScoped<ISecurityAuditService, Infrastructure.Services.SecurityAuditService>();
+        services.AddScoped<ISearchService, Infrastructure.Services.SearchService>();
 
         return services;
     }

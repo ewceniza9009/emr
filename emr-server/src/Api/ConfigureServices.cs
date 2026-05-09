@@ -101,6 +101,7 @@ public static class ConfigureServices
             .AddTypeExtension<QuestionnaireQuery>()
             .AddTypeExtension<SetupQuery>()
             .AddTypeExtension<IdentityQuery>()
+            .AddTypeExtension<SearchQuery>()
             .AddType<BillingInvoiceType>()
             .AddType<ZBenefitClaimType>()
             .AddType<BillingInvoiceFilterInputType>()

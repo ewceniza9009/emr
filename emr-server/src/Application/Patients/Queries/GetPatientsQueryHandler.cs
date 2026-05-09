@@ -54,6 +54,22 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
                         .Select(a => a.Status.ToString())
                         .FirstOrDefault()
                     ?? "No Visit",
+                Addresses = p.Addresses.Select(a => new Application.Common.Dtos.EntityAddressDto
+                {
+                    Type = a.Type,
+                    IsPrimary = a.IsPrimary,
+                    Address = new Application.Common.Dtos.AddressDto
+                    {
+                        City = a.Address.City,
+                        State = a.Address.State
+                    }
+                }).ToList(),
+                Phones = p.Phones.Select(ph => new PatientPhoneDto
+                {
+                    PhoneNumber = ph.PhoneNumber,
+                    Type = ph.Type,
+                    IsPrimary = ph.IsPrimary
+                }).ToList()
             })
             .ToListAsync(cancellationToken);
 

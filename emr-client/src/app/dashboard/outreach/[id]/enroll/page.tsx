@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
 import EnrollmentDrawer from "@/components/EnrollmentDrawer";
+import { useToast } from "@/components/ToastProvider";
 
 const GET_LEAD_DETAILS = gql`
   query GetLeadDetails($id: UUID!) {
@@ -94,32 +95,32 @@ const GET_OUTREACH_SCRIPTS = gql`
 `;
 
 const FINALIZE_ENROLLMENT = gql`
-  mutation FinalizeEnrollment($command: FinalizeEnrollmentCommandInput!) {
-    finalizeEnrollment(command: $command)
+  mutation FinalizeEnrollment($input: FinalizeEnrollmentCommandInput!) {
+    finalizeEnrollment(input: $input)
   }
 `;
 
 const LOG_OUTREACH_ACTIVITY = gql`
-  mutation LogActivity($command: LogOutreachActivityCommandInput!) {
-    logOutreachActivity(command: $command)
+  mutation LogActivity($input: LogOutreachActivityCommandInput!) {
+    logOutreachActivity(input: $input)
   }
 `;
 
 const ADD_OUTREACH_CONTACT = gql`
-  mutation AddContact($command: AddOutreachContactCommandInput!) {
-    addOutreachContact(command: $command)
+  mutation AddContact($input: AddOutreachContactCommandInput!) {
+    addOutreachContact(input: $input)
   }
 `;
 
 const REMOVE_OUTREACH_CONTACT = gql`
-  mutation RemoveContact($command: RemoveOutreachContactCommandInput!) {
-    removeOutreachContact(command: $command)
+  mutation RemoveContact($input: RemoveOutreachContactCommandInput!) {
+    removeOutreachContact(input: $input)
   }
 `;
 
 const UPDATE_OUTREACH_LEAD = gql`
-  mutation UpdateLead($command: UpdateOutreachLeadCommandInput!) {
-    updateOutreachLead(command: $command)
+  mutation UpdateLead($input: UpdateOutreachLeadCommandInput!) {
+    updateOutreachLead(input: $input)
   }
 `;
 
@@ -137,17 +138,18 @@ export default function OutreachDetail() {
   const params = useParams();
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState("");
-  const [selectedModality, setSelectedModality] = useState("HOME_CARE");
+  const [selectedModality, setSelectedModality] = useState("HomeCare");
 
   const { addItem } = useRecentlyBrowsed();
   const [activeCall, setActiveCall] = useState<any>(null);
   const [isDialPadOpen, setIsDialPadOpen] = useState(false);
   const [dialedNumber, setDialedNumber] = useState("");
+  const { showToast } = useToast();
 
   // Workstation State
-  const [disposition, setDisposition] = useState("COOPERATIVE");
-  const [communicationStatus, setCommunicationStatus] = useState("VERBAL");
-  const [techAccess, setTechAccess] = useState("SMARTPHONE_ONLY");
+  const [disposition, setDisposition] = useState("Cooperative");
+  const [communicationStatus, setCommunicationStatus] = useState("Verbal");
+  const [techAccess, setTechAccess] = useState("SmartphoneOnly");
   const [barriersToCare, setBarriersToCare] = useState("");
   const [orientationDate, setOrientationDate] = useState("");
 
@@ -162,7 +164,7 @@ export default function OutreachDetail() {
   const [logActivity] = useMutation(LOG_OUTREACH_ACTIVITY);
   const [addContact] = useMutation(ADD_OUTREACH_CONTACT);
   const [removeContact] = useMutation(REMOVE_OUTREACH_CONTACT);
-  const [updateLead] = useMutation(UPDATE_OUTREACH_LEAD);
+  const [updateLead, { loading: updatingLead }] = useMutation(UPDATE_OUTREACH_LEAD);
 
   const { data: scriptData } = useQuery(GET_OUTREACH_SCRIPTS);
   const [selectedScriptId, setSelectedScriptId] = useState<string | null>(null);
@@ -170,41 +172,40 @@ export default function OutreachDetail() {
   const scripts = scriptData?.outreachScripts || [];
   const activeScript = scripts.find((s: any) => s.outreachScriptId === selectedScriptId) || scripts.find((s: any) => s.isDefault) || scripts[0];
 
-  const { data: leadData, loading: leadLoading, error: leadError } = useQuery(GET_LEAD_DETAILS, {
+  const { data: leadData, loading: leadLoading, error: leadError, refetch } = useQuery(GET_LEAD_DETAILS, {
     variables: { id: params.id },
     fetchPolicy: "network-only"
   });
 
   const { data: planData } = useQuery(GET_ENROLLMENT_DATA);
 
-  const handleFinalize = async () => {
-    try {
-      const { data: finalizeData } = await finalize({
-        variables: {
-          input: {
-            patientOutreachId: params.id,
-            modality: selectedModality,
-            healthPlanId: selectedPlan,
-            disposition: disposition,
-            communicationStatus: communicationStatus,
-            techAccess: techAccess,
-            barriersToCare: barriersToCare
-          }
-        }
-      });
-      if (finalizeData?.finalizeEnrollment) {
-        router.push(`/dashboard/patients/${finalizeData.finalizeEnrollment}`);
-      }
-    } catch (err) {
-      console.error("Enrollment failed:", err);
+  useEffect(() => {
+    if (leadData?.outreachById) {
+      const lead = leadData.outreachById;
+
+      // Clinical Data Healer: Normalizes legacy UPPER_SNAKE_CASE to UpperCamelCase
+      const heal = (val: string | null | undefined) => {
+        if (!val) return "";
+        // If it's already UpperCamelCase (no underscores and has multiple caps), return it
+        if (!val.includes('_') && /[a-z][A-Z]/.test(val)) return val;
+        // Otherwise, convert from UPPER_SNAKE_CASE
+        return val.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+      };
+
+      if (lead.disposition) setDisposition(heal(lead.disposition));
+      if (lead.communicationStatus) setCommunicationStatus(heal(lead.communicationStatus));
+      if (lead.techAccess) setTechAccess(heal(lead.techAccess));
+      if (lead.selectedModality) setSelectedModality(heal(lead.selectedModality));
+      if (lead.healthPlanId) setSelectedPlan(lead.healthPlanId);
+      if (lead.barriersToCare) setBarriersToCare(lead.barriersToCare);
     }
-  };
+  }, [leadData]);
 
   const handleAddRelative = async () => {
     try {
       await addContact({
         variables: {
-          command: {
+          input: {
             patientOutreachId: params.id,
             ...newRelativeForm
           }
@@ -241,7 +242,7 @@ export default function OutreachDetail() {
     try {
       await removeContact({
         variables: {
-          command: {
+          input: {
             outreachContactId: id
           }
         },
@@ -273,7 +274,7 @@ export default function OutreachDetail() {
     try {
       await logActivity({
         variables: {
-          command: {
+          input: {
             outreachId: params.id,
             method: "TELEPHONE",
             outcome: "NO_ANSWER",
@@ -294,13 +295,6 @@ export default function OutreachDetail() {
 
   useEffect(() => {
     if (lead) {
-      if (lead.selectedModality) setSelectedModality(lead.selectedModality);
-      if (lead.healthPlanId) setSelectedPlan(lead.healthPlanId);
-      if (lead.disposition) setDisposition(lead.disposition);
-      if (lead.communicationStatus) setCommunicationStatus(lead.communicationStatus);
-      if (lead.techAccess) setTechAccess(lead.techAccess);
-      if (lead.barriersToCare) setBarriersToCare(lead.barriersToCare);
-
       addItem({
         id: lead.patientOutreachId,
         firstName: lead.firstName,
@@ -311,18 +305,22 @@ export default function OutreachDetail() {
     }
   }, [lead]);
 
-  const handleUpdateLead = async (fields: any) => {
+  const handleUpdateLead = async (fields: any, silent: boolean = true) => {
     try {
       await updateLead({
         variables: {
-          command: {
+          input: {
             patientOutreachId: params.id,
             ...fields
           }
         }
       });
-    } catch (e) {
+      if (!silent) {
+        showToast("Outreach Profile Synchronized", "success");
+      }
+    } catch (e: any) {
       console.error(e);
+      showToast(e.message || "Failed to update profile", "error");
     }
   };
   const plans = planData?.healthPlans || [];
@@ -330,7 +328,7 @@ export default function OutreachDetail() {
   const hasNoContacts = lead ? (!lead.primaryPhone && (!lead.otherContacts || lead.otherContacts.length === 0)) : true;
 
   return (
-    <div className="min-h-screen bg-[var(--sidebar-bg)] flex flex-col p-5 space-y-5 overflow-hidden">
+    <div className="outreach-workstation min-h-screen bg-[var(--sidebar-bg)] flex flex-col p-5 space-y-5 overflow-hidden font-inter select-none">
       {leadLoading ? (
         <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
           <div className="relative">
@@ -353,379 +351,408 @@ export default function OutreachDetail() {
       ) : (
         <>
           {/* High-Density Workstation Header */}
-      <div className="flex items-center justify-between bg-[var(--card-bg)] backdrop-blur-2xl border border-[var(--card-border)] px-6 py-3 rounded-xl shrink-0 shadow-lg">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center border border-teal-500/20 shadow-sm relative overflow-hidden">
-             <HeartPulse className="w-5 h-5 text-teal-500" />
-             <div className="absolute inset-0 bg-teal-500/5 animate-pulse" />
-          </div>
-          <div>
-            <h1 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none">Patient Outreach Profile</h1>
-            <div className="flex items-center gap-2 mt-1.5">
-               <span className="text-[8px] font-black text-teal-500 uppercase tracking-[0.2em]">Operational Identity:</span>
-               <span className="text-[8px] font-black text-[var(--text-primary)] uppercase tracking-widest opacity-80">{lead.firstName} {lead.lastName}</span>
+          <div className="flex items-center justify-between bg-[var(--card-bg)] backdrop-blur-2xl border border-[var(--card-border)] px-6 py-3 rounded-xl shrink-0 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center border border-teal-500/20 shadow-sm relative overflow-hidden">
+                <HeartPulse className="w-5 h-5 text-teal-500" />
+                <div className="absolute inset-0 bg-teal-500/5 animate-pulse" />
+              </div>
+              <div>
+                <h1 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none">Patient Outreach Profile</h1>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="text-[8px] font-black text-teal-500 uppercase tracking-[0.2em]">Operational Identity:</span>
+                  <span className="text-[8px] font-black text-[var(--text-primary)] uppercase tracking-widest opacity-80">{lead.firstName} {lead.lastName}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <button onClick={handleAbort} className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-[var(--text-muted)] text-[8px] font-black uppercase tracking-[0.1em] hover:bg-white/10 hover:text-teal-500 transition-all flex items-center gap-2">
+                <ChevronLeft className="w-3.5 h-3.5" /> Exit to Registry
+              </button>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <button onClick={handleAbort} className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-[var(--text-muted)] text-[8px] font-black uppercase tracking-[0.1em] hover:bg-white/10 hover:text-teal-500 transition-all flex items-center gap-2">
-             <ChevronLeft className="w-3.5 h-3.5" /> Exit to Registry
-          </button>
-        </div>
-      </div>
 
-      <div className="flex-1 flex gap-6 min-h-0">
-        {/* Main Operational Core */}
-        <div className="flex-[2.5] flex flex-col min-h-0">
-          <div className="flex-1 bg-[var(--card-bg)] rounded-3xl border border-[var(--card-border)] p-8 flex flex-col min-h-0 relative overflow-hidden shadow-2xl">
-            <div className="absolute -top-10 -right-10 opacity-5 pointer-events-none"><HeartPulse className="w-64 h-64 text-teal-500" /></div>
+          <div className="flex-1 flex gap-6 min-h-0">
+            {/* Main Operational Core */}
+            <div className="flex-[2.5] flex flex-col min-h-0">
+              <div className="flex-1 bg-[var(--card-bg)] rounded-3xl border border-[var(--card-border)] p-8 flex flex-col min-h-0 relative overflow-hidden shadow-2xl">
+                <div className="absolute -top-10 -right-10 opacity-5 pointer-events-none"><HeartPulse className="w-64 h-64 text-teal-500" /></div>
 
-            <div className="flex flex-col space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700 overflow-y-auto pr-4 scrollbar-hide pb-32">
-              {/* SECTION: CONTACT ENGAGEMENT */}
-              <section id="engagement" className="space-y-4">
-                <div className="flex items-center justify-between shrink-0">
-                  <div>
-                    <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Contact Channels</h2>
-                    <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1">Verify communication vectors.</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`w-9 h-9 rounded-lg border transition-all flex items-center justify-center ${isDialPadOpen ? 'bg-teal-500 border-teal-400 text-black shadow-md' : 'bg-white/5 border-white/10 text-slate-400 hover:border-teal-500/50'}`}><Hash className="w-4 h-4" /></button>
-                    <button onClick={() => setIsAddingRelative(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500 text-black text-[8px] font-black uppercase tracking-[0.2em] shadow-md hover:bg-teal-600 transition-all"><UserPlus className="w-4 h-4" /> Add Contact</button>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  {[
-                    { id: 'TELEPHONE', label: 'Telephone' }, 
-                    { id: 'VIDEO', label: 'Video' },
-                    { id: 'IN_PERSON', label: 'In-Person' },
-                    { id: 'SMS', label: 'SMS' }
-                  ].map(m => (
-                    <button
-                      key={m.id}
-                      onClick={() => {
-                        setSelectedModality(m.id);
-                        handleUpdateLead({ modality: m.id });
-                      }}
-                      className={`flex-1 p-5 rounded-2xl border transition-all ${selectedModality === m.id ? 'bg-teal-500 border-teal-400 text-black shadow-lg scale-[1.02]' : 'bg-white/5 border-white/10 text-slate-400 hover:border-teal-500/50'}`}
-                    >
-                      <span className="text-[11px] font-black uppercase tracking-widest">{m.label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Active Call HUD */}
-                {activeCall && (
-                  <div className="bg-teal-600 rounded-3xl p-8 flex items-center justify-between shadow-2xl animate-pulse-primary shrink-0 border-2 border-teal-400/30">
-                    <div className="flex items-center gap-8">
-                      <div className="w-16 h-16 rounded-2xl bg-black/20 flex items-center justify-center text-white shadow-inner">
-                        <PhoneForwarded className="w-8 h-8 animate-bounce" />
-                      </div>
+                <div className="flex flex-col space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700 overflow-y-auto pr-4 scrollbar-hide pb-32">
+                  {/* SECTION: CONTACT ENGAGEMENT */}
+                  <section id="engagement" className="space-y-4">
+                    <div className="flex items-center justify-between shrink-0">
                       <div>
-                        <p className="text-white font-black text-2xl uppercase tracking-widest leading-none">{activeCall.status}</p>
-                        <p className="text-teal-100 text-[11px] font-bold uppercase tracking-[0.4em] mt-3 opacity-90">Active Channel: {activeCall.phone}</p>
+                        <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Contact Channels</h2>
+                        <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1">Verify communication vectors.</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`w-9 h-9 rounded-lg border transition-all flex items-center justify-center ${isDialPadOpen ? 'bg-teal-500 border-teal-400 text-black shadow-md' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-teal-500/50'}`}><Hash className="w-4 h-4" /></button>
+                        <button onClick={() => setIsAddingRelative(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500 text-black text-[8px] font-black uppercase tracking-[0.2em] shadow-md hover:bg-teal-600 transition-all"><UserPlus className="w-4 h-4" /> Add Contact</button>
                       </div>
                     </div>
-                    <button onClick={endCall} className="w-16 h-16 rounded-2xl bg-red-500 text-white shadow-xl active:scale-90 transition-transform flex items-center justify-center hover:bg-red-600"><PhoneOff className="w-8 h-8" /></button>
-                  </div>
-                )}
 
-                {/* Manual Dialer */}
-                {isDialPadOpen && (
-                  <div className="bg-[var(--sidebar-bg)] border border-teal-500/20 rounded-3xl p-8 animate-in slide-in-from-top-10 shrink-0 shadow-2xl relative group/dialer">
-                    <button onClick={() => setIsDialPadOpen(false)} className="absolute top-6 right-6 p-2 rounded-xl bg-white/5 text-slate-500 hover:text-teal-500 transition-all opacity-0 group-hover/dialer:opacity-100"><X className="w-5 h-5" /></button>
-                    <div className="flex gap-8 items-center">
-                      <input type="tel" placeholder="Enter Phone Number..." className="flex-1 bg-transparent text-5xl font-black text-white outline-none placeholder:text-slate-800 tracking-tighter" value={dialedNumber} onChange={e => setDialedNumber(e.target.value)} autoFocus />
-                      <button onClick={() => handleCall({ name: 'Manual', phone: dialedNumber })} disabled={!dialedNumber} className="w-16 h-16 rounded-2xl bg-emerald-500 text-black shadow-lg disabled:opacity-30 flex items-center justify-center hover:bg-emerald-600"><PhoneCall className="w-8 h-8" /></button>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { id: 'HomeCare', label: 'Home Care' },
+                        { id: 'VirtualCare', label: 'Virtual Care' },
+                        { id: 'InPatientHospice', label: 'In-Patient' },
+                        { id: 'HybridCare', label: 'Hybrid' }
+                      ].map(m => (
+                        <button
+                          key={m.id}
+                          onClick={async () => {
+                            setSelectedModality(m.id);
+                            await handleUpdateLead({ modality: m.id });
+                            await refetch();
+                          }}
+                          className={`px-4 py-2 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${selectedModality === m.id ? 'bg-teal-500 border-teal-400 text-black shadow-lg shadow-teal-500/20' : 'bg-slate-50/50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-400 hover:border-teal-500/30 backdrop-blur-sm'}`}
+                        >
+                          {m.label}
+                          {selectedModality === m.id && updatingLead && <div className="ml-2 w-2 h-2 border border-black/30 border-t-black rounded-full animate-spin inline-block" />}
+                        </button>
+                      ))}
                     </div>
-                  </div>
-                )}
 
-                {/* Contact List */}
-                <div className="space-y-4">
-                  {hasNoContacts && !isAddingRelative && (
-                    <div className="h-full flex flex-col items-center justify-center text-center space-y-8 border-2 border-dashed border-rose-500/20 rounded-3xl bg-rose-500/5 p-16 animate-in zoom-in">
-                      <div className="w-20 h-20 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 shadow-xl border border-rose-500/20"><PhoneOff className="w-10 h-10" /></div>
-                      <div className="space-y-4">
-                        <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-widest">No Contacts Identified</h3>
-                        <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] leading-relaxed max-w-sm">The clinical registry contains no verified communication channels for this patient context.</p>
+                    {/* Active Call HUD */}
+                    {activeCall && (
+                      <div className="bg-teal-600 rounded-3xl p-8 flex items-center justify-between shadow-2xl animate-pulse-primary shrink-0 border-2 border-teal-400/30">
+                        <div className="flex items-center gap-8">
+                          <div className="w-16 h-16 rounded-2xl bg-black/20 flex items-center justify-center text-white shadow-inner">
+                            <PhoneForwarded className="w-8 h-8 animate-bounce" />
+                          </div>
+                          <div>
+                            <p className="text-white font-black text-2xl uppercase tracking-widest leading-none">{activeCall.status}</p>
+                            <p className="text-teal-100 text-[11px] font-bold uppercase tracking-[0.4em] mt-3 opacity-90">Active Channel: {activeCall.phone}</p>
+                          </div>
+                        </div>
+                        <button onClick={endCall} className="w-16 h-16 rounded-2xl bg-red-500 text-white shadow-xl active:scale-90 transition-transform flex items-center justify-center hover:bg-red-600"><PhoneOff className="w-8 h-8" /></button>
                       </div>
-                      <button onClick={() => setIsAddingRelative(true)} className="px-10 py-5 rounded-2xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-[0.4em] shadow-xl hover:bg-rose-600 transition-all">Add Primary Contact Manually</button>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Patient Vector */}
-                  {(lead.primaryPhone || !hasNoContacts) && (
-                    <div className={`p-4 rounded-xl border flex items-center justify-between transition-all ${lead.primaryPhone ? 'bg-teal-500/5 border-teal-500/20 shadow-sm' : 'bg-amber-500/5 border-amber-500/20 shadow-md'}`}>
-                      <div className="flex items-center gap-4">
-                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-black shadow-md ${lead.primaryPhone ? 'bg-teal-500' : 'bg-amber-500 animate-pulse'}`}><User className="w-5 h-5" /></div>
-                        <div>
-                          <p className="text-[var(--text-primary)] font-black text-sm uppercase tracking-tight leading-none">{lead.firstName} {lead.lastName}</p>
-                          <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mt-1.5 opacity-60">Primary Patient Context · <span className="text-teal-500">{lead.primaryPhone || "NOT SPECIFIED"}</span></p>
+                    {/* Compact Manual Dialer */}
+                    {isDialPadOpen && (
+                      <div className="bg-[var(--sidebar-bg)] border border-teal-500/20 rounded-2xl p-5 animate-in slide-in-from-top-4 shrink-0 shadow-2xl relative group/dialer">
+                        <button onClick={() => setIsDialPadOpen(false)} className="absolute top-4 right-4 p-1.5 rounded-lg bg-white/5 text-slate-500 hover:text-teal-500 transition-all opacity-0 group-hover/dialer:opacity-100"><X className="w-4 h-4" /></button>
+                        <div className="flex gap-4 items-center">
+                          <input type="tel" placeholder="Enter Phone Number..." className="flex-1 bg-transparent text-xl font-black text-white outline-none placeholder:text-slate-800 tracking-wider font-mono" value={dialedNumber} onChange={e => setDialedNumber(e.target.value)} autoFocus />
+                          <button onClick={() => handleCall({ name: 'Manual', phone: dialedNumber })} disabled={!dialedNumber} className="w-12 h-12 rounded-xl bg-emerald-500 text-black shadow-lg disabled:opacity-30 flex items-center justify-center hover:bg-emerald-600"><PhoneCall className="w-5 h-5" /></button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <button onClick={() => handleCall({ name: lead.firstName, phone: lead.primaryPhone })} disabled={!lead.primaryPhone} className={`w-10 h-10 rounded-lg transition-all flex items-center justify-center ${lead.primaryPhone ? 'bg-teal-500 text-black shadow-md hover:bg-teal-600 active:scale-90' : 'bg-slate-900 text-slate-800 cursor-not-allowed'}`}><PhoneCall className="w-5 h-5" /></button>
+                    )}
+
+                    {/* Contact List */}
+                    <div className="space-y-4">
+                      {hasNoContacts && !isAddingRelative && (
+                        <div className="h-full flex flex-col items-center justify-center text-center space-y-8 border-2 border-dashed border-rose-500/20 rounded-3xl bg-rose-500/5 p-16 animate-in zoom-in">
+                          <div className="w-20 h-20 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 shadow-xl border border-rose-500/20"><PhoneOff className="w-10 h-10" /></div>
+                          <div className="space-y-4">
+                            <h3 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-widest">No Contacts Identified</h3>
+                            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] leading-relaxed max-w-sm">The clinical registry contains no verified communication channels for this patient context.</p>
+                          </div>
+                          <button onClick={() => setIsAddingRelative(true)} className="px-10 py-5 rounded-2xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-[0.4em] shadow-xl hover:bg-rose-600 transition-all">Add Primary Contact Manually</button>
+                        </div>
+                      )}
+
+                      {/* Patient Vector */}
+                      {(lead.primaryPhone || !hasNoContacts) && (
+                        <div className={`p-4 rounded-xl border flex items-center justify-between transition-all ${lead.primaryPhone ? 'bg-teal-500/5 border-teal-500/20 shadow-sm' : 'bg-amber-500/5 border-amber-500/20 shadow-md'}`}>
+                          <div className="flex items-center gap-4">
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-black shadow-md ${lead.primaryPhone ? 'bg-teal-500' : 'bg-amber-500 animate-pulse'}`}><User className="w-5 h-5" /></div>
+                            <div>
+                              <p className="text-[var(--text-primary)] font-black text-sm uppercase tracking-tight leading-none">{lead.firstName} {lead.lastName}</p>
+                              <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mt-1.5">Primary Patient Context · <span className="text-teal-600 dark:text-teal-400 font-black">{lead.primaryPhone || "NOT SPECIFIED"}</span></p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button onClick={() => handleCall({ name: lead.firstName, phone: lead.primaryPhone })} disabled={!lead.primaryPhone} className={`w-10 h-10 rounded-lg transition-all flex items-center justify-center ${lead.primaryPhone ? 'bg-teal-500 text-black shadow-md hover:bg-teal-600 active:scale-90' : 'bg-slate-900 text-slate-800 cursor-not-allowed'}`}><PhoneCall className="w-5 h-5" /></button>
+                          </div>
+                        </div>
+                      )}
+
+                      {lead.otherContacts?.map((contact: any) => (
+                        <div key={contact.outreachContactId} className="flex items-center justify-between p-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl group/contact hover:border-teal-500/30 transition-all hover:bg-slate-50 dark:hover:bg-white/[0.07] shadow-sm">
+                          <div className="flex items-center gap-4">
+                            <div className="w-9 h-9 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-600 dark:text-teal-400 border border-teal-500/20 shadow-xl shadow-teal-500/10">
+                              <Users className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider leading-none">{contact.firstName} {contact.lastName}</p>
+                              <div className="flex items-center gap-3 mt-2">
+                                <span className="text-[8px] font-black text-teal-600 dark:text-teal-500 uppercase tracking-widest px-2 py-0.5 bg-teal-500/10 rounded-md border border-teal-500/10">{contact.relationship}</span>
+                                <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{contact.phoneNumber}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveContact(contact.outreachContactId)}
+                            className="p-2 rounded-lg bg-rose-500/10 text-rose-500 opacity-0 group-hover/contact:opacity-100 hover:bg-rose-500 transition-all hover:text-white"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+
+                      {isAddingRelative && (
+                        <div className="p-8 rounded-3xl border-2 border-teal-500/20 bg-teal-500/5 space-y-6 animate-in slide-in-from-bottom-10 shadow-2xl">
+                          <div className="grid grid-cols-3 gap-6">
+                            <div className="space-y-3">
+                              <label className="tactical-label ml-1">Legal Identity</label>
+                              <input placeholder="First Name" className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] premium-input rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all" value={newRelativeForm.firstName} onChange={e => setNewRelativeForm({ ...newRelativeForm, firstName: e.target.value })} />
+                            </div>
+                            <div className="space-y-3">
+                              <label className="tactical-label ml-1">Kinship Type</label>
+                              <select className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] premium-input rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 cursor-pointer transition-all" value={newRelativeForm.relationship} onChange={e => setNewRelativeForm({ ...newRelativeForm, relationship: e.target.value })}>
+                                {Object.keys(RELATIONSHIP_LABELS).map(k => <option key={k} value={k}>{k}</option>)}
+                              </select>
+                            </div>
+                            <div className="space-y-3">
+                              <label className="tactical-label ml-1">Comm Phone</label>
+                              <input placeholder="Phone Number" className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] premium-input rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all" value={newRelativeForm.phoneNumber} onChange={e => setNewRelativeForm({ ...newRelativeForm, phoneNumber: e.target.value })} />
+                            </div>
+                          </div>
+                          <div className="flex gap-4 pt-2">
+                            <button onClick={() => setIsAddingRelative(false)} className="flex-1 py-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:bg-white/10 hover:text-teal-500 transition-all">Cancel Vector Addition</button>
+                            <button onClick={handleAddRelative} className="flex-1 py-4 rounded-xl bg-teal-500 text-black text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-teal-600 transition-all">Establish Contact</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </section>
+
+                  {/* SECTION: CLINICAL ASSESSMENT */}
+                  <section id="assessment" className="space-y-6 pt-6 border-t border-[var(--card-border)]">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Clinical Assessment</h2>
+                        <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1">Evaluate environmental obstacles.</p>
                       </div>
                     </div>
-                  )}
 
-                  {lead.otherContacts?.map((contact: any) => (
-                    <div key={contact.outreachContactId} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl group/contact hover:border-teal-500/30 transition-all hover:bg-white/[0.07] shadow-sm">
-                      <div className="flex items-center gap-4">
-                        <div className="w-9 h-9 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-400 border border-teal-500/20 shadow-xl shadow-teal-500/10">
-                          <Users className="w-4 h-4" />
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <label className="tactical-label">Comm Status</label>
+                          <div className="field-container">
+                            <select className="w-full bg-transparent px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:text-teal-400 transition-all cursor-pointer" value={communicationStatus} onChange={e => setCommunicationStatus(e.target.value)}>
+                              {["Verbal", "NonVerbal", "Aphasic", "SpeechImpaired", "CognitiveImpairment"].map(v => <option key={v} value={v}>{v.replace(/([A-Z])/g, ' $1').trim()}</option>)}
+                            </select>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-white uppercase tracking-wider">{contact.firstName} {contact.lastName}</p>
-                          <div className="flex items-center gap-3 mt-1.5">
-                            <span className="text-[8px] font-black text-teal-500 uppercase tracking-widest px-2 py-0.5 bg-teal-500/10 rounded-md border border-teal-500/10">{contact.relationship}</span>
-                            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{contact.phoneNumber}</span>
+                        <div className="space-y-2">
+                          <label className="tactical-label">Modality Access</label>
+                          <div className="field-container premium-input">
+                            <select className="w-full bg-transparent px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:text-teal-400 transition-all cursor-pointer" value={techAccess} onChange={e => setTechAccess(e.target.value)}>
+                              {["None", "SmartphoneOnly", "TabletComputer", "HighLiteracy", "NeedsAssistance"].map(v => <option key={v} value={v}>{v.replace(/([A-Z])/g, ' $1').trim()}</option>)}
+                            </select>
                           </div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleRemoveContact(contact.outreachContactId)}
-                        className="p-2 rounded-lg bg-rose-500/10 text-rose-500 opacity-0 group-hover/contact:opacity-100 hover:bg-rose-500 transition-all hover:text-white"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                  
-                  {isAddingRelative && (
-                    <div className="p-8 rounded-3xl border-2 border-teal-500/20 bg-teal-500/5 space-y-6 animate-in slide-in-from-bottom-10 shadow-2xl">
-                      <div className="grid grid-cols-3 gap-6">
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Legal Identity</label>
-                          <input placeholder="First Name" className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all" value={newRelativeForm.firstName} onChange={e => setNewRelativeForm({ ...newRelativeForm, firstName: e.target.value })} />
-                        </div>
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Kinship Type</label>
-                          <select className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 cursor-pointer transition-all" value={newRelativeForm.relationship} onChange={e => setNewRelativeForm({ ...newRelativeForm, relationship: e.target.value })}>
-                            {Object.keys(RELATIONSHIP_LABELS).map(k => <option key={k} value={k}>{k}</option>)}
-                          </select>
-                        </div>
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Comm Phone</label>
-                          <input placeholder="Phone Number" className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all" value={newRelativeForm.phoneNumber} onChange={e => setNewRelativeForm({ ...newRelativeForm, phoneNumber: e.target.value })} />
-                        </div>
-                      </div>
-                      <div className="flex gap-4 pt-2">
-                        <button onClick={() => setIsAddingRelative(false)} className="flex-1 py-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:bg-white/10 hover:text-teal-500 transition-all">Cancel Vector Addition</button>
-                        <button onClick={handleAddRelative} className="flex-1 py-4 rounded-xl bg-teal-500 text-black text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-teal-600 transition-all">Establish Contact</button>
+                      <div className="space-y-2">
+                        <label className="tactical-label">Clinical Barriers & Logistical Observations</label>
+                        <textarea
+                          value={barriersToCare}
+                          onChange={e => setBarriersToCare(e.target.value)}
+                          onBlur={() => handleUpdateLead({ barriersToCare })}
+                          className="w-full bg-transparent field-container premium-input min-h-[140px] p-6 text-xs font-medium text-[var(--text-primary)] outline-none focus:border-teal-500 transition-all placeholder:text-[var(--text-muted)]"
+                          placeholder="Enter detailed clinical barriers or environmental observations..."
+                        />
                       </div>
                     </div>
+                  </section>
+
+                  {/* SECTION: OUTREACH DISPOSITION */}
+                  <section id="disposition" className="space-y-6 pt-6 border-t border-[var(--card-border)]">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Outreach Outcome</h2>
+                        <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1">Finalize operational disposition.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {["Eager", "Cooperative", "Hesitant", "Resistant", "Refused"].map(v => (
+                        <button key={v} onClick={() => {
+                          setDisposition(v);
+                          handleUpdateLead({ disposition: v });
+                        }} className={`px-4 py-2 rounded-full border text-[9px] font-black uppercase tracking-widest transition-all ${disposition === v ? 'bg-teal-500 border-teal-400 text-black shadow-lg shadow-teal-500/20' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-400 hover:border-teal-500/30'}`}>
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+
+                {/* STICKY CONVERSION HUD */}
+                <div className="absolute bottom-0 left-0 right-0 bg-[var(--card-bg)]/90 backdrop-blur-3xl border-t border-[var(--card-border)] p-6 flex items-center justify-between gap-8 shadow-[0_-15px_40px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-10 duration-1000 z-50">
+                  <div className="flex-1 max-w-sm">
+                    <label className="tactical-label">Clinical Provisioning Plan</label>
+                    <select
+                      className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-[10px] text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all cursor-pointer shadow-inner"
+                      value={selectedPlan}
+                      onChange={e => {
+                        setSelectedPlan(e.target.value);
+                        handleUpdateLead({ healthPlanId: e.target.value });
+                      }}
+                    >
+                      <option value="">Select Plan...</option>
+                      {plans.map((p: any) => <option key={p.healthPlanId} value={p.healthPlanId}>{p.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={handleNoAnswer} disabled={isLoggingNoAnswer} className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-[var(--text-muted)] text-[8px] font-black uppercase tracking-[0.2em] hover:bg-rose-500/10 hover:text-rose-500 transition-all">Log No Answer</button>
+                    <button
+                      onClick={() => {
+                        handleUpdateLead({
+                          modality: selectedModality,
+                          healthPlanId: selectedPlan,
+                          disposition: disposition,
+                          communicationStatus: communicationStatus,
+                          techAccess: techAccess,
+                          barriersToCare: barriersToCare
+                        }, false);
+                      }}
+                      disabled={updatingLead}
+                      className="px-8 py-3 rounded-xl bg-white/10 border border-teal-500/30 text-teal-400 font-black text-[9px] uppercase tracking-[0.3em] hover:bg-teal-500/10 transition-all flex items-center gap-2"
+                    >
+                      {updatingLead ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
+                          Synchronizing...
+                        </>
+                      ) : (
+                        "Save Profile"
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setIsEnrollmentOpen(true)}
+                      className="px-10 py-3 rounded-xl bg-teal-500 text-black font-black text-[9px] uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:bg-teal-600 transition-all active:scale-[0.98] flex items-center gap-3"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      Enroll Patient
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Intelligence Side-Deck */}
+            <div className="flex-1 flex flex-col space-y-6 min-h-0">
+              <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-5 shrink-0 space-y-4 shadow-xl">
+                <h3 className="text-[9px] font-black text-teal-500 uppercase tracking-[0.4em] flex items-center gap-2"><Activity className="w-4 h-4" /> Patient Summary</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center text-black font-black text-sm shadow-md">{lead.firstName[0]}{lead.lastName[0]}</div>
+                    <div>
+                      <p className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight leading-none">{lead.firstName} {lead.lastName}</p>
+                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-1 opacity-60">{lead.primaryEmail || "NO SECURE EMAIL"}</p>
+                    </div>
+                  </div>
+                  <div className="h-[1px] bg-[var(--card-border)] opacity-30" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Clinical Age</p>
+                      <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-wider">{calculateAge(lead.birthDate)} YRS</p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Gender Identity</p>
+                      <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-wider">{lead.gender || "NOT SPECIFIED"}</p>
+                    </div>
+                  </div>
+                  <div className="h-[1px] bg-[var(--card-border)] opacity-30" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Referral Source</p>
+                      <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-wider">{lead.referralSource || "DIRECT INTAKE"}</p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Lead Status</p>
+                      <span className="inline-flex px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-500 text-[8px] font-black uppercase tracking-widest border border-teal-500/20">{lead.status}</span>
+                    </div>
+                  </div>
+                  {lead.notes && (
+                    <>
+                      <div className="h-[1px] bg-[var(--card-border)] opacity-30" />
+                      <div className="space-y-1.5">
+                        <p className="text-[8px] font-black text-teal-500 uppercase tracking-widest leading-none">Lead Intelligence</p>
+                        <p className="text-[9px] font-medium text-[var(--text-primary)] leading-relaxed italic opacity-80">{lead.notes}</p>
+                      </div>
+                    </>
                   )}
                 </div>
-              </section>
+              </div>
 
-              {/* SECTION: CLINICAL ASSESSMENT */}
-              <section id="assessment" className="space-y-6 pt-6 border-t border-[var(--card-border)]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Clinical Assessment</h2>
-                    <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1">Evaluate environmental obstacles.</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Comm Status</label>
-                      <select className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all" value={communicationStatus} onChange={e => setCommunicationStatus(e.target.value)}>
-                        {["VERBAL", "NON_VERBAL", "REQUIRES_TRANSLATOR", "ASL"].map(v => <option key={v} value={v}>{v.replace('_', ' ')}</option>)}
-                      </select>
-                    </div>
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Modality Access</label>
-                      <select className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all" value={techAccess} onChange={e => setTechAccess(e.target.value)}>
-                        {["SMARTPHONE_ONLY", "SMARTPHONE_AND_TABLET", "LANDLINE_ONLY", "NO_PHONE_ACCESS"].map(v => <option key={v} value={v}>{v.replace('_', ' ')}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Clinical Barriers & Logistical Observations</label>
-                    <textarea
-                      value={barriersToCare}
-                      onChange={e => setBarriersToCare(e.target.value)}
-                      onBlur={() => handleUpdateLead({ barriersToCare })}
-                      className="w-full h-[140px] bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-2xl p-6 text-xs font-medium text-[var(--text-primary)] outline-none focus:border-teal-500 transition-all placeholder:text-[var(--text-muted)] opacity-80"
-                      placeholder="Enter detailed clinical barriers or environmental observations..."
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* SECTION: OUTREACH DISPOSITION */}
-              <section id="disposition" className="space-y-6 pt-6 border-t border-[var(--card-border)]">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Outreach Outcome</h2>
-                    <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1">Finalize operational disposition.</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-5 gap-3">
-                  {["EAGER", "COOPERATIVE", "HESITANT", "RESISTANT", "REFUSED"].map(v => (
-                    <button key={v} onClick={() => {
-                      setDisposition(v);
-                      handleUpdateLead({ disposition: v });
-                    }} className={`py-5 rounded-2xl border text-center transition-all ${disposition === v ? 'bg-teal-500 border-teal-400 text-black shadow-xl scale-[1.05]' : 'bg-transparent border-[var(--card-border)] text-slate-500 hover:border-teal-500/50'}`}>
-                      <span className="text-[11px] font-black uppercase tracking-widest">{v}</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            </div>
-
-            {/* STICKY CONVERSION HUD */}
-            <div className="absolute bottom-0 left-0 right-0 bg-[var(--card-bg)]/90 backdrop-blur-3xl border-t border-[var(--card-border)] p-6 flex items-center justify-between gap-8 shadow-[0_-15px_40px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-10 duration-1000 z-50">
-               <div className="flex-1 max-w-sm">
-                  <label className="text-[8px] font-black text-teal-500 uppercase tracking-[0.4em] ml-1 mb-2 block">Clinical Provisioning Plan</label>
-                  <select 
-                    className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-[10px] text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all cursor-pointer shadow-inner" 
-                    value={selectedPlan} 
-                    onChange={e => {
-                      setSelectedPlan(e.target.value);
-                      handleUpdateLead({ healthPlanId: e.target.value });
-                    }}
-                  >
-                    <option value="">Select Plan...</option>
-                    {plans.map((p: any) => <option key={p.healthPlanId} value={p.healthPlanId}>{p.name}</option>)}
-                  </select>
-               </div>
-               <div className="flex gap-3">
-                  <button onClick={handleNoAnswer} disabled={isLoggingNoAnswer} className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-[var(--text-muted)] text-[8px] font-black uppercase tracking-[0.2em] hover:bg-rose-500/10 hover:text-rose-500 transition-all">Log No Answer</button>
-                  <button 
-                    onClick={() => setIsEnrollmentOpen(true)} 
-                    className="px-10 py-3 rounded-xl bg-teal-500 text-black font-black text-[9px] uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:bg-teal-600 transition-all active:scale-[0.98] flex items-center gap-3"
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    Enroll Patient
-                  </button>
-               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Intelligence Side-Deck */}
-        <div className="flex-1 flex flex-col space-y-6 min-h-0">
-          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-5 shrink-0 space-y-4 shadow-xl">
-            <h3 className="text-[9px] font-black text-teal-500 uppercase tracking-[0.4em] flex items-center gap-2"><Activity className="w-4 h-4" /> Patient Summary</h3>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center text-black font-black text-sm shadow-md">{lead.firstName[0]}{lead.lastName[0]}</div>
-                <div>
-                  <p className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight leading-none">{lead.firstName} {lead.lastName}</p>
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-1 opacity-60">{lead.primaryEmail || "NO SECURE EMAIL"}</p>
+              <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-5 shrink-0 space-y-4 shadow-xl">
+                <h3 className="text-[9px] font-black text-teal-500 uppercase tracking-[0.4em] flex items-center gap-2"><MapPin className="w-4 h-4" /> Location Context</h3>
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black text-[var(--text-muted)] uppercase leading-relaxed tracking-widest">
+                    {lead.mailingAddress?.street || "NOT SPECIFIED"}<br />
+                    <span className="text-[var(--text-primary)]">{lead.mailingAddress?.city}, {lead.mailingAddress?.state} {lead.mailingAddress?.postalCode}</span>
+                  </p>
                 </div>
               </div>
-              <div className="h-[1px] bg-[var(--card-border)] opacity-30" />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Clinical Age</p>
-                  <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-wider">{calculateAge(lead.birthDate)} YRS</p>
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Gender Identity</p>
-                  <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-wider">{lead.gender || "NOT SPECIFIED"}</p>
-                </div>
-              </div>
-              <div className="h-[1px] bg-[var(--card-border)] opacity-30" />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Referral Source</p>
-                  <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-wider">{lead.referralSource || "DIRECT INTAKE"}</p>
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Lead Status</p>
-                  <span className="inline-flex px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-500 text-[8px] font-black uppercase tracking-widest border border-teal-500/20">{lead.status}</span>
-                </div>
-              </div>
-              {lead.notes && (
-                <>
-                  <div className="h-[1px] bg-[var(--card-border)] opacity-30" />
-                  <div className="space-y-1.5">
-                    <p className="text-[8px] font-black text-teal-500 uppercase tracking-widest leading-none">Lead Intelligence</p>
-                    <p className="text-[9px] font-medium text-[var(--text-primary)] leading-relaxed italic opacity-80">{lead.notes}</p>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
 
-          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-5 shrink-0 space-y-4 shadow-xl">
-            <h3 className="text-[9px] font-black text-teal-500 uppercase tracking-[0.4em] flex items-center gap-2"><MapPin className="w-4 h-4" /> Location Context</h3>
-            <div className="space-y-3">
-              <p className="text-[10px] font-black text-[var(--text-muted)] uppercase leading-relaxed tracking-widest">
-                {lead.mailingAddress?.street || "NOT SPECIFIED"}<br />
-                <span className="text-[var(--text-primary)]">{lead.mailingAddress?.city}, {lead.mailingAddress?.state} {lead.mailingAddress?.postalCode}</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="flex-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-6 overflow-y-auto space-y-5 shadow-2xl relative min-h-0">
-            <div className="absolute top-6 right-6"><Activity className="w-5 h-5 text-teal-500 animate-pulse" /></div>
-            <h3 className="text-[10px] font-black text-teal-500 uppercase tracking-[0.5em]">Interaction History</h3>
-            <div className="space-y-5">
-              {lead.activities?.length === 0 ? (
-                <div className="py-10 text-center space-y-4">
-                  <div className="w-10 h-10 rounded-full bg-[var(--sidebar-bg)] flex items-center justify-center text-[var(--card-border)] mx-auto shadow-inner"><Clock className="w-5 h-5" /></div>
-                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] opacity-40">No historical records identified</p>
-                </div>
-              ) : (
-                [...lead.activities].sort((a, b) => new Date(b.activityDate).getTime() - new Date(a.activityDate).getTime()).map((activity: any) => (
-                  <div key={activity.outreachActivityId} className="flex gap-4 group/item">
-                    <div className="flex flex-col items-center">
-                      <div className={`w-2 h-2 rounded-full mt-1.5 ${activity.outcome === 'NO_ANSWER' ? 'bg-rose-500 shadow-lg' : 'bg-teal-500 shadow-lg'}`} />
-                      <div className="w-[1px] flex-1 bg-[var(--card-border)] my-2 group-last/item:hidden opacity-30" />
+              <div className="flex-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-6 overflow-y-auto space-y-5 shadow-2xl relative min-h-0">
+                <div className="absolute top-6 right-6"><Activity className="w-5 h-5 text-teal-500 animate-pulse" /></div>
+                <h3 className="text-[10px] font-black text-teal-500 uppercase tracking-[0.5em]">Interaction History</h3>
+                <div className="space-y-5">
+                  {lead.activities?.length === 0 ? (
+                    <div className="py-10 text-center space-y-4">
+                      <div className="w-10 h-10 rounded-full bg-[var(--sidebar-bg)] flex items-center justify-center text-[var(--card-border)] mx-auto shadow-inner"><Clock className="w-5 h-5" /></div>
+                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] opacity-40">No historical records identified</p>
                     </div>
-                    <div className="space-y-1 pb-4">
-                      <div className="flex items-center gap-3">
-                        <p className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider">{activity.outcome.replaceAll('_', ' ')}</p>
-                        <span className="text-[9px] font-black text-[var(--text-muted)] uppercase">{new Date(activity.activityDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  ) : (
+                    [...lead.activities].sort((a, b) => new Date(b.activityDate).getTime() - new Date(a.activityDate).getTime()).map((activity: any) => (
+                      <div key={activity.outreachActivityId} className="flex gap-4 group/item">
+                        <div className="flex flex-col items-center">
+                          <div className={`w-2 h-2 rounded-full mt-1.5 ${activity.outcome === 'NO_ANSWER' ? 'bg-rose-500 shadow-lg' : 'bg-teal-500 shadow-lg'}`} />
+                          <div className="w-[1px] flex-1 bg-[var(--card-border)] my-2 group-last/item:hidden opacity-30" />
+                        </div>
+                        <div className="space-y-1 pb-4">
+                          <div className="flex items-center gap-3">
+                            <p className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider">{activity.outcome.replaceAll('_', ' ')}</p>
+                            <span className="text-[9px] font-black text-[var(--text-muted)] uppercase">{new Date(activity.activityDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                          <p className="text-[9px] font-black text-[var(--text-muted)] uppercase leading-relaxed opacity-60 max-w-[200px]">{activity.notes}</p>
+                        </div>
                       </div>
-                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase leading-relaxed opacity-60 max-w-[200px]">{activity.notes}</p>
-                    </div>
-                  </div>
-                ))
-              )}
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-1 bg-teal-500/5 border border-teal-500/10 rounded-3xl p-6 overflow-y-auto space-y-5 shadow-inner flex flex-col min-h-0">
+                <div className="flex items-center justify-between shrink-0">
+                  <h3 className="text-[10px] font-black text-teal-500 uppercase tracking-[0.5em] flex items-center gap-3"><ShieldCheck className="w-5 h-5" /> Clinical Guidance</h3>
+                  <select
+                    className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-black text-teal-500 uppercase tracking-widest outline-none focus:border-teal-500 shadow-md"
+                    value={selectedScriptId || ""}
+                    onChange={e => setSelectedScriptId(e.target.value)}
+                  >
+                    {scripts.map((s: any) => <option key={s.outreachScriptId} value={s.outreachScriptId}>{s.scriptTitle}</option>)}
+                  </select>
+                </div>
+
+                <div className="flex-1 bg-[var(--sidebar-bg)]/40 rounded-2xl p-6 overflow-y-auto border border-[var(--card-border)] min-h-0 shadow-inner">
+                  <p className="text-sm font-medium text-[var(--text-primary)] italic leading-relaxed opacity-90">
+                    "{activeScript?.content ? activeScript.content.replace("{firstName}", lead.firstName).replace("{lastName}", lead.lastName).replaceAll("deployment", "home visit") : "Protocol initialization pending clinical handshake."}"
+                  </p>
+                </div>
+
+                <div className="shrink-0 p-4 rounded-2xl bg-teal-500/10 border border-teal-500/20 shadow-md">
+                  <p className="text-[9px] font-black text-teal-500 uppercase tracking-[0.3em] leading-relaxed">
+                    CRITICAL: Identity verification required before modality selection and clinical provisioning.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-
-          <div className="flex-1 bg-teal-500/5 border border-teal-500/10 rounded-3xl p-6 overflow-y-auto space-y-5 shadow-inner flex flex-col min-h-0">
-            <div className="flex items-center justify-between shrink-0">
-              <h3 className="text-[10px] font-black text-teal-500 uppercase tracking-[0.5em] flex items-center gap-3"><ShieldCheck className="w-5 h-5" /> Clinical Guidance</h3>
-              <select
-                className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-black text-teal-500 uppercase tracking-widest outline-none focus:border-teal-500 shadow-md"
-                value={selectedScriptId || ""}
-                onChange={e => setSelectedScriptId(e.target.value)}
-              >
-                {scripts.map((s: any) => <option key={s.outreachScriptId} value={s.outreachScriptId}>{s.scriptTitle}</option>)}
-              </select>
-            </div>
-
-            <div className="flex-1 bg-[var(--sidebar-bg)]/40 rounded-2xl p-6 overflow-y-auto border border-[var(--card-border)] min-h-0 shadow-inner">
-              <p className="text-sm font-medium text-[var(--text-primary)] italic leading-relaxed opacity-90">
-                "{activeScript?.content ? activeScript.content.replace("{firstName}", lead.firstName).replace("{lastName}", lead.lastName).replaceAll("deployment", "home visit") : "Protocol initialization pending clinical handshake."}"
-              </p>
-            </div>
-
-            <div className="shrink-0 p-4 rounded-2xl bg-teal-500/10 border border-teal-500/20 shadow-md">
-              <p className="text-[9px] font-black text-teal-500 uppercase tracking-[0.3em] leading-relaxed">
-                CRITICAL: Identity verification required before modality selection and clinical provisioning.
-              </p>
-            </div>
-          </div>
-          </div>
-        </div>
         </>
       )}
-      <EnrollmentDrawer 
-        open={isEnrollmentOpen} 
-        onClose={() => setIsEnrollmentOpen(false)} 
-        outreachId={params.id as string} 
+      <EnrollmentDrawer
+        open={isEnrollmentOpen}
+        onClose={() => setIsEnrollmentOpen(false)}
+        outreachId={params.id as string}
       />
     </div>
   );

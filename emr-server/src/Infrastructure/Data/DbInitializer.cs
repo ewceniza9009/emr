@@ -860,8 +860,8 @@ namespace Infrastructure.Data
                         "Mango Ave",
                         "M.C. Briones St"
                     );
-                    entityAddr.Address.Latitude = faker.Address.Latitude(10.29, 10.33);
-                    entityAddr.Address.Longitude = faker.Address.Longitude(123.88, 123.92);
+                    entityAddr.Address.Latitude = faker.Address.Latitude(10.15, 10.45);
+                    entityAddr.Address.Longitude = faker.Address.Longitude(123.70, 124.00);
                     entityAddr.Address.PostalCode = faker.Address.ZipCode();
                     context.EntityAddresses.Add(entityAddr);
                 }
@@ -1021,8 +1021,8 @@ namespace Infrastructure.Data
                                 City = f.PickRandom("Cebu City", "Lapu-Lapu City", "Mandaue City"),
                                 State = "Central Visayas",
                                 PostalCode = f.Address.ZipCode(),
-                                Latitude = f.Address.Latitude(10.29, 10.33),
-                                Longitude = f.Address.Longitude(123.88, 123.92),
+                                Latitude = f.Address.Latitude(10.15, 10.45),
+                                Longitude = f.Address.Longitude(123.70, 124.00),
                             };
                         }
                     )
@@ -1100,8 +1100,8 @@ namespace Infrastructure.Data
                                 City = f.PickRandom("Cebu City", "Mandaue City", "Lapu-Lapu City"),
                                 State = "Central Visayas",
                                 PostalCode = f.Address.ZipCode(),
-                                Latitude = f.Address.Latitude(10.29, 10.33),
-                                Longitude = f.Address.Longitude(123.88, 123.92),
+                                Latitude = f.Address.Latitude(10.15, 10.45),
+                                Longitude = f.Address.Longitude(123.70, 124.00),
                             };
                         }
                     )
@@ -1198,9 +1198,10 @@ namespace Infrastructure.Data
                     )
                         return 0;
                     var baseT = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(dist);
-                    // Add some jitter for traffic (1.2x to 2.5x base time)
-                    var multiplier = f.Random.Double(1.2, 2.5);
-                    return (int)Math.Clamp(baseT * multiplier, 15, 45);
+                    // Add some jitter for traffic (1.2x to 3.0x base time to reflect urban congestion)
+                    var multiplier = f.Random.Double(1.2, 3.0);
+                    // Minimum 5 minutes, max 90 minutes for realistic variety
+                    return (int)Math.Clamp(baseT * multiplier, 5, 90);
                 }
 
                 // Phase 1: System Admin Tactical Roster

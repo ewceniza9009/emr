@@ -28,6 +28,8 @@ import {
 import { useTheme } from "@/lib/ThemeContext";
 import { useSettings } from "@/lib/SettingsContext";
 import { useSession } from "next-auth/react";
+import { useMutation, gql } from "@apollo/client";
+import { useCommandModal } from "./CommandModalProvider";
 
 const timezones = [
   { value: "UTC", label: "UTC (COORDINATED UNIVERSAL TIME)" },
@@ -57,6 +59,13 @@ export default function RegistrySettings() {
   const [activeTab, setActiveTab] = useState("workstation");
   const { preferences, tenantConfig, updatePreferences, updateTenantConfig, isLoaded } = useSettings();
   const { theme, toggleTheme } = useTheme();
+  const { confirm, alert } = useCommandModal();
+
+  const [executeSync] = useMutation(gql`
+    mutation SyncAllToElasticsearch {
+      syncAllToElasticsearch
+    }
+  `);
 
   // Staged states for transactional saving
   const [stagedPrefs, setStagedPrefs] = useState(preferences);
@@ -234,13 +243,72 @@ export default function RegistrySettings() {
               </div>
             )}
 
-            {(activeTab === "security" || activeTab === "infrastructure") && (
+            {activeTab === "infrastructure" && (
+              <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
+                <SectionLabel title="CORE INFRASTRUCTURE" subtitle="System Engine Management" icon={<Database className="w-3.5 h-3.5" />} color="teal" />
+                
+                {!isAdmin ? (
+                  <div className="p-8 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex flex-col items-center text-center space-y-4">
+                    <Lock className="w-8 h-8 text-amber-500/40" />
+                    <div>
+                      <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Administrative Access Required</h3>
+                      <p className="text-[9px] text-[var(--text-muted)] uppercase mt-1 max-w-[300px]">Infrastructure parameters can only be modified by system administrators.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <ProtocolToggle 
+                      title="Elasticsearch Core" 
+                      desc="High-performance clinical search engine (v7.17)"
+                      checked={stagedTenant.enableElasticsearch}
+                      onChange={(val: boolean) => setStagedTenant({...stagedTenant, enableElasticsearch: val})}
+                    />
+
+                    <div className="p-6 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-between group">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 transition-transform">
+                          <RefreshCw className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-[10px] font-black text-white uppercase tracking-tighter">Registry Synchronization</h4>
+                          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Push all existing nodes to the search cluster</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={async () => {
+                           // This calls the SyncAllToElasticsearch mutation we added earlier
+                           const ok = await confirm({
+                             title: "Trigger Bulk Sync",
+                             message: "Are you sure you want to re-index all clinical nodes? This will refresh the entire search registry and may temporarily increase system load.",
+                             confirmText: "Initialize Synchronization"
+                           });
+                           if (ok) {
+                              setIsSaving(true);
+                              try {
+                                 await executeSync(); // We'll add this hook below
+                                 await alert({ title: "Sync Complete", message: "All clinical nodes have been successfully synchronized with the search cluster.", type: "success" });
+                              } finally {
+                                 setIsSaving(false);
+                              }
+                           }
+                        }}
+                        className="px-6 py-2 rounded-xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
+                      >
+                        Re-Index All Nodes
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "security" && (
               <div className="h-full flex flex-col items-center justify-center space-y-6 animate-in zoom-in-95 duration-500">
                 <div className="w-12 h-12 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center">
                   <ServerCrash className="w-5 h-5 text-[var(--primary)] opacity-40" />
                 </div>
                 <div className="text-center">
-                  <h3 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">Infrastructure Module Locked</h3>
+                  <h3 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">Security Module Locked</h3>
                   <p className="text-[9px] text-[var(--text-muted)] uppercase mt-1 tracking-wider">Access level insufficient for modifications</p>
                 </div>
               </div>
@@ -367,7 +435,7 @@ interface SelectFieldProps {
 function SelectField({ label, value, onChange, options, icon }: SelectFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest px-1">{label}</label>
+      <label className="tactical-label px-1">{label}</label>
       <div className="relative group">
         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors">
           {icon}

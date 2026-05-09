@@ -1027,17 +1027,21 @@ public class QuestPdfService : IPdfService
                                 .FontColor(Colors.Teal.Medium);
                             col.Item()
                                 .PaddingBottom(20)
-                                .Grid(grid =>
+                                .Table(table =>
                                 {
-                                    grid.Columns(3);
-                                    grid.Spacing(10);
+                                    table.ColumnsDefinition(columns =>
+                                    {
+                                        columns.RelativeColumn();
+                                        columns.RelativeColumn();
+                                        columns.RelativeColumn();
+                                    });
 
-                                    AddSymptomItem(grid, "PAIN", esas.Pain);
-                                    AddSymptomItem(grid, "NAUSEA", esas.Nausea);
-                                    AddSymptomItem(grid, "ANXIETY", esas.Anxiety);
-                                    AddSymptomItem(grid, "DEPRESSION", esas.Depression);
-                                    AddSymptomItem(grid, "SOB", esas.ShortnessOfBreath);
-                                    AddSymptomItem(grid, "WELLBEING", esas.Wellbeing);
+                                    AddSymptomItem(table, "PAIN", esas.Pain);
+                                    AddSymptomItem(table, "NAUSEA", esas.Nausea);
+                                    AddSymptomItem(table, "ANXIETY", esas.Anxiety);
+                                    AddSymptomItem(table, "DEPRESSION", esas.Depression);
+                                    AddSymptomItem(table, "SOB", esas.ShortnessOfBreath);
+                                    AddSymptomItem(table, "WELLBEING", esas.Wellbeing);
                                 });
                         }
 
@@ -1111,9 +1115,9 @@ public class QuestPdfService : IPdfService
         return document.GeneratePdf();
     }
 
-    private void AddSymptomItem(GridDescriptor grid, string label, int value)
+    private void AddSymptomItem(TableDescriptor table, string label, int value)
     {
-        grid.Item()
+        table.Cell()
             .Row(row =>
             {
                 row.AutoItem()

@@ -59,26 +59,11 @@ export default function PatientsPage() {
       skip: 0,
       take: 50
     },
-    fetchPolicy: "network-only",
+    fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: true
   });
 
-  if (loading) return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
-      <div className="relative">
-        <UserCircle className="w-16 h-16 text-[var(--primary)] animate-pulse" />
-        <div className="absolute inset-0 bg-[var(--primary)]/20 blur-2xl animate-pulse rounded-full" />
-      </div>
-      <div className="flex flex-col items-center gap-2">
-        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Synchronizing Patient Registry</p>
-        <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent" />
-        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Indexing Clinical Records</p>
-      </div>
-    </div>
-  );
-
   const patients = data?.patients?.items || [];
-
   const filteredPatients = patients;
 
   return (

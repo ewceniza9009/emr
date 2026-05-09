@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
@@ -186,14 +186,16 @@ export default function ProviderSchedulePanel({
                 {/* Distance & Travel â€” only shown for in-person */}
                 {isInPerson && (
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <div
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold
-                        ${getTravelBadgeBg(provider.travelTimeInMinutes)}`}
-                    >
-                      <Car className={`w-3.5 h-3.5 ${getTravelColor(provider.travelTimeInMinutes)}`} />
-                      <span className={getTravelColor(provider.travelTimeInMinutes)}>
-                        {provider.travelTimeInMinutes} min
-                      </span>
+                    <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm transition-all group/travel">
+                      <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                        <Navigation className="w-3 h-3 text-indigo-500 fill-indigo-500/20" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest leading-none">
+                          {provider.travelTimeInMinutes}m Transit
+                        </span>
+                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter mt-0.5">Clinical Vector</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
                       <MapPin className="w-3 h-3" />

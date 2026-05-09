@@ -419,6 +419,7 @@ public class SetupMutation
         string Language,
         string DateFormat,
         bool IsActive,
+        bool EnableElasticsearch,
         string? ContactEmail,
         string? ExtendedSettingsJson
     );
@@ -438,10 +439,25 @@ public class SetupMutation
         existing.Language = input.Language;
         existing.DateFormat = input.DateFormat;
         existing.IsActive = input.IsActive;
+        existing.EnableElasticsearch = input.EnableElasticsearch;
         existing.ContactEmail = input.ContactEmail;
         existing.ExtendedSettingsJson = input.ExtendedSettingsJson;
 
         await context.SaveChangesAsync(default);
+        return true;
+    }
+
+    public async Task<bool> SyncAllToElasticsearch(
+        [Service] IApplicationDbContext context,
+        [Service] ISearchService searchService,
+        CancellationToken cancellationToken)
+    {
+        var patients = await context.Patients.ToListAsync(cancellationToken);
+        foreach (var p in patients) await searchService.IndexPatientAsync(p, cancellationToken);
+
+        var outreach = await context.PatientOutreaches.ToListAsync(cancellationToken);
+        foreach (var o in outreach) await searchService.IndexOutreachAsync(o, cancellationToken);
+
         return true;
     }
 }

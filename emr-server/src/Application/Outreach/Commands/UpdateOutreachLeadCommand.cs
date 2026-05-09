@@ -36,19 +36,19 @@ public class UpdateOutreachLeadCommandHandler : IRequestHandler<UpdateOutreachLe
         }
 
         if (request.Modality != null)
-            outreach.SelectedModality = Enum.Parse<CareModality>(request.Modality, true);
+            outreach.SelectedModality = Enum.Parse<CareModality>(request.Modality.Replace("_", ""), true);
         
         if (request.HealthPlanId != null)
             outreach.HealthPlanId = request.HealthPlanId.Value;
             
         if (request.Disposition != null)
-            outreach.Disposition = Enum.Parse<EnrollmentDisposition>(request.Disposition, true);
+            outreach.Disposition = Enum.Parse<EnrollmentDisposition>(request.Disposition.Replace("_", ""), true);
             
         if (request.CommunicationStatus != null)
-            outreach.CommunicationStatus = Enum.Parse<CommunicationAbility>(request.CommunicationStatus, true);
+            outreach.CommunicationStatus = Enum.Parse<CommunicationAbility>(request.CommunicationStatus.Replace("_", ""), true);
             
         if (request.TechAccess != null)
-            outreach.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess, true);
+            outreach.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess.Replace("_", ""), true);
             
         if (request.BarriersToCare != null)
             outreach.BarriersToCare = request.BarriersToCare;
