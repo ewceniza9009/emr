@@ -9,7 +9,8 @@ import {
   Users, Filter, Plus, Video, Home, Building2, Activity,
   Navigation, Clock, AlertCircle, Zap, Database, RefreshCw,
   Search, Target, CheckCircle, MapPin, Phone,
-  ClipboardList
+  ClipboardList,
+  Trash2
 } from "lucide-react";
 import { useToast } from "./ToastProvider";
 import { formatInTimeZone } from "date-fns-tz";
@@ -101,6 +102,12 @@ const UPDATE_SCHEDULE_BLOCK = gql`
   }
 `;
 
+const DELETE_SCHEDULE_BLOCK = gql`
+  mutation DeleteScheduleBlock($id: UUID!) {
+    deleteScheduleBlock(id: $id)
+  }
+`;
+
 export default function SchedulingCalendar() {
   const { data: session, status } = useSession();
   const { showToast } = useToast();
@@ -166,6 +173,11 @@ export default function SchedulingCalendar() {
   const [updateBlock] = useMutation(UPDATE_SCHEDULE_BLOCK, {
     onCompleted: () => { refetch(); showToast("Busy Block Updated", "success"); },
     onError: (err) => { refetch(); showToast(`Block Update Failed: ${err.message}`, "error"); }
+  });
+
+  const [deleteBlock] = useMutation(DELETE_SCHEDULE_BLOCK, {
+    onCompleted: () => { refetch(); showToast("Busy Block Removed", "success"); },
+    onError: (err) => { showToast(`Delete Failed: ${err.message}`, "error"); }
   });
 
   useEffect(() => {
@@ -522,16 +534,32 @@ export default function SchedulingCalendar() {
                             e.dataTransfer.setData("blockId", block.blockId);
                             e.dataTransfer.setData("duration", durMin.toString());
                           }}
-                          className="absolute left-1.5 right-1.5 z-10 rounded-xl bg-slate-900 border border-white/10 p-4 flex flex-col gap-2 overflow-hidden cursor-grab active:cursor-grabbing hover:border-[var(--primary)]/40 transition-all shadow-sm"
+                          className="absolute left-1.5 right-1.5 z-10 rounded-xl bg-slate-900 border border-white/10 p-3 pr-2 flex flex-col gap-2 cursor-grab active:cursor-grabbing hover:border-[var(--primary)]/40 transition-all shadow-sm"
                           style={{ top: `${topPx}px`, height: `${heightPx}px` }}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5 text-[var(--text-secondary)]">
                               <Shield className="w-4 h-4 text-[var(--text-muted)]" />
                               <span className="text-xs font-bold uppercase tracking-wider">Unavailable</span>
                             </div>
-                            <span className="text-[11px] font-bold text-[var(--text-primary)] bg-[var(--input-bg)] px-2 py-1 rounded">
-                              {blockHour % 12 || 12}:{blockMinute.toString().padStart(2, '0')}
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[11px] font-bold text-[var(--text-primary)] bg-[var(--input-bg)] px-2 py-1 rounded">
+                                {blockHour % 12 || 12}:{blockMinute.toString().padStart(2, '0')}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setConfirmModal({
+                                    isOpen: true,
+                                    title: "Remove Unavailable Block",
+                                    message: "Are you sure you want to delete this busy block? This time will become available for scheduling.",
+                                    onConfirm: () => deleteBlock({ variables: { id: block.blockId } })
+                                  });
+                                }}
+                                className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all ml-1"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       );
