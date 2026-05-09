@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, gql } from "@apollo/client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   Shield,
@@ -147,6 +147,14 @@ const DELETE_MUTATIONS = {
 };
 
 export default function AdminDashboardPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[var(--background)] flex items-center justify-center font-black text-[var(--text-muted)] uppercase tracking-widest animate-pulse">Initializing Security Session...</div>}>
+      <AdminDashboardContent />
+    </Suspense>
+  );
+}
+
+function AdminDashboardContent() {
   const { confirm, alert } = useCommandModal();
   const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<TabType>("practitioners");

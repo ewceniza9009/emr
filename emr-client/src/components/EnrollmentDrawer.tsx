@@ -194,33 +194,37 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const { data: leadData, loading: leadLoading } = useQuery(GET_LEAD_DETAILS, {
     variables: { id: outreachId },
     skip: !outreachId || !open,
-    fetchPolicy: "network-only",
-    onCompleted: (data) => {
-      if (data?.outreachById?.mailingAddress) {
+    fetchPolicy: "network-only"
+  });
+
+  useEffect(() => {
+    if (leadData?.outreachById) {
+      const lead = leadData.outreachById;
+      if (lead.mailingAddress) {
         setAddress({
-          street: data.outreachById.mailingAddress.street || "",
-          city: data.outreachById.mailingAddress.city || "",
-          state: data.outreachById.mailingAddress.state || "",
-          postalCode: data.outreachById.mailingAddress.postalCode || ""
+          street: lead.mailingAddress.street || "",
+          city: lead.mailingAddress.city || "",
+          state: lead.mailingAddress.state || "",
+          postalCode: lead.mailingAddress.postalCode || ""
         });
       }
-      if (data?.outreachById?.dateOfBirth) {
-        setPatientDob(data.outreachById.dateOfBirth.split('T')[0]);
+      if (lead.dateOfBirth) {
+        setPatientDob(lead.dateOfBirth.split('T')[0]);
       }
-      if (data?.outreachById?.biologicalSex) {
-        setPatientSex(data.outreachById.biologicalSex);
+      if (lead.biologicalSex) {
+        setPatientSex(lead.biologicalSex);
       }
-      if (data?.outreachById?.genderIdentity) {
-        setGenderIdentity(data.outreachById.genderIdentity);
+      if (lead.genderIdentity) {
+        setGenderIdentity(lead.genderIdentity);
       }
-      if (data?.outreachById?.language) {
-        setPatientLanguage(data.outreachById.language);
+      if (lead.language) {
+        setPatientLanguage(lead.language);
       }
-      if (data?.outreachById?.civilStatus) {
-        setCivilStatus(data.outreachById.civilStatus);
+      if (lead.civilStatus) {
+        setCivilStatus(lead.civilStatus);
       }
     }
-  });
+  }, [leadData]);
 
   const { data: enrollmentData } = useQuery(GET_ENROLLMENT_DATA, { skip: !open });
 
