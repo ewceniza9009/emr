@@ -16,6 +16,11 @@ public class DeleteAppointmentCommandHandler(IApplicationDbContext context)
 
         if (appointment == null) return false;
 
+        if (appointment.Status == Domain.Enums.AppointmentStatus.InProgress)
+        {
+            throw new InvalidOperationException("Cannot delete an appointment that is already in progress.");
+        }
+
         context.Appointments.Remove(appointment);
         await context.SaveChangesAsync(cancellationToken);
         

@@ -31,6 +31,11 @@ public class RescheduleAppointmentCommandHandler(
             throw new Exception("Appointment not found");
         }
 
+        if (appointment.Status == Domain.Enums.AppointmentStatus.InProgress)
+        {
+            throw new Exception("Cannot reschedule an appointment that is already in progress.");
+        }
+
         appointment.ScheduledStart = request.NewStart;
         appointment.ScheduledEnd = request.NewEnd;
 

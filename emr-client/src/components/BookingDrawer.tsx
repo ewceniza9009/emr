@@ -601,6 +601,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
   const status = appointmentData?.appointment?.status?.toUpperCase();
   const isLive = status === "LIVE" || status?.includes("PROGRESS");
+  const isCompleted = status === "COMPLETED";
+  const isLocked = isLive || isCompleted;
 
   return (
     <HalcyonPortal>
@@ -1167,13 +1169,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="p-1.5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"><ChevronRight className="w-4 h-4 text-slate-400" /></button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-7 gap-1">
+                    <div className={`grid grid-cols-7 gap-1 ${isLocked ? "pointer-events-none opacity-50" : ""}`}>
                       {renderCalendar()}
                     </div>
                   </div>
                 </div>
-                {patientId && (
-                  <div className="flex bg-[var(--input-bg)] rounded-2xl p-1.5 border border-[var(--card-border)] gap-1.5 shadow-inner">
+                 {patientId && (
+                  <div className={`flex bg-[var(--input-bg)] rounded-2xl p-1.5 border border-[var(--card-border)] gap-1.5 shadow-inner ${isLocked ? "pointer-events-none opacity-50" : ""}`}>
                     <button type="button" onClick={() => { if (period !== "AM") { setPeriod("AM"); setPractitionerId(""); setSupportingIds([]); } }}
                       className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
                                    ${period === "AM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--input-bg)]"}`}>
@@ -1192,8 +1194,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                     <span className="text-lg font-bold text-[var(--primary)]">{duration} <span className="text-xs text-[var(--text-muted)]">mins</span></span>
                   </div>
                   <input type="range" min="15" max="60" step="15" value={duration}
+                    disabled={isLocked}
                     onChange={e => setDuration(parseInt(e.target.value))}
-                    className="w-full h-1.5 rounded-full appearance-none transition-colors accent-[var(--primary)] bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer" />
+                    className="w-full h-1.5 rounded-full appearance-none transition-colors accent-[var(--primary)] bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer disabled:opacity-30" />
                   <div className="flex justify-between mt-4 text-[9px] font-bold text-[var(--text-muted)] tracking-widest uppercase">
                     <span>15m</span>
                     <span>Standard Visit</span>
@@ -1286,17 +1289,17 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               <div className="mt-auto pt-8 space-y-6">
                 {appointmentId && (
                   <div className="grid grid-cols-3 gap-2">
-                    <button type="button" onClick={async () => {
+                    <button type="button" disabled={isLocked} onClick={async () => {
                       await alert({
                         title: "Appointment Completed",
                         message: "The encounter has been successfully finalized in the clinical record.",
                         type: "success"
                       });
-                    }} className="p-3 bg-[var(--input-bg)] hover:bg-emerald-500/10 rounded-xl border border-[var(--card-border)] hover:border-emerald-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                    }} className="p-3 bg-[var(--input-bg)] hover:bg-emerald-500/10 rounded-xl border border-[var(--card-border)] hover:border-emerald-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all disabled:opacity-20">
                       <CheckCircle className="w-4 h-4 text-emerald-500" />
                       <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-emerald-500">Done</span>
                     </button>
-                    <button type="button" onClick={async () => {
+                    <button type="button" disabled={isLocked} onClick={async () => {
                       const ok = await confirm({
                         title: "Cancel Appointment",
                         message: "Are you sure you want to cancel this scheduled encounter?",
@@ -1304,11 +1307,11 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                       });
                       if (ok) {
                       }
-                    }} className="p-3 bg-[var(--input-bg)] hover:bg-rose-500/10 rounded-xl border border-[var(--card-border)] hover:border-rose-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                    }} className="p-3 bg-[var(--input-bg)] hover:bg-rose-500/10 rounded-xl border border-[var(--card-border)] hover:border-rose-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all disabled:opacity-20">
                       <X className="w-4 h-4 text-rose-500" />
                       <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-rose-500">Cancel</span>
                     </button>
-                    <button type="button" onClick={async () => {
+                    <button type="button" disabled={isLocked} onClick={async () => {
                       const ok = await confirm({
                         title: "Delete Appointment",
                         message: "Are you sure you want to permanently delete this appointment record? This action cannot be undone.",
@@ -1321,13 +1324,23 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           alert({ title: "Error", message: "Failed to delete appointment.", type: "danger" });
                         }
                       }
-                    }} className="p-3 bg-[var(--input-bg)] hover:bg-red-600/20 rounded-xl border border-[var(--card-border)] hover:border-red-600/50 flex flex-col items-center justify-center gap-1.5 group transition-all">
+                    }} className="p-3 bg-[var(--input-bg)] hover:bg-red-600/20 rounded-xl border border-[var(--card-border)] hover:border-red-600/50 flex flex-col items-center justify-center gap-1.5 group transition-all disabled:opacity-20">
                       <AlertCircle className="w-4 h-4 text-red-600" />
                       <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-red-600">Delete</span>
                     </button>
                   </div>
                 )}
-                <button type="submit" form="appointment-form" disabled={bookingLoading || !selectedSlot?.shiftStart}
+                {isLocked && (
+                  <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-4 animate-in slide-in-from-bottom-2">
+                    <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center shrink-0">
+                      <Shield className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest leading-relaxed">
+                      Encounter Lock Active: Time and modification controls are restricted for {isLive ? "active" : "finalized"} visits.
+                    </p>
+                  </div>
+                )}
+                <button type="submit" form="appointment-form" disabled={bookingLoading || !selectedSlot?.shiftStart || isLocked}
                   className="w-full h-14 bg-[var(--primary)] hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed
                             text-white font-bold text-sm shadow-xl shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center justify-center gap-3 rounded-2xl">
                   {bookingLoading ? (

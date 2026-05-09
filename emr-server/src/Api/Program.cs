@@ -27,6 +27,7 @@ try
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
+                .WriteTo.File("logs/emr-api-.txt", rollingInterval: RollingInterval.Day)
     );
 
     builder.Services.AddControllers();

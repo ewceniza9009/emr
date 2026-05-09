@@ -63,6 +63,11 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
                     )
                 ?? throw new KeyNotFoundException($"Appointment {request.AppointmentId} not found");
 
+            if (appointment.Status == AppointmentStatus.InProgress)
+            {
+                throw new InvalidOperationException("Cannot update or reschedule an appointment that is already in progress.");
+            }
+
             // Check if fields that impact logistics changed
             if (appointment.ScheduledStart != request.ScheduledStart || 
                 appointment.PractitionerId != request.PractitionerId ||
