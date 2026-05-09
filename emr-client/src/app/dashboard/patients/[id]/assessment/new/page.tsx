@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useMutation, gql } from "@apollo/client";
+import { useMutation, useQuery, gql } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
@@ -15,7 +15,8 @@ import {
   Thermometer,
   Wind,
   Scale,
-  Droplets
+  Droplets,
+  ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 import EsasScoring from "@/components/EsasScoring";
@@ -40,6 +41,16 @@ const LOG_VITAL_SIGN = gql`
   }
 `;
 
+const GET_SMART_PHRASES = gql`
+  query GetSmartPhrases {
+    smartPhrases {
+      shortcut
+      label
+      templateText
+    }
+  }
+`;
+
 export default function NewAssessmentPage() {
   const params = useParams();
   const router = useRouter();
@@ -48,7 +59,7 @@ export default function NewAssessmentPage() {
   const [esasScores, setEsasScores] = useState<Record<string, number>>({});
   const [ppsScore, setPpsScore] = useState<number>(100);
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm({
+  const { register, handleSubmit, setValue, getValues, watch, formState: { errors } } = useForm({
     defaultValues: {
       patientId: params.id,
       encounterDate: new Date().toISOString(),
@@ -70,6 +81,13 @@ export default function NewAssessmentPage() {
   const [createEncounter] = useMutation(CREATE_ENCOUNTER);
   const [logEsas] = useMutation(LOG_ESAS_ASSESSMENT);
   const [logVital] = useMutation(LOG_VITAL_SIGN);
+  const { data: smartPhraseData } = useQuery(GET_SMART_PHRASES);
+  const smartPhrases = smartPhraseData?.smartPhrases || [];
+
+  const [showSmartPhrases, setShowSmartPhrases] = useState<string | null>(null);
+  const [phraseFilter, setPhraseFilter] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
 
   const [isIotActive, setIsIotActive] = useState(false);
   const [telemetryEnabled, setTelemetryEnabled] = useState(false);
@@ -109,6 +127,55 @@ export default function NewAssessmentPage() {
     startConnection();
     return () => { connection.stop(); };
   }, [params.id, setValue]);
+
+  const handleSmartPhraseChange = (field: string, value: string, cursor: number) => {
+    setValue(field as any, value);
+    
+    const textBeforeCursor = value.slice(0, cursor);
+    const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
+    
+    if (lastSlashIdx !== -1) {
+      const segment = textBeforeCursor.slice(lastSlashIdx);
+      if (segment.startsWith("/") && !segment.includes(" ")) {
+        setShowSmartPhrases(field);
+        setPhraseFilter(segment.slice(1).toLowerCase());
+        setSelectedIndex(0);
+        
+        // Position popup
+        setPopupPosition({ top: 40, left: 0 });
+      } else {
+        setShowSmartPhrases(null);
+      }
+    } else {
+      setShowSmartPhrases(null);
+    }
+  };
+
+  const handleSmartPhraseKeyDown = (e: React.KeyboardEvent, field: string) => {
+    if (!showSmartPhrases) return;
+    
+    const filtered = smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter));
+    
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev + 1) % filtered.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev - 1 + filtered.length) % filtered.length);
+    } else if (e.key === "Enter" || e.key === "Tab") {
+      if (filtered.length > 0) {
+        e.preventDefault();
+        const phrase = filtered[selectedIndex].templateText;
+        const currentText = getValues(field as any) || "";
+        const lastSlashIdx = currentText.lastIndexOf("/");
+        const newText = currentText.slice(0, lastSlashIdx) + phrase;
+        setValue(field as any, newText);
+        setShowSmartPhrases(null);
+      }
+    } else if (e.key === "Escape") {
+      setShowSmartPhrases(null);
+    }
+  };
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
@@ -172,6 +239,48 @@ export default function NewAssessmentPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const renderSmartPhrases = (field: string) => {
+    const filtered = smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter));
+    if (filtered.length === 0) return null;
+
+    return (
+      <div 
+        style={{ top: `${popupPosition.top}px`, left: `${popupPosition.left}px` }}
+        className="absolute w-64 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-xl shadow-2xl z-[150] overflow-hidden animate-in fade-in zoom-in duration-200 backdrop-blur-xl"
+      >
+        <div className="p-3 border-b border-[var(--card-border)] bg-[var(--primary)]/5 flex items-center justify-between">
+          <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Smart Phrases</p>
+          <span className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">ESC</span>
+        </div>
+        <div className="max-h-48 overflow-y-auto custom-scrollbar">
+          {filtered.map((p: any, idx: number) => (
+            <div
+              key={p.shortcut}
+              onClick={() => {
+                const phrase = p.templateText;
+                const currentText = getValues(field as any) || "";
+                const lastSlashIdx = currentText.lastIndexOf("/");
+                const newText = currentText.slice(0, lastSlashIdx) + phrase;
+                setValue(field as any, newText);
+                setShowSmartPhrases(null);
+              }}
+              onMouseEnter={() => setSelectedIndex(idx)}
+              className={`p-3 cursor-pointer border-b border-[var(--card-border)] last:border-0 transition-all flex flex-col ${
+                idx === selectedIndex ? 'bg-[var(--primary)]/20 border-l-4 border-l-[var(--primary)]' : 'hover:bg-[var(--primary)]/10'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-0.5">
+                <span className={`text-[9px] font-black uppercase ${idx === selectedIndex ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'}`}>{p.shortcut}</span>
+                <ChevronRight className={`w-3 h-3 transition-transform ${idx === selectedIndex ? 'translate-x-1 text-[var(--primary)]' : 'text-[var(--text-muted)]'}`} />
+              </div>
+              <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest truncate">{p.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -305,23 +414,59 @@ export default function NewAssessmentPage() {
           <div className="space-y-6">
             <div className="space-y-1">
               <label className="tactical-label">Chief Complaint</label>
-              <input {...register("chiefComplaint")} className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-bold" placeholder="Reason for today's visit..." />
+              <div className="relative">
+                <input 
+                  {...register("chiefComplaint")} 
+                  onChange={e => handleSmartPhraseChange("chiefComplaint", e.target.value, e.target.selectionStart || 0)}
+                  onKeyDown={e => handleSmartPhraseKeyDown(e, "chiefComplaint")}
+                  className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-bold" 
+                  placeholder="Reason for today's visit..." 
+                />
+                {showSmartPhrases === "chiefComplaint" && renderSmartPhrases("chiefComplaint")}
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
                 <label className="tactical-label">Subjective Findings</label>
-                <textarea {...register("subjective")} className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[120px]" placeholder="Patient's self-reported symptoms..." />
+                <div className="relative">
+                  <textarea 
+                    {...register("subjective")} 
+                    onChange={e => handleSmartPhraseChange("subjective", e.target.value, e.target.selectionStart || 0)}
+                    onKeyDown={e => handleSmartPhraseKeyDown(e, "subjective")}
+                    className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[120px]" 
+                    placeholder="Patient's self-reported symptoms..." 
+                  />
+                  {showSmartPhrases === "subjective" && renderSmartPhrases("subjective")}
+                </div>
               </div>
               <div className="space-y-1">
                 <label className="tactical-label">Objective Findings</label>
-                <textarea {...register("objective")} className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[120px]" placeholder="Physical exam and clinical data..." />
+                <div className="relative">
+                  <textarea 
+                    {...register("objective")} 
+                    onChange={e => handleSmartPhraseChange("objective", e.target.value, e.target.selectionStart || 0)}
+                    onKeyDown={e => handleSmartPhraseKeyDown(e, "objective")}
+                    className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[120px]" 
+                    placeholder="Physical exam and clinical data..." 
+                  />
+                  {showSmartPhrases === "objective" && renderSmartPhrases("objective")}
+                </div>
               </div>
             </div>
 
             <div className="space-y-1">
               <label className="tactical-label">Assessment & Clinical Plan</label>
-              <textarea {...register("plan")} className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[150px]" placeholder="Diagnosis and next steps in care..." />
+              <div className="relative">
+                <textarea 
+                  {...register("plan")} 
+                  onChange={e => handleSmartPhraseChange("plan", e.target.value, e.target.selectionStart || 0)}
+                  onKeyDown={e => handleSmartPhraseKeyDown(e, "plan")}
+                  className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[150px]" 
+                  placeholder="Diagnosis and next steps in care..." 
+                />
+                {showSmartPhrases === "plan" && renderSmartPhrases("plan")}
+              </div>
             </div>
           </div>
         </div>

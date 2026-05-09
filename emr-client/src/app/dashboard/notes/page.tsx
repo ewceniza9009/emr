@@ -120,6 +120,9 @@ export default function ClinicalNotesPage() {
     }
   }, [appointments, selectedId]);
 
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     const selectionStart = e.target.selectionStart;
@@ -137,10 +140,47 @@ export default function ClinicalNotesPage() {
       if (segment.startsWith("/") && !segment.includes(" ")) {
         setShowSmartPhrases(true);
         setPhraseFilter(segment.slice(1).toLowerCase());
+        setSelectedIndex(0);
+
+        // Position popup near cursor
+        if (textareaRef.current) {
+          const { selectionStart } = textareaRef.current;
+          const textBefore = value.substring(0, selectionStart);
+          const lines = textBefore.split('\n');
+          const currentLine = lines.length;
+          const currentColumn = lines[lines.length - 1].length;
+          
+          // Rough estimate of position
+          const top = Math.min(currentLine * 24 + 40, 400);
+          const left = Math.min(currentColumn * 8 + 40, 600);
+          setPopupPosition({ top, left });
+        }
       } else {
         setShowSmartPhrases(false);
       }
     } else {
+      setShowSmartPhrases(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!showSmartPhrases) return;
+
+    const filtered = smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter));
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev + 1) % filtered.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev - 1 + filtered.length) % filtered.length);
+    } else if (e.key === "Enter" || e.key === "Tab") {
+      if (filtered.length > 0) {
+        e.preventDefault();
+        selectPhrase(filtered[selectedIndex].templateText);
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
       setShowSmartPhrases(false);
     }
   };
@@ -376,6 +416,7 @@ export default function ClinicalNotesPage() {
                     ref={textareaRef}
                     value={narrative}
                     onChange={handleTextChange}
+                    onKeyDown={handleKeyDown}
                     onKeyUp={(e) => setCursorPosition(e.currentTarget.selectionStart)}
                     onClick={(e) => setCursorPosition(e.currentTarget.selectionStart)}
                     placeholder={`Begin typing clinical documentation for ${selectedNote.patient?.firstName}... use / for smart templates.`}
@@ -383,20 +424,27 @@ export default function ClinicalNotesPage() {
                   />
 
                   {showSmartPhrases && (
-                    <div className="absolute top-10 left-10 w-80 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200">
-                      <div className="p-4 border-b border-[var(--card-border)] bg-[var(--primary)]/5">
+                    <div 
+                      style={{ top: `${popupPosition.top}px`, left: `${popupPosition.left}px` }}
+                      className="absolute w-80 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200 backdrop-blur-xl"
+                    >
+                      <div className="p-4 border-b border-[var(--card-border)] bg-[var(--primary)]/5 flex items-center justify-between">
                         <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Halcyon Smart Phrases</p>
+                        <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase">ESC to close</span>
                       </div>
                       <div className="max-h-60 overflow-y-auto">
-                        {smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter)).map((p: any) => (
+                        {smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter)).map((p: any, idx: number) => (
                           <div
                             key={p.shortcut}
                             onClick={() => selectPhrase(p.templateText)}
-                            className="p-4 hover:bg-[var(--primary)]/10 cursor-pointer border-b border-[var(--card-border)] last:border-0 group transition-all"
+                            onMouseEnter={() => setSelectedIndex(idx)}
+                            className={`p-4 cursor-pointer border-b border-[var(--card-border)] last:border-0 group transition-all flex flex-col ${
+                              idx === selectedIndex ? 'bg-[var(--primary)]/20 border-l-4 border-l-[var(--primary)]' : 'hover:bg-[var(--primary)]/10'
+                            }`}
                           >
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-[10px] font-black text-white uppercase group-hover:text-[var(--primary)]">{p.shortcut}</span>
-                              <ChevronRight className="w-3 h-3 text-[var(--text-muted)] group-hover:translate-x-1 transition-transform" />
+                              <span className={`text-[10px] font-black uppercase ${idx === selectedIndex ? 'text-[var(--primary)]' : 'text-white'}`}>{p.shortcut}</span>
+                              <ChevronRight className={`w-3 h-3 transition-transform ${idx === selectedIndex ? 'translate-x-1 text-[var(--primary)]' : 'text-[var(--text-muted)]'}`} />
                             </div>
                             <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{p.label}</p>
                           </div>
