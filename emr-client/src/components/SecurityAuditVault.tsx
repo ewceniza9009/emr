@@ -7,6 +7,7 @@ import {
   ChevronLeft, ChevronRight, Lock, Zap
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 const GET_AUDIT_LOGS = gql`
   query GetSecurityAuditLogs($skip: Int, $take: Int, $where: SecurityAuditLogDtoFilterInput, $order: [SecurityAuditLogDtoSortInput!]) {
@@ -62,6 +63,22 @@ export default function SecurityAuditVault() {
     pollInterval: 10000 // Poll every 10s for real-time forensics
   });
 
+  const [selectedLog, setSelectedLog] = useState<any>(null);
+
+  // Intelligent detail parser to extract a "Title" for the registry view
+  const getAuditTitle = (log: any) => {
+    if (!log.details) return "No Data";
+    try {
+      const parsed = JSON.parse(log.details);
+      if (parsed.ChiefComplaint) return `Complaint: ${parsed.ChiefComplaint}`;
+      if (parsed.Assessment) return `Assessment: ${parsed.Assessment}`;
+      if (parsed.Action) return parsed.Action;
+      return "Forensic Data Package";
+    } catch {
+      return log.details.length > 60 ? log.details.substring(0, 57) + "..." : log.details;
+    }
+  };
+
   if (error) return (
     <div className="p-10 bg-rose-500/10 border border-rose-500/20 rounded-2xl m-8">
       <div className="flex items-center gap-3 text-rose-500 font-black uppercase tracking-widest mb-4">
@@ -76,9 +93,9 @@ export default function SecurityAuditVault() {
   const totalCount = data?.securityAuditLogs?.totalCount || 0;
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-700">
+    <div className="relative h-[calc(100vh-100px)] flex flex-col gap-5 animate-in fade-in duration-700 overflow-hidden px-8 pt-4 pb-8">
       {/* Table Header Section */}
-      <div className="p-5 pb-0 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0 px-2">
         <div className="flex items-center gap-6">
           <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]" />
           <div>
@@ -106,23 +123,23 @@ export default function SecurityAuditVault() {
         </div>
       </div>
 
-      {/* Main Forensic Table */}
-      <div className="mx-5 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[2rem] shadow-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[var(--input-bg)]/50 border-b border-[var(--card-border)]">
-                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Timestamp</th>
-                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Actor</th>
-                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Action</th>
-                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Details</th>
-                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Entity</th>
-                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest text-right">Diagnostic</th>
+      {/* Main Forensic Table - Scrollable Container */}
+      <div className="flex-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse sticky-header">
+            <thead className="sticky top-0 z-10 bg-[var(--card-bg)] shadow-sm">
+              <tr className="bg-[var(--input-bg)] border-b border-[var(--card-border)]">
+                <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Timestamp</th>
+                <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Actor</th>
+                <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Action</th>
+                <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Details</th>
+                <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Entity</th>
+                <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest text-right">Diagnostic</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--card-border)]">
               {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
+                Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td colSpan={6} className="px-8 py-6 h-16 bg-white/[0.01]" />
                   </tr>
@@ -158,9 +175,17 @@ export default function SecurityAuditVault() {
                     </span>
                   </td>
                   <td className="px-6 py-2.5">
-                    <p className="text-[10px] text-[var(--text-secondary)] font-medium max-w-xs leading-normal">
-                      {log.details}
-                    </p>
+                    <button 
+                      onClick={() => setSelectedLog(log)}
+                      className="group/btn flex items-center gap-2 text-left"
+                    >
+                      <div className="w-6 h-6 rounded-md bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center group-hover/btn:border-[var(--primary)] transition-all">
+                        <FileText className="w-3 h-3 text-[var(--text-muted)] group-hover/btn:text-[var(--primary)]" />
+                      </div>
+                      <span className="text-[10px] text-[var(--text-secondary)] font-bold group-hover/btn:text-[var(--primary)] transition-colors truncate max-w-[200px]">
+                        {getAuditTitle(log)}
+                      </span>
+                    </button>
                   </td>
                   <td className="px-6 py-2.5">
                     {log.targetName ? (
@@ -186,8 +211,8 @@ export default function SecurityAuditVault() {
           </table>
         </div>
 
-        {/* Footer / Pagination */}
-        <div className="p-5 bg-[var(--input-bg)]/30 border-t border-[var(--card-border)] flex items-center justify-between">
+        {/* Footer / Pagination - Inside the table card */}
+        <div className="p-4 px-6 bg-[var(--input-bg)]/30 border-t border-[var(--card-border)] flex items-center justify-between shrink-0">
           <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">
             Showing {page * take + 1} to {Math.min((page + 1) * take, totalCount)} of {totalCount} events
           </p>
@@ -214,39 +239,132 @@ export default function SecurityAuditVault() {
         </div>
       </div>
 
-      {/* Intelligence Cards */}
-      <div className="mx-5 grid grid-cols-1 md:grid-cols-3 gap-6 pb-8">
-        <div className="p-5 rounded-[1.5rem] bg-indigo-500/5 border border-indigo-500/10 space-y-3">
-          <div className="flex items-center gap-4 text-indigo-400">
-            <Shield className="w-4 h-4" />
-            <h3 className="text-[10px] font-black uppercase tracking-widest">Integrity Status</h3>
+      {/* Compact Intelligence Cards - Pin to bottom */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0">
+        <div className="p-3 px-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex items-center gap-4 group hover:bg-indigo-500/10 transition-all">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+            <Shield className="w-5 h-5" />
           </div>
-          <p className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter">Verified</p>
-          <p className="text-[10px] text-[var(--text-muted)] font-medium">Chain of custody validated.</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-[9px] font-black uppercase tracking-widest text-indigo-400/70">Integrity</h3>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-black text-white uppercase tracking-tighter">Verified</p>
+              <span className="text-[8px] font-medium text-indigo-400/40 uppercase">Safe</span>
+            </div>
+          </div>
         </div>
 
-        <div className="p-5 rounded-[1.5rem] bg-rose-500/5 border border-rose-500/10 space-y-3">
-          <div className="flex items-center gap-4 text-rose-400">
-            <AlertCircle className="w-4 h-4" />
-            <h3 className="text-[10px] font-black uppercase tracking-widest">Unauthorized Attempts</h3>
+        <div className="p-3 px-4 rounded-2xl bg-rose-500/5 border border-rose-500/10 flex items-center gap-4 group hover:bg-rose-500/10 transition-all">
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-400">
+            <AlertCircle className="w-5 h-5" />
           </div>
-          <p className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter">
-            {logs.filter((l: any) => l.action.includes('UNAUTHORIZED')).length}
-          </p>
-          <p className="text-[10px] text-[var(--text-muted)] font-medium">High-risk access flagged.</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-[9px] font-black uppercase tracking-widest text-rose-400/70">Unauthorized</h3>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-black text-white uppercase tracking-tighter">
+                {logs.filter((l: any) => l.action.includes('UNAUTHORIZED')).length}
+              </p>
+              <span className="text-[8px] font-medium text-rose-400/40 uppercase">Alerts</span>
+            </div>
+          </div>
         </div>
 
-        <div className="p-5 rounded-[1.5rem] bg-emerald-500/5 border border-emerald-500/10 space-y-3">
-          <div className="flex items-center gap-4 text-emerald-400">
-            <Zap className="w-4 h-4" />
-            <h3 className="text-[10px] font-black uppercase tracking-widest">Break-Glass usage</h3>
+        <div className="p-3 px-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex items-center gap-4 group hover:bg-emerald-500/10 transition-all">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+            <Zap className="w-5 h-5" />
           </div>
-          <p className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter">
-            {logs.filter((l: any) => l.action.includes('ACTIVATED')).length}
-          </p>
-          <p className="text-[10px] text-[var(--text-muted)] font-medium">Active bypass sessions.</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-[9px] font-black uppercase tracking-widest text-emerald-400/70">Break-Glass</h3>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-black text-white uppercase tracking-tighter">
+                {logs.filter((l: any) => l.action.includes('ACTIVATED')).length}
+              </p>
+              <span className="text-[8px] font-medium text-emerald-400/40 uppercase">Active</span>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Forensic Detail Modal - Portal to Root */}
+      {selectedLog && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div 
+            className="absolute inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-md"
+            onClick={() => setSelectedLog(null)}
+          />
+          <div className="relative w-full max-w-xl bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+            {/* Compact Header */}
+            <div className="p-6 pb-4 flex items-center justify-between border-b border-[var(--card-border)] bg-[var(--input-bg)]/30">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-[var(--primary)] text-black flex items-center justify-center shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]">
+                  <Terminal className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Forensic Data</h2>
+                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
+                    <Activity className="w-3 h-3 text-[var(--primary)]" />
+                    Chain ID: {selectedLog.auditLogId.slice(0, 18)}...
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedLog(null)}
+                className="w-8 h-8 rounded-full bg-[var(--input-bg)] hover:bg-[var(--primary)]/10 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
+              >
+                <AlertCircle className="w-4 h-4 rotate-45" />
+              </button>
+            </div>
+
+            {/* Compact Content */}
+            <div className="p-6 pt-6 overflow-y-auto custom-scrollbar space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-[var(--input-bg)]/50 border border-[var(--card-border)]">
+                  <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Chronology</span>
+                  <p className="text-[11px] font-bold text-[var(--text-primary)] mt-0.5">{new Date(selectedLog.timestamp).toLocaleString()}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] overflow-hidden">
+                  <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Action</span>
+                  <p className="text-[11px] font-black text-[var(--primary)] uppercase tracking-tighter mt-0.5 break-all leading-tight">
+                    {selectedLog.action}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Forensic Payload</span>
+                <div className="p-5 rounded-2xl bg-slate-950 dark:bg-black border border-[var(--card-border)] font-mono text-[10px] leading-relaxed text-emerald-400/80 shadow-inner overflow-x-auto">
+                  {selectedLog.details.startsWith('{') ? (
+                    <pre className="whitespace-pre-wrap break-all">{JSON.stringify(JSON.parse(selectedLog.details), null, 2)}</pre>
+                  ) : (
+                    <p className="whitespace-pre-wrap break-all">{selectedLog.details}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 px-5 rounded-2xl bg-[var(--input-bg)]/30 border border-[var(--card-border)]">
+                <div className="flex items-center gap-3">
+                  <User className="w-3.5 h-3.5 text-[var(--primary)]" />
+                  <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">{selectedLog.userName}</span>
+                </div>
+                <span className="text-[8px] font-mono text-[var(--text-muted)] uppercase tracking-widest">
+                  IP: {selectedLog.ipAddress || 'Internal'}
+                </span>
+              </div>
+            </div>
+
+            {/* Compact Footer */}
+            <div className="p-5 bg-[var(--input-bg)]/30 border-t border-[var(--card-border)] flex justify-end">
+              <button 
+                onClick={() => setSelectedLog(null)}
+                className="px-8 py-2.5 rounded-xl bg-[var(--primary)] text-black text-[10px] font-black uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]"
+              >
+                Close Report
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
