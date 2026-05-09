@@ -37,18 +37,19 @@ public class UpdateInvoiceCommandHandler : IRequestHandler<UpdateInvoiceCommand,
         await _context.SaveChangesAsync(cancellationToken);
         
         // Manual mapping or adapt
-        return new BillingInvoiceDto(
-            invoice.InvoiceId,
-            invoice.PatientId,
-            invoice.EncounterId,
-            invoice.ClaimId,
-            invoice.InvoiceNumber,
-            invoice.Status,
-            invoice.SubtotalAmount,
-            invoice.CoveredAmount,
-            invoice.PatientResponsibility,
-            invoice.GeneratedAt,
-            invoice.DueDate
-        );
+        return new BillingInvoiceDto
+        {
+            InvoiceId = invoice.InvoiceId,
+            PatientId = invoice.PatientId,
+            EncounterId = invoice.EncounterId,
+            ClaimId = invoice.ClaimId,
+            InvoiceNumber = invoice.InvoiceNumber,
+            Status = invoice.Status,
+            SubtotalAmount = invoice.SubtotalAmount,
+            CoveredAmount = invoice.CoveredAmount,
+            PatientResponsibility = invoice.PatientResponsibility,
+            GeneratedAt = invoice.GeneratedAt,
+            DueDate = invoice.DueDate
+        };
     }
 }

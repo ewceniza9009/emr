@@ -115,7 +115,7 @@ public class DocumentMutation
             documentType,
             file.OpenReadStream(),
             file.Name,
-            file.ContentType,
+            file.ContentType ?? "application/octet-stream",
             file.Length ?? 0
         ), cancellationToken);
 

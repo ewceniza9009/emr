@@ -6,11 +6,11 @@ import {
   Terminal, AlertCircle, FileText, Activity,
   ChevronLeft, ChevronRight, Lock, Zap
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const GET_AUDIT_LOGS = gql`
-  query GetSecurityAuditLogs($skip: Int, $take: Int) {
-    securityAuditLogs(skip: $skip, take: $take, order: { timestamp: DESC }) {
+  query GetSecurityAuditLogs($skip: Int, $take: Int, $where: SecurityAuditLogDtoFilterInput, $order: [SecurityAuditLogDtoSortInput!]) {
+    securityAuditLogs(skip: $skip, take: $take, where: $where, order: $order) {
       items {
         auditLogId
         action
@@ -33,10 +33,32 @@ const GET_AUDIT_LOGS = gql`
 
 export default function SecurityAuditVault() {
   const [page, setPage] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const take = 20;
 
+  // Debounce logic for server-side query optimization
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const { data, loading, error } = useQuery(GET_AUDIT_LOGS, {
-    variables: { skip: page * take, take },
+    variables: { 
+      skip: page * take, 
+      take,
+      order: [{ timestamp: "DESC" }],
+      where: debouncedSearch ? {
+        or: [
+          { action: { contains: debouncedSearch } },
+          { userName: { contains: debouncedSearch } },
+          { details: { contains: debouncedSearch } },
+          { targetName: { contains: debouncedSearch } }
+        ]
+      } : null
+    },
     pollInterval: 10000 // Poll every 10s for real-time forensics
   });
 
@@ -72,8 +94,13 @@ export default function SecurityAuditVault() {
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
             <input 
-              placeholder="Search actions..." 
+              placeholder="Search forensic vault..." 
               className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 pl-10 pr-4 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all w-64"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setPage(0); // Reset to first page on search
+              }}
             />
           </div>
         </div>

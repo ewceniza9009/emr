@@ -7,6 +7,7 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Api.GraphQL.Types;
 using HotChocolate.Data;
+using Domain.Enums;
 
 namespace Api.GraphQL.Queries;
 
@@ -21,27 +22,21 @@ public class BillingQuery
         _currentUserService = currentUserService;
     }
 
+    [UseOffsetPaging(DefaultPageSize = 50, IncludeTotalCount = true)]
     [UseFiltering(typeof(ZBenefitClaimFilterInputType))]
     [UseSorting]
-    public async Task<PagedResponse<ZBenefitClaimDto>> GetZBenefitClaims([Service] IApplicationDbContext context)
+    public IQueryable<ZBenefitClaimDto> GetZBenefitClaims([Service] IApplicationDbContext context)
     {
-        var query = context.ZBenefitClaims
+        return context.ZBenefitClaims
             .Include(x => x.Patient)
-            .AsNoTracking();
-
-        var totalCount = await query.CountAsync();
-        var items = await query.ProjectToType<ZBenefitClaimDto>().ToListAsync();
-
-        return new PagedResponse<ZBenefitClaimDto>
-        {
-            Items = items,
-            TotalCount = totalCount
-        };
+            .AsNoTracking()
+            .ProjectToType<ZBenefitClaimDto>();
     }
 
+    [UseOffsetPaging(DefaultPageSize = 50, IncludeTotalCount = true)]
     [UseFiltering(typeof(BillingInvoiceFilterInputType))]
     [UseSorting]
-    public async Task<PagedResponse<BillingInvoiceDto>> GetBillingInvoices(
+    public IQueryable<BillingInvoiceDto> GetBillingInvoices(
         [Service] IApplicationDbContext context,
         Guid? id = null
     )
@@ -51,13 +46,30 @@ public class BillingQuery
         if (id.HasValue)
             query = query.Where(x => x.InvoiceId == id.Value);
 
-        var totalCount = await query.CountAsync();
-        var items = await query.ProjectToType<BillingInvoiceDto>().ToListAsync();
+        return query.ProjectToType<BillingInvoiceDto>();
+    }
 
-        return new PagedResponse<BillingInvoiceDto>
+    public async Task<BillingSummaryDto> GetBillingSummary([Service] IApplicationDbContext context)
+    {
+        var totalReceivables = await context.BillingInvoices
+            .Where(x => x.Status != InvoiceStatus.Cancelled)
+            .SumAsync(x => x.PatientResponsibility);
+
+        var pendingClaimsCount = await context.ZBenefitClaims
+            .CountAsync(x => x.Status == ClaimStatus.Submitted || x.Status == ClaimStatus.Pending);
+        
+        var totalClaimsCount = await context.ZBenefitClaims.CountAsync();
+
+        var paidClaimsTotal = await context.ZBenefitClaims
+            .Where(x => x.Status == ClaimStatus.Paid)
+            .SumAsync(x => x.TotalAmount);
+
+        return new BillingSummaryDto
         {
-            Items = items,
-            TotalCount = totalCount
+            TotalReceivables = totalReceivables,
+            PendingClaimsCount = pendingClaimsCount,
+            TotalClaimsCount = totalClaimsCount,
+            PaidClaimsTotal = paidClaimsTotal
         };
     }
 

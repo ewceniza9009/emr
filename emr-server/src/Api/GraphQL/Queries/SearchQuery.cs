@@ -74,7 +74,9 @@ public class SearchQuery
                 Type = "PATIENT",
                 Title = $"{p.FirstName} {p.LastName}",
                 Subtitle = p.Mrn,
-                Metadata = $"{p.Dob:MM/dd/yyyy} | {(p.Phones.FirstOrDefault(ph => ph.IsPrimary) != null ? p.Phones.FirstOrDefault(ph => ph.IsPrimary).PhoneNumber : "N/A")} | {(p.Addresses.FirstOrDefault(a => a.IsPrimary) != null ? p.Addresses.FirstOrDefault(a => a.IsPrimary).Address.City + ", " + p.Addresses.FirstOrDefault(a => a.IsPrimary).Address.State : "N/A")}"
+                Metadata = $"{p.Dob:MM/dd/yyyy} | " + 
+                           (p.Phones.Where(ph => ph.IsPrimary).Select(ph => ph.PhoneNumber).FirstOrDefault() ?? "N/A") + " | " +
+                           (p.Addresses.Where(a => a.IsPrimary).Select(a => a.Address.City + ", " + a.Address.State).FirstOrDefault() ?? "N/A")
             })
             .ToListAsync(cancellationToken);
 

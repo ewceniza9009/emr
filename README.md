@@ -23,6 +23,7 @@ flowchart TD
         AdminPortal["System Admin Portal (/admin)"]
         Apollo["Apollo Client (GQL)"]
         SignalR_C["SignalR Client"]
+        PWA["PWA Service Worker / Offline Cache"]
     end
 
     subgraph ApiLayer ["API Gateway (.NET 10)"]
@@ -36,11 +37,13 @@ flowchart TD
         Commands["State-Changing Commands"]
         Queries["Optimized Data Queries"]
         Services["Domain Services"]
+        Search["Elasticsearch Orchestrator"]
     end
 
     subgraph InfrastructureLayer ["Infrastructure & Persistence"]
         EF["EF Core (Multi-Tenant)"]
         Postgres[("PostgreSQL Database")]
+        Elastic[("Elasticsearch (Forensic Search)")]
         Blob["Azurite / Azure Blob Storage"]
         QuestPDF["QuestPDF (Document Engine)"]
         Scheduler["Intelligent Scheduling Service"]
@@ -58,8 +61,11 @@ flowchart TD
     Services --> QuestPDF
     Services --> Scheduler
     Services --> Audit
+    Services --> Search
     EF --> Postgres
+    Search --> Elastic
     QuestPDF --> Blob
+    MainPortal --> PWA
 ```
 
 ---
@@ -164,16 +170,35 @@ The `SchedulingService.cs` manages clinical deployment complexity:
 - **Telemetry Simulator:** Background worker synthesizing live vitals (HR, BP, SpO2).
 - **Azurite Storage:** Secure clinical document vault for Advance Directives and POC summaries.
 - **Security Audit Service:** Forensic trail of every data access event across the system.
+- **Elasticsearch Integration:** High-performance, full-text search engine for global patient discovery and forensic audit analysis.
 
 ---
+
+## 🧪 Enterprise Reliability & Performance (Phase III)
+
+The Halcyon Clinical OS has undergone rigorous hardening to transition from a high-fidelity prototype into a production-ready enterprise system.
+
+### 1. Performance & UI Optimization
+- **Dynamic Component Architecture:** Heavy dependencies (SurveyJS, Leaflet Maps, and Recharts) are now loaded on-demand using `next/dynamic`. This significantly reduces initial bundle sizes and ensures sub-second Time-to-Interactive (TTI).
+- **Premium Loading States:** Integrated a standardized Skeleton design system. High-fidelity placeholders replace generic spinners, maintaining the platform's luxury aesthetic during data hydration.
+- **Resource Segmentation:** Refactored the Patient Profile and Schedule pages to utilize lazy-loading patterns, optimizing the most data-heavy modules in the ecosystem.
+
+### 2. Clinical Resilience (PWA)
+- **Offline Clinical Capabilities:** Integrated `next-pwa` and Service Worker orchestration. Practitioners can now access cached clinical interfaces in "dead zones" or low-connectivity environments (e.g., rural home health visits).
+- **Installable Desktop/Mobile App:** Full PWA compliance with `manifest.json` and optimized metadata, allowing Halcyon to be deployed as a standalone native application.
+
+### 3. Professional E2E Testing Suite
+- **Playwright Integration:** Established a robust End-to-End testing framework to automate mission-critical clinical validation.
+- **Clinical Smoke Tests:** Automated verification of the "Critical Enrollment Path" and "Dashboard Metrics," ensuring that infrastructure updates do not degrade core clinical workflows.
 
 ## 🛠️ The Tactical Toolchain
 
 | Category | **Technologies / Tools Used** |
 | :--- | :--- |
-| **Backend Core** | .NET 10, HotChocolate GraphQL, EF Core (PostgreSQL), MediatR, SignalR. |
-| **Frontend** | Next.js 14 (App Router), Apollo Client, Tailwind CSS, SurveyJS, Lucide React. |
+| **Backend Core** | .NET 10, HotChocolate GraphQL, EF Core (PostgreSQL), MediatR, SignalR, Elasticsearch. |
+| **Frontend** | Next.js 14 (App Router), Apollo Client, Tailwind CSS, SurveyJS, Lucide React, next-pwa. |
 | **Infrastructure** | Azurite/Azure Blob Storage, QuestPDF, Bogus (Data Seeding), Docker. |
+| **Testing & QA** | Playwright E2E, Vitest (Unit), GitHub Actions. |
 | **Security** | JWT Claims, [UseClinicalAccess] Attribute, SecurityAuditService. |
 
 ---

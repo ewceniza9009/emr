@@ -19,13 +19,13 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import { useSettings } from "@/lib/SettingsContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import BenefitClaimDrawer from "@/components/BenefitClaimDrawer";
 
 const GET_INVOICES = gql`
-  query GetInvoices($where: BillingInvoiceFilterInput) {
-    billingInvoices(where: $where) {
+  query GetInvoices($skip: Int, $take: Int, $where: BillingInvoiceFilterInput) {
+    billingInvoices(skip: $skip, take: $take, where: $where, order: { generatedAt: DESC }) {
       items {
         invoiceId
         invoiceNumber
@@ -45,13 +45,14 @@ const GET_INVOICES = gql`
           itemId
         }
       }
+      totalCount
     }
   }
 `;
 
 const GET_CLAIMS = gql`
-  query GetClaims($where: ZBenefitClaimFilterInput) {
-    zBenefitClaims(where: $where) {
+  query GetClaims($skip: Int, $take: Int, $where: ZBenefitClaimFilterInput) {
+    zBenefitClaims(skip: $skip, take: $take, where: $where, order: { submittedAt: DESC }) {
       items {
         claimId
         patientId
@@ -66,6 +67,7 @@ const GET_CLAIMS = gql`
           mrn
         }
       }
+      totalCount
     }
   }
 `;
@@ -87,27 +89,56 @@ const GET_CLAIM_HISTORY = gql`
   }
 `;
 
+const GET_BILLING_SUMMARY = gql`
+  query GetBillingSummary {
+    billingSummary {
+      totalReceivables
+      pendingClaimsCount
+      totalClaimsCount
+      paidClaimsTotal
+    }
+  }
+`;
+
 export default function BillingPage() {
   const { showToast } = useToast();
   const { formatCurrency } = useSettings();
   const [statusFilter, setStatusFilter] = useState("All");
   const [periodFilter, setPeriodFilter] = useState("All Time");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState("invoices");
   const [isClaimOpen, setIsClaimOpen] = useState(false);
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [editingClaim, setEditingClaim] = useState<any>(null);
 
+  // Paging states
+  const [invoicePage, setInvoicePage] = useState(0);
+  const [claimPage, setClaimPage] = useState(0);
+  const take = 10;
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setInvoicePage(0);
+      setClaimPage(0);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const { data: invoiceData, loading: loadingInvoices, refetch: refetchInvoices } = useQuery(GET_INVOICES, {
     variables: {
+      skip: invoicePage * take,
+      take,
       where: {
         and: [
           statusFilter !== "All" ? { status: { eq: statusFilter } } : {},
-          searchTerm ? {
+          debouncedSearch ? {
             or: [
-              { invoiceNumber: { contains: searchTerm } },
-              { patient: { firstName: { contains: searchTerm } } },
-              { patient: { lastName: { contains: searchTerm } } }
+              { invoiceNumber: { contains: debouncedSearch } },
+              { patient: { firstName: { contains: debouncedSearch } } },
+              { patient: { lastName: { contains: debouncedSearch } } }
             ]
           } : {}
         ].filter(x => Object.keys(x).length > 0)
@@ -117,14 +148,16 @@ export default function BillingPage() {
 
   const { data: claimData, loading: loadingClaims, refetch: refetchClaims } = useQuery(GET_CLAIMS, {
     variables: {
+      skip: claimPage * take,
+      take,
       where: {
         and: [
           statusFilter !== "All" ? { status: { eq: statusFilter } } : {},
-          searchTerm ? {
+          debouncedSearch ? {
             or: [
-              { philhealthNumber: { contains: searchTerm } },
-              { patient: { firstName: { contains: searchTerm } } },
-              { patient: { lastName: { contains: searchTerm } } }
+              { philhealthNumber: { contains: debouncedSearch } },
+              { patient: { firstName: { contains: debouncedSearch } } },
+              { patient: { lastName: { contains: debouncedSearch } } }
             ]
           } : {}
         ].filter(x => Object.keys(x).length > 0)
@@ -132,9 +165,14 @@ export default function BillingPage() {
     }
   });
 
-  const loading = loadingInvoices || loadingClaims;
+  const { data: summaryData, loading: loadingSummary } = useQuery(GET_BILLING_SUMMARY);
+
+  const loading = loadingInvoices || loadingClaims || loadingSummary;
   const invoices = invoiceData?.billingInvoices?.items || [];
   const claims = claimData?.zBenefitClaims?.items || [];
+  const totalInvoices = invoiceData?.billingInvoices?.totalCount || 0;
+  const totalClaims = claimData?.zBenefitClaims?.totalCount || 0;
+  const summary = summaryData?.billingSummary || { totalReceivables: 0, pendingClaimsCount: 0, totalClaimsCount: 0, paidClaimsTotal: 0 };
 
   const refetch = () => {
     refetchInvoices();
@@ -159,21 +197,21 @@ export default function BillingPage() {
   const stats = [
     {
       label: "Total Receivables",
-      value: formatCurrency(invoices.reduce((acc: number, inv: any) => acc + (inv.status !== 'Cancelled' ? inv.patientResponsibility : 0), 0)),
+      value: formatCurrency(summary.totalReceivables),
       icon: TrendingUp,
       trend: "+8.2%",
       desc: "Outstanding Balances"
     },
     {
       label: "Pending Claims",
-      value: claims.filter((c: any) => c.status === "Submitted" || c.status === "Pending").length.toString(),
+      value: summary.pendingClaimsCount.toString(),
       icon: Clock,
-      trend: claims.length.toString(),
+      trend: summary.totalClaimsCount.toString(),
       desc: "Total Submissions"
     },
     {
       label: "Benefit Coverage",
-      value: formatCurrency(claims.filter((c: any) => c.status === "Paid").reduce((acc: number, c: any) => acc + c.totalAmount, 0)),
+      value: formatCurrency(summary.paidClaimsTotal),
       icon: CheckCircle2,
       trend: "100%",
       desc: "Released Funds"
@@ -334,131 +372,189 @@ export default function BillingPage() {
       <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-8 border border-[var(--card-border)] shadow-2xl relative overflow-hidden">
         <div className="overflow-x-auto">
           {activeTab === "invoices" ? (
-            <table className="w-full">
-              <thead>
-                <tr className="text-left border-b border-[var(--card-border)]">
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Entity Details</th>
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Invoice #</th>
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Status</th>
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-center">Items</th>
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-right">Total Liability</th>
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--card-border)]">
-                {loading ? (
-                  [1, 2, 3].map(i => <tr key={i} className="h-20 animate-pulse bg-[var(--input-bg)]/30 rounded-xl" />)
-                ) : filteredInvoices.map((invoice: any) => (
-                  <tr key={invoice.invoiceId} className="hover:bg-white/[0.01] transition-colors group">
-                    <td className="py-5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[var(--input-bg)] flex items-center justify-center text-[10px] font-black border border-[var(--card-border)]">
-                          {invoice.patient?.firstName?.[0]}{invoice.patient?.lastName?.[0]}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold">{invoice.patient?.firstName} {invoice.patient?.lastName}</p>
-                          <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">MRN: {invoice.patient?.mrn}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-5 px-4">
-                      <p className="text-xs font-bold text-[var(--primary)]">{invoice.invoiceNumber}</p>
-                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Generated {new Date(invoice.generatedAt).toLocaleDateString()}</p>
-                    </td>
-                    <td className="py-5 px-4">
-                      <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tighter ${getStatusColor(invoice.status)}`}>
-                        {invoice.status}
-                      </span>
-                    </td>
-                    <td className="py-5 px-4 text-center">
-                      <span className="text-[10px] font-black text-[var(--text-muted)] bg-[var(--input-bg)] px-2 py-1 rounded border border-[var(--card-border)]">
-                        {(invoice.items?.length || 0)} UNITS
-                      </span>
-                    </td>
-                    <td className="py-5 px-4 text-right">
-                      <p className="text-sm font-black tracking-tight">{formatCurrency(invoice.patientResponsibility)}</p>
-                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Settlement Required</p>
-                    </td>
-                    <td className="py-5 px-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <Link
-                          href={`/dashboard/billing/${invoice.invoiceId}`}
-                          className="p-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)]/10 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all border border-[var(--card-border)]"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                      </div>
-                    </td>
+            <div className="space-y-6">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left border-b border-[var(--card-border)]">
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Entity Details</th>
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Invoice #</th>
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Status</th>
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-center">Items</th>
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-right">Total Liability</th>
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-center">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[var(--card-border)]">
+                  {loading ? (
+                    [1, 2, 3].map(i => <tr key={i} className="h-20 animate-pulse bg-[var(--input-bg)]/30 rounded-xl" />)
+                  ) : invoices.map((invoice: any) => (
+                    <tr key={invoice.invoiceId} className="hover:bg-white/[0.01] transition-colors group">
+                      <td className="py-5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[var(--input-bg)] flex items-center justify-center text-[10px] font-black border border-[var(--card-border)]">
+                            {invoice.patient?.firstName?.[0]}{invoice.patient?.lastName?.[0]}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold">{invoice.patient?.firstName} {invoice.patient?.lastName}</p>
+                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">MRN: {invoice.patient?.mrn}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-5 px-4">
+                        <p className="text-xs font-bold text-[var(--primary)]">{invoice.invoiceNumber}</p>
+                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Generated {new Date(invoice.generatedAt).toLocaleDateString()}</p>
+                      </td>
+                      <td className="py-5 px-4">
+                        <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tighter ${getStatusColor(invoice.status)}`}>
+                          {invoice.status}
+                        </span>
+                      </td>
+                      <td className="py-5 px-4 text-center">
+                        <span className="text-[10px] font-black text-[var(--text-muted)] bg-[var(--input-bg)] px-2 py-1 rounded border border-[var(--card-border)]">
+                          {(invoice.items?.length || 0)} UNITS
+                        </span>
+                      </td>
+                      <td className="py-5 px-4 text-right">
+                        <p className="text-sm font-black tracking-tight">{formatCurrency(invoice.patientResponsibility)}</p>
+                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Settlement Required</p>
+                      </td>
+                      <td className="py-5 px-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Link
+                            href={`/dashboard/billing/${invoice.invoiceId}`}
+                            className="p-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)]/10 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all border border-[var(--card-border)]"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between pt-6 border-t border-[var(--card-border)]">
+                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                  Showing {invoicePage * take + 1} to {Math.min((invoicePage + 1) * take, totalInvoices)} of {totalInvoices} Invoices
+                </p>
+                <div className="flex items-center gap-2">
+                  <button 
+                    disabled={invoicePage === 0}
+                    onClick={() => setInvoicePage(p => p - 1)}
+                    className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"
+                  >
+                    <ArrowUpRight className="w-4 h-4 rotate-[225deg]" />
+                  </button>
+                  <div className="flex items-center gap-1 px-4">
+                    <span className="text-xs font-black text-[var(--text-primary)]">{invoicePage + 1}</span>
+                    <span className="text-xs font-black text-[var(--text-muted)]">/ {Math.ceil(totalInvoices / take)}</span>
+                  </div>
+                  <button 
+                    disabled={(invoicePage + 1) * take >= totalInvoices}
+                    onClick={() => setInvoicePage(p => p + 1)}
+                    className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"
+                  >
+                    <ArrowUpRight className="w-4 h-4 rotate-45" />
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="text-left border-b border-[var(--card-border)]">
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Patient</th>
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">PhilHealth PIN</th>
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Package Code</th>
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Status</th>
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-right">Claim Amount</th>
-                  <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-center">Management</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--card-border)]">
-                {loading ? (
-                  [1, 2, 3].map(i => <tr key={i} className="h-20 animate-pulse bg-[var(--input-bg)]/30 rounded-xl" />)
-                ) : filteredClaims.map((claim: any) => (
-                  <tr key={claim.claimId} className="hover:bg-white/[0.01] transition-colors group">
-                    <td className="py-5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center text-[10px] font-black border border-[var(--primary)]/20">
-                          {claim.patient?.firstName?.[0]}{claim.patient?.lastName?.[0]}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold">{claim.patient?.firstName} {claim.patient?.lastName}</p>
-                          <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Verified Member</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-5 px-4 font-mono text-xs font-bold tracking-tighter text-[var(--text-primary)]">
-                      {claim.philhealthNumber}
-                    </td>
-                    <td className="py-5 px-4">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[var(--primary)]" />
-                        <span className="text-xs font-bold uppercase">{claim.packageCode}</span>
-                      </div>
-                    </td>
-                    <td className="py-5 px-4">
-                      <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tighter ${getStatusColor(claim.status)}`}>
-                        {claim.status}
-                      </span>
-                    </td>
-                    <td className="py-5 px-4 text-right">
-                      <p className="text-sm font-black text-[var(--text-primary)]">{formatCurrency(claim.totalAmount)}</p>
-                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Expected Release</p>
-                    </td>
-                    <td className="py-5 px-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleEditClaim(claim)}
-                          className="p-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)]/10 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all border border-[var(--card-border)]"
-                        >
-                          <TrendingUp className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setSelectedClaimId(selectedClaimId === claim.claimId ? null : claim.claimId)}
-                          className="p-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-white text-[var(--text-muted)] hover:text-black transition-all border border-[var(--card-border)]"
-                        >
-                          <History className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+            <div className="space-y-6">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left border-b border-[var(--card-border)]">
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Patient</th>
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">PhilHealth PIN</th>
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Package Code</th>
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Status</th>
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-right">Claim Amount</th>
+                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-center">Management</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[var(--card-border)]">
+                  {loading ? (
+                    [1, 2, 3].map(i => <tr key={i} className="h-20 animate-pulse bg-[var(--input-bg)]/30 rounded-xl" />)
+                  ) : claims.map((claim: any) => (
+                    <tr key={claim.claimId} className="hover:bg-white/[0.01] transition-colors group">
+                      <td className="py-5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center text-[10px] font-black border border-[var(--primary)]/20">
+                            {claim.patient?.firstName?.[0]}{claim.patient?.lastName?.[0]}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold">{claim.patient?.firstName} {claim.patient?.lastName}</p>
+                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Verified Member</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-5 px-4 font-mono text-xs font-bold tracking-tighter text-[var(--text-primary)]">
+                        {claim.philhealthNumber}
+                      </td>
+                      <td className="py-5 px-4">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-[var(--primary)]" />
+                          <span className="text-xs font-bold uppercase">{claim.packageCode}</span>
+                        </div>
+                      </td>
+                      <td className="py-5 px-4">
+                        <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tighter ${getStatusColor(claim.status)}`}>
+                          {claim.status}
+                        </span>
+                      </td>
+                      <td className="py-5 px-4 text-right">
+                        <p className="text-sm font-black text-[var(--text-primary)]">{formatCurrency(claim.totalAmount)}</p>
+                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Expected Release</p>
+                      </td>
+                      <td className="py-5 px-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleEditClaim(claim)}
+                            className="p-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)]/10 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all border border-[var(--card-border)]"
+                          >
+                            <TrendingUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setSelectedClaimId(selectedClaimId === claim.claimId ? null : claim.claimId)}
+                            className="p-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-white text-[var(--text-muted)] hover:text-black transition-all border border-[var(--card-border)]"
+                          >
+                            <History className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between pt-6 border-t border-[var(--card-border)]">
+                <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                  Showing {claimPage * take + 1} to {Math.min((claimPage + 1) * take, totalClaims)} of {totalClaims} Claims
+                </p>
+                <div className="flex items-center gap-2">
+                  <button 
+                    disabled={claimPage === 0}
+                    onClick={() => setClaimPage(p => p - 1)}
+                    className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"
+                  >
+                    <ArrowUpRight className="w-4 h-4 rotate-[225deg]" />
+                  </button>
+                  <div className="flex items-center gap-1 px-4">
+                    <span className="text-xs font-black text-[var(--text-primary)]">{claimPage + 1}</span>
+                    <span className="text-xs font-black text-[var(--text-muted)]">/ {Math.ceil(totalClaims / take)}</span>
+                  </div>
+                  <button 
+                    disabled={(claimPage + 1) * take >= totalClaims}
+                    onClick={() => setClaimPage(p => p + 1)}
+                    className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"
+                  >
+                    <ArrowUpRight className="w-4 h-4 rotate-45" />
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
