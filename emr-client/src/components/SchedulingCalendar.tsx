@@ -445,9 +445,9 @@ export default function SchedulingCalendar() {
       {/* Calendar Grid */}
       <div className="flex-1 min-h-0 bg-[var(--background)] rounded-2xl border border-[var(--card-border)] flex flex-col overflow-hidden relative">
         {/* Header Row */}
-        <div className="grid grid-cols-[80px_1fr] bg-[var(--card-bg)] border-b border-[var(--card-border)] shrink-0 sticky top-0 z-[60] backdrop-blur-md">
-          <div className="flex items-center justify-center border-r border-[var(--card-border)]"><Clock className="w-4 h-4 text-[var(--text-muted)] opacity-50" /></div>
-          <div className="grid grid-cols-7 divide-x divide-[var(--card-border)]">
+        <div className="grid grid-cols-[80px_1fr] bg-[var(--card-bg)] border-b border-white/10 shrink-0 sticky top-0 z-[60] backdrop-blur-md">
+          <div className="flex items-center justify-center border-r border-white/10"><Clock className="w-4 h-4 text-[var(--text-muted)] opacity-50" /></div>
+          <div className="grid grid-cols-7 divide-x divide-white/10">
             {weekDates.map((date, i) => {
               const isToday = date.toDateString() === new Date().toDateString();
               return (
@@ -470,19 +470,19 @@ export default function SchedulingCalendar() {
         {/* Scrollable Body */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hide relative">
           <div className="flex" style={{ height: `${(GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR) * GRID_CONFIG.ROW_HEIGHT}px` }}>
-            <div className="w-[80px] border-r border-[var(--card-border)] bg-[var(--input-bg)] sticky left-0 z-50">
+            <div className="w-[80px] border-r border-white/10 bg-[var(--input-bg)] sticky left-0 z-50">
               {HOURS.map(h => (
-                <div key={h} className="h-[80px] relative border-t border-[var(--card-border)] first:border-t-0">
+                <div key={h} className="h-[80px] relative border-t border-white/10 first:border-t-0">
                   <span className="absolute top-0 left-0 right-0 text-center text-[10px] text-[var(--text-muted)] font-bold tracking-tight pt-1.5">
                     {h % 12 || 12} {h < 12 ? "AM" : "PM"}
                   </span>
                 </div>
               ))}
               {/* Closing line for the last hour (18:00) */}
-              <div className="h-0 border-t border-[var(--card-border)]" />
+              <div className="h-0 border-t border-white/10" />
             </div>
 
-            <div className="flex-1 grid grid-cols-7 relative divide-x divide-[var(--card-border)]">
+            <div className="flex-1 grid grid-cols-7 relative divide-x divide-white/10">
               {weekDates.map((d, dayIdx) => {
                 const dayAppts = visibleAppointments
                   .filter((a: any) => new Date(a.scheduledStart).toDateString() === d.toDateString())
@@ -495,9 +495,13 @@ export default function SchedulingCalendar() {
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => handleDrop(e, d)}
                   >
-                    {HOURS.map(h => <div key={h} className="h-[80px] border-t border-[var(--card-border)] first:border-t-0" />)}
+                    {HOURS.map(h => (
+                      <div key={h} className="h-[80px] border-t border-white/10 first:border-t-0 relative">
+                        <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-white/5" />
+                      </div>
+                    ))}
                     {/* Closing line for the last hour */}
-                    <div className="h-0 border-t border-[var(--card-border)]" />
+                    <div className="h-0 border-t border-white/10" />
 
                     {/* Busy Blocks */}
                     {dayBlocks.map((block: any) => {
@@ -518,7 +522,7 @@ export default function SchedulingCalendar() {
                             e.dataTransfer.setData("blockId", block.blockId);
                             e.dataTransfer.setData("duration", durMin.toString());
                           }}
-                          className="absolute left-1.5 right-1.5 z-10 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] p-4 flex flex-col gap-2 overflow-hidden cursor-grab active:cursor-grabbing hover:border-[var(--primary)]/40 transition-all"
+                          className="absolute left-1.5 right-1.5 z-10 rounded-xl bg-slate-900 border border-white/10 p-4 flex flex-col gap-2 overflow-hidden cursor-grab active:cursor-grabbing hover:border-[var(--primary)]/40 transition-all shadow-sm"
                           style={{ top: `${topPx}px`, height: `${heightPx}px` }}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5 text-[var(--text-secondary)]">
@@ -602,8 +606,8 @@ export default function SchedulingCalendar() {
 
                             <div draggable onDragStart={(e) => { e.dataTransfer.setData("appointmentId", appt.appointmentId); e.dataTransfer.setData("duration", durMin.toString()); }}
                               onClick={() => { setDrawerPrefill(appt.appointmentId); setDrawerOpen(true); }}
-                              className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden backdrop-blur-lg z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px]
-                                    ${(isViewedAsSc || isViewedAsAttending) ? "bg-indigo-500/10 border-indigo-500/40 group-hover:bg-[var(--card-bg)]" : style.bg + " " + style.border + " group-hover:bg-[var(--card-bg)]"} group-hover:border-[var(--primary)]/40`}>
+                              className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px]
+                                    ${(isViewedAsSc || isViewedAsAttending) ? "bg-[#1e1b4b] border-indigo-500/40 group-hover:bg-[var(--card-bg)]" : style.bg.replace('/5', '/10') + " " + style.border + " group-hover:bg-[var(--card-bg)]"} group-hover:border-[var(--primary)]/40`}>
 
                               {/* Header Section */}
                               <div className="flex flex-nowrap items-center justify-between shrink-0 mb-1 gap-1">

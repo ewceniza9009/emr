@@ -1,4 +1,10 @@
-﻿import { CLINICAL_CONFIG } from "./clinical-config";
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+import { CLINICAL_CONFIG } from "./clinical-config";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
 
 /**
  * Formats a date string or object into a human-readable format 

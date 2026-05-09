@@ -27,6 +27,7 @@ import {
   Microscope,
   Settings
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ToastProvider";
@@ -118,11 +119,11 @@ export default function Dashboard() {
   }, []);
 
   const stats = [
-    { label: "Patients", value: loading ? "..." : data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, trend: "+12.4%", desc: "Active Caseload", action: "ADD_PATIENT", color: "text-blue-500" },
-    { label: "Encounters", value: loading ? "..." : data?.dashboardStats?.newEncounters.toString(), icon: Target, trend: "+5.1%", desc: "Past 24H", action: "BOOK_APPOINTMENT", color: "text-amber-500" },
-    { label: "Reviews", value: loading ? "..." : data?.dashboardStats?.pendingReviews.toString(), icon: Clock, trend: "-2.3%", desc: "Avg Latency", href: "/dashboard/triage", color: "text-purple-500" },
-    { label: "Alerts", value: loading ? "..." : data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, trend: "Stable", desc: "System Health", href: "/dashboard/triage#alerts", color: "text-rose-500" },
-    { label: "Equipment", value: loading ? "..." : data?.dashboardStats?.deployedEquipmentCount.toString(), icon: Truck, trend: "+3", desc: "Logistics", href: "/dashboard/telemetry", color: "text-emerald-500" },
+    { label: "Patients", value: data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, trend: "+12.4%", desc: "Active Caseload", action: "ADD_PATIENT", color: "text-blue-500" },
+    { label: "Encounters", value: data?.dashboardStats?.newEncounters.toString(), icon: Target, trend: "+5.1%", desc: "Past 24H", action: "BOOK_APPOINTMENT", color: "text-amber-500" },
+    { label: "Reviews", value: data?.dashboardStats?.pendingReviews.toString(), icon: Clock, trend: "-2.3%", desc: "Avg Latency", href: "/dashboard/triage", color: "text-purple-500" },
+    { label: "Alerts", value: data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, trend: "Stable", desc: "System Health", href: "/dashboard/triage#alerts", color: "text-rose-500" },
+    { label: "Equipment", value: data?.dashboardStats?.deployedEquipmentCount.toString(), icon: Truck, trend: "+3", desc: "Logistics", href: "/dashboard/telemetry", color: "text-emerald-500" },
   ];
 
   return (
@@ -192,7 +193,11 @@ export default function Dashboard() {
               </span>
             </div>
             <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{stat.label}</p>
-            <h3 className="text-2xl font-bold text-[var(--text-primary)] mt-1">{stat.value}</h3>
+            {loading ? (
+              <Skeleton className="h-8 w-20 mt-1" />
+            ) : (
+              <h3 className="text-2xl font-bold text-[var(--text-primary)] mt-1">{stat.value}</h3>
+            )}
           </motion.div>
         ))}
       </div>
@@ -247,44 +252,56 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-1.5">
-              {(data?.triageWorklist?.items || [1, 2, 3, 4]).slice(0, 4).map((item: any, i: number) => {
-                const isReal = !!item.patientId;
-                const patientId = isReal ? item.patientId : "sample-id";
-                const mrn = isReal ? item.mrn : `PRN-${48291 + i}`;
-                const name = isReal ? `${item.firstName} ${item.lastName}` : "Patient Assessment";
-                const isAlert = isReal ? item.isAlert : i === 0;
-
-                return (
-                  <div
-                    key={isReal ? item.patientId : i}
-                    onClick={() => router.push(`/dashboard/patients/${patientId}`)}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20 transition-all cursor-pointer active:scale-[0.99] group"
-                  >
-                    <div className={`w-10 h-10 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0 ${isAlert ? 'border-rose-500/30 bg-rose-500/5' : ''}`}>
-                      <Zap className={`${isAlert ? 'text-rose-500 animate-pulse' : 'text-[var(--primary)]'} w-5 h-5`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors truncate">
-                        {isReal ? `Assessment: ${name}` : `Patient Assessment: ${mrn}`}
-                      </p>
-                      <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-medium truncate">
-                        {isReal ? `MRN: ${mrn} · Verified Registry` : "Clinical Review · Synchronized 2h ago"}
-                      </p>
-                    </div>
-                    <div className="text-right hidden sm:block">
-                      <div className="flex items-center justify-end gap-1 mb-0.5">
-                        <Shield className={`w-2.5 h-2.5 ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`} />
-                        <span className={`text-[8px] font-bold uppercase tracking-widest ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`}>
-                          {isAlert ? 'Urgent' : 'Validated'}
-                        </span>
-                      </div>
-                      <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
-                        System Admin
-                      </p>
+              {loading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)]">
+                    <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-[60%]" />
+                      <Skeleton className="h-3 w-[40%]" />
                     </div>
                   </div>
-                );
-              })}
+                ))
+              ) : (
+                (data?.triageWorklist?.items || []).slice(0, 4).map((item: any, i: number) => {
+                  const isReal = !!item.patientId;
+                  const patientId = isReal ? item.patientId : "sample-id";
+                  const mrn = isReal ? item.mrn : `PRN-${48291 + i}`;
+                  const name = isReal ? `${item.firstName} ${item.lastName}` : "Patient Assessment";
+                  const isAlert = isReal ? item.isAlert : i === 0;
+
+                  return (
+                    <div
+                      key={isReal ? item.patientId : i}
+                      onClick={() => router.push(`/dashboard/patients/${patientId}`)}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20 transition-all cursor-pointer active:scale-[0.99] group"
+                    >
+                      <div className={`w-10 h-10 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0 ${isAlert ? 'border-rose-500/30 bg-rose-500/5' : ''}`}>
+                        <Zap className={`${isAlert ? 'text-rose-500 animate-pulse' : 'text-[var(--primary)]'} w-5 h-5`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors truncate">
+                          {isReal ? `Assessment: ${name}` : `Patient Assessment: ${mrn}`}
+                        </p>
+                        <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-medium truncate">
+                          {isReal ? `MRN: ${mrn} · Verified Registry` : "Clinical Review · Synchronized 2h ago"}
+                        </p>
+                      </div>
+                      <div className="text-right hidden sm:block">
+                        <div className="flex items-center justify-end gap-1 mb-0.5">
+                          <Shield className={`w-2.5 h-2.5 ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`} />
+                          <span className={`text-[8px] font-bold uppercase tracking-widest ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`}>
+                            {isAlert ? 'Urgent' : 'Validated'}
+                          </span>
+                        </div>
+                        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
+                          System Admin
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </motion.div>
 

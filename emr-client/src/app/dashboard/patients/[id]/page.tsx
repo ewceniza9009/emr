@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
 import {
@@ -39,23 +40,43 @@ import {
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import * as signalR from "@microsoft/signalr";
 import Link from "next/link";
-import SymptomTrendChart from "@/components/SymptomTrendChart";
-import MedicationRegistry from "@/components/MedicationRegistry";
-import VitalSignTimeline from "@/components/VitalSignTimeline";
-import LiveHeartbeat from "@/components/LiveHeartbeat";
-import ProblemList from "@/components/ProblemList";
-import AllergyRegistry from "@/components/AllergyRegistry";
-import EquipmentRegistry from "@/components/EquipmentRegistry";
-import BookingDrawer from "@/components/BookingDrawer";
-import TaskManagement from "@/components/TaskManagement";
-import DocumentVault from "@/components/DocumentVault";
-import AddContactDrawer from "@/components/AddContactDrawer";
-import EditDemographicsDrawer from "@/components/EditDemographicsDrawer";
-import EditCommunicationsDrawer from "@/components/EditCommunicationsDrawer";
-import VisitSummaryDrawer from "@/components/VisitSummaryDrawer";
-import EmergencyActionDrawer from "@/components/EmergencyActionDrawer";
-import BreakGlassDrawer from "@/components/BreakGlassDrawer";
-import BenefitClaimDrawer from "@/components/BenefitClaimDrawer";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Dynamic Clinical Components
+const SymptomTrendChart = dynamic(() => import("@/components/SymptomTrendChart"), {
+  loading: () => <Skeleton className="h-64 w-full" />
+});
+const MedicationRegistry = dynamic(() => import("@/components/MedicationRegistry"), {
+  loading: () => <Skeleton className="h-32 w-full" />
+});
+const VitalSignTimeline = dynamic(() => import("@/components/VitalSignTimeline"), {
+  loading: () => <Skeleton className="h-48 w-full" />
+});
+const LiveHeartbeat = dynamic(() => import("@/components/LiveHeartbeat"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-24 w-full" />
+});
+const ProblemList = dynamic(() => import("@/components/ProblemList"), {
+  loading: () => <Skeleton className="h-40 w-full" />
+});
+const AllergyRegistry = dynamic(() => import("@/components/AllergyRegistry"), {
+  loading: () => <Skeleton className="h-24 w-full" />
+});
+const EquipmentRegistry = dynamic(() => import("@/components/EquipmentRegistry"), {
+  loading: () => <Skeleton className="h-40 w-full" />
+});
+
+// Dynamic Drawers & Modals
+const BookingDrawer = dynamic(() => import("@/components/BookingDrawer"));
+const TaskManagement = dynamic(() => import("@/components/TaskManagement"));
+const DocumentVault = dynamic(() => import("@/components/DocumentVault"));
+const AddContactDrawer = dynamic(() => import("@/components/AddContactDrawer"));
+const EditDemographicsDrawer = dynamic(() => import("@/components/EditDemographicsDrawer"));
+const EditCommunicationsDrawer = dynamic(() => import("@/components/EditCommunicationsDrawer"));
+const VisitSummaryDrawer = dynamic(() => import("@/components/VisitSummaryDrawer"));
+const EmergencyActionDrawer = dynamic(() => import("@/components/EmergencyActionDrawer"));
+const BreakGlassDrawer = dynamic(() => import("@/components/BreakGlassDrawer"));
+const BenefitClaimDrawer = dynamic(() => import("@/components/BenefitClaimDrawer"));
 import { useSession } from "next-auth/react";
 
 const GET_PATIENT_DETAILS = gql`

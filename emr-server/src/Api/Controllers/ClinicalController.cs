@@ -3,8 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
+/// <summary>
+/// Controller for clinical operations including document generation and exports.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class ClinicalController : ControllerBase
 {
     private readonly IPdfService _pdfService;
@@ -14,6 +18,13 @@ public class ClinicalController : ControllerBase
         _pdfService = pdfService;
     }
 
+    /// <summary>
+    /// Generates and exports a PDF summary for a specific clinical encounter.
+    /// </summary>
+    /// <param name="appointmentId">The unique identifier of the appointment/encounter.</param>
+    /// <returns>A PDF file containing the encounter summary.</returns>
+    /// <response code="200">Returns the PDF document.</response>
+    /// <response code="400">If the generation fails or the ID is invalid.</response>
     [HttpGet("export/encounter/{appointmentId}")]
     public async Task<IActionResult> ExportEncounterSummary(Guid appointmentId)
     {
@@ -28,6 +39,11 @@ public class ClinicalController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Generates and exports a PDF invoice.
+    /// </summary>
+    /// <param name="invoiceId">The unique identifier of the invoice.</param>
+    /// <returns>A PDF file containing the invoice.</returns>
     [HttpGet("export/invoice/{invoiceId}")]
     public async Task<IActionResult> ExportInvoice(Guid invoiceId)
     {
@@ -42,6 +58,11 @@ public class ClinicalController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Generates and exports a comprehensive clinical dossier for a patient.
+    /// </summary>
+    /// <param name="patientId">The unique identifier of the patient.</param>
+    /// <returns>A PDF file containing the patient's clinical history.</returns>
     [HttpGet("export/dossier/{patientId}")]
     public async Task<IActionResult> ExportPatientDossier(Guid patientId)
     {

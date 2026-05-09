@@ -566,9 +566,6 @@ namespace Infrastructure.Data
 
             // Seed Recurring Provider Shifts (Base Availability)
             await SeedProviderShiftsAsync(context, defaultTenantId);
-
-            // Seed Schedule Blocks for the next 7 days
-            await SeedScheduleBlocksAsync(context, defaultTenantId);
         }
 
         private static async Task SeedProviderShiftsAsync(
