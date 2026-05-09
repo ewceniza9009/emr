@@ -99,13 +99,16 @@ h4 {
 
 .tactical-label {
   font-size: 10px !important;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.15em !important;
-  color: #64748b !important;
-  /* Authoritative Slate */
+  color: var(--text-muted) !important;
   margin-bottom: 10px !important;
   display: block !important;
+}
+
+.light .tactical-label {
+  color: #475569 !important; /* Slate-600 for sharp contrast */
 }
 
 /* Outreach Workstation Specifics - Scoped to prevent scheduler collisions */

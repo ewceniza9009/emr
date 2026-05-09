@@ -620,7 +620,7 @@ export default function SchedulingCalendar() {
                               <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-400/30 rounded-full" />
                               
                               {/* Tactical Glass Badge */}
-                              <div className="ml-2 flex items-center gap-2 px-3 py-1.5 bg-white/40 dark:bg-slate-800/40 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] group/travel transition-all hover:bg-white/60 dark:hover:bg-slate-800/60">
+                              <div className="ml-2 flex items-center gap-2 px-3 py-1.5 bg-[var(--card-bg)]/80 backdrop-blur-md border border-[var(--card-border)] rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] group/travel transition-all hover:bg-[var(--card-bg)]">
                                 <div className="w-5 h-5 rounded-lg bg-indigo-500/10 flex items-center justify-center">
                                   <Navigation className="w-3 h-3 text-indigo-500 fill-indigo-500/20" />
                                 </div>
@@ -647,7 +647,11 @@ export default function SchedulingCalendar() {
                             <div draggable onDragStart={(e) => { e.dataTransfer.setData("appointmentId", appt.appointmentId); e.dataTransfer.setData("duration", durMin.toString()); }}
                               onClick={() => { setDrawerPrefill(appt.appointmentId); setDrawerOpen(true); }}
                               className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px] backdrop-blur-[2px]
-                                    ${isViewedAsAttending ? "bg-sky-500/10 border-sky-400 group-hover:bg-sky-950 group-hover:border-sky-500" : isViewedAsSc ? "bg-indigo-500/10 border-indigo-300 group-hover:bg-indigo-950 group-hover:border-indigo-500" : style.bg.replace('/5', '/10') + " " + style.border + " group-hover:bg-[var(--card-bg)] dark:group-hover:bg-slate-900 group-hover:shadow-2xl"} group-hover:border-[var(--primary)]/40`}>
+                                    ${isViewedAsAttending 
+                                      ? "bg-sky-500/10 border-sky-400 group-hover:bg-[var(--card-bg)] group-hover:border-sky-500" 
+                                      : isViewedAsSc 
+                                        ? "bg-indigo-500/10 border-indigo-300 group-hover:bg-[var(--card-bg)] group-hover:border-indigo-500" 
+                                        : style.bg.replace('/5', '/10') + " " + style.border + " group-hover:bg-[var(--card-bg)] group-hover:shadow-2xl"} group-hover:border-[var(--primary)]/40`}>
 
                               {/* Header Section */}
                               <div className="flex flex-nowrap items-center justify-between shrink-0 mb-1 gap-1">

@@ -843,11 +843,7 @@ namespace Infrastructure.Data
                         Address = new Address
                         {
                             Street = "", // Set below
-                            City = faker.PickRandom(
-                                "Cebu City",
-                                "Mandaue City",
-                                "Lapu-Lapu City"
-                            ),
+                            City = faker.PickRandom("Cebu City", "Mandaue City", "Lapu-Lapu City"),
                             State = "Central Visayas",
                         },
                     };
@@ -1513,13 +1509,23 @@ namespace Infrastructure.Data
                                 f => (Guid?)f.PickRandom(allAppointments).AppointmentId
                             )
                             .RuleFor(e => e.Type, f => f.PickRandom<EncounterType>())
-                            .RuleFor(e => e.Status, EncounterStatus.Completed)
+                            .RuleFor(
+                                e => e.Status,
+                                (f, e) =>
+                                {
+                                    // Make 30% of seeded encounters active so telemetry dashboard isn't empty
+                                    return f.Random.WeightedRandom(
+                                        new[] { EncounterStatus.Completed, EncounterStatus.InProgress, EncounterStatus.Arrived },
+                                        new[] { 0.7f, 0.2f, 0.1f }
+                                    );
+                                }
+                            )
                             .RuleFor(e => e.PpsScore, f => f.Random.Number(30, 90))
                             .RuleFor(
                                 e => e.EncounterDate,
-                                f => f.Date.PastOffset(1).ToUniversalTime()
+                                f => f.Date.RecentOffset(1).ToUniversalTime()
                             )
-                            .Generate(10); // Increased to 10 for better history
+                            .Generate(10);
                         allEncounters.AddRange(pEncounters);
                     }
                     context.ClinicalEncounters.AddRange(allEncounters);

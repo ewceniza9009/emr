@@ -84,15 +84,15 @@ export default function DocumentVault({ patientId }: Props) {
           <p className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest mt-1">Immutable Patient Records & Discharges</p>
         </div>
         <div className="flex items-center gap-4">
-           <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input 
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Filter by type or name..." 
-                className="bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs text-[var(--text-primary)] focus:border-blue-500 transition-all w-60"
-              />
-           </div>
+            <div className="relative">
+               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+               <input 
+                 value={search}
+                 onChange={e => setSearch(e.target.value)}
+                 placeholder="Filter by type or name..." 
+                 className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2 pl-10 pr-4 text-xs text-[var(--text-primary)] focus:border-blue-500 transition-all w-60"
+               />
+            </div>
            <button 
              onClick={() => setIsUploadOpen(true)}
              className="px-6 py-2.5 rounded-xl bg-blue-600 text-[var(--text-primary)] font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 flex items-center gap-2 hover:bg-blue-500 transition-all"
@@ -107,9 +107,12 @@ export default function DocumentVault({ patientId }: Props) {
            [1,2,3].map(i => <div key={i} className="h-40 rounded-3xl bg-white/5 animate-pulse" />)
         ) : filteredDocs.length > 0 ? (
           filteredDocs.map((doc: any) => (
-            <div key={doc.patientDocumentId} className="group p-6 rounded-3xl bg-white/5 border border-white/5 hover:border-blue-500/30 transition-all cursor-pointer">
+            <div 
+              key={doc.patientDocumentId} 
+              className="group p-6 rounded-3xl bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-blue-500/50 transition-all cursor-pointer shadow-sm hover:shadow-2xl hover:-translate-y-1"
+            >
                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-2xl bg-white/5 group-hover:bg-blue-500/10 transition-all">
+                  <div className="p-3 rounded-2xl bg-[var(--input-bg)] group-hover:bg-blue-500/10 transition-all border border-[var(--card-border)]">
                      {getIcon(doc.contentType || '')}
                   </div>
                    <div className="flex gap-2">
@@ -155,7 +158,7 @@ export default function DocumentVault({ patientId }: Props) {
                             deleteDoc({ variables: { id: doc.patientDocumentId } });
                           }
                         }}
-                        className="p-2 rounded-lg hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 transition-all"
+                        className="p-2 rounded-lg hover:bg-blue-500/10 text-slate-500 hover:text-blue-500 transition-all"
                         title="Delete Record"
                       >
                          <Trash2 className="w-4 h-4" />

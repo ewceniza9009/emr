@@ -1,27 +1,42 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import * as signalR from "@microsoft/signalr";
-import { Activity, Heart, Zap, Wind, Thermometer } from "lucide-react";
+import { Heart, Zap, Wind, Thermometer, Power } from "lucide-react";
 
-export default function LiveHeartbeat({ patientId }: { patientId: string }) {
+interface LiveHeartbeatProps {
+  patientId: string;
+  enabled: boolean;
+  onToggle: () => void;
+  status: "off" | "initializing" | "live";
+}
+
+export default function LiveHeartbeat({ patientId, enabled, onToggle, status }: LiveHeartbeatProps) {
   const [vitals, setVitals] = useState({ hr: 72, spo2: "--", temp: "--" });
-  const [connected, setConnected] = useState(false);
   const [pulse, setPulse] = useState(false);
 
   useEffect(() => {
+    if (!enabled) {
+      setVitals({ hr: 72, spo2: "--", temp: "--" });
+      return;
+    }
+
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:34732/hubs/telemetry")
+      .withUrl(process.env.NEXT_PUBLIC_SIGNALR_ENDPOINT || "http://localhost:34732/hubs/telemetry")
       .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.None)
       .build();
+
+    let mounted = true;
 
     const startConnection = async () => {
       try {
         await connection.start();
-        setConnected(true);
+        if (!mounted) return;
         await connection.invoke("JoinPatientStream", patientId);
 
         connection.on("ReceiveVitals", (data: any) => {
+          if (!mounted) return;
           setVitals({
             hr: data.heartRate,
             spo2: data.spO2.toString(),
@@ -32,47 +47,73 @@ export default function LiveHeartbeat({ patientId }: { patientId: string }) {
         });
 
       } catch (err) {
-        console.error("SignalR Connection Error: ", err);
+        // Silent — will retry via withAutomaticReconnect
       }
     };
 
     startConnection();
 
     return () => {
+      mounted = false;
       connection.stop();
     };
-  }, [patientId]);
+  }, [patientId, enabled]);
+
+  const isLive = status === "live";
+  const isInitializing = status === "initializing";
 
   return (
     <div className="space-y-2">
-      <div className="glass-morphism rounded-2xl p-3 border border-[var(--card-border)] flex items-center justify-between group hover:border-red-500/30 transition-all">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all 
-              ${connected ? 'bg-red-500/10 text-red-400' : 'bg-[var(--input-bg)] text-[var(--text-muted)]'}`}>
-            <Heart className={`w-4 h-4 ${pulse ? 'scale-125 animate-pulse' : ''}`} />
-          </div>
-          <div>
-            <div className="flex items-center gap-1">
-              <span className="text-lg font-black text-[var(--text-primary)] font-mono">{vitals.hr}</span>
-              <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-widest">BPM</span>
+      {/* Heart Rate + Toggle Row */}
+      <div className="glass-morphism rounded-2xl p-3 border border-[var(--card-border)] transition-all">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all 
+                ${isLive ? 'bg-red-500/10 text-red-400' : 'bg-[var(--input-bg)] text-[var(--text-muted)]'}`}>
+              <Heart className={`w-4 h-4 ${pulse ? 'scale-125 animate-pulse' : ''}`} />
             </div>
-            <p className="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest flex items-center gap-1">
-              <Zap className={`w-2.5 h-2.5 ${connected ? 'text-emerald-400' : 'text-[var(--text-muted)]'}`} />
-              {connected ? 'LIVE IOT STREAM' : 'DISCONNECTED'}
-            </p>
+            <div>
+              <div className="flex items-center gap-1">
+                <span className="text-lg font-black text-[var(--text-primary)] font-mono">{vitals.hr}</span>
+                <span className="text-[9px] text-[var(--text-secondary)] font-black uppercase tracking-widest">BPM</span>
+              </div>
+              <p className="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest flex items-center gap-1">
+                <Zap className={`w-2.5 h-2.5 ${isLive ? 'text-emerald-400' : isInitializing ? 'text-amber-400' : 'text-[var(--text-muted)]'}`} />
+                {isLive ? 'LIVE IOT STREAM' : isInitializing ? 'CONNECTING...' : 'TELEMETRY OFF'}
+              </p>
+            </div>
           </div>
+
+          {/* THE TOGGLE */}
+          <button
+            type="button"
+            onClick={onToggle}
+            className={`p-2 rounded-xl border transition-all cursor-pointer ${
+              enabled
+                ? isLive 
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
+                  : "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 animate-pulse"
+                : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-emerald-500/30 hover:text-emerald-400"
+            }`}
+            title={enabled ? "Disconnect Telemetry" : "Initialize Telemetry Link"}
+          >
+            <Power className="w-4 h-4" />
+          </button>
         </div>
-        <div className="h-6 w-20 bg-red-500/5 rounded-lg relative overflow-hidden flex items-end px-1 gap-0.5">
-          {[...Array(10)].map((_, i) => (
+
+        {/* Mini Waveform */}
+        <div className="h-5 w-full bg-red-500/5 rounded-lg relative overflow-hidden flex items-end px-1 gap-0.5 mt-1">
+          {[...Array(16)].map((_, i) => (
             <div
               key={i}
-              className="flex-1 bg-red-400/20 rounded-t-sm animate-pulse"
-              style={{ height: `${pulse ? Math.random() * 100 : 20}%`, animationDelay: `${i * 0.1}s` }}
+              className={`flex-1 rounded-t-sm transition-all duration-300 ${isLive ? 'bg-red-400/30' : 'bg-[var(--text-muted)]/10'}`}
+              style={{ height: `${isLive && pulse ? Math.random() * 100 : 15}%`, animationDelay: `${i * 0.05}s` }}
             />
           ))}
         </div>
       </div>
 
+      {/* SpO2 + Temp */}
       <div className="grid grid-cols-2 gap-2">
         <div className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] space-y-0.5">
           <div className="flex items-center gap-1.5 text-[8px] font-black text-[var(--text-secondary)] uppercase">
@@ -90,4 +131,3 @@ export default function LiveHeartbeat({ patientId }: { patientId: string }) {
     </div>
   );
 }
-

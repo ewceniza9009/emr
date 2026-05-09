@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
@@ -78,6 +78,12 @@ const EmergencyActionDrawer = dynamic(() => import("@/components/EmergencyAction
 const BreakGlassDrawer = dynamic(() => import("@/components/BreakGlassDrawer"));
 const BenefitClaimDrawer = dynamic(() => import("@/components/BenefitClaimDrawer"));
 import { useSession } from "next-auth/react";
+
+const CREATE_ENCOUNTER = gql`
+  mutation CreateEncounter($input: CreateClinicalEncounterCommandInput!) {
+    createClinicalEncounter(input: $input)
+  }
+`;
 
 const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
@@ -233,6 +239,41 @@ export default function PatientDetailPage() {
   const [vitals, setVitals] = useState({ hr: 72, spo2: 98, temp: 98.6 });
   const [telemetryData, setTelemetryData] = useState<any[]>([]);
   const [isIotConnected, setIsIotConnected] = useState(false);
+  const [telemetryEnabled, setTelemetryEnabled] = useState(false);
+  
+  const telemetryEnabledRef = useRef(telemetryEnabled);
+  useEffect(() => {
+    telemetryEnabledRef.current = telemetryEnabled;
+  }, [telemetryEnabled]);
+
+  const [createEncounter] = useMutation(CREATE_ENCOUNTER);
+
+  const handleToggleTelemetry = async () => {
+    const newState = !telemetryEnabled;
+    setTelemetryEnabled(newState);
+    telemetryEnabledRef.current = newState;
+    
+    if (newState && telemetryData.length === 0) {
+      console.log("[IoT] Attempting to create encounter for Patient ID:", params.id);
+      try {
+        const res = await createEncounter({
+          variables: {
+            input: {
+              patientId: params.id as string,
+              practitionerId: session?.user?.practitionerId || (process.env.NODE_ENV === 'development' ? "c79b9090-6725-460d-8531-1554c46f6f96" : "00000000-0000-0000-0000-000000000000"),
+              chiefComplaint: "Live Telemetry Bridge Handshake",
+              notes: "System initialization to connect IoT telemetry for clinical dashboard.",
+              ppsScore: 100
+            }
+          }
+        });
+        console.log("[IoT] createEncounter Response:", res);
+      } catch (e) { 
+        console.error("[IoT] createEncounter Error:", e); 
+      }
+    }
+  };
+
 
   useEffect(() => {
     if (!params.id) return;
@@ -250,24 +291,28 @@ export default function PatientDetailPage() {
         await connection.invoke("JoinPatientStream", params.id);
 
         connection.on("ReceiveVitals", (data: any) => {
-          const newVital = {
-            hr: data.heartRate,
-            spo2: data.spO2,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-          };
+          console.log("[IoT] ReceiveVitals triggered! Data:", data);
+          console.log("[IoT] telemetryEnabledRef.current is:", telemetryEnabledRef.current);
+          if (telemetryEnabledRef.current) {
+            const newVital = {
+              hr: data.heartRate,
+              spo2: data.spO2,
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+            };
 
-          setVitals(prev => ({
-            ...prev,
-            hr: data.heartRate,
-            spo2: data.spO2,
-            temp: data.temperature || prev.temp
-          }));
+            setVitals(prev => ({
+              ...prev,
+              hr: data.heartRate,
+              spo2: data.spO2,
+              temp: data.temperature || prev.temp
+            }));
 
-          setTelemetryData(prev => {
-            const updated = [...prev, newVital];
-            if (updated.length > 20) return updated.slice(1);
-            return updated;
-          });
+            setTelemetryData(prev => {
+              const updated = [...prev, newVital];
+              if (updated.length > 20) return updated.slice(1);
+              return updated;
+            });
+          }
         });
 
       } catch (err) {
@@ -291,6 +336,11 @@ export default function PatientDetailPage() {
 
   const patient = data?.patientById;
 
+  const { data: apptData, loading: apptLoading, refetch: refetchAppts } = useQuery(GET_PATIENT_APPOINTMENTS, {
+    variables: { id: params.id },
+    skip: !params.id || !isUuid(params.id)
+  });
+
   useEffect(() => {
     if (patient?.patientId) {
       addItem({
@@ -300,8 +350,22 @@ export default function PatientDetailPage() {
         subtitle: patient.mrn,
         type: 'PATIENT'
       });
+
+      // Auto-enable telemetry if there is an active encounter or appointment
+      const hasActiveEncounter = patient.encounters?.some((e: any) => 
+        e.status === "InProgress" || e.status === "Arrived" || e.status === "Triaged"
+      );
+      
+      const appointments = [...(apptData?.appointments?.items || [])];
+      const hasActiveAppointment = appointments.some((a: any) =>
+        a.status?.toUpperCase().includes('PROGRESS') || a.status?.toUpperCase() === 'LIVE'
+      );
+
+      if (hasActiveEncounter || hasActiveAppointment) {
+        setTelemetryEnabled(true);
+      }
     }
-  }, [patient?.patientId, addItem]);
+  }, [patient?.patientId, apptData, addItem]);
 
   const { data: summaryData } = useQuery(GET_CLINICAL_SUMMARY, {
     variables: { patientId: params.id },
@@ -310,11 +374,6 @@ export default function PatientDetailPage() {
 
   const [deleteContact] = useMutation(DELETE_CONTACT, {
     onCompleted: () => refetch()
-  });
-
-  const { data: apptData, loading: apptLoading, refetch: refetchAppts } = useQuery(GET_PATIENT_APPOINTMENTS, {
-    variables: { id: params.id },
-    skip: !params.id || !isUuid(params.id)
   });
 
   const handleDownloadDossier = async () => {
@@ -531,7 +590,12 @@ export default function PatientDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Left Column: Bio Snapshot */}
         <div className="space-y-4">
-          <LiveHeartbeat patientId={params.id as string} />
+          <LiveHeartbeat 
+            patientId={params.id as string} 
+            enabled={telemetryEnabled} 
+            onToggle={handleToggleTelemetry}
+            status={!telemetryEnabled ? "off" : telemetryData.length > 0 ? "live" : "initializing"}
+          />
 
           <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 premium-gradient" />
@@ -843,6 +907,20 @@ export default function PatientDetailPage() {
                         IoT Telemetry Stream
                       </h2>
                       <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mt-1">Live Sensor Network (Oxygen/Vitals)</p>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--input-bg)]">
+                       <div className={`w-2 h-2 rounded-full ${
+                         telemetryEnabled 
+                           ? (telemetryData.length > 0 ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" : "bg-amber-500 animate-pulse") 
+                           : "bg-[var(--text-muted)] opacity-50"
+                       }`} />
+                       <span className={`text-[10px] font-black uppercase tracking-widest ${
+                         telemetryEnabled 
+                           ? (telemetryData.length > 0 ? "text-emerald-500" : "text-amber-500") 
+                           : "text-[var(--text-muted)]"
+                       }`}>
+                         {telemetryEnabled ? (telemetryData.length > 0 ? "Live IoT Stream ON" : "Initializing Link...") : "Telemetry Link OFF"}
+                       </span>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -91,16 +91,16 @@ export default function CommandModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+            className="absolute inset-0 bg-[var(--background)]/80 backdrop-blur-md"
           />
           
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="relative w-full max-w-md overflow-hidden rounded-[2.5rem] border border-white/10 bg-slate-900 p-8 shadow-2xl"
+            className="relative w-full max-w-md overflow-hidden rounded-[2.5rem] border border-[var(--card-border)] bg-[var(--card-bg)] p-8 shadow-2xl"
           >
-            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gradient-to-br from-white/5 to-transparent blur-[100px] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gradient-to-br from-[var(--primary)]/5 to-transparent blur-[100px] pointer-events-none" />
             
             <div className="relative z-10 flex flex-col items-center text-center space-y-6">
               <div className={`w-20 h-20 rounded-full ${style.bg} ${style.border} border flex items-center justify-center ${style.color}`}>
@@ -108,10 +108,10 @@ export default function CommandModal({
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-sm font-bold text-white tracking-tight uppercase">
+                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight uppercase">
                   {title}
                 </h2>
-                <p className="text-slate-400 text-sm leading-relaxed px-4">
+                <p className="text-[var(--text-secondary)] text-sm leading-relaxed px-4">
                   {message}
                 </p>
               </div>
@@ -123,7 +123,7 @@ export default function CommandModal({
                     value={promptValue}
                     onChange={(e) => setPromptValue(e.target.value)}
                     placeholder="Enter mandatory justification..."
-                    className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:outline-none focus:border-[var(--primary)] transition-all resize-none font-medium"
+                    className="w-full h-32 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--primary)] transition-all resize-none font-medium"
                   />
                 </div>
               )}
@@ -147,7 +147,7 @@ export default function CommandModal({
                 {!isAlert && (
                   <button
                     onClick={onClose}
-                    className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-bold text-xs uppercase tracking-[0.2em] hover:text-white hover:bg-white/10 transition-all active:scale-[0.98]"
+                    className="w-full py-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] font-bold text-xs uppercase tracking-[0.2em] hover:text-[var(--text-primary)] hover:bg-[var(--divider-color)] transition-all active:scale-[0.98]"
                   >
                     {cancelText}
                   </button>
@@ -157,7 +157,7 @@ export default function CommandModal({
             
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 p-2 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+              className="absolute top-6 right-6 p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--divider-color)] transition-all"
             >
               <X className="w-5 h-5" />
             </button>

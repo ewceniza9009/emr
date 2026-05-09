@@ -36,15 +36,35 @@ public class TelemetrySimulatorService : BackgroundService
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
                 // Get all patients to simulate data for
-                var activePatientIds = await dbContext
-                    .ClinicalEncounters.Where(e =>
+                // CRITICAL: IgnoreQueryFilters() bypasses multi-tenancy filter.
+                // Background services have no HttpContext, so CurrentTenantId = Guid.Empty,
+                // which silently filters out ALL real encounters. This is safe for a simulator.
+                // Get all patients with active encounters
+                var activeEncounterPatientIds = await dbContext
+                    .ClinicalEncounters
+                    .IgnoreQueryFilters()
+                    .Where(e =>
                         e.Status == EncounterStatus.InProgress
                         || e.Status == EncounterStatus.Arrived
                         || e.Status == EncounterStatus.Triaged
                     )
                     .Select(e => e.PatientId)
-                    .Distinct()
                     .ToListAsync(stoppingToken);
+
+                // Get all patients with active appointments
+                var activeAppointmentPatientIds = await dbContext
+                    .Appointments
+                    .IgnoreQueryFilters()
+                    .Where(a => a.Status == AppointmentStatus.InProgress)
+                    .Select(a => a.PatientId)
+                    .ToListAsync(stoppingToken);
+
+                var activePatientIds = activeEncounterPatientIds
+                    .Union(activeAppointmentPatientIds)
+                    .Distinct()
+                    .ToList();
+
+                _logger.LogInformation("Telemetry Simulator found {Count} active patients.", activePatientIds.Count);
 
                 foreach (var patientId in activePatientIds)
                 {
@@ -67,7 +87,7 @@ public class TelemetrySimulatorService : BackgroundService
 
             try
             {
-                await Task.Delay(10000, stoppingToken);
+                await Task.Delay(2000, stoppingToken);
             }
             catch (OperationCanceledException)
             {

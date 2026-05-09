@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { 
   Heart, 
@@ -15,6 +15,15 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import LiveHeartbeat from "@/components/LiveHeartbeat";
+import { useMutation } from "@apollo/client";
+import { useSession } from "next-auth/react";
+
+const CREATE_ENCOUNTER = gql`
+  mutation CreateEncounter($input: CreateClinicalEncounterCommandInput!) {
+    createClinicalEncounter(input: $input)
+  }
+`;
+
 
 const GET_PATIENTS = gql`
   query GetPatientsForTelemetry {
@@ -24,20 +33,78 @@ const GET_PATIENTS = gql`
         mrn
         firstName
         lastName
+        encounters {
+          status
+        }
       }
     }
   }
 `;
 
 export default function VitalsIoTPage() {
+  const { data: session } = useSession();
   const { showToast } = useToast();
   const { data, loading, error } = useQuery(GET_PATIENTS);
   const [searchTerm, setSearchTerm] = useState("");
+  const [enabledPatients, setEnabledPatients] = useState<Record<string, boolean>>({});
+  const [initializingPatients, setInitializingPatients] = useState<Record<string, boolean>>({});
+
+  const [createEncounter] = useMutation(CREATE_ENCOUNTER);
+
   const patientsData = data?.patients?.items || [];
+
+  // Auto-enable patients who already have an active encounter
+  useEffect(() => {
+    if (patientsData.length > 0) {
+      const activeStates: Record<string, boolean> = {};
+      patientsData.forEach((p: any) => {
+        const hasActiveEncounter = p.encounters?.some((e: any) => 
+          e.status === "InProgress" || e.status === "Arrived" || e.status === "Triaged"
+        );
+        if (hasActiveEncounter) {
+          activeStates[p.patientId] = true;
+        }
+      });
+      setEnabledPatients(prev => ({ ...activeStates, ...prev }));
+    }
+  }, [patientsData]);
+
   const patients = patientsData.filter((p: any) => 
     `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.mrn.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleToggleTelemetry = async (patientId: string) => {
+    const isCurrentlyEnabled = !!enabledPatients[patientId];
+    const newEnabledState = !isCurrentlyEnabled;
+
+    setEnabledPatients(prev => ({ ...prev, [patientId]: newEnabledState }));
+
+    if (newEnabledState) {
+      setInitializingPatients(prev => ({ ...prev, [patientId]: true }));
+      try {
+        await createEncounter({
+          variables: {
+            input: {
+              patientId: patientId,
+              practitionerId: session?.user?.practitionerId || (process.env.NODE_ENV === 'development' ? "c79b9090-6725-460d-8531-1554c46f6f96" : "00000000-0000-0000-0000-000000000000"),
+              chiefComplaint: "Dashboard IoT Initialization",
+              notes: "Initialized live telemetry link from the global IoT monitoring dashboard.",
+              ppsScore: 100
+            }
+          }
+        });
+        showToast("Telemetry Link Established", "success");
+      } catch (err) {
+        console.error("Failed to initialize telemetry:", err);
+        showToast("Link Failure: Sensor Network Unreachable", "error");
+        setEnabledPatients(prev => ({ ...prev, [patientId]: false }));
+      } finally {
+        setInitializingPatients(prev => ({ ...prev, [patientId]: false }));
+      }
+    }
+  };
+
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
@@ -114,7 +181,12 @@ export default function VitalsIoTPage() {
 
             {/* Live Telemetry Component (Includes HR, SpO2, and Temp) */}
             <div className="p-3.5">
-              <LiveHeartbeat patientId={patient.patientId} />
+              <LiveHeartbeat 
+                patientId={patient.patientId} 
+                enabled={!!enabledPatients[patient.patientId]}
+                onToggle={() => handleToggleTelemetry(patient.patientId)}
+                status={initializingPatients[patient.patientId] ? "initializing" : enabledPatients[patient.patientId] ? "live" : "off"}
+              />
             </div>
 
             {/* Device Status Footer */}

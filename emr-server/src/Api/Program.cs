@@ -122,7 +122,6 @@ try
         app.UseSwaggerUI();
     }
 
-    // app.UseStaticFiles(); // Disabled as per instruction to use Azurite exclusively
     app.UseCors("PalliativeCorsPolicy");
     app.UseRouting();
 
@@ -148,7 +147,6 @@ try
 
     app.MapHub<TelemetryHub>("/hubs/telemetry");
 
-    //Seed the database
     //using (var scope = app.Services.CreateScope())
     //{
     //    var wipeDb = builder.Configuration.GetValue<bool?>("EMR_WIPE_DB") ?? true;

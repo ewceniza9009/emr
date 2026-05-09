@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { 
@@ -42,9 +42,9 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
   return (
     <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
-        <div className="absolute inset-0 bg-red-950/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
+        <div className="absolute inset-0 bg-[var(--background)]/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
         
-        <div className={`relative h-full w-full max-w-[450px] bg-slate-950 shadow-[-50px_0_150px_rgba(239,68,68,0.2)] 
+        <div className={`relative h-full w-full max-w-[450px] bg-[var(--card-bg)] shadow-[-50px_0_150px_rgba(239,68,68,0.2)] 
           flex flex-col transition-transform duration-300 ease-out border-l border-red-500/30
           ${open ? "translate-x-0" : "translate-x-full"}`}>
 
@@ -54,7 +54,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
             <div className="flex items-center gap-6 relative z-10">
               <div className="w-1.5 h-12 bg-red-500 rounded-full shadow-[0_0_25px_rgba(239,68,68,0.5)]" />
               <div className="flex flex-col">
-                <h2 className="text-sm font-bold text-white tracking-tight uppercase leading-none italic">
+                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight uppercase leading-none italic">
                   Emergency Action
                 </h2>
                 <span className="text-[10px] font-black text-red-400 tracking-[0.2em] mt-2 uppercase">
@@ -90,20 +90,20 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
             </div>
 
             {/* Patient Context */}
-            <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 space-y-6">
+            <div className="p-6 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] space-y-6">
               <div className="flex items-center gap-4">
                 <h3 className="text-[10px] font-black text-slate-500 tracking-[0.3em] uppercase">Clinical Context</h3>
-                <div className="flex-1 h-px bg-white/10" />
+                <div className="flex-1 h-px bg-[var(--divider-color)]" />
               </div>
               
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Patient</p>
-                  <p className="text-sm font-black text-white uppercase">{patient.firstName} {patient.lastName}</p>
+                  <p className="text-sm font-black text-[var(--text-primary)] uppercase">{patient.firstName} {patient.lastName}</p>
                 </div>
                 <div>
                   <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">MRN</p>
-                  <p className="text-sm font-black text-white uppercase">{patient.mrn}</p>
+                  <p className="text-sm font-black text-[var(--text-primary)] uppercase">{patient.mrn}</p>
                 </div>
               </div>
 
@@ -114,7 +114,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                     Authorized Contact (POA)
                   </p>
                   <div className="flex justify-between items-center">
-                    <p className="text-xs font-black text-white uppercase">{c.firstName} {c.lastName}</p>
+                    <p className="text-xs font-black text-[var(--text-primary)] uppercase">{c.firstName} {c.lastName}</p>
                     <p className="text-xs font-black text-blue-400">{c.phone}</p>
                   </div>
                 </div>
@@ -125,7 +125,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
             <div className="space-y-4">
               <div className="flex items-center gap-4 mb-2">
                 <h3 className="text-[10px] font-black text-slate-500 tracking-[0.3em] uppercase">Crisis Escalation</h3>
-                <div className="flex-1 h-px bg-white/10" />
+                <div className="flex-1 h-px bg-[var(--divider-color)]" />
               </div>
 
               <button 
@@ -148,7 +148,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                   className={`py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex flex-col items-center gap-2 border ${
                     dispatched 
                       ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
-                      : "bg-white/5 border-white/10 text-white hover:bg-white/10"
+                      : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-primary)] hover:bg-[var(--divider-color)]"
                   }`}
                 >
                   {dispatched ? <CheckCircle2 className="w-5 h-5" /> : <PhoneCall className="w-5 h-5" />}
@@ -161,7 +161,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                   className={`py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex flex-col items-center gap-2 border ${
                     notified 
                       ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
-                      : "bg-white/5 border-white/10 text-white hover:bg-white/10"
+                      : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-primary)] hover:bg-[var(--divider-color)]"
                   }`}
                 >
                   {notified ? <CheckCircle2 className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
@@ -172,10 +172,10 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
           </div>
 
           {/* Resolution Footer */}
-          <div className="p-8 bg-slate-900/50 border-t border-white/10 shrink-0">
+          <div className="p-8 bg-[var(--input-bg)] border-t border-[var(--card-border)] shrink-0">
             <button 
               onClick={onClose}
-              className="w-full h-14 rounded-xl bg-slate-800 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-700 hover:text-white transition-all flex items-center justify-center gap-2 border border-white/5"
+              className="w-full h-14 rounded-xl bg-[var(--card-bg)] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[var(--input-bg)] hover:text-[var(--text-primary)] transition-all flex items-center justify-center gap-2 border border-[var(--card-border)] shadow-sm"
             >
               Stand By / Return to Chart
             </button>
