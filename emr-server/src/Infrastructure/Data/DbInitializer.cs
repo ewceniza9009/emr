@@ -27,40 +27,37 @@ namespace Infrastructure.Data
             bool seedDb = true
         )
         {
-            var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+            using var scope = serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var userManager = scope.ServiceProvider.GetRequiredService<
+                UserManager<ApplicationUser>
+            >();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            // SOLID INFRASTRUCTURE: Always ensure migrations are applied before anything else
+            // 1. SOLID INFRASTRUCTURE: Always ensure migrations are applied before anything else
             await context.Database.MigrateAsync();
 
-            // Check if identity is already initialized to avoid unnecessary wipes
-            var isInitialized = await context.Users.AnyAsync();
-            if (isInitialized && !wipeDb)
-            {
-                // Identity exists, skip full initialization but still sync tenants
-                await SeedIdentityAsync(
-                    context,
-                    serviceProvider.GetRequiredService<UserManager<ApplicationUser>>(),
-                    serviceProvider.GetRequiredService<RoleManager<IdentityRole>>()
-                );
+            var now = DateTimeOffset.UtcNow;
+            Console.WriteLine($"[TACTICAL SEEDING] InitializeAsync started at {now}");
 
+            // 2. PERFORM WIPE (IF REQUESTED) - Don't exit early if we are supposed to wipe
+            if (wipeDb)
+            {
+                Console.WriteLine("[TACTICAL SEEDING] Wiping database...");
+                await WipeDatabaseAsync(context);
+            }
+
+            // 3. CHECK FOR EXISTING DATA (EARLY EXIT FOR PERSISTENT ENVIRONMENTS)
+            if (!wipeDb && await context.Patients.IgnoreQueryFilters().AnyAsync())
+            {
                 if (seedDb)
                 {
-                    // FORCE RE-SEED: Clear existing appointments using EF-native command to avoid SQL naming issues
-                    await context.Appointments.IgnoreQueryFilters().ExecuteDeleteAsync();
                     await SeedDatabaseAsync(context);
                 }
                 return;
             }
-            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-            // WIPE logic moved after migration to ensure we are wiping the correct schema
-            if (wipeDb)
-            {
-                await WipeDatabaseAsync(context);
-            }
-
-            // RESILIENCE: Drop the PascalCase shadow column that sometimes gets orphaned
+            // 4. RESILIENCE: Drop the PascalCase shadow column that sometimes gets orphaned
             try
             {
                 await context.Database.ExecuteSqlRawAsync(
@@ -72,31 +69,7 @@ namespace Infrastructure.Data
                 /* Ignore if already dropped */
             }
 
-            // SELF-HEALING: Mark appointments as completed if they have a completed encounter
-            var orphanedAppointments = await context
-                .Appointments.Where(a => a.Status == AppointmentStatus.Scheduled)
-                .Where(a =>
-                    context.ClinicalEncounters.Any(e =>
-                        e.AppointmentId == a.AppointmentId && e.Status == EncounterStatus.Completed
-                    )
-                )
-                .ToListAsync();
-
-            if (orphanedAppointments.Any())
-            {
-                foreach (var appt in orphanedAppointments)
-                {
-                    appt.Status = AppointmentStatus.Completed;
-                }
-                await context.SaveChangesAsync();
-            }
-
-            if (wipeDb)
-            {
-                await WipeDatabaseAsync(context);
-            }
-
-            // Seed Roles, Users, and Practitioners
+            // 5. SEED CORE DATA
             await SeedIdentityAsync(context, userManager, roleManager);
 
             if (seedDb)
@@ -1139,8 +1112,13 @@ namespace Infrastructure.Data
                     .RuleFor(x => x.Reaction, f => f.Lorem.Word())
                     .Generate(10);
                 context.Set<Allergy>().AddRange(allergiesList);
-                // Anchor perfectly to the user's Local Time Zone to prevent UTC shifting past 6 PM
-                var baseDate = new DateTimeOffset(2026, 5, 4, 0, 0, 0, TimeSpan.Zero);
+                // Anchor to the UPCOMING Monday (or today if it is Monday)
+                var now = DateTimeOffset.UtcNow;
+                int diff = (7 + (DayOfWeek.Monday - now.DayOfWeek)) % 7;
+                var baseDate = new DateTimeOffset(now.AddDays(diff).Date, TimeSpan.Zero);
+                Console.WriteLine(
+                    $"[TACTICAL SEEDING] Monday-Start baseDate: {baseDate:yyyy-MM-dd}"
+                );
 
                 // Phase 1: Dedicated System Admin Appointments (Ensures Admin visibility)
                 // --- HIGH-FIDELITY SCHEDULING ENGINE ---
@@ -1248,7 +1226,7 @@ namespace Infrastructure.Data
                     )
                     .RuleFor(
                         a => a.ScheduledStart,
-                        f => baseDate.AddDays(f.IndexFaker / 3).AddHours((f.IndexFaker % 3) * 3)
+                        f => baseDate.AddDays(f.IndexFaker / 3).AddHours((f.IndexFaker % 3) * 2 + 1)
                     )
                     .RuleFor(
                         a => a.ScheduledEnd,
@@ -1338,7 +1316,10 @@ namespace Infrastructure.Data
                     )
                     .RuleFor(
                         a => a.ScheduledStart,
-                        f => baseDate.AddDays(f.IndexFaker / 4).AddHours((f.IndexFaker % 4) * 2.5)
+                        f =>
+                            baseDate
+                                .AddDays((f.IndexFaker / 30) - 2)
+                                .AddHours((f.IndexFaker % 30) * 0.5)
                     )
                     .RuleFor(
                         a => a.ScheduledEnd,
@@ -1515,7 +1496,12 @@ namespace Infrastructure.Data
                                 {
                                     // Make 30% of seeded encounters active so telemetry dashboard isn't empty
                                     return f.Random.WeightedRandom(
-                                        new[] { EncounterStatus.Completed, EncounterStatus.InProgress, EncounterStatus.Arrived },
+                                        new[]
+                                        {
+                                            EncounterStatus.Completed,
+                                            EncounterStatus.InProgress,
+                                            EncounterStatus.Arrived,
+                                        },
                                         new[] { 0.7f, 0.2f, 0.1f }
                                     );
                                 }

@@ -147,12 +147,12 @@ try
 
     app.MapHub<TelemetryHub>("/hubs/telemetry");
 
-    //using (var scope = app.Services.CreateScope())
-    //{
-    //    var wipeDb = builder.Configuration.GetValue<bool?>("EMR_WIPE_DB") ?? true;
-    //    var seedDb = builder.Configuration.GetValue<bool?>("EMR_SEED_DB") ?? true;
-    //    await DbInitializer.InitializeAsync(scope.ServiceProvider, wipeDb, seedDb);
-    //}
+    using (var scope = app.Services.CreateScope())
+    {
+        var wipeDb = builder.Configuration.GetValue<bool?>("EMR_WIPE_DB") ?? true;
+        var seedDb = builder.Configuration.GetValue<bool?>("EMR_SEED_DB") ?? true;
+        await DbInitializer.InitializeAsync(scope.ServiceProvider, wipeDb, seedDb);
+    }
 
     app.Run();
 }
