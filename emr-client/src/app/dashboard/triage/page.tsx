@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 import UploadDocumentDrawer from "@/components/UploadDocumentDrawer";
 
@@ -37,13 +38,16 @@ const GET_TRIAGE_WORKLIST = gql`
 `;
 
 export default function TriageDashboard() {
+  const { data: session } = useSession();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
 
   const { data, loading, refetch } = useQuery(GET_TRIAGE_WORKLIST, {
-    variables: { search: searchQuery || undefined }
+    variables: { 
+      search: searchQuery || undefined
+    }
   });
 
   if (loading) return (

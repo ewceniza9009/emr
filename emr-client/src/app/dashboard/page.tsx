@@ -106,7 +106,9 @@ export default function Dashboard() {
   const { data: session } = useSession();
   const { showToast } = useToast();
   const { tenantConfig } = useSettings();
-  const { data, loading } = useQuery(GET_DASHBOARD_STATS);
+  const { data, loading, error, refetch } = useQuery(GET_DASHBOARD_STATS, {
+    fetchPolicy: "cache-and-network"
+  });
   const { recentItems } = useRecentlyBrowsed();
   const [greeting, setGreeting] = useState("Good morning");
   const [isBookingOpen, setIsBookingOpen] = useState(false);

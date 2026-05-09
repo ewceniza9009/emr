@@ -14,6 +14,7 @@ import {
 
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import AddPatientDrawer from "@/components/AddPatientDrawer";
 import { useCommandModal } from "@/components/CommandModalProvider";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -46,6 +47,7 @@ const GET_PATIENTS = gql`
 `;
 
 export default function PatientsPage() {
+  const { data: session } = useSession();
   const { confirm, alert } = useCommandModal();
   const router = useRouter();
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -126,7 +128,7 @@ export default function PatientsPage() {
               {loading ? (
                 [1, 2, 3].map((i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={5} className="px-8 py-10 bg-[var(--input-bg)]" />
+                    <td colSpan={6} className="px-8 py-10 bg-[var(--input-bg)]" />
                   </tr>
                 ))
               ) : error ? (
@@ -250,17 +252,13 @@ export default function PatientsPage() {
                                 confirmText: "Archive"
                               });
                               if (ok) {
+                                // Archive logic
                                 setOpenMenuId(null);
-                                await alert({
-                                  title: "Patient Archived",
-                                  message: "The patient record has been moved to clinical archives successfully.",
-                                  type: "success"
-                                });
                               }
                             }}
                           >
-                            <Plus className="w-4 h-4 rotate-45" />
-                            Archive Patient
+                            <Mail className="w-4 h-4" />
+                            Archive Patient Record
                           </button>
                         </div>
                       </>
@@ -271,12 +269,14 @@ export default function PatientsPage() {
             </tbody>
           </table>
         </div>
-
-        {!loading && patients.length === 0 && (
-          <div className="px-8 py-20 text-center text-[var(--text-muted)] bg-[var(--input-bg)]">
-            No patients found in the registry.
+        {/* Footer Stats */}
+        <div className="px-8 py-3 bg-[var(--input-bg)] border-t border-[var(--card-border)] flex items-center justify-between">
+          <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Showing {patients.length} active records</p>
+          <div className="flex gap-1">
+             <button className="px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] text-[10px] font-bold hover:text-[var(--text-primary)] transition-all">PREVIOUS</button>
+             <button className="px-3 py-1 rounded bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] text-[10px] font-bold hover:text-[var(--text-primary)] transition-all">NEXT</button>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
