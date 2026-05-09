@@ -636,7 +636,7 @@ export default function SchedulingCalendar() {
                             </div>
                           )}
 
-                          <div className={`absolute z-20 hover:z-[100] group ${hasConflict ? "ring-2 ring-red-500" : ""} ${statusConfig.isLive ? "ring-2 ring-emerald-500 animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.2)]" : ""}`}
+                          <div className={`absolute z-20 hover:z-[100] group ${hasConflict ? "ring-2 ring-red-500" : ""} ${statusConfig.isLive ? "ring-2 ring-emerald-500 animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.2)]" : ""} ${statusConfig.label === "DONE" ? "opacity-60 grayscale-[0.5] pointer-events-none sm:pointer-events-auto" : ""}`}
                             style={{
                               top: `${topPx}px`,
                               height: `${heightPx}px`,
@@ -644,9 +644,18 @@ export default function SchedulingCalendar() {
                               width: `${widthPct - 1}%`
                             }}>
 
-                            <div draggable onDragStart={(e) => { e.dataTransfer.setData("appointmentId", appt.appointmentId); e.dataTransfer.setData("duration", durMin.toString()); }}
-                              onClick={() => { setDrawerPrefill(appt.appointmentId); setDrawerOpen(true); }}
-                              className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col cursor-grab active:cursor-grabbing overflow-hidden z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px] backdrop-blur-[2px]
+                            <div draggable={statusConfig.label !== "DONE"} 
+                              onDragStart={(e) => { 
+                                if (statusConfig.label === "DONE") return;
+                                e.dataTransfer.setData("appointmentId", appt.appointmentId); 
+                                e.dataTransfer.setData("duration", durMin.toString()); 
+                              }}
+                              onClick={() => { 
+                                if (statusConfig.label === "DONE") return;
+                                setDrawerPrefill(appt.appointmentId); 
+                                setDrawerOpen(true); 
+                              }}
+                              className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col ${statusConfig.label === "DONE" ? "cursor-default select-none" : "cursor-grab active:cursor-grabbing"} overflow-hidden z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px] backdrop-blur-[2px]
                                     ${isViewedAsAttending 
                                       ? "bg-sky-500/10 border-sky-400 group-hover:bg-[var(--card-bg)] group-hover:border-sky-500" 
                                       : isViewedAsSc 
