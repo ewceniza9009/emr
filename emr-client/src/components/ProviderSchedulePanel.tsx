@@ -217,7 +217,7 @@ export default function ProviderSchedulePanel({
       {selected && providers.length > 0 && (
         <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/20 text-xs text-blue-300 flex items-center gap-2">
           <Clock className="w-3.5 h-3.5" />
-          Travel time is calculated from the clinician's last known location using real-time geospatial data.
+          Travel time is calculated from the clinician&apos;s last known location using real-time geospatial data.
         </div>
       )}
     </div>

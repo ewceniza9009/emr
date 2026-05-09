@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { 
   X, Save, ClipboardList, AlertCircle, 
@@ -146,7 +146,7 @@ export default function AddDiagnosisDrawer({ isOpen, onClose, patientId, onSucce
                       Registry Impact
                    </div>
                    <p className="text-slate-500 text-[10px] font-medium leading-relaxed italic">
-                      Adding this diagnosis will update the patient's active problem list and alert all care teams. Ensure ICD-10 coding matches clinical documentation.
+                      Adding this diagnosis will update the patient&apos;s active problem list and alert all care teams. Ensure ICD-10 coding matches clinical documentation.
                    </p>
                 </div>
              </form>

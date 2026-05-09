@@ -186,7 +186,7 @@ export default function LoginPage() {
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 relative z-10">
             <div className="w-16 h-1 bg-gradient-to-r from-[var(--primary)] to-emerald-500 rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
             <blockquote className="text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight drop-shadow-2xl">
-              "Halcyon transformed our clinical pipeline from a messy spreadsheet into a <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200">predictable engine.</span>"
+              &quot;Halcyon transformed our clinical pipeline from a messy spreadsheet into a <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200">predictable engine.</span>&quot;
             </blockquote>
 
             <div className="flex items-center gap-5 pt-4">

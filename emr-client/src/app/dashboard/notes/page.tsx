@@ -112,7 +112,7 @@ export default function ClinicalNotesPage() {
     if (selectedId) {
       setNarrative(noteCache[selectedId] || "");
     }
-  }, [selectedId]);
+  }, [selectedId, noteCache]);
 
   useEffect(() => {
     if (appointments.length > 0 && !selectedId) {

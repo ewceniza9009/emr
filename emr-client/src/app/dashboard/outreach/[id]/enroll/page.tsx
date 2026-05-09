@@ -303,7 +303,7 @@ export default function OutreachDetail() {
         type: 'OUTREACH'
       });
     }
-  }, [lead]);
+  }, [lead, addItem]);
 
   const handleUpdateLead = async (fields: any, silent: boolean = true) => {
     try {
@@ -735,7 +735,7 @@ export default function OutreachDetail() {
 
                 <div className="flex-1 bg-[var(--sidebar-bg)]/40 rounded-2xl p-6 overflow-y-auto border border-[var(--card-border)] min-h-0 shadow-inner">
                   <p className="text-sm font-medium text-[var(--text-primary)] italic leading-relaxed opacity-90">
-                    "{activeScript?.content ? activeScript.content.replace("{firstName}", lead.firstName).replace("{lastName}", lead.lastName).replaceAll("deployment", "home visit") : "Protocol initialization pending clinical handshake."}"
+                    &quot;{activeScript?.content ? activeScript.content.replace("{firstName}", lead.firstName).replace("{lastName}", lead.lastName).replaceAll("deployment", "home visit") : "Protocol initialization pending clinical handshake."}&quot;
                   </p>
                 </div>
 

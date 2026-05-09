@@ -1,4 +1,4 @@
-﻿import { X, ClipboardList, Calendar, Activity, ShieldCheck, AlertCircle, Info, Tag } from "lucide-react";
+import { X, ClipboardList, Calendar, Activity, ShieldCheck, AlertCircle, Info, Tag } from "lucide-react";
 import HalcyonPortal from "./Portal";
 
 interface Props {
@@ -87,7 +87,7 @@ export default function DiagnosisDetailDrawer({ isOpen, onClose, diagnosis }: Pr
                    </div>
                    <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-500/10">
                       <p className="text-xs font-medium text-slate-400 leading-relaxed italic">
-                        This diagnosis has been verified against clinical documentation and is currently listed as an active condition in the patient's longitudinal record. Any changes to this status should be audited by the attending clinician.
+                        This diagnosis has been verified against clinical documentation and is currently listed as an active condition in the patient&apos;s longitudinal record. Any changes to this status should be audited by the attending clinician.
                       </p>
                    </div>
                 </section>

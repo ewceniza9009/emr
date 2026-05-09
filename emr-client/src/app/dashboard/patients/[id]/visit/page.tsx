@@ -1044,7 +1044,7 @@ export default function GuidedVisitPage() {
                         <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Sign with Legal Identity</label>
                         <input value={note.signature} onChange={e => setNote({ ...note, signature: e.target.value })} placeholder="Practitioner Signature" className="w-full bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] rounded-xl py-4 px-6 text-[var(--foreground)] italic font-serif text-xl focus:border-[var(--primary)]/50 outline-none transition-all" />
                       </div>
-                      <p className="text-[11px] text-[var(--text-muted)] leading-relaxed italic">By finalizing this record, I attest that the clinical data documented reflects the true status of the encounter and the patient's condition.</p>
+                      <p className="text-[11px] text-[var(--text-muted)] leading-relaxed italic">By finalizing this record, I attest that the clinical data documented reflects the true status of the encounter and the patient&apos;s condition.</p>
                     </div>
                   </div>
                   <div className="pt-8 flex gap-4 border-t border-[var(--border-color,rgba(0,0,0,0.05))]">

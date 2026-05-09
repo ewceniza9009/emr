@@ -804,7 +804,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                           <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-3">
                             <Info className="w-4 h-4 text-amber-500" />
                             <p className="text-xs font-bold text-amber-600 uppercase tracking-widest leading-relaxed">
-                              Blocks do not require a patient record. You are reserving this time as 'Unavailable'.
+                              Blocks do not require a patient record. You are reserving this time as &apos;Unavailable&apos;.
                             </p>
                           </div>
                         )}

@@ -228,7 +228,7 @@ export default function InvoiceDetailsPage() {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-teal-500 rounded-2xl flex items-center justify-center text-3xl">A</div>
               <div>
-                <h2 className="text-2xl font-black tracking-tighter uppercase leading-none">Halcyon Clinical OS</h2>
+                <h2 className="text-2xl font-black tracking-tighter uppercase leading-none text-white">Halcyon Clinical OS</h2>
                 <p className="text-[10px] font-black text-teal-500 uppercase tracking-widest mt-1">Advanced Medical Infrastructure</p>
               </div>
             </div>
@@ -238,10 +238,10 @@ export default function InvoiceDetailsPage() {
           </div>
 
           <div className="text-right space-y-2">
-            <h3 className="text-5xl font-black tracking-tighter opacity-10">INVOICE</h3>
+            <h3 className="text-5xl font-black tracking-tighter opacity-10 text-white">INVOICE</h3>
             <div className="space-y-1">
               <p className="text-[10px] font-black text-teal-500 uppercase tracking-widest">Document Identification</p>
-              <p className="text-xl font-black">{invoice.invoiceNumber}</p>
+              <p className="text-xl font-black text-white">{invoice.invoiceNumber}</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase">Dated: {new Date(invoice.generatedAt).toLocaleDateString()}</p>
             </div>
           </div>
@@ -266,7 +266,7 @@ export default function InvoiceDetailsPage() {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2">Financial Framework</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <p className="text-[9px] font-black text-slate-400 uppercase">Issue Date</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase">Invoice Date</p>
                   <p className="text-xs font-bold text-slate-900">{new Date(invoice.generatedAt).toLocaleDateString()}</p>
                 </div>
                 <div className="space-y-1">

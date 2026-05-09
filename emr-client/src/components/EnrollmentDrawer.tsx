@@ -1051,7 +1051,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                             {a.reason && (
                               <p className="text-[9px] font-bold text-[var(--primary)] uppercase tracking-widest mb-1">{a.reason}</p>
                             )}
-                            <p className="text-[9px] text-[var(--text-secondary)] leading-relaxed italic opacity-70">"{a.notes}"</p>
+                            <p className="text-[9px] text-[var(--text-secondary)] leading-relaxed italic opacity-70">&quot;{a.notes}&quot;</p>
                           </div>
                         </div>
                       ))}

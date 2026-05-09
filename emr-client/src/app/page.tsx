@@ -148,7 +148,7 @@ export default function HomePage() {
                 Distributed data. <br />Centralized control.
               </h2>
               <p className="text-lg text-slate-500 leading-relaxed mb-12">
-                Halcyon's core engine handles complex clinical synchronization at scale, ensuring your providers stay connected across disparate clinical environments and geospatial boundaries.
+                Halcyon&apos;s core engine handles complex clinical synchronization at scale, ensuring your providers stay connected across disparate clinical environments and geospatial boundaries.
               </p>
 
               <div className="grid grid-cols-2 gap-8">

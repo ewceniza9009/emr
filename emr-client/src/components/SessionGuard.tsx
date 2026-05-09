@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { ShieldAlert, RefreshCcw, LogOut } from "lucide-react";
@@ -14,6 +14,8 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
   };
 
   useEffect(() => {
+    if (isExpiring) return;
+
     // INCREASED: Now triggers after 2 hours instead of 5 minutes
     const timer = setTimeout(() => {
       setIsExpiring(true);
@@ -21,7 +23,7 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
     }, 7200000); 
 
     return () => clearTimeout(timer);
-  }, [isExpiring]);
+  }, [isExpiring, showToast]);
 
   if (isExpiring) {
     return (

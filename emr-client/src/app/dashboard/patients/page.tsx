@@ -139,7 +139,7 @@ export default function PatientsPage() {
                       </div>
                       <h3 className="text-xl font-bold text-[var(--text-primary)]">Connection Error</h3>
                       <p className="text-[var(--text-muted)] text-sm leading-relaxed">
-                        We're having trouble connecting to the medical registry. This usually happens when the backend clinical service is offline or restarting.
+                        We&apos;re having trouble connecting to the medical registry. This usually happens when the backend clinical service is offline or restarting.
                       </p>
                       <button
                         onClick={() => refetch()}

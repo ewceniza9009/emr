@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery, gql } from "@apollo/client";
 import { 
@@ -160,7 +160,7 @@ export default function FacilitiesPage() {
           </div>
           <h3 className="text-xl font-bold text-[var(--text-primary)]">No Facilities Found</h3>
           <p className="text-[var(--text-muted)] text-sm max-w-xs mx-auto leading-relaxed">
-            We couldn't find any medical facilities matching your current filter criteria.
+            We couldn&apos;t find any medical facilities matching your current filter criteria.
           </p>
           <button 
             onClick={() => setSearchQuery("")}

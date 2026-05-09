@@ -153,7 +153,7 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
       };
       setForm(initialForms[type] || {});
     }
-  }, [type, open, initialData]);
+  }, [type, open, initialData, tenantId]);
 
   const mutation = initialData ? UPDATE_MUTATIONS[type] : MUTATIONS[type];
 
