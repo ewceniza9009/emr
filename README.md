@@ -174,7 +174,7 @@ The `SchedulingService.cs` manages clinical deployment complexity:
 
 ---
 
-## ✏️ Halcyon Theme Hardening Phase II: Admin Portal Stabilization
+## ✏️ Halcyon Theme Hardening (Phase II)
 - **Administrative Parity:** Extended full theme-aware support to the entire /admin ecosystem. Residual "Black Artifacts" in components like SecurityAuditVault, IdentityManagement, and IntegrationsSync have been eliminated, ensuring 100% legibility in high-density light-mode environments.
 - **Forensic Legibility:** Standardized all forensic table headers and status tags with clinical theme variables. High-authority administrative data now retains its professional "Tactical Command" aesthetic while adapting seamlessly to workstation lighting conditions.
 - **Dynamic Designer Synchronization:** Refactored the SurveyCreatorWidget and FormDesignerPage to ensure that the SurveyJS authoring environment respects the global theme context, providing a consistent and strain-free experience for clinical instrument architects.
