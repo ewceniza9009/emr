@@ -39,3 +39,4 @@ CREDENTIALS.md
 
 # Sensitive Config
 emr-server/src/Api/appsettings.json
+emr-server/src/Api/logs/emr-api-20260510.txt

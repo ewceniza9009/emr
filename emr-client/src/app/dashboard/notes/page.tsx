@@ -443,7 +443,7 @@ export default function ClinicalNotesPage() {
                             }`}
                           >
                             <div className="flex items-center justify-between mb-1">
-                              <span className={`text-[10px] font-black uppercase ${idx === selectedIndex ? 'text-[var(--primary)]' : 'text-white'}`}>{p.shortcut}</span>
+                              <span className={`text-[10px] font-black uppercase ${idx === selectedIndex ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'}`}>{p.shortcut}</span>
                               <ChevronRight className={`w-3 h-3 transition-transform ${idx === selectedIndex ? 'translate-x-1 text-[var(--primary)]' : 'text-[var(--text-muted)]'}`} />
                             </div>
                             <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{p.label}</p>
