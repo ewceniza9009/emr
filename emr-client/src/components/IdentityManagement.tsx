@@ -153,7 +153,7 @@ export default function IdentityManagement() {
         {activeSubTab === "users" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredUsers.map((user: any) => (
-              <div key={user.id} className="group relative bg-[var(--card-bg)]/40 border border-[var(--card-border)] rounded-3xl p-6 hover:border-[var(--primary)]/30 transition-all shadow-xl hover:shadow-[var(--primary-glow)]/5">
+              <div key={user.id} className="group relative bg-[var(--card-bg)]/80 border border-[var(--card-border)] rounded-3xl p-6 hover:border-[var(--primary)]/30 transition-all shadow-xl hover:shadow-[var(--primary-glow)]/5">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20">
@@ -216,7 +216,7 @@ export default function IdentityManagement() {
                   className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl border transition-all ${
                     selectedRole?.id === role.id 
                       ? "bg-[var(--primary)] border-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" 
-                      : "bg-[var(--card-bg)]/40 border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--primary)]/30"
+                      : "bg-[var(--card-bg)]/80 border border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--primary)]/30"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -235,7 +235,7 @@ export default function IdentityManagement() {
             {/* Permission Grid */}
             <div className="lg:col-span-3">
               {selectedRole ? (
-                <div className="bg-[var(--card-bg)]/40 border border-[var(--card-border)] rounded-3xl p-8 h-full animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="bg-[var(--card-bg)]/80 border border-[var(--card-border)] rounded-3xl p-8 h-full animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="flex items-center justify-between mb-8 pb-6 border-b border-[var(--card-border)]">
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 rounded-2xl bg-[var(--primary)]/10 border border-[var(--primary)]/30 flex items-center justify-center">

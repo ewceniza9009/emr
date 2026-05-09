@@ -385,7 +385,7 @@ export default function AdminDashboardPage() {
           <div className="space-y-8">
             <IntegrationsSync />
             <div className="px-8 pb-8">
-              <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] mb-4">Registry Endpoints</h3>
+            <h3 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.3em] mb-4">Registry Endpoints</h3>
               <SetupTable
                 {...tableProps}
                 columns={[
@@ -453,7 +453,7 @@ export default function AdminDashboardPage() {
               </div>
               <PermissionGate permission="setup:manage">
                 <button
-                  className="h-10 px-6 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white font-bold uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center gap-2 group"
+                  className="h-10 px-6 rounded-xl bg-[var(--primary)] hover:opacity-90 text-[var(--sidebar-bg)] font-bold uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center gap-2 group"
                   onClick={() => { setEditItem(null); setIsDrawerOpen(true); }}
                 >
                   <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
@@ -531,7 +531,7 @@ function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns:
               </td>
             </tr>
           ) : data.map((item, idx) => (
-            <tr key={idx} className="group hover:bg-white/[0.02] transition-all duration-300 relative">
+            <tr key={idx} className="group hover:bg-[var(--primary)]/5 transition-all duration-300 relative">
               {columns.map((col, colIdx) => (
                 <td key={col.key} className={`px-5 py-2.5 text-[11px] transition-all ${colIdx === 0 ? 'border-l-2 border-transparent group-hover:border-[var(--primary)]' : ''}`}>
                   <div className="text-[var(--text-secondary)] font-bold tracking-tight uppercase group-hover:text-[var(--text-primary)] transition-colors">
@@ -544,7 +544,7 @@ function SetupTable({ data, columns, onEdit, onDelete }: { data: any[], columns:
                   <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
                     <button
                       onClick={() => onEdit(item)}
-                      className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)] text-[var(--text-muted)] hover:text-white border border-[var(--card-border)] hover:border-[var(--primary)] transition-all shadow-xl"
+                      className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)] text-[var(--text-muted)] hover:text-[var(--sidebar-bg)] border border-[var(--card-border)] hover:border-[var(--primary)] transition-all shadow-xl"
                       title="Edit Record"
                     >
                       <Edit className="w-3.5 h-3.5" />

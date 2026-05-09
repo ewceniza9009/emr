@@ -264,6 +264,33 @@ Back at the Nerve Center, billing administrators log into the `/admin` portal. T
 
 In exactly 24 hours, Halcyon Clinical OS navigated complex geospatial logistics, handled real-time streaming telemetry, executed dynamic clinical documentation, enforced enterprise-grade security overrides, and prepped financial billing—all without a single system stutter, latency delay, or data leak.
 
+
+---
+
+## 🚀 Recent Architectural Stabilizations (May 2026)
+
+The following high-fidelity enhancements have been integrated to ensure Halcyon remains the most stable and visually professional Clinical OS on the market:
+
+### 1. Unified Telemetry Handshake
+- **State Synchronization:** Fully synchronized the `LiveHeartbeat` telemetry link with backend state machines. The system now performs a real-time handshake between the frontend toggle and the patient's active `ClinicalEncounter` or `Appointment` status.
+- **Smarter Simulation Logic:** The `TelemetrySimulatorService` has been upgraded to be "Context Aware," automatically broadcasting telemetry for patients who are either in an active Encounter (`InProgress`, `Triaged`) or have an active Appointment (`InProgress`).
+
+### 2. Full-Spectrum Theme Hardening (Light & Dark)
+- **Visual Artifact Elimination:** Scrubbed the entire platform of hardcoded dark-mode styles. Core components like the `EmergencyActionDrawer`, `DocumentVault`, and `CommandModal` now utilize dynamic CSS variables (`var(--card-bg)`, `var(--text-primary)`) for perfect legibility in high-glare clinical environments.
+- **Tactical Scheduling Contrast:** Fixed contrast discrepancies in the `SchedulingCalendar`. Appointment blocks and "Support Team" labels now dynamically adjust their backgrounds and text colors to maintain 100% legibility in Light Mode.
+- **Modal & Sidebar Refinement:** Standardized all system dialogs and navigation elements to use theme-aware backdrops and dividers, removing "ghostly" artifacts and ensuring a premium, unified aesthetic.
+
+### 3. Automated Clinical Workflow
+- **Zero-Touch Initialization:** Implemented auto-detection logic in the Patient Dashboard. If a practitioner opens a chart for a patient already in an active clinical session, the telemetry stream initializes automatically, reducing cognitive load and manual clicks.
+
+---
+
 Developed with ❤️ by **Erwin Wilson Ceniza**
 
 © 2026 Halcyon Clinical Operations. All rights reserved.
+
+### ?? Halcyon Theme Hardening Phase II: Admin Portal Stabilization
+- **Administrative Parity:** Extended full theme-aware support to the entire /admin ecosystem. Residual "Black Artifacts" in components like SecurityAuditVault, IdentityManagement, and IntegrationsSync have been eliminated, ensuring 100% legibility in high-density light-mode environments.
+- **Forensic Legibility:** Standardized all forensic table headers and status tags with clinical theme variables. High-authority administrative data now retains its professional "Tactical Command" aesthetic while adapting seamlessly to workstation lighting conditions.
+- **Dynamic Designer Synchronization:** Refactored the SurveyCreatorWidget and FormDesignerPage to ensure that the SurveyJS authoring environment respects the global theme context, providing a consistent and strain-free experience for clinical instrument architects.
+- **Global UI Variable Consolidation:** Finalized the codebase-wide transition from hardcoded white-alpha and slate-950 values to dynamic CSS variables, ensuring future-proof aesthetic consistency across all current and future clinical modules.

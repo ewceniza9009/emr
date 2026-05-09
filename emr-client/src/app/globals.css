@@ -8,7 +8,7 @@
   --background: #020408;
   --foreground: #f8fafc;
   --card-bg: #0a0c12;
-  --card-border: rgba(255, 255, 255, 0.05);
+  --card-border: rgba(255, 255, 255, 0.18); /* Sharpened for definitive clinical outlines */
   --text-primary: #ffffff;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
@@ -18,8 +18,8 @@
   --elegant-blue: #2563eb;
   --elegant-blue-glow: rgba(37, 99, 235, 0.4);
   --sidebar-bg: #020408;
-  --input-bg: rgba(255, 255, 255, 0.02);
-  --divider-color: rgba(255, 255, 255, 0.03);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --divider-color: rgba(255, 255, 255, 0.1);
 }
 
 .light {

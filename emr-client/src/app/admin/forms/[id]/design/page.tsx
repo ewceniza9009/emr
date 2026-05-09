@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import dynamic from "next/dynamic";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
-import { Shield, ChevronLeft, Save, Activity } from "lucide-react";
+import { Shield, ChevronLeft, Save, Activity, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useCallback } from "react";
 
@@ -127,33 +127,33 @@ export default function FormDesignerPage() {
     return null;
   }, [form]);
 
-  if (loading) return <div className="min-h-screen bg-[#020617] flex items-center justify-center font-black text-slate-500 uppercase tracking-widest animate-pulse">Initializing Neural Designer...</div>;
+  if (loading) return <div className="min-h-screen bg-[var(--background)] flex items-center justify-center font-black text-[var(--text-muted)] uppercase tracking-widest animate-pulse">Initializing Neural Designer...</div>;
 
-  if (!form) return <div className="min-h-screen bg-[#020617] flex items-center justify-center p-20 text-center text-rose-500 font-bold uppercase tracking-widest border border-rose-500/20 m-10 rounded-3xl">Form Registry Node Not Found.</div>;
+  if (!form) return <div className="min-h-screen bg-[var(--background)] flex items-center justify-center p-20 text-center text-rose-500 font-bold uppercase tracking-widest border border-rose-500/20 m-10 rounded-3xl">Form Registry Node Not Found.</div>;
 
   return (
     <div className="flex flex-col h-screen bg-[var(--background)]">
       <header className="h-14 border-b border-[var(--divider-color)] bg-[var(--sidebar-bg)]/80 backdrop-blur-xl flex items-center justify-between px-8 shrink-0">
         <div className="flex items-center gap-6">
-          <Link href="/admin/dashboard" className="p-2 hover:bg-slate-100 rounded-xl transition-all text-slate-400 hover:text-slate-900">
+          <Link href="/admin/dashboard" className="p-2 hover:bg-[var(--primary)]/10 rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
             <ChevronLeft className="w-5 h-5" />
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary-glow)]">
-              <Shield className="w-5 h-5 text-white" />
+          <div className="flex items-center">
+            <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 transition-transform">
+              <RefreshCw className="w-5 h-5" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none">{form.name}</span>
-              <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1"> Assessment Form Design</span>
+            <div>
+              <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">Registry Synchronization</h4>
+              <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Push all existing nodes to the search cluster</p>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           {saving && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-indigo-50 rounded-full border border-indigo-100">
-              <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping" />
-              <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">Persisting...</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)]/10 rounded-full border border-[var(--primary)]/20">
+              <span className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-widest">Persisting...</span>
+              <div className="absolute right-3 w-1 h-1 bg-[var(--primary)] rounded-full" />
             </div>
           )}
           <button
@@ -176,14 +176,13 @@ export default function FormDesignerPage() {
                 console.error("Re-sync error:", e);
               }
             }}
-            className="h-11 px-6 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95"
+            className="px-6 py-2 rounded-xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
           >
-            <Activity className="w-4 h-4" />
-            <span className="text-[9px]">Force Repair 0-10 Scale</span>
+            Re-Index All Nodes
           </button>
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('save-survey-schema'))}
-            className="h-10 px-8 rounded-xl bg-[var(--primary)] hover:opacity-90 text-white font-black uppercase tracking-[0.15em] shadow-2xl shadow-[var(--primary-glow)] transition-all flex items-center gap-3 active:scale-95"
+            className="h-10 px-8 rounded-xl bg-[var(--primary)] hover:opacity-90 text-[var(--sidebar-bg)] font-black uppercase tracking-[0.15em] shadow-2xl shadow-[var(--primary-glow)] transition-all flex items-center gap-3 active:scale-95"
           >
             <Save className="w-4 h-4" />
             <span className="text-[10px]">Save Schema</span>

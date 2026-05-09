@@ -58,7 +58,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
       <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-14 border-b border-[var(--card-border)] shrink-0`}>
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)] animate-halcyon-pulse">
-            <Shield className="w-5 h-5 text-white" strokeWidth={2} />
+            <Shield className="w-5 h-5 text-[var(--sidebar-bg)]" strokeWidth={2} />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
@@ -86,7 +86,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
                 title={isCollapsed ? item.label : ""}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all group relative ${isActive
                     ? "bg-[var(--primary)]/10 text-[var(--primary)]"
-                    : "text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--text-secondary)]"
+                    : "text-[var(--text-muted)] hover:bg-[var(--primary)]/5 hover:text-[var(--text-secondary)]"
                   }`}
               >
                 <div className="relative">
@@ -110,7 +110,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
         <div className="h-px bg-[var(--divider-color)] mx-3 my-4" />
         <Link
           href="/dashboard"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--primary)]"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative text-[var(--text-muted)] hover:bg-[var(--primary)]/5 hover:text-[var(--primary)]"
         >
           <div className="relative">
             <LayoutDashboard className="w-5 h-5 shrink-0" />
@@ -125,7 +125,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
       <div className="p-3 border-t border-[var(--card-border)] space-y-0.5">
         <button
           onClick={toggleTheme}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--primary)] transition-all group"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[var(--text-muted)] hover:bg-[var(--primary)]/5 hover:text-[var(--primary)] transition-all group"
           title={isCollapsed ? (theme === "dark" ? "Switch to Light" : "Switch to Dark") : ""}
         >
           {theme === "dark" ? <Sun className="w-5 h-5 shrink-0" /> : <Moon className="w-5 h-5 shrink-0" />}
@@ -134,7 +134,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[var(--text-muted)] hover:bg-white/5 hover:text-[var(--text-secondary)] transition-all group"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[var(--text-muted)] hover:bg-[var(--primary)]/5 hover:text-[var(--text-secondary)] transition-all group"
           title={isCollapsed ? "Expand" : "Collapse"}
         >
           <div className={`transition-transform duration-500 ${isCollapsed ? "rotate-180" : ""}`}>

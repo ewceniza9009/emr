@@ -259,7 +259,7 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
   return (
     <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
-        <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
+        <div className="absolute inset-0 bg-[var(--background)]/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
         
         <div className="relative h-full w-full max-w-[450px] bg-[var(--sidebar-bg)] border-l border-[var(--card-border)] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
           <div className="h-20 px-8 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--sidebar-bg)]">
@@ -310,11 +310,11 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4 pt-2">
-                    <label className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer hover:bg-white/5 transition-all">
+                    <label className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer hover:bg-[var(--divider-color)] transition-all">
                       <input type="checkbox" className="w-4 h-4 rounded border-[var(--card-border)] text-[var(--primary)] focus:ring-[var(--primary)]" checked={form.isCareNavigator} onChange={e => setForm({...form, isCareNavigator: e.target.checked})} />
                       <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Care Navigator</span>
                     </label>
-                    <label className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer hover:bg-white/5 transition-all">
+                    <label className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer hover:bg-[var(--divider-color)] transition-all">
                       <input type="checkbox" className="w-4 h-4 rounded border-[var(--card-border)] text-[var(--primary)] focus:ring-[var(--primary)]" checked={form.isSupportingClinician} onChange={e => setForm({...form, isSupportingClinician: e.target.checked})} />
                       <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Supporting Clinician</span>
                     </label>

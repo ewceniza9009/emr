@@ -60,7 +60,7 @@ export default function SecurityAuditVault() {
         <div className="flex items-center gap-6">
           <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]" />
           <div>
-            <h1 className="text-xl font-black text-white tracking-tighter uppercase leading-none">Security Audit Vault</h1>
+            <h1 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Security Audit Vault</h1>
             <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1.5 flex items-center gap-2">
               <Shield className="w-3 h-3 text-emerald-500" />
               Forensic Integrity Active · {totalCount} Events Logged
@@ -70,30 +70,30 @@ export default function SecurityAuditVault() {
 
         <div className="flex items-center gap-3">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[var(--primary)] transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
             <input 
               placeholder="Search actions..." 
-              className="bg-white/[0.03] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-[var(--primary)]/50 transition-all w-64"
+              className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 pl-10 pr-4 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all w-64"
             />
           </div>
         </div>
       </div>
 
       {/* Main Forensic Table */}
-      <div className="mx-5 bg-slate-950/50 border border-white/5 rounded-[2rem] shadow-2xl overflow-hidden">
+      <div className="mx-5 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[2rem] shadow-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-white/[0.02] border-b border-white/5">
-                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Timestamp</th>
-                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Actor</th>
-                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Action</th>
-                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Details</th>
-                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Entity</th>
-                <th className="px-6 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Diagnostic</th>
+              <tr className="bg-[var(--input-bg)]/50 border-b border-[var(--card-border)]">
+                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Timestamp</th>
+                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Actor</th>
+                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Action</th>
+                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Details</th>
+                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Entity</th>
+                <th className="px-6 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest text-right">Diagnostic</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-[var(--card-border)]">
               {loading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
@@ -101,11 +101,11 @@ export default function SecurityAuditVault() {
                   </tr>
                 ))
               ) : logs.map((log: any) => (
-                <tr key={log.auditLogId} className="hover:bg-white/[0.02] transition-all group">
+                <tr key={log.auditLogId} className="hover:bg-[var(--primary)]/5 transition-all group">
                   <td className="px-6 py-2.5">
                     <div className="flex flex-col">
-                      <span className="text-[11px] font-black text-white">{new Date(log.timestamp).toLocaleDateString()}</span>
-                      <span className="text-[9px] font-black text-slate-500 uppercase">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                      <span className="text-[11px] font-black text-[var(--text-primary)]">{new Date(log.timestamp).toLocaleDateString()}</span>
+                      <span className="text-[9px] font-black text-[var(--text-muted)] uppercase">{new Date(log.timestamp).toLocaleTimeString()}</span>
                     </div>
                   </td>
                   <td className="px-6 py-2.5">
@@ -114,8 +114,8 @@ export default function SecurityAuditVault() {
                         <User className="w-4 h-4" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-black text-white uppercase">{log.userName || 'System'}</span>
-                        <span className="text-[8px] font-mono text-slate-600 uppercase">{log.userId?.slice(0, 8)}...</span>
+                        <span className="text-[11px] font-black text-[var(--text-primary)] uppercase">{log.userName || 'System'}</span>
+                        <span className="text-[8px] font-mono text-[var(--text-muted)] uppercase">{log.userId?.slice(0, 8)}...</span>
                       </div>
                     </div>
                   </td>
@@ -131,23 +131,23 @@ export default function SecurityAuditVault() {
                     </span>
                   </td>
                   <td className="px-6 py-2.5">
-                    <p className="text-[10px] text-slate-400 font-medium max-w-xs leading-normal">
+                    <p className="text-[10px] text-[var(--text-secondary)] font-medium max-w-xs leading-normal">
                       {log.details}
                     </p>
                   </td>
                   <td className="px-6 py-2.5">
                     {log.targetName ? (
                       <div className="flex flex-col">
-                        <span className="text-[11px] font-black text-white uppercase">{log.targetName}</span>
-                        <span className="text-[8px] font-mono text-slate-600 uppercase">{log.targetUserId?.slice(0, 8)}...</span>
+                        <span className="text-[11px] font-black text-[var(--text-primary)] uppercase">{log.targetName}</span>
+                        <span className="text-[8px] font-mono text-[var(--text-muted)] uppercase">{log.targetUserId?.slice(0, 8)}...</span>
                       </div>
                     ) : (
-                      <span className="text-[9px] text-slate-700 italic">Global System</span>
+                      <span className="text-[9px] text-[var(--text-muted)] italic">Global System</span>
                     )}
                   </td>
                   <td className="px-6 py-2.5 text-right">
                     <div className="flex flex-col items-end gap-1">
-                      <div className="flex items-center gap-1.5 text-[8px] font-mono text-slate-600">
+                      <div className="flex items-center gap-1.5 text-[8px] font-mono text-[var(--text-muted)]">
                         <Activity className="w-2.5 h-2.5" />
                         {log.ipAddress || '0.0.0.0'}
                       </div>
@@ -160,26 +160,26 @@ export default function SecurityAuditVault() {
         </div>
 
         {/* Footer / Pagination */}
-        <div className="p-5 bg-white/[0.01] border-t border-white/5 flex items-center justify-between">
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+        <div className="p-5 bg-[var(--input-bg)]/30 border-t border-[var(--card-border)] flex items-center justify-between">
+          <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">
             Showing {page * take + 1} to {Math.min((page + 1) * take, totalCount)} of {totalCount} events
           </p>
           <div className="flex items-center gap-2">
             <button 
               disabled={page === 0}
               onClick={() => setPage(p => p - 1)}
-              className="p-2 rounded-xl bg-white/[0.03] border border-white/10 text-slate-500 hover:text-white disabled:opacity-20 transition-all"
+              className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-1 px-4">
-               <span className="text-xs font-black text-white">{page + 1}</span>
-               <span className="text-xs font-black text-slate-600">/ {Math.ceil(totalCount / take)}</span>
+               <span className="text-xs font-black text-[var(--text-primary)]">{page + 1}</span>
+               <span className="text-xs font-black text-[var(--text-muted)]">/ {Math.ceil(totalCount / take)}</span>
             </div>
             <button 
               disabled={!data?.securityAuditLogs?.pageInfo?.hasNextPage}
               onClick={() => setPage(p => p + 1)}
-              className="p-2 rounded-xl bg-white/[0.03] border border-white/10 text-slate-500 hover:text-white disabled:opacity-20 transition-all"
+              className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -194,8 +194,8 @@ export default function SecurityAuditVault() {
             <Shield className="w-4 h-4" />
             <h3 className="text-[10px] font-black uppercase tracking-widest">Integrity Status</h3>
           </div>
-          <p className="text-xl font-black text-white uppercase tracking-tighter">Verified</p>
-          <p className="text-[10px] text-slate-500 font-medium">Chain of custody validated.</p>
+          <p className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter">Verified</p>
+          <p className="text-[10px] text-[var(--text-muted)] font-medium">Chain of custody validated.</p>
         </div>
 
         <div className="p-5 rounded-[1.5rem] bg-rose-500/5 border border-rose-500/10 space-y-3">
@@ -203,10 +203,10 @@ export default function SecurityAuditVault() {
             <AlertCircle className="w-4 h-4" />
             <h3 className="text-[10px] font-black uppercase tracking-widest">Unauthorized Attempts</h3>
           </div>
-          <p className="text-xl font-black text-white uppercase tracking-tighter">
+          <p className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter">
             {logs.filter((l: any) => l.action.includes('UNAUTHORIZED')).length}
           </p>
-          <p className="text-[10px] text-slate-500 font-medium">High-risk access flagged.</p>
+          <p className="text-[10px] text-[var(--text-muted)] font-medium">High-risk access flagged.</p>
         </div>
 
         <div className="p-5 rounded-[1.5rem] bg-emerald-500/5 border border-emerald-500/10 space-y-3">
@@ -214,10 +214,10 @@ export default function SecurityAuditVault() {
             <Zap className="w-4 h-4" />
             <h3 className="text-[10px] font-black uppercase tracking-widest">Break-Glass usage</h3>
           </div>
-          <p className="text-xl font-black text-white uppercase tracking-tighter">
+          <p className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter">
             {logs.filter((l: any) => l.action.includes('ACTIVATED')).length}
           </p>
-          <p className="text-[10px] text-slate-500 font-medium">Active bypass sessions.</p>
+          <p className="text-[10px] text-[var(--text-muted)] font-medium">Active bypass sessions.</p>
         </div>
       </div>
     </div>

@@ -120,10 +120,10 @@ export default function RegistrySettings() {
                 : "text-[var(--text-muted)] hover:bg-[var(--input-bg)] hover:text-[var(--text-primary)]"
               }`}
             >
-              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-white" : "group-hover:text-[var(--primary)]"}`} />
+              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-[var(--sidebar-bg)]" : "group-hover:text-[var(--primary)]"}`} />
               <span className="text-[10px] font-bold uppercase tracking-widest">{tab.label}</span>
               {tab.adminOnly && !isAdmin && <Lock className="w-2.5 h-2.5 ml-auto opacity-40" />}
-              {activeTab === tab.id && <div className="absolute right-3 w-1 h-1 bg-white rounded-full" />}
+              {activeTab === tab.id && <div className="absolute right-3 w-1 h-1 bg-[var(--sidebar-bg)] rounded-full" />}
             </button>
           ))}
           
@@ -270,7 +270,7 @@ export default function RegistrySettings() {
                           <RefreshCw className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="text-[10px] font-black text-white uppercase tracking-tighter">Registry Synchronization</h4>
+                          <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">Registry Synchronization</h4>
                           <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Push all existing nodes to the search cluster</p>
                         </div>
                       </div>
@@ -332,10 +332,10 @@ export default function RegistrySettings() {
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] text-white rounded-xl font-black text-[9px] uppercase tracking-[0.2em] hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-[var(--primary-glow)] disabled:opacity-40"
+                className="flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] text-[var(--sidebar-bg)] rounded-xl font-black text-[9px] uppercase tracking-[0.2em] hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-[var(--primary-glow)] disabled:opacity-40"
               >
                 {isSaving ? (
-                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-3 h-3 border-2 border-[var(--sidebar-bg)]/30 border-t-[var(--sidebar-bg)] rounded-full animate-spin" />
                 ) : (
                   <Save className="w-3 h-3" />
                 )}
