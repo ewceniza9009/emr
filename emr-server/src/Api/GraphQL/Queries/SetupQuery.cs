@@ -175,7 +175,7 @@ public class SetupQuery
     {
         var workload = new List<WorkloadItemDto>();
 
-        // 1. Get Scheduled/Active Appointments (Cases)
+        // 1. Get Scheduled/Active/Recent Appointments (Cases)
         var appointments = await context
             .Appointments.Include(a => a.Patient)
             .Where(a =>
@@ -183,10 +183,11 @@ public class SetupQuery
                 && (
                     a.Status == AppointmentStatus.Scheduled
                     || a.Status == AppointmentStatus.InProgress
+                    || a.Status == AppointmentStatus.Completed
                 )
             )
-            .OrderBy(a => a.ScheduledStart)
-            .Take(10)
+            .OrderByDescending(a => a.ScheduledStart) // Most recent first for forensic feel
+            .Take(15)
             .ToListAsync();
 
         foreach (var apt in appointments)
@@ -196,15 +197,15 @@ public class SetupQuery
                 {
                     Title = $"Visit: {apt.Patient.FirstName} {apt.Patient.LastName}",
                     Type = "VISIT",
-                    Priority = apt.VisitType == VisitType.EmergencyTriage ? "URGENT" : "MEDIUM",
+                    Priority = (apt.VisitType == VisitType.EmergencyTriage || apt.Status == AppointmentStatus.InProgress) ? "URGENT" : "MEDIUM",
                     DueDate = apt.ScheduledStart.DateTime,
-                    Status = apt.Status.ToString(),
+                    Status = apt.Status.ToString().ToUpper(),
                 }
             );
         }
 
-        // 2. Add some synthetic administrative tasks for demo fidelity if workload is low
-        if (workload.Count < 3)
+        // 2. Always ensure a baseline of administrative tasks for "Forensic" visibility
+        if (workload.Count < 5)
         {
             workload.Add(
                 new WorkloadItemDto
@@ -227,7 +228,6 @@ public class SetupQuery
                 }
             );
         }
-
         return workload;
     }
 }

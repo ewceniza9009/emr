@@ -24,7 +24,7 @@
 
 ## 📊 Clinical QA & Reliability Report
 
-[**📊 View Full CI/CD History**](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/25624169270/artifacts/6902380035)
+[**📊 View Full CI/CD History**](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/25642801606/artifacts/6907913736)
 
 > [!IMPORTANT]
 > The link above represents a **100% successful verification** of all clinical modules: Enrollment, Scheduling, Booking, and Real-time Telemetry.
@@ -391,6 +391,11 @@ The following high-fidelity enhancements have been integrated to ensure Halcyon 
 
 ### 3. Automated Clinical Workflow
 - **Zero-Touch Initialization:** Implemented auto-detection logic in the Patient Dashboard. If a practitioner opens a chart for a patient already in an active clinical session, the telemetry stream initializes automatically, reducing cognitive load and manual clicks.
+
+### 4. Enterprise Administrative Workstation
+- **Security Activation Heatmaps:** Integrated a high-authority control center for administrative security. Administrators can now toggle **MFA Enforcement**, **Session Timeouts**, and **Strict Onboarding** protocols with real-time persistence to the tenant configuration registry.
+- **Workload Intelligence & Forensic Drill-down:** Deployed a high-fidelity diagnostic modal for practitioner utilization. This component provides a "Forensic" view of both active workloads and historical clinical telemetry, allowing Medical Directors to perform deep-dive audits into resource allocation.
+- **CI/CD Pipeline Idempotency:** Hardened the E2E testing infrastructure to ensure 100% reliable clinical verification. Refactored the Playwright suite to enforce state idempotency, eliminating flaky failures in the Enrollment and Scheduling workflows.
 
 ---
 
