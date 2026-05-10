@@ -20,11 +20,11 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://localhost:3431',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    /* Collect trace for all tests */
+    trace: 'on',
     
-    /* Luxury Clinical Aesthetic: Capture screenshots on failure */
-    screenshot: 'only-on-failure',
+    /* Luxury Clinical Aesthetic: Capture screenshots for all tests */
+    screenshot: 'on',
   },
 
   /* Configure projects for major browsers */

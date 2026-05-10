@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Bell, Search, User, Shield, Zap, Activity, Moon, Sun, Settings } from "lucide-react";
+import { Bell, Search, User, ShieldCheck, Zap, Activity, Moon, Sun, Settings } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -75,7 +75,7 @@ export function TopBar() {
                 {session?.user?.name || "AUTHENTICATED USER"}
               </p>
               <div className="flex items-center justify-end gap-1 mt-1">
-                <Shield className="w-2 h-2 text-[var(--primary)]" />
+                <ShieldCheck className="w-2.5 h-2.5 text-[var(--primary)]" />
                 <p className="text-[8px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] opacity-80">
                   {session?.user?.role || "Authorized Clinician"}
                 </p>

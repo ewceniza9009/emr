@@ -84,6 +84,46 @@ Storing patient PDFs or images in a public folder is a security violation.
 
 ---
 
+## 🛡️ Hardening Implementation Plan
+
+Below are step-by-step variations for implementing the most critical infrastructure requirements.
+
+### Part 1: SignalR Scaling (Live Telemetry Backplane)
+
+#### **Variation A: Azure SignalR Service (Managed)**
+1.  **Provision**: Create an **Azure SignalR Service** instance in the same region as your API.
+2.  **Install**: Run `dotnet add package Microsoft.Azure.SignalR` in the `Api` project.
+3.  **Configure**: Update `Program.cs`:
+    ```csharp
+    builder.Services.AddSignalR().AddAzureSignalR(options => {
+        options.ConnectionString = builder.Configuration["Azure:SignalR:ConnectionString"];
+    });
+    ```
+4.  **Security**: Use **Microsoft Entra ID** managed identities to avoid storing raw keys.
+
+#### **Variation B: Redis Backplane (Self-Managed)**
+1.  **Setup**: Deploy a Redis instance (or use Azure Cache for Redis).
+2.  **Install**: Run `dotnet add package Microsoft.AspNetCore.SignalR.StackExchangeRedis`.
+3.  **Configure**: Update `Program.cs`:
+    ```csharp
+    builder.Services.AddSignalR().AddStackExchangeRedis("your-redis-connection-string");
+    ```
+
+### Part 2: Zero-Downtime Database Migrations
+
+#### **Variation A: The "Expand-Contract" Pattern**
+1.  **Expand**: Run a migration that **adds** new columns/tables (no breaking changes).
+2.  **Dual Write**: Update `ApplicationDbContext` to write data to both old and new columns.
+3.  **Backfill**: Execute a background task to sync existing data to the new schema.
+4.  **Contract**: Once verified, deploy a final migration to remove the deprecated columns.
+
+#### **Variation B: Blue-Green Tenant Switching**
+1.  **Parallel Provisioning**: Spin up a "Green" DB instance with the new schema.
+2.  **Logical Sync**: Use Azure Data Factory to sync data from the production database to the Green database.
+3.  **Toggle Switch**: Update the `TenantResolver` middleware to point specific tenants to the Green database for verification before a full cutover.
+
+---
+
 ## 📈 Go-To-Market Infrastructure
 
 > "Halcyon Clinical OS is engineered for rapid, secure cloud deployment. The .NET 8 API and Next.js frontend are decoupled and containerized. The target production environment utilizes **Microsoft Azure** to ensure enterprise-grade security. By leveraging **Azure SQL** for encrypted, multi-tenant data isolation and **Azure SignalR Service** for high-throughput live clinical telemetry, the platform is designed to be highly available, scalable, and fully compliant with healthcare data privacy regulations from day one."
