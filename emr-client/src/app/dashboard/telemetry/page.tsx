@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, gql } from "@apollo/client";
 import {
   Heart,
@@ -52,7 +52,7 @@ export default function VitalsIoTPage() {
 
   const [createEncounter] = useMutation(CREATE_ENCOUNTER);
 
-  const patientsData = data?.patients?.items || [];
+  const patientsData = useMemo(() => data?.patients?.items || [], [data?.patients?.items]);
 
   // Auto-enable patients who already have an active encounter
   useEffect(() => {

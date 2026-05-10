@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 import UploadDocumentDrawer from "@/components/UploadDocumentDrawer";
-import { Skeleton } from "survey-react-ui";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const GET_TRIAGE_WORKLIST = gql`
   query GetTriageWorklist($search: String) {

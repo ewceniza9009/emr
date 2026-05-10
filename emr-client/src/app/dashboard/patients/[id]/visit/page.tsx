@@ -234,7 +234,7 @@ export default function GuidedVisitPage() {
   const clearPersistence = () => localStorage.removeItem(persistenceKey);
 
 
-  const allQuestionnaires = allQuestionnairesData?.questionnaires || [];
+  const allQuestionnaires = useMemo(() => allQuestionnairesData?.questionnaires || [], [allQuestionnairesData?.questionnaires]);
 
   // 1. Initial Sync from Appointment Plan
   useEffect(() => {

@@ -463,7 +463,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
       return { ...p, ...geo };
     });
-  }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData, scSearch]);
+  }, [currentGeoData, practitionerData, practitionerId, supportingIds, scSearch]);
 
   const selectedSlot = useMemo(() => {
     const isEditingExisting = !!appointmentId && !!appointmentData?.appointment;

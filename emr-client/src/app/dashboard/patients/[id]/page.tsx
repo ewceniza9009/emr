@@ -367,7 +367,7 @@ export default function PatientDetailPage() {
         setTelemetryEnabled(true);
       }
     }
-  }, [patient?.patientId, apptData, addItem]);
+  }, [patient?.patientId, patient?.firstName, patient?.lastName, patient?.mrn, patient?.encounters, apptData, addItem]);
 
   const { data: summaryData } = useQuery(GET_CLINICAL_SUMMARY, {
     variables: { patientId: params.id },
