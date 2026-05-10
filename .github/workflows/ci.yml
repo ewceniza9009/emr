@@ -85,19 +85,20 @@ jobs:
           # Ensure Database is fully awake
           npx wait-on tcp:127.0.0.1:5432
           
-          # Start Backend
-          cd emr-server/src/Api && dotnet run --no-build --configuration Release -- --seed &
+          # Start Backend (Ignoring local launch settings)
+          cd emr-server/src/Api && dotnet run --no-build --no-launch-profile --configuration Release -- --seed &
           
           # Start Frontend
           cd emr-client && npm start &
           
-          # Wait for services (3-min timeout)
-          npx wait-on -t 180000 http://127.0.0.1:34732/health http://127.0.0.1:3431
+          # Wait for services (5-min timeout for slow cloud seeding)
+          npx wait-on -t 300000 http://127.0.0.1:34732/health http://127.0.0.1:3431
           echo "Services are healthy. Starting Playwright suite."
           
           # Run Playwright
           cd emr-client && npx playwright test tests/clinical-workflow.spec.ts --project=chromium --workers=1
         env:
+          ASPNETCORE_ENVIRONMENT: Production
           ConnectionStrings__DefaultConnection: "Host=127.0.0.1;Database=emr;Username=postgres;Password=postgres"
           NEXT_PUBLIC_API_URL: http://127.0.0.1:34732
           NEXTAUTH_SECRET: "ci-secret-halcyon"
