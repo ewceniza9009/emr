@@ -146,6 +146,12 @@ const DELETE_MUTATIONS = {
   integrationProfiles: gql`mutation DeleteIntegrationProfile($id: Guid!) { deleteIntegrationProfile(id: $id) }`,
 };
 
+const INVITE_PRACTITIONER = gql`
+  mutation InvitePractitioner($practitionerId: Guid!, $email: String!) {
+    invitePractitioner(practitionerId: $practitionerId, email: $email)
+  }
+`;
+
 export default function AdminDashboardPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[var(--background)] flex items-center justify-center font-black text-[var(--text-muted)] uppercase tracking-widest animate-pulse">Initializing Security Session...</div>}>
@@ -186,6 +192,8 @@ function AdminDashboardContent() {
   const [deleteItem] = useMutation(mutation, {
     onCompleted: () => refetch()
   });
+
+  const [invitePractitioner] = useMutation(INVITE_PRACTITIONER);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -261,6 +269,39 @@ function AdminDashboardContent() {
                     {item.isActive ? "Active" : "Inactive"}
                   </span>
                 )
+              },
+              {
+                key: "userId", label: "Account", render: (item: any) => {
+                  const hasAccount = !!item.userId && item.userId !== "00000000-0000-0000-0000-000000000000";
+                  return (
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${hasAccount ? "bg-blue-500/10 text-blue-500 border-blue-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"}`}>
+                        {hasAccount ? "Linked" : "No Access"}
+                      </span>
+                      {!hasAccount && (
+                        <button 
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const email = window.prompt(`Enter invitation email for ${item.firstName} ${item.lastName}:`);
+                            if (email) {
+                              try {
+                                const { data } = await invitePractitioner({ variables: { practitionerId: item.practitionerId, email } });
+                                if (data.invitePractitioner) {
+                                  window.alert(`Onboarding link generated: ${window.location.origin}${data.invitePractitioner}`);
+                                }
+                              } catch (err: any) {
+                                window.alert(`Invitation failed: ${err.message}`);
+                              }
+                            }
+                          }}
+                          className="p-1 rounded bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all shadow-sm"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                }
               }
             ]}
           />

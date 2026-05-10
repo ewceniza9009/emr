@@ -1,8 +1,13 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using Application.Common.Interfaces;
+using Domain.Entities;
 using HotChocolate.Authorization;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Api.GraphQL.Mutations;
 
@@ -139,5 +144,112 @@ public class IdentityMutation
         }
 
         return result.Succeeded;
+    }
+
+    public async Task<string?> InvitePractitioner(
+        Guid practitionerId,
+        string email,
+        [Service] IApplicationDbContext context,
+        [Service] IConfiguration configuration,
+        [Service] ISecurityAuditService auditService
+    )
+    {
+        var practitioner = await context.Practitioners
+            .FirstOrDefaultAsync(p => p.PractitionerId == practitionerId);
+
+        if (practitioner == null) return null;
+
+        // Generate a secure invitation token (JWT)
+        var authSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(configuration["Jwt:Key"] ?? "SUPER_SECRET_KEY_FOR_DEVELOPMENT_ONLY_123!")
+        );
+
+        var token = new JwtSecurityToken(
+            issuer: configuration["Jwt:Issuer"],
+            audience: configuration["Jwt:Audience"],
+            expires: DateTime.Now.AddDays(7),
+            claims: new List<Claim>
+            {
+                new Claim("practitionerId", practitionerId.ToString()),
+                new Claim("email", email),
+                new Claim("tenantId", practitioner.TenantId.ToString()),
+                new Claim("type", "invitation")
+            },
+            signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+        );
+
+        var invitationLink = $"/onboarding?token={new JwtSecurityTokenHandler().WriteToken(token)}";
+
+        await auditService.LogActionAsync(
+            "PRACTITIONER_INVITED",
+            $"Generated onboarding invitation for {practitioner.FullName} ({email})",
+            practitionerId.ToString(),
+            practitioner.FullName
+        );
+
+        return invitationLink;
+    }
+
+    [AllowAnonymous]
+    public async Task<bool> CompletePractitionerOnboarding(
+        string token,
+        string password,
+        [Service] UserManager<ApplicationUser> userManager,
+        [Service] IApplicationDbContext context,
+        [Service] IConfiguration configuration,
+        [Service] ISecurityAuditService auditService
+    )
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"] ?? "SUPER_SECRET_KEY_FOR_DEVELOPMENT_ONLY_123!")),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ClockSkew = TimeSpan.Zero
+        };
+
+        try
+        {
+            var principal = handler.ValidateToken(token, validationParameters, out var validatedToken);
+            var practitionerId = Guid.Parse(principal.FindFirst("practitionerId")!.Value);
+            var email = principal.FindFirst("email")!.Value;
+            var tenantId = Guid.Parse(principal.FindFirst("tenantId")!.Value);
+
+            var practitioner = await context.Practitioners.FirstOrDefaultAsync(p => p.PractitionerId == practitionerId);
+            if (practitioner == null || (practitioner.UserId != Guid.Empty && practitioner.UserId != null)) return false;
+
+            // Create User
+            var user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                FirstName = practitioner.FirstName,
+                LastName = practitioner.LastName,
+                PractitionerId = practitionerId,
+                TenantId = tenantId
+            };
+
+            var result = await userManager.CreateAsync(user, password);
+            if (!result.Succeeded) return false;
+
+            // Link Practitioner to User
+            practitioner.UserId = Guid.Parse(user.Id);
+            await context.SaveChangesAsync(default);
+
+            await auditService.LogActionAsync(
+                "ONBOARDING_COMPLETED",
+                $"Practitioner {practitioner.FullName} completed onboarding and linked user account.",
+                user.Id,
+                practitioner.FullName
+            );
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

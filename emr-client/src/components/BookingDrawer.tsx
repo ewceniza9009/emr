@@ -1352,7 +1352,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                     </>
                   )}
                 </button>
-                <p className="text-[10px] font-bold text-slate-600 text-center uppercase tracking-widest opacity-50">
+                <p className="text-[10px] font-bold text-[var(--text-muted)] text-center uppercase tracking-widest opacity-50">
                   Authorized Clinical Staff Only
                 </p>
               </div>
@@ -1364,7 +1364,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mb-8 border-4 border-emerald-500/20 shadow-[0_0_50px_rgba(16,185,129,0.2)]">
                 <CheckCircle className="w-12 h-12 text-emerald-500 animate-in zoom-in duration-700" />
               </div>
-              <h2 className="text-sm font-bold text-white tracking-tight mb-2 uppercase">Schedule Confirmed</h2>
+              <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight mb-2 uppercase">Schedule Confirmed</h2>
               <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-xs">Patient records synchronized successfully</p>
             </div>
           )}
