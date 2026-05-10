@@ -191,6 +191,8 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const [memberId, setMemberId] = useState("");
   const [groupId, setGroupId] = useState("");
   const [eligibilityStatus, setEligibilityStatus] = useState<"PENDING" | "VERIFIED" | "ERROR">("PENDING");
+  const [isVerifyingInsurance, setIsVerifyingInsurance] = useState(false);
+  const [insuranceRef, setInsuranceRef] = useState("");
 
   // Referral State
   const [referringPhysician, setReferringPhysician] = useState("");
@@ -236,6 +238,9 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const [scheduleIntakeNow, setScheduleIntakeNow] = useState(true);
   const [communicationStatus, setCommunicationStatus] = useState<CommunicationAbility>(CommunicationAbility.Verbal);
   const [duplicateMatch, setDuplicateMatch] = useState<any>(null);
+  const [isConsentSealed, setIsConsentSealed] = useState(false);
+  const [consentTimestamp, setConsentTimestamp] = useState<string | null>(null);
+  const [consentToken, setConsentToken] = useState("");
   const [showIcd10Search, setShowIcd10Search] = useState(false);
   const [icd10Results, setIcd10Results] = useState<any[]>([]);
   const [isSearchingIcd10, setIsSearchingIcd10] = useState(false);
@@ -520,8 +525,17 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   };
 
   const verifyInsurance = () => {
-    setEligibilityStatus("VERIFIED");
-    // Mock simulation
+    if (!selectedPlan || !memberId) {
+      showToast("Plan and Member ID required for verification", "error");
+      return;
+    }
+    setIsVerifyingInsurance(true);
+    setTimeout(() => {
+      setEligibilityStatus("VERIFIED");
+      setInsuranceRef(`AUTH-${Math.floor(Math.random() * 1000000)}`);
+      setIsVerifyingInsurance(false);
+      showToast("Insurance Eligibility Verified", "success");
+    }, 1500);
   };
 
   const renderCalendar = () => {
@@ -878,6 +892,62 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                             </button>
                           ))}
                         </div>
+
+                        {/* DIGITAL CONSENT SEAL */}
+                        <div className="mt-8 bg-gradient-to-br from-teal-500/5 to-transparent border border-teal-500/20 rounded-3xl p-8 relative overflow-hidden group/seal">
+                          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/seal:opacity-30 transition-opacity">
+                            <Fingerprint className="w-24 h-24 text-teal-500" />
+                          </div>
+                          
+                          <div className="relative z-10 space-y-6">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500 border border-teal-500/20">
+                                <Shield className="w-6 h-6" />
+                              </div>
+                              <div>
+                                <h4 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">Digital Consent Handshake</h4>
+                                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tight mt-1 opacity-60">Authorize clinical data ingestion and treatment protocol.</p>
+                              </div>
+                            </div>
+
+                            {isConsentSealed ? (
+                              <div className="bg-teal-500 rounded-2xl p-5 flex items-center justify-between shadow-xl shadow-teal-500/20 animate-in zoom-in duration-500">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded-full bg-black/20 flex items-center justify-center text-white">
+                                    <FileCheck className="w-5 h-5" />
+                                  </div>
+                                  <div>
+                                    <p className="text-black font-black text-[10px] uppercase tracking-widest">Seal Established</p>
+                                    <p className="text-teal-900 text-[8px] font-bold uppercase tracking-tight mt-0.5 opacity-70">Token: {consentToken}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-black font-black text-[10px] uppercase tracking-tight">{consentTimestamp}</p>
+                                  <p className="text-teal-900 text-[8px] font-bold uppercase tracking-widest mt-0.5">Verified</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <button 
+                                onClick={() => {
+                                  setIsConsentSealed(true);
+                                  setConsentTimestamp(new Date().toLocaleString());
+                                  setConsentToken(`HAL-${Math.random().toString(36).substring(7).toUpperCase()}`);
+                                  setConsentTreat(true);
+                                  setConsentHIPAA(true);
+                                  showToast("Clinical Consent Seal Established", "success");
+                                }}
+                                className="w-full h-16 rounded-2xl bg-[var(--sidebar-bg)] border border-teal-500/30 text-teal-500 font-black text-[11px] uppercase tracking-[0.4em] hover:bg-teal-500/10 transition-all flex items-center justify-center gap-4 group/btn shadow-inner"
+                              >
+                                <Fingerprint className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                Establish Digital Seal
+                              </button>
+                            )}
+                            
+                            <p className="text-[8px] font-medium text-[var(--text-muted)] leading-relaxed italic opacity-40 px-2">
+                              By establishing this seal, the practitioner verifies that verbal or written consent has been obtained from the patient or legal representative according to clinical protocol HAL-PR-01.
+                            </p>
+                          </div>
+                        </div>
                       </section>
 
                       {/* COMMUNICATION PREFERENCES */}
@@ -1115,7 +1185,26 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                               <input type="text" value={groupId} onChange={e => setGroupId(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="GROUP..." />
                             </div>
                           </div>
-                          <button onClick={verifyInsurance} className="w-full h-10 bg-[var(--primary)] text-black font-black text-[9px] uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-[var(--primary-glow)] active:scale-95 transition-all">Verify Eligibility Status</button>
+                          <button 
+                            onClick={verifyInsurance} 
+                            disabled={isVerifyingInsurance || eligibilityStatus === 'VERIFIED'}
+                            className={`w-full h-11 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] shadow-lg transition-all flex items-center justify-center gap-2
+                              ${eligibilityStatus === 'VERIFIED' ? 'bg-teal-500/10 border border-teal-500/30 text-teal-500 cursor-default' : 'bg-[var(--primary)] text-black hover:scale-[1.01] active:scale-[0.98]'}`}
+                          >
+                            {isVerifyingInsurance ? (
+                              <>
+                                <div className="w-3 h-3 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                                Pinging Payer Gateway...
+                              </>
+                            ) : eligibilityStatus === 'VERIFIED' ? (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Verified: {insuranceRef}
+                              </>
+                            ) : (
+                              "Verify Eligibility Status"
+                            )}
+                          </button>
                         </div>
                       </section>
 

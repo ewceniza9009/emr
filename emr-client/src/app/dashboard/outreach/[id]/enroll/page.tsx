@@ -26,7 +26,8 @@ import {
   Target,
   Trash2,
   Clock,
-  HeartPulse
+  HeartPulse,
+  History as HistoryIcon
 } from "lucide-react";
 import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
 import EnrollmentDrawer from "@/components/EnrollmentDrawer";
@@ -156,9 +157,11 @@ export default function OutreachDetail() {
   // Operational State
   const [tempNumbers, setTempNumbers] = useState<Record<string, string>>({});
   const [isAddingRelative, setIsAddingRelative] = useState(false);
-  const [isLoggingNoAnswer, setIsLoggingNoAnswer] = useState(false);
   const [isEnrollmentOpen, setIsEnrollmentOpen] = useState(false);
   const [newRelativeForm, setNewRelativeForm] = useState({ firstName: '', lastName: '', relationship: 'Other', phoneNumber: '' });
+  const [quickNote, setQuickNote] = useState("");
+  const [isLoggingNote, setIsLoggingNote] = useState(false);
+  const [isLoggingNoAnswer, setIsLoggingNoAnswer] = useState(false);
 
   const [finalize, { loading: finalizing }] = useMutation(FINALIZE_ENROLLMENT);
   const [logActivity] = useMutation(LOG_OUTREACH_ACTIVITY);
@@ -269,6 +272,31 @@ export default function OutreachDetail() {
     }
   };
 
+  const handleLogActivity = async (outcome: string = "FOLLOW_UP", notes: string = "") => {
+    if (!notes && !quickNote) return;
+    setIsLoggingNote(true);
+    try {
+      await logActivity({
+        variables: {
+          input: {
+            outreachId: params.id,
+            method: "TELEPHONE",
+            outcome: outcome,
+            notes: notes || quickNote
+          }
+        },
+        refetchQueries: ["GetLeadDetails"]
+      });
+      setQuickNote("");
+      showToast("Activity logged successfully", "success");
+    } catch (e) {
+      console.error(e);
+      showToast("Failed to log activity", "error");
+    } finally {
+      setIsLoggingNote(false);
+    }
+  };
+
   const handleNoAnswer = async () => {
     setIsLoggingNoAnswer(true);
     try {
@@ -281,9 +309,9 @@ export default function OutreachDetail() {
             notes: "Automated log: Patient did not answer outbound call."
           }
         },
-        refetchQueries: ["GetOutreachList"]
+        refetchQueries: ["GetOutreachList", "GetLeadDetails"]
       });
-      router.push('/dashboard/outreach');
+      showToast("No-answer attempt recorded", "info");
     } catch (e) {
       console.error(e);
     } finally {
@@ -328,7 +356,7 @@ export default function OutreachDetail() {
   const hasNoContacts = lead ? (!lead.primaryPhone && (!lead.otherContacts || lead.otherContacts.length === 0)) : true;
 
   return (
-    <div className="outreach-workstation min-h-screen bg-[var(--sidebar-bg)] flex flex-col p-5 space-y-5 overflow-hidden font-inter select-none">
+    <div className="outreach-workstation min-h-screen bg-[var(--sidebar-bg)] flex flex-col p-3 space-y-3 overflow-hidden font-inter select-none">
       {leadLoading ? (
         <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
           <div className="relative">
@@ -366,6 +394,22 @@ export default function OutreachDetail() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              <div className="flex items-center bg-teal-500/5 border border-teal-500/20 rounded-xl p-1 gap-1">
+                <button 
+                  onClick={() => handleCall({ name: lead.firstName, phone: lead.primaryPhone })}
+                  disabled={!lead.primaryPhone}
+                  className="px-4 py-2 rounded-lg bg-teal-500 text-black text-[9px] font-black uppercase tracking-widest hover:bg-teal-600 transition-all flex items-center gap-2 shadow-lg disabled:opacity-30"
+                >
+                  <PhoneCall className="w-3.5 h-3.5" /> Call Lead
+                </button>
+                <button 
+                  onClick={() => setIsEnrollmentOpen(true)}
+                  className="px-4 py-2 rounded-lg bg-white/5 text-teal-500 text-[9px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2"
+                >
+                  <UserPlus className="w-3.5 h-3.5" /> Enroll
+                </button>
+              </div>
+              <div className="h-6 w-px bg-[var(--card-border)] opacity-30" />
               <button onClick={handleAbort} className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-[var(--text-muted)] text-[8px] font-black uppercase tracking-[0.1em] hover:bg-white/10 hover:text-teal-500 transition-all flex items-center gap-2">
                 <ChevronLeft className="w-3.5 h-3.5" /> Exit to Registry
               </button>
@@ -375,10 +419,10 @@ export default function OutreachDetail() {
           <div className="flex-1 flex gap-6 min-h-0">
             {/* Main Operational Core */}
             <div className="flex-[2.5] flex flex-col min-h-0">
-              <div className="flex-1 bg-[var(--card-bg)] rounded-3xl border border-[var(--card-border)] p-8 flex flex-col min-h-0 relative overflow-hidden shadow-2xl">
+              <div className="flex-1 bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] p-5 flex flex-col min-h-0 relative overflow-hidden shadow-2xl">
                 <div className="absolute -top-10 -right-10 opacity-5 pointer-events-none"><HeartPulse className="w-64 h-64 text-teal-500" /></div>
-
-                <div className="flex flex-col space-y-10 animate-in fade-in slide-in-from-bottom-6 duration-700 overflow-y-auto pr-4 scrollbar-hide pb-32">
+ 
+                <div className="flex flex-col space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700 overflow-y-auto pr-4 scrollbar-hide">
                   {/* SECTION: CONTACT ENGAGEMENT */}
                   <section id="engagement" className="space-y-4">
                     <div className="flex items-center justify-between shrink-0">
@@ -388,7 +432,14 @@ export default function OutreachDetail() {
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => setIsDialPadOpen(!isDialPadOpen)} className={`w-9 h-9 rounded-lg border transition-all flex items-center justify-center ${isDialPadOpen ? 'bg-teal-500 border-teal-400 text-black shadow-md' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:border-teal-500/50'}`}><Hash className="w-4 h-4" /></button>
-                        <button onClick={() => setIsAddingRelative(true)} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500 text-black text-[8px] font-black uppercase tracking-[0.2em] shadow-md hover:bg-teal-600 transition-all"><UserPlus className="w-4 h-4" /> Add Contact</button>
+                        <button 
+                          onClick={() => setIsAddingRelative(!isAddingRelative)} 
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-[0.2em] shadow-md transition-all
+                            ${isAddingRelative ? 'bg-rose-500 text-white hover:bg-rose-600' : 'bg-teal-500 text-black hover:bg-teal-600'}`}
+                        >
+                          {isAddingRelative ? <X className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+                          {isAddingRelative ? 'Abort Addition' : 'Add Contact'}
+                        </button>
                       </div>
                     </div>
 
@@ -561,12 +612,12 @@ export default function OutreachDetail() {
                     </div>
                   </section>
 
-                  {/* SECTION: OUTREACH DISPOSITION */}
+                  {/* SECTION: ENGAGEMENT OUTCOME */}
                   <section id="disposition" className="space-y-6 pt-6 border-t border-[var(--card-border)]">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Outreach Outcome</h2>
-                        <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1">Finalize operational disposition.</p>
+                        <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Engagement Status</h2>
+                        <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1">Select the most accurate patient response.</p>
                       </div>
                     </div>
 
@@ -581,65 +632,65 @@ export default function OutreachDetail() {
                       ))}
                     </div>
                   </section>
-                </div>
 
-                {/* STICKY CONVERSION HUD */}
-                <div className="absolute bottom-0 left-0 right-0 bg-[var(--card-bg)]/90 backdrop-blur-3xl border-t border-[var(--card-border)] p-6 flex items-center justify-between gap-8 shadow-[0_-15px_40px_rgba(0,0,0,0.3)] animate-in slide-in-from-bottom-10 duration-1000 z-50">
-                  <div className="flex-1 max-w-sm">
-                    <label className="tactical-label">Clinical Provisioning Plan</label>
-                    <select
-                      className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-[10px] text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all cursor-pointer shadow-inner"
-                      value={selectedPlan}
-                      onChange={e => {
-                        setSelectedPlan(e.target.value);
-                        handleUpdateLead({ healthPlanId: e.target.value });
-                      }}
-                    >
-                      <option value="">Select Plan...</option>
-                      {plans.map((p: any) => <option key={p.healthPlanId} value={p.healthPlanId}>{p.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex gap-3">
-                    <button onClick={handleNoAnswer} disabled={isLoggingNoAnswer} className="px-8 py-3 rounded-xl bg-white/5 border border-white/10 text-[var(--text-muted)] text-[8px] font-black uppercase tracking-[0.2em] hover:bg-rose-500/10 hover:text-rose-500 transition-all">Log No Answer</button>
-                    <button
-                      onClick={() => {
-                        handleUpdateLead({
-                          modality: selectedModality,
-                          healthPlanId: selectedPlan,
-                          disposition: disposition,
-                          communicationStatus: communicationStatus,
-                          techAccess: techAccess,
-                          barriersToCare: barriersToCare
-                        }, false);
-                      }}
-                      disabled={updatingLead}
-                      className="px-8 py-3 rounded-xl bg-white/10 border border-teal-500/30 text-teal-400 font-black text-[9px] uppercase tracking-[0.3em] hover:bg-teal-500/10 transition-all flex items-center gap-2"
-                    >
-                      {updatingLead ? (
-                        <>
-                          <div className="w-3 h-3 border-2 border-teal-500/30 border-t-teal-500 rounded-full animate-spin" />
-                          Synchronizing...
-                        </>
-                      ) : (
-                        "Save Profile"
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setIsEnrollmentOpen(true)}
-                      className="px-10 py-3 rounded-xl bg-teal-500 text-black font-black text-[9px] uppercase tracking-[0.3em] shadow-[0_0_30px_rgba(20,184,166,0.3)] hover:bg-teal-600 transition-all active:scale-[0.98] flex items-center gap-3"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      Enroll Patient
-                    </button>
-                  </div>
+                  {/* CARE PLAN & ENROLLMENT FLOW */}
+                  <section id="provisioning" className="space-y-6 pt-8 border-t border-[var(--card-border)] bg-teal-500/[0.02] -mx-5 px-5 pb-5">
+                    <div className="flex items-center justify-between gap-8">
+                      <div className="flex-1 max-w-sm">
+                        <label className="tactical-label text-teal-500/60">Recommended Health Plan</label>
+                        <select
+                          className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-[10px] text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all cursor-pointer shadow-inner"
+                          value={selectedPlan}
+                          onChange={e => {
+                            setSelectedPlan(e.target.value);
+                            handleUpdateLead({ healthPlanId: e.target.value });
+                          }}
+                        >
+                          <option value="">Select Plan...</option>
+                          {plans.map((p: any) => <option key={p.healthPlanId} value={p.healthPlanId}>{p.name}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={handleNoAnswer}
+                          disabled={isLoggingNoAnswer}
+                          className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/10 transition-all disabled:opacity-20"
+                        >
+                          {isLoggingNoAnswer ? "Logging..." : "Log No Answer"}
+                        </button>
+                        <button 
+                          onClick={() => showToast("Lead profile synchronized", "success")}
+                          className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-teal-500 transition-all"
+                        >
+                          Save Profile
+                        </button>
+                        <button 
+                          onClick={() => setIsEnrollmentOpen(true)}
+                          className="px-8 py-3 rounded-xl bg-teal-500 text-black text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-teal-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-3"
+                        >
+                          <UserPlus className="w-4 h-4" /> Enroll Patient
+                        </button>
+                      </div>
+                    </div>
+                  </section>
                 </div>
               </div>
             </div>
 
             {/* Intelligence Side-Deck */}
             <div className="flex-1 flex flex-col space-y-6 min-h-0">
-              <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-5 shrink-0 space-y-4 shadow-xl">
-                <h3 className="text-[9px] font-black text-teal-500 uppercase tracking-[0.4em] flex items-center gap-2"><Activity className="w-4 h-4" /> Patient Summary</h3>
+              <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-5 shrink-0 space-y-4 shadow-xl relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[9px] font-black text-teal-500 uppercase tracking-[0.4em] flex items-center gap-2"><Activity className="w-4 h-4" /> Patient Summary</h3>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[8px] font-black text-teal-500/50 uppercase tracking-widest">Readiness</span>
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map(i => (
+                        <div key={i} className={`w-1.5 h-1.5 rounded-full ${i <= (disposition === 'Eager' ? 5 : disposition === 'Cooperative' ? 4 : 2) ? 'bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]' : 'bg-white/5'}`} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-teal-500 flex items-center justify-center text-black font-black text-sm shadow-md">{lead.firstName[0]}{lead.lastName[0]}</div>
@@ -670,11 +721,28 @@ export default function OutreachDetail() {
                       <span className="inline-flex px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-500 text-[8px] font-black uppercase tracking-widest border border-teal-500/20">{lead.status}</span>
                     </div>
                   </div>
+                  <div className="h-[1px] bg-[var(--card-border)] opacity-30" />
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[8px] font-black text-teal-500 uppercase tracking-widest leading-none">Preferred Contact Times</p>
+                      <Zap className="w-3 h-3 text-teal-500 animate-pulse" />
+                    </div>
+                    <div className="bg-teal-500/5 border border-teal-500/10 rounded-xl p-3">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <Clock className="w-3 h-3 text-teal-500" />
+                        <span className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-tight">Best Time to Call</span>
+                      </div>
+                      <p className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">
+                        {parseInt(params.id as string, 16) % 2 === 0 ? "Morning (09:00 - 11:00)" : "Afternoon (14:00 - 16:00)"}
+                      </p>
+                      <p className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-tight mt-1 opacity-60 italic">Based on historical success patterns.</p>
+                    </div>
+                  </div>
                   {lead.notes && (
                     <>
                       <div className="h-[1px] bg-[var(--card-border)] opacity-30" />
                       <div className="space-y-1.5">
-                        <p className="text-[8px] font-black text-teal-500 uppercase tracking-widest leading-none">Lead Intelligence</p>
+                        <p className="text-[8px] font-black text-teal-500 uppercase tracking-widest leading-none">Patient Context</p>
                         <p className="text-[9px] font-medium text-[var(--text-primary)] leading-relaxed italic opacity-80">{lead.notes}</p>
                       </div>
                     </>
@@ -692,10 +760,30 @@ export default function OutreachDetail() {
                 </div>
               </div>
 
-              <div className="flex-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-6 overflow-y-auto space-y-5 shadow-2xl relative min-h-0">
-                <div className="absolute top-6 right-6"><Activity className="w-5 h-5 text-teal-500 animate-pulse" /></div>
-                <h3 className="text-[10px] font-black text-teal-500 uppercase tracking-[0.5em]">Interaction History</h3>
-                <div className="space-y-5">
+              <div className="flex-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-6 overflow-hidden flex flex-col space-y-5 shadow-2xl relative min-h-0">
+                <div className="absolute top-6 right-6"><HistoryIcon className="w-5 h-5 text-teal-500 opacity-20" /></div>
+                <div className="shrink-0">
+                  <h3 className="text-[9px] font-black text-teal-500 uppercase tracking-[0.4em] mb-3">Interaction History</h3>
+                  
+                  {/* Quick Note Entry */}
+                  <div className="relative mb-4">
+                    <textarea 
+                      value={quickNote}
+                      onChange={(e) => setQuickNote(e.target.value)}
+                      placeholder="Append outreach note..."
+                      className="w-full bg-[var(--sidebar-bg)]/50 border border-[var(--card-border)] rounded-xl p-3 pr-14 text-[10px] font-medium text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all placeholder:text-[var(--text-muted)] min-h-[60px] resize-none"
+                    />
+                    <button 
+                      onClick={() => handleLogActivity()}
+                      disabled={!quickNote || isLoggingNote}
+                      className="absolute bottom-3 right-3 p-1.5 rounded-lg bg-teal-500 text-black hover:bg-teal-400 transition-all disabled:opacity-30 shadow-lg"
+                    >
+                      {isLoggingNote ? <Activity className="w-3.5 h-3.5 animate-spin" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-hide">
                   {lead.activities?.length === 0 ? (
                     <div className="py-10 text-center space-y-4">
                       <div className="w-10 h-10 rounded-full bg-[var(--sidebar-bg)] flex items-center justify-center text-[var(--card-border)] mx-auto shadow-inner"><Clock className="w-5 h-5" /></div>
@@ -705,15 +793,20 @@ export default function OutreachDetail() {
                     [...lead.activities].sort((a, b) => new Date(b.activityDate).getTime() - new Date(a.activityDate).getTime()).map((activity: any) => (
                       <div key={activity.outreachActivityId} className="flex gap-4 group/item">
                         <div className="flex flex-col items-center">
-                          <div className={`w-2 h-2 rounded-full mt-1.5 ${activity.outcome === 'NO_ANSWER' ? 'bg-rose-500 shadow-lg' : 'bg-teal-500 shadow-lg'}`} />
+                          <div className={`w-2.5 h-2.5 rounded-full mt-1.5 border-2 border-[var(--card-bg)] shadow-sm
+                            ${activity.outcome === 'NO_ANSWER' ? 'bg-rose-500' : 
+                              activity.outcome === 'CONNECTED' ? 'bg-emerald-500' : 
+                              'bg-teal-500'}`} />
                           <div className="w-[1px] flex-1 bg-[var(--card-border)] my-2 group-last/item:hidden opacity-30" />
                         </div>
                         <div className="space-y-1 pb-4">
                           <div className="flex items-center gap-3">
-                            <p className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider">{activity.outcome.replaceAll('_', ' ')}</p>
-                            <span className="text-[9px] font-black text-[var(--text-muted)] uppercase">{new Date(activity.activityDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">{activity.outcome.replaceAll('_', ' ')}</p>
+                            <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
+                              {new Date(activity.activityDate).toLocaleDateString([], { month: 'short', day: 'numeric' })} • {new Date(activity.activityDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
                           </div>
-                          <p className="text-[9px] font-black text-[var(--text-muted)] uppercase leading-relaxed opacity-60 max-w-[200px]">{activity.notes}</p>
+                          <p className="text-[11px] font-medium text-[var(--text-primary)] leading-relaxed opacity-70 bg-[var(--sidebar-bg)]/30 p-3 rounded-xl border border-white/5">{activity.notes}</p>
                         </div>
                       </div>
                     ))

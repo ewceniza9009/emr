@@ -135,22 +135,32 @@ export default function OutreachPage() {
         onSuccess={() => refetch()}
       />
 
-      {/* Minimalist Stats Grid */}
+      {/* Outreach Overview Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         {[
-          { label: "New Leads", count: "14", icon: Target },
-          { label: "In Contact", count: "08", icon: PhoneCall },
-          { label: "Interested", count: "05", icon: Zap },
-          { label: "Enrolled", count: "12", icon: CheckCircle2 },
+          { label: "New Leads", count: "14", icon: Target, trend: "+2 this wk", color: "text-blue-500", glow: "shadow-blue-500/20" },
+          { label: "In Contact", count: "08", icon: PhoneCall, trend: "active", color: "text-purple-500", glow: "shadow-purple-500/20" },
+          { label: "Interested", count: "05", icon: Zap, trend: "+1 today", color: "text-teal-500", glow: "shadow-teal-500/20" },
+          { label: "Enrolled", count: "12", icon: CheckCircle2, trend: "+3 this wk", color: "text-emerald-500", glow: "shadow-emerald-500/20" },
         ].map((stat) => (
-          <div key={stat.label} className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
-                <stat.icon className="w-5 h-5" />
+          <div key={stat.label} className={`group bg-[var(--card-bg)] rounded-xl p-4 border border-[var(--card-border)] hover:border-white/20 transition-all cursor-default relative overflow-hidden shadow-lg ${stat.glow} hover:shadow-2xl`}>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
+            <div className="flex items-center justify-between relative z-10">
+              <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
+                <stat.icon className="w-4 h-4" />
               </div>
-              {loading ? <Skeleton className="h-8 w-12" /> : <span className="text-2xl font-bold text-[var(--text-primary)]">{stat.count}</span>}
+              <div className="text-right">
+                {loading ? <Skeleton className="h-6 w-10 ml-auto" /> : <span className="text-xl font-black text-[var(--text-primary)] tracking-tighter">{stat.count}</span>}
+                <div className="flex items-center gap-1 mt-0.5">
+                  <div className={`w-1 h-1 rounded-full animate-pulse ${stat.color === 'text-emerald-500' ? 'bg-emerald-500' : 'bg-teal-500'}`} />
+                  <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 group-hover:opacity-100 transition-opacity">{stat.trend}</span>
+                </div>
+              </div>
             </div>
-            <p className="text-xs font-medium text-[var(--text-muted)]">{stat.label}</p>
+            <div className="mt-3 flex items-center justify-between">
+              <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{stat.label}</p>
+              <ArrowRight className="w-3 h-3 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+            </div>
           </div>
         ))}
       </div>
