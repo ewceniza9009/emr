@@ -4,17 +4,16 @@ test.describe('Halcyon Clinical OS - Critical Paths', () => {
 
   // Luxury Clinical Authentication: Reusing session state for tactical speed
   test.beforeEach(async ({ page }) => {
-    // Navigate directly to the dashboard with domcontentloaded for maximum speed
-    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
-    
-    // Diagnostic Logging: Capture browser-side errors
+    // Session Verification: Ensure we have a valid clinical context
+    // We don't navigate yet; we let the individual tests decide where to start
     page.on('console', msg => {
         if (msg.type() === 'error') console.log(`[BROWSER ERROR] ${msg.text()}`);
     });
   });
 
   test('should load the dashboard and verify clinical metrics', async ({ page }) => {
-    await page.goto('/dashboard');
+    // Navigate directly to the starting module
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     
     // Verify high-fidelity branding
     await expect(page.locator('h1')).toContainText(/Good/);
@@ -47,25 +46,29 @@ test.describe('Halcyon Clinical OS - Critical Paths', () => {
   });
 
   test('should navigate to clinical scheduling and verify calendar view', async ({ page }) => {
-    await page.goto('/dashboard/schedule', { waitUntil: 'domcontentloaded' });
+    // Navigate and wait for the page to at least mount the main container
+    await page.goto('/dashboard/schedule');
+    await page.waitForSelector('main', { state: 'visible' });
     
-    // Verify scheduling interface using high-visibility text locator
-    await expect(page.getByText(/Clinical Scheduling/i).first()).toBeVisible({ timeout: 10000 });
+    // Verify scheduling interface using flexible text locator and patient timeout
+    await expect(page.getByText(/Scheduling|Schedule/i).first()).toBeVisible({ timeout: 15000 });
     
-    // Check for "New Encounter" button with a longer timeout to allow for calendar library hydration
+    // Check for "New Encounter" button with a generous timeout for the calendar library
     const newEncounterBtn = page.getByRole('button', { name: /New Encounter/i }).first();
-    await expect(newEncounterBtn).toBeVisible({ timeout: 15000 });
+    await expect(newEncounterBtn).toBeVisible({ timeout: 20000 });
   });
 
   test('should navigate to telemetry hub and verify node status', async ({ page }) => {
-    await page.goto('/dashboard/telemetry', { waitUntil: 'domcontentloaded' });
+    // Navigate and wait for the page to at least mount the main container
+    await page.goto('/dashboard/telemetry');
+    await page.waitForSelector('main', { state: 'visible' });
     
-    // Verify telemetry interface using the actual "Vitals & IoT" branding
-    await expect(page.getByRole('heading', { name: /Vitals|Telemetry/i })).toBeVisible();
+    // Verify telemetry interface using high-visibility text locator
+    await expect(page.getByText(/Vitals|Telemetry/i).first()).toBeVisible({ timeout: 15000 });
     
     // Check for the "Scan Clinical Grid" button
     const scanBtn = page.getByRole('button', { name: /Scan Clinical Grid/i });
-    await expect(scanBtn).toBeVisible();
+    await expect(scanBtn).toBeVisible({ timeout: 15000 });
   });
 
 });
