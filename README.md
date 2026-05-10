@@ -7,6 +7,16 @@
 [![Multi-Tenancy: Enterprise](https://img.shields.io/badge/Multi--Tenancy-Enterprise--Grade-green.svg)](https://learn.microsoft.com/en-us/azure/azure-sql/database/saas-tenancy-app-design-patterns)
 [![Halcyon CI](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml/badge.svg)](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml)
 
+---
+
+## 📊 Clinical QA & Reliability Report
+
+[**➔ View Latest CI/CD History**](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml) | [**🏆 Download Verified Production Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/25623355719/artifacts/6902132987)
+
+> [!IMPORTANT]
+> The link above represents a **100% successful verification** of all clinical modules: Enrollment, Scheduling, Booking, and Real-time Telemetry.
+
+---
 ## 🏥 Strategic Vision & Mission
 
 **Halcyon Clinical OS** is an enterprise-grade, high-fidelity Electronic Medical Record (EMR) system architected for the mission-critical demands of palliative, hospice, and complex care. It transcends traditional data entry by providing a **Tactical Command Center** that synchronizes clinical documentation, geospatial logistics, and real-time patient telemetry into a unified workstation.
@@ -102,9 +112,14 @@ The backend follows a strict **Clean Architecture** pattern, ensuring the Domain
 - **Api Layer:** Delivery head for GraphQL (HotChocolate), SignalR Hubs, and Background Workers.
 
 ### 2. Multi-Tenancy & Security
-- **Row-Level Isolation:** Every entity is anchored to a `TenantId` with EF Core Global Query Filters.
-- **`[UseClinicalAccess]` Attribute:** Centralized GQL middleware for identity resolution and deep-inspection security.
-- **Break-Glass Protocol:** Audited emergency access override for high-authority record viewing.
+Halcyon implements a **Shared Database / Row-Level Isolation** model:
+- **Unified Schema**: All tenants (hospitals/clinics) share a single database, maximizing cost-efficiency and simplifying migrations.
+- **Row-Level Security**: Every clinical entity is anchored to a `TenantId`. Data isolation is enforced at the repository level via EF Core Global Query Filters, ensuring a practitioner from Tenant A can never view data from Tenant B.
+- **`[UseClinicalAccess]` Attribute**: Centralized GQL middleware for identity resolution and deep-inspection security.
+- **Break-Glass Protocol**: Audited emergency access override for high-authority record viewing.
+
+> [!NOTE]
+> This follows the **"Multi-tenant app with multi-tenant databases"** pattern as defined in the [Microsoft SaaS Tenancy Guide](https://learn.microsoft.com/en-us/azure/azure-sql/database/saas-tenancy-app-design-patterns).
 
 ---
 
@@ -221,7 +236,8 @@ The full clinical lifecycle is validated on every push:
 - **✓ Dashboard Metrics**: Hero hydration and active caseload verification.
 - **✓ Outreach Worklist**: Registry search and lead tracking audit.
 - **✓ Patient Registry**: 10-patient seeded table integrity.
-- **✓ Master Schedule**: Calendar rendering and "New Encounter" trigger availability.
+- **✓ Master Schedule**: Calendar rendering and grid navigation.
+- **✓ Clinical Booking**: Full-path search, temporal slot selection, and appointment persistence.
 - **✓ Telemetry Hub**: SignalR node connectivity and real-time vital blip monitoring.
 
 ### 🧪 Unit & Integration Testing
@@ -230,12 +246,6 @@ The full clinical lifecycle is validated on every push:
 - **Frontend Hygiene**: Next.js App Router navigation and hydration stability.
 
 ---
-
-## 📊 Clinical QA & Reliability Report
-
-You can view the full End-to-End (E2E) verification history and download the latest high-fidelity Playwright reports here:
-
-[**➔ View Latest Clinical Test Report (Playwright)**](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml)
 
 ---
 

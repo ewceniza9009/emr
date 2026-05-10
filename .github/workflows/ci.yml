@@ -102,8 +102,8 @@ jobs:
           sleep 60
           echo "Clinical seeding complete. Starting Playwright suite."
           
-          # Run Playwright
-          cd emr-client && npx playwright test tests/clinical-workflow.spec.ts --project=chromium --workers=1
+          # Run Playwright (Executing all clinical and booking workflows)
+          cd emr-client && npx playwright test --project=chromium --workers=1
         env:
           ASPNETCORE_ENVIRONMENT: Production
           ConnectionStrings__DefaultConnection: "Host=127.0.0.1;Database=emr;Username=postgres;Password=postgres"
