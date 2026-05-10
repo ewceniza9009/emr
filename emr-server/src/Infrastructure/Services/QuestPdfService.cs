@@ -98,7 +98,7 @@ public class QuestPdfService : IPdfService
                                     .FontSize(9)
                                     .FontColor(Colors.Grey.Darken1);
                                 col.Item()
-                                    .Text($"GENDER: {patient.BiologicalSex.ToUpper()}")
+                                    .Text($"GENDER: {patient.BiologicalSex.ToString().ToUpper()}")
                                     .FontSize(8)
                                     .FontColor(Colors.Grey.Medium);
                             });

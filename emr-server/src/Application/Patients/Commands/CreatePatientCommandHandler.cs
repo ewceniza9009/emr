@@ -1,5 +1,6 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
 using MediatR;
 
 namespace Application.Patients.Commands;
@@ -25,7 +26,7 @@ public class CreatePatientCommandHandler : IRequestHandler<CreatePatientCommand,
             FirstName = request.FirstName,
             LastName = request.LastName,
             Dob = request.Dob,
-            BiologicalSex = request.BiologicalSex,
+            BiologicalSex = Enum.Parse<BiologicalSex>(request.BiologicalSex, true),
             GenderIdentity = request.GenderIdentity,
             PhilhealthNumber = request.PhilhealthNumber,
             CivilStatus = request.CivilStatus,

@@ -1,4 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load local environment variables for tactical testing
+dotenv.config({ path: path.resolve(__dirname, '.env.local') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -7,16 +12,13 @@ export default defineConfig({
   testDir: './tests',
   /* Run tests in files in parallel */
   fullyParallel: false,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  /* Prevent accidental test.only in CI */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
+  /* Retry failed tests twice in CI */
   retries: process.env.CI ? 2 : 0,
-  /* 
-   * LOCAL STABILITY: We use 1 worker locally to prevent DB collisions. 
-   * CI SPEED: We use 2 workers in CI for performance.
-   */
+  /* Single worker locally to avoid DB locks; 2 in CI */
   workers: process.env.CI ? 2 : 1,
-  /* Global timeout for heavy clinical page loads */
+  /* Wait up to 60s for slow clinical pages */
   timeout: 60000,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
@@ -25,10 +27,10 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: 'http://127.0.0.1:3431',
 
-    /* Collect trace for all tests */
+    /* Save trace on first retry for debugging */
     trace: 'on-first-retry',
     
-    /* Luxury Clinical Aesthetic: Capture screenshots on failure */
+    /* Auto-screenshot when a test fails */
     screenshot: 'only-on-failure',
   },
 

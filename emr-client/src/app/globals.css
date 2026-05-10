@@ -265,3 +265,5 @@ h4 {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--primary);
 }
+input[type='date']::-webkit-calendar-picker-indicator { opacity: 0; cursor: pointer; }
+

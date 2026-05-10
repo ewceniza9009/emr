@@ -101,7 +101,7 @@ public class GetPatientClinicalSummaryQueryHandler
             FullName = $"{patient.FirstName} {patient.LastName}",
             Mrn = patient.Mrn,
             Age = DateTime.UtcNow.Year - patient.Dob.Year, // Simplified age calc
-            Gender = patient.BiologicalSex,
+            Gender = patient.BiologicalSex.ToString(),
             ActiveMedications = meds,
             RecentVitals = flattenedVitals,
             ActiveProblems = problems,

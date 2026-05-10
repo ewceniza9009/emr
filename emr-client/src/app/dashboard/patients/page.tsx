@@ -109,11 +109,11 @@ export default function PatientsPage() {
       </div>
 
       {/* Patient Table */}
-      <div className="glass-morphism rounded-2xl overflow-hidden shadow-2xl border border-[var(--card-border)]">
+      <div className="glass-morphism rounded-2xl shadow-2xl border border-[var(--card-border)]">
         <div className="px-6 py-3 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
           <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Active Clinical Roster</h2>
         </div>
-        <div className="overflow-x-auto">
+        <div>
           <table className="w-full text-left">
             <thead>
               <tr className="bg-[var(--input-bg)] border-b border-[var(--card-border)]">

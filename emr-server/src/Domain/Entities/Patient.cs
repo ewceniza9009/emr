@@ -12,7 +12,7 @@ public class Patient : BaseEntity, ITenantEntity
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public DateTime Dob { get; set; }
-    public string BiologicalSex { get; set; } = string.Empty;
+    public BiologicalSex BiologicalSex { get; set; } = BiologicalSex.Unknown;
     public string? GenderIdentity { get; set; }
     public string? PhilhealthNumber { get; set; }
     public string? CivilStatus { get; set; }
@@ -31,6 +31,17 @@ public class Patient : BaseEntity, ITenantEntity
     public CommunicationAbility? CommunicationStatus { get; set; }
     public TechAccessLevel? TechAccess { get; set; }
     public string? BarriersToCare { get; set; }
+
+    // Enterprise Compliance & Communication
+    public bool ConsentToTreat { get; set; }
+    public bool ConsentHIPAA { get; set; }
+    public bool ConsentMarketing { get; set; }
+    public bool InterpreterRequired { get; set; }
+    public string? PreferredContactMethod { get; set; }
+
+    // Legal Document Tags
+    public bool HasPoa { get; set; }
+    public bool HasAdvanceDirective { get; set; }
 
     public HealthPlan? HealthPlan { get; set; }
     public Facility? Facility { get; set; }

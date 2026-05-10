@@ -142,7 +142,7 @@ public class SearchService : ISearchService
                     && (
                         o.FirstName.ToLower().Contains(searchTerm)
                         || o.LastName.ToLower().Contains(searchTerm)
-                        || o.PrimaryPhone.Contains(searchTerm)
+                        || (o.PrimaryPhone != null && o.PrimaryPhone.Contains(searchTerm))
                     )
                 )
                 .Take(10 - results.Count)
@@ -155,7 +155,7 @@ public class SearchService : ISearchService
                     Type = "LEAD",
                     Title = $"{o.FirstName} {o.LastName}",
                     Subtitle = o.Status.ToString(),
-                    Metadata = o.PrimaryPhone,
+                    Metadata = o.PrimaryPhone ?? "No Phone",
                 })
             );
         }
@@ -196,7 +196,7 @@ public class SearchService : ISearchService
             TenantId = outreach.TenantId,
             Title = $"{outreach.FirstName} {outreach.LastName}",
             Subtitle = outreach.Status.ToString(),
-            Metadata = outreach.PrimaryPhone,
+            Metadata = outreach.PrimaryPhone ?? "No Phone",
         };
 
         await _client.IndexAsync(

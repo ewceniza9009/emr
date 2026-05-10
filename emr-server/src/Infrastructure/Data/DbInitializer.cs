@@ -777,7 +777,7 @@ namespace Infrastructure.Data
                         p => p.Dob,
                         f => f.Date.Past(80, DateTime.UtcNow.AddYears(-20)).ToUniversalTime()
                     )
-                    .RuleFor(p => p.BiologicalSex, f => f.PickRandom("Male", "Female"))
+                    .RuleFor(p => p.BiologicalSex, f => f.PickRandom<BiologicalSex>())
                     .RuleFor(
                         p => p.CivilStatus,
                         f => f.PickRandom("Single", "Married", "Widowed", "Divorced")
@@ -795,8 +795,66 @@ namespace Infrastructure.Data
                         p => p.PhilhealthNumber,
                         f => $"PH-{f.IndexGlobal}-{f.Random.Number(1000, 9999)}"
                     )
+                    .RuleFor(p => p.ConsentToTreat, f => true)
+                    .RuleFor(p => p.ConsentHIPAA, f => true)
+                    .RuleFor(p => p.ConsentMarketing, f => f.Random.Bool())
+                    .RuleFor(p => p.InterpreterRequired, f => false)
+                    .RuleFor(p => p.PreferredContactMethod, f => "PHONE")
                     .Generate(10);
                 context.Patients.AddRange(patients);
+
+                // SEED STATIC TEST PATIENT: PEARLINE BAUCH
+                var pearline = new Patient
+                {
+                    PatientId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
+                    FirstName = "Pearline",
+                    LastName = "Bauch",
+                    Mrn = "MRN-99999",
+                    Dob = new DateTime(1955, 5, 10, 0, 0, 0, DateTimeKind.Utc),
+                    BiologicalSex = BiologicalSex.Female,
+                    CivilStatus = "Widowed",
+                    Religion = "Catholic",
+                    Nationality = "Filipino",
+                    Language = "English",
+                    HealthPlanId = healthPlans[0].HealthPlanId,
+                    FacilityId = facilities[0].FacilityId,
+                    ConsentToTreat = true,
+                    ConsentHIPAA = true,
+                    PreferredContactMethod = "PHONE"
+                };
+                context.Patients.Add(pearline);
+                patients.Add(pearline); // Add to list so she gets contacts/docs
+
+                // Seed Pearline's specific contact details
+                context.Set<PatientPhone>().Add(new PatientPhone
+                {
+                    PhoneId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
+                    PatientId = pearline.PatientId,
+                    PhoneNumber = "1-222-674-4040 x19731",
+                    Type = AddressType.Mobile,
+                    IsPrimary = true
+                });
+
+                var pearlineAddr = new EntityAddress
+                {
+                    EntityAddressId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
+                    PatientId = pearline.PatientId,
+                    IsPrimary = true,
+                    Address = new Address
+                    {
+                        Street = "123 Palliative Way",
+                        City = "Cebu City",
+                        State = "Central Visayas",
+                        PostalCode = "6000",
+                        Latitude = 10.3157,
+                        Longitude = 123.8854
+                    }
+                };
+                context.Set<EntityAddress>().Add(pearlineAddr);
+
                 await context.SaveChangesAsync(default);
 
                 // Seed Patient Contacts with POA
@@ -882,6 +940,7 @@ namespace Infrastructure.Data
                 context.PatientDocuments.AddRange(poaDocuments);
 
                 var patientOutreaches = new Faker<PatientOutreach>()
+                    .UseSeed(8888) // Offset seed to avoid collisions with patients
                     .RuleFor(x => x.PatientOutreachId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.FirstName, f => f.Name.FirstName())
@@ -892,7 +951,7 @@ namespace Infrastructure.Data
                         x => x.DateOfBirth,
                         f => f.Date.Past(80, DateTime.UtcNow.AddYears(-20))
                     )
-                    .RuleFor(x => x.BiologicalSex, f => f.PickRandom("Male", "Female"))
+                    .RuleFor(x => x.BiologicalSex, f => f.PickRandom<BiologicalSex>())
                     .RuleFor(
                         x => x.GenderIdentity,
                         f => f.PickRandom(new[] { "Cisgender", "Non-binary", null })
@@ -923,6 +982,27 @@ namespace Infrastructure.Data
                         }
                     )
                     .Generate(10);
+                var testLead = new PatientOutreach
+                {
+                    PatientOutreachId = Guid.NewGuid(),
+                    TenantId = defaultTenantId,
+                    FirstName = "Christopher",
+                    LastName = "Heard",
+                    Status = OutreachStatus.Lead,
+                    DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    BiologicalSex = BiologicalSex.Male,
+                    MailingAddress = new Address
+                    {
+                        Street = "123 Test St",
+                        City = "Cebu City",
+                        State = "Central Visayas",
+                        PostalCode = "6000"
+                    },
+                    PrimaryPhone = "555-0199",
+                    Disposition = EnrollmentDisposition.Cooperative
+                };
+                context.PatientOutreaches.Add(testLead);
+
                 context.Set<PatientOutreach>().AddRange(patientOutreaches);
                 await context.SaveChangesAsync(default);
 
@@ -967,9 +1047,9 @@ namespace Infrastructure.Data
                 var patientPhones = new Faker<PatientPhone>()
                     .RuleFor(x => x.PhoneId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
-                    .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                    .RuleFor(x => x.PatientId, (f, u) => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.PhoneNumber, f => f.Phone.PhoneNumber())
-                    .Generate(10);
+                    .Generate(patients.Count); // Ensure all patients get at least one phone
                 context.Set<PatientPhone>().AddRange(patientPhones);
 
                 var entityAddresses = new Faker<EntityAddress>()
@@ -1001,13 +1081,13 @@ namespace Infrastructure.Data
                             };
                         }
                     )
-                    .Generate(10);
+                    .Generate(patients.Count); // Ensure all patients get a primary address
                 context.Set<EntityAddress>().AddRange(entityAddresses);
 
                 var patientEmails = new Faker<PatientEmail>()
                     .RuleFor(x => x.EmailId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
-                    .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                    .RuleFor(x => x.PatientId, (f, u) => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.EmailAddress, f => f.Internet.Email())
                     .Generate(10);
                 context.Set<PatientEmail>().AddRange(patientEmails);
@@ -1015,7 +1095,7 @@ namespace Infrastructure.Data
                 var advanceDirectives = new Faker<AdvanceDirective>()
                     .RuleFor(x => x.AdvanceDirectiveId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
-                    .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                    .RuleFor(x => x.PatientId, (f, u) => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.Type, f => f.PickRandom<DirectiveType>())
                     .RuleFor(x => x.EffectiveDate, f => f.Date.PastOffset().ToUniversalTime())
                     .Generate(10);
@@ -1203,7 +1283,7 @@ namespace Infrastructure.Data
                 var otherAppointments = new Faker<Appointment>()
                     .RuleFor(a => a.AppointmentId, f => Guid.NewGuid())
                     .RuleFor(a => a.TenantId, f => defaultTenantId)
-                    .RuleFor(a => a.PatientId, f => f.PickRandom(patients).PatientId)
+                    .RuleFor(a => a.PatientId, (f, u) => f.PickRandom(patients).PatientId)
                     .RuleFor(
                         a => a.PractitionerId,
                         (f, a) =>
@@ -1508,7 +1588,7 @@ namespace Infrastructure.Data
                 var esas = new Faker<EsasAssessment>()
                     .RuleFor(x => x.AssessmentId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
-                    .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                    .RuleFor(x => x.PatientId, (f, u) => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(encountersList).EncounterId)
                     .RuleFor(x => x.Pain, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.Nausea, f => f.Random.Number(0, 10))
@@ -1527,7 +1607,7 @@ namespace Infrastructure.Data
                     .RuleFor(x => x.DeliveryId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.EquipmentId, f => f.PickRandom(dme).EquipmentId)
-                    .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                    .RuleFor(x => x.PatientId, (f, u) => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.Status, f => f.PickRandom<DeliveryStatus>())
                     .Generate(10);
                 context.Set<EquipmentDelivery>().AddRange(deliveries);
@@ -1544,7 +1624,7 @@ namespace Infrastructure.Data
                 var cases = new Faker<CareNavigationCase>()
                     .RuleFor(x => x.CaseId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
-                    .RuleFor(x => x.PatientId, f => f.PickRandom(patients).PatientId)
+                    .RuleFor(x => x.PatientId, (f, u) => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.NavigatorId, f => f.PickRandom(practitioners).PractitionerId)
                     .RuleFor(x => x.Status, f => f.PickRandom<CaseStatus>())
                     .RuleFor(x => x.AcuityLevel, f => f.PickRandom<AcuityLevel>())
@@ -1555,7 +1635,7 @@ namespace Infrastructure.Data
                 var barriers = new Faker<BarrierLog>()
                     .RuleFor(x => x.BarrierId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
-                    .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
+                    .RuleFor(x => x.CaseId, (f, u) => f.PickRandom(cases).CaseId)
                     .RuleFor(x => x.BarrierCategory, f => f.Lorem.Word())
                     .Generate(10);
                 context.Set<BarrierLog>().AddRange(barriers);
@@ -1563,7 +1643,7 @@ namespace Infrastructure.Data
                 var navTasks = new Faker<NavigationTask>()
                     .RuleFor(x => x.TaskId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
-                    .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
+                    .RuleFor(x => x.CaseId, (f, u) => f.PickRandom(cases).CaseId)
                     .RuleFor(x => x.AssignedToId, f => f.PickRandom(practitioners).PractitionerId)
                     .RuleFor(x => x.Status, f => f.PickRandom<NavigationTaskStatus>())
                     .Generate(10);
@@ -1572,7 +1652,7 @@ namespace Infrastructure.Data
                 var interventions = new Faker<InterventionLog>()
                     .RuleFor(x => x.InterventionId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
-                    .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
+                    .RuleFor(x => x.CaseId, (f, u) => f.PickRandom(cases).CaseId)
                     .RuleFor(x => x.ActionTaken, f => f.Lorem.Sentence())
                     .Generate(10);
                 context.Set<InterventionLog>().AddRange(interventions);
@@ -1580,7 +1660,7 @@ namespace Infrastructure.Data
                 var sdoh = new Faker<SdohAssessment>()
                     .RuleFor(x => x.SdohId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
-                    .RuleFor(x => x.CaseId, f => f.PickRandom(cases).CaseId)
+                    .RuleFor(x => x.CaseId, (f, u) => f.PickRandom(cases).CaseId)
                     .RuleFor(x => x.AssessorId, f => f.PickRandom(practitioners).PractitionerId)
                     .Generate(10);
                 context.Set<SdohAssessment>().AddRange(sdoh);

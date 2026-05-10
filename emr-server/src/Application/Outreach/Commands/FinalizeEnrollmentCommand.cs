@@ -18,10 +18,24 @@ public record FinalizeEnrollmentCommand : IRequest<Guid>
     public string TechAccess { get; init; } = string.Empty;
     public string? BarriersToCare { get; init; }
     public DateTime DateOfBirth { get; init; }
-    public string BiologicalSex { get; init; } = string.Empty;
+    public BiologicalSex BiologicalSex { get; init; }
     public string? GenderIdentity { get; init; }
     public string? Language { get; init; }
     public string? CivilStatus { get; init; }
+    public DateTime? OrientationDate { get; init; }
+    public Guid? PrimaryClinicianId { get; init; }
+    public Guid? CareNavigatorId { get; init; }
+    public Guid? FacilityId { get; init; }
+
+    // Enterprise Compliance & Communication
+    public bool ConsentToTreat { get; init; }
+    public bool ConsentHIPAA { get; init; }
+    public bool ConsentMarketing { get; init; }
+    public bool InterpreterRequired { get; init; }
+    public string? PreferredContactMethod { get; init; }
+    public bool HasPoa { get; init; }
+    public bool HasAdvanceDirective { get; init; }
+    public bool ScheduleIntakeNow { get; init; }
 }
 
 public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollmentCommand, Guid>
@@ -29,18 +43,21 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
     private readonly IApplicationDbContext _context;
     private readonly IMrnGenerator _mrnGenerator;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ISchedulingService _schedulingService;
     private readonly ILogger<FinalizeEnrollmentCommandHandler> _logger;
 
     public FinalizeEnrollmentCommandHandler(
         IApplicationDbContext context,
         IMrnGenerator mrnGenerator,
         IDateTimeProvider dateTimeProvider,
+        ISchedulingService schedulingService,
         ILogger<FinalizeEnrollmentCommandHandler> logger
     )
     {
         _context = context;
         _mrnGenerator = mrnGenerator;
         _dateTimeProvider = dateTimeProvider;
+        _schedulingService = schedulingService;
         _logger = logger;
     }
 
@@ -89,21 +106,36 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         patient.GenderIdentity = request.GenderIdentity;
         patient.Language = request.Language;
         patient.CivilStatus = request.CivilStatus;
+        patient.FacilityId = request.FacilityId;
+
+        // Map Enterprise Compliance & Communication
+        patient.ConsentToTreat = request.ConsentToTreat;
+        patient.ConsentHIPAA = request.ConsentHIPAA;
+        patient.ConsentMarketing = request.ConsentMarketing;
+        patient.InterpreterRequired = request.InterpreterRequired;
+        patient.PreferredContactMethod = request.PreferredContactMethod;
+        patient.HasPoa = request.HasPoa;
+        patient.HasAdvanceDirective = request.HasAdvanceDirective;
 
         _context.Patients.Add(patient);
         await _context.SaveChangesAsync(cancellationToken);
 
         // 3. Open Care Navigation Case
-        var navigator = await _context.Practitioners
-            .Where(p => p.IsCareNavigator && p.IsActive)
-            .FirstOrDefaultAsync(cancellationToken);
+        var navigatorId = request.CareNavigatorId;
+        if (!navigatorId.HasValue)
+        {
+            var navigator = await _context.Practitioners
+                .Where(p => p.IsCareNavigator && p.IsActive)
+                .FirstOrDefaultAsync(cancellationToken);
+            navigatorId = navigator?.PractitionerId;
+        }
 
-        if (navigator != null)
+        if (navigatorId.HasValue)
         {
             var careCase = new CareNavigationCase
             {
                 PatientId = patient.PatientId,
-                NavigatorId = navigator.PractitionerId,
+                NavigatorId = navigatorId.Value,
                 Status = CaseStatus.Open,
                 OpenedAt = _dateTimeProvider.UtcNow,
                 AcuityLevel = AcuityLevel.Moderate
@@ -114,15 +146,52 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
             var task = new NavigationTask
             {
                 CaseId = careCase.CaseId,
-                AssignedToId = navigator.PractitionerId,
+                AssignedToId = request.PrimaryClinicianId ?? navigatorId.Value,
                 Description = "Initial Comprehensive Clinical Assessment & Care Plan",
-                DueDate = _dateTimeProvider.UtcNow.AddDays(2),
+                DueDate = request.OrientationDate ?? _dateTimeProvider.UtcNow.AddDays(2),
                 Status = NavigationTaskStatus.Pending
             };
             _context.NavigationTasks.Add(task);
+
+            // 4. Create Clinical Appointment (Booking) - Optional
+            if (request.ScheduleIntakeNow && request.OrientationDate.HasValue && request.PrimaryClinicianId.HasValue)
+            {
+                var appointment = new Appointment
+                {
+                    AppointmentId = Guid.NewGuid(),
+                    TenantId = patient.TenantId,
+                    PatientId = patient.PatientId,
+                    PractitionerId = request.PrimaryClinicianId.Value,
+                    ScheduledStart = request.OrientationDate.Value,
+                    ScheduledEnd = request.OrientationDate.Value.AddMinutes(60), // Default 1hr intake
+                    Status = AppointmentStatus.Scheduled,
+                    VisitType = VisitType.InitialHospiceIntake,
+                    Modality = request.Modality.ToLower() switch
+                    {
+                        "homecare" => AppointmentModality.InPersonHomeVisit,
+                        "facility" => AppointmentModality.InPersonFacility,
+                        "virtual" => AppointmentModality.TelehealthVideo,
+                        _ => AppointmentModality.InPersonHomeVisit
+                    },
+                    CreatedAt = _dateTimeProvider.UtcNow
+                };
+                _context.Appointments.Add(appointment);
+                
+                // Save first to ensure the service can fetch the record with relations
+                await _context.SaveChangesAsync(cancellationToken);
+
+                // 4-A. Hydrate Geospatial Telemetry (Distance & Drive Time)
+                var (distance, travelTime) = await _schedulingService.RecalculateAppointmentStatsAsync(
+                    appointment.AppointmentId,
+                    cancellationToken
+                );
+                
+                appointment.DistanceInMiles = distance;
+                appointment.TravelTimeMinutes = travelTime;
+            }
         }
 
-        // 4. Update Outreach Lead
+        // 5. Update Outreach Lead
         outreach.Status = OutreachStatus.Enrolled;
         outreach.EnrolledPatientId = patient.PatientId;
         outreach.SelectedModality = Enum.Parse<CareModality>(request.Modality.Replace("_", ""), true);

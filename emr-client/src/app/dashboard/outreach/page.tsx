@@ -184,7 +184,7 @@ export default function OutreachPage() {
       </div>
 
       {/* Professional Worklist */}
-      <div className="glass-morphism rounded-2xl overflow-hidden border border-[var(--card-border)] shadow-sm">
+      <div className="glass-morphism rounded-2xl border border-[var(--card-border)] shadow-sm">
         <div className="px-6 py-4 border-b border-[var(--card-border)] flex items-center justify-between bg-white/[0.01]">
           <div className="flex items-center gap-3">
             <Activity className="w-4 h-4 text-[var(--primary)]" />
@@ -193,7 +193,7 @@ export default function OutreachPage() {
           <span className="text-xs text-[var(--text-muted)]">{loading ? <Skeleton className="h-4 w-12" /> : `${filteredLeads.length} Lead(s)`}</span>
         </div>
 
-        <div className="overflow-x-auto scrollbar-hide">
+        <div>
           <table className="w-full text-left">
             <thead>
               <tr className="bg-white/[0.01] border-b border-[var(--card-border)]">

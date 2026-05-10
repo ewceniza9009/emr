@@ -179,4 +179,28 @@ public class ClinicalQuery
             .AsNoTracking()
             .Where(r => r.EncounterId == encounterId);
     }
+
+    [GraphQLName("searchDiagnosisLibrary")]
+    public async Task<List<Diagnosis>> SearchDiagnosisLibrary(
+        string term,
+        [Service] IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        if (string.IsNullOrWhiteSpace(term))
+            return new List<Diagnosis>();
+
+        var lowerTerm = term.ToLower();
+
+        return await context
+            .Diagnoses.AsNoTracking()
+            .Where(d =>
+                d.Icd10Code.ToLower().Contains(lowerTerm)
+                || d.Description.ToLower().Contains(lowerTerm)
+            )
+            .GroupBy(d => new { d.Icd10Code, d.Description })
+            .Select(g => new Diagnosis { Icd10Code = g.Key.Icd10Code, Description = g.Key.Description })
+            .Take(10)
+            .ToListAsync(cancellationToken);
+    }
 }

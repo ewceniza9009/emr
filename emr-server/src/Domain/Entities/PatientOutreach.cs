@@ -25,7 +25,7 @@ public class PatientOutreach : BaseEntity, ITenantEntity
     public string? BarriersToCare { get; set; } // Text description of financial/physical barriers
     public string? Notes { get; set; }
     public DateTime? DateOfBirth { get; set; }
-    public string? BiologicalSex { get; set; }
+    public BiologicalSex? BiologicalSex { get; set; }
     public string? GenderIdentity { get; set; }
     public string? Language { get; set; }
     public string? CivilStatus { get; set; }

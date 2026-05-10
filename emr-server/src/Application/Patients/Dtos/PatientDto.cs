@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Application.Common.Dtos;
 using Application.Clinical.Dtos;
 using Application.Appointments.Dtos;
+using Domain.Enums;
 
 namespace Application.Patients.Dtos;
 
@@ -12,7 +13,7 @@ public class PatientDto
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public DateTime Dob { get; set; }
-    public string BiologicalSex { get; set; } = string.Empty;
+    public BiologicalSex BiologicalSex { get; set; } = BiologicalSex.Unknown;
     public string? GenderIdentity { get; set; }
     public string? PhilhealthNumber { get; set; }
     public string? CivilStatus { get; set; }

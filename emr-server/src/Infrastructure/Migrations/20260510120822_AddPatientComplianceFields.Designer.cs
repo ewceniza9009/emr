@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260510120822_AddPatientComplianceFields")]
+    partial class AddPatientComplianceFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1838,9 +1841,10 @@ namespace Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("barriers_to_care");
 
-                    b.Property<int>("BiologicalSex")
+                    b.Property<string>("BiologicalSex")
+                        .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("integer")
+                        .HasColumnType("character varying(20)")
                         .HasColumnName("biological_sex");
 
                     b.Property<string>("CivilStatus")
@@ -2253,8 +2257,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("barriers_to_care");
 
-                    b.Property<int?>("BiologicalSex")
-                        .HasColumnType("integer")
+                    b.Property<string>("BiologicalSex")
+                        .HasColumnType("text")
                         .HasColumnName("biological_sex");
 
                     b.Property<int>("CallAttemptCount")
