@@ -420,6 +420,9 @@ public class SetupMutation
         string DateFormat,
         bool IsActive,
         bool EnableElasticsearch,
+        bool EnforceMfa,
+        int SessionTimeoutMinutes,
+        bool StrictOnboarding,
         string? ContactEmail,
         string? ExtendedSettingsJson
     );
@@ -440,6 +443,9 @@ public class SetupMutation
         existing.DateFormat = input.DateFormat;
         existing.IsActive = input.IsActive;
         existing.EnableElasticsearch = input.EnableElasticsearch;
+        existing.EnforceMfa = input.EnforceMfa;
+        existing.SessionTimeoutMinutes = input.SessionTimeoutMinutes;
+        existing.StrictOnboarding = input.StrictOnboarding;
         existing.ContactEmail = input.ContactEmail;
         existing.ExtendedSettingsJson = input.ExtendedSettingsJson;
 

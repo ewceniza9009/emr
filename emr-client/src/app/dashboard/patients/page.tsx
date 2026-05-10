@@ -20,6 +20,8 @@ import { useCommandModal } from "@/components/CommandModalProvider";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import PatientFilterPopover, { PatientFilters } from "@/components/PatientFilterPopover";
+import DispatchModal from "@/components/DispatchModal";
+import { Navigation } from "lucide-react";
 
 const GET_PATIENTS = gql`
   query GetPatients($search: String, $skip: Int!, $take: Int!, $directiveTypes: [String!], $biologicalSex: String, $visitStatuses: [String!]) {
@@ -57,6 +59,7 @@ export default function PatientsPage() {
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [filters, setFilters] = useState<PatientFilters>({ directiveTypes: [], biologicalSex: null, visitStatuses: [] });
+  const [dispatchPatient, setDispatchPatient] = useState<{id: string, name: string} | null>(null);
 
   const { data, loading, error, refetch } = useQuery(GET_PATIENTS, {
     variables: {
@@ -274,6 +277,17 @@ export default function PatientsPage() {
                             <Plus className="w-4 h-4 text-purple-400" />
                             Schedule Encounter
                           </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenuId(null);
+                              setDispatchPatient({ id: patient.patientId, name: `${patient.firstName} ${patient.lastName}` });
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--primary-glow)] transition-all text-left"
+                          >
+                            <Navigation className="w-4 h-4 text-emerald-400" />
+                            Dispatch Clinician
+                          </button>
                           <div className="h-px bg-[var(--card-border)] my-1" />
                           <button
                             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-all font-semibold text-left"
@@ -312,6 +326,14 @@ export default function PatientsPage() {
           </div>
         </div>
       </div>
+
+      <DispatchModal 
+        open={!!dispatchPatient}
+        onClose={() => setDispatchPatient(null)}
+        patientId={dispatchPatient?.id || ""}
+        patientName={dispatchPatient?.name || ""}
+        onSuccess={() => refetch()}
+      />
     </div>
   );
 }

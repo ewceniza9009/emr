@@ -44,6 +44,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
     { id: "equipment", label: "Equipment", icon: Zap },
     { id: "outreachScripts", label: "Scripts", icon: MessageSquare },
     { id: "integrationProfiles", label: "Integrations", icon: Globe },
+    { id: "utilization", label: "Resource Heatmap", icon: Activity },
     { id: "audit", label: "Security Audit", icon: Shield },
     { id: "identity", label: "Identity & Roles", icon: Lock },
     { id: "settings", label: "Settings", icon: Settings },

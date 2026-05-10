@@ -11,19 +11,21 @@ import {
   Users,
   Stethoscope,
   Pill,
-  MoreHorizontal,
+  Edit,
+  Trash2,
+  Flame,
   Activity,
+  ClipboardList,
+  MoreHorizontal,
   LogOut,
   MessageSquare,
-  ChevronRight,
-  ClipboardList,
-  Edit,
-  Trash2
+  ChevronRight
 } from "lucide-react";
 import SetupDrawer from "@/components/SetupDrawer";
 import AdminSidebar from "@/components/AdminSidebar";
 import SecurityAuditVault from "@/components/SecurityAuditVault";
 import IdentityManagement from "@/components/IdentityManagement";
+import ResourceUtilization from "@/components/ResourceUtilization";
 import { PermissionGate } from "@/components/PermissionGate";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -132,7 +134,7 @@ const GET_SETUP_DATA = gql`
   }
 `;
 
-type TabType = "practitioners" | "facilities" | "healthPlans" | "medications" | "smartPhrases" | "questionnaires" | "equipment" | "outreachScripts" | "integrationProfiles" | "identity" | "audit" | "settings";
+type TabType = "practitioners" | "facilities" | "healthPlans" | "medications" | "smartPhrases" | "questionnaires" | "equipment" | "outreachScripts" | "integrationProfiles" | "identity" | "audit" | "settings" | "utilization";
 
 const DELETE_MUTATIONS = {
   practitioners: gql`mutation DeletePractitioner($id: Guid!) { deletePractitioner(id: $id) }`,
@@ -458,6 +460,8 @@ function AdminDashboardContent() {
         return <SecurityAuditVault />;
       case "settings":
         return <RegistrySettings />;
+      case "utilization":
+        return <ResourceUtilization />;
     }
   };
 
@@ -481,7 +485,7 @@ function AdminDashboardContent() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-5 space-y-4 scroll-smooth">
-          {activeTab !== "settings" && (
+          {activeTab !== "settings" && activeTab !== "utilization" && activeTab !== "identity" && activeTab !== "audit" && (
             <div className="flex items-end justify-between border-b border-[var(--card-border)] pb-3">
               <div>
                 <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
@@ -511,8 +515,19 @@ function AdminDashboardContent() {
               </PermissionGate>
             </div>
           )}
+          
+          {activeTab === "utilization" && (
+            <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
+               <div>
+                <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
+                  Workforce Intelligence
+                </h1>
+                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Global capacity and clinician load distribution</p>
+              </div>
+            </div>
+          )}
 
-          {activeTab !== "settings" && (
+          {activeTab !== "settings" && activeTab !== "utilization" && activeTab !== "identity" && activeTab !== "audit" && (
             <div className="flex items-center justify-between gap-6 bg-[var(--card-bg)]/40 p-3 rounded-2xl border border-[var(--card-border)]">
               <div className="relative flex-1 max-w-md group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
@@ -539,7 +554,7 @@ function AdminDashboardContent() {
         </main>
       </div>
 
-      {activeTab !== 'identity' && activeTab !== 'audit' && activeTab !== 'settings' && (
+      {activeTab !== 'identity' && activeTab !== 'audit' && activeTab !== 'settings' && activeTab !== 'utilization' && (
         <SetupDrawer
           open={isDrawerOpen}
           type={activeTab as any}

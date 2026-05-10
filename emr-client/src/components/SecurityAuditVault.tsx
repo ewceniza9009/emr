@@ -93,7 +93,7 @@ export default function SecurityAuditVault() {
   const totalCount = data?.securityAuditLogs?.totalCount || 0;
 
   return (
-    <div className="relative h-[calc(100vh-100px)] flex flex-col gap-5 animate-in fade-in duration-700 overflow-hidden px-8 pt-4 pb-8">
+    <div className="relative flex flex-col gap-6 animate-in fade-in duration-700 px-8 pt-6 pb-12">
       {/* Table Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0 px-2">
         <div className="flex items-center gap-6">
@@ -248,8 +248,8 @@ export default function SecurityAuditVault() {
           <div className="flex-1 min-w-0">
             <h3 className="text-[9px] font-black uppercase tracking-widest text-indigo-400/70">Integrity</h3>
             <div className="flex items-center justify-between">
-              <p className="text-sm font-black text-white uppercase tracking-tighter">Verified</p>
-              <span className="text-[8px] font-medium text-indigo-400/40 uppercase">Safe</span>
+              <p className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter">Verified</p>
+              <span className="text-[8px] font-medium text-indigo-500/60 uppercase">Safe</span>
             </div>
           </div>
         </div>
@@ -261,10 +261,10 @@ export default function SecurityAuditVault() {
           <div className="flex-1 min-w-0">
             <h3 className="text-[9px] font-black uppercase tracking-widest text-rose-400/70">Unauthorized</h3>
             <div className="flex items-center justify-between">
-              <p className="text-sm font-black text-white uppercase tracking-tighter">
+              <p className="text-sm font-black text-rose-500 uppercase tracking-tighter">
                 {logs.filter((l: any) => l.action.includes('UNAUTHORIZED')).length}
               </p>
-              <span className="text-[8px] font-medium text-rose-400/40 uppercase">Alerts</span>
+              <span className="text-[8px] font-medium text-rose-500/60 uppercase">Alerts</span>
             </div>
           </div>
         </div>
@@ -276,10 +276,10 @@ export default function SecurityAuditVault() {
           <div className="flex-1 min-w-0">
             <h3 className="text-[9px] font-black uppercase tracking-widest text-emerald-400/70">Break-Glass</h3>
             <div className="flex items-center justify-between">
-              <p className="text-sm font-black text-white uppercase tracking-tighter">
+              <p className="text-sm font-black text-emerald-500 uppercase tracking-tighter">
                 {logs.filter((l: any) => l.action.includes('ACTIVATED')).length}
               </p>
-              <span className="text-[8px] font-medium text-emerald-400/40 uppercase">Active</span>
+              <span className="text-[8px] font-medium text-emerald-500/60 uppercase">Active</span>
             </div>
           </div>
         </div>

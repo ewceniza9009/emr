@@ -103,6 +103,10 @@ jobs:
           echo "Clinical seeding complete. Starting Playwright suite."
           
           # Run Playwright (Executing all clinical and booking workflows)
+          echo "Executing Critical Path: Patient Enrollment Workflow..."
+          cd emr-client && npx playwright test tests/enrollment-workflow.spec.ts --project=chromium --workers=1
+          
+          echo "Executing Full Clinical Suite..."
           cd emr-client && npx playwright test --project=chromium --workers=1
         env:
           ASPNETCORE_ENVIRONMENT: Production

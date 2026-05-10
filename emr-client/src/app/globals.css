@@ -150,6 +150,18 @@ h4 {
   box-shadow: 0 0 0 4px var(--primary-glow), 0 8px 16px rgba(var(--primary-rgb), 0.12);
 }
 
+/* Global Select Option Styling - Fixing browser-native contrast issues */
+select option {
+  background-color: #0a0c12 !important; /* Force matching var(--card-bg) */
+  color: #ffffff !important;
+  padding: 8px !important;
+}
+
+.light select option {
+  background-color: #ffffff !important;
+  color: #020617 !important;
+}
+
 /* Outreach Workstation Specifics - Scoped overrides */
 .outreach-workstation .premium-input,
 .outreach-workstation .field-container {
@@ -164,17 +176,6 @@ h4 {
 .light .outreach-workstation .field-container {
   border: 1px solid rgba(15, 23, 42, 0.08) !important;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03) !important;
-}
-
-.outreach-workstation select option {
-  background-color: #0f172a !important;
-  /* Force deep slate for dark mode */
-  color: #f8fafc !important;
-}
-
-.light .outreach-workstation select option {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
 }
 
 /* Global Elegant Utility */

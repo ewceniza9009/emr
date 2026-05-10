@@ -303,13 +303,50 @@ export default function RegistrySettings() {
             )}
 
             {activeTab === "security" && (
-              <div className="h-full flex flex-col items-center justify-center space-y-6 animate-in zoom-in-95 duration-500">
-                <div className="w-12 h-12 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center">
-                  <ServerCrash className="w-5 h-5 text-[var(--primary)] opacity-40" />
-                </div>
-                <div className="text-center">
-                  <h3 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">Security Module Locked</h3>
-                  <p className="text-[9px] text-[var(--text-muted)] uppercase mt-1 tracking-wider">Access level insufficient for modifications</p>
+              <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
+                <SectionLabel title="SECURITY PROTOCOLS" subtitle="Environmental Hardening" icon={<Shield className="w-3.5 h-3.5" />} color="rose" />
+                
+                <div className="grid grid-cols-1 gap-6">
+                  <ProtocolToggle 
+                    title="Multi-Factor Authentication (MFA)" 
+                    desc="Require TOTP verification for all clinical workstations"
+                    checked={stagedTenant.enforceMfa}
+                    onChange={(val: boolean) => setStagedTenant({...stagedTenant, enforceMfa: val})}
+                  />
+
+                  <ProtocolToggle 
+                    title="Strict Onboarding Mode" 
+                    desc="Disable public registration; require cryptographic invitations"
+                    checked={stagedTenant.strictOnboarding}
+                    onChange={(val: boolean) => setStagedTenant({...stagedTenant, strictOnboarding: val})}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                    <SelectField 
+                      label="CLINICAL SESSION TIMEOUT" 
+                      value={stagedTenant.sessionTimeoutMinutes.toString()}
+                      onChange={(v: string) => setStagedTenant({...stagedTenant, sessionTimeoutMinutes: parseInt(v)})}
+                      options={[
+                        { value: "15", label: "15 MINUTES (HIGH SECURITY)" },
+                        { value: "30", label: "30 MINUTES (BALANCED)" },
+                        { value: "60", label: "60 MINUTES (STANDARD)" },
+                        { value: "240", label: "4 HOURS (EXTENDED)" },
+                      ]}
+                      icon={<Clock className="w-3.5 h-3.5" />}
+                    />
+                  </div>
+
+                  <div className="p-6 rounded-2xl bg-rose-500/5 border border-rose-500/10 flex items-center gap-4">
+                    <div className="p-3 rounded-xl bg-rose-500/10 text-rose-500">
+                      <Lock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">Forensic Vault Linkage</h4>
+                      <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-relaxed">
+                        Security state changes are permanently logged in the <span className="text-rose-500">Security Audit Registry</span> for compliance oversight.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -446,7 +483,13 @@ function SelectField({ label, value, onChange, options, icon }: SelectFieldProps
           className="w-full h-11 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-10 pr-4 text-[10px] font-black uppercase tracking-tight text-[var(--text-primary)] focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/5 outline-none appearance-none cursor-pointer transition-all"
         >
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+            <option 
+              key={opt.value} 
+              value={opt.value} 
+              className="bg-[var(--sidebar-bg)] text-[var(--text-primary)] py-2"
+            >
+              {opt.label}
+            </option>
           ))}
         </select>
         <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-muted)] rotate-90" />

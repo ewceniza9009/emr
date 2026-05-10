@@ -17,6 +17,13 @@ public class TenantConfiguration : BaseEntity, ITenantEntity
     // Operational Flags
     public bool IsActive { get; set; } = true;
     public bool EnableElasticsearch { get; set; } = false;
+    
+    // Security & Compliance
+    public bool EnforceMfa { get; set; } = false;
+    public int SessionTimeoutMinutes { get; set; } = 30;
+    public bool StrictOnboarding { get; set; } = true;
+    
+    // Contact Info
     public string? ContactEmail { get; set; }
     
     // Extended Settings (Serialized JSON for future-proofing)
