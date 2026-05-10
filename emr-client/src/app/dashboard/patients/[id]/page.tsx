@@ -1057,7 +1057,7 @@ export default function PatientDetailPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {patient.contacts?.map((contact: any) => (
-                      <div key={contact.patientContactId} className={`p-6 rounded-3xl border transition-all ${contact.isPoa ? 'bg-blue-500/5 border-blue-500/20' : 'bg-white/5 border-white/5'}`}>
+                      <div key={contact.patientContactId} className={`p-6 rounded-[2rem] border transition-all hover:shadow-lg ${contact.isPoa ? 'bg-blue-500/[0.03] border-blue-500/30 shadow-blue-500/5' : 'bg-[var(--input-bg)] border-[var(--card-border)] shadow-sm'}`}>
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${contact.isPoa ? 'bg-blue-500 text-white' : 'bg-white/10 text-slate-400'}`}>
