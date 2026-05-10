@@ -61,6 +61,13 @@ jobs:
           NEXT_PUBLIC_API_URL: https://api.halcyon.clinical
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           
+      - name: Upload Frontend Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: emr-client/.next/
+          retention-days: 1
+          
   containerize:
     name: Container Security & Build
     needs: [backend, frontend, e2e-tests]
@@ -113,11 +120,17 @@ jobs:
           cd emr-client && npm ci
           npx playwright install --with-deps chromium
 
+      - name: Download Frontend Build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: emr-client/.next/
+
       - name: Build Backend
         run: dotnet build emr-server/emr-server.slnx --configuration Release
 
       - name: Build Frontend
-        run: cd emr-client && npm run build
+        run: echo "Using cached build artifact"
         env:
           NEXT_PUBLIC_API_URL: http://localhost:34732
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'secret' }}
@@ -141,6 +154,9 @@ jobs:
           NEXT_PUBLIC_API_URL: http://localhost:34732
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'secret' }}
           NEXTAUTH_URL: http://localhost:3431
+          Logging__LogLevel__Default: Warning
+          Logging__LogLevel__Microsoft: Warning
+          Logging__LogLevel__System: Warning
 
       - name: Upload Test Report
         if: always()
