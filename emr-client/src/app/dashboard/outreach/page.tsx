@@ -22,6 +22,7 @@ import EnrollmentDrawer from "@/components/EnrollmentDrawer";
 import { useToast } from "@/components/ToastProvider";
 import AddReferralDrawer from "@/components/AddReferralDrawer";
 import { useDebounce } from "@/hooks/useDebounce";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const GET_OUTREACH_LEADS = gql`
   query GetOutreachLeads($where: PatientOutreachFilterInput) {
@@ -147,7 +148,7 @@ export default function OutreachPage() {
               <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)]">
                 <stat.icon className="w-5 h-5" />
               </div>
-              <span className="text-2xl font-bold text-[var(--text-primary)]">{stat.count}</span>
+              {loading ? <Skeleton className="h-8 w-12" /> : <span className="text-2xl font-bold text-[var(--text-primary)]">{stat.count}</span>}
             </div>
             <p className="text-xs font-medium text-[var(--text-muted)]">{stat.label}</p>
           </div>
@@ -189,7 +190,7 @@ export default function OutreachPage() {
             <Activity className="w-4 h-4 text-[var(--primary)]" />
             <h2 className="text-sm font-semibold text-[var(--text-primary)]">Clinical Outreach Worklist</h2>
           </div>
-          <span className="text-xs text-[var(--text-muted)]">{filteredLeads.length} Lead(s)</span>
+          <span className="text-xs text-[var(--text-muted)]">{loading ? <Skeleton className="h-4 w-12" /> : `${filteredLeads.length} Lead(s)`}</span>
         </div>
 
         <div className="overflow-x-auto scrollbar-hide">
@@ -207,7 +208,17 @@ export default function OutreachPage() {
             </thead>
             <tbody className="divide-y divide-[var(--card-border)]">
               {loading ? (
-                [1, 2, 3].map(i => <tr key={i} className="animate-pulse"><td colSpan={7} className="h-16" /></tr>)
+                [1, 2, 3, 4, 5, 6].map(i => (
+                  <tr key={i}>
+                    <td className="px-6 py-4"><div className="space-y-2"><Skeleton className="h-5 w-40" /><Skeleton className="h-3 w-24" /></div></td>
+                    <td className="px-6 py-4 text-center"><div className="flex justify-center"><Skeleton className="h-6 w-8 rounded-lg" /></div></td>
+                    <td className="px-6 py-4"><div className="flex items-center gap-2"><Skeleton className="h-3 w-20" /><Skeleton className="h-3 w-16" /></div></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-32" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="px-6 py-4 text-center"><div className="flex justify-center"><Skeleton className="h-6 w-24 rounded-full" /></div></td>
+                    <td className="px-6 py-4"><div className="flex justify-end gap-2"><Skeleton className="h-10 w-10 rounded-xl" /><Skeleton className="h-10 w-10 rounded-xl" /><Skeleton className="h-10 w-10 rounded-xl" /></div></td>
+                  </tr>
+                ))
               ) : filteredLeads.map((lead: any) => (
                 <tr key={lead.patientOutreachId} className="group hover:bg-white/[0.01] transition-colors">
                   <td className="px-6 py-2.5">

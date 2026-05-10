@@ -18,6 +18,7 @@ import { useSession } from "next-auth/react";
 import AddPatientDrawer from "@/components/AddPatientDrawer";
 import { useCommandModal } from "@/components/CommandModalProvider";
 import { useDebounce } from "@/hooks/useDebounce";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const GET_PATIENTS = gql`
   query GetPatients($search: String, $skip: Int, $take: Int) {
@@ -126,9 +127,36 @@ export default function PatientsPage() {
             </thead>
             <tbody className="divide-y divide-[var(--card-border)]">
               {loading ? (
-                [1, 2, 3].map((i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td colSpan={6} className="px-8 py-10 bg-[var(--input-bg)]" />
+                [1, 2, 3, 4, 5, 6].map((i) => (
+                  <tr key={i} className="border-b border-white/5 last:border-0">
+                    <td className="px-8 py-5">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="w-12 h-12 rounded-2xl" />
+                        <div className="space-y-3">
+                          <Skeleton className="h-6 w-40" />
+                          <Skeleton className="h-4 w-24 opacity-50" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      <div className="flex justify-center">
+                        <Skeleton className="h-6 w-20 rounded-lg" />
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      <div className="flex justify-center">
+                        <Skeleton className="h-8 w-24 rounded-xl" />
+                      </div>
+                    </td>
+                    <td className="px-8 py-5">
+                      <Skeleton className="h-5 w-32" />
+                    </td>
+                    <td className="px-8 py-5">
+                      <Skeleton className="h-5 w-36" />
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                      <Skeleton className="h-11 w-11 rounded-2xl ml-auto" />
+                    </td>
                   </tr>
                 ))
               ) : error ? (

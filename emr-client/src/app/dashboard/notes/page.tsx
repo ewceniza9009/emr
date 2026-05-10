@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import BookingDrawer from "@/components/BookingDrawer";
 
+import { Skeleton } from "@/components/ui/skeleton";
+ 
 const GET_NOTES_DATA = gql`
   query GetNotesData {
     appointments {
@@ -48,26 +50,26 @@ const GET_NOTES_DATA = gql`
     }
   }
 `;
-
+ 
 const START_ENCOUNTER = gql`
   mutation StartEncounter($input: CreateClinicalEncounterCommandInput!) {
     createClinicalEncounter(input: $input)
   }
 `;
-
+ 
 const SAVE_NOTE = gql`
   mutation SaveNote($input: SaveClinicalNoteCommandInput!) {
     saveClinicalNote(input: $input)
   }
 `;
-
+ 
 export default function ClinicalNotesPage() {
   const { data: session } = useSession();
   const { showToast } = useToast();
   const { data, loading, error } = useQuery(GET_NOTES_DATA);
   const [startEncounter] = useMutation(START_ENCOUNTER);
   const [saveNote] = useMutation(SAVE_NOTE);
-
+ 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [narrative, setNarrative] = useState("");
   const [showSmartPhrases, setShowSmartPhrases] = useState(false);
@@ -79,17 +81,17 @@ export default function ClinicalNotesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+ 
   const appointmentsData = data?.appointments?.items || [];
   const appointments = appointmentsData.filter((n: any) =>
     `${n.patient?.firstName} ${n.patient?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     n.patient?.mrn?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+ 
   const smartPhrases = data?.smartPhrases || [];
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const selectedNote = appointments.find((a: any) => a.appointmentId === selectedId);
-
+ 
   useEffect(() => {
     const saved = localStorage.getItem("halcyon_notes_cache");
     if (saved) {
@@ -100,48 +102,48 @@ export default function ClinicalNotesPage() {
       }
     }
   }, []);
-
+ 
   useEffect(() => {
     if (Object.keys(noteCache).length > 0) {
       localStorage.setItem("halcyon_notes_cache", JSON.stringify(noteCache));
       setLastSaved(new Date());
     }
   }, [noteCache]);
-
+ 
   useEffect(() => {
     if (selectedId) {
       setNarrative(noteCache[selectedId] || "");
     }
   }, [selectedId, noteCache]);
-
+ 
   useEffect(() => {
     if (appointments.length > 0 && !selectedId) {
       setSelectedId(appointments[0].appointmentId);
     }
   }, [appointments, selectedId]);
-
+ 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
-
+ 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     const selectionStart = e.target.selectionStart;
     setNarrative(value);
-
+ 
     if (selectedId) {
       setNoteCache(prev => ({ ...prev, [selectedId]: value }));
     }
-
+ 
     const textBeforeCursor = value.slice(0, selectionStart);
     const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
-
+ 
     if (lastSlashIdx !== -1) {
       const segment = textBeforeCursor.slice(lastSlashIdx);
       if (segment.startsWith("/") && !segment.includes(" ")) {
         setShowSmartPhrases(true);
         setPhraseFilter(segment.slice(1).toLowerCase());
         setSelectedIndex(0);
-
+ 
         // Position popup near cursor
         if (textareaRef.current) {
           const { selectionStart } = textareaRef.current;
@@ -162,12 +164,12 @@ export default function ClinicalNotesPage() {
       setShowSmartPhrases(false);
     }
   };
-
+ 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (!showSmartPhrases) return;
-
+ 
     const filtered = smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter));
-
+ 
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex(prev => (prev + 1) % filtered.length);
@@ -184,22 +186,22 @@ export default function ClinicalNotesPage() {
       setShowSmartPhrases(false);
     }
   };
-
+ 
   const selectPhrase = (phrase: string) => {
     if (!textareaRef.current) return;
-
+ 
     const cursor = textareaRef.current.selectionStart;
     const textBeforeCursor = narrative.slice(0, cursor);
     const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
-
+ 
     if (lastSlashIdx !== -1) {
       const newText = narrative.slice(0, lastSlashIdx) + phrase + narrative.slice(cursor);
       setNarrative(newText);
-
+ 
       if (selectedId) {
         setNoteCache(prev => ({ ...prev, [selectedId]: newText }));
       }
-
+ 
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.focus();
@@ -210,14 +212,14 @@ export default function ClinicalNotesPage() {
     }
     setShowSmartPhrases(false);
   };
-
+ 
   const handleSave = async (finalize: boolean) => {
     if (!selectedId || !selectedNote) return;
-
+ 
     setIsSyncing(true);
     try {
       let encounterId = encounterCache[selectedId];
-
+ 
       if (!encounterId) {
         const { data: startData } = await startEncounter({
           variables: {
@@ -233,7 +235,7 @@ export default function ClinicalNotesPage() {
         encounterId = startData.createClinicalEncounter;
         setEncounterCache(prev => ({ ...prev, [selectedId]: encounterId }));
       }
-
+ 
       await saveNote({
         variables: {
           input: {
@@ -244,7 +246,7 @@ export default function ClinicalNotesPage() {
           }
         }
       });
-
+ 
       showToast(finalize ? "Note Finalized & Locked" : "Progress Note Synced", "success");
     } catch (err) {
       console.error("Sync failed", err);
@@ -253,7 +255,7 @@ export default function ClinicalNotesPage() {
       setIsSyncing(false);
     }
   };
-
+ 
   const handleDownload = async () => {
     if (!selectedId) return;
     try {
@@ -262,17 +264,34 @@ export default function ClinicalNotesPage() {
       showToast("FAILED TO GENERATE PDF", "error");
     }
   };
-
+ 
   if (loading) return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
-      <div className="relative">
-        <Loader2 className="w-16 h-16 text-[var(--primary)] animate-spin" />
-        <div className="absolute inset-0 bg-[var(--primary)]/20 blur-2xl animate-pulse rounded-full" />
+    <div className="flex h-[calc(100vh-100px)] gap-4 overflow-hidden p-1 animate-in fade-in duration-700">
+      <div className="w-[400px] space-y-4">
+        <Skeleton className="h-20 w-full rounded-[2rem]" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-32 w-full rounded-[1.8rem]" />)}
+        </div>
       </div>
-      <div className="flex flex-col items-center gap-2">
-        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Synchronizing Clinical Records</p>
-        <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent" />
-        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Fetching Medical Intelligence</p>
+      <div className="flex-1 bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--card-border)] p-10 space-y-8">
+        <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-8">
+          <div className="flex items-center gap-6">
+            <Skeleton className="w-14 h-14 rounded-2xl" />
+            <div className="space-y-3">
+              <Skeleton className="h-8 w-80" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Skeleton className="h-12 w-36 rounded-xl" />
+            <Skeleton className="h-12 w-36 rounded-xl" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-10">
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          <Skeleton className="h-16 w-full rounded-2xl" />
+        </div>
+        <Skeleton className="flex-1 min-h-[400px] w-full rounded-[2.5rem]" />
       </div>
     </div>
   );

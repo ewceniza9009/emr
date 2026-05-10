@@ -22,6 +22,7 @@ import { useSettings } from "@/lib/SettingsContext";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import BenefitClaimDrawer from "@/components/BenefitClaimDrawer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const GET_INVOICES = gql`
   query GetInvoices($skip: Int, $take: Int, $where: BillingInvoiceFilterInput) {
@@ -289,11 +290,15 @@ export default function BillingPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.1em]">{stat.label}</p>
-                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter ${stat.trend.startsWith('+') ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
-                  {stat.trend}
-                </span>
+                {loading ? <Skeleton className="h-3 w-8 rounded" /> : (
+                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter ${stat.trend.startsWith('+') ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                    {stat.trend}
+                  </span>
+                )}
               </div>
-              <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight leading-none mt-0.5">{stat.value}</h3>
+              {loading ? <Skeleton className="h-7 w-24 mt-1" /> : (
+                <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight leading-none mt-0.5">{stat.value}</h3>
+              )}
               <p className="text-[8px] font-black text-[var(--text-muted)] mt-1 opacity-50 uppercase tracking-widest truncate">{stat.desc}</p>
             </div>
           </div>
@@ -385,8 +390,17 @@ export default function BillingPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--card-border)]">
-                  {loading ? (
-                    [1, 2, 3].map(i => <tr key={i} className="h-20 animate-pulse bg-[var(--input-bg)]/30 rounded-xl" />)
+                  {loadingInvoices ? (
+                    [1, 2, 3, 4, 5].map(i => (
+                      <tr key={i}>
+                        <td className="py-5 px-4"><div className="flex gap-3"><Skeleton className="w-10 h-10 rounded-xl" /><div className="space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-20" /></div></div></td>
+                        <td className="py-5 px-4"><div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-3 w-20" /></div></td>
+                        <td className="py-5 px-4"><Skeleton className="h-6 w-20 rounded-lg" /></td>
+                        <td className="py-5 px-4"><div className="flex justify-center"><Skeleton className="h-6 w-16" /></div></td>
+                        <td className="py-5 px-4"><div className="flex flex-col items-end gap-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-3 w-20" /></div></td>
+                        <td className="py-5 px-4"><div className="flex justify-center"><Skeleton className="h-10 w-10 rounded-xl" /></div></td>
+                      </tr>
+                    ))
                   ) : invoices.map((invoice: any) => (
                     <tr key={invoice.invoiceId} className="hover:bg-white/[0.01] transition-colors group">
                       <td className="py-5 px-4">
@@ -474,8 +488,17 @@ export default function BillingPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--card-border)]">
-                  {loading ? (
-                    [1, 2, 3].map(i => <tr key={i} className="h-20 animate-pulse bg-[var(--input-bg)]/30 rounded-xl" />)
+                  {loadingClaims ? (
+                    [1, 2, 3, 4, 5].map(i => (
+                      <tr key={i}>
+                        <td className="py-5 px-4"><div className="flex gap-3"><Skeleton className="w-10 h-10 rounded-xl bg-[var(--primary)]/10" /><div className="space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-20" /></div></div></td>
+                        <td className="py-5 px-4"><Skeleton className="h-4 w-28" /></td>
+                        <td className="py-5 px-4"><div className="flex gap-2"><Skeleton className="w-2 h-2 rounded-full" /><Skeleton className="h-4 w-20" /></div></td>
+                        <td className="py-5 px-4"><Skeleton className="h-6 w-20 rounded-lg" /></td>
+                        <td className="py-5 px-4"><div className="flex flex-col items-end gap-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-3 w-20" /></div></td>
+                        <td className="py-5 px-4"><div className="flex justify-center gap-2"><Skeleton className="h-10 w-10 rounded-xl" /><Skeleton className="h-10 w-10 rounded-xl" /></div></td>
+                      </tr>
+                    ))
                   ) : claims.map((claim: any) => (
                     <tr key={claim.claimId} className="hover:bg-white/[0.01] transition-colors group">
                       <td className="py-5 px-4">

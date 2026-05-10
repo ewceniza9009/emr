@@ -7,6 +7,7 @@ public interface ISearchService
     Task<List<SearchResultDto>> GlobalSearchAsync(string term, CancellationToken cancellationToken);
     Task IndexPatientAsync(Patient patient, CancellationToken cancellationToken);
     Task IndexOutreachAsync(PatientOutreach outreach, CancellationToken cancellationToken);
+    Task RecreateIndicesAsync(CancellationToken cancellationToken);
 }
 
 public class SearchResultDto

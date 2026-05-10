@@ -196,7 +196,7 @@ export default function Dashboard() {
             </div>
             <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{stat.label}</p>
             {loading ? (
-              <Skeleton className="h-8 w-20 mt-1" />
+              <Skeleton className="h-8 w-24 mt-2 rounded-lg" />
             ) : (
               <h3 className="text-2xl font-bold text-[var(--text-primary)] mt-1">{stat.value}</h3>
             )}
@@ -259,8 +259,11 @@ export default function Dashboard() {
                   <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)]">
                     <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
                     <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-[60%]" />
-                      <Skeleton className="h-3 w-[40%]" />
+                      <div className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                      <Skeleton className="h-3 w-32" />
                     </div>
                   </div>
                 ))

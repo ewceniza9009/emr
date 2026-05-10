@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
@@ -15,13 +15,14 @@ import {
   MoreVertical,
   Loader2
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import dynamic from "next/dynamic";
-
+ 
 const InteractiveMap = dynamic(() => import("@/components/Map"), { 
   ssr: false,
-  loading: () => <div className="h-full w-full bg-[var(--input-bg)] animate-pulse rounded-[2.5rem] border border-[var(--card-border)] flex items-center justify-center"><p className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Initializing Tactical Map...</p></div>
+  loading: () => <Skeleton className="h-full w-full rounded-[2.5rem]" />
 });
-
+ 
 const GET_NAVIGATION_DATA = gql`
   query GetNavigationData {
     practitioners {
@@ -49,17 +50,28 @@ const GET_NAVIGATION_DATA = gql`
     }
   }
 `;
-
+ 
 export default function CareNavigationPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { data, loading, error } = useQuery(GET_NAVIGATION_DATA);
-
+ 
   const [activeHud, setActiveHud] = useState("nav");
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
-
+ 
   if (loading) return (
-    <div className="h-full flex items-center justify-center">
-      <Loader2 className="w-12 h-12 text-[var(--primary)] animate-spin" />
+    <div className="flex h-[calc(100vh-100px)] gap-4 overflow-hidden p-1 animate-in fade-in duration-700">
+      <div className="flex-1 relative">
+        <Skeleton className="h-full w-full rounded-[2.5rem]" />
+        <div className="absolute top-10 left-10 w-80">
+          <Skeleton className="h-40 w-full rounded-[2rem]" />
+        </div>
+      </div>
+      <div className="w-96 space-y-4">
+        <Skeleton className="h-20 w-full rounded-[2rem]" />
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-48 w-full rounded-2xl" />)}
+        </div>
+      </div>
     </div>
   );
 

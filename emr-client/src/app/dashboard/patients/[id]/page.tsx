@@ -418,15 +418,41 @@ export default function PatientDetailPage() {
   };
 
   if (loading) return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
-      <div className="relative">
-        <Zap className="w-16 h-16 text-[var(--primary)] animate-pulse" />
-        <div className="absolute inset-0 bg-[var(--primary)]/20 blur-2xl animate-pulse rounded-full" />
+    <div className="p-4 space-y-6 animate-in fade-in duration-700">
+      {/* Header Skeleton */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/5 pb-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="w-14 h-14 rounded-2xl" />
+          <div className="space-y-3">
+            <Skeleton className="h-8 w-80" />
+            <div className="flex gap-3">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-4 w-48 opacity-50" />
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <Skeleton className="h-12 w-36 rounded-xl" />
+          <Skeleton className="h-12 w-36 rounded-xl" />
+          <Skeleton className="h-12 w-36 rounded-xl" />
+        </div>
       </div>
-      <div className="flex flex-col items-center gap-2">
-        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Initializing Clinical Profile</p>
-        <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent" />
-        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Secure Handshake in Progress</p>
+ 
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left Col Skeletons */}
+        <div className="space-y-4">
+          <Skeleton className="h-32 w-full rounded-[2rem] shadow-lg shadow-white/5" />
+          <Skeleton className="h-64 w-full rounded-[2rem] shadow-lg shadow-white/5" />
+          <Skeleton className="h-48 w-full rounded-[2rem] shadow-lg shadow-white/5" />
+        </div>
+        {/* Main Content Skeleton */}
+        <div className="lg:col-span-3 space-y-6">
+          <Skeleton className="h-14 w-full max-w-2xl rounded-2xl" />
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)}
+          </div>
+          <Skeleton className="h-[600px] w-full rounded-[2.5rem] shadow-xl shadow-white/5" />
+        </div>
       </div>
     </div>
   );

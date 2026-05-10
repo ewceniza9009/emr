@@ -452,12 +452,15 @@ public class SetupMutation
         [Service] ISearchService searchService,
         CancellationToken cancellationToken)
     {
-        var patients = await context.Patients.ToListAsync(cancellationToken);
+        // HARD RESET: Wipe and recreate indices to ensure fresh mappings
+        await searchService.RecreateIndicesAsync(cancellationToken);
+ 
+        var patients = await context.Patients.IgnoreQueryFilters().ToListAsync(cancellationToken);
         foreach (var p in patients) await searchService.IndexPatientAsync(p, cancellationToken);
-
-        var outreach = await context.PatientOutreaches.ToListAsync(cancellationToken);
+ 
+        var outreach = await context.PatientOutreaches.IgnoreQueryFilters().ToListAsync(cancellationToken);
         foreach (var o in outreach) await searchService.IndexOutreachAsync(o, cancellationToken);
-
+ 
         return true;
     }
 }

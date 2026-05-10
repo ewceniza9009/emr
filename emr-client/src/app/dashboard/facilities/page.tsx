@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import EditFacilityDrawer from "@/components/EditFacilityDrawer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const GET_FACILITIES = gql`
   query GetFacilities {
@@ -84,7 +85,22 @@ export default function FacilitiesPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {loading ? (
           [1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-64 glass-morphism rounded-2xl animate-pulse bg-white/[0.02] border border-white/5" />
+            <div key={i} className="glass-morphism rounded-[2.5rem] p-5 border border-[var(--card-border)] space-y-6">
+              <div className="flex justify-between">
+                <Skeleton className="w-12 h-12 rounded-2xl" />
+                <Skeleton className="h-6 w-24 rounded-lg" />
+              </div>
+              <div className="space-y-3">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+              <Skeleton className="h-16 w-full rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+              <Skeleton className="h-12 w-full rounded-xl mt-4" />
+            </div>
           ))
         ) : filteredFacilities.map((f: any) => (
           <div key={f.facilityId} className="glass-morphism rounded-2xl p-5 border border-[var(--card-border)] hover:border-[var(--primary)]/30 transition-all group flex flex-col h-full shadow-lg hover:shadow-[var(--primary-glow)] hover:-translate-y-1 duration-300">

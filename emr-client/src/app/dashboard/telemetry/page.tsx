@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
-import { 
-  Heart, 
-  Activity, 
-  Thermometer, 
-  Wind, 
-  Smartphone, 
-  Wifi, 
+import {
+  Heart,
+  Activity,
+  Thermometer,
+  Wind,
+  Smartphone,
+  Wifi,
   Maximize2,
   Search,
   Filter
@@ -17,6 +17,7 @@ import { useToast } from "@/components/ToastProvider";
 import LiveHeartbeat from "@/components/LiveHeartbeat";
 import { useMutation } from "@apollo/client";
 import { useSession } from "next-auth/react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const CREATE_ENCOUNTER = gql`
   mutation CreateEncounter($input: CreateClinicalEncounterCommandInput!) {
@@ -58,7 +59,7 @@ export default function VitalsIoTPage() {
     if (patientsData.length > 0) {
       const activeStates: Record<string, boolean> = {};
       patientsData.forEach((p: any) => {
-        const hasActiveEncounter = p.encounters?.some((e: any) => 
+        const hasActiveEncounter = p.encounters?.some((e: any) =>
           e.status === "InProgress" || e.status === "Arrived" || e.status === "Triaged"
         );
         if (hasActiveEncounter) {
@@ -69,7 +70,7 @@ export default function VitalsIoTPage() {
     }
   }, [patientsData]);
 
-  const patients = patientsData.filter((p: any) => 
+  const patients = patientsData.filter((p: any) =>
     `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.mrn.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -107,19 +108,48 @@ export default function VitalsIoTPage() {
 
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-      <Activity className="w-12 h-12 text-[var(--primary)] animate-pulse" />
-      <p className="text-[var(--text-muted)] font-black uppercase tracking-[0.3em] text-[10px]">Scanning Clinical IoT Network...</p>
+    <div className="space-y-4 animate-in fade-in duration-700">
+      {/* Header Skeleton */}
+      <div className="flex items-center justify-between bg-[var(--card-bg)] px-4 py-3 rounded-2xl border border-[var(--card-border)]">
+        <div className="flex items-center gap-4">
+          <Skeleton className="w-10 h-10 rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <Skeleton className="h-10 w-64 rounded-xl" />
+          <Skeleton className="h-10 w-10 rounded-xl" />
+        </div>
+      </div>
+
+      {/* Grid Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <div key={i} className="glass-morphism rounded-2xl border border-[var(--card-border)] p-4 space-y-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-10 h-10 rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </div>
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
-       <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-600 border border-red-500/20">
-          <Activity className="w-8 h-8" />
-       </div>
-       <h2 className="text-xl font-bold text-[var(--text-primary)]">Registry Connection Failed</h2>
-       <p className="text-[var(--text-muted)] text-sm max-w-xs">Could not establish a secure connection to the patient data registry.</p>
+      <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-600 border border-red-500/20">
+        <Activity className="w-8 h-8" />
+      </div>
+      <h2 className="text-xl font-bold text-[var(--text-primary)]">Registry Connection Failed</h2>
+      <p className="text-[var(--text-muted)] text-sm max-w-xs">Could not establish a secure connection to the patient data registry.</p>
     </div>
   );
 
@@ -145,8 +175,8 @@ export default function VitalsIoTPage() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by patient..."
@@ -181,8 +211,8 @@ export default function VitalsIoTPage() {
 
             {/* Live Telemetry Component (Includes HR, SpO2, and Temp) */}
             <div className="p-3.5">
-              <LiveHeartbeat 
-                patientId={patient.patientId} 
+              <LiveHeartbeat
+                patientId={patient.patientId}
                 enabled={!!enabledPatients[patient.patientId]}
                 onToggle={() => handleToggleTelemetry(patient.patientId)}
                 status={initializingPatients[patient.patientId] ? "initializing" : enabledPatients[patient.patientId] ? "live" : "off"}
@@ -217,7 +247,7 @@ export default function VitalsIoTPage() {
             <p className="text-[10px] text-[var(--text-secondary)]">Live data is strictly driven by IoT sensor connectivity. Manual records show as pending until synchronized.</p>
           </div>
         </div>
-        <button 
+        <button
           onClick={() => showToast("Scanning for clinical bio-sensors...", "info")}
           className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase tracking-widest shadow-xl shadow-blue-600/20 transition-all"
         >

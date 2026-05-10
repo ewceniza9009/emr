@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
-import { 
-  AlertTriangle, 
-  Search, 
-  Filter, 
-  Stethoscope, 
-  Building2, 
+import {
+  AlertTriangle,
+  Search,
+  Filter,
+  Stethoscope,
+  Building2,
   ShieldAlert,
   ChevronRight,
   TrendingUp,
@@ -18,6 +18,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 import UploadDocumentDrawer from "@/components/UploadDocumentDrawer";
+import { Skeleton } from "survey-react-ui";
 
 const GET_TRIAGE_WORKLIST = gql`
   query GetTriageWorklist($search: String) {
@@ -45,21 +46,58 @@ export default function TriageDashboard() {
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
 
   const { data, loading, refetch } = useQuery(GET_TRIAGE_WORKLIST, {
-    variables: { 
+    variables: {
       search: searchQuery || undefined
     }
   });
 
   if (loading) return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-6 animate-in fade-in duration-700">
-      <div className="relative">
-        <AlertTriangle className="w-16 h-16 text-amber-500 animate-pulse" />
-        <div className="absolute inset-0 bg-amber-500/20 blur-2xl animate-pulse rounded-full" />
+    <div className="space-y-4 animate-in fade-in duration-700">
+      {/* Header & Stats Skeleton */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-3">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-72 opacity-50" />
+        </div>
+        <div className="flex gap-3">
+          <Skeleton className="h-16 w-36 rounded-2xl shadow-lg shadow-white/5" />
+          <Skeleton className="h-16 w-36 rounded-2xl shadow-lg shadow-white/5" />
+        </div>
       </div>
-      <div className="flex flex-col items-center gap-2">
-        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Analyzing Clinical Urgency</p>
-        <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
-        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Sorting Critical Vectors</p>
+
+      {/* Main Grid Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="glass-morphism rounded-2xl overflow-hidden border border-[var(--card-border)]">
+            <div className="px-6 py-4 border-b border-[var(--card-border)]">
+              <Skeleton className="h-6 w-48" />
+            </div>
+            <div className="p-6 space-y-6">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="flex items-center justify-between border-b border-white/5 pb-4 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="w-3 h-3 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-3 w-24 opacity-50" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-7 w-28 rounded-full" />
+                  <Skeleton className="h-5 w-36" />
+                  <Skeleton className="h-10 w-10 rounded-xl" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="space-y-4">
+          <div className="glass-morphism rounded-2xl p-6 border border-[var(--card-border)]">
+            <Skeleton className="h-6 w-32 mb-4" />
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -76,7 +114,7 @@ export default function TriageDashboard() {
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <UploadDocumentDrawer 
+      <UploadDocumentDrawer
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         patientId={selectedPatientId}
@@ -102,7 +140,7 @@ export default function TriageDashboard() {
 
       {/* Main Grid: Triage List & Facility Outreach */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        
+
         {/* Triage Worklist */}
         <div className="lg:col-span-2 space-y-4">
           <div className="glass-morphism rounded-2xl overflow-hidden border border-[var(--card-border)]">
@@ -113,7 +151,7 @@ export default function TriageDashboard() {
               </h2>
               <div className="flex gap-2">
                 <button className="p-1.5 rounded-lg bg-[var(--card-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all border border-[var(--card-border)]">
-                   <Filter className="w-3.5 h-3.5" />
+                  <Filter className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -130,8 +168,8 @@ export default function TriageDashboard() {
                 </thead>
                 <tbody className="divide-y divide-[var(--card-border)]">
                   {triageItems.map((p: any) => (
-                    <tr 
-                      key={p.patientId} 
+                    <tr
+                      key={p.patientId}
                       className="group hover:bg-[var(--primary-glow)] transition-colors cursor-pointer active:scale-[0.995]"
                     >
                       <td className="px-8 py-2.5" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
@@ -157,20 +195,20 @@ export default function TriageDashboard() {
                       </td>
                       <td className="px-8 py-2.5" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
                         <span className="text-[var(--text-muted)] text-xs italic">
-                           {p.isAlert ? 'Urgent Review Needed' : 'Stable'}
+                          {p.isAlert ? 'Urgent Review Needed' : 'Stable'}
                         </span>
                       </td>
                       <td className="px-8 py-5 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link 
-                            href={`/dashboard/patients/${p.patientId}/visit`} 
+                          <Link
+                            href={`/dashboard/patients/${p.patientId}/visit`}
                             className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all inline-block"
                             title="Start Guided Visit"
                           >
                             <Stethoscope className="w-4 h-4" />
                           </Link>
-                          <Link 
-                            href={`/dashboard/patients/${p.patientId}`} 
+                          <Link
+                            href={`/dashboard/patients/${p.patientId}`}
                             className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all inline-block"
                             title="View Profile"
                           >
@@ -186,7 +224,7 @@ export default function TriageDashboard() {
           </div>
         </div>
 
-              {/* Facility Outreach Side Panel */}
+        {/* Facility Outreach Side Panel */}
         <div className="space-y-4">
           <div className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)]">
             <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
@@ -199,8 +237,8 @@ export default function TriageDashboard() {
                 { name: "QC Care Home", patients: 8, crisis: 0 },
                 { name: "St. Lukes Hospital", patients: 5, crisis: 1 },
               ].map((f) => (
-                <div 
-                  key={f.name} 
+                <div
+                  key={f.name}
                   onClick={() => router.push("/dashboard/navigation")}
                   className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-emerald-500/30 transition-all cursor-pointer group active:scale-[0.98]"
                 >
@@ -217,7 +255,7 @@ export default function TriageDashboard() {
                 </div>
               ))}
             </div>
-            <button 
+            <button
               onClick={() => router.push("/dashboard/navigation")}
               className="w-full mt-6 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-sm hover:bg-emerald-500/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
             >
@@ -235,18 +273,18 @@ export default function TriageDashboard() {
             <div className="space-y-3">
               {(triageItems.filter((p: any) => p.advanceDirectiveType === 'None').slice(0, 4)).map((p: any) => (
                 <div key={p.patientId} className="flex items-center justify-between text-sm group p-1 hover:bg-[var(--primary)]/5 rounded-lg transition-all">
-                   <span 
+                  <span
                     onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}
                     className="text-[var(--text-primary)] font-medium cursor-pointer hover:text-[var(--primary)] transition-colors"
-                   >
-                     {p.firstName} {p.lastName}
-                   </span>
-                   <button 
+                  >
+                    {p.firstName} {p.lastName}
+                  </span>
+                  <button
                     onClick={() => handleLogDnr(p.patientId)}
                     className="text-blue-500 font-bold text-[10px] uppercase tracking-widest hover:underline hover:text-blue-400 transition-all"
-                   >
+                  >
                     Log DNR
-                   </button>
+                  </button>
                 </div>
               ))}
               {triageItems.filter((p: any) => p.advanceDirectiveType === 'None').length === 0 && (
