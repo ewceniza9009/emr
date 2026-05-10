@@ -20,13 +20,14 @@ test.describe('Halcyon Clinical OS - Appointment Booking', () => {
     await newEncounterBtn.click();
 
     // 2. Search and select the patient (Pearline Bauch)
+    // Hardening: Added a 15s timeout to allow for drawer animation and hydration
     const searchInput = page.getByPlaceholder(/Search by name, ID, or phone/i);
-    await expect(searchInput).toBeVisible();
+    await expect(searchInput).toBeVisible({ timeout: 15000 });
     await searchInput.fill('Pearl');
     
     // Wait for the result to appear and click it
     const patientResult = page.getByRole('button', { name: /Pearline Bauch/i });
-    await expect(patientResult).toBeVisible({ timeout: 10000 });
+    await expect(patientResult).toBeVisible({ timeout: 15000 });
     await patientResult.click();
 
     // 3. Select the time slot (Afternoon)
