@@ -110,6 +110,8 @@ jobs:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:34732
           NEXT_PUBLIC_GRAPHQL_URL: http://127.0.0.1:34732/graphql
           NEXT_PUBLIC_GRAPHQL_WS_URL: ws://127.0.0.1:34732/graphql
+          INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD || 'Halcyon@Initial!2026' }}
+          INITIAL_PRACTITIONER_PASSWORD: ${{ secrets.INITIAL_PRACTITIONER_PASSWORD || 'HalcyonPractitioner@Initial!2026' }}
           NEXTAUTH_SECRET: "ci-secret-halcyon"
           NEXTAUTH_URL: http://127.0.0.1:3431
           Logging__LogLevel__Default: Warning

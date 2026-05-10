@@ -6,6 +6,7 @@ using Domain.Enums;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.Data
@@ -32,6 +33,11 @@ namespace Infrastructure.Data
                 UserManager<ApplicationUser>
             >();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+            
+            // Configuration-driven Credential Injection
+            var adminPassword = configuration["SeedSettings:InitialAdminPassword"] ?? "Halcyon@Initial!2026";
+            var practitionerPassword = configuration["SeedSettings:InitialPractitionerPassword"] ?? "HalcyonPractitioner@Initial!2026";
 
             // 1. SOLID INFRASTRUCTURE: Always ensure migrations are applied before anything else
             await context.Database.MigrateAsync();
@@ -69,7 +75,7 @@ namespace Infrastructure.Data
             }
 
             // 5. SEED CORE DATA
-            await SeedIdentityAsync(context, userManager, roleManager);
+            await SeedIdentityAsync(context, userManager, roleManager, adminPassword, practitionerPassword);
 
             if (seedDb)
             {
@@ -80,7 +86,9 @@ namespace Infrastructure.Data
         private static async Task SeedIdentityAsync(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager
+            RoleManager<IdentityRole> roleManager,
+            string adminPassword,
+            string practitionerPassword
         )
         {
             // Seed Roles and Permissions
@@ -273,7 +281,7 @@ namespace Infrastructure.Data
                     TenantId = defaultTenantId,
                 };
 
-                var result = await userManager.CreateAsync(adminUser, "P@ssword123!");
+                var result = await userManager.CreateAsync(adminUser, adminPassword);
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(adminUser, Roles.Admin);
@@ -422,7 +430,7 @@ namespace Infrastructure.Data
                         TenantId = defaultTenantId,
                     };
 
-                    var result = await userManager.CreateAsync(user, "Practitioner@123!");
+                    var result = await userManager.CreateAsync(user, practitionerPassword);
                     if (result.Succeeded)
                     {
                         await userManager.AddToRoleAsync(user, acc.Role);
