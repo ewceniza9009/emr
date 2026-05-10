@@ -5,6 +5,7 @@
 [![Backend: .NET 10](https://img.shields.io/badge/Backend-.NET%2010-512bd4.svg)](https://dotnet.microsoft.com/)
 [![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791.svg)](https://www.postgresql.org/)
 [![Multi-Tenancy: Enterprise](https://img.shields.io/badge/Multi--Tenancy-Enterprise--Grade-green.svg)]()
+[![Halcyon CI](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml/badge.svg)](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml)
 
 ## 🏥 Strategic Vision & Mission
 
@@ -208,6 +209,27 @@ The Halcyon Clinical OS has undergone rigorous hardening to transition from a hi
 | **Infrastructure** | Azurite/Azure Blob Storage, QuestPDF, Bogus (Data Seeding), Docker. |
 | **Testing & QA** | Playwright E2E, Vitest (Unit), GitHub Actions. |
 | **Security** | JWT Claims, [UseClinicalAccess] Attribute, SecurityAuditService. |
+
+---
+
+## ✅ Clinical QA Verification (E2E & Unit)
+
+Halcyon maintains a **100% Reliability Target** via automated mission-critical audits.
+
+### 🛡️ Playwright E2E Verification
+The full clinical lifecycle is validated on every push:
+- **✓ Dashboard Metrics**: Hero hydration and active caseload verification.
+- **✓ Outreach Worklist**: Registry search and lead tracking audit.
+- **✓ Patient Registry**: 10-patient seeded table integrity.
+- **✓ Master Schedule**: Calendar rendering and "New Encounter" trigger availability.
+- **✓ Telemetry Hub**: SignalR node connectivity and real-time vital blip monitoring.
+
+### 🧪 Unit & Integration Testing
+- **Backend Persistence**: EF Core tenant isolation and migration stability.
+- **Clinical Logic**: MediatR command integrity and scoring instrument accuracy.
+- **Frontend Hygiene**: Next.js App Router navigation and hydration stability.
+
+[**View Latest E2E Audit Report**](file:///x:/emr/qa_report/index.html)
 
 ---
 

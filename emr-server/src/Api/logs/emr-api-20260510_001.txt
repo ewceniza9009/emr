@@ -13004,3 +13004,53 @@ SELECT a.patient_id
 FROM appointments AS a
 WHERE a.status = 1
 2026-05-10 11:54:02.284 +08:00 [INF] Telemetry Simulator found 10 active patients.
+2026-05-10 12:01:36.216 +08:00 [INF] User profile is available. Using 'C:\Users\EWCEN\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-05-10 12:01:39.719 +08:00 [WRN] Sensitive data logging is enabled. Log entries and exception messages may include sensitive application data; this mode should only be enabled during development.
+2026-05-10 12:01:41.176 +08:00 [INF] Executed DbCommand (38ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2026-05-10 12:01:41.344 +08:00 [INF] Executed DbCommand (17ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT 1
+2026-05-10 12:01:41.650 +08:00 [INF] Executed DbCommand (11ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+2026-05-10 12:01:41.698 +08:00 [INF] Executed DbCommand (2ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+LOCK TABLE "__EFMigrationsHistory" IN ACCESS EXCLUSIVE MODE
+2026-05-10 12:01:41.709 +08:00 [INF] Executed DbCommand (3ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT "MigrationId", "ProductVersion"
+FROM "__EFMigrationsHistory"
+ORDER BY "MigrationId";
+2026-05-10 12:01:41.722 +08:00 [INF] No migrations were applied. The database is already up to date.
+2026-05-10 12:01:42.190 +08:00 [INF] Executed DbCommand (7ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT EXISTS (
+    SELECT 1
+    FROM patients AS p)
+2026-05-10 12:01:42.377 +08:00 [INF] Telemetry Simulator Service is starting.
+2026-05-10 12:01:42.664 +08:00 [INF] Executed DbCommand (12ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT c.patient_id
+FROM clinical_encounters AS c
+WHERE c.status IN ('InProgress', 'Arrived', 'Triaged')
+2026-05-10 12:01:42.765 +08:00 [INF] Executed DbCommand (5ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT a.patient_id
+FROM appointments AS a
+WHERE a.status = 1
+2026-05-10 12:01:42.800 +08:00 [INF] Telemetry Simulator found 10 active patients.
+2026-05-10 12:01:42.902 +08:00 [INF] Now listening on: https://localhost:34731
+2026-05-10 12:01:42.905 +08:00 [INF] Now listening on: http://localhost:34732
+2026-05-10 12:01:43.065 +08:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-05-10 12:01:43.072 +08:00 [INF] Hosting environment: Development
+2026-05-10 12:01:43.074 +08:00 [INF] Content root path: X:\emr\emr-server\src\Api
+2026-05-10 12:01:45.725 +08:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT c.patient_id
+FROM clinical_encounters AS c
+WHERE c.status IN ('InProgress', 'Arrived', 'Triaged')
+2026-05-10 12:01:45.784 +08:00 [INF] Executed DbCommand (1ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT a.patient_id
+FROM appointments AS a
+WHERE a.status = 1
+2026-05-10 12:01:45.806 +08:00 [INF] Telemetry Simulator found 10 active patients.
+2026-05-10 12:01:45.818 +08:00 [INF] Request starting HTTP/2 GET https://localhost:34731/ - null null
