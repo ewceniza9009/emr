@@ -11,7 +11,7 @@
 
 ## 📊 Clinical QA & Reliability Report
 
-[**📊 View Full CI/CD History**](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml) | [**🏆 Download Verified Production Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/25624169270/artifacts/6902380035)
+[**📊 View Full CI/CD History**](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/25624169270/artifacts/6902380035)
 
 > [!IMPORTANT]
 > The link above represents a **100% successful verification** of all clinical modules: Enrollment, Scheduling, Booking, and Real-time Telemetry.
