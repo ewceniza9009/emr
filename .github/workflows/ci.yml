@@ -85,15 +85,17 @@ jobs:
           # Ensure Database is fully awake
           npx wait-on tcp:127.0.0.1:5432
           
-          # Start Backend (Ignoring local launch settings)
+          # Start Backend (Enforcing Production and ignoring local profiles)
+          export ASPNETCORE_ENVIRONMENT=Production
           cd emr-server/src/Api && dotnet run --no-build --no-launch-profile --configuration Release -- --seed &
           
           # Start Frontend
           cd emr-client && npm start &
           
-          # Wait for services (5-min timeout for slow cloud seeding)
-          npx wait-on -t 300000 http://127.0.0.1:34732/health http://127.0.0.1:3431
-          echo "Services are healthy. Starting Playwright suite."
+          # Wait for ports to be open (10-min timeout for slow cloud seeding)
+          # We wait for the TCP ports instead of the /health endpoint to avoid hangs during DB seeding
+          npx wait-on -t 600000 tcp:127.0.0.1:34732 tcp:127.0.0.1:3431
+          echo "Services are online. Starting Playwright suite."
           
           # Run Playwright
           cd emr-client && npx playwright test tests/clinical-workflow.spec.ts --project=chromium --workers=1
