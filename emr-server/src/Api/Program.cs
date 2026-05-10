@@ -75,9 +75,13 @@ try
                 )
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
-                .AddEntityFrameworkCoreInstrumentation()
-                .AddConsoleExporter()
-        );
+                .AddEntityFrameworkCoreInstrumentation();
+
+            if (builder.Environment.IsDevelopment())
+            {
+                tracing.AddConsoleExporter();
+            }
+        });
 
     // Resilience & Health Checks
     builder.Services.AddHealthChecks().AddDbContextCheck<ApplicationDbContext>("Database");

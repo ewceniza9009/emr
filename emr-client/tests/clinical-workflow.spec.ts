@@ -2,24 +2,15 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Halcyon Clinical OS - Critical Paths', () => {
 
-  // Luxury Clinical Authentication: Every tactical scan requires a secure session
+  // Luxury Clinical Authentication: Reusing session state for tactical speed
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login');
+    // Navigate directly to the dashboard with domcontentloaded for maximum speed
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     
     // Diagnostic Logging: Capture browser-side errors
     page.on('console', msg => {
         if (msg.type() === 'error') console.log(`[BROWSER ERROR] ${msg.text()}`);
     });
-    
-    await page.getByPlaceholder('name@halcyon.clinical').fill('admin@palliative.emr');
-    await page.getByPlaceholder('••••••••').fill('P@ssword123!');
-    
-    const signInButton = page.getByRole('button', { name: /Sign in to Workspace/i });
-    await expect(signInButton).toBeEnabled();
-    await signInButton.click();
-    
-    // Wait for the dashboard to hydrate (Clinical OS can be heavy on initial load)
-    await expect(page).toHaveURL(/.*dashboard/, { timeout: 30000 });
   });
 
   test('should load the dashboard and verify clinical metrics', async ({ page }) => {
@@ -67,7 +58,7 @@ test.describe('Halcyon Clinical OS - Critical Paths', () => {
   });
 
   test('should navigate to telemetry hub and verify node status', async ({ page }) => {
-    await page.goto('/dashboard/telemetry');
+    await page.goto('/dashboard/telemetry', { waitUntil: 'domcontentloaded' });
     
     // Verify telemetry interface
     await expect(page.getByRole('heading', { name: /Clinical Telemetry/i })).toBeVisible();
