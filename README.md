@@ -4,7 +4,7 @@
 [![Frontend: Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black.svg)](https://nextjs.org/)
 [![Backend: .NET 10](https://img.shields.io/badge/Backend-.NET%2010-512bd4.svg)](https://dotnet.microsoft.com/)
 [![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791.svg)](https://www.postgresql.org/)
-[![Multi-Tenancy: Enterprise](https://img.shields.io/badge/Multi--Tenancy-Enterprise--Grade-green.svg)]()
+[![Multi-Tenancy: Enterprise](https://img.shields.io/badge/Multi--Tenancy-Enterprise--Grade-green.svg)](https://learn.microsoft.com/en-us/azure/azure-sql/database/saas-tenancy-app-design-patterns)
 [![Halcyon CI](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml/badge.svg)](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml)
 
 ## 🏥 Strategic Vision & Mission
@@ -229,7 +229,13 @@ The full clinical lifecycle is validated on every push:
 - **Clinical Logic**: MediatR command integrity and scoring instrument accuracy.
 - **Frontend Hygiene**: Next.js App Router navigation and hydration stability.
 
-[**View Latest E2E Audit Report**](file:///x:/emr/qa_report/index.html)
+---
+
+## 📊 Clinical QA & Reliability Report
+
+You can view the full End-to-End (E2E) verification history and download the latest high-fidelity Playwright reports here:
+
+[**➔ View Latest Clinical Test Report (Playwright)**](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml)
 
 ---
 
