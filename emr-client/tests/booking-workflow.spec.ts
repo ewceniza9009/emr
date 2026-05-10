@@ -5,7 +5,7 @@ test.describe('Halcyon Clinical OS - Appointment Booking', () => {
   test.beforeEach(async ({ page }) => {
     // Session Verification: Ensure we have a valid clinical context
     page.on('console', msg => {
-        if (msg.type() === 'error') console.log(`[BROWSER ERROR] ${msg.text()}`);
+      if (msg.type() === 'error') console.log(`[BROWSER ERROR] ${msg.text()}`);
     });
   });
 
@@ -25,7 +25,7 @@ test.describe('Halcyon Clinical OS - Appointment Booking', () => {
     const searchInput = page.getByPlaceholder(/Search by MRN or patient name/i);
     await expect(searchInput).toBeVisible({ timeout: 15000 });
     await searchInput.fill('Pearl');
-    
+
     // Wait for the result to appear and click it
     const patientResult = page.getByRole('button', { name: /Pearline Bauch/i });
     await expect(patientResult).toBeVisible({ timeout: 15000 });
@@ -44,8 +44,12 @@ test.describe('Halcyon Clinical OS - Appointment Booking', () => {
     // 5. Verification: Check for the patient's name appearing in the Recent Activity Log on the dashboard
     const activityItem = page.getByText(/Assessment: Pearline Bauch/i).first();
     await expect(activityItem).toBeVisible({ timeout: 15000 });
-    
+
     console.log('[SUCCESS] Appointment successfully booked and verified in Activity Log.');
+
+    // 6. Allow backend to finish audit logging before closing connection
+    // Resolves the OperationCanceledException in CI logs
+    await page.waitForTimeout(2000);
   });
 
 });

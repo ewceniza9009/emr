@@ -84,6 +84,8 @@ public class SearchQuery
                 || p.Mrn.ToLower().Contains(lowerTerm)
                 || p.Phones.Any(ph => ph.PhoneNumber.Contains(term))
             )
+            .OrderBy(p => p.LastName)
+            .ThenBy(p => p.FirstName)
             .Take(10)
             .ToListAsync(cancellationToken);
 
@@ -115,6 +117,8 @@ public class SearchQuery
                 o.FirstName.ToLower().Contains(lowerTerm)
                 || o.LastName.ToLower().Contains(lowerTerm)
             )
+            .OrderBy(o => o.LastName)
+            .ThenBy(o => o.FirstName)
             .Take(10)
             .ToListAsync(cancellationToken);
 
