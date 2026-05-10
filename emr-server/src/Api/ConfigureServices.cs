@@ -145,7 +145,7 @@ public static class ConfigureServices
         services.AddCors(options =>
         {
             options.AddPolicy("PalliativeCorsPolicy", builder => builder
-                .WithOrigins("https://carenavigator.emr.local", "http://localhost:3431", "http://localhost:3000")
+                .WithOrigins("https://carenavigator.emr.local", "http://localhost:3431", "http://localhost:3000", "http://127.0.0.1:3431")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials());

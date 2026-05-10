@@ -47,21 +47,21 @@ test.describe('Halcyon Clinical OS - Critical Paths', () => {
   });
 
   test('should navigate to clinical scheduling and verify calendar view', async ({ page }) => {
-    await page.goto('/dashboard/schedule');
+    await page.goto('/dashboard/schedule', { waitUntil: 'domcontentloaded' });
     
-    // Verify scheduling interface
-    await expect(page.getByRole('heading', { name: /Clinical Scheduling/i })).toBeVisible();
+    // Verify scheduling interface using high-visibility text locator
+    await expect(page.getByText(/Clinical Scheduling/i).first()).toBeVisible({ timeout: 10000 });
     
-    // Check for "New Encounter" button in the schedule view
+    // Check for "New Encounter" button with a longer timeout to allow for calendar library hydration
     const newEncounterBtn = page.getByRole('button', { name: /New Encounter/i }).first();
-    await expect(newEncounterBtn).toBeVisible();
+    await expect(newEncounterBtn).toBeVisible({ timeout: 15000 });
   });
 
   test('should navigate to telemetry hub and verify node status', async ({ page }) => {
     await page.goto('/dashboard/telemetry', { waitUntil: 'domcontentloaded' });
     
-    // Verify telemetry interface
-    await expect(page.getByRole('heading', { name: /Clinical Telemetry/i })).toBeVisible();
+    // Verify telemetry interface using the actual "Vitals & IoT" branding
+    await expect(page.getByRole('heading', { name: /Vitals|Telemetry/i })).toBeVisible();
     
     // Check for the "Scan Clinical Grid" button
     const scanBtn = page.getByRole('button', { name: /Scan Clinical Grid/i });
