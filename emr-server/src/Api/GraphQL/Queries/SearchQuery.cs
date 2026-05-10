@@ -21,7 +21,9 @@ public class SearchQuery
 
         try
         {
-            var config = await context.TenantConfigurations.FirstOrDefaultAsync(cancellationToken);
+            var config = await context.TenantConfigurations
+                .OrderBy(c => c.TenantConfigurationId)
+                .FirstOrDefaultAsync(cancellationToken);
             bool useElastic = config?.EnableElasticsearch ?? false;
 
             if (useElastic)

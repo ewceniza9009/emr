@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, gql } from "@apollo/client";
 import { 
   Users, 
@@ -52,6 +53,12 @@ export default function ResourceUtilization() {
     variables: { practitionerId: selectedPractitioner?.practitionerId },
     skip: !selectedPractitioner
   });
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (loading) return (
     <div className="p-20 text-center animate-pulse space-y-4">
@@ -179,8 +186,8 @@ export default function ResourceUtilization() {
       </div>
 
       {/* Drill-down Modal */}
-      {selectedPractitioner && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-20 animate-in fade-in duration-300 backdrop-blur-md bg-black/40">
+      {(mounted && selectedPractitioner) && createPortal(
+        <div className="fixed inset-0 left-0 top-0 w-screen h-screen z-[9999] flex items-center justify-center p-6 sm:p-20 animate-in fade-in duration-300 backdrop-blur-md bg-black/40">
           <div className="bg-[var(--card-bg)] border border-[var(--card-border)] w-full max-w-4xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
             {/* Modal Header */}
             <div className="p-8 border-b border-[var(--card-border)] bg-[var(--input-bg)]/20 flex items-center justify-between">
@@ -288,7 +295,8 @@ export default function ResourceUtilization() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.getElementById('modal-root')!
       )}
 
       {utilization.length === 0 && (

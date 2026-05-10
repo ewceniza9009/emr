@@ -1,13 +1,13 @@
+using Api.GraphQL.Attributes;
 using Application.Clinical.Dtos;
 using Application.Clinical.Queries;
 using Application.Clinical.Services;
+using Application.Common.Interfaces;
 using Application.Common.Models;
 using Domain.Entities;
 using HotChocolate.Authorization;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Api.GraphQL.Attributes;
-using Application.Common.Interfaces;
 
 namespace Api.GraphQL.Queries;
 
@@ -141,10 +141,7 @@ public class ClinicalQuery
         CancellationToken cancellationToken
     )
     {
-        return context
-            .SpiritualAssessments
-            .AsNoTracking()
-            .Where(r => r.EncounterId == encounterId);
+        return context.SpiritualAssessments.AsNoTracking().Where(r => r.EncounterId == encounterId);
     }
 
     [UseFiltering]
@@ -157,10 +154,7 @@ public class ClinicalQuery
         CancellationToken cancellationToken
     )
     {
-        return context
-            .AdvanceDirectives
-            .AsNoTracking()
-            .Where(r => r.PatientId == patientId);
+        return context.AdvanceDirectives.AsNoTracking().Where(r => r.PatientId == patientId);
     }
 
     [UseFiltering]
@@ -174,8 +168,7 @@ public class ClinicalQuery
     )
     {
         return context
-            .AssessmentResponses
-            .Include(r => r.Questionnaire)
+            .AssessmentResponses.Include(r => r.Questionnaire)
                 .ThenInclude(q => q.Questions)
             .Include(r => r.Assessor)
             .AsNoTracking()
@@ -201,7 +194,12 @@ public class ClinicalQuery
                 || d.Description.ToLower().Contains(lowerTerm)
             )
             .GroupBy(d => new { d.Icd10Code, d.Description })
-            .Select(g => new Diagnosis { Icd10Code = g.Key.Icd10Code, Description = g.Key.Description })
+            .Select(g => new Diagnosis
+            {
+                Icd10Code = g.Key.Icd10Code,
+                Description = g.Key.Description,
+            })
+            .OrderBy(d => d.Icd10Code)
             .Take(10)
             .ToListAsync(cancellationToken);
     }

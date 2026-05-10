@@ -107,6 +107,8 @@ public class SearchService : ISearchService
                     || p.Mrn.ToLower().Contains(searchTerm)
                 )
             )
+            .OrderBy(p => p.LastName)
+            .ThenBy(p => p.FirstName)
             .Take(10)
             .ToListAsync(cancellationToken);
 
@@ -145,6 +147,8 @@ public class SearchService : ISearchService
                         || (o.PrimaryPhone != null && o.PrimaryPhone.Contains(searchTerm))
                     )
                 )
+                .OrderBy(o => o.LastName)
+                .ThenBy(o => o.FirstName)
                 .Take(10 - results.Count)
                 .ToListAsync(cancellationToken);
 
