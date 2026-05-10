@@ -1,0 +1,45 @@
+{
+  "cookies": [
+    {
+      "name": "next-auth.callback-url",
+      "value": "http%3A%2F%2Flocalhost%3A3431",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "next-auth.csrf-token",
+      "value": "29caa0398c5547d2610dd85924eb2addc0e6fc87eb83280846917448779e080a%7C5bf1abe3f751c0fd7b47d04dc24feedb8414d892b1d05955e3db71f01346a4ea",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "next-auth.session-token",
+      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..HOtZ20C3McTnSgG7.648iK-0h0U_LwuoWIcbfxcQG8krERsBDfh3odB-LZSTlIWgp2pQqUl_Ac0i5RYimtgSXLO2VsRK4vwa4trhjfKawU_Ec78SiPH-LDzXi_6NrArCMZUZSSZwqshTtbFkynRlYx_Xrr_3XTpY1FdzJTbPkHGziTiXkD4qfiovDEWP6G33G4Il0ibYSDyXJXYv6zO1mupL1A3DHTLMCKJHUj3VJCg69MZWhA0FTLtvo-KBiB_KKRyVZmtb-zMXBL-InT1XE6yVaED6aYgeAX6EHQ3dawLym5H8rbtlJFeW5wJjxIqhuyVrxiJFxlSAmTe-gEzvbwLpf-zfM_fJ902-nmXhK3xrfXZq8qQZxDFd5bPuwi7S-BHQhB4QihPLm-a7huw266r0VpM9uyaEXZclpqmHi-4ox1L1FgnozoZGmqe6pSAzrulj9v9M8l9I8GN1gbInfgqW1BJ-MKnt4SCzbYzcX94ic8V_vX4hiGSA6tMXX7o9b9c_1j31bec2ps4JxonPIyUGF76VTULe1yQPr_0P9XPg2_lFoQZPz3tnuptJraiMBxdfXz1CFqxJrW333FDTeiZDRWpNIDrVRXRvi5rQDdO8oKbv7dol2PH-NTJXltCBFNPy0F0E7Gagf4bSpsvGubfe5yINTFcsIdZKM5DR3deioDNpbk_YFGdopr07ovZAv69teJyTUa7v52GoaqOoLBBo4YRxzumKUBWMXfLdd0LpdWvdBO1O4THdDg79bi7yGocvhw10-_TrLPQigTOX-e2jqUYlpVnmalgjAm_F8tjJd90dI7Rga7A-9-UcmdNzTjAYXdpTXjeQvuf0_RBzadqdgIk6VnUN4PZbqm8SMv_LFi1O4enBTInxGSD7ERG0TSuZfGgWFQDpVqT96rv8u0vb2Huf5TeoLR5Mk7Mu4i-OsfAaO6yIhaw8etlTtZD-pJ7iwfbi9W4zunX6x5iQ_HoSb_PoQtO7CyHUjKSBQR8IPFcRlMG0Ke74SkJ-zqh3GPSkPYcIvhfPF5AfEajj-ku8JmaRygrt1KbLbFPFXH0s7vEqnNQp7ruHcJLUU1qPqxP_AUKm6zIMnSy-OpB4BehJOwTNX2fRl7KvU-bPsqRXj2u_hAA4g2xP6BJqv7D106XS8jEZK6OJw7IelPlsj9vmSxql_Ly1KAP0uT3icm2bDsb7hswh1WXalwJ_i0NjTRz-WVCwM1PlIAY2ToSlTqIiHWIKy--JOg_Ln-2E1jPqSqpciZlpuFzx9vKCEwf5TypEEGR33dyAv4t3h4tQcQSlrv4AmN-bdkjs64vtThDJCrXwE8blvWAwhHKJ7JcHs4MvQhvzzUdJKSEfs4PkJKwvnRBRJl2yyPt2_CH_0mdzKgzk8TurUGOjzVy76bytHgaWeeJUzh3cIfS9ZZFeDi4FUWnueuCXCiQWxV5cTdHZSh4kHSXxDCZlwRLnqoV1C-GLHTtuAI4RqftEBUgILXGZU4DKMYy6K24DXmhTYiR-vY1i7LP69YyMYieW5e1-IqJRzoSH-cA1j6uUc6A-jeW5LYB1j3ozeyOSFSmAqegkLA1UAQ1xJOVbJck1sVDOGDaTLHR1ZctjiEj2giB56K9VRHpCPls4dH6aTOEM6iA-9o6MypI-pko3dy2R5JVXit3ooCibOe6Pcw7u1Vpe8GGLX1OdJh74ozKSM8uWQKy1LBr7uHE1qxlkI3t_37iFYb0EA-rAOR3rxErapyHKTcKzqRZfX1jEjlZ7GWK7XZCH6Uiyn9Ywg11oLhM_3Vw7Hql7AaJDXGpogFp2p_XFq204Ike2eLTzLMXtu0hVaSfGvMRAG19tx3-cZ4cvXGOFeJIJU5aW5otHHBJI7Uf69bc-WDLOE8hoznrkrbdoKX-q9ddUb_PIx1JvJONai8iA9Xkb7t9OHSTFQKUvU5UeEYnDW25BiMR9FcVq_ZGMOY2xF4-IMc-J1XXh12jP_sDW9xR0p0_XjWpkkC1UBXxVjALCFEICIY141LvaWuxd7mJzAXSiclro4MniUtIGTCOFG2sIePgAabOzg0agMFo-4ST66CZflvJVQyI4pixcnPJMvUhWxY0xhrsAGvb61hS9pNpHX6-7-sr6rZKsV_u0S8WrAvIMN3SUp0ecHh7NlpT4Z5_lI_dX-DYaLhifdCNvR1gI5uXon6Z5K_DjwaFaGVntG1_O6FaaM0Icscdhd2aDmEMdy0doKpzQ97CnupXOCbhb4PqAwoz5d3d6mtEis7tM7QSthqh29QuxXvYCajGUxzh8zle2TRpFW-SpuBH7f4CXHzsR4x3jO1f1uexdLXdfpWuNDVjmL-NqPyS4_Ta9MCh0whYwcka1zFeR2aoGv3ubp833MCNH9BX40YK4cGhjS-q0ybv8JBilWAaLI7b__c5duXJDV7tQnaU0SIVlR9rGdp0Rwyeo0a6EVGIMfPOK1yLaSHv_oHjte_qLXh6RhY4ixAavoq55L9jX8anoMcK3u11iO_0-L-LfEEwzuOPO-eNgmS2WMZ8f__nwh_lqMe3T0DsDtAle26IAVFkmoLPUFvTuGVZXW_IRXTKh_uBPzcr9JcU1FV5EbVnW0KZXR6cNi9xYGES_Zv9VSBRxx1MFV9omcldi9bX8EKG7b5h6dLx3BNOkLIb0iPPPzc71zXBLbaVghw7Wvf0iPQmQSmE6rzRrkvTAaLK6-fe_fcRFnXrYhelU9UhsbvnTuEhLUhExittZqrNc5Xyk8_1_aOSA5s5rnaxFJnyvvpsrzORMwYSpWWw2RrQNB060yiEtIT1oCsYr13yC65gDFoKOy4Wd61LiHkEZjhbzIa1UmyHLIVzBOW37m5fLTL0enNxWchlbg7OvOV7bVqct2GOyEXFxCmiX3xi2J-y9YlIcbZaoUKvSvZnALGXUeVDZ1xZnUhj6LxoPE1s8dV49mo_cqLStNnfCsatF015S93nFwAztqGJ-auOo.1_26QMSmGAttaTlQskjaUg",
+      "domain": "127.0.0.1",
+      "path": "/",
+      "expires": 1780986110.994743,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://127.0.0.1:3431",
+      "localStorage": [
+        {
+          "name": "nextauth.message",
+          "value": "{\"event\":\"session\",\"data\":{\"trigger\":\"getSession\"},\"timestamp\":1778394110}"
+        }
+      ]
+    }
+  ]
+}
