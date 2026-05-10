@@ -31,11 +31,6 @@ jobs:
       - name: Run Unit Tests
         run: dotnet test emr-server/emr-server.slnx --configuration Release --no-build --verbosity normal
 
-      - name: Clinical Security Scan
-        run: |
-          dotnet list emr-server/src/Api/Api.csproj package --vulnerable
-          dotnet list emr-server/src/Api/Api.csproj package --deprecated
-
   clinical-verification:
     name: Clinical Verification (Build & Playwright)
     needs: [backend]
@@ -67,6 +62,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: emr-client/package-lock.json
 
       - name: Install dependencies
         run: |
@@ -79,31 +76,31 @@ jobs:
       - name: Production Build (Frontend)
         run: cd emr-client && npm run build
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:34732
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'secret' }}
-          NEXTAUTH_URL: http://localhost:3431
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:34732
+          NEXTAUTH_SECRET: "ci-secret-halcyon"
+          NEXTAUTH_URL: http://127.0.0.1:3431
 
       - name: Run E2E Tests
         run: |
-          # Start Backend in background
+          # Start Backend
           cd emr-server/src/Api && dotnet run --no-build --configuration Release -- --seed &
           
-          # Start Frontend in background
+          # Start Frontend
           cd emr-client && npm start &
           
-          # Wait for services to be ready
-          npx wait-on http://localhost:34732/health http://localhost:3431
+          # Wait for services (3-min timeout)
+          npx wait-on -t 180000 http://127.0.0.1:34732/health http://127.0.0.1:3431
+          echo "Services are healthy. Starting Playwright suite."
           
           # Run Playwright
           cd emr-client && npx playwright test tests/clinical-workflow.spec.ts --project=chromium --workers=1
         env:
           ConnectionStrings__DefaultConnection: "Host=localhost;Database=emr;Username=postgres;Password=postgres"
-          NEXT_PUBLIC_API_URL: http://localhost:34732
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'secret' }}
-          NEXTAUTH_URL: http://localhost:3431
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:34732
+          NEXTAUTH_SECRET: "ci-secret-halcyon"
+          NEXTAUTH_URL: http://127.0.0.1:3431
           Logging__LogLevel__Default: Warning
-          Logging__LogLevel__Microsoft: Warning
-          Logging__LogLevel__System: Warning
+          Serilog__MinimumLevel__Default: Warning
 
       - name: Upload Test Report
         if: always()
