@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { 
   Users, 
@@ -9,7 +10,11 @@ import {
   ChevronRight,
   ClipboardList,
   Flame,
-  LayoutDashboard
+  LayoutDashboard,
+  X,
+  Clock,
+  Calendar,
+  ShieldCheck
 } from "lucide-react";
 
 const GET_UTILIZATION = gql`
@@ -24,8 +29,29 @@ const GET_UTILIZATION = gql`
   }
 `;
 
+const GET_WORKLOAD_DETAILS = gql`
+  query GetWorkloadDetails($practitionerId: Guid!) {
+    practitionerWorkloadDetails(practitionerId: $practitionerId) {
+      title
+      type
+      priority
+      dueDate
+      status
+    }
+  }
+`;
+
 export default function ResourceUtilization() {
   const { data, loading, error } = useQuery(GET_UTILIZATION);
+  const [selectedPractitioner, setSelectedPractitioner] = useState<any>(null);
+
+  const { 
+    data: detailData, 
+    loading: detailLoading 
+  } = useQuery(GET_WORKLOAD_DETAILS, {
+    variables: { practitionerId: selectedPractitioner?.practitionerId },
+    skip: !selectedPractitioner
+  });
 
   if (loading) return (
     <div className="p-20 text-center animate-pulse space-y-4">
@@ -46,7 +72,7 @@ export default function ResourceUtilization() {
   const utilization = data?.practitionerUtilization || [];
 
   return (
-    <div className="p-8 space-y-10">
+    <div className="p-8 space-y-10 relative">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3">
@@ -80,16 +106,22 @@ export default function ResourceUtilization() {
           if (isCritical) statusColor = "rose";
           else if (isWarning) statusColor = "amber";
 
+          const statusColors: Record<string, string> = {
+            emerald: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20 shadow-emerald-500/10",
+            amber: "text-amber-500 bg-amber-500/10 border-amber-500/20 shadow-amber-500/10",
+            rose: "text-rose-500 bg-rose-500/10 border-rose-500/20 shadow-rose-500/10"
+          };
+
           return (
-            <div key={u.practitionerId} className={`group relative bg-[var(--card-bg)]/80 border border-[var(--card-border)] rounded-[2rem] p-6 hover:border-${statusColor}-500/30 transition-all shadow-xl overflow-hidden`}>
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl bg-${statusColor}-500/10 flex items-center justify-center border border-${statusColor}-500/20 text-${statusColor}-500 transition-all group-hover:scale-110`}>
-                    <Users className="w-6 h-6" />
+            <div key={u.practitionerId} className={`group relative bg-[var(--card-bg)]/80 border border-[var(--card-border)] rounded-[2.5rem] p-7 transition-all duration-500 shadow-2xl hover:shadow-${statusColor}-500/5 overflow-hidden backdrop-blur-xl`}>
+              <div className="flex items-start justify-between mb-8">
+                <div className="flex items-center gap-5">
+                  <div className={`w-14 h-14 rounded-3xl ${statusColors[statusColor]} flex items-center justify-center border transition-all duration-700 group-hover:rotate-6 group-hover:scale-110`}>
+                    <Users className="w-7 h-7" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter">{u.fullName}</h3>
-                    <p className={`text-[8px] font-black uppercase tracking-widest text-${statusColor}-500/70`}>
+                    <h3 className="text-base font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none mb-1.5">{u.fullName}</h3>
+                    <p className={`text-[9px] font-black uppercase tracking-[0.2em] opacity-80`}>
                       {isCritical ? "CRITICAL LOAD" : isWarning ? "ELEVATED LOAD" : "OPTIMAL LOAD"}
                     </p>
                   </div>
@@ -97,46 +129,167 @@ export default function ResourceUtilization() {
               </div>
 
               {/* Load Bar */}
-              <div className="space-y-2 mb-6">
-                <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
                   <span>Capacity Utilization</span>
-                  <span>{Math.round(u.loadPercentage)}%</span>
+                  <span className={isCritical ? "text-rose-500 animate-pulse" : ""}>{Math.round(u.loadPercentage)}%</span>
                 </div>
-                <div className="h-2 w-full bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--card-border)]">
+                <div className="h-2.5 w-full bg-[var(--input-bg)] rounded-full overflow-hidden border border-[var(--card-border)]/50 p-0.5">
                   <div 
-                    className={`h-full bg-${statusColor}-500 shadow-[0_0_10px_rgba(var(--${statusColor}-rgb),0.5)] transition-all duration-1000 ease-out`}
+                    className={`h-full rounded-full transition-all duration-1000 ease-out ${
+                      isCritical ? "bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)]" : 
+                      isWarning ? "bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]" : 
+                      "bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+                    }`}
                     style={{ width: `${u.loadPercentage}%` }}
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-[var(--input-bg)] p-3 rounded-2xl border border-[var(--card-border)] text-center">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Open Cases</p>
-                  <p className="text-lg font-black text-[var(--text-primary)]">{u.openCases}</p>
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-[var(--input-bg)]/40 p-4 rounded-[1.5rem] border border-[var(--card-border)]/50 text-center transition-colors group-hover:bg-[var(--input-bg)]/60">
+                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1.5 opacity-60">Open Cases</p>
+                  <p className="text-xl font-black text-[var(--text-primary)]">{u.openCases}</p>
                 </div>
-                <div className="bg-[var(--input-bg)] p-3 rounded-2xl border border-[var(--card-border)] text-center">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Pending Tasks</p>
-                  <p className="text-lg font-black text-[var(--text-primary)]">{u.pendingTasks}</p>
+                <div className="bg-[var(--input-bg)]/40 p-4 rounded-[1.5rem] border border-[var(--card-border)]/50 text-center transition-colors group-hover:bg-[var(--input-bg)]/60">
+                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1.5 opacity-60">Pending Tasks</p>
+                  <p className="text-xl font-black text-[var(--text-primary)]">{u.pendingTasks}</p>
                 </div>
               </div>
 
-              <button className="w-full py-3 bg-[var(--card-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)] hover:border-[var(--primary)] text-[var(--text-muted)] hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group/btn">
-                <ClipboardList className="w-3.5 h-3.5" />
+              <button 
+                onClick={() => setSelectedPractitioner(u)}
+                className="w-full py-4 bg-[var(--card-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)] hover:border-[var(--primary)] text-[var(--text-muted)] hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-3 group/btn shadow-lg"
+              >
+                <ClipboardList className="w-4 h-4" />
                 Review Workflow
-                <ChevronRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                <ChevronRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1.5 transition-transform" />
               </button>
 
               {/* Intensity Pulse */}
               {isCritical && (
-                <div className="absolute top-3 right-3">
-                  <div className="w-2 h-2 bg-rose-500 rounded-full animate-ping" />
+                <div className="absolute top-4 right-4">
+                  <div className="w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping" />
+                  <div className="absolute inset-0 w-2.5 h-2.5 bg-rose-500 rounded-full" />
                 </div>
               )}
             </div>
           );
         })}
       </div>
+
+      {/* Drill-down Modal */}
+      {selectedPractitioner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-20 animate-in fade-in duration-300 backdrop-blur-md bg-black/40">
+          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] w-full max-w-4xl rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
+            {/* Modal Header */}
+            <div className="p-8 border-b border-[var(--card-border)] bg-[var(--input-bg)]/20 flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20 text-[var(--primary)]">
+                  <ClipboardList className="w-8 h-8" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-3 mb-1">
+                    <h2 className="text-2xl font-black text-[var(--text-primary)] uppercase tracking-tighter">{selectedPractitioner.fullName}</h2>
+                    <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-500 text-[9px] font-black uppercase tracking-widest">
+                      Active Session
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Workload Intelligence & Forensic Drill-down</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedPractitioner(null)}
+                className="w-12 h-12 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-rose-500/20 hover:border-rose-500/30 transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 p-8 overflow-y-auto custom-scrollbar space-y-8">
+              {detailLoading ? (
+                <div className="py-20 text-center animate-pulse space-y-4">
+                  <div className="w-12 h-12 bg-[var(--primary)]/10 rounded-full flex items-center justify-center mx-auto border border-[var(--primary)]/20 text-[var(--primary)]">
+                    <Activity className="w-6 h-6 animate-spin" />
+                  </div>
+                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Fetching Live Workload Stream...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {detailData?.practitionerWorkloadDetails?.map((item: any, idx: number) => (
+                    <div key={idx} className="group p-5 bg-[var(--input-bg)]/40 border border-[var(--card-border)] rounded-2xl hover:border-[var(--primary)]/30 transition-all flex items-center justify-between">
+                      <div className="flex items-center gap-5">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center border ${
+                          item.type === 'VISIT' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 
+                          item.type === 'ADMIN' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' :
+                          'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                        }`}>
+                          {item.type === 'VISIT' ? <Calendar className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+                        </div>
+                        <div>
+                          <h4 className="text-[13px] font-black text-[var(--text-primary)] uppercase tracking-tight mb-1">{item.title}</h4>
+                          <div className="flex items-center gap-4 text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                            <span className="flex items-center gap-1.5">
+                              <Activity className="w-3 h-3" />
+                              {item.type}
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <Clock className="w-3 h-3" />
+                              Due: {new Date(item.dueDate).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                          item.priority === 'URGENT' ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20' :
+                          item.priority === 'HIGH' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' :
+                          'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                        }`}>
+                          {item.priority}
+                        </div>
+                        <button className="w-9 h-9 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--primary)] transition-all">
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {(!detailData?.practitionerWorkloadDetails || detailData.practitionerWorkloadDetails.length === 0) && (
+                    <div className="text-center py-20 opacity-40">
+                      <ClipboardList className="w-12 h-12 mx-auto mb-4" />
+                      <p className="text-[10px] font-black uppercase tracking-widest">No Active Workload Identified</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-8 bg-[var(--input-bg)]/20 border-t border-[var(--card-border)] flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-3">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-[var(--card-bg)] bg-[var(--primary)]/20" />
+                  ))}
+                </div>
+                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Collaborating Teams Active</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setSelectedPractitioner(null)}
+                  className="px-6 py-3 text-[10px] font-black text-[var(--text-muted)] hover:text-white uppercase tracking-widest transition-all"
+                >
+                  Dismiss
+                </button>
+                <button className="px-8 py-3 bg-[var(--primary)] text-[var(--sidebar-bg)] rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-xl shadow-[var(--primary-glow)]">
+                  Dispatch Adjustment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {utilization.length === 0 && (
         <div className="text-center py-20 bg-[var(--card-bg)]/20 border border-dashed border-[var(--card-border)] rounded-[3rem]">

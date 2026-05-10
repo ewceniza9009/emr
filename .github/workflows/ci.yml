@@ -89,10 +89,10 @@ jobs:
           
           # Start Backend (Enforcing Production, Port, and ignoring local profiles)
           export ASPNETCORE_ENVIRONMENT=Production
-          cd emr-server/src/Api && dotnet run --no-build --no-launch-profile --configuration Release --urls "http://127.0.0.1:34732" -- --seed &
+          (cd emr-server/src/Api && dotnet run --no-build --no-launch-profile --configuration Release --urls "http://127.0.0.1:34732" -- --seed) &
           
           # Start Frontend (Forcing port 3431)
-          cd emr-client && npm start -- -p 3431 &
+          (cd emr-client && npm start -- -p 3431) &
           
           # Wait for services to be 100% Healthy
           npx wait-on -t 600000 http://127.0.0.1:34732/health http://127.0.0.1:3431
@@ -104,10 +104,10 @@ jobs:
           
           # Run Playwright (Executing all clinical and booking workflows)
           echo "Executing Critical Path: Patient Enrollment Workflow..."
-          cd emr-client && npx playwright test tests/enrollment-workflow.spec.ts --project=chromium --workers=1
+          (cd emr-client && npx playwright test tests/enrollment-workflow.spec.ts --project=chromium --workers=1)
           
           echo "Executing Full Clinical Suite..."
-          cd emr-client && npx playwright test --project=chromium --workers=1
+          (cd emr-client && npx playwright test --project=chromium --workers=1)
         env:
           ASPNETCORE_ENVIRONMENT: Production
           ConnectionStrings__DefaultConnection: "Host=127.0.0.1;Database=emr;Username=postgres;Password=postgres"
