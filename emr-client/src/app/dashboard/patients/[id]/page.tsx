@@ -36,6 +36,7 @@ import {
   Trash2,
   Thermometer,
   ArrowUpDown,
+  X,
 
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -205,6 +206,7 @@ const DELETE_CONTACT = gql`
 
 import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
 import { useCommandModal } from "@/components/CommandModalProvider";
+import HalcyonPortal from "@/components/Portal";
 
 export default function PatientDetailPage() {
   const { data: session } = useSession();
@@ -236,13 +238,14 @@ export default function PatientDetailPage() {
   const [showBreakGlass, setShowBreakGlass] = useState(false);
   const [showBenefitClaim, setShowBenefitClaim] = useState(false);
   const [historySortOrder, setHistorySortOrder] = useState<"desc" | "asc">("desc");
+  const [selectedEncounter, setSelectedEncounter] = useState<any>(null);
 
   // IoT Telemetry State
   const [vitals, setVitals] = useState({ hr: 72, spo2: 98, temp: 98.6 });
   const [telemetryData, setTelemetryData] = useState<any[]>([]);
   const [isIotConnected, setIsIotConnected] = useState(false);
   const [telemetryEnabled, setTelemetryEnabled] = useState(false);
-  
+
   const telemetryEnabledRef = useRef(telemetryEnabled);
   useEffect(() => {
     telemetryEnabledRef.current = telemetryEnabled;
@@ -254,7 +257,7 @@ export default function PatientDetailPage() {
     const newState = !telemetryEnabled;
     setTelemetryEnabled(newState);
     telemetryEnabledRef.current = newState;
-    
+
     if (newState && telemetryData.length === 0) {
       console.log("[IoT] Attempting to create encounter for Patient ID:", params.id);
       try {
@@ -270,8 +273,8 @@ export default function PatientDetailPage() {
           }
         });
         console.log("[IoT] createEncounter Response:", res);
-      } catch (e) { 
-        console.error("[IoT] createEncounter Error:", e); 
+      } catch (e) {
+        console.error("[IoT] createEncounter Error:", e);
       }
     }
   };
@@ -354,10 +357,10 @@ export default function PatientDetailPage() {
       });
 
       // Auto-enable telemetry if there is an active encounter or appointment
-      const hasActiveEncounter = patient.encounters?.some((e: any) => 
+      const hasActiveEncounter = patient.encounters?.some((e: any) =>
         e.status === "InProgress" || e.status === "Arrived" || e.status === "Triaged"
       );
-      
+
       const appointments = [...(apptData?.appointments?.items || [])];
       const hasActiveAppointment = appointments.some((a: any) =>
         a.status?.toUpperCase().includes('PROGRESS') || a.status?.toUpperCase() === 'LIVE'
@@ -387,7 +390,7 @@ export default function PatientDetailPage() {
           Authorization: `Bearer ${(session as any)?.accessToken}`
         }
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || "Failed to export dossier");
@@ -405,7 +408,7 @@ export default function PatientDetailPage() {
     } catch (err: any) {
       // Ignore "Failed to fetch" errors if they happen during a successful download interception
       if (err.message === "Failed to fetch") return;
-      
+
       console.error(err);
       alert({
         title: "EXPORT FAILED",
@@ -437,7 +440,7 @@ export default function PatientDetailPage() {
           <Skeleton className="h-12 w-36 rounded-xl" />
         </div>
       </div>
- 
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Left Col Skeletons */}
         <div className="space-y-4">
@@ -618,9 +621,9 @@ export default function PatientDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Left Column: Bio Snapshot */}
         <div className="space-y-4">
-          <LiveHeartbeat 
-            patientId={params.id as string} 
-            enabled={telemetryEnabled} 
+          <LiveHeartbeat
+            patientId={params.id as string}
+            enabled={telemetryEnabled}
             onToggle={handleToggleTelemetry}
             status={!telemetryEnabled ? "off" : telemetryData.length > 0 ? "live" : "initializing"}
           />
@@ -812,7 +815,7 @@ export default function PatientDetailPage() {
                       <Activity className="w-4 h-4 text-[var(--primary)]" />
                       Clinical Activity Log
                     </h2>
-                    <button 
+                    <button
                       onClick={() => setHistorySortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
                       className="px-4 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all flex items-center gap-2 text-[9px] font-black uppercase tracking-widest"
                     >
@@ -820,28 +823,49 @@ export default function PatientDetailPage() {
                       Sort: {historySortOrder === 'desc' ? 'Newest First' : 'Oldest First'}
                     </button>
                   </div>
-                  <div className="space-y-8 relative">
-                    <div className="absolute left-[21px] top-0 w-px h-full bg-[var(--card-border)]" />
+                  <div className="space-y-1 relative">
+                    <div className="absolute left-[19px] top-0 w-px h-full bg-[var(--card-border)]" />
                     {[...(patient.encounters || [])]
                       .sort((a: any, b: any) => {
                         const dateA = new Date(a.encounterDate).getTime();
                         const dateB = new Date(b.encounterDate).getTime();
                         return historySortOrder === "desc" ? dateB - dateA : dateA - dateB;
                       })
-                      .map((evt: any, i: number) => (
-                      <div key={evt.encounterId} className="flex gap-8 relative z-10 group">
-                        <div className="w-11 h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--primary)] transition-all">
-                          <CheckCircle2 className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-black uppercase text-[var(--text-primary)]">{evt.type}</h4>
-                            <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{new Date(evt.encounterDate).toLocaleDateString()}</span>
+                      .map((evt: any, i: number) => {
+                        const note = evt.clinicalNotes?.[0]?.content || "System generated encounter record. No clinical narrative was documented for this session.";
+                        return (
+                          <div 
+                            key={evt.encounterId} 
+                            onClick={() => setSelectedEncounter(evt)}
+                            className="flex gap-6 relative z-10 group cursor-pointer hover:bg-[var(--primary)]/[0.02] p-2 -ml-2 rounded-xl transition-all"
+                          >
+                            <div className="w-10 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--primary)] group-hover:bg-[var(--primary)]/10 group-hover:text-[var(--primary)] transition-all shrink-0">
+                              <CheckCircle2 className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-xs font-black uppercase text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">{evt.type?.replace(/_/g, ' ')}</h4>
+                                <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{new Date(evt.encounterDate).toLocaleDateString()}</span>
+                              </div>
+                              <p 
+                                className="text-[11px] text-[var(--text-secondary)] mt-1 italic group-hover:text-[var(--text-primary)] transition-colors relative"
+                                style={{
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden'
+                                }}
+                              >
+                                {note}
+                              </p>
+                              <div className="mt-1 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="h-px flex-1 bg-[var(--primary)]/10" />
+                                <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[var(--primary)]">Click for Full Narrative</span>
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-xs text-[var(--text-secondary)] mt-2">{evt.clinicalNotes?.[0]?.content}</p>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      })}
                   </div>
                 </div>
               </div>
@@ -952,18 +976,16 @@ export default function PatientDetailPage() {
                       <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest mt-1">Live Sensor Network (Oxygen/Vitals)</p>
                     </div>
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--card-border)] bg-[var(--input-bg)]">
-                       <div className={`w-2 h-2 rounded-full ${
-                         telemetryEnabled 
-                           ? (telemetryData.length > 0 ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" : "bg-amber-500 animate-pulse") 
-                           : "bg-[var(--text-muted)] opacity-50"
-                       }`} />
-                       <span className={`text-[10px] font-black uppercase tracking-widest ${
-                         telemetryEnabled 
-                           ? (telemetryData.length > 0 ? "text-emerald-500" : "text-amber-500") 
-                           : "text-[var(--text-muted)]"
-                       }`}>
-                         {telemetryEnabled ? (telemetryData.length > 0 ? "Live IoT Stream ON" : "Initializing Link...") : "Telemetry Link OFF"}
-                       </span>
+                      <div className={`w-2 h-2 rounded-full ${telemetryEnabled
+                        ? (telemetryData.length > 0 ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" : "bg-amber-500 animate-pulse")
+                        : "bg-[var(--text-muted)] opacity-50"
+                        }`} />
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${telemetryEnabled
+                        ? (telemetryData.length > 0 ? "text-emerald-500" : "text-amber-500")
+                        : "text-[var(--text-muted)]"
+                        }`}>
+                        {telemetryEnabled ? (telemetryData.length > 0 ? "Live IoT Stream ON" : "Initializing Link...") : "Telemetry Link OFF"}
+                      </span>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1155,7 +1177,7 @@ export default function PatientDetailPage() {
       />
       <EmergencyActionDrawer open={showEmergencyDrawer} onClose={() => setShowEmergencyDrawer(false)} patient={patient} onEscalate={() => setIsEmergency(true)} />
       <BreakGlassDrawer open={showBreakGlass} onClose={() => setShowBreakGlass(false)} onSuccess={() => refetch()} />
-      <BenefitClaimDrawer 
+      <BenefitClaimDrawer
         open={showBenefitClaim}
         onClose={() => setShowBenefitClaim(false)}
         initialData={{ patientId: params.id as string }}
@@ -1164,6 +1186,82 @@ export default function PatientDetailPage() {
           refetch();
         }}
       />
+
+      {/* Encounter Detail Modal */}
+      {selectedEncounter && (
+        <HalcyonPortal>
+          <div className="fixed inset-0 z-[10000000] flex items-center justify-center p-6 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" onClick={() => setSelectedEncounter(null)} />
+            <div className="relative w-full max-w-2xl bg-[var(--card-bg)] border border-[var(--card-border)] rounded-[2.5rem] shadow-2xl shadow-black/50 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500">
+              <div className="h-2 w-full premium-gradient" />
+
+              <div className="p-8 space-y-8">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)] shadow-lg shadow-[var(--primary-glow)]">
+                      <Stethoscope className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-tight leading-none">
+                        {selectedEncounter.type?.replace(/_/g, ' ')}
+                      </h3>
+                      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mt-2">
+                        Encounter Date: {new Date(selectedEncounter.encounterDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedEncounter(null)} className="p-2 hover:bg-[var(--input-bg)] rounded-xl text-[var(--text-muted)] hover:text-white transition-all">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                      <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-1">Status</p>
+                      <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">{selectedEncounter.status}</p>
+                    </div>
+                    <div className="px-4 py-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)]">
+                      <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Practitioner</p>
+                      <p className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-widest">
+                        {selectedEncounter.practitioner ? `${selectedEncounter.practitioner.firstName} ${selectedEncounter.practitioner.lastName}` : "System Admin"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-[var(--primary)]" />
+                      <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Clinical Narrative</span>
+                    </div>
+                    <div className="p-6 rounded-3xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] relative group">
+                      <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:scale-110 transition-transform duration-1000">
+                        <Stethoscope className="w-24 h-24" />
+                      </div>
+                      <p className="text-sm text-[var(--text-primary)] leading-relaxed italic relative z-10 whitespace-pre-wrap">
+                        {selectedEncounter.clinicalNotes?.[0]?.content || "No narrative content recorded for this encounter."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex items-center justify-between border-t border-[var(--card-border)]">
+                  <div className="flex items-center gap-2 text-[var(--text-muted)]">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em]">Forensically Audited Encounter Record</span>
+                  </div>
+                  <button
+                    onClick={() => setSelectedEncounter(null)}
+                    className="px-8 py-3 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 active:scale-95 transition-all"
+                  >
+                    Close Record
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </HalcyonPortal>
+      )}
     </div>
   );
 }
