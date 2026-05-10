@@ -1,7 +1,9 @@
+using Domain.Common;
 namespace Domain.Entities;
 
-public class AppointmentResource
+public class AppointmentResource : BaseEntity, ITenantEntity
 {
+    public Guid TenantId { get; set; }
     public Guid AppointmentId { get; set; }
     public Guid BlockId { get; set; }
 

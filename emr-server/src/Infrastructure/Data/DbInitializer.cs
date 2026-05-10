@@ -1690,6 +1690,7 @@ namespace Infrastructure.Data
                             new BillingInvoiceItem
                             {
                                 ItemId = Guid.NewGuid(),
+                                TenantId = defaultTenantId,
                                 InvoiceId = inv.InvoiceId,
                                 Description = faker.PickRandom(serviceNames),
                                 Quantity = qty,

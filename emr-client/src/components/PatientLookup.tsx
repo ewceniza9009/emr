@@ -101,18 +101,19 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                            <button
                                key={item.id}
                                onClick={() => onSelect(item)}
+                               onMouseEnter={() => setSelectedIndex(index)}
                                className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all group border text-left active:scale-[0.99] ${
                                  selectedIndex === index 
-                                    ? item.type === 'LEAD' ? 'bg-amber-500/10 border-amber-500/30' : 'bg-[var(--primary)]/10 border-[var(--primary)]/30'
+                                    ? item.type === 'LEAD' ? 'bg-amber-500/10 border-amber-500/30 ring-1 ring-amber-500/20' : 'bg-[var(--primary)]/10 border-[var(--primary)]/30 ring-1 ring-[var(--primary)]/20'
                                     : 'border-transparent'
                                } ${item.type === 'LEAD' ? 'hover:bg-amber-500/5' : 'hover:bg-[var(--primary)]/5'}`}
                            >
-                               <div className={`w-10 h-10 rounded-xl bg-[var(--input-bg)] flex items-center justify-center text-[11px] font-bold border border-[var(--card-border)] transition-all text-[var(--text-primary)] ${item.type === 'LEAD' ? 'group-hover:border-amber-500/50' : 'group-hover:border-[var(--primary)]/50'}`}>
+                               <div className={`w-10 h-10 rounded-xl bg-[var(--input-bg)] flex items-center justify-center text-[11px] font-bold border border-[var(--card-border)] transition-all text-[var(--text-primary)] ${selectedIndex === index ? (item.type === 'LEAD' ? 'border-amber-500/50 text-amber-500' : 'border-[var(--primary)]/50 text-[var(--primary)]') : (item.type === 'LEAD' ? 'group-hover:border-amber-500/50' : 'group-hover:border-[var(--primary)]/50')}`}>
                                    {item.title?.split(' ').filter(Boolean).map((n: string) => n[0]).join('') || '?'}
                                </div>
                                <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
-                                     <p className={`text-xs font-bold uppercase tracking-tight transition-colors truncate ${item.type === 'LEAD' ? 'text-amber-500/80 group-hover:text-amber-500' : 'text-[var(--text-primary)] group-hover:text-[var(--primary)]'}`}>
+                                     <p className={`text-xs font-bold uppercase tracking-tight transition-colors truncate ${item.type === 'LEAD' ? (selectedIndex === index ? 'text-amber-500' : 'text-amber-500/80 group-hover:text-amber-500') : (selectedIndex === index ? 'text-[var(--primary)]' : 'text-[var(--text-primary)] group-hover:text-[var(--primary)]')}`}>
                                         {item.title}
                                      </p>
                                      {item.type === 'PATIENT' ? (
@@ -126,13 +127,13 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                                      )}
                                   </div>
                                   <div className="flex items-center gap-5 mt-1">
-                                     <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1.5">
-                                        {item.type === 'PATIENT' ? <Activity className="w-2.5 h-2.5 opacity-50" /> : <Phone className="w-2.5 h-2.5 opacity-50" />}
+                                     <p className={`text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors ${selectedIndex === index ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
+                                        {item.type === 'PATIENT' ? <Activity className={`w-2.5 h-2.5 transition-opacity ${selectedIndex === index ? 'opacity-100' : 'opacity-50'}`} /> : <Phone className={`w-2.5 h-2.5 transition-opacity ${selectedIndex === index ? 'opacity-100' : 'opacity-50'}`} />}
                                         {item.metadata}
                                      </p>
                                   </div>
                                </div>
-                               <ChevronRight className="w-4 h-4 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                               <ChevronRight className={`w-4 h-4 text-[var(--text-muted)] transition-all ${selectedIndex === index ? 'opacity-100 translate-x-0 text-[var(--primary)]' : 'opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'}`} />
                            </button>
                         ))}
 

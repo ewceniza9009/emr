@@ -54,6 +54,7 @@ public class GetTriageWorklistQueryHandler
                     .FirstOrDefault(),
                 AdvanceDirectiveType =
                     p.AdvanceDirectives.Where(ad => ad.IsActive)
+                        .OrderByDescending(ad => ad.CreatedAt)
                         .Select(ad => ad.Type.ToString())
                         .FirstOrDefault()
                     ?? "None",
