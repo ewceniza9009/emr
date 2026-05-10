@@ -89,7 +89,7 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      {/* Tactical Header */}
+      {/* Clinical Header */}
       <div className="flex items-start justify-between border-b border-[var(--divider-color)] pb-6">
         <div className="space-y-1.5">
           <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">
@@ -119,7 +119,7 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
               {q.subtext && <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest ml-4 font-bold">{q.subtext}</p>}
             </div>
 
-            {/* Tactical Scale Renderer */}
+            {/* Standard Scale Renderer */}
             {q.type === "SCALE" && (
               <div className="ml-4 space-y-4">
                 <div className="flex items-center justify-between">

@@ -97,7 +97,7 @@ h4 {
   box-shadow: 0 4px 20px var(--primary-glow);
 }
 
-.tactical-label {
+.clinical-label {
   font-size: 10px !important;
   font-weight: 800 !important;
   text-transform: uppercase !important;
@@ -107,7 +107,7 @@ h4 {
   display: block !important;
 }
 
-.light .tactical-label {
+.light .clinical-label {
   color: #475569 !important; /* Slate-600 for sharp contrast */
 }
 

@@ -113,7 +113,7 @@ export default function PpsSelector({ onScoreChange }: PpsSelectorProps) {
           <div key={i} className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] space-y-2">
             <div className="flex items-center gap-2 mb-2">
                {item.icon}
-               <span className="tactical-label !m-0">{item.label}</span>
+               <span className="clinical-label !m-0">{item.label}</span>
             </div>
             <div className="text-[11px] font-black text-[var(--text-primary)] leading-tight uppercase">
               {item.val}

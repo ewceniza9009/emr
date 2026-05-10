@@ -798,6 +798,13 @@ namespace Infrastructure.Data
                     .RuleFor(p => p.ConsentToTreat, f => true)
                     .RuleFor(p => p.ConsentHIPAA, f => true)
                     .RuleFor(p => p.ConsentMarketing, f => f.Random.Bool())
+                    .RuleFor(p => p.TriageNote, f => f.Random.Bool(0.3f) ? f.PickRandom(new[] { 
+                        "Reporting severe breakthrough pain in lower extremities.",
+                        "Oxygen saturation dipping during exertion. Family concerned.",
+                        "New onset agitation and restlessness noted by caregiver.",
+                        "Requires medication titration for terminal secretions.",
+                        "Initial triage: Stable, but needs symptom follow-up within 24h."
+                    }) : null)
                     .RuleFor(p => p.InterpreterRequired, f => false)
                     .RuleFor(p => p.PreferredContactMethod, f => "PHONE")
                     .Generate(10);
@@ -1590,13 +1597,13 @@ namespace Infrastructure.Data
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, (f, u) => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(encountersList).EncounterId)
-                    .RuleFor(x => x.Pain, f => f.Random.Number(0, 10))
+                    .RuleFor(x => x.Pain, f => f.Random.WeightedRandom(new[] { 0, 3, 5, 8, 10 }, new[] { 0.2f, 0.3f, 0.3f, 0.15f, 0.05f }))
                     .RuleFor(x => x.Nausea, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.ShortnessOfBreath, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.Tiredness, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.Drowsiness, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.LackOfAppetite, f => f.Random.Number(0, 10))
-                    .RuleFor(x => x.Wellbeing, f => f.Random.Number(0, 10))
+                    .RuleFor(x => x.Wellbeing, f => f.Random.WeightedRandom(new[] { 0, 3, 5, 8, 10 }, new[] { 0.2f, 0.3f, 0.3f, 0.15f, 0.05f }))
                     .RuleFor(x => x.Anxiety, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.Depression, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.AssessedAt, f => f.Date.RecentOffset(30).ToUniversalTime())

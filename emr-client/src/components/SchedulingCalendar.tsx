@@ -167,7 +167,7 @@ export default function SchedulingCalendar() {
   const [localBlocks, setLocalBlocks] = useState<any[]>([]);
 
   const [reschedule] = useMutation(RESCHEDULE_APPOINTMENT, {
-    onCompleted: () => { refetch(); showToast("Appointment Rescheduled · Vector Updated", "success"); },
+    onCompleted: () => { refetch(); showToast("Appointment Rescheduled · Clinical Records Updated", "success"); },
     onError: (err) => { refetch(); showToast(`Reschedule Failed: ${err.message}`, "error"); }
   });
 
@@ -363,7 +363,7 @@ export default function SchedulingCalendar() {
 
   if (loading && !data) return (
     <div className="flex-1 min-h-0 flex flex-col gap-3 p-1 animate-in fade-in duration-700 overflow-hidden">
-      {/* Tactical Header Skeleton */}
+      {/* Clinical Header Skeleton */}
       <div className="shrink-0 flex flex-col gap-2 bg-[var(--card-bg)] px-4 py-3 rounded-2xl border border-[var(--card-border)] shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -770,14 +770,14 @@ export default function SchedulingCalendar() {
 
                               {/* Patient Data */}
                               <div className="flex flex-col mb-1">
-                                <p className="tactical-label mb-1">Patient</p>
+                                <p className="clinical-label mb-1">Patient</p>
                                 <h4 className={`text-base font-black ${isViewedAsAttending ? "text-sky-400" : isViewedAsSc ? "text-indigo-400" : "text-[var(--text-primary)]"} tracking-tight group-hover:text-[var(--primary)] transition-colors leading-tight`}>{appt.patient?.firstName} {appt.patient?.lastName}</h4>
                                 <div className="flex items-center gap-1.5 mt-1.5">
                                   <MapPin className={`w-3 h-3 ${isViewedAsAttending ? "text-sky-500/50" : isViewedAsSc ? "text-indigo-500/50" : "text-[var(--text-muted)]"}`} />
                                   <p className={`text-[10px] ${isViewedAsAttending ? "text-sky-400/70" : isViewedAsSc ? "text-indigo-400/70" : "text-[var(--text-muted)]"} font-bold leading-tight line-clamp-1 uppercase tracking-wider`}>{appt.patient?.addresses?.[0]?.address?.street || "No address recorded"}</p>
                                 </div>
                                 <div className="mt-3 flex flex-col gap-1">
-                                  <p className="tactical-label">{isViewedAsAttending ? "Performed By" : "Clinical Lead"}</p>
+                                  <p className="clinical-label">{isViewedAsAttending ? "Performed By" : "Clinical Lead"}</p>
                                   <p className={`text-xs font-semibold ${isViewedAsAttending ? "text-sky-400/90" : isViewedAsSc ? "text-indigo-400/90" : "text-[var(--text-primary)]"}`}>
                                     {isViewedAsAttending
                                       ? `${appt.encounters[0].practitioner.firstName} ${appt.encounters[0].practitioner.lastName}`
@@ -790,13 +790,13 @@ export default function SchedulingCalendar() {
                               <div className="hidden group-hover:flex flex-col gap-4 mt-2 pb-4 border-t border-[var(--card-border)] pt-4 animate-in fade-in slide-in-from-top-1 duration-300">
                                 {isViewedAsAttending && (
                                   <div className="flex flex-col gap-1">
-                                    <p className="tactical-label">Scheduled Lead</p>
+                                    <p className="clinical-label">Scheduled Lead</p>
                                     <p className="text-xs font-semibold text-[var(--text-primary)]">{appt.practitioner?.firstName} {appt.practitioner?.lastName}</p>
                                   </div>
                                 )}
                                 {appt.supportingClinicians?.length > 0 && !isViewedAsAttending && (
                                   <div className="flex flex-col gap-1">
-                                    <p className="tactical-label">Support Team</p>
+                                    <p className="clinical-label">Support Team</p>
                                     <div className="flex flex-col gap-1">
                                       {appt.supportingClinicians.map((sc: any) => (
                                         <p key={sc.practitionerId} className="text-xs font-semibold text-[var(--text-primary)]">{sc.firstName} {sc.lastName}</p>

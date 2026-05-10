@@ -25,7 +25,7 @@ export function TopBar() {
 
   return (
     <header className="h-14 flex items-center justify-between px-8 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)] sticky top-0 z-[90] transition-all duration-500">
-      {/* Tactical Search Vector */}
+      {/* Clinical Search */}
       <div className="flex-1 max-w-xl">
         <div className="relative group">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">

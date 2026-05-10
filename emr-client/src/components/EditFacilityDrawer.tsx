@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
@@ -163,7 +163,7 @@ export default function EditFacilityDrawer({ open, onClose, onSuccess, facility 
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Email Vector</label>
+                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Email Address</label>
                   <input 
                     type="email"
                     className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"

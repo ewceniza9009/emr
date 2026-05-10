@@ -354,42 +354,42 @@ export default function NewAssessmentPage() {
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
             <div className="space-y-1">
-              <label className="tactical-label">Heart Rate</label>
+              <label className="clinical-label">Heart Rate</label>
               <div className="relative">
                 <Activity className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input {...register("heartRate")} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
               </div>
             </div>
             <div className="space-y-1">
-              <label className="tactical-label">Temp (°C)</label>
+              <label className="clinical-label">Temp (°C)</label>
               <div className="relative">
                 <Thermometer className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input {...register("temperature")} type="number" step="0.1" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
               </div>
             </div>
             <div className="space-y-1">
-              <label className="tactical-label">Respi (RR)</label>
+              <label className="clinical-label">Respi (RR)</label>
               <div className="relative">
                 <Wind className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input {...register("respiratoryRate")} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
               </div>
             </div>
             <div className="space-y-1">
-              <label className="tactical-label">SpO2 (%)</label>
+              <label className="clinical-label">SpO2 (%)</label>
               <div className="relative">
                 <Droplets className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input {...register("oxygenSaturation")} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
               </div>
             </div>
             <div className="space-y-1">
-              <label className="tactical-label">Weight (kg)</label>
+              <label className="clinical-label">Weight (kg)</label>
               <div className="relative">
                 <Scale className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input {...register("weight")} type="number" step="0.1" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
               </div>
             </div>
             <div className="space-y-1">
-              <label className="tactical-label">BP (SYS/DIA)</label>
+              <label className="clinical-label">BP (SYS/DIA)</label>
               <div className="flex items-center gap-2">
                 <input {...register("systolicBp")} type="number" className="w-full premium-input rounded-xl py-3 text-center text-[var(--text-primary)] font-bold" placeholder="120" />
                 <span className="text-[var(--text-muted)] opacity-40">/</span>
@@ -413,7 +413,7 @@ export default function NewAssessmentPage() {
           </h2>
           <div className="space-y-6">
             <div className="space-y-1">
-              <label className="tactical-label">Chief Complaint</label>
+              <label className="clinical-label">Chief Complaint</label>
               <div className="relative">
                 <input 
                   {...register("chiefComplaint")} 
@@ -428,7 +428,7 @@ export default function NewAssessmentPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="tactical-label">Subjective Findings</label>
+                <label className="clinical-label">Subjective Findings</label>
                 <div className="relative">
                   <textarea 
                     {...register("subjective")} 
@@ -441,7 +441,7 @@ export default function NewAssessmentPage() {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="tactical-label">Objective Findings</label>
+                <label className="clinical-label">Objective Findings</label>
                 <div className="relative">
                   <textarea 
                     {...register("objective")} 
@@ -456,7 +456,7 @@ export default function NewAssessmentPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="tactical-label">Assessment & Clinical Plan</label>
+              <label className="clinical-label">Assessment & Clinical Plan</label>
               <div className="relative">
                 <textarea 
                   {...register("plan")} 

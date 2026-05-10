@@ -61,6 +61,7 @@ public class GetTriageWorklistQueryHandler
                 IsAlert = p
                     .EsasAssessments.OrderByDescending(e => e.AssessedAt)
                     .Any(e => e.Pain > 7 || e.Wellbeing > 7),
+                TriageNote = p.TriageNote
             })
             .ToListAsync(cancellationToken);
 

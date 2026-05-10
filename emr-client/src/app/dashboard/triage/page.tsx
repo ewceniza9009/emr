@@ -11,13 +11,15 @@ import {
   ShieldAlert,
   ChevronRight,
   TrendingUp,
-  History
+  History,
+  ClipboardList
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 import UploadDocumentDrawer from "@/components/UploadDocumentDrawer";
+import TriageNoteDrawer from "@/components/TriageNoteDrawer";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const GET_TRIAGE_WORKLIST = gql`
@@ -32,6 +34,7 @@ const GET_TRIAGE_WORKLIST = gql`
         latestWellbeingScore
         advanceDirectiveType
         isAlert
+        triageNote
       }
       totalCount
     }
@@ -43,7 +46,9 @@ export default function TriageDashboard() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isTriageNoteOpen, setIsTriageNoteOpen] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+  const [selectedPatientName, setSelectedPatientName] = useState<string>("");
 
   const { data, loading, refetch } = useQuery(GET_TRIAGE_WORKLIST, {
     variables: {
@@ -109,6 +114,12 @@ export default function TriageDashboard() {
     setIsUploadOpen(true);
   };
 
+  const handleTriageNote = (patientId: string, name: string) => {
+    setSelectedPatientId(patientId);
+    setSelectedPatientName(name);
+    setIsTriageNoteOpen(true);
+  };
+
   const alertCount = triageItems.filter((i: any) => i.isAlert).length;
   const stableCount = triageItems.length - alertCount;
 
@@ -120,19 +131,26 @@ export default function TriageDashboard() {
         patientId={selectedPatientId}
         onSuccess={() => refetch()}
       />
+      <TriageNoteDrawer
+        isOpen={isTriageNoteOpen}
+        onClose={() => setIsTriageNoteOpen(false)}
+        patientId={selectedPatientId}
+        patientName={selectedPatientName}
+        onSuccess={() => refetch()}
+      />
       {/* Header & Stats */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Clinical Triage Command</h1>
-          <p className="text-sm text-[var(--text-secondary)]">Prioritizing patients by symptom burden and urgency.</p>
+          <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Clinical Priority Overview</h1>
+          <p className="text-sm text-[var(--text-secondary)]">Managing patient urgency based on symptom burden and clinical alerts.</p>
         </div>
         <div className="flex gap-3">
           <div className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600">
-            <div className="text-[9px] uppercase font-black tracking-widest leading-none mb-1">High Severity</div>
+            <div className="text-[9px] uppercase font-black tracking-widest leading-none mb-1">Critical Symptom Burden</div>
             <div className="text-lg font-black leading-none">{alertCount} Patients</div>
           </div>
           <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600">
-            <div className="text-[9px] uppercase font-black tracking-widest leading-none mb-1">Stable</div>
+            <div className="text-[9px] uppercase font-black tracking-widest leading-none mb-1">Clinical Stability</div>
             <div className="text-lg font-black leading-none">{stableCount} Patients</div>
           </div>
         </div>
@@ -147,7 +165,7 @@ export default function TriageDashboard() {
             <div className="px-6 py-3 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
               <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
-                Symptom Triage Worklist
+                Priority Patient Queue
               </h2>
               <div className="flex gap-2">
                 <button className="p-1.5 rounded-lg bg-[var(--card-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all border border-[var(--card-border)]">
@@ -159,11 +177,11 @@ export default function TriageDashboard() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-[var(--input-bg)] text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-widest border-b border-[var(--card-border)]">
-                    <th className="px-8 py-2">Patient</th>
-                    <th className="px-8 py-2 text-center">Burden</th>
-                    <th className="px-8 py-2 text-center">Directive</th>
-                    <th className="px-8 py-2">Status</th>
-                    <th className="px-8 py-2"></th>
+                    <th className="px-8 py-4">Patient Identity</th>
+                    <th className="px-8 py-4 text-center">Symptom Burden</th>
+                    <th className="px-8 py-4">Clinical Narrative</th>
+                    <th className="px-8 py-4 text-center">Advance Directive</th>
+                    <th className="px-8 py-4 text-right">Care Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--card-border)]">
@@ -172,45 +190,65 @@ export default function TriageDashboard() {
                       key={p.patientId}
                       className="group hover:bg-[var(--primary-glow)] transition-colors cursor-pointer active:scale-[0.995]"
                     >
-                      <td className="px-8 py-2.5" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
-                        <div className="flex items-center gap-3">
-                          <div className={`w-2 h-2 rounded-full ${p.isAlert ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
+                      <td className="px-8 py-5" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
+                        <div className="flex items-center gap-4">
+                          <div className={`w-2.5 h-2.5 rounded-full ${p.isAlert ? 'bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.4)]' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]'}`} />
                           <div>
-                            <p className="text-[var(--text-primary)] font-semibold">{p.firstName} {p.lastName}</p>
-                            <p className="text-[var(--text-muted)] text-[10px] font-mono">{p.mrn}</p>
+                            <p className="text-sm font-bold text-[var(--text-primary)] tracking-tight group-hover:text-[var(--primary)] transition-colors">{p.firstName} {p.lastName}</p>
+                            <p className="text-[10px] text-[var(--text-muted)] font-mono opacity-60">MRN: {p.mrn}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-8 py-5 text-center" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
-                        <div className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold border 
-                          ${p.latestPainScore > 7 ? 'bg-red-500/10 text-red-600 border-red-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
-                          Pain: {p.latestPainScore}/10
+                        <div className={`inline-flex items-center justify-center px-4 py-1.5 rounded-xl text-[11px] font-black tracking-tight border shadow-sm
+                          ${p.latestPainScore > 7 ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
+                          Pain Score: {p.latestPainScore}/10
+                        </div>
+                      </td>
+                      <td className="px-8 py-5" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
+                        <div className="max-w-[200px] space-y-1">
+                          <p className="text-[10px] text-[var(--text-primary)] font-medium line-clamp-2 italic opacity-80">
+                            {p.triageNote || (p.isAlert ? "Patient reporting breakthrough pain. Requires symptom review." : "Clinical status remains stable based on last encounter.")}
+                          </p>
+                          <div className="flex items-center gap-2 opacity-40">
+                             <History className="w-2.5 h-2.5" />
+                             <span className="text-[9px] font-bold uppercase tracking-widest">{p.triageNote ? "Triage Note Active" : "Last Note: 2h ago"}</span>
+                          </div>
                         </div>
                       </td>
                       <td className="px-8 py-5 text-center" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
-                        <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border 
-                          ${p.advanceDirectiveType !== 'None' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--card-border)]'}`}>
+                        <span className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border shadow-sm
+                          ${p.advanceDirectiveType !== 'None' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--card-border)] opacity-40'}`}>
                           {p.advanceDirectiveType}
                         </span>
                       </td>
-                      <td className="px-8 py-2.5" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
-                        <span className="text-[var(--text-muted)] text-xs italic">
-                          {p.isAlert ? 'Urgent Review Needed' : 'Stable'}
-                        </span>
-                      </td>
                       <td className="px-8 py-5 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-3">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleTriageNote(p.patientId, `${p.firstName} ${p.lastName}`); }}
+                            className="p-2.5 rounded-xl bg-amber-500/5 text-amber-500 hover:bg-amber-500 hover:text-black transition-all border border-amber-500/10 shadow-sm"
+                            title="Add Triage Note"
+                          >
+                            <ClipboardList className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleLogDnr(p.patientId); }}
+                            className="p-2.5 rounded-xl bg-blue-500/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/10 shadow-sm"
+                            title="Update Advance Directive"
+                          >
+                            <ShieldAlert className="w-4 h-4" />
+                          </button>
                           <Link
                             href={`/dashboard/patients/${p.patientId}/visit`}
-                            className="p-2 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all inline-block"
-                            title="Start Guided Visit"
+                            className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
+                            title="Start Clinical Encounter"
                           >
                             <Stethoscope className="w-4 h-4" />
                           </Link>
                           <Link
                             href={`/dashboard/patients/${p.patientId}`}
-                            className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all inline-block"
-                            title="View Profile"
+                            className="p-2.5 rounded-xl bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 transition-all border border-white/5 shadow-sm"
+                            title="View Patient Record"
                           >
                             <ChevronRight className="w-4 h-4" />
                           </Link>

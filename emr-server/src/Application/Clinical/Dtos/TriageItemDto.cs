@@ -12,4 +12,5 @@ public class TriageItemDto
     public int LatestWellbeingScore { get; set; }
     public string AdvanceDirectiveType { get; set; } = string.Empty;
     public bool IsAlert { get; set; }
+    public string? TriageNote { get; set; }
 }

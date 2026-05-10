@@ -435,7 +435,7 @@ interface SelectFieldProps {
 function SelectField({ label, value, onChange, options, icon }: SelectFieldProps) {
   return (
     <div className="space-y-2">
-      <label className="tactical-label px-1">{label}</label>
+      <label className="clinical-label px-1">{label}</label>
       <div className="relative group">
         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors">
           {icon}

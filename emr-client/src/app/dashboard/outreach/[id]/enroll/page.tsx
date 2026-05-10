@@ -548,17 +548,17 @@ export default function OutreachDetail() {
                         <div className="p-8 rounded-3xl border-2 border-teal-500/20 bg-teal-500/5 space-y-6 animate-in slide-in-from-bottom-10 shadow-2xl">
                           <div className="grid grid-cols-3 gap-6">
                             <div className="space-y-3">
-                              <label className="tactical-label ml-1">Legal Identity</label>
+                              <label className="clinical-label ml-1">Legal Identity</label>
                               <input placeholder="First Name" className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] premium-input rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all" value={newRelativeForm.firstName} onChange={e => setNewRelativeForm({ ...newRelativeForm, firstName: e.target.value })} />
                             </div>
                             <div className="space-y-3">
-                              <label className="tactical-label ml-1">Kinship Type</label>
+                              <label className="clinical-label ml-1">Kinship Type</label>
                               <select className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] premium-input rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 cursor-pointer transition-all" value={newRelativeForm.relationship} onChange={e => setNewRelativeForm({ ...newRelativeForm, relationship: e.target.value })}>
                                 {Object.keys(RELATIONSHIP_LABELS).map(k => <option key={k} value={k}>{k}</option>)}
                               </select>
                             </div>
                             <div className="space-y-3">
-                              <label className="tactical-label ml-1">Comm Phone</label>
+                              <label className="clinical-label ml-1">Comm Phone</label>
                               <input placeholder="Phone Number" className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] premium-input rounded-xl px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all" value={newRelativeForm.phoneNumber} onChange={e => setNewRelativeForm({ ...newRelativeForm, phoneNumber: e.target.value })} />
                             </div>
                           </div>
@@ -583,7 +583,7 @@ export default function OutreachDetail() {
                     <div className="grid grid-cols-2 gap-8">
                       <div className="space-y-6">
                         <div className="space-y-2">
-                          <label className="tactical-label">Comm Status</label>
+                          <label className="clinical-label">Comm Status</label>
                           <div className="field-container">
                             <select className="w-full bg-transparent px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:text-teal-400 transition-all cursor-pointer" value={communicationStatus} onChange={e => setCommunicationStatus(e.target.value)}>
                               {["Verbal", "NonVerbal", "Aphasic", "SpeechImpaired", "CognitiveImpairment"].map(v => <option key={v} value={v}>{v.replace(/([A-Z])/g, ' $1').trim()}</option>)}
@@ -591,7 +591,7 @@ export default function OutreachDetail() {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="tactical-label">Modality Access</label>
+                          <label className="clinical-label">Modality Access</label>
                           <div className="field-container premium-input">
                             <select className="w-full bg-transparent px-5 py-3.5 text-xs text-[var(--text-primary)] font-black outline-none focus:text-teal-400 transition-all cursor-pointer" value={techAccess} onChange={e => setTechAccess(e.target.value)}>
                               {["None", "SmartphoneOnly", "TabletComputer", "HighLiteracy", "NeedsAssistance"].map(v => <option key={v} value={v}>{v.replace(/([A-Z])/g, ' $1').trim()}</option>)}
@@ -600,7 +600,7 @@ export default function OutreachDetail() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="tactical-label">Clinical Barriers & Logistical Observations</label>
+                        <label className="clinical-label">Clinical Barriers & Logistical Observations</label>
                         <textarea
                           value={barriersToCare}
                           onChange={e => setBarriersToCare(e.target.value)}
@@ -637,7 +637,7 @@ export default function OutreachDetail() {
                   <section id="provisioning" className="space-y-6 pt-8 border-t border-[var(--card-border)] bg-teal-500/[0.02] -mx-5 px-5 pb-5">
                     <div className="flex items-center justify-between gap-8">
                       <div className="flex-1 max-w-sm">
-                        <label className="tactical-label text-teal-500/60">Recommended Health Plan</label>
+                        <label className="clinical-label text-teal-500/60">Recommended Health Plan</label>
                         <select
                           className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-[10px] text-[var(--text-primary)] font-black outline-none focus:border-teal-500 transition-all cursor-pointer shadow-inner"
                           value={selectedPlan}
@@ -677,7 +677,7 @@ export default function OutreachDetail() {
               </div>
             </div>
 
-            {/* Intelligence Side-Deck */}
+            {/* Context Sidebar */}
             <div className="flex-1 flex flex-col space-y-6 min-h-0">
               <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-5 shrink-0 space-y-4 shadow-xl relative overflow-hidden">
                 <div className="flex items-center justify-between">

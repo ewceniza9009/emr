@@ -162,7 +162,7 @@ export default function FacilitiesPage() {
               onClick={() => router.push(`/dashboard/navigation?facilityId=${f.facilityId}`)}
               className="w-full mt-6 py-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all active:scale-[0.98] shadow-sm"
             >
-              Tactical Sector Map
+              Clinical Site Map
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

@@ -164,7 +164,7 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                         <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Select</span>
                      </div>
                   </div>
-                  <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Halcyon · Tactical Registry v1.1</p>
+                  <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Halcyon · Clinical Registry v1.1</p>
                </div>
             </div>
          </div>
