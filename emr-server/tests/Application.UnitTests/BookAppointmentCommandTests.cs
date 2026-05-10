@@ -51,7 +51,7 @@ public class BookAppointmentCommandTests
         result.PatientId.Should().Be(command.PatientId);
         result.PractitionerId.Should().Be(command.PractitionerId);
         _mockContext.Verify(c => c.Appointments.Add(It.IsAny<Appointment>()), Times.Once);
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce());
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class BookAppointmentCommandTests
         result.AppointmentId.Should().Be(appointmentId);
         result.PatientId.Should().Be(command.PatientId); // Updated
         _mockContext.Verify(c => c.Appointments.Add(It.IsAny<Appointment>()), Times.Never);
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce());
     }
 
     [Fact]

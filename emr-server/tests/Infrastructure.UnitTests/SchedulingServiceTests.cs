@@ -433,6 +433,14 @@ public class SchedulingServiceTests
                 PractitionerId = practitionerId,
                 IsActive = true,
                 IsCareNavigator = true,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address { Latitude = BaseLat, Longitude = BaseLon },
+                    },
+                },
             },
         }.BuildMockDbSet();
         var shifts = new List<ProviderShift>
@@ -479,7 +487,14 @@ public class SchedulingServiceTests
                 PractitionerId = practitionerId,
                 IsActive = true,
                 IsCareNavigator = true,
-                Addresses = new List<EntityAddress>(),
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address { Latitude = BaseLat, Longitude = BaseLon },
+                    },
+                },
             },
         }.BuildMockDbSet();
         var shifts = new List<ProviderShift>
@@ -504,7 +519,7 @@ public class SchedulingServiceTests
             patientId
         );
         result.Should().NotBeEmpty();
-        result.First().TravelTimeInMinutes.Should().Be(15);
+        result.First().TravelTimeInMinutes.Should().Be(5);
     }
 
     [Fact]

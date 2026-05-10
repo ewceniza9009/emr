@@ -23,11 +23,14 @@ jobs:
           dotnet-version: '10.0.x'
           
       - name: Restore dependencies
-        run: dotnet restore emr-server/src/Api/Api.csproj
+        run: dotnet restore emr-server/emr-server.slnx
         
       - name: Build (Release)
-        run: dotnet build emr-server/src/Api/Api.csproj --configuration Release --no-restore
+        run: dotnet build emr-server/emr-server.slnx --configuration Release --no-restore
         
+      - name: Run Unit Tests
+        run: dotnet test emr-server/emr-server.slnx --configuration Release --no-build --verbosity normal
+
       - name: Clinical Security Scan
         run: |
           dotnet list emr-server/src/Api/Api.csproj package --vulnerable
