@@ -36,56 +36,9 @@ jobs:
           dotnet list emr-server/src/Api/Api.csproj package --vulnerable
           dotnet list emr-server/src/Api/Api.csproj package --deprecated
 
-  frontend:
-    name: Frontend Pipeline (Next.js 14)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: emr-client/package-lock.json
-          
-      - name: Install dependencies
-        run: cd emr-client && npm ci
-        
-      - name: Lint & Static Analysis
-        run: cd emr-client && npm run lint
-        
-      - name: Production Build
-        run: cd emr-client && npm run build
-        env:
-          NEXT_PUBLIC_API_URL: https://api.halcyon.clinical
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          
-      - name: Upload Frontend Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-bundle-${{ github.run_id }}
-          path: emr-client/.next/
-          retention-days: 1
-          
-  containerize:
-    name: Container Security & Build
-    needs: [backend, frontend, e2e-tests]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        
-      - name: Build Local Images (Validation)
-        run: |
-          docker compose build
-
-  e2e-tests:
-    name: Clinical E2E Verification (Playwright)
-    needs: [backend, frontend]
+  clinical-verification:
+    name: Clinical Verification (Build & Playwright)
+    needs: [backend]
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -120,17 +73,11 @@ jobs:
           cd emr-client && npm ci
           npx playwright install --with-deps chromium
 
-      - name: Download Frontend Build
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-bundle-${{ github.run_id }}
-          path: emr-client/.next/
-
       - name: Build Backend
         run: dotnet build emr-server/emr-server.slnx --configuration Release
 
-      - name: Build Frontend
-        run: echo "Using cached build artifact"
+      - name: Production Build (Frontend)
+        run: cd emr-client && npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:34732
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'secret' }}
@@ -165,3 +112,18 @@ jobs:
           name: playwright-report
           path: emr-client/playwright-report/
           retention-days: 30
+
+  containerize:
+    name: Container Security & Build
+    needs: [backend, clinical-verification]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Build Local Images (Validation)
+        run: |
+          docker compose build
