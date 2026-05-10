@@ -64,7 +64,7 @@ jobs:
       - name: Upload Frontend Build
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-build
+          name: frontend-bundle-${{ github.run_id }}
           path: emr-client/.next/
           retention-days: 1
           
@@ -123,7 +123,7 @@ jobs:
       - name: Download Frontend Build
         uses: actions/download-artifact@v4
         with:
-          name: frontend-build
+          name: frontend-bundle-${{ github.run_id }}
           path: emr-client/.next/
 
       - name: Build Backend
