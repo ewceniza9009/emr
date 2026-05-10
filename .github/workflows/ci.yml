@@ -92,10 +92,10 @@ jobs:
           # Start Frontend (Forcing port 3431)
           cd emr-client && npm start -- -p 3431 &
           
-          # Wait for ports to be open (10-min timeout for slow cloud seeding)
-          # We wait for the TCP ports instead of the /health endpoint to avoid hangs during DB seeding
-          npx wait-on -t 600000 tcp:127.0.0.1:34732 tcp:127.0.0.1:3431
-          echo "Services are online. Starting Playwright suite."
+          # Wait for services to be 100% Healthy (10-min timeout for slow cloud seeding)
+          # The /health endpoint only returns 200 OK after the database seeding is FINISHED.
+          npx wait-on -t 600000 http://127.0.0.1:34732/health http://127.0.0.1:3431
+          echo "Services are 100% Healthy. Starting Playwright suite."
           
           # Run Playwright
           cd emr-client && npx playwright test tests/clinical-workflow.spec.ts --project=chromium --workers=1
