@@ -96,9 +96,17 @@ public class SearchQuery
                 Subtitle = p.Mrn,
                 Metadata =
                     $"{p.Dob:MM/dd/yyyy} | "
-                    + (p.Phones.FirstOrDefault(ph => ph.IsPrimary)?.PhoneNumber ?? "N/A")
+                    + (
+                        p.Phones.FirstOrDefault(ph => ph.IsPrimary)?.PhoneNumber
+                        ?? p.Phones.FirstOrDefault()?.PhoneNumber
+                        ?? "N/A"
+                    )
                     + " | "
-                    + (p.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address?.City ?? "N/A"),
+                    + (
+                        p.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address?.City
+                        ?? p.Addresses.FirstOrDefault()?.Address?.City
+                        ?? "N/A"
+                    ),
             })
             .ToList();
 
