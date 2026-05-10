@@ -68,6 +68,7 @@ try
     builder
         .Services.AddOpenTelemetry()
         .WithTracing(tracing =>
+        {
             tracing
                 .AddSource("Halcyon.Clinical.Api")
                 .SetResourceBuilder(
