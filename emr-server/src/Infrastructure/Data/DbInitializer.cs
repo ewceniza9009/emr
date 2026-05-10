@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Application.Common.Utils;
 using Bogus;
 using Domain.Common;
 using Domain.Entities;
@@ -572,85 +571,6 @@ namespace Infrastructure.Data
             await context.SaveChangesAsync();
         }
 
-        private static async Task SeedScheduleBlocksAsync(
-            ApplicationDbContext context,
-            Guid tenantId
-        )
-        {
-            if (await context.ScheduleBlocks.IgnoreQueryFilters().AnyAsync())
-                return;
-
-            var practitioners = await context.Practitioners.IgnoreQueryFilters().ToListAsync();
-            var startDate = DateTimeOffset.UtcNow.Date;
-
-            foreach (var practitioner in practitioners)
-            {
-                for (int i = 0; i < 7; i++)
-                {
-                    var date = startDate.AddDays(i);
-
-                    // Morning Shift: 08:00 - 12:00
-                    context.ScheduleBlocks.Add(
-                        new ScheduleBlock
-                        {
-                            BlockId = Guid.NewGuid(),
-                            TenantId = tenantId,
-                            PractitionerId = practitioner.PractitionerId,
-                            StartTime = new DateTimeOffset(
-                                date.Year,
-                                date.Month,
-                                date.Day,
-                                8,
-                                0,
-                                0,
-                                TimeSpan.Zero
-                            ),
-                            EndTime = new DateTimeOffset(
-                                date.Year,
-                                date.Month,
-                                date.Day,
-                                12,
-                                0,
-                                0,
-                                TimeSpan.Zero
-                            ),
-                            Status = ScheduleBlockStatus.Available,
-                        }
-                    );
-
-                    // Afternoon Shift: 13:00 - 17:00
-                    context.ScheduleBlocks.Add(
-                        new ScheduleBlock
-                        {
-                            BlockId = Guid.NewGuid(),
-                            TenantId = tenantId,
-                            PractitionerId = practitioner.PractitionerId,
-                            StartTime = new DateTimeOffset(
-                                date.Year,
-                                date.Month,
-                                date.Day,
-                                13,
-                                0,
-                                0,
-                                TimeSpan.Zero
-                            ),
-                            EndTime = new DateTimeOffset(
-                                date.Year,
-                                date.Month,
-                                date.Day,
-                                17,
-                                0,
-                                0,
-                                TimeSpan.Zero
-                            ),
-                            Status = ScheduleBlockStatus.Available,
-                        }
-                    );
-                }
-            }
-
-            await context.SaveChangesAsync();
-        }
 
         public static async Task WipeDatabaseAsync(ApplicationDbContext context)
         {
@@ -1901,7 +1821,6 @@ namespace Infrastructure.Data
             context.Set<OutreachScript>().AddRange(scripts);
             await context.SaveChangesAsync(default);
 
-
             if (!await context.SmartPhrases.IgnoreQueryFilters().AnyAsync())
             {
                 var phrases = new List<SmartPhrase>
@@ -2068,9 +1987,7 @@ namespace Infrastructure.Data
                 context.SmartPhrases.AddRange(phrases);
                 await context.SaveChangesAsync(default);
             }
-
         }
-
 
         private static async Task SeedQuestionnairesAsync(ApplicationDbContext context)
         {

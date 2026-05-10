@@ -25,12 +25,35 @@ interface Props {
 
 export default function PatientLookup({ open, onClose, onSelect }: Props) {
    const [search, setSearch] = useState("");
+   const [selectedIndex, setSelectedIndex] = useState(0);
    const { data, loading } = useQuery(GLOBAL_SEARCH, { 
       variables: { term: search },
       skip: !open || search.length < 2 
    });
 
-   const results = data?.globalSearch || [];
+   const results = useMemo(() => data?.globalSearch || [], [data]);
+
+   useEffect(() => {
+      setSelectedIndex(0);
+   }, [results]);
+
+   const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (results.length === 0) return;
+      
+      if (e.key === "ArrowDown") {
+         e.preventDefault();
+         setSelectedIndex(prev => (prev + 1) % results.length);
+      } else if (e.key === "ArrowUp") {
+         e.preventDefault();
+         setSelectedIndex(prev => (prev - 1 + results.length) % results.length);
+      } else if (e.key === "Enter") {
+         if (results[selectedIndex]) {
+            onSelect(results[selectedIndex]);
+         }
+      } else if (e.key === "Escape") {
+         onClose();
+      }
+   };
 
    if (!open) return null;
 
@@ -56,6 +79,7 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                         placeholder="SEARCH"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="w-full bg-transparent text-sm font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)] uppercase tracking-widest focus:outline-none"
                      />
                   </div>
@@ -73,14 +97,18 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                      </div>
                   ) : (
                      <div className="p-3 space-y-2">
-                        {results.map((item: any) => (
+                        {results.map((item: any, index: number) => (
                            <button
                                key={item.id}
                                onClick={() => onSelect(item)}
-                               className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all group border border-transparent text-left active:scale-[0.99] ${item.type === 'LEAD' ? 'hover:bg-amber-500/5 hover:border-amber-500/20' : 'hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20'}`}
+                               className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all group border text-left active:scale-[0.99] ${
+                                 selectedIndex === index 
+                                    ? item.type === 'LEAD' ? 'bg-amber-500/10 border-amber-500/30' : 'bg-[var(--primary)]/10 border-[var(--primary)]/30'
+                                    : 'border-transparent'
+                               } ${item.type === 'LEAD' ? 'hover:bg-amber-500/5' : 'hover:bg-[var(--primary)]/5'}`}
                            >
                                <div className={`w-10 h-10 rounded-xl bg-[var(--input-bg)] flex items-center justify-center text-[11px] font-bold border border-[var(--card-border)] transition-all text-[var(--text-primary)] ${item.type === 'LEAD' ? 'group-hover:border-amber-500/50' : 'group-hover:border-[var(--primary)]/50'}`}>
-                                   {item.title.split(' ').map((n: string) => n[0]).join('')}
+                                   {item.title?.split(' ').filter(Boolean).map((n: string) => n[0]).join('') || '?'}
                                </div>
                                <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
@@ -127,7 +155,7 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                <div className="px-8 py-4 border-t border-[var(--card-border)] bg-[var(--input-bg)]/10 flex items-center justify-between">
                   <div className="flex items-center gap-6">
                      <div className="flex items-center gap-2">
-                        <kbd className="px-1.5 py-0.5 rounded bg-[var(--card-border)] text-[8px] font-bold text-[var(--text-muted)] border-b-2 border-black/20">â†‘â†“</kbd>
+                        <kbd className="px-1.5 py-0.5 rounded bg-[var(--card-border)] text-[8px] font-bold text-[var(--text-muted)] border-b-2 border-black/20">↑↓</kbd>
                         <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Navigate</span>
                      </div>
                      <div className="flex items-center gap-2">
