@@ -1,6 +1,7 @@
 using Application.Common.Interfaces;
 using HotChocolate.Authorization;
 using Domain.Entities;
+using Domain.Enums;
 using HotChocolate;
 using HotChocolate.Data;
 using HotChocolate.Types;
@@ -171,7 +172,7 @@ public class SetupQuery
             {
                 Title = $"Visit: {apt.Patient.FirstName} {apt.Patient.LastName}",
                 Type = "VISIT",
-                Priority = apt.VisitType == VisitType.Emergency ? "URGENT" : "MEDIUM",
+                Priority = apt.VisitType == VisitType.EmergencyTriage ? "URGENT" : "MEDIUM",
                 DueDate = apt.ScheduledStart.DateTime,
                 Status = apt.Status.ToString()
             });
