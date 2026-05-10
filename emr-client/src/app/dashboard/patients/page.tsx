@@ -19,10 +19,11 @@ import AddPatientDrawer from "@/components/AddPatientDrawer";
 import { useCommandModal } from "@/components/CommandModalProvider";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Skeleton } from "@/components/ui/skeleton";
+import PatientFilterPopover, { PatientFilters } from "@/components/PatientFilterPopover";
 
 const GET_PATIENTS = gql`
-  query GetPatients($search: String, $skip: Int, $take: Int) {
-    patients(search: $search, skip: $skip, take: $take) {
+  query GetPatients($search: String, $skip: Int!, $take: Int!, $directiveTypes: [String!], $biologicalSex: String, $visitStatuses: [String!]) {
+    patients(search: $search, skip: $skip, take: $take, directiveTypes: $directiveTypes, biologicalSex: $biologicalSex, visitStatuses: $visitStatuses) {
       items {
         patientId
         mrn
@@ -55,12 +56,16 @@ export default function PatientsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<PatientFilters>({ directiveTypes: [], biologicalSex: null, visitStatuses: [] });
 
   const { data, loading, error, refetch } = useQuery(GET_PATIENTS, {
     variables: {
       search: debouncedSearch,
       skip: 0,
-      take: 50
+      take: 50,
+      directiveTypes: filters.directiveTypes,
+      biologicalSex: filters.biologicalSex,
+      visitStatuses: filters.visitStatuses
     },
     fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: true
@@ -103,9 +108,10 @@ export default function PatientsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <button className="h-10 px-4 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all">
-          <Filter className="w-4 h-4" />
-        </button>
+        <PatientFilterPopover 
+          currentFilters={filters}
+          onFilterChange={(newFilters) => setFilters(newFilters)}
+        />
       </div>
 
       {/* Patient Table */}

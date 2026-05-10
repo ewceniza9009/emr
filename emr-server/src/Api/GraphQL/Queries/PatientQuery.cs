@@ -28,10 +28,13 @@ public class PatientQuery
         string? search = null,
         int skip = 0,
         int take = 50,
+        List<string>? directiveTypes = null,
+        string? biologicalSex = null,
+        List<string>? visitStatuses = null,
         CancellationToken cancellationToken = default
     )
     {
-        return await mediator.Send(new GetPatientsQuery(search, skip, take), cancellationToken);
+        return await mediator.Send(new GetPatientsQuery(search, skip, take, directiveTypes, biologicalSex, visitStatuses), cancellationToken);
     }
 
     public IQueryable<Prescription> GetPrescriptionsByPatient(

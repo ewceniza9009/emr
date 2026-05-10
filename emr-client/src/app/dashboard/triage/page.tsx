@@ -17,14 +17,16 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useDebounce } from "@/hooks/useDebounce";
 
 import UploadDocumentDrawer from "@/components/UploadDocumentDrawer";
 import TriageNoteDrawer from "@/components/TriageNoteDrawer";
+import TriageFilterPopover, { TriageFilters } from "@/components/TriageFilterPopover";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const GET_TRIAGE_WORKLIST = gql`
-  query GetTriageWorklist($search: String) {
-    triageWorklist(search: $search) {
+  query GetTriageWorklist($search: String, $isAlert: Boolean, $directiveTypes: [String!]) {
+    triageWorklist(search: $search, isAlert: $isAlert, directiveTypes: $directiveTypes) {
       items {
         patientId
         mrn
@@ -45,18 +47,26 @@ export default function TriageDashboard() {
   const { data: session } = useSession();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isTriageNoteOpen, setIsTriageNoteOpen] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
   const [selectedPatientName, setSelectedPatientName] = useState<string>("");
 
-  const { data, loading, refetch } = useQuery(GET_TRIAGE_WORKLIST, {
+  const [filters, setFilters] = useState<TriageFilters>({ isAlert: null, directiveTypes: [] });
+
+  const { data, loading, refetch, networkStatus } = useQuery(GET_TRIAGE_WORKLIST, {
     variables: {
-      search: searchQuery || undefined
-    }
+      search: debouncedSearch || undefined,
+      isAlert: filters.isAlert,
+      directiveTypes: filters.directiveTypes
+    },
+    notifyOnNetworkStatusChange: true
   });
 
-  if (loading) return (
+  const isInitialLoading = networkStatus === 1; // Initial load only
+
+  if (isInitialLoading) return (
     <div className="space-y-4 animate-in fade-in duration-700">
       {/* Header & Stats Skeleton */}
       <div className="flex items-center justify-between">
@@ -69,7 +79,7 @@ export default function TriageDashboard() {
           <Skeleton className="h-16 w-36 rounded-2xl shadow-lg shadow-white/5" />
         </div>
       </div>
-
+  
       {/* Main Grid Skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
@@ -156,21 +166,42 @@ export default function TriageDashboard() {
         </div>
       </div>
 
+      <div className="bg-[var(--card-bg)] rounded-[2rem] border border-[var(--card-border)] p-4 flex items-center gap-4">
+        <div className="flex-1 relative">
+          <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] transition-all ${loading ? "animate-pulse text-amber-500" : ""}`} />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search priority queue by name or MRN..."
+            className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-bold placeholder:text-[var(--text-muted)] focus:outline-none focus:border-amber-500/50 transition-all uppercase tracking-widest"
+          />
+          {loading && !isInitialLoading && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" />
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Main Grid: Triage List & Facility Outreach */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {/* Triage Worklist */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="glass-morphism rounded-2xl overflow-hidden border border-[var(--card-border)]">
+          <div className="glass-morphism rounded-2xl border border-[var(--card-border)] relative">
             <div className="px-6 py-3 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)]">
               <h2 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
                 Priority Patient Queue
               </h2>
               <div className="flex gap-2">
-                <button className="p-1.5 rounded-lg bg-[var(--card-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all border border-[var(--card-border)]">
-                  <Filter className="w-3.5 h-3.5" />
-                </button>
+                <TriageFilterPopover 
+                  onFilterChange={setFilters}
+                  currentFilters={filters}
+                />
               </div>
             </div>
             <div className="overflow-x-auto">

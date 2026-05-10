@@ -112,14 +112,16 @@ public class ClinicalQuery
     [GraphQLName("triageWorklist")]
     public async Task<PagedResponse<TriageItemDto>> GetTriageWorklist(
         string? search,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken,
+        bool? isAlert,
+        List<string>? directiveTypes,
         int skip = 0,
-        int take = 50
+        int take = 50,
+        [Service] IMediator mediator = default!,
+        CancellationToken cancellationToken = default
     )
     {
         return await mediator.Send(
-            new GetTriageWorklistQuery(search, skip, take),
+            new GetTriageWorklistQuery(search, skip, take, isAlert, directiveTypes),
             cancellationToken
         );
     }

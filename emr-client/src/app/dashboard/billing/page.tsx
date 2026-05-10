@@ -101,11 +101,16 @@ const GET_BILLING_SUMMARY = gql`
   }
 `;
 
+import BillingFilterPopover, { BillingFilters } from "@/components/BillingFilterPopover";
+
 export default function BillingPage() {
   const { showToast } = useToast();
   const { formatCurrency } = useSettings();
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [periodFilter, setPeriodFilter] = useState("All Time");
+  const [filters, setFilters] = useState<BillingFilters>({ 
+    invoiceStatuses: [], 
+    claimStatuses: [], 
+    period: "All Time" 
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeTab, setActiveTab] = useState("invoices");
@@ -134,7 +139,7 @@ export default function BillingPage() {
       take,
       where: {
         and: [
-          statusFilter !== "All" ? { status: { eq: statusFilter } } : {},
+          filters.invoiceStatuses.length > 0 ? { status: { in: filters.invoiceStatuses } } : {},
           debouncedSearch ? {
             or: [
               { invoiceNumber: { contains: debouncedSearch } },
@@ -153,7 +158,7 @@ export default function BillingPage() {
       take,
       where: {
         and: [
-          statusFilter !== "All" ? { status: { eq: statusFilter } } : {},
+          filters.claimStatuses.length > 0 ? { status: { in: filters.claimStatuses } } : {},
           debouncedSearch ? {
             or: [
               { philhealthNumber: { contains: debouncedSearch } },
@@ -305,45 +310,24 @@ export default function BillingPage() {
         ))}
       </div>
 
-      {/* Compact Filter Bar */}
-      <div className="flex flex-col md:flex-row items-center gap-2 bg-[var(--input-bg)]/50 p-2.5 rounded-2xl border border-[var(--card-border)]">
-        <div className="flex items-center gap-2 px-3 border-r border-[var(--card-border)] shrink-0">
-          <Filter className="w-3.5 h-3.5 text-[var(--primary)]" />
-          <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">Filters</span>
+      <div className="flex flex-col md:flex-row items-center gap-4 bg-[var(--input-bg)]/50 p-2 rounded-[1.5rem] border border-[var(--card-border)] relative z-[100]">
+        {/* Compact Tabs */}
+        <div className="flex items-center gap-1 p-1 bg-[var(--card-bg)] rounded-xl border border-[var(--card-border)] shrink-0">
+          <button
+            onClick={() => setActiveTab("invoices")}
+            className={`px-5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "invoices" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+          >
+            Receivables
+          </button>
+          <button
+            onClick={() => setActiveTab("claims")}
+            className={`px-5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "claims" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+          >
+            Benefits
+          </button>
         </div>
- 
-        <div className="flex-1 flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-2 py-1 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all cursor-pointer min-w-[120px]"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Draft">Drafts Only</option>
-              <option value="Issued">Issued / Submitted</option>
-              <option value="Approved">Approved</option>
-              <option value="Paid">Paid / Settled</option>
-              <option value="Cancelled">Cancelled / Rejected</option>
-            </select>
-          </div>
- 
-          <div className="flex items-center gap-2">
-            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Period:</span>
-            <select
-              value={periodFilter}
-              onChange={(e) => setPeriodFilter(e.target.value)}
-              className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg px-2 py-1 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all cursor-pointer min-w-[120px]"
-            >
-              <option>All Time</option>
-              <option>Current Month</option>
-              <option>Last 30 Days</option>
-              <option>Last Quarter</option>
-              <option>Financial Year</option>
-            </select>
-          </div>
-        </div>
+
+        <div className="flex-1" />
  
         <div className="relative w-full md:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
@@ -352,25 +336,15 @@ export default function BillingPage() {
             placeholder="SEARCH ENTITY OR MRN..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all placeholder:text-[var(--text-muted)]"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all placeholder:text-[var(--text-muted)]"
           />
         </div>
-      </div>
- 
-      {/* Compact Tabs */}
-      <div className="flex items-center gap-1 p-1 bg-[var(--input-bg)] rounded-xl w-fit border border-[var(--card-border)]">
-        <button
-          onClick={() => setActiveTab("invoices")}
-          className={`px-6 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "invoices" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
-        >
-          Receivables
-        </button>
-        <button
-          onClick={() => setActiveTab("claims")}
-          className={`px-6 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "claims" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
-        >
-          Benefit Registry
-        </button>
+
+        <BillingFilterPopover 
+          currentFilters={filters}
+          activeTab={activeTab}
+          onFilterChange={(newFilters) => setFilters(newFilters)}
+        />
       </div>
 
       {/* Content Section */}

@@ -4,5 +4,11 @@ using MediatR;
 
 namespace Application.Patients.Queries;
 
-public record GetPatientsQuery(string? Search = null, int Skip = 0, int Take = 50)
-    : IRequest<PagedResponse<PatientDto>>;
+public record GetPatientsQuery(
+    string? Search = null, 
+    int Skip = 0, 
+    int Take = 50,
+    List<string>? DirectiveTypes = null,
+    string? BiologicalSex = null,
+    List<string>? VisitStatuses = null
+) : IRequest<PagedResponse<PatientDto>>;

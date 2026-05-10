@@ -21,12 +21,13 @@ import { useRouter } from "next/navigation";
 import EnrollmentDrawer from "@/components/EnrollmentDrawer";
 import { useToast } from "@/components/ToastProvider";
 import AddReferralDrawer from "@/components/AddReferralDrawer";
+import OutreachFilterPopover, { OutreachFilters } from "@/components/OutreachFilterPopover";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const GET_OUTREACH_LEADS = gql`
-  query GetOutreachLeads($where: PatientOutreachFilterInput) {
-    outreaches(where: $where) {
+  query GetOutreachLeads($search: String, $where: PatientOutreachFilterInput) {
+    outreaches(search: $search, where: $where) {
       items {
         patientOutreachId
         firstName
@@ -57,33 +58,38 @@ export default function OutreachPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEnrollOpen, setIsEnrollOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<any>(null);
-  const [filters, setFilters] = useState({
-    status: "",
-    attempts: "",
-    urgency: "",
-    modality: "",
-    search: ""
+  const [outreachFilters, setOutreachFilters] = useState<OutreachFilters>({
+    statuses: [],
+    callAttempts: null,
+    urgency: null
   });
-  const debouncedSearch = useDebounce(filters.search, 300);
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
 
   const handleEnrollClick = (lead: any) => {
     setSelectedLead(lead);
     setIsEnrollOpen(true);
   };
 
-  const { data, loading, error, refetch } = useQuery(GET_OUTREACH_LEADS, {
+  const { data, loading, error, refetch, networkStatus } = useQuery(GET_OUTREACH_LEADS, {
     variables: {
-      where: debouncedSearch ? {
-        or: [
-          { firstName: { contains: debouncedSearch } },
-          { lastName: { contains: debouncedSearch } },
-          { referralSource: { contains: debouncedSearch } }
+      search: debouncedSearch || undefined,
+      where: {
+        and: [
+          outreachFilters.statuses.length > 0 ? { status: { in: outreachFilters.statuses } } : {},
+          outreachFilters.callAttempts !== null ? (
+            outreachFilters.callAttempts === 5 ? { callAttemptCount: { gte: 3 } } :
+            outreachFilters.callAttempts === 2 ? { callAttemptCount: { gte: 1, lte: 2 } } :
+            { callAttemptCount: { eq: 0 } }
+          ) : {}
         ]
-      } : undefined
+      }
     },
     fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: true
   });
+
+  const isInitialLoading = networkStatus === 1;
 
   const [logActivity] = useMutation(LOG_OUTREACH_ACTIVITY);
   const { showToast } = useToast();
@@ -165,32 +171,30 @@ export default function OutreachPage() {
         ))}
       </div>
 
-      {/* Clean Filter Bar */}
+      {/* Professional Filter Bar */}
       <div className="flex flex-wrap gap-3 items-center bg-[var(--card-bg)] p-2.5 rounded-2xl border border-[var(--card-border)]">
         <div className="flex-1 min-w-[240px] relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+          <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors ${loading && !isInitialLoading ? "animate-pulse text-blue-500" : ""}`} />
           <input
             type="text"
             placeholder="Search patients or referrals..."
-            className="w-full h-10 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-11 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]/30 transition-all"
-            value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+            className="w-full h-10 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-11 pr-4 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--primary)]/30 transition-all uppercase tracking-widest"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {loading && !isInitialLoading && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" />
+            </div>
+          )}
         </div>
-        <select
-          className="h-10 px-4 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/30 appearance-none min-w-[160px]"
-          value={filters.status}
-          onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-        >
-          <option value="">All Statuses</option>
-          <option value="Lead">New Leads</option>
-          <option value="Contacted">Contacted</option>
-          <option value="Interested">Interested</option>
-        </select>
-        <button className="flex items-center gap-2 px-6 h-10 bg-[var(--input-bg)] text-[var(--text-primary)] rounded-xl font-medium text-sm hover:bg-[var(--primary)]/5 transition-all border border-[var(--card-border)]">
-          <Filter className="w-4 h-4 text-[var(--primary)]" />
-          Filters
-        </button>
+        
+        <OutreachFilterPopover 
+          onFilterChange={setOutreachFilters}
+          currentFilters={outreachFilters}
+        />
       </div>
 
       {/* Professional Worklist */}
@@ -200,7 +204,7 @@ export default function OutreachPage() {
             <Activity className="w-4 h-4 text-[var(--primary)]" />
             <h2 className="text-sm font-semibold text-[var(--text-primary)]">Clinical Outreach Worklist</h2>
           </div>
-          <span className="text-xs text-[var(--text-muted)]">{loading ? <Skeleton className="h-4 w-12" /> : `${filteredLeads.length} Lead(s)`}</span>
+          <span className="text-xs text-[var(--text-muted)]">{loading ? <Skeleton className="h-4 w-12" /> : `${data?.outreaches?.items?.length || 0} Lead(s)`}</span>
         </div>
 
         <div>
@@ -229,7 +233,7 @@ export default function OutreachPage() {
                     <td className="px-6 py-4"><div className="flex justify-end gap-2"><Skeleton className="h-10 w-10 rounded-xl" /><Skeleton className="h-10 w-10 rounded-xl" /><Skeleton className="h-10 w-10 rounded-xl" /></div></td>
                   </tr>
                 ))
-              ) : filteredLeads.map((lead: any) => (
+              ) : data?.outreaches?.items?.map((lead: any) => (
                 <tr key={lead.patientOutreachId} className="group hover:bg-white/[0.01] transition-colors">
                   <td className="px-6 py-2.5">
                     <div className="flex flex-col">
