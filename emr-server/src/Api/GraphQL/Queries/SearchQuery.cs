@@ -13,9 +13,11 @@ public class SearchQuery
         string term,
         [Service] IApplicationDbContext context,
         [Service] ISearchService searchService,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        if (string.IsNullOrWhiteSpace(term)) return new List<SearchResult>();
+        if (string.IsNullOrWhiteSpace(term))
+            return new List<SearchResult>();
 
         try
         {
@@ -27,14 +29,22 @@ public class SearchQuery
                 try
                 {
                     var results = await searchService.GlobalSearchAsync(term, cancellationToken);
-                    return results.Select(r => new SearchResult
+                    if (results.Any())
                     {
-                        Id = r.Id,
-                        Type = r.Type,
-                        Title = r.Title,
-                        Subtitle = r.Subtitle,
-                        Metadata = r.Metadata
-                    }).ToList();
+                        return results
+                            .Select(r => new SearchResult
+                            {
+                                Id = r.Id,
+                                Type = r.Type,
+                                Title = r.Title,
+                                Subtitle = r.Subtitle,
+                                Metadata = r.Metadata,
+                            })
+                            .ToList();
+                    }
+
+                    // CASCADE: If Elastic is empty, try SQL before giving up
+                    return await PerformSqlSearch(term, context, cancellationToken);
                 }
                 catch
                 {
@@ -59,42 +69,59 @@ public class SearchQuery
     private async Task<List<SearchResult>> PerformSqlSearch(
         string term,
         IApplicationDbContext context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
         var lowerTerm = term.ToLower();
 
-        var patients = await context.Patients
-            .Where(p => p.FirstName.ToLower().Contains(lowerTerm) || 
-                        p.LastName.ToLower().Contains(lowerTerm) || 
-                        p.Mrn.ToLower().Contains(lowerTerm))
+        var patients = await context
+            .Patients.Include(p => p.Phones)
+            .Include(p => p.Addresses)
+                .ThenInclude(a => a.Address)
+            .Where(p =>
+                p.FirstName.ToLower().Contains(lowerTerm)
+                || p.LastName.ToLower().Contains(lowerTerm)
+                || p.Mrn.ToLower().Contains(lowerTerm)
+                || p.Phones.Any(ph => ph.PhoneNumber.Contains(term))
+            )
             .Take(10)
+            .ToListAsync(cancellationToken);
+
+        var patientResults = patients
             .Select(p => new SearchResult
             {
                 Id = p.PatientId,
                 Type = "PATIENT",
                 Title = $"{p.FirstName} {p.LastName}",
                 Subtitle = p.Mrn,
-                Metadata = $"{p.Dob:MM/dd/yyyy} | " + 
-                           (p.Phones.Where(ph => ph.IsPrimary).Select(ph => ph.PhoneNumber).FirstOrDefault() ?? "N/A") + " | " +
-                           (p.Addresses.Where(a => a.IsPrimary).Select(a => a.Address.City + ", " + a.Address.State).FirstOrDefault() ?? "N/A")
+                Metadata =
+                    $"{p.Dob:MM/dd/yyyy} | "
+                    + (p.Phones.FirstOrDefault(ph => ph.IsPrimary)?.PhoneNumber ?? "N/A")
+                    + " | "
+                    + (p.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address?.City ?? "N/A"),
             })
+            .ToList();
+
+        var outreaches = await context
+            .PatientOutreaches.Where(o =>
+                o.FirstName.ToLower().Contains(lowerTerm)
+                || o.LastName.ToLower().Contains(lowerTerm)
+            )
+            .Take(10)
             .ToListAsync(cancellationToken);
 
-        var outreaches = await context.PatientOutreaches
-            .Where(o => o.FirstName.ToLower().Contains(lowerTerm) || 
-                        o.LastName.ToLower().Contains(lowerTerm))
-            .Take(10)
+        var outreachResults = outreaches
             .Select(o => new SearchResult
             {
                 Id = o.PatientOutreachId,
                 Type = "LEAD",
                 Title = $"{o.FirstName} {o.LastName}",
                 Subtitle = o.Status.ToString(),
-                Metadata = o.PrimaryPhone
+                Metadata = o.PrimaryPhone,
             })
-            .ToListAsync(cancellationToken);
+            .ToList();
 
-        return patients.Concat(outreaches).ToList();
+        return patientResults.Concat(outreachResults).ToList();
     }
 }
 
