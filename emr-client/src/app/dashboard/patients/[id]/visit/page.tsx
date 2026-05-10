@@ -693,7 +693,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
           <button
             onClick={() => setIsAssessmentModalOpen(true)}
             className="ml-4 p-2 rounded-full border border-dashed border-[var(--border-color,rgba(0,0,0,0.2))] text-[var(--text-muted)] hover:text-indigo-500 hover:border-indigo-500/50 transition-all shadow-sm hover:shadow-indigo-500/10"
-            title="Add Protocol"
+            title="Add Assessment"
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -726,13 +726,16 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                   {appointment?.plannedAssessments?.length > 0 && (
                     <div className="w-full max-w-sm pt-12 border-t border-[var(--border-color,rgba(0,0,0,0.05))] space-y-6">
                       <p className="text-center text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-[0.5em]">Clinical Plan</p>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-wrap justify-center gap-8">
                         {appointment.plannedAssessments.map((code: string) => (
-                          <div key={code} className="flex flex-col items-center gap-2 group cursor-default">
-                            <div className="w-8 h-8 rounded-full bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500/10 transition-all">
-                              <ClipboardList className="w-3.5 h-3.5" />
+                          <div key={code} className="flex flex-col items-center gap-3 group cursor-default">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500/10 group-hover:border-indigo-500/30 group-hover:scale-110 transition-all duration-300 shadow-sm">
+                              <ClipboardList className="w-5 h-5" />
                             </div>
-                            <span className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-widest group-hover:text-indigo-400 transition-colors">{code}</span>
+                            <div className="text-center">
+                              <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.2em] group-hover:text-indigo-400 transition-colors">{code}</p>
+                              <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Assessment</p>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -742,15 +745,15 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                   {appointment?.supportingClinicians?.length > 0 && (
                     <div className="w-full max-w-sm pt-8 border-t border-[var(--border-color,rgba(0,0,0,0.05))] space-y-6 text-center">
                       <p className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-[0.5em]">Clinical Team</p>
-                      <div className="flex flex-wrap justify-center gap-6">
+                      <div className="flex flex-wrap justify-center gap-8">
                         {appointment.supportingClinicians.map((sc: any) => (
-                          <div key={sc.practitionerId} className="flex flex-col items-center gap-2 group cursor-default">
-                            <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20 transition-all">
-                              <Users className="w-3.5 h-3.5" />
+                          <div key={sc.practitionerId} className="flex flex-col items-center gap-3 group cursor-default">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20 group-hover:border-blue-500/40 group-hover:scale-110 transition-all duration-300 shadow-sm">
+                              <Users className="w-5 h-5" />
                             </div>
                             <div className="text-center">
-                              <p className="text-[9px] font-black text-[var(--foreground)] uppercase">{sc.firstName} {sc.lastName}</p>
-                              <p className="text-[8px] text-blue-400 font-bold uppercase tracking-widest">{sc.position}</p>
+                              <p className="text-[10px] font-black text-[var(--foreground)] uppercase tracking-tight group-hover:text-blue-400 transition-colors">{sc.firstName} {sc.lastName}</p>
+                              <p className="text-[8px] text-blue-400 font-bold uppercase tracking-widest opacity-70">{sc.position}</p>
                             </div>
                           </div>
                         ))}
@@ -884,7 +887,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                       <div className="space-y-4">
                         <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-tight">{currentStep.label}</h2>
                         <p className="text-[var(--text-muted)] max-w-sm mx-auto leading-relaxed text-sm">
-                          {questionnaireData?.questionnaireByType?.description || "Select an action to proceed with this clinical protocol."}
+                          {questionnaireData?.questionnaireByType?.description || "Select an action to proceed with this clinical assessment."}
                         </p>
                       </div>
 
@@ -928,7 +931,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                           <ClipboardList className="w-6 h-6 text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
                         </div>
                         <div className="flex flex-col items-center gap-2">
-                          <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Hydrating Protocol Schema</p>
+                          <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Hydrating Assessment Schema</p>
                           <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
                           <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Syncing Clinical Metadata</p>
                         </div>
