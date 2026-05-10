@@ -82,6 +82,9 @@ jobs:
 
       - name: Run E2E Tests
         run: |
+          # Ensure Database is fully awake
+          npx wait-on tcp:127.0.0.1:5432
+          
           # Start Backend
           cd emr-server/src/Api && dotnet run --no-build --configuration Release -- --seed &
           
@@ -95,7 +98,7 @@ jobs:
           # Run Playwright
           cd emr-client && npx playwright test tests/clinical-workflow.spec.ts --project=chromium --workers=1
         env:
-          ConnectionStrings__DefaultConnection: "Host=localhost;Database=emr;Username=postgres;Password=postgres"
+          ConnectionStrings__DefaultConnection: "Host=127.0.0.1;Database=emr;Username=postgres;Password=postgres"
           NEXT_PUBLIC_API_URL: http://127.0.0.1:34732
           NEXTAUTH_SECRET: "ci-secret-halcyon"
           NEXTAUTH_URL: http://127.0.0.1:3431
