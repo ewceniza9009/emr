@@ -85,12 +85,12 @@ jobs:
           # Ensure Database is fully awake
           npx wait-on tcp:127.0.0.1:5432
           
-          # Start Backend (Enforcing Production and ignoring local profiles)
+          # Start Backend (Enforcing Production, Port, and ignoring local profiles)
           export ASPNETCORE_ENVIRONMENT=Production
-          cd emr-server/src/Api && dotnet run --no-build --no-launch-profile --configuration Release -- --seed &
+          cd emr-server/src/Api && dotnet run --no-build --no-launch-profile --configuration Release --urls "http://127.0.0.1:34732" -- --seed &
           
-          # Start Frontend
-          cd emr-client && npm start &
+          # Start Frontend (Forcing port 3431)
+          cd emr-client && npm start -- -p 3431 &
           
           # Wait for ports to be open (10-min timeout for slow cloud seeding)
           # We wait for the TCP ports instead of the /health endpoint to avoid hangs during DB seeding
