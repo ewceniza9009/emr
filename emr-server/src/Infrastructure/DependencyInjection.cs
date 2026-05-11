@@ -75,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
         services.AddScoped<ISecurityAuditService, Infrastructure.Services.SecurityAuditService>();
         services.AddScoped<ISearchService, Infrastructure.Services.SearchService>();
+        services.AddScoped<INotificationService, Infrastructure.Services.NotificationService>();
         services.AddHostedService<Infrastructure.BackgroundJobs.ProcessOutboxMessagesJob>();
 
         return services;

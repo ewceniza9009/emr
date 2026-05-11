@@ -58,6 +58,8 @@ public class Patient : BaseEntity, ITenantEntity
     public ICollection<PatientDocument> PatientDocuments { get; set; } =
         new List<PatientDocument>();
     public ICollection<ClinicalEncounter> Encounters { get; set; } = new List<ClinicalEncounter>();
+    public ICollection<CareNavigationCase> CareNavigationCases { get; set; } =
+        new List<CareNavigationCase>();
 
     public static Patient CreateFromOutreach(
         PatientOutreach outreach,

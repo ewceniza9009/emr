@@ -1,9 +1,9 @@
 using System.Threading.RateLimiting;
 using Api;
-using Api.Hubs;
 using Application;
 using Infrastructure;
 using Infrastructure.Data;
+using Infrastructure.Hubs;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.RateLimiting;
@@ -151,7 +151,8 @@ try
 
     app.MapGraphQL("/graphql");
 
-    app.MapHub<TelemetryHub>("/hubs/telemetry");
+    app.MapHub<Infrastructure.Hubs.TelemetryHub>("/hubs/telemetry");
+    app.MapHub<Infrastructure.Hubs.NotificationHub>("/hubs/notifications");
 
     using (var scope = app.Services.CreateScope())
     {

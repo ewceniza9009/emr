@@ -17,6 +17,7 @@ public class FinalizeEnrollmentCommandTests
     private readonly Mock<IMrnGenerator> _mockMrnGenerator;
     private readonly Mock<IDateTimeProvider> _mockDateTimeProvider;
     private readonly Mock<ISchedulingService> _mockSchedulingService;
+    private readonly Mock<INotificationService> _mockNotificationService;
     private readonly Mock<ILogger<FinalizeEnrollmentCommandHandler>> _mockLogger;
     private readonly FinalizeEnrollmentCommandHandler _handler;
 
@@ -26,6 +27,7 @@ public class FinalizeEnrollmentCommandTests
         _mockMrnGenerator = new Mock<IMrnGenerator>();
         _mockDateTimeProvider = new Mock<IDateTimeProvider>();
         _mockSchedulingService = new Mock<ISchedulingService>();
+        _mockNotificationService = new Mock<INotificationService>();
         _mockLogger = new Mock<ILogger<FinalizeEnrollmentCommandHandler>>();
 
         _handler = new FinalizeEnrollmentCommandHandler(
@@ -33,6 +35,7 @@ public class FinalizeEnrollmentCommandTests
             _mockMrnGenerator.Object,
             _mockDateTimeProvider.Object,
             _mockSchedulingService.Object,
+            _mockNotificationService.Object,
             _mockLogger.Object
         );
 

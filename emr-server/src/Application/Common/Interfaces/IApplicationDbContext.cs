@@ -54,6 +54,7 @@ public interface IApplicationDbContext
     DbSet<AssessmentResponse> AssessmentResponses { get; }
     DbSet<TenantConfiguration> TenantConfigurations { get; }
     DbSet<OutboxMessage> OutboxMessages { get; }
+    DbSet<Notification> Notifications { get; }
 
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
 

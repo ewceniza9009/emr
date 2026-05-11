@@ -34,10 +34,13 @@ namespace Infrastructure.Data
             >();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-            
+
             // Configuration-driven Credential Injection
-            var adminPassword = configuration["SeedSettings:InitialAdminPassword"] ?? "Halcyon@Initial!2026";
-            var practitionerPassword = configuration["SeedSettings:InitialPractitionerPassword"] ?? "HalcyonPractitioner@Initial!2026";
+            var adminPassword =
+                configuration["SeedSettings:InitialAdminPassword"] ?? "Halcyon@Initial!2026";
+            var practitionerPassword =
+                configuration["SeedSettings:InitialPractitionerPassword"]
+                ?? "HalcyonPractitioner@Initial!2026";
 
             // 1. SOLID INFRASTRUCTURE: Always ensure migrations are applied before anything else
             await context.Database.MigrateAsync();
@@ -75,7 +78,13 @@ namespace Infrastructure.Data
             }
 
             // 5. SEED CORE DATA
-            await SeedIdentityAsync(context, userManager, roleManager, adminPassword, practitionerPassword);
+            await SeedIdentityAsync(
+                context,
+                userManager,
+                roleManager,
+                adminPassword,
+                practitionerPassword
+            );
 
             if (seedDb)
             {
@@ -579,7 +588,6 @@ namespace Infrastructure.Data
             await context.SaveChangesAsync();
         }
 
-
         public static async Task WipeDatabaseAsync(ApplicationDbContext context)
         {
             var tableNames = context
@@ -798,13 +806,22 @@ namespace Infrastructure.Data
                     .RuleFor(p => p.ConsentToTreat, f => true)
                     .RuleFor(p => p.ConsentHIPAA, f => true)
                     .RuleFor(p => p.ConsentMarketing, f => f.Random.Bool())
-                    .RuleFor(p => p.TriageNote, f => f.Random.Bool(0.3f) ? f.PickRandom(new[] { 
-                        "Reporting severe breakthrough pain in lower extremities.",
-                        "Oxygen saturation dipping during exertion. Family concerned.",
-                        "New onset agitation and restlessness noted by caregiver.",
-                        "Requires medication titration for terminal secretions.",
-                        "Initial triage: Stable, but needs symptom follow-up within 24h."
-                    }) : null)
+                    .RuleFor(
+                        p => p.TriageNote,
+                        f =>
+                            f.Random.Bool(0.3f)
+                                ? f.PickRandom(
+                                    new[]
+                                    {
+                                        "Reporting severe breakthrough pain in lower extremities.",
+                                        "Oxygen saturation dipping during exertion. Family concerned.",
+                                        "New onset agitation and restlessness noted by caregiver.",
+                                        "Requires medication titration for terminal secretions.",
+                                        "Initial triage: Stable, but needs symptom follow-up within 24h.",
+                                    }
+                                )
+                                : null
+                    )
                     .RuleFor(p => p.InterpreterRequired, f => false)
                     .RuleFor(p => p.PreferredContactMethod, f => "PHONE")
                     .Generate(10);
@@ -828,21 +845,25 @@ namespace Infrastructure.Data
                     FacilityId = facilities[0].FacilityId,
                     ConsentToTreat = true,
                     ConsentHIPAA = true,
-                    PreferredContactMethod = "PHONE"
+                    PreferredContactMethod = "PHONE",
                 };
                 context.Patients.Add(pearline);
                 patients.Add(pearline); // Add to list so she gets contacts/docs
 
                 // Seed Pearline's specific contact details
-                context.Set<PatientPhone>().Add(new PatientPhone
-                {
-                    PhoneId = Guid.NewGuid(),
-                    TenantId = defaultTenantId,
-                    PatientId = pearline.PatientId,
-                    PhoneNumber = "1-222-674-4040 x19731",
-                    Type = AddressType.Mobile,
-                    IsPrimary = true
-                });
+                context
+                    .Set<PatientPhone>()
+                    .Add(
+                        new PatientPhone
+                        {
+                            PhoneId = Guid.NewGuid(),
+                            TenantId = defaultTenantId,
+                            PatientId = pearline.PatientId,
+                            PhoneNumber = "1-222-674-4040 x19731",
+                            Type = AddressType.Mobile,
+                            IsPrimary = true,
+                        }
+                    );
 
                 var pearlineAddr = new EntityAddress
                 {
@@ -857,8 +878,8 @@ namespace Infrastructure.Data
                         State = "Central Visayas",
                         PostalCode = "6000",
                         Latitude = 10.3157,
-                        Longitude = 123.8854
-                    }
+                        Longitude = 123.8854,
+                    },
                 };
                 context.Set<EntityAddress>().Add(pearlineAddr);
 
@@ -1003,10 +1024,10 @@ namespace Infrastructure.Data
                         Street = "123 Test St",
                         City = "Cebu City",
                         State = "Central Visayas",
-                        PostalCode = "6000"
+                        PostalCode = "6000",
                     },
                     PrimaryPhone = "555-0199",
-                    Disposition = EnrollmentDisposition.Cooperative
+                    Disposition = EnrollmentDisposition.Cooperative,
                 };
                 context.PatientOutreaches.Add(testLead);
 
@@ -1597,13 +1618,27 @@ namespace Infrastructure.Data
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, (f, u) => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.EncounterId, (f, u) => f.PickRandom(encountersList).EncounterId)
-                    .RuleFor(x => x.Pain, f => f.Random.WeightedRandom(new[] { 0, 3, 5, 8, 10 }, new[] { 0.2f, 0.3f, 0.3f, 0.15f, 0.05f }))
+                    .RuleFor(
+                        x => x.Pain,
+                        f =>
+                            f.Random.WeightedRandom(
+                                new[] { 0, 3, 5, 8, 10 },
+                                new[] { 0.2f, 0.3f, 0.3f, 0.15f, 0.05f }
+                            )
+                    )
                     .RuleFor(x => x.Nausea, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.ShortnessOfBreath, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.Tiredness, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.Drowsiness, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.LackOfAppetite, f => f.Random.Number(0, 10))
-                    .RuleFor(x => x.Wellbeing, f => f.Random.WeightedRandom(new[] { 0, 3, 5, 8, 10 }, new[] { 0.2f, 0.3f, 0.3f, 0.15f, 0.05f }))
+                    .RuleFor(
+                        x => x.Wellbeing,
+                        f =>
+                            f.Random.WeightedRandom(
+                                new[] { 0, 3, 5, 8, 10 },
+                                new[] { 0.2f, 0.3f, 0.3f, 0.15f, 0.05f }
+                            )
+                    )
                     .RuleFor(x => x.Anxiety, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.Depression, f => f.Random.Number(0, 10))
                     .RuleFor(x => x.AssessedAt, f => f.Date.RecentOffset(30).ToUniversalTime())
@@ -2083,6 +2118,8 @@ namespace Infrastructure.Data
                 context.SmartPhrases.AddRange(phrases);
                 await context.SaveChangesAsync(default);
             }
+
+            await SeedNotificationsAsync(context);
         }
 
         private static async Task SeedQuestionnairesAsync(ApplicationDbContext context)
@@ -2706,6 +2743,92 @@ namespace Infrastructure.Data
                     Order = 4,
                 }
             );
+        }
+
+        private static async Task SeedNotificationsAsync(ApplicationDbContext context)
+        {
+            if (await context.Notifications.IgnoreQueryFilters().AnyAsync())
+                return;
+
+            var adminUser = await context
+                .Users.IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Email == "admin@palliative.emr");
+            var adminId = adminUser?.Id;
+
+            var notifications = new List<Notification>
+            {
+                new Notification
+                {
+                    NotificationId = Guid.NewGuid(),
+                    Title = "System Maintenance",
+                    Message = "Scheduled maintenance tonight at 10 PM PHT. Expect brief downtime.",
+                    Priority = NotificationPriority.High,
+                    Category = "System",
+                    CreatedAt = DateTimeOffset.UtcNow.AddHours(-2),
+                    IsRead = false,
+                },
+                new Notification
+                {
+                    NotificationId = Guid.NewGuid(),
+                    Title = "Welcome to Halcyon",
+                    Message =
+                        "Your clinical operating system is ready. Explore the new dashboard features.",
+                    Priority = NotificationPriority.Normal,
+                    Category = "System",
+                    CreatedAt = DateTimeOffset.UtcNow.AddDays(-1),
+                    IsRead = true,
+                    ReadAt = DateTimeOffset.UtcNow.AddDays(-1).AddMinutes(5),
+                },
+            };
+
+            if (adminId != null)
+            {
+                notifications.AddRange(
+                    new[]
+                    {
+                        new Notification
+                        {
+                            NotificationId = Guid.NewGuid(),
+                            UserId = adminId,
+                            Title = "Urgent: High Pain Score",
+                            Message =
+                                "Patient Maria Santos (MRN-50042) reported a pain score of 9/10.",
+                            Priority = NotificationPriority.Critical,
+                            Category = "Clinical",
+                            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-15),
+                            IsRead = false,
+                            ActionUrl = "/patients/maria-santos",
+                        },
+                        new Notification
+                        {
+                            NotificationId = Guid.NewGuid(),
+                            UserId = adminId,
+                            Title = "New Appointment",
+                            Message =
+                                "You have a new telehealth visit scheduled for tomorrow at 2 PM.",
+                            Priority = NotificationPriority.Normal,
+                            Category = "Scheduling",
+                            CreatedAt = DateTimeOffset.UtcNow.AddHours(-1),
+                            IsRead = false,
+                            ActionUrl = "/schedule",
+                        },
+                        new Notification
+                        {
+                            NotificationId = Guid.NewGuid(),
+                            UserId = adminId,
+                            Title = "Billing Alert",
+                            Message = "Invoice #INV-2026-001 is overdue for processing.",
+                            Priority = NotificationPriority.Urgent,
+                            Category = "Billing",
+                            CreatedAt = DateTimeOffset.UtcNow.AddHours(-4),
+                            IsRead = false,
+                        },
+                    }
+                );
+            }
+
+            context.Notifications.AddRange(notifications);
+            await context.SaveChangesAsync();
         }
 
         private static string[] GetAllPermissions()

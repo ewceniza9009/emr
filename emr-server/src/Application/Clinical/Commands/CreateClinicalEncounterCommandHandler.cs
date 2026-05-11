@@ -11,14 +11,17 @@ public class CreateClinicalEncounterCommandHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTime;
+    private readonly INotificationService _notificationService;
 
     public CreateClinicalEncounterCommandHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTime
+        IDateTimeProvider dateTime,
+        INotificationService notificationService
     )
     {
         _context = context;
         _dateTime = dateTime;
+        _notificationService = notificationService;
     }
 
     public async Task<Guid> Handle(
@@ -64,7 +67,18 @@ public class CreateClinicalEncounterCommandHandler
             }
         }
 
+        var patient = await _context.Patients
+            .FirstOrDefaultAsync(p => p.PatientId == request.PatientId, cancellationToken);
+        var patientName = patient != null ? $"{patient.FirstName} {patient.LastName}" : "Unknown Patient";
+
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Notify Visit Started
+        await _notificationService.SendGlobalNotificationAsync(
+            "Visit Started",
+            $"Practitioner has started a guided encounter with {patientName}.",
+            NotificationPriority.Normal
+        );
 
         return encounter.EncounterId;
     }

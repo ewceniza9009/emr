@@ -1,4 +1,4 @@
-using Api.Hubs;
+using Infrastructure.Hubs;
 using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.SignalR;

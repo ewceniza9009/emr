@@ -44,6 +44,7 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
     private readonly IMrnGenerator _mrnGenerator;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly ISchedulingService _schedulingService;
+    private readonly INotificationService _notificationService;
     private readonly ILogger<FinalizeEnrollmentCommandHandler> _logger;
 
     public FinalizeEnrollmentCommandHandler(
@@ -51,6 +52,7 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         IMrnGenerator mrnGenerator,
         IDateTimeProvider dateTimeProvider,
         ISchedulingService schedulingService,
+        INotificationService notificationService,
         ILogger<FinalizeEnrollmentCommandHandler> logger
     )
     {
@@ -58,6 +60,7 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         _mrnGenerator = mrnGenerator;
         _dateTimeProvider = dateTimeProvider;
         _schedulingService = schedulingService;
+        _notificationService = notificationService;
         _logger = logger;
     }
 
@@ -238,6 +241,27 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         outreach.UpdatedAt = _dateTimeProvider.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Notify Care Team
+        if (navigatorId.HasValue)
+        {
+            await _notificationService.SendUserNotificationAsync(
+                navigatorId.Value.ToString(),
+                "New Patient Assigned",
+                $"You have been assigned as the Care Navigator for {patient.FirstName} {patient.LastName} (MRN: {mrn}).",
+                NotificationPriority.High
+            );
+        }
+
+        if (request.PrimaryClinicianId.HasValue && request.PrimaryClinicianId != navigatorId)
+        {
+            await _notificationService.SendUserNotificationAsync(
+                request.PrimaryClinicianId.Value.ToString(),
+                "New Patient Onboarding",
+                $"Patient {patient.FirstName} {patient.LastName} (MRN: {mrn}) has been enrolled and assigned to you.",
+                NotificationPriority.High
+            );
+        }
 
         _logger.LogInformation(
             "Successfully enrolled patient and opened care case. MRN: {MRN}, Patient ID: {PatientId}",

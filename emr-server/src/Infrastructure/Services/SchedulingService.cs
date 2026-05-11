@@ -2,6 +2,7 @@ using Application.Common.Interfaces;
 using Application.Common.Utils;
 using Domain.Entities;
 using Domain.Enums;
+using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -9,13 +10,16 @@ namespace Infrastructure.Services;
 
 public class SchedulingService : ISchedulingService
 {
-    private readonly IApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
     private readonly ILogger<SchedulingService> _logger;
     private readonly SemaphoreSlim _semaphore = new(10);
 
-    public SchedulingService(IApplicationDbContext context, ILogger<SchedulingService> logger)
+    public SchedulingService(
+        IDbContextFactory<ApplicationDbContext> dbFactory,
+        ILogger<SchedulingService> logger
+    )
     {
-        _context = context;
+        _dbFactory = dbFactory;
         _logger = logger;
     }
 
@@ -56,8 +60,10 @@ public class SchedulingService : ISchedulingService
                 offset
             );
 
+            using var context = await _dbFactory.CreateDbContextAsync(cancellationToken);
+
             // 1. Fetch Target Patient Coordinates
-            var patient = await _context
+            var patient = await context
                 .Patients.AsNoTracking()
                 .Include(p => p.Addresses)
                     .ThenInclude(a => a.Address)
@@ -69,22 +75,22 @@ public class SchedulingService : ISchedulingService
             }
 
             // 2. Batch Fetch all clinical staff and their shifts
-            var staffData = await _context
+            var staffData = await context
                 .Practitioners.AsNoTracking()
                 .Where(p => p.IsActive && (p.IsCareNavigator || p.IsSupportingClinician))
                 .Select(p => new
                 {
                     p.PractitionerId,
                     p.LastName,
-                    Latitude = p.Addresses
-                        .Where(a => a.IsPrimary)
+                    Latitude = p
+                        .Addresses.Where(a => a.IsPrimary)
                         .Select(a => (double?)a.Address.Latitude)
                         .FirstOrDefault(),
-                    Longitude = p.Addresses
-                        .Where(a => a.IsPrimary)
+                    Longitude = p
+                        .Addresses.Where(a => a.IsPrimary)
                         .Select(a => (double?)a.Address.Longitude)
                         .FirstOrDefault(),
-                    Shifts = _context
+                    Shifts = context
                         .ProviderShifts.Where(s =>
                             s.PractitionerId == p.PractitionerId && s.DayOfWeek == dayOfWeek
                         )
@@ -97,13 +103,13 @@ public class SchedulingService : ISchedulingService
             var startOfToday = new DateTimeOffset(targetDate, TimeSpan.Zero); // Force UTC for PG
             var endOfToday = startOfToday.AddDays(1);
 
-            var existingAppointments = await _context
+            var existingAppointments = await context
                 .Appointments.AsNoTracking()
                 .Include(a => a.Patient)
                 .Where(a => a.ScheduledStart >= startOfToday && a.ScheduledStart < endOfToday)
                 .ToListAsync(cancellationToken);
 
-            var scheduleBlocks = await _context
+            var scheduleBlocks = await context
                 .ScheduleBlocks.AsNoTracking()
                 .Where(b =>
                     b.StartTime >= startOfToday
@@ -193,7 +199,10 @@ public class SchedulingService : ISchedulingService
 
                     if (!staff.Latitude.HasValue || !staff.Longitude.HasValue)
                     {
-                        _logger.LogWarning(">>> EXCLUDING: Practitioner {Id} lacks a valid primary address for geospatial routing.", staff.PractitionerId);
+                        _logger.LogWarning(
+                            ">>> EXCLUDING: Practitioner {Id} lacks a valid primary address for geospatial routing.",
+                            staff.PractitionerId
+                        );
                         continue;
                     }
 
@@ -294,7 +303,8 @@ public class SchedulingService : ISchedulingService
         CancellationToken cancellationToken = default
     )
     {
-        var appt = await _context
+        using var context = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        var appt = await context
             .Appointments.Include(a => a.Patient)
                 .ThenInclude(p => p.Addresses)
                     .ThenInclude(a => a.Address)
@@ -317,7 +327,7 @@ public class SchedulingService : ISchedulingService
 
         // Find previous appointment on the same day for this practitioner
         var startOfDay = new DateTimeOffset(appt.ScheduledStart.Date, TimeSpan.Zero);
-        var prevAppt = await _context
+        var prevAppt = await context
             .Appointments.Include(a => a.Patient)
                 .ThenInclude(p => p.Addresses)
                     .ThenInclude(a => a.Address)
@@ -344,7 +354,7 @@ public class SchedulingService : ISchedulingService
             else
             {
                 // Fallback to practitioner home if prev appt has no address
-                var practitioner = await _context
+                var practitioner = await context
                     .Practitioners.Include(p => p.Addresses)
                         .ThenInclude(a => a.Address)
                     .FirstOrDefaultAsync(
@@ -360,7 +370,7 @@ public class SchedulingService : ISchedulingService
         else
         {
             // First appointment of the day, use practitioner home
-            var practitioner = await _context
+            var practitioner = await context
                 .Practitioners.Include(p => p.Addresses)
                     .ThenInclude(a => a.Address)
                 .FirstOrDefaultAsync(

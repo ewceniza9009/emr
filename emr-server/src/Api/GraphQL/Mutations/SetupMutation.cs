@@ -16,7 +16,8 @@ public class SetupMutation
     public async Task<Practitioner> CreatePractitioner(
         Practitioner input,
         [Service] IApplicationDbContext context,
-        [Service] Microsoft.AspNetCore.Identity.UserManager<Infrastructure.Identity.ApplicationUser> userManager)
+        [Service] Microsoft.AspNetCore.Identity.UserManager<Infrastructure.Identity.ApplicationUser> userManager,
+        [Service] INotificationService notificationService)
     {
         // SELF-HEALING: If UserId is missing, try to find a user with the same name
         if (input.UserId == Guid.Empty)
@@ -39,6 +40,16 @@ public class SetupMutation
 
         context.Practitioners.Add(input);
         await context.SaveChangesAsync(default);
+
+        // Notify Onboarding
+        await notificationService.SendGlobalNotificationAsync(
+            "New Practitioner Onboarded",
+            $"{input.FirstName} {input.LastName} ({input.Position}) has been registered and is now active in the clinical directory.",
+            NotificationPriority.Normal,
+            category: "System",
+            actionUrl: "/admin/practitioners"
+        );
+
         return input;
     }
 

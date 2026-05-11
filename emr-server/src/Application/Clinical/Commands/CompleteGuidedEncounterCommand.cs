@@ -33,14 +33,17 @@ public class CompleteGuidedEncounterCommandHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IElationClient _elationClient;
+    private readonly INotificationService _notificationService;
 
     public CompleteGuidedEncounterCommandHandler(
         IApplicationDbContext context,
-        IElationClient elationClient
+        IElationClient elationClient,
+        INotificationService notificationService
     )
     {
         _context = context;
         _elationClient = elationClient;
+        _notificationService = notificationService;
     }
 
     public async Task<Guid> Handle(
@@ -110,6 +113,13 @@ public class CompleteGuidedEncounterCommandHandler
         _context.ClinicalNotes.AddRange(notes);
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Notify Visit Completion
+        await _notificationService.SendGlobalNotificationAsync(
+            "Visit Completed",
+            $"Encounter for {encounter.Patient.FirstName} {encounter.Patient.LastName} has been finalized and synced to Elation Health.",
+            Domain.Enums.NotificationPriority.Normal
+        );
 
         // 4. Trigger External Sync to Elation Health
         try

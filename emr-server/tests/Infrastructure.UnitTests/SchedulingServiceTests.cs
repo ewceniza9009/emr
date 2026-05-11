@@ -1,8 +1,9 @@
-using Application.Common.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using FluentAssertions;
+using Infrastructure.Data;
 using Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MockQueryable.Moq;
 using Moq;
@@ -11,7 +12,8 @@ namespace Infrastructure.UnitTests;
 
 public class SchedulingServiceTests
 {
-    private readonly Mock<IApplicationDbContext> _mockContext;
+    private readonly Mock<IDbContextFactory<ApplicationDbContext>> _mockFactory;
+    private readonly Mock<ApplicationDbContext> _mockContext;
     private readonly Mock<ILogger<SchedulingService>> _mockLogger;
     private readonly SchedulingService _service;
 
@@ -23,9 +25,16 @@ public class SchedulingServiceTests
 
     public SchedulingServiceTests()
     {
-        _mockContext = new Mock<IApplicationDbContext>();
+        _mockFactory = new Mock<IDbContextFactory<ApplicationDbContext>>();
+        _mockContext = new Mock<ApplicationDbContext>(new DbContextOptions<ApplicationDbContext>());
         _mockLogger = new Mock<ILogger<SchedulingService>>();
-        _service = new SchedulingService(_mockContext.Object, _mockLogger.Object);
+
+        _mockFactory
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_mockContext.Object);
+        _mockFactory.Setup(f => f.CreateDbContext()).Returns(_mockContext.Object);
+
+        _service = new SchedulingService(_mockFactory.Object, _mockLogger.Object);
 
         // Default empty setups to avoid NullReferenceExceptions
         _mockContext.Setup(c => c.Patients).Returns(new List<Patient>().BuildMockDbSet().Object);
