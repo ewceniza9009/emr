@@ -181,13 +181,17 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                 await _context.SaveChangesAsync(cancellationToken);
 
                 // 4-A. Hydrate Geospatial Telemetry (Distance & Drive Time)
-                var (distance, travelTime) = await _schedulingService.RecalculateAppointmentStatsAsync(
-                    appointment.AppointmentId,
-                    cancellationToken
-                );
-                
-                appointment.DistanceInMiles = distance;
-                appointment.TravelTimeMinutes = travelTime;
+                try {
+                  var (distance, travelTime) = await _schedulingService.RecalculateAppointmentStatsAsync(
+                      appointment.AppointmentId,
+                      cancellationToken
+                  );
+                  
+                  appointment.DistanceInMiles = distance;
+                  appointment.TravelTimeMinutes = travelTime;
+                } catch (Exception ex) {
+                  _logger.LogWarning(ex, "Failed to recalculate geospatial stats for appointment {AppointmentId}. Proceeding with enrollment.", appointment.AppointmentId);
+                }
             }
         }
 

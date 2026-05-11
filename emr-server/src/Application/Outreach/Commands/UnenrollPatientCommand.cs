@@ -74,8 +74,8 @@ public class UnenrollPatientCommandHandler : IRequestHandler<UnenrollPatientComm
         };
         _context.OutreachActivities.Add(activity);
 
-        // 4. Update Outreach Lead Status
-        outreach.Status = OutreachStatus.Refused; // Or move back to Lead? Usually Refused if unenrolling.
+        // 4. Update Outreach Lead Status - Restore to Lead for re-enrollment potential
+        outreach.Status = OutreachStatus.Lead;
         outreach.EnrolledPatientId = null;
         outreach.LatestActivityOutcome = "UNENROLLED";
         outreach.LatestActivityReason = request.Reason;

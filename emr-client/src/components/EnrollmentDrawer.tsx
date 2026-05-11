@@ -229,6 +229,9 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const [civilStatus, setCivilStatus] = useState("");
   const [logNotes, setLogNotes] = useState("");
   const [followUpDate, setFollowUpDate] = useState("");
+  const [showDispositionModal, setShowDispositionModal] = useState(false);
+  const [showUnenrollModal, setShowUnenrollModal] = useState(false);
+  const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
 
   // Enterprise Legal & Consent State
   const [consentTreat, setConsentTreat] = useState(false);
@@ -356,36 +359,78 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   };
 
   const handleLogActivity = async (outcome: string) => {
-    if (!outreachId) return;
+    if (outcome === "CONNECTED") {
+      if (!outreachId) return;
+      try {
+        await logActivity({
+          variables: {
+            input: {
+              outreachId: outreachId,
+              method: "TELEPHONE",
+              outcome: "CONNECTED",
+              reason: "Direct connection established",
+              notes: "Enrollment interaction initialized via direct connection.",
+              nextFollowUpDate: null
+            }
+          },
+          refetchQueries: ["GetLeadDetails", "GetOutreachLeads"]
+        });
+        showToast("Connection established. Moving to Admin.", "success");
+        setActiveTab("ADMIN");
+      } catch (e) {
+        console.error(e);
+        showToast("Failed to log connection", "error");
+      }
+    } else {
+      setPendingOutcome(outcome);
+      setShowDispositionModal(true);
+    }
+  };
+
+  const confirmLogActivity = async () => {
+    if (!outreachId || !pendingOutcome) return;
     try {
       await logActivity({
         variables: {
           input: {
             outreachId: outreachId,
             method: "TELEPHONE",
-            outcome: outcome,
+            outcome: pendingOutcome,
             reason: logNotes,
-            notes: `Enrollment outcome recorded: ${outcome}`,
+            notes: `Enrollment outcome recorded: ${pendingOutcome}`,
             nextFollowUpDate: followUpDate ? new Date(followUpDate).toISOString() : null
           }
         },
         refetchQueries: ["GetLeadDetails", "GetOutreachLeads"]
       });
 
+      showToast(`Disposition logged: ${pendingOutcome}`, "success");
       setLogNotes("");
       setFollowUpDate("");
-
-      if (outcome === "CONNECTED") {
+      setShowDispositionModal(false);
+      
+      if (pendingOutcome === "CONNECTED") {
         setActiveTab("ADMIN");
       }
-    } catch (e) { console.error(e); }
+      setPendingOutcome(null);
+    } catch (e) { 
+      console.error(e); 
+      showToast("Failed to log disposition", "error");
+    }
   };
 
   const handleEditContact = (contact: any) => {
+    // Robust normalization: Convert to PascalCase to match dropdown values
+    const rawRel = contact.relationship || "Other";
+    const normalizedRel = rawRel.toLowerCase()
+      .split(/[\s_]+/)
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('');
+
     setNewContact({
       firstName: contact.firstName,
       lastName: contact.lastName,
-      relationship: contact.relationship,
+      relationship: normalizedRel,
       phoneNumber: contact.phoneNumber
     });
     setEditingContactId(contact.outreachContactId);
@@ -440,9 +485,11 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   };
 
   const handleUnenroll = async () => {
-    if (!outreachId) return;
-    if (!confirm("Are you sure you want to reverse this enrollment? This will deactivate the patient record and close all associated care cases.")) return;
+    setShowUnenrollModal(true);
+  };
 
+  const confirmUnenroll = async () => {
+    if (!outreachId) return;
     try {
       await unenrollPatient({
         variables: {
@@ -455,6 +502,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
       });
       showToast("Enrollment reversed successfully", "success");
       setLogNotes("");
+      setShowUnenrollModal(false);
     } catch (e) {
       console.error(e);
       showToast("Failed to reverse enrollment", "error");
@@ -489,24 +537,24 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
         variables: {
           input: {
             patientOutreachId: outreachId,
-            modality: modality,
+            modality: modality || "HomeCare",
             healthPlanId: selectedPlan,
-            disposition: disposition,
-            communicationStatus: communicationStatus,
-            techAccess: techAccess,
+            disposition: disposition || "Cooperative",
+            communicationStatus: communicationStatus || "Verbal",
+            techAccess: techAccess || "None",
             orientationDate: orientationIso,
-            primaryClinicianId: primaryClinicianId,
-            careNavigatorId: careNavigatorId,
+            primaryClinicianId: primaryClinicianId || null,
+            careNavigatorId: careNavigatorId || null,
             dateOfBirth: (patientDob && isValidDate(new Date(patientDob))) ? new Date(patientDob).toISOString() : null,
             biologicalSex: patientSex,
-            genderIdentity: genderIdentity,
-            language: patientLanguage,
-            civilStatus: civilStatus,
+            genderIdentity: genderIdentity || null,
+            language: patientLanguage || "English",
+            civilStatus: civilStatus || null,
             consentToTreat: consentTreat,
             consentHIPAA: consentHIPAA,
             consentMarketing: false,
             interpreterRequired: interpreterRequired,
-            preferredContactMethod: preferredContact,
+            preferredContactMethod: preferredContact || "Phone",
             hasPoa: legalDocs.poa,
             hasAdvanceDirective: legalDocs.advanceDirective,
             facilityId: selectedFacilityId || null,
@@ -515,11 +563,21 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
         }
       });
       if (data?.finalizeEnrollment) {
-        onClose();
+        showToast("Enrollment successful. Transitioning to registry...", "success");
+        // Ensure navigation is initialized before unmounting
         router.push(`/dashboard/patients/${data.finalizeEnrollment}`);
+        
+        // Small delay to allow router to handle the request before unmounting the drawer
+        setTimeout(() => {
+          onClose();
+        }, 100);
+      } else {
+        showToast("Enrollment successful, but registry ID missing. Redirecting to Patient List.", "info");
+        router.push("/dashboard/patients");
+        onClose();
       }
     } catch (e) {
-      console.error(e);
+      console.error("[ENROLLMENT ERROR]", e);
       showToast("Enrollment commit failed. Check clinical telemetry.", "error");
     }
   };
@@ -805,7 +863,17 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                           </button>
                           {lead.otherContacts?.map((c: any) => (
                             <div key={c.outreachContactId} className="flex items-center justify-between p-4 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] group">
-                              <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-lg bg-[var(--card-bg)] flex items-center justify-center text-[var(--text-muted)]"><User className="w-3.5 h-3.5" /></div><div className="text-left"><p className="text-[9px] font-bold text-[var(--text-primary)] uppercase tracking-widest leading-none">{c.firstName} {c.lastName}</p><p className="text-[10px] font-bold text-[var(--text-muted)] mt-1">{c.relationship}</p></div></div>
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-[var(--card-bg)] flex items-center justify-center text-[var(--text-muted)]">
+                                  <User className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="text-left">
+                                  <p className="text-[9px] font-bold text-[var(--text-primary)] uppercase tracking-widest leading-none">{c.firstName} {c.lastName}</p>
+                                  <p className="text-[10px] font-bold text-[var(--primary)] mt-1 uppercase tracking-tighter opacity-80">
+                                    {c.relationship?.replace(/([A-Z])/g, ' $1').trim()}
+                                  </p>
+                                </div>
+                              </div>
                               <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
                                 <button onClick={() => handleCall(c)} className="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-500 flex items-center justify-center border border-teal-500/20"><PhoneCall className="w-3 h-3" /></button>
                                 <button onClick={() => handleEditContact(c)} className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center border border-amber-500/20"><Edit3 className="w-3 h-3" /></button>
@@ -836,28 +904,121 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                             </button>
                           ))}
                         </div>
-                        <div className="grid grid-cols-2 gap-4 mt-4">
-                          <div className="space-y-1.5">
-                            <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Interaction Notes / Reason</label>
-                            <input
-                              value={logNotes}
-                              onChange={e => setLogNotes(e.target.value)}
-                              placeholder="Specific reason for disposition..."
-                              className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Next Follow-Up (Due Date)</label>
-                            <input
-                              type="date"
-                              value={followUpDate}
-                              onChange={e => setFollowUpDate(e.target.value)}
-                              onClick={(e) => e.currentTarget.showPicker()}
-                              className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
-                            />
+                      </div>
+
+                      {/* UNENROLL REASON MODAL */}
+                      {showUnenrollModal && (
+                        <div className="fixed inset-0 z-[99999999] flex items-center justify-center p-4">
+                          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setShowUnenrollModal(false)} />
+                          <div className="relative w-full max-w-md bg-[var(--sidebar-bg)] border border-rose-500/30 rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500 border border-rose-500/20">
+                                  <AlertCircle className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-widest">Reverse Enrollment</h3>
+                                  <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest opacity-60">High-Authority Action</p>
+                                </div>
+                              </div>
+                              <button onClick={() => setShowUnenrollModal(false)} className="text-[var(--text-muted)] hover:text-rose-500"><X className="w-5 h-5" /></button>
+                            </div>
+
+                            <div className="space-y-6">
+                              <p className="text-[10px] font-medium text-[var(--text-secondary)] leading-relaxed">
+                                You are about to deactivate this clinical record and return the patient to lead status. Please provide a forensic reason for this reversal.
+                              </p>
+
+                              <div className="space-y-2">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Reversal Reason / Notes</label>
+                                <textarea
+                                  value={logNotes}
+                                  onChange={e => setLogNotes(e.target.value)}
+                                  placeholder="e.g., Admitted in error, duplicate record, or patient request..."
+                                  rows={4}
+                                  className="w-full bg-[var(--input-bg)] border border-rose-500/20 rounded-2xl px-4 py-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-rose-500/50 resize-none shadow-inner"
+                                />
+                              </div>
+
+                              <div className="flex gap-3 pt-2">
+                                <button
+                                  onClick={() => setShowUnenrollModal(false)}
+                                  className="flex-1 h-12 rounded-xl bg-white/5 text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                                >
+                                  Abort
+                                </button>
+                                <button
+                                  onClick={confirmUnenroll}
+                                  disabled={!logNotes}
+                                  className="flex-[2] h-12 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:shadow-[0_0_25px_rgba(239,68,68,0.4)] transition-all active:scale-95 disabled:opacity-20"
+                                >
+                                  Commit Reversal
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
+                      {showDispositionModal && (
+                        <div className="fixed inset-0 z-[99999999] flex items-center justify-center p-4">
+                          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowDispositionModal(false)} />
+                          <div className="relative w-full max-w-md bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] border border-[var(--primary)]/20">
+                                  <ClipboardCheck className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-widest">Capture Disposition</h3>
+                                  <p className="text-[9px] font-bold text-[var(--primary)] uppercase tracking-widest opacity-60">Status: {pendingOutcome}</p>
+                                </div>
+                              </div>
+                              <button onClick={() => setShowDispositionModal(false)} className="text-[var(--text-muted)] hover:text-rose-500"><X className="w-5 h-5" /></button>
+                            </div>
+
+                            <div className="space-y-6">
+                              <div className="space-y-2">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Interaction Notes / Reason</label>
+                                <textarea
+                                  value={logNotes}
+                                  onChange={e => setLogNotes(e.target.value)}
+                                  placeholder="Provide clinical context or specific outcome reason..."
+                                  rows={4}
+                                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl px-4 py-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 resize-none shadow-inner"
+                                />
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Next Follow-Up Plan</label>
+                                <div className="relative">
+                                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--primary)] opacity-40" />
+                                  <input
+                                    type="date"
+                                    value={followUpDate}
+                                    onChange={e => setFollowUpDate(e.target.value)}
+                                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-11 pr-4 py-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 [color-scheme:dark]"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="flex gap-3 pt-2">
+                                <button
+                                  onClick={() => setShowDispositionModal(false)}
+                                  className="flex-1 h-12 rounded-xl bg-white/5 text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                                >
+                                  Abort
+                                </button>
+                                <button
+                                  onClick={confirmLogActivity}
+                                  className="flex-[2] h-12 rounded-xl bg-[var(--primary)] text-black text-[10px] font-black uppercase tracking-widest hover:shadow-[0_0_25px_rgba(var(--primary-rgb),0.4)] transition-all active:scale-95"
+                                >
+                                  Commit Disposition
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

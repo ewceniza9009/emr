@@ -55,6 +55,13 @@ const GET_DASHBOARD_STATS = gql`
       pendingReviews
       criticalAlerts
       deployedEquipmentCount
+      alerts {
+        type
+        title
+        subtitle
+        priority
+        actionText
+      }
     }
     triageWorklist {
       items {
@@ -354,33 +361,42 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-3">
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
-                <div className="flex items-center gap-2 text-rose-500">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                  <span className="text-[8px] font-bold uppercase tracking-[0.2em]">Telemetry Critical</span>
-                </div>
-                <h4 className="text-xs font-bold text-[var(--text-primary)]">Connectivity Lost: MRN-4829</h4>
-                <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-medium">
-                  Patient has lost device connectivity for &gt; 15m.
-                </p>
-                <button className="w-full py-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[9px] font-bold hover:bg-rose-500/20 transition-all active:scale-95">
-                  Execute Protocol
-                </button>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
-                <div className="flex items-center gap-2 text-amber-500">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span className="text-[8px] font-bold uppercase tracking-[0.2em]">Compliance</span>
-                </div>
-                <h4 className="text-xs font-bold text-[var(--text-primary)]">Licensure Renewal</h4>
-                <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-medium">
-                  NJ-North credentials expire in 14 days.
-                </p>
-                <button className="w-full py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[9px] font-bold hover:bg-amber-500/20 transition-all active:scale-95">
-                  Update Credentials
-                </button>
-              </div>
+              {loading ? (
+                 <div className="space-y-3">
+                    {[1, 2].map(i => (
+                      <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-8 w-full" />
+                      </div>
+                    ))}
+                 </div>
+              ) : (
+                <>
+                  {(data?.dashboardStats?.alerts || []).length === 0 ? (
+                    <div className="p-8 text-center opacity-30">
+                      <Shield className="w-8 h-8 mx-auto mb-2" />
+                      <p className="text-[10px] font-black uppercase tracking-widest">No Critical Alerts</p>
+                    </div>
+                  ) : (
+                    data.dashboardStats.alerts.map((alert: any, i: number) => (
+                      <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
+                        <div className={`flex items-center gap-2 ${alert.type === 'TELEMETRY' ? 'text-rose-500' : 'text-amber-500'}`}>
+                          {alert.type === 'TELEMETRY' ? <AlertTriangle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                          <span className="text-[8px] font-bold uppercase tracking-[0.2em]">{alert.type === 'TELEMETRY' ? 'Telemetry Critical' : 'Compliance'}</span>
+                        </div>
+                        <h4 className="text-xs font-bold text-[var(--text-primary)]">{alert.title}</h4>
+                        <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-medium">
+                          {alert.subtitle}
+                        </p>
+                        <button className={`w-full py-2 rounded-lg ${alert.type === 'TELEMETRY' ? 'bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500/20' : 'bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20'} text-[9px] font-bold transition-all active:scale-95`}>
+                          {alert.actionText}
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </>
+              )}
             </div>
           </div>
 

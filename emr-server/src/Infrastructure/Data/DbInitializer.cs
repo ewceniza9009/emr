@@ -906,7 +906,7 @@ namespace Infrastructure.Data
                         }
                     );
 
-                    // Lawyer
+                    // Legal Representative
                     patientContacts.Add(
                         new PatientContact
                         {
@@ -915,7 +915,7 @@ namespace Infrastructure.Data
                             TenantId = defaultTenantId,
                             FirstName = faker.Name.FirstName(),
                             LastName = faker.Name.LastName(),
-                            Relationship = RelationshipType.Lawyer,
+                            Relationship = RelationshipType.LegalRepresentative,
                             PhoneNumber = faker.Phone.PhoneNumber("###-###-####"),
                             Email = faker.Internet.Email(),
                             IsPrimaryContact = false,

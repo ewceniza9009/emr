@@ -318,12 +318,41 @@ The full clinical lifecycle is validated on every push:
 
 ---
 
-## 🖼️ Screenshots
+## 🖼️ Production Workstation Gallery
 
-<img width="1919" height="907" alt="image" src="https://github.com/user-attachments/assets/e5eb98c5-825b-4056-888f-e1e3a6772b73" />
-<img width="1919" height="909" alt="image" src="https://github.com/user-attachments/assets/4bd9067e-f32f-45a8-915e-da7d2fb2e990" />
-<img width="1915" height="905" alt="image" src="https://github.com/user-attachments/assets/c1e6a41b-5cf0-458b-a1a1-3e2e585c11b1" />
-<img width="1919" height="917" alt="image" src="https://github.com/user-attachments/assets/b739d0d3-d591-4403-ad9c-ee72cfcdca89" />
+The following are high-fidelity, real-time captures of the Halcyon Clinical OS in its production-verified state. These HUDs demonstrate the platform's ability to handle multi-tenant security, live telemetry, and complex clinical logistics.
+
+### 1. Clinical Command Center (Dashboard)
+The primary HUD for practitioners, featuring real-time **Clinical Alerts** (telemetry distress & compliance risks) and an **Operational Pulse** engagement monitor.
+![Dashboard](qa_report/assets/dashboard.png)
+
+### 2. Workload Intelligence & Forensic Audit
+A high-authority diagnostic view for Medical Directors to perform deep-dive audits into practitioner utilization, active sessions, and historical visit telemetry.
+![Utilization](qa_report/assets/utilization.png)
+
+### 3. Security Activation Heatmap
+The administrative nerve center for platform hardening. Administrators can toggle **MFA Enforcement**, **Strict Onboarding**, and **Session Timeouts** with real-time persistence.
+![Security](qa_report/assets/security.png)
+
+### 4. Clinical Enrollment Lifecycle
+A verified, multi-stage wizard for patient onboarding, synchronizing demographics, insurance eligibility, and clinical priority in a single workflow.
+![Enrollment](qa_report/assets/enrollment.png)
+
+### 5. Master Scheduling & Logistics
+A geospatial command center for multi-stage booking, clinician deployment, and regional service area management.
+![Schedule](qa_report/assets/schedule.png)
+
+### 6. Patient Registry & Master Roster
+The unified registry for the entire patient population, providing sub-second search latency and high-density demographic visibility.
+![Patients](qa_report/assets/patients.png)
+
+### 7. Clinical Outreach & CRM
+The conversion engine for the Halcyon OS, managing the transition of outreach leads into fully verified clinical patients.
+![Outreach](qa_report/assets/outreach.png)
+
+### 8. Real-time Telemetry & IoT Monitor
+A live SignalR node monitoring system for tracking IoT connectivity across the clinical grid.
+![Telemetry](qa_report/assets/telemetry.png)
 
 ---
 
