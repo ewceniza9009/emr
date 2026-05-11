@@ -59,6 +59,12 @@ public class SchedulingServiceTests
         _mockContext
             .Setup(c => c.ScheduleBlocks)
             .Returns(new List<ScheduleBlock>().BuildMockDbSet().Object);
+        _mockContext
+            .Setup(c => c.TenantConfigurations)
+            .Returns(new List<TenantConfiguration>().BuildMockDbSet().Object);
+        _mockContext
+            .Setup(c => c.EntityAddresses)
+            .Returns(new List<EntityAddress>().BuildMockDbSet().Object);
     }
 
     [Fact]
@@ -234,7 +240,8 @@ public class SchedulingServiceTests
             modality,
             patientId
         );
-        result.Any(s => s.StartTime == targetStart).Should().BeTrue();
+        // High-precision: Should be around 9:54 AM (9:30 + 5 buffer + 19 drive)
+        result.Any(s => s.StartTime.Hour == 9 && s.StartTime.Minute >= 50).Should().BeTrue();
     }
 
     [Fact]
@@ -299,6 +306,25 @@ public class SchedulingServiceTests
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
+
+        var entityAddresses = new List<EntityAddress>();
+        foreach (var p in patients.Object)
+        {
+            foreach (var addr in p.Addresses)
+            {
+                addr.PatientId = p.PatientId;
+                entityAddresses.Add(addr);
+            }
+        }
+        foreach (var pr in practitioners.Object)
+        {
+            foreach (var addr in pr.Addresses)
+            {
+                addr.PractitionerId = pr.PractitionerId;
+                entityAddresses.Add(addr);
+            }
+        }
+        _mockContext.Setup(c => c.EntityAddresses).Returns(entityAddresses.BuildMockDbSet().Object);
 
         var result = await _service.GetAvailableProvidersAsync(
             targetStart,
@@ -370,6 +396,27 @@ public class SchedulingServiceTests
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
+
+        var entityAddresses2 = new List<EntityAddress>();
+        foreach (var p in patients.Object)
+        {
+            foreach (var addr in p.Addresses)
+            {
+                addr.PatientId = p.PatientId;
+                entityAddresses2.Add(addr);
+            }
+        }
+        foreach (var pr in practitioners.Object)
+        {
+            foreach (var addr in pr.Addresses)
+            {
+                addr.PractitionerId = pr.PractitionerId;
+                entityAddresses2.Add(addr);
+            }
+        }
+        _mockContext
+            .Setup(c => c.EntityAddresses)
+            .Returns(entityAddresses2.BuildMockDbSet().Object);
 
         var result = await _service.GetAvailableProvidersAsync(
             targetStart,
@@ -482,7 +529,8 @@ public class SchedulingServiceTests
             modality,
             patientId
         );
-        result.Any(s => s.StartTime.Hour == 9).Should().BeTrue(); // Accounts for travel from home at 8:00
+        // High-precision: First slot should be around 8:24 AM (8:00 + 5 buffer + 19 drive)
+        result.Any(s => s.StartTime.Hour == 8 && s.StartTime.Minute >= 20).Should().BeTrue();
     }
 
     [Fact]
@@ -537,7 +585,8 @@ public class SchedulingServiceTests
             patientId
         );
         result.Should().NotBeEmpty();
-        result.First().TravelTimeInMinutes.Should().Be(5);
+        // Now expects 15 minutes as it is an InPersonHomeVisit
+        result.First().TravelTimeInMinutes.Should().Be(15);
     }
 
     [Fact]
@@ -694,5 +743,55 @@ public class SchedulingServiceTests
 
         distance.Should().Be(0);
         travelTime.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ValidateLogisticsAsync_ShouldReject_WhenBufferIsViolated()
+    {
+        var practitionerId = Guid.NewGuid();
+        var patientId1 = Guid.NewGuid();
+        var patientId2 = Guid.NewGuid();
+        var appointmentId2 = Guid.NewGuid();
+        var targetDate = new DateTime(2026, 5, 4);
+
+        var patientList = new List<Patient>
+        {
+            new Patient { PatientId = patientId1, Addresses = new List<EntityAddress>() },
+            new Patient { PatientId = patientId2, Addresses = new List<EntityAddress>() },
+        };
+        var patients = patientList.BuildMockDbSet();
+
+        var appointments = new List<Appointment>
+        {
+            new Appointment
+            {
+                AppointmentId = Guid.NewGuid(),
+                PractitionerId = practitionerId,
+                ScheduledStart = new DateTimeOffset(targetDate.AddHours(9), TimeSpan.Zero),
+                ScheduledEnd = new DateTimeOffset(targetDate.AddHours(10), TimeSpan.Zero),
+                Patient = patientList[0],
+                Modality = AppointmentModality.InPersonHomeVisit,
+            },
+            new Appointment
+            {
+                AppointmentId = appointmentId2,
+                PractitionerId = practitionerId,
+                ScheduledStart = new DateTimeOffset(
+                    targetDate.AddHours(10).AddMinutes(5),
+                    TimeSpan.Zero
+                ), // Only 5 mins after
+                ScheduledEnd = new DateTimeOffset(targetDate.AddHours(11), TimeSpan.Zero),
+                Patient = patientList[1],
+                Modality = AppointmentModality.InPersonHomeVisit,
+            },
+        }.BuildMockDbSet();
+
+        _mockContext.Setup(c => c.Patients).Returns(patients.Object);
+        _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
+
+        var (isValid, reason) = await _service.ValidateLogisticsAsync(appointmentId2);
+
+        isValid.Should().BeFalse();
+        reason.Should().Contain("Logistics Violation");
     }
 }

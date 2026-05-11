@@ -22,4 +22,5 @@ public class ClinicalSlot
     public DateTimeOffset EndTime { get; set; }
     public double DistanceInMiles { get; set; }
     public double TravelTimeInMinutes { get; set; }
+    public double BufferTimeInMinutes { get; set; }
 }

@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { CLINICAL_CONFIG } from "./clinical-config";
+import { DEFAULT_TENANT } from "./SettingsContext";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -8,13 +8,15 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Formats a date string or object into a human-readable format 
- * using the global CLINICAL_CONFIG timezone.
+ * using the global DEFAULT_TENANT timezone.
  */
 export function formatDate(date: string | Date | number, options: Intl.DateTimeFormatOptions = {}) {
   const d = typeof date === 'string' ? new Date(date) : date;
   
-  return new Intl.DateTimeFormat(CLINICAL_CONFIG.LOCALE, {
-    timeZone: CLINICAL_CONFIG.TIMEZONE,
+  const locale = DEFAULT_TENANT.language === 'en' ? 'en-PH' : DEFAULT_TENANT.language;
+
+  return new Intl.DateTimeFormat(locale, {
+    timeZone: DEFAULT_TENANT.timezone,
     ...options
   }).format(d);
 }

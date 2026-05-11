@@ -14,7 +14,7 @@ import {
   Timer, Zap, Navigation, Check, Activity, Target, Phone, Edit3, AlertCircle,
   Brain, HeartPulse, HeartHandshake, Wind, Sprout, Sun, Star, ListChecks, ClipboardList
 } from "lucide-react";
-import { CLINICAL_CONFIG } from "@/lib/clinical-config";
+import { useSettings } from "@/lib/SettingsContext";
 import HalcyonPortal from "./Portal";
 
 const BOOK_APPOINTMENT = gql`
@@ -123,12 +123,14 @@ const GET_GEOSPATIAL_AVAILABILITY = gql`
     $targetStart: DateTime!
     $durationMinutes: Int!
     $modality: AppointmentModality!
+    $appointmentId: UUID
   ) {
     availableProviders(
       patientId: $patientId
       targetStart: $targetStart
       durationMinutes: $durationMinutes
       modality: $modality
+      appointmentId: $appointmentId
     ) {
       practitionerId
       fullName
@@ -250,11 +252,25 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const [blockStatus, setBlockStatus] = useState("BLOCKED");
   const [startHour, setStartHour] = useState(8);
   const [startMinute, setStartMinute] = useState(0);
+  const { tenantConfig, isLoaded } = useSettings();
+
+  const clinicalConfig = useMemo(() => ({
+    AM_START: tenantConfig.amStartHour,
+    PM_START: tenantConfig.pmStartHour,
+    DAY_END: tenantConfig.dayEndHour,
+    CUTOFF_HOUR: tenantConfig.pmStartHour,
+    TIMEZONE: tenantConfig.timezone,
+    ENGINE_SAFETY_DRIVE_MINS: tenantConfig.engineSafetyDriveMins,
+    ENGINE_SAFETY_DIST_KM: tenantConfig.engineSafetyDistKm,
+    IOT_SYNC_INTERVAL_MS: tenantConfig.iotSyncIntervalMs,
+    URGENT_PAIN_THRESHOLD: tenantConfig.urgentPainThreshold,
+    URGENT_WELLBEING_THRESHOLD: tenantConfig.urgentWellbeingThreshold
+  }), [tenantConfig]);
 
   const createZonedISO = (date: Date, hours: number, minutes: number) => {
     const year = date.getFullYear(), month = date.getMonth(), day = date.getDate();
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-    return fromZonedTime(dateStr, CLINICAL_CONFIG.TIMEZONE).toISOString();
+    return fromZonedTime(dateStr, clinicalConfig.TIMEZONE).toISOString();
   };
 
   const formatForEngine = (date: Date, hours: number) => {
@@ -363,9 +379,10 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const { data: amData, loading: amLoading } = useQuery(GET_GEOSPATIAL_AVAILABILITY, {
     variables: {
       patientId,
-      targetStart: formatForEngine(debouncedDate, CLINICAL_CONFIG.AM_START),
+      targetStart: formatForEngine(debouncedDate, clinicalConfig.AM_START),
       modality: debouncedModality,
-      durationMinutes: debouncedDuration
+      durationMinutes: debouncedDuration,
+      appointmentId: appointmentId || null
     },
     skip: !patientId || !open
   });
@@ -373,9 +390,10 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   const { data: pmData, loading: pmLoading } = useQuery(GET_GEOSPATIAL_AVAILABILITY, {
     variables: {
       patientId,
-      targetStart: formatForEngine(debouncedDate, CLINICAL_CONFIG.PM_START),
+      targetStart: formatForEngine(debouncedDate, clinicalConfig.PM_START),
       modality: debouncedModality,
-      durationMinutes: debouncedDuration
+      durationMinutes: debouncedDuration,
+      appointmentId: appointmentId || null
     },
     skip: !patientId || !open
   });
@@ -408,8 +426,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     currentGeoData?.availableProviders?.forEach((slot: any) => {
       const start = new Date(slot.shiftStart);
       const end = new Date(slot.shiftEnd);
-      const isWithinClinicalHours = start.getHours() >= 8 && end.getHours() <= 18;
-      const isAM = start.getHours() < CLINICAL_CONFIG.CUTOFF_HOUR;
+      const isWithinClinicalHours = start.getHours() >= clinicalConfig.AM_START && end.getHours() <= clinicalConfig.DAY_END;
+      const isAM = start.getHours() < clinicalConfig.CUTOFF_HOUR;
       const isCorrectPeriod = period === "AM" ? isAM : !isAM;
       if (isWithinClinicalHours && isCorrectPeriod) {
         const existing = map.get(slot.practitionerId) || [];
@@ -483,7 +501,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
     const slots = practitionerSlots.get(practitionerId) || [];
     if (slots.length === 0) {
-      const fallbackHour = period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START;
+      const fallbackHour = period === "AM" ? clinicalConfig.AM_START : clinicalConfig.PM_START;
       const startISO = createZonedISO(selectedDate, fallbackHour, 0);
       return {
         shiftStart: startISO,
@@ -528,7 +546,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     const slot = {
       shiftStart: baseSlot?.shiftStart || createZonedISO(
         selectedDate,
-        isBlockMode ? startHour : (period === "AM" ? CLINICAL_CONFIG.AM_START : CLINICAL_CONFIG.PM_START),
+        isBlockMode ? startHour : (period === "AM" ? clinicalConfig.AM_START : clinicalConfig.PM_START),
         isBlockMode ? startMinute : 0
       ),
       shiftEnd: "",
@@ -554,8 +572,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
     if (!patientId) return;
 
-    const clinicalHour = parseInt(formatInTimeZone(new Date(slot.shiftStart), CLINICAL_CONFIG.TIMEZONE, "H"));
-    const isSlotAM = clinicalHour < CLINICAL_CONFIG.CUTOFF_HOUR;
+    const clinicalHour = parseInt(formatInTimeZone(new Date(slot.shiftStart), clinicalConfig.TIMEZONE, "H"));
+    const isSlotAM = clinicalHour < clinicalConfig.CUTOFF_HOUR;
 
     if (period === "AM" && !isSlotAM) return;
     if (period === "PM" && isSlotAM) return;

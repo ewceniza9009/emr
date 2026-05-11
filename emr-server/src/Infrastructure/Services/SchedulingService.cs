@@ -14,6 +14,10 @@ public class SchedulingService : ISchedulingService
     private readonly ILogger<SchedulingService> _logger;
     private readonly SemaphoreSlim _semaphore = new(10);
 
+    // LOGISTICS CONFIGURATION - Fallbacks
+    private const int FALLBACK_IN_PERSON_BUFFER = 5;
+    private const int TELEHEALTH_BUFFER_MINS = 3;
+
     public SchedulingService(
         IDbContextFactory<ApplicationDbContext> dbFactory,
         ILogger<SchedulingService> logger
@@ -28,6 +32,7 @@ public class SchedulingService : ISchedulingService
         TimeSpan duration,
         AppointmentModality modality,
         Guid patientId,
+        Guid? excludeAppointmentId = null,
         CancellationToken cancellationToken = default
     )
     {
@@ -40,15 +45,25 @@ public class SchedulingService : ISchedulingService
             var targetDate = targetStart.Date;
             var dayOfWeek = targetDate.DayOfWeek;
 
+            using var context = await _dbFactory.CreateDbContextAsync(cancellationToken);
+            var settings = await context.TenantConfigurations.FirstOrDefaultAsync(
+                cancellationToken
+            );
+
+            var amStart = settings?.AmStartHour ?? 8;
+            var pmStart = settings?.PmStartHour ?? 13;
+            var dayEnd = settings?.DayEndHour ?? 18;
+            var safetyBuffer = settings?.EngineSafetyDriveMins ?? FALLBACK_IN_PERSON_BUFFER;
+
             // If hour is 0 (midnight), scan the WHOLE day. Otherwise, scan the specific AM/PM window.
             var scanWholeDay = targetStart.Hour == 0;
-            var isAm = targetStart.Hour < 13;
+            var isAm = targetStart.Hour < pmStart;
             var slotWindowStart = new DateTimeOffset(
-                targetDate.AddHours(scanWholeDay ? 8 : (isAm ? 8 : 13)),
+                targetDate.AddHours(scanWholeDay ? amStart : (isAm ? amStart : pmStart)),
                 offset
             );
             var slotWindowEnd = new DateTimeOffset(
-                targetDate.AddHours(scanWholeDay ? 18 : (isAm ? 13 : 18)),
+                targetDate.AddHours(scanWholeDay ? dayEnd : (isAm ? pmStart : dayEnd)),
                 offset
             );
 
@@ -59,8 +74,6 @@ public class SchedulingService : ISchedulingService
                 slotWindowEnd.ToString("t"),
                 offset
             );
-
-            using var context = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
             // 1. Fetch Target Patient Coordinates
             var patient = await context
@@ -74,8 +87,8 @@ public class SchedulingService : ISchedulingService
                 _logger.LogWarning("!!! PATIENT NOT FOUND: {Id}", patientId);
             }
 
-            // 2. Batch Fetch all clinical staff and their shifts
-            var staffData = await context
+            // 2. Fetch active practitioners
+            var staffInfo = await context
                 .Practitioners.AsNoTracking()
                 .Where(p => p.IsActive && (p.IsCareNavigator || p.IsSupportingClinician))
                 .Select(p => new
@@ -90,23 +103,44 @@ public class SchedulingService : ISchedulingService
                         .Addresses.Where(a => a.IsPrimary)
                         .Select(a => (double?)a.Address.Longitude)
                         .FirstOrDefault(),
-                    Shifts = context
-                        .ProviderShifts.Where(s =>
-                            s.PractitionerId == p.PractitionerId && s.DayOfWeek == dayOfWeek
-                        )
-                        .Select(s => new { s.StartTime, s.EndTime })
-                        .ToList(),
                 })
                 .ToListAsync(cancellationToken);
 
-            // 3. Batch Fetch all appointments for the day to avoid N+1 inside the loop
-            var startOfToday = new DateTimeOffset(targetDate, TimeSpan.Zero); // Force UTC for PG
+            var practitionerIds = staffInfo.Select(p => p.PractitionerId).ToList();
+
+            // 2b. Fetch shifts separately to avoid EF subquery complexity
+            var shiftLookup = (
+                await context
+                    .ProviderShifts.AsNoTracking()
+                    .Where(s =>
+                        practitionerIds.Contains(s.PractitionerId)
+                        && s.DayOfWeek == dayOfWeek
+                        && s.IsActive
+                    )
+                    .ToListAsync(cancellationToken)
+            )
+                .GroupBy(s => s.PractitionerId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // 3. Batch Fetch all appointments and blocks for the day using absolute UTC boundaries
+            // We calculate the start and end of the target day in its local offset, then convert to UTC for the DB query.
+            var startOfToday = new DateTimeOffset(
+                targetDate.Year,
+                targetDate.Month,
+                targetDate.Day,
+                0,
+                0,
+                0,
+                offset
+            ).ToUniversalTime();
             var endOfToday = startOfToday.AddDays(1);
 
             var existingAppointments = await context
                 .Appointments.AsNoTracking()
-                .Include(a => a.Patient)
-                .Where(a => a.ScheduledStart >= startOfToday && a.ScheduledStart < endOfToday)
+                .Include(a => a.SupportingClinicians)
+                .Where(a => a.ScheduledEnd > startOfToday && a.ScheduledStart < endOfToday)
+                .Where(a => a.Status != AppointmentStatus.Cancelled) // Only active appointments cause conflicts
+                .Where(a => excludeAppointmentId == null || a.AppointmentId != excludeAppointmentId)
                 .ToListAsync(cancellationToken);
 
             var scheduleBlocks = await context
@@ -118,37 +152,56 @@ public class SchedulingService : ISchedulingService
                 )
                 .ToListAsync(cancellationToken);
 
-            _logger.LogInformation(
-                ">>> DISCOVERY: Processing {StaffCount} clinicians with {ApptCount} appointments and {BlockCount} OOF blocks.",
-                staffData.Count,
-                existingAppointments.Count,
-                scheduleBlocks.Count
-            );
+            // 4. Batch Fetch all relevant addresses to avoid N+1 inside the loop
+            var allPatientIds = existingAppointments.Select(a => a.PatientId).Distinct().ToList();
+            allPatientIds.Add(patientId);
+
+            var patientAddressLookup = (
+                await context
+                    .EntityAddresses.AsNoTracking()
+                    .Where(pa =>
+                        pa.PatientId.HasValue
+                        && allPatientIds.Contains(pa.PatientId.Value)
+                        && pa.IsPrimary
+                    )
+                    .ToListAsync(cancellationToken)
+            )
+                .GroupBy(pa => pa.PatientId!.Value)
+                .ToDictionary(g => g.Key, g => g.First().Address);
+
+            var practitionerAddressLookup = (
+                await context
+                    .EntityAddresses.AsNoTracking()
+                    .Where(pa =>
+                        pa.PractitionerId.HasValue
+                        && practitionerIds.Contains(pa.PractitionerId.Value)
+                        && pa.IsPrimary
+                    )
+                    .ToListAsync(cancellationToken)
+            )
+                .GroupBy(pa => pa.PractitionerId!.Value)
+                .ToDictionary(g => g.Key, g => g.First().Address);
 
             var allSlots = new List<ClinicalSlot>();
 
-            foreach (var staff in staffData)
+            foreach (var staff in staffInfo)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var shift = staff.Shifts.FirstOrDefault();
+                shiftLookup.TryGetValue(staff.PractitionerId, out var shifts);
+                var shift = shifts?.FirstOrDefault();
+
                 TimeSpan shiftStartRaw;
                 TimeSpan shiftEndRaw;
 
                 if (shift == null)
                 {
-                    _logger.LogInformation(
-                        ">>> FALLBACK: {Name} has no defined shift. Using default 08:00-17:00.",
-                        staff.LastName
-                    );
-                    shiftStartRaw = new TimeSpan(8, 0, 0);
-                    shiftEndRaw = new TimeSpan(17, 0, 0);
+                    _logger.LogTrace("Skipping practitioner {Id} - No shifts for {Day}", staff.PractitionerId, targetDate.DayOfWeek);
+                    continue;
                 }
-                else
-                {
-                    shiftStartRaw = shift.StartTime;
-                    shiftEndRaw = shift.EndTime;
-                }
+
+                shiftStartRaw = shift.StartTime;
+                shiftEndRaw = shift.EndTime;
 
                 var shiftStart = new DateTimeOffset(targetDate.Add(shiftStartRaw), offset);
                 var shiftEnd = new DateTimeOffset(targetDate.Add(shiftEndRaw), offset);
@@ -157,17 +210,26 @@ public class SchedulingService : ISchedulingService
                 var effectiveStart = slotWindowStart > shiftStart ? slotWindowStart : shiftStart;
                 var effectiveEnd = slotWindowEnd < shiftEnd ? slotWindowEnd : shiftEnd;
 
-                // Get this clinician's appointments for today
+                // Get this clinician's appointments for today (Lead OR Supporting)
                 var staffAppts = existingAppointments
-                    .Where(a => a.PractitionerId == staff.PractitionerId)
+                    .Where(a =>
+                        a.PractitionerId == staff.PractitionerId
+                        || (
+                            a.SupportingClinicians != null
+                            && a.SupportingClinicians.Any(sc =>
+                                sc.PractitionerId == staff.PractitionerId
+                            )
+                        )
+                    )
                     .OrderBy(a => a.ScheduledStart)
                     .ToList();
 
                 // SCAN THE WINDOW
+                int iterations = 0;
                 for (
                     var time = effectiveStart;
-                    time.Add(duration) <= effectiveEnd;
-                    time = time.AddMinutes(15)
+                    time.Add(duration) <= effectiveEnd && iterations < 1000;
+                    time = time.AddMinutes(15), iterations++
                 )
                 {
                     // Check cancellation inside the tight loop for ultra-responsiveness
@@ -191,80 +253,143 @@ public class SchedulingService : ISchedulingService
                     if (hasConflict)
                         continue;
 
-                    // 2. Geospatial Logic
+                    // 2. Logistics Logic: Drive Time + Clinical Buffer
                     var anchor = staffAppts
                         .Where(a => a.ScheduledEnd <= time)
                         .OrderByDescending(a => a.ScheduledEnd)
                         .FirstOrDefault();
 
-                    if (!staff.Latitude.HasValue || !staff.Longitude.HasValue)
+                    // Get Start Location (Fallback to home if no anchor)
+                    Address? startAddr = null;
+                    if (anchor == null)
                     {
-                        _logger.LogWarning(
-                            ">>> EXCLUDING: Practitioner {Id} lacks a valid primary address for geospatial routing.",
-                            staff.PractitionerId
-                        );
-                        continue;
+                        practitionerAddressLookup.TryGetValue(staff.PractitionerId, out startAddr);
+                    }
+                    else
+                    {
+                        patientAddressLookup.TryGetValue(anchor.PatientId, out startAddr);
                     }
 
-                    double startLat = staff.Latitude.Value;
-                    double startLon = staff.Longitude.Value;
-
-                    var anchorAddr = anchor
-                        ?.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)
-                        ?.Address;
-                    if (
-                        anchorAddr != null
-                        && anchorAddr.Latitude.HasValue
-                        && anchorAddr.Longitude.HasValue
-                    )
-                    {
-                        startLat = anchorAddr.Latitude.Value;
-                        startLon = anchorAddr.Longitude.Value;
-                    }
+                    // Get Target Location
+                    patientAddressLookup.TryGetValue(patientId, out var targetAddr);
 
                     double distance = 0;
-                    double travelTime = 5; // Buffer
+                    double driveTime = 0;
 
-                    var patientAddr = patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+                    bool isInPerson =
+                        modality == AppointmentModality.InPersonFacility
+                        || modality == AppointmentModality.InPersonHomeVisit;
+
+                    // Only calculate travel if IN-PERSON and we have both addresses
                     if (
-                        patientAddr?.Latitude.HasValue == true
-                        && patientAddr?.Longitude.HasValue == true
+                        isInPerson
+                        && startAddr?.Latitude != null
+                        && startAddr?.Longitude != null
+                        && targetAddr?.Latitude != null
+                        && targetAddr?.Longitude != null
                     )
                     {
                         distance = GeoUtils.CalculateDistance(
-                            startLat,
-                            startLon,
-                            patientAddr.Latitude.Value,
-                            patientAddr.Longitude.Value
+                            startAddr.Latitude.Value,
+                            startAddr.Longitude.Value,
+                            targetAddr.Latitude.Value,
+                            targetAddr.Longitude.Value
                         );
-                        travelTime = GeoUtils.EstimateTravelTimeMinutes(distance);
+                        driveTime = GeoUtils.EstimateTravelTimeMinutes(distance);
                     }
 
                     if (distance > 150)
                         continue;
 
+                    // Apply additive logistics: Buffer (preparation) + Drive Time (actual movement)
+                    double buffer = isInPerson ? safetyBuffer : TELEHEALTH_BUFFER_MINS;
+
+                    // Added a fallback for in-person movement to ensure believable travel logs even with missing addresses
+                    double effectiveDriveTime = isInPerson ? Math.Max(driveTime, 15) : driveTime;
+
+                    // Round the total logistics to ensure the start time matches the user's manual math
+                    double totalLogisticsTime = Math.Round(buffer + effectiveDriveTime, 0);
+
                     var earliestArrival =
                         anchor != null
-                            ? anchor.ScheduledEnd.AddMinutes(travelTime)
-                            : shiftStart.AddMinutes(travelTime);
+                            ? anchor.ScheduledEnd.AddMinutes(totalLogisticsTime)
+                            : shiftStart.AddMinutes(totalLogisticsTime);
 
                     if (time < earliestArrival)
+                    {
+                        // If we haven't reached the earliest possible arrival time, skip this 15m slot
                         continue;
+                    }
+
+                    // SECONDARY CONFLICT CHECK: Ensure the travel-adjusted arrival doesn't overlap with an existing visit
+                    // This prevents "jumping" over a conflict during the 15m scan
+                    var logisticsConflict = staffAppts.Any(a =>
+                        earliestArrival < a.ScheduledEnd
+                        && earliestArrival.Add(duration) > a.ScheduledStart
+                    );
+
+                    if (logisticsConflict)
+                        continue;
+
+                    // 3. Forward Constraint: Ensure we can reach the NEXT appointment from this proposed slot
+                    var next = staffAppts
+                        .Where(a => a.ScheduledStart >= time.Add(duration))
+                        .OrderBy(a => a.ScheduledStart)
+                        .FirstOrDefault();
+
+                    if (next != null)
+                    {
+                        double driveToNext = 0;
+                        patientAddressLookup.TryGetValue(next.PatientId, out var nextAddr);
+
+                        if (
+                            nextAddr?.Latitude != null
+                            && nextAddr?.Longitude != null
+                            && targetAddr?.Latitude != null
+                            && targetAddr?.Longitude != null
+                        )
+                        {
+                            var distToNext = GeoUtils.CalculateDistance(
+                                targetAddr.Latitude.Value,
+                                targetAddr.Longitude.Value,
+                                nextAddr.Latitude.Value,
+                                nextAddr.Longitude.Value
+                            );
+                            driveToNext = GeoUtils.EstimateTravelTimeMinutes(distToNext);
+                        }
+
+                        bool nextIsInPerson =
+                            next.Modality == AppointmentModality.InPersonFacility
+                            || next.Modality == AppointmentModality.InPersonHomeVisit;
+                        double nextBuffer = nextIsInPerson ? safetyBuffer : TELEHEALTH_BUFFER_MINS;
+
+                        if (
+                            time.Add(duration).AddMinutes(driveToNext + nextBuffer)
+                            > next.ScheduledStart
+                        )
+                            continue;
+                    }
 
                     var appointmentEnd = time.Add(duration);
                     double returnDistance = 0;
+
+                    practitionerAddressLookup.TryGetValue(
+                        staff.PractitionerId,
+                        out var staffHomeAddr
+                    );
+
                     if (
-                        patientAddr?.Latitude.HasValue == true
-                        && patientAddr?.Longitude.HasValue == true
-                        && staff.Latitude.HasValue
-                        && staff.Longitude.HasValue
+                        staffHomeAddr?.Latitude != null
+                        && staffHomeAddr?.Longitude != null
+                        && targetAddr?.Latitude != null
+                        && targetAddr?.Longitude != null
                     )
                     {
                         returnDistance = GeoUtils.CalculateDistance(
-                            patientAddr.Latitude.Value,
-                            patientAddr.Longitude.Value,
-                            staff.Latitude.Value,
-                            staff.Longitude.Value
+                            targetAddr.Latitude.Value,
+                            targetAddr.Longitude.Value,
+                            staffHomeAddr.Latitude.Value,
+                            staffHomeAddr.Longitude.Value
                         );
                     }
                     double returnTravelTime = GeoUtils.EstimateTravelTimeMinutes(returnDistance);
@@ -272,16 +397,22 @@ public class SchedulingService : ISchedulingService
                     if (appointmentEnd.AddMinutes(returnTravelTime) > shiftEnd)
                         continue;
 
+                    // If we found a slot, we return the EXACT earliestArrival time
+                    // instead of snapping to 15m to satisfy high-precision requirements
                     allSlots.Add(
                         new ClinicalSlot
                         {
                             PractitionerId = staff.PractitionerId,
-                            StartTime = time,
-                            EndTime = appointmentEnd,
+                            StartTime = earliestArrival, // Use exact time
+                            EndTime = earliestArrival.Add(duration),
                             DistanceInMiles = Math.Round(distance, 2),
-                            TravelTimeInMinutes = Math.Max(5, Math.Round(travelTime, 0)),
+                            TravelTimeInMinutes = Math.Round(effectiveDriveTime, 0),
+                            BufferTimeInMinutes = Math.Round(buffer, 0),
                         }
                     );
+
+                    // Exit the while loop for this practitioner once a valid slot is found in this specific search window
+                    break;
                 }
             }
 
@@ -304,6 +435,9 @@ public class SchedulingService : ISchedulingService
     )
     {
         using var context = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        var settings = await context.TenantConfigurations.FirstOrDefaultAsync(cancellationToken);
+        var safetyBuffer = settings?.EngineSafetyDriveMins ?? FALLBACK_IN_PERSON_BUFFER;
+
         var appt = await context
             .Appointments.Include(a => a.Patient)
                 .ThenInclude(p => p.Addresses)
@@ -389,8 +523,127 @@ public class SchedulingService : ISchedulingService
             patientAddr.Latitude.Value,
             patientAddr.Longitude.Value
         );
-        double travelTime = Math.Max(5, GeoUtils.EstimateTravelTimeMinutes(distance));
 
-        return (Math.Round(distance, 2), Math.Round(travelTime, 0));
+        bool isInPerson =
+            appt.Modality == AppointmentModality.InPersonFacility
+            || appt.Modality == AppointmentModality.InPersonHomeVisit;
+        double buffer = isInPerson ? safetyBuffer : TELEHEALTH_BUFFER_MINS;
+        double driveTime = GeoUtils.EstimateTravelTimeMinutes(distance);
+        double effectiveDriveTime = isInPerson ? Math.Max(driveTime, 2) : driveTime;
+        double travelTime = buffer + effectiveDriveTime;
+
+        return (Math.Round(distance, 2), Math.Round(effectiveDriveTime, 0));
+    }
+
+    public async Task<(bool isValid, string? reason)> ValidateLogisticsAsync(
+        Guid appointmentId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        using var context = await _dbFactory.CreateDbContextAsync(cancellationToken);
+        var settings = await context.TenantConfigurations.FirstOrDefaultAsync(cancellationToken);
+        var safetyBuffer = settings?.EngineSafetyDriveMins ?? FALLBACK_IN_PERSON_BUFFER;
+
+        var appt = await context
+            .Appointments.Include(a => a.Patient)
+                .ThenInclude(p => p.Addresses)
+                    .ThenInclude(a => a.Address)
+            .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId, cancellationToken);
+
+        if (appt == null)
+            return (false, "Appointment not found");
+
+        var startOfDay = new DateTimeOffset(appt.ScheduledStart.Date, TimeSpan.Zero);
+        var endOfDay = startOfDay.AddDays(1);
+
+        // Fetch all appointments for the practitioner on that day
+        var dayAppts = await context
+            .Appointments.Include(a => a.Patient)
+                .ThenInclude(p => p.Addresses)
+                    .ThenInclude(a => a.Address)
+            .Where(a =>
+                a.PractitionerId == appt.PractitionerId
+                && a.ScheduledStart >= startOfDay
+                && a.ScheduledStart < endOfDay
+                && a.AppointmentId != appt.AppointmentId
+            )
+            .OrderBy(a => a.ScheduledStart)
+            .ToListAsync(cancellationToken);
+
+        var patientAddr = appt.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+        bool isInPerson =
+            appt.Modality == AppointmentModality.InPersonFacility
+            || appt.Modality == AppointmentModality.InPersonHomeVisit;
+        double buffer = isInPerson ? safetyBuffer : TELEHEALTH_BUFFER_MINS;
+
+        // 1. Check Constraint with PREVIOUS appointment
+        var prev = dayAppts.Where(a => a.ScheduledStart < appt.ScheduledStart).LastOrDefault();
+        if (prev != null)
+        {
+            double driveTime = 0;
+            var prevAddr = prev.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+            if (
+                prevAddr?.Latitude.HasValue == true
+                && prevAddr?.Longitude.HasValue == true
+                && patientAddr?.Latitude.HasValue == true
+            )
+            {
+                var dist = GeoUtils.CalculateDistance(
+                    prevAddr.Latitude.Value,
+                    prevAddr.Longitude.Value,
+                    patientAddr.Latitude.Value,
+                    patientAddr.Longitude.Value
+                );
+                driveTime = GeoUtils.EstimateTravelTimeMinutes(dist);
+            }
+
+            double effectiveDriveTime = isInPerson ? Math.Max(driveTime, 2) : driveTime;
+            double totalLogisticsTime = buffer + effectiveDriveTime;
+
+            if (appt.ScheduledStart < prev.ScheduledEnd.AddMinutes(totalLogisticsTime))
+            {
+                return (
+                    false,
+                    $"Logistics Violation: Insufficient time for drive ({Math.Round(effectiveDriveTime)}m) and buffer ({buffer}m) from previous visit."
+                );
+            }
+        }
+
+        // 2. Check Constraint with NEXT appointment
+        var next = dayAppts.Where(a => a.ScheduledStart > appt.ScheduledStart).FirstOrDefault();
+        if (next != null)
+        {
+            double driveToNext = 0;
+            var nextAddr = next.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+            if (
+                nextAddr?.Latitude.HasValue == true
+                && nextAddr?.Longitude.HasValue == true
+                && patientAddr?.Latitude.HasValue == true
+            )
+            {
+                var dist = GeoUtils.CalculateDistance(
+                    patientAddr.Latitude.Value,
+                    patientAddr.Longitude.Value,
+                    nextAddr.Latitude.Value,
+                    nextAddr.Longitude.Value
+                );
+                driveToNext = GeoUtils.EstimateTravelTimeMinutes(dist);
+            }
+
+            bool nextIsInPerson =
+                next.Modality == AppointmentModality.InPersonFacility
+                || next.Modality == AppointmentModality.InPersonHomeVisit;
+            double nextBuffer = nextIsInPerson ? safetyBuffer : TELEHEALTH_BUFFER_MINS;
+
+            if (appt.ScheduledEnd.AddMinutes(driveToNext + nextBuffer) > next.ScheduledStart)
+            {
+                return (
+                    false,
+                    $"Logistics Violation: This slot would prevent arriving on time for the next visit (requires {Math.Round(driveToNext)}m drive + {nextBuffer}m buffer)."
+                );
+            }
+        }
+
+        return (true, null);
     }
 }

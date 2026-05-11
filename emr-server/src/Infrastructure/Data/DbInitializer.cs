@@ -21,6 +21,9 @@ namespace Infrastructure.Data
             "a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0"
         );
 
+        private const int CLINICAL_IN_PERSON_BUFFER = 5;
+        private const int CLINICAL_TELEHEALTH_BUFFER = 3;
+
         public static async Task InitializeAsync(
             IServiceProvider serviceProvider,
             bool wipeDb = true,
@@ -240,6 +243,10 @@ namespace Infrastructure.Data
                         Timezone = "Asia/Manila",
                         Language = "en",
                         DateFormat = "MM/DD/YYYY",
+                        AmStartHour = 8,
+                        PmStartHour = 13,
+                        DayEndHour = 18,
+                        EngineSafetyDriveMins = 5,
                     }
                 );
                 await context.SaveChangesAsync();
@@ -364,11 +371,57 @@ namespace Infrastructure.Data
             {
                 new
                 {
+                    Email = "cn.garcia@palliative.emr",
+                    First = "Maria",
+                    Last = "Garcia",
+                    Role = Roles.CareNavigator,
+                    Position = PractitionerPosition.Admin,
+                    IsCareNavigator = true,
+                },
+                new
+                {
+                    Email = "cn.santos@palliative.emr",
+                    First = "Juan",
+                    Last = "Santos",
+                    Role = Roles.CareNavigator,
+                    Position = PractitionerPosition.Admin,
+                    IsCareNavigator = true,
+                },
+                new
+                {
+                    Email = "cn.reyes@palliative.emr",
+                    First = "Elena",
+                    Last = "Reyes",
+                    Role = Roles.CareNavigator,
+                    Position = PractitionerPosition.Admin,
+                    IsCareNavigator = true,
+                },
+                new
+                {
+                    Email = "cn.lopez@palliative.emr",
+                    First = "Ricardo",
+                    Last = "Lopez",
+                    Role = Roles.CareNavigator,
+                    Position = PractitionerPosition.Admin,
+                    IsCareNavigator = true,
+                },
+                new
+                {
+                    Email = "cn.perez@palliative.emr",
+                    First = "Antonio",
+                    Last = "Perez",
+                    Role = Roles.CareNavigator,
+                    Position = PractitionerPosition.Admin,
+                    IsCareNavigator = true,
+                },
+                new
+                {
                     Email = "dr.house@palliative.emr",
                     First = "Gregory",
                     Last = "House",
                     Role = Roles.MedicalDirector,
                     Position = PractitionerPosition.Physician,
+                    IsCareNavigator = false,
                 },
                 new
                 {
@@ -377,6 +430,7 @@ namespace Infrastructure.Data
                     Last = "Wilson",
                     Role = Roles.Chaplain,
                     Position = PractitionerPosition.Physician,
+                    IsCareNavigator = false,
                 },
                 new
                 {
@@ -385,6 +439,7 @@ namespace Infrastructure.Data
                     Last = "Grey",
                     Role = Roles.Nurse,
                     Position = PractitionerPosition.Physician,
+                    IsCareNavigator = false,
                 },
                 new
                 {
@@ -393,6 +448,7 @@ namespace Infrastructure.Data
                     Last = "Murphy",
                     Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
+                    IsCareNavigator = false,
                 },
                 new
                 {
@@ -401,6 +457,7 @@ namespace Infrastructure.Data
                     Last = "Dorian",
                     Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
+                    IsCareNavigator = false,
                 },
                 new
                 {
@@ -409,6 +466,7 @@ namespace Infrastructure.Data
                     Last = "Yang",
                     Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
+                    IsCareNavigator = false,
                 },
                 new
                 {
@@ -417,6 +475,7 @@ namespace Infrastructure.Data
                     Last = "McCoy",
                     Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
+                    IsCareNavigator = false,
                 },
             };
 
@@ -489,16 +548,21 @@ namespace Infrastructure.Data
                         FirstName = acc.First,
                         LastName = acc.Last,
                         IsActive = true,
-                        IsCareNavigator = acc.Role == Roles.CareNavigator,
+                        IsCareNavigator = acc.IsCareNavigator,
                         IsSupportingClinician = acc.Role == Roles.Practitioner,
                         Position = acc.Position,
                     };
 
-                    // SEED CLINICAL BASE OPERATIONS
-                    // Every clinician needs a primary address for the Geospatial Radar
-                    var isCebu = acc.First == "Shaun" || acc.First == "Leonard"; // Simulated regional diversity
-                    var city = "Cebu City";
-                    var state = "Cebu";
+                    // CEBU OPERATIONS HUB
+                    var areas = new[]
+                    {
+                        "Cebu City",
+                        "Mandaue City",
+                        "Lapu-Lapu City",
+                        "Consolacion",
+                        "Liloan",
+                    };
+                    var area = areas[new Random().Next(areas.Length)];
 
                     var entityAddr = new EntityAddress
                     {
@@ -509,12 +573,39 @@ namespace Infrastructure.Data
                         Type = AddressType.Home,
                         Address = new Address
                         {
-                            Street = "Osmeña Blvd",
-                            City = city,
-                            State = state,
+                            Street =
+                                new Random().Next(1, 100)
+                                + " "
+                                + new Faker().PickRandom(
+                                    new[]
+                                    {
+                                        "Osmeña Blvd",
+                                        "Escario St",
+                                        "Gorordo Ave",
+                                        "Colon St",
+                                        "Mango Ave",
+                                        "M.C. Briones St",
+                                        "A.S. Fortuna St",
+                                        "Hernan Cortes St",
+                                        "Plaridel St",
+                                        "V. Rama Ave",
+                                        "B. Rodriguez St",
+                                        "Salinas Dr",
+                                        "Banilad Rd",
+                                        "Juan Luna Ave",
+                                    }
+                                ),
+                            City = area,
+                            State = "Cebu",
                             PostalCode = "6000",
-                            Latitude = 10.3157,
-                            Longitude = 123.8854,
+                            Latitude =
+                                area == "Cebu City"
+                                    ? 10.3157 + (new Random().NextDouble() * 0.02 - 0.01)
+                                    : 10.35 + (new Random().NextDouble() * 0.05 - 0.025),
+                            Longitude =
+                                area == "Cebu City"
+                                    ? 123.8854 + (new Random().NextDouble() * 0.02 - 0.01)
+                                    : 123.95 + (new Random().NextDouble() * 0.05 - 0.025),
                             Country = "Philippines",
                         },
                     };
@@ -524,10 +615,16 @@ namespace Infrastructure.Data
                 }
                 else if (!existingPractitioner.Addresses.Any())
                 {
-                    // Repair existing practitioners missing addresses
-                    var isCebu = acc.First == "Shaun" || acc.First == "Leonard";
-                    var city = "Cebu City";
-                    var state = "Cebu";
+                    // Repair existing practitioners missing addresses - CEBU HUB
+                    var tacticalAreas = new[]
+                    {
+                        "Cebu City",
+                        "Mandaue City",
+                        "Lapu-Lapu City",
+                        "Consolacion",
+                        "Liloan",
+                    };
+                    var area = tacticalAreas[new Random().Next(tacticalAreas.Length)];
 
                     var entityAddr = new EntityAddress
                     {
@@ -538,12 +635,39 @@ namespace Infrastructure.Data
                         Type = AddressType.Home,
                         Address = new Address
                         {
-                            Street = "Osmeña Blvd",
-                            City = city,
-                            State = state,
+                            Street =
+                                new Random().Next(1, 100)
+                                + " "
+                                + new Faker().PickRandom(
+                                    new[]
+                                    {
+                                        "Osmeña Blvd",
+                                        "Escario St",
+                                        "Gorordo Ave",
+                                        "Colon St",
+                                        "Mango Ave",
+                                        "M.C. Briones St",
+                                        "A.S. Fortuna St",
+                                        "Hernan Cortes St",
+                                        "Plaridel St",
+                                        "V. Rama Ave",
+                                        "B. Rodriguez St",
+                                        "Salinas Dr",
+                                        "Banilad Rd",
+                                        "Juan Luna Ave",
+                                    }
+                                ),
+                            City = area,
+                            State = "Cebu",
                             PostalCode = "6000",
-                            Latitude = 10.3157,
-                            Longitude = 123.8854,
+                            Latitude =
+                                area == "Cebu City"
+                                    ? 10.3157 + (new Random().NextDouble() * 0.02 - 0.01)
+                                    : 10.35 + (new Random().NextDouble() * 0.05 - 0.025),
+                            Longitude =
+                                area == "Cebu City"
+                                    ? 123.8854 + (new Random().NextDouble() * 0.02 - 0.01)
+                                    : 123.95 + (new Random().NextDouble() * 0.05 - 0.025),
                             Country = "Philippines",
                         },
                     };
@@ -568,8 +692,8 @@ namespace Infrastructure.Data
             var practitioners = await context.Practitioners.IgnoreQueryFilters().ToListAsync();
             foreach (var p in practitioners)
             {
-                // Give every practitioner a standard 8 AM - 5 PM shift every day
-                for (int i = 0; i < 7; i++)
+                // Give every practitioner a standard 8 AM - 5 PM shift (Mon-Sat, NO SUNDAYS)
+                for (int i = 1; i < 7; i++)
                 {
                     context.ProviderShifts.Add(
                         new ProviderShift
@@ -579,7 +703,7 @@ namespace Infrastructure.Data
                             PractitionerId = p.PractitionerId,
                             DayOfWeek = (DayOfWeek)i,
                             StartTime = new TimeSpan(8, 0, 0),
-                            EndTime = new TimeSpan(17, 0, 0),
+                            EndTime = new TimeSpan(18, 0, 0),
                             IsActive = true,
                         }
                     );
@@ -738,9 +862,19 @@ namespace Infrastructure.Data
                 context.Set<Medication>().AddRange(medications);
 
                 faker = new Faker();
-                // Seed coordinates for practitioners around a tight SLC cluster (approx 10-15 mile radius)
+                // SEED CEBU CLUSTER: Seed coordinates for practitioners around Cebu tactical sectors
                 foreach (var p in practitioners)
                 {
+                    var tacticalAreas = new[]
+                    {
+                        "Cebu City",
+                        "Mandaue City",
+                        "Lapu-Lapu City",
+                        "Consolacion",
+                        "Liloan",
+                    };
+                    var area = tacticalAreas[new Random().Next(tacticalAreas.Length)];
+
                     var entityAddr = new EntityAddress
                     {
                         EntityAddressId = Guid.NewGuid(),
@@ -750,23 +884,42 @@ namespace Infrastructure.Data
                         Type = AddressType.Home,
                         Address = new Address
                         {
-                            Street = "", // Set below
-                            City = faker.PickRandom("Cebu City", "Mandaue City", "Lapu-Lapu City"),
-                            State = "Central Visayas",
+                            Street =
+                                faker.Random.Number(1, 100)
+                                + " "
+                                + faker.PickRandom(
+                                    new[]
+                                    {
+                                        "Osmeña Blvd",
+                                        "Escario St",
+                                        "Gorordo Ave",
+                                        "Colon St",
+                                        "Mango Ave",
+                                        "M.C. Briones St",
+                                        "A.S. Fortuna St",
+                                        "Hernan Cortes St",
+                                        "Plaridel St",
+                                        "V. Rama Ave",
+                                        "B. Rodriguez St",
+                                        "Salinas Dr",
+                                        "Banilad Rd",
+                                        "Juan Luna Ave",
+                                    }
+                                ),
+                            City = area,
+                            State = "Cebu",
+                            Country = "Philippines",
+                            PostalCode = "6000",
+                            Latitude =
+                                area == "Cebu City"
+                                    ? 10.3157 + (new Random().NextDouble() * 0.02 - 0.01)
+                                    : 10.35 + (new Random().NextDouble() * 0.05 - 0.025),
+                            Longitude =
+                                area == "Cebu City"
+                                    ? 123.8854 + (new Random().NextDouble() * 0.02 - 0.01)
+                                    : 123.95 + (new Random().NextDouble() * 0.05 - 0.025),
                         },
                     };
-
-                    entityAddr.Address.Street = faker.PickRandom(
-                        "Osmeña Blvd",
-                        "Escario St",
-                        "Gorordo Ave",
-                        "Colon St",
-                        "Mango Ave",
-                        "M.C. Briones St"
-                    );
-                    entityAddr.Address.Latitude = faker.Address.Latitude(10.15, 10.45);
-                    entityAddr.Address.Longitude = faker.Address.Longitude(123.70, 124.00);
-                    entityAddr.Address.PostalCode = faker.Address.ZipCode();
                     context.EntityAddresses.Add(entityAddr);
                 }
 
@@ -871,17 +1024,20 @@ namespace Infrastructure.Data
                     TenantId = defaultTenantId,
                     PatientId = pearline.PatientId,
                     IsPrimary = true,
+                    Type = AddressType.Home,
                     Address = new Address
                     {
-                        Street = "123 Palliative Way",
+                        Street = "Banilad Road",
                         City = "Cebu City",
-                        State = "Central Visayas",
+                        State = "Cebu",
                         PostalCode = "6000",
-                        Latitude = 10.3157,
-                        Longitude = 123.8854,
+                        Latitude = 10.3446,
+                        Longitude = 123.9114,
+                        Country = "Philippines",
                     },
                 };
-                context.Set<EntityAddress>().Add(pearlineAddr);
+                pearline.Addresses.Add(pearlineAddr);
+                context.EntityAddresses.Add(pearlineAddr);
 
                 await context.SaveChangesAsync(default);
 
@@ -1092,20 +1248,55 @@ namespace Infrastructure.Data
                         x => x.Address,
                         (f, u) =>
                         {
+                            var patientAreas = new[]
+                            {
+                                "Cebu City",
+                                "Mandaue City",
+                                "Lapu-Lapu City",
+                                "Consolacion",
+                                "Liloan",
+                            };
+                            var area = f.PickRandom(patientAreas);
                             return new Address
                             {
-                                Street = f.PickRandom(
-                                    "A.S. Fortuna St",
-                                    "Hernan Cortes St",
-                                    "Plaridel St",
-                                    "S.B. Cabahug St",
-                                    "Osmeña Blvd"
-                                ),
-                                City = f.PickRandom("Cebu City", "Mandaue City", "Lapu-Lapu City"),
-                                State = "Central Visayas",
-                                PostalCode = f.Address.ZipCode(),
-                                Latitude = f.Address.Latitude(10.15, 10.45),
-                                Longitude = f.Address.Longitude(123.70, 124.00),
+                                Street =
+                                    f.Random.Number(1, 999)
+                                    + " "
+                                    + f.PickRandom(
+                                        new[]
+                                        {
+                                            "A.S. Fortuna St",
+                                            "Hernan Cortes St",
+                                            "Plaridel St",
+                                            "S.B. Cabahug St",
+                                            "Osmeña Blvd",
+                                            "V. Rama Ave",
+                                            "B. Rodriguez St",
+                                            "Salinas Dr",
+                                            "Banilad Rd",
+                                            "Lopez Jaena St",
+                                            "P. del Rosario St",
+                                            "Jakosalem St",
+                                            "Magallanes St",
+                                            "F. Ramos St",
+                                            "Ranudo St",
+                                            "Echavez St",
+                                            "Sikatuna St",
+                                            "T. Padilla St",
+                                        }
+                                    ),
+                                City = area,
+                                State = "Cebu",
+                                Country = "Philippines",
+                                PostalCode = "6000",
+                                Latitude =
+                                    area == "Cebu City"
+                                        ? 10.3157 + f.Random.Double(-0.03, 0.03)
+                                        : 10.35 + f.Random.Double(-0.06, 0.06),
+                                Longitude =
+                                    area == "Cebu City"
+                                        ? 123.8854 + f.Random.Double(-0.03, 0.03)
+                                        : 123.95 + f.Random.Double(-0.06, 0.06),
                             };
                         }
                     )
@@ -1150,19 +1341,16 @@ namespace Infrastructure.Data
                 // Anchor to the UPCOMING Monday (or today if it is Monday)
                 var now = DateTimeOffset.UtcNow;
                 int diff = (7 + (DayOfWeek.Monday - now.DayOfWeek)) % 7;
+                // PostgreSQL timestamptz requires UTC (Offset 0).
+                // 00:00 UTC is 08:00 Manila.
                 var baseDate = new DateTimeOffset(now.AddDays(diff).Date, TimeSpan.Zero);
                 Console.WriteLine(
                     $"[TACTICAL SEEDING] Monday-Start baseDate: {baseDate:yyyy-MM-dd}"
                 );
 
-                // Phase 1: Dedicated System Admin Appointments (Ensures Admin visibility)
-                // --- HIGH-FIDELITY SCHEDULING ENGINE ---
-                var adminPrac =
-                    practitioners.FirstOrDefault(p =>
-                        p.FirstName == "System" && p.LastName == "Admin"
-                    ) ?? practitioners[0];
-
-                // PRE-FETCH: Load all addresses into memory to avoid Local context misses and N+1 issues
+                // --- TACTICAL SCHEDULING SEEDING ---
+                // We need to ensure NO OVERLAPS and NO SUNDAYS.
+                var allAppointments = new List<Appointment>();
                 var allAddresses = await context
                     .EntityAddresses.Include(ea => ea.Address)
                     .IgnoreQueryFilters()
@@ -1177,29 +1365,24 @@ namespace Infrastructure.Data
                     )
                         return 0.0;
 
-                    var pA =
-                        allAddresses.FirstOrDefault(ea => ea.PractitionerId == pId)?.Address
-                        ?? context
-                            .EntityAddresses.Local.FirstOrDefault(ea => ea.PractitionerId == pId)
-                            ?.Address;
-                    var ptA =
-                        allAddresses.FirstOrDefault(ea => ea.PatientId == patId)?.Address
-                        ?? context
-                            .EntityAddresses.Local.FirstOrDefault(ea => ea.PatientId == patId)
-                            ?.Address;
+                    var pA = allAddresses.FirstOrDefault(ea => ea.PractitionerId == pId)?.Address;
+                    var ptA = allAddresses.FirstOrDefault(ea => ea.PatientId == patId)?.Address;
 
                     if (pA == null || ptA == null)
                         return 5.0;
 
-                    return Application.Common.Utils.GeoUtils.CalculateDistance(
+                    var distance = Application.Common.Utils.GeoUtils.CalculateDistance(
                         pA.Latitude ?? 10.3157,
                         pA.Longitude ?? 123.8854,
                         ptA.Latitude ?? 10.3157,
                         ptA.Longitude ?? 123.8854
                     );
+
+                    // Ensure minimum believable distance (0.5 miles) to avoid "zero distance travel"
+                    return Math.Max(distance, 0.5);
                 }
 
-                int GetTravelTime(double dist, AppointmentModality mod, bool isAdmin, Faker f)
+                int GetTravelTime(double dist, AppointmentModality mod, Faker f)
                 {
                     if (
                         mod != AppointmentModality.InPersonHomeVisit
@@ -1207,208 +1390,88 @@ namespace Infrastructure.Data
                     )
                         return 0;
                     var baseT = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(dist);
-                    // Add some jitter for traffic (1.2x to 3.0x base time to reflect urban congestion)
-                    var multiplier = f.Random.Double(1.2, 3.0);
-                    // Minimum 5 minutes, max 90 minutes for realistic variety
-                    return (int)Math.Clamp(baseT * multiplier, 5, 90);
+                    return (int)Math.Clamp(baseT * f.Random.Double(1.2, 2.5), 5, 60);
                 }
 
-                // Phase 1: System Admin Tactical Roster
-                var adminAppointments = new Faker<Appointment>()
-                    .RuleFor(a => a.AppointmentId, f => Guid.NewGuid())
-                    .RuleFor(a => a.TenantId, f => defaultTenantId)
-                    .RuleFor(
-                        a => a.PatientId,
-                        f =>
+                // Seed for the next 7 days (starting Monday)
+                for (int dayOffset = 0; dayOffset < 7; dayOffset++)
+                {
+                    var currentDate = baseDate.AddDays(dayOffset);
+                    if (currentDate.DayOfWeek == DayOfWeek.Sunday)
+                        continue;
+
+                    foreach (var prac in practitioners)
+                    {
+                        if (prac.PractitionerId == Guid.Empty)
+                            continue;
+
+                        var currentTime = currentDate; // Starts at 08:00 Manila (00:00 UTC)
+                        var dayBusyPatients = new HashSet<Guid>();
+
+                        for (int i = 0; i < 4; i++) // 4 appointments per day
                         {
-                            var adminAddr =
-                                allAddresses
-                                    .FirstOrDefault(ea =>
-                                        ea.PractitionerId == adminPrac.PractitionerId
-                                    )
-                                    ?.Address
-                                ?? context
-                                    .EntityAddresses.Local.FirstOrDefault(ea =>
-                                        ea.PractitionerId == adminPrac.PractitionerId
-                                    )
-                                    ?.Address;
+                            var patient = patients[faker.Random.Number(patients.Count - 1)];
+                            if (dayBusyPatients.Contains(patient.PatientId))
+                                continue;
 
-                            var regionalPatients = patients
-                                .Where(p =>
+                            var roll = faker.Random.Number(1, 100);
+                            var modality =
+                                roll <= 70 ? AppointmentModality.InPersonHomeVisit
+                                : roll <= 90 ? AppointmentModality.TelehealthVideo
+                                : AppointmentModality.InPersonFacility;
+
+                            // 1. Calculate REAL logistics
+                            double dist = GetDistance(
+                                prac.PractitionerId,
+                                patient.PatientId,
+                                modality
+                            );
+                            int driveTime = GetTravelTime(dist, modality, faker);
+                            int buffer =
+                                (modality == AppointmentModality.TelehealthVideo)
+                                    ? CLINICAL_TELEHEALTH_BUFFER
+                                    : CLINICAL_IN_PERSON_BUFFER;
+
+                            // 2. Advance time: Previous End + Buffer + DriveTime
+                            currentTime = currentTime.AddMinutes(buffer + driveTime);
+
+                            // 3. Snap to next 15-minute increment for clean UI
+                            int minutesToNext15 = (15 - (currentTime.Minute % 15)) % 15;
+                            var start = currentTime.AddMinutes(minutesToNext15);
+
+                            var duration = faker.Random.Number(20, 60);
+                            var end = start.AddMinutes(duration);
+
+                            // Boundary Check: Ensure we don't exceed 6 PM Manila (10:00 UTC)
+                            if (end.Hour > 10 || (end.Hour == 10 && end.Minute > 0))
+                                break;
+
+                            allAppointments.Add(
+                                new Appointment
                                 {
-                                    var pAddr = context
-                                        .EntityAddresses.Local.FirstOrDefault(ea =>
-                                            ea.PatientId == p.PatientId
-                                        )
-                                        ?.Address;
-                                    return pAddr?.State == adminAddr?.State;
-                                })
-                                .ToList();
-                            return f.PickRandom(
-                                regionalPatients.Any() ? regionalPatients : patients
-                            ).PatientId;
+                                    AppointmentId = Guid.NewGuid(),
+                                    TenantId = defaultTenantId,
+                                    PatientId = patient.PatientId,
+                                    PractitionerId = prac.PractitionerId,
+                                    VisitType = faker.PickRandom<VisitType>(),
+                                    Status = AppointmentStatus.Scheduled,
+                                    Modality = modality,
+                                    ScheduledStart = start,
+                                    ScheduledEnd = end,
+                                    DistanceInMiles = dist,
+                                    TravelTimeMinutes = driveTime, // Only drive time in DB per user request
+                                }
+                            );
+
+                            dayBusyPatients.Add(patient.PatientId);
+                            currentTime = end; // Pointer for next visit
                         }
-                    )
-                    .RuleFor(a => a.PractitionerId, adminPrac.PractitionerId)
-                    .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
-                    .RuleFor(a => a.Status, AppointmentStatus.Scheduled)
-                    .RuleFor(
-                        a => a.Modality,
-                        f =>
-                            f.Random.Bool(0.7f)
-                                ? AppointmentModality.InPersonHomeVisit
-                                : AppointmentModality.TelehealthVideo
-                    )
-                    .RuleFor(
-                        a => a.ScheduledStart,
-                        f => baseDate.AddDays(f.IndexFaker / 3).AddHours((f.IndexFaker % 3) * 2 + 1)
-                    )
-                    .RuleFor(
-                        a => a.ScheduledEnd,
-                        (f, a) => a.ScheduledStart.AddMinutes(f.Random.Number(15, 60))
-                    )
-                    .RuleFor(
-                        a => a.SupportingClinicians,
-                        (f, a) =>
-                        {
-                            // Try to find a supporting clinician in the same region
-                            var patAddr = context
-                                .EntityAddresses.Local.FirstOrDefault(ea =>
-                                    ea.PatientId == a.PatientId
-                                )
-                                ?.Address;
-                            var sameRegion = practitioners
-                                .Where(p => p.PractitionerId != a.PractitionerId)
-                                .Where(p =>
-                                {
-                                    var pAddr = context
-                                        .EntityAddresses.Local.FirstOrDefault(ea =>
-                                            ea.PractitionerId == p.PractitionerId
-                                        )
-                                        ?.Address;
-                                    return pAddr?.State == patAddr?.State;
-                                })
-                                .ToList();
+                    }
+                }
 
-                            return (sameRegion.Any() ? sameRegion : practitioners)
-                                .OrderBy(x => Guid.NewGuid())
-                                .Take(1)
-                                .ToList();
-                        }
-                    )
-                    .RuleFor(
-                        a => a.DistanceInMiles,
-                        (f, a) =>
-                            GetDistance(a.PractitionerId ?? Guid.Empty, a.PatientId, a.Modality)
-                    )
-                    .RuleFor(
-                        a => a.TravelTimeMinutes,
-                        (f, a) => GetTravelTime(a.DistanceInMiles ?? 0, a.Modality, true, f)
-                    )
-                    .Generate(9);
-
-                // Phase 2: General Roster Diversity
-                var otherAppointments = new Faker<Appointment>()
-                    .RuleFor(a => a.AppointmentId, f => Guid.NewGuid())
-                    .RuleFor(a => a.TenantId, f => defaultTenantId)
-                    .RuleFor(a => a.PatientId, (f, u) => f.PickRandom(patients).PatientId)
-                    .RuleFor(
-                        a => a.PractitionerId,
-                        (f, a) =>
-                        {
-                            // STRATEGIC: Match practitioner region to patient region
-                            var patAddr = context
-                                .EntityAddresses.Local.FirstOrDefault(ea =>
-                                    ea.PatientId == a.PatientId
-                                )
-                                ?.Address;
-                            var regionalPractitioners = practitioners
-                                .Where(p => p.PractitionerId != adminPrac.PractitionerId)
-                                .Where(p =>
-                                {
-                                    var pAddr = context
-                                        .EntityAddresses.Local.FirstOrDefault(ea =>
-                                            ea.PractitionerId == p.PractitionerId
-                                        )
-                                        ?.Address;
-                                    return pAddr?.State == patAddr?.State;
-                                })
-                                .ToList();
-
-                            return f.PickRandom(
-                                regionalPractitioners.Any() ? regionalPractitioners : practitioners
-                            ).PractitionerId;
-                        }
-                    )
-                    .RuleFor(a => a.VisitType, f => f.PickRandom<VisitType>())
-                    .RuleFor(a => a.Status, f => f.PickRandom<AppointmentStatus>())
-                    .RuleFor(
-                        a => a.Modality,
-                        f =>
-                            f.Random.Number(1, 100) <= 70
-                                ? AppointmentModality.InPersonHomeVisit
-                                : AppointmentModality.TelehealthVideo
-                    )
-                    .RuleFor(
-                        a => a.ScheduledStart,
-                        f =>
-                            baseDate
-                                .AddDays((f.IndexFaker / 30) - 2)
-                                .AddHours((f.IndexFaker % 30) * 0.5)
-                    )
-                    .RuleFor(
-                        a => a.ScheduledEnd,
-                        (f, a) => a.ScheduledStart.AddMinutes(f.Random.Number(15, 60))
-                    )
-                    .RuleFor(
-                        a => a.SupportingClinicians,
-                        (f, a) =>
-                        {
-                            var patAddr = context
-                                .EntityAddresses.Local.FirstOrDefault(ea =>
-                                    ea.PatientId == a.PatientId
-                                )
-                                ?.Address;
-                            var sameRegion = practitioners
-                                .Where(pr =>
-                                    pr.PractitionerId != a.PractitionerId
-                                    && pr.Position != PractitionerPosition.Admin
-                                )
-                                .Where(p =>
-                                {
-                                    var pAddr = context
-                                        .EntityAddresses.Local.FirstOrDefault(ea =>
-                                            ea.PractitionerId == p.PractitionerId
-                                        )
-                                        ?.Address;
-                                    return pAddr?.State == patAddr?.State;
-                                })
-                                .ToList();
-
-                            return f.Random.Bool(0.8f)
-                                ? (sameRegion.Any() ? sameRegion : practitioners)
-                                    .OrderBy(x => Guid.NewGuid())
-                                    .Take(1)
-                                    .ToList()
-                                : new List<Practitioner>();
-                        }
-                    )
-                    .RuleFor(
-                        a => a.DistanceInMiles,
-                        (f, a) =>
-                            GetDistance(a.PractitionerId ?? Guid.Empty, a.PatientId, a.Modality)
-                    )
-                    .RuleFor(
-                        a => a.TravelTimeMinutes,
-                        (f, a) => GetTravelTime(a.DistanceInMiles ?? 0, a.Modality, false, f)
-                    )
-                    .Generate(20);
-
-                context.Appointments.AddRange(adminAppointments);
-                context.Appointments.AddRange(otherAppointments);
+                context.Appointments.AddRange(allAppointments);
                 await context.SaveChangesAsync(default);
 
-                var allAppointments = adminAppointments.Concat(otherAppointments).ToList();
                 var meds = context.Set<Medication>().Local.ToList();
 
                 // --- CLINICAL DATA HARDENING ---

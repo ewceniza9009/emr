@@ -17,6 +17,14 @@ const GET_TENANT_CONFIG = gql`
       enforceMfa
       sessionTimeoutMinutes
       strictOnboarding
+      amStartHour
+      pmStartHour
+      dayEndHour
+      engineSafetyDriveMins
+      engineSafetyDistKm
+      iotSyncIntervalMs
+      urgentPainThreshold
+      urgentWellbeingThreshold
     }
   }
 `;
@@ -49,6 +57,14 @@ export interface TenantSettings {
   enforceMfa: boolean;
   sessionTimeoutMinutes: number;
   strictOnboarding: boolean;
+  amStartHour: number;
+  pmStartHour: number;
+  dayEndHour: number;
+  engineSafetyDriveMins: number;
+  engineSafetyDistKm: number;
+  iotSyncIntervalMs: number;
+  urgentPainThreshold: number;
+  urgentWellbeingThreshold: number;
 }
 
 const currencySymbols: Record<string, string> = {
@@ -75,7 +91,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   notificationsEnabled: true,
 };
 
-const DEFAULT_TENANT: TenantSettings = {
+export const DEFAULT_TENANT: TenantSettings = {
   currency: "PHP",
   timezone: "Asia/Manila",
   language: "en",
@@ -85,6 +101,14 @@ const DEFAULT_TENANT: TenantSettings = {
   enforceMfa: false,
   sessionTimeoutMinutes: 30,
   strictOnboarding: true,
+  amStartHour: 8,
+  pmStartHour: 13,
+  dayEndHour: 18,
+  engineSafetyDriveMins: 5,
+  engineSafetyDistKm: 5,
+  iotSyncIntervalMs: 5000,
+  urgentPainThreshold: 7,
+  urgentWellbeingThreshold: 7,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -114,7 +138,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         enableElasticsearch: config.enableElasticsearch,
         enforceMfa: config.enforceMfa,
         sessionTimeoutMinutes: config.sessionTimeoutMinutes,
-        strictOnboarding: config.strictOnboarding
+        strictOnboarding: config.strictOnboarding,
+        amStartHour: config.amStartHour || 8,
+        pmStartHour: config.pmStartHour || 13,
+        dayEndHour: config.dayEndHour || 18,
+        engineSafetyDriveMins: config.engineSafetyDriveMins || 5,
+        engineSafetyDistKm: config.engineSafetyDistKm || 5,
+        iotSyncIntervalMs: config.iotSyncIntervalMs || 5000,
+        urgentPainThreshold: config.urgentPainThreshold || 7,
+        urgentWellbeingThreshold: config.urgentWellbeingThreshold || 7,
       });
     }
   }, [tenantData]);
@@ -166,6 +198,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             enforceMfa: merged.enforceMfa,
             sessionTimeoutMinutes: merged.sessionTimeoutMinutes,
             strictOnboarding: merged.strictOnboarding,
+            amStartHour: merged.amStartHour,
+            pmStartHour: merged.pmStartHour,
+            dayEndHour: merged.dayEndHour,
+            engineSafetyDriveMins: merged.engineSafetyDriveMins,
+            engineSafetyDistKm: merged.engineSafetyDistKm,
+            iotSyncIntervalMs: merged.iotSyncIntervalMs,
+            urgentPainThreshold: merged.urgentPainThreshold,
+            urgentWellbeingThreshold: merged.urgentWellbeingThreshold,
             isActive: true
           }
         }

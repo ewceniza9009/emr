@@ -16,15 +16,7 @@ import { useToast } from "./ToastProvider";
 import { formatInTimeZone } from "date-fns-tz";
 import { Skeleton } from "./ui/skeleton";
 
-import { CLINICAL_CONFIG } from "../lib/clinical-config";
-
-const GRID_CONFIG = {
-  START_HOUR: CLINICAL_CONFIG.AM_START,
-  END_HOUR: CLINICAL_CONFIG.DAY_END,
-  TOTAL_MINUTES: (CLINICAL_CONFIG.DAY_END - CLINICAL_CONFIG.AM_START) * 60,
-  ROW_HEIGHT: 80,
-  DAYS: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-};
+import { useSettings } from "@/lib/SettingsContext";
 
 const POSITION_STYLE: Record<string, any> = {
   nurse: { label: "Nurse", color: "text-[var(--primary)]", bg: "bg-[var(--primary)]/5", border: "border-[var(--primary)]/20", icon: <Users className="w-3.5 h-3.5" /> },
@@ -112,6 +104,17 @@ const DELETE_SCHEDULE_BLOCK = gql`
 export default function SchedulingCalendar() {
   const { data: session, status } = useSession();
   const { showToast } = useToast();
+  const { tenantConfig } = useSettings();
+
+  const GRID_CONFIG = useMemo(() => ({
+    START_HOUR: tenantConfig.amStartHour,
+    END_HOUR: tenantConfig.dayEndHour,
+    TOTAL_MINUTES: (tenantConfig.dayEndHour - tenantConfig.amStartHour) * 60,
+    ROW_HEIGHT: 80,
+    DAYS: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    TIMEZONE: tenantConfig.timezone
+  }), [tenantConfig]);
+
   const [anchor, setAnchor] = useState(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -282,7 +285,23 @@ export default function SchedulingCalendar() {
         if (a1.appointmentId !== a2.appointmentId && a1.practitioner?.practitionerId === a2.practitioner?.practitionerId) {
           const s1 = new Date(a1.scheduledStart).getTime(), e1 = new Date(a1.scheduledEnd).getTime();
           const s2 = new Date(a2.scheduledStart).getTime(), e2 = new Date(a2.scheduledEnd).getTime();
-          if (s1 < e2 && s2 < e1) conf.add(a1.appointmentId);
+          
+          // 1. Direct Time Overlap
+          if (s1 < e2 && s2 < e1) {
+            conf.add(a1.appointmentId);
+            conf.add(a2.appointmentId);
+          }
+
+          // 2. Logistics Overlap (Drive Time + Buffer Violation)
+          // If a2 starts after a1, check if a2's transit time overlaps with a1
+          if (s1 < s2) {
+            const t2 = a2.travelTimeMinutes || 0;
+            const logisticsStart2 = s2 - (t2 * 60000);
+            if (e1 > logisticsStart2) {
+              conf.add(a1.appointmentId);
+              conf.add(a2.appointmentId);
+            }
+          }
         }
       });
     });
@@ -604,8 +623,8 @@ export default function SchedulingCalendar() {
                       const start = new Date(block.startTime);
                       const end = new Date(block.endTime);
 
-                      const blockHour = parseInt(formatInTimeZone(start, CLINICAL_CONFIG.TIMEZONE, "H"));
-                      const blockMinute = parseInt(formatInTimeZone(start, CLINICAL_CONFIG.TIMEZONE, "m"));
+                      const blockHour = parseInt(formatInTimeZone(start, GRID_CONFIG.TIMEZONE, "H"));
+                      const blockMinute = parseInt(formatInTimeZone(start, GRID_CONFIG.TIMEZONE, "m"));
 
                       const startMin = (blockHour - GRID_CONFIG.START_HOUR) * 60 + blockMinute;
                       const durMin = (end.getTime() - start.getTime()) / 60000;
@@ -655,8 +674,8 @@ export default function SchedulingCalendar() {
                       const start = new Date(appt.scheduledStart), end = new Date(appt.scheduledEnd);
                       const hasConflict = conflicts.has(appt.appointmentId);
 
-                      const hour = parseInt(formatInTimeZone(start, CLINICAL_CONFIG.TIMEZONE, "H"));
-                      const minute = parseInt(formatInTimeZone(start, CLINICAL_CONFIG.TIMEZONE, "m"));
+                      const hour = parseInt(formatInTimeZone(start, GRID_CONFIG.TIMEZONE, "H"));
+                      const minute = parseInt(formatInTimeZone(start, GRID_CONFIG.TIMEZONE, "m"));
 
                       const startMin = (hour - GRID_CONFIG.START_HOUR) * 60 + minute;
                       let durMin = (end.getTime() - start.getTime()) / 60000;

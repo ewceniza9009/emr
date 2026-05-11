@@ -19,8 +19,10 @@ public record BookAppointmentCommand(
     Guid? AppointmentId = null
 ) : IRequest<Appointment>;
 
-public class BookAppointmentCommandHandler(IApplicationDbContext context, ISchedulingService schedulingService)
-    : IRequestHandler<BookAppointmentCommand, Appointment>
+public class BookAppointmentCommandHandler(
+    IApplicationDbContext context,
+    ISchedulingService schedulingService
+) : IRequestHandler<BookAppointmentCommand, Appointment>
 {
     public async Task<Appointment> Handle(
         BookAppointmentCommand request,
@@ -33,16 +35,20 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
 
         // --- COLLISION PROOF GUARD ---
         // Check for any overlapping appointments for the same practitioner
-        var hasConflict = await context.Appointments
-            .AnyAsync(a => a.PractitionerId == request.PractitionerId 
-                           && a.AppointmentId != request.AppointmentId
-                           && startTime < a.ScheduledEnd 
-                           && endTime > a.ScheduledStart, 
-                       cancellationToken);
+        var hasConflict = await context.Appointments.AnyAsync(
+            a =>
+                a.PractitionerId == request.PractitionerId
+                && a.AppointmentId != request.AppointmentId
+                && startTime < a.ScheduledEnd
+                && endTime > a.ScheduledStart,
+            cancellationToken
+        );
 
         if (hasConflict)
         {
-            throw new InvalidOperationException("Collision Detected: This practitioner already has an appointment scheduled during this time window.");
+            throw new InvalidOperationException(
+                "Collision Detected: This practitioner already has an appointment scheduled during this time window."
+            );
         }
 
         var supporting = await context
@@ -51,7 +57,7 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
 
         Appointment appointment;
         bool needsRecalculation = false;
-        
+
         if (request.AppointmentId.HasValue && request.AppointmentId.Value != Guid.Empty)
         {
             appointment =
@@ -65,13 +71,17 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
 
             if (appointment.Status == AppointmentStatus.InProgress)
             {
-                throw new InvalidOperationException("Cannot update or reschedule an appointment that is already in progress.");
+                throw new InvalidOperationException(
+                    "Cannot update or reschedule an appointment that is already in progress."
+                );
             }
 
             // Check if fields that impact logistics changed
-            if (appointment.ScheduledStart != request.ScheduledStart || 
-                appointment.PractitionerId != request.PractitionerId ||
-                appointment.Modality != request.Modality)
+            if (
+                appointment.ScheduledStart != request.ScheduledStart
+                || appointment.PractitionerId != request.PractitionerId
+                || appointment.Modality != request.Modality
+            )
             {
                 needsRecalculation = true;
             }
@@ -82,17 +92,17 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
             appointment.ScheduledEnd = endTime;
             appointment.Modality = request.Modality;
             appointment.SupportingClinicians = supporting;
-            
+
             if (request.PlannedAssessments != null)
                 appointment.PlannedAssessments = request.PlannedAssessments;
-            
+
             // Only update if provided, otherwise preserve or allow recalculation
             if (request.TravelTimeMinutes.HasValue)
             {
                 appointment.TravelTimeMinutes = request.TravelTimeMinutes;
                 needsRecalculation = false; // User explicitly provided it
             }
-            
+
             if (request.DistanceInMiles.HasValue)
             {
                 appointment.DistanceInMiles = request.DistanceInMiles;
@@ -116,12 +126,12 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
                 TravelTimeMinutes = request.TravelTimeMinutes,
                 DistanceInMiles = request.DistanceInMiles,
             };
-            
+
             if (request.TravelTimeMinutes.HasValue || request.DistanceInMiles.HasValue)
             {
                 needsRecalculation = false; // User explicitly provided it
             }
-            
+
             context.Appointments.Add(appointment);
         }
 
@@ -130,16 +140,55 @@ public class BookAppointmentCommandHandler(IApplicationDbContext context, ISched
         // Recalculate if needed (new appointment or location-impacting change)
         if (needsRecalculation)
         {
-            try 
+            try
             {
-                var stats = await schedulingService.RecalculateAppointmentStatsAsync(appointment.AppointmentId, cancellationToken);
+                var stats = await schedulingService.RecalculateAppointmentStatsAsync(
+                    appointment.AppointmentId,
+                    cancellationToken
+                );
                 appointment.TravelTimeMinutes = stats.travelTime;
                 appointment.DistanceInMiles = stats.distance;
                 await context.SaveChangesAsync(cancellationToken);
+
+                // FINAL LOGISTICS VALIDATION: Ensure this appointment fits between neighbors
+                var (isValid, reason) = await schedulingService.ValidateLogisticsAsync(
+                    appointment.AppointmentId,
+                    cancellationToken
+                );
+                if (!isValid)
+                {
+                    // Rollback or throw (for now we throw to prevent bad data)
+                    throw new InvalidOperationException(reason);
+                }
+
+                // RECALCULATE NEXT APPOINTMENT: The next visit's transit time might have changed
+                var nextAppt = await context
+                    .Appointments.Where(a =>
+                        a.PractitionerId == appointment.PractitionerId
+                        && a.ScheduledStart > appointment.ScheduledStart
+                        && a.ScheduledStart < startTime.AddDays(1)
+                    )
+                    .OrderBy(a => a.ScheduledStart)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (nextAppt != null)
+                {
+                    var nextStats = await schedulingService.RecalculateAppointmentStatsAsync(
+                        nextAppt.AppointmentId,
+                        cancellationToken
+                    );
+                    nextAppt.TravelTimeMinutes = nextStats.travelTime;
+                    nextAppt.DistanceInMiles = nextStats.distance;
+                    await context.SaveChangesAsync(cancellationToken);
+                }
             }
-            catch 
+            catch (InvalidOperationException)
             {
-                // Fallback: don't fail the whole booking if stats service is down
+                throw;
+            }
+            catch
+            {
+                // Fallback: don't fail the whole booking if stats service is down, unless it's a validation error
             }
         }
 

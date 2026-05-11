@@ -10,7 +10,8 @@ public record GetAvailableProvidersQuery(
     Guid PatientId,
     DateTimeOffset TargetStart,
     int DurationMinutes,
-    AppointmentModality Modality
+    AppointmentModality Modality,
+    Guid? AppointmentId = null
 ) : IRequest<List<AvailableProviderDto>>;
 
 public class GetAvailableProvidersQueryHandler(
@@ -32,6 +33,7 @@ public class GetAvailableProvidersQueryHandler(
                 duration,
                 request.Modality,
                 request.PatientId,
+                request.AppointmentId,
                 cancellationToken
             );
 

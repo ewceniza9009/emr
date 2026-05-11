@@ -10,10 +10,16 @@ public interface ISchedulingService
         TimeSpan duration,
         AppointmentModality modality,
         Guid patientId,
+        Guid? excludeAppointmentId = null,
         CancellationToken cancellationToken = default
     );
 
     Task<(double distance, double travelTime)> RecalculateAppointmentStatsAsync(
+        Guid appointmentId,
+        CancellationToken cancellationToken = default
+    );
+
+    Task<(bool isValid, string? reason)> ValidateLogisticsAsync(
         Guid appointmentId,
         CancellationToken cancellationToken = default
     );

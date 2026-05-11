@@ -14,6 +14,19 @@ public class TenantConfiguration : BaseEntity, ITenantEntity
     public string Language { get; set; } = "en";
     public string DateFormat { get; set; } = "MM/DD/YYYY";
 
+    public int AmStartHour { get; set; } = 8;
+    public int PmStartHour { get; set; } = 13;
+    public int DayEndHour { get; set; } = 18;
+
+    // Engine & Logistics
+    public int EngineSafetyDriveMins { get; set; } = 5;
+    public double EngineSafetyDistKm { get; set; } = 5.0;
+
+    // Telemetry & Triage
+    public int IotSyncIntervalMs { get; set; } = 5000;
+    public int UrgentPainThreshold { get; set; } = 7;
+    public int UrgentWellbeingThreshold { get; set; } = 7;
+
     // Operational Flags
     public bool IsActive { get; set; } = true;
     public bool EnableElasticsearch { get; set; } = false;

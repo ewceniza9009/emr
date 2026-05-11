@@ -87,11 +87,12 @@ public class AppointmentQuery
         int durationMinutes,
         AppointmentModality modality,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken,
+        Guid? appointmentId = null
     )
     {
         return await mediator.Send(
-            new GetAvailableProvidersQuery(patientId, targetStart, durationMinutes, modality),
+            new GetAvailableProvidersQuery(patientId, targetStart, durationMinutes, modality, appointmentId),
             cancellationToken
         );
     }
