@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.2.0" />
     <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.7" />
   </ItemGroup>
 </Project>

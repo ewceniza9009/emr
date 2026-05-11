@@ -1,8 +1,8 @@
+using Api.GraphQL.Attributes;
 using Application.Common.Interfaces;
 using Domain.Entities;
 using HotChocolate.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Api.GraphQL.Attributes;
 
 namespace Api.GraphQL.Queries;
 
@@ -18,7 +18,7 @@ public class OutreachQuery
         [Service] IApplicationDbContext context
     )
     {
-        var query = context.PatientOutreaches.Include(o => o.Activities).AsNoTracking();
+        var query = context.PatientOutreaches.AsNoTracking();
 
         if (!string.IsNullOrEmpty(search))
         {
@@ -27,7 +27,13 @@ public class OutreachQuery
                 o.FirstName.ToLower().StartsWith(searchTerm)
                 || o.LastName.ToLower().StartsWith(searchTerm)
                 || o.ReferralSource.ToLower().Contains(searchTerm)
-                || (searchTerm.Length > 2 && (o.FirstName.ToLower().Contains(searchTerm) || o.LastName.ToLower().Contains(searchTerm)))
+                || (
+                    searchTerm.Length > 2
+                    && (
+                        o.FirstName.ToLower().Contains(searchTerm)
+                        || o.LastName.ToLower().Contains(searchTerm)
+                    )
+                )
             );
         }
 
@@ -43,9 +49,7 @@ public class OutreachQuery
     )
     {
         return context
-            .PatientOutreaches.Include(o => o.OtherContacts)
-            .Include(o => o.Activities)
-            .Where(o => o.PatientOutreachId == outreachId)
+            .PatientOutreaches.Where(o => o.PatientOutreachId == outreachId)
             .AsNoTracking();
     }
 }

@@ -485,7 +485,7 @@ export default function ClinicalNotesPage() {
               </div>
             </div>
 
-            <div className="absolute bottom-8 right-8 flex items-center gap-2 px-4 py-2 bg-[var(--input-bg)] rounded-full border border-[var(--card-border)]">
+            <div className="absolute bottom-8 left-10 flex items-center gap-2 px-4 py-2 bg-[var(--input-bg)]/80 backdrop-blur-md rounded-full border border-[var(--card-border)] z-10">
               <Lock className="w-3 h-3 text-[var(--text-muted)]" />
               <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">End-to-End HIPAA Encrypted Session</span>
             </div>

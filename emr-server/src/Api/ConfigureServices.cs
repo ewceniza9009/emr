@@ -1,7 +1,9 @@
 using System.Text;
+using Api.GraphQL.DataLoaders;
 using Api.GraphQL.Mutations;
 using Api.GraphQL.Queries;
 using Api.GraphQL.Types;
+using Domain.Entities;
 using HotChocolate.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -184,6 +186,7 @@ public static class ConfigureServices
     {
         services
             .AddGraphQLServer()
+            .AddType(new ObjectType<ZBenefitClaim>(d => d.Name("ZBenefitClaimEntity")))
             .AddAuthorization()
             .AddApolloFederation()
             .AddQueryType<Query>()
@@ -214,6 +217,8 @@ public static class ConfigureServices
             .AddType<DurableMedicalEquipmentInputType>()
             .AddType<OutreachScriptInputType>()
             .AddTypeExtension<PatientType>()
+            .AddTypeExtension<PatientDtoType>()
+            .AddTypeExtension<OutreachType>()
             .AddMutationType<Mutation>()
             .AddTypeExtension<PatientMutation>()
             .AddTypeExtension<AppointmentMutation>()
@@ -231,7 +236,15 @@ public static class ConfigureServices
             .AddSorting()
             .ModifyPagingOptions(o => o.IncludeTotalCount = true)
             .ModifyCostOptions(o => o.MaxFieldCost = 20000)
-            .AddType<UploadType>();
+            .AddType<UploadType>()
+            .AddDataLoader<PrescriptionsByPatientIdDataLoader>()
+            .AddDataLoader<DiagnosesByPatientIdDataLoader>()
+            .AddDataLoader<AllergiesByPatientIdDataLoader>()
+            .AddDataLoader<DocumentsByPatientIdDataLoader>()
+            .AddDataLoader<ActivitiesByOutreachIdDataLoader>()
+            .AddDataLoader<ContactsByOutreachIdDataLoader>()
+            .AddDataLoader<PractitionerByIdDataLoader>()
+            .AddDataLoader<ClaimLogsByClaimIdDataLoader>();
 
         return services;
     }

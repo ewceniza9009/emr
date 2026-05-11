@@ -10,40 +10,61 @@ namespace Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration
+    )
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
-        {
-            options.UseNpgsql(
-                configuration.GetConnectionString("DefaultConnection"),
-                b =>
-                {
-                    b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
-                    b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-                });
-            options.EnableSensitiveDataLogging();
-        });
+        services.AddDbContextFactory<ApplicationDbContext>(
+            options =>
+            {
+                options.UseNpgsql(
+                    configuration.GetConnectionString("DefaultConnection"),
+                    b =>
+                    {
+                        b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                        b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                    }
+                );
+                options.EnableSensitiveDataLogging();
+            },
+            ServiceLifetime.Scoped
+        );
 
-        services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<IApplicationDbContext>(provider =>
+            provider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext()
+        );
         services.AddSingleton<IDateTimeProvider, Infrastructure.Services.DateTimeProvider>();
 
         // Identity Configuration
-        services.AddIdentity<ApplicationUser, IdentityRole>(options => {
-            options.Password.RequireDigit = true;
-            options.Password.RequiredLength = 8;
-        })
-        .AddEntityFrameworkStores<ApplicationDbContext>()
-        .AddDefaultTokenProviders();
+        services
+            .AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequiredLength = 8;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
         // Integrations
-        services.AddHttpClient<IElationClient, Infrastructure.Integrations.Elation.ElationClient>(client =>
-        {
-            client.BaseAddress = new Uri(configuration["Integrations:Elation:ApiUrl"] ?? "https://api.elationhealth.com/v1/");
-        });
+        services.AddHttpClient<IElationClient, Infrastructure.Integrations.Elation.ElationClient>(
+            client =>
+            {
+                client.BaseAddress = new Uri(
+                    configuration["Integrations:Elation:ApiUrl"]
+                        ?? "https://api.elationhealth.com/v1/"
+                );
+            }
+        );
 
-        services.AddHttpClient<ICareSourceClient, Infrastructure.Integrations.CareSource.CareSourceClient>(client =>
+        services.AddHttpClient<
+            ICareSourceClient,
+            Infrastructure.Integrations.CareSource.CareSourceClient
+        >(client =>
         {
-            client.BaseAddress = new Uri(configuration["Integrations:CareSource:ApiUrl"] ?? "https://api.caresource.com/v1/");
+            client.BaseAddress = new Uri(
+                configuration["Integrations:CareSource:ApiUrl"] ?? "https://api.caresource.com/v1/"
+            );
         });
 
         services.AddScoped<ISchedulingService, Infrastructure.Services.SchedulingService>();
@@ -54,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
         services.AddScoped<ISecurityAuditService, Infrastructure.Services.SecurityAuditService>();
         services.AddScoped<ISearchService, Infrastructure.Services.SearchService>();
+        services.AddHostedService<Infrastructure.BackgroundJobs.ProcessOutboxMessagesJob>();
 
         return services;
     }

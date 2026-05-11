@@ -89,8 +89,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<AssessmentResponse> AssessmentResponses => Set<AssessmentResponse>();
     public DbSet<TenantConfiguration> TenantConfigurations => Set<TenantConfiguration>();
 
+    public DbSet<OutboxMessage> OutboxMessages { get; set; } = null!;
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        var domainEvents = ChangeTracker
+            .Entries<BaseEntity>()
+            .Select(x => x.Entity)
+            .Where(x => x.DomainEvents.Any())
+            .SelectMany(x =>
+            {
+                var events = x.DomainEvents.ToList();
+                x.ClearDomainEvents();
+                return events;
+            })
+            .ToList();
+
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
             switch (entry.State)
@@ -105,31 +119,71 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
                         tenantEntity.TenantId = _currentUserService.TenantId ?? Guid.Empty;
                     }
                     break;
-
                 case EntityState.Modified:
                     entry.Entity.UpdatedAt = DateTimeOffset.UtcNow;
                     break;
             }
         }
 
-        var patientsToIndex = ChangeTracker.Entries<Patient>()
+        // Automatic Indexing Events for Patients and Outreach
+        var patientsToIndex = ChangeTracker
+            .Entries<Patient>()
             .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
             .Select(e => e.Entity)
             .ToList();
 
-        var outreachToIndex = ChangeTracker.Entries<PatientOutreach>()
+        var outreachToIndex = ChangeTracker
+            .Entries<PatientOutreach>()
             .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)
             .Select(e => e.Entity)
             .ToList();
 
-        var result = await base.SaveChangesAsync(cancellationToken);
+        // Map to Outbox Messages
+        var outboxMessages = domainEvents
+            .Select(domainEvent => new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                Type = domainEvent.GetType().Name,
+                Content = System.Text.Json.JsonSerializer.Serialize(
+                    domainEvent,
+                    domainEvent.GetType()
+                ),
+                CreatedOnUtc = DateTimeOffset.UtcNow,
+            })
+            .ToList();
 
-        // BACKGROUND INDEXING: We trigger these after DB persistence
-        // We use CancellationToken.None to ensure indexing completes even if the original request is cancelled
-        foreach (var p in patientsToIndex) _ = _searchService.IndexPatientAsync(p, CancellationToken.None);
-        foreach (var o in outreachToIndex) _ = _searchService.IndexOutreachAsync(o, CancellationToken.None);
+        // Add indexing specific outbox messages if not already covered by domain events
+        // For simplicity in this EMR, we'll just use a dedicated "Indexing" outbox type
+        foreach (var p in patientsToIndex)
+        {
+            outboxMessages.Add(
+                new OutboxMessage
+                {
+                    Type = "IndexPatient",
+                    Content = p.PatientId.ToString(),
+                    CreatedOnUtc = DateTimeOffset.UtcNow,
+                }
+            );
+        }
 
-        return result;
+        foreach (var o in outreachToIndex)
+        {
+            outboxMessages.Add(
+                new OutboxMessage
+                {
+                    Type = "IndexOutreach",
+                    Content = o.PatientOutreachId.ToString(),
+                    CreatedOnUtc = DateTimeOffset.UtcNow,
+                }
+            );
+        }
+
+        if (outboxMessages.Any())
+        {
+            OutboxMessages.AddRange(outboxMessages);
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
     }
 
     public Guid CurrentTenantId => _currentUserService.TenantId ?? Guid.Empty;
@@ -140,6 +194,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
         // Apply manual configurations first so the global naming loop can see and transform them
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        // Ignore domain events
+        foreach (var entity in modelBuilder.Model.GetEntityTypes())
+        {
+            if (typeof(BaseEntity).IsAssignableFrom(entity.ClrType))
+            {
+                modelBuilder.Entity(entity.ClrType).Ignore(nameof(BaseEntity.DomainEvents));
+            }
+        }
 
         modelBuilder.HasSequence<long>("patient_mrn_seq").StartsAt(10000).IncrementsBy(1);
         foreach (var entity in modelBuilder.Model.GetEntityTypes())

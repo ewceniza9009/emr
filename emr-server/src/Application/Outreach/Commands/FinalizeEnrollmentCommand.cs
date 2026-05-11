@@ -95,17 +95,30 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         );
 
         // Map remaining command-specific fields
-        patient.CommunicationStatus = Enum.Parse<CommunicationAbility>(
-            request.CommunicationStatus.Replace("_", ""),
-            true
-        );
-        patient.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess.Replace("_", ""), true);
-        patient.BarriersToCare = request.BarriersToCare;
-        patient.Dob = request.DateOfBirth;
-        patient.BiologicalSex = request.BiologicalSex;
-        patient.GenderIdentity = request.GenderIdentity;
-        patient.Language = request.Language;
-        patient.CivilStatus = request.CivilStatus;
+        if (!string.IsNullOrEmpty(request.CommunicationStatus) && Enum.TryParse<CommunicationAbility>(request.CommunicationStatus.Replace("_", ""), true, out var commStatus))
+        {
+            patient.CommunicationStatus = commStatus;
+        }
+        else
+        {
+            patient.CommunicationStatus = outreach.CommunicationStatus ?? CommunicationAbility.Verbal;
+        }
+
+        if (!string.IsNullOrEmpty(request.TechAccess) && Enum.TryParse<TechAccessLevel>(request.TechAccess.Replace("_", ""), true, out var techAccess))
+        {
+            patient.TechAccess = techAccess;
+        }
+        else
+        {
+            patient.TechAccess = outreach.TechAccess ?? TechAccessLevel.None;
+        }
+
+        patient.BarriersToCare = request.BarriersToCare ?? outreach.BarriersToCare;
+        patient.Dob = request.DateOfBirth == default ? (outreach.DateOfBirth ?? default) : request.DateOfBirth;
+        patient.BiologicalSex = request.BiologicalSex == BiologicalSex.Unknown ? (outreach.BiologicalSex ?? BiologicalSex.Unknown) : request.BiologicalSex;
+        patient.GenderIdentity = request.GenderIdentity ?? outreach.GenderIdentity;
+        patient.Language = request.Language ?? outreach.Language ?? "English";
+        patient.CivilStatus = request.CivilStatus ?? outreach.CivilStatus;
         patient.FacilityId = request.FacilityId;
 
         // Map Enterprise Compliance & Communication
@@ -198,14 +211,29 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         // 5. Update Outreach Lead
         outreach.Status = OutreachStatus.Enrolled;
         outreach.EnrolledPatientId = patient.PatientId;
-        outreach.SelectedModality = Enum.Parse<CareModality>(request.Modality.Replace("_", ""), true);
+        
+        if (!string.IsNullOrEmpty(request.Modality) && Enum.TryParse<CareModality>(request.Modality.Replace("_", ""), true, out var modality))
+        {
+            outreach.SelectedModality = modality;
+        }
+
         outreach.HealthPlanId = request.HealthPlanId;
-        outreach.Disposition = Enum.Parse<EnrollmentDisposition>(request.Disposition.Replace("_", ""), true);
-        outreach.CommunicationStatus = Enum.Parse<CommunicationAbility>(
-            request.CommunicationStatus.Replace("_", ""),
-            true
-        );
-        outreach.TechAccess = Enum.Parse<TechAccessLevel>(request.TechAccess.Replace("_", ""), true);
+        
+        if (!string.IsNullOrEmpty(request.Disposition) && Enum.TryParse<EnrollmentDisposition>(request.Disposition.Replace("_", ""), true, out var disposition))
+        {
+            outreach.Disposition = disposition;
+        }
+
+        if (!string.IsNullOrEmpty(request.CommunicationStatus) && Enum.TryParse<CommunicationAbility>(request.CommunicationStatus.Replace("_", ""), true, out var outreachCommStatus))
+        {
+            outreach.CommunicationStatus = outreachCommStatus;
+        }
+
+        if (!string.IsNullOrEmpty(request.TechAccess) && Enum.TryParse<TechAccessLevel>(request.TechAccess.Replace("_", ""), true, out var outreachTechAccess))
+        {
+            outreach.TechAccess = outreachTechAccess;
+        }
+
         outreach.BarriersToCare = request.BarriersToCare;
         outreach.UpdatedAt = _dateTimeProvider.UtcNow;
 

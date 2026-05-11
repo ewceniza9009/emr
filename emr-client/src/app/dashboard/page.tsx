@@ -62,6 +62,11 @@ const GET_DASHBOARD_STATS = gql`
         priority
         actionText
       }
+      pulse {
+        time
+        active
+        alerts
+      }
     }
     triageWorklist {
       items {
@@ -327,7 +332,7 @@ export default function Dashboard() {
             </div>
             <div className="h-[140px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
+                <AreaChart data={data?.dashboardStats?.pulse || []}>
                   <defs>
                     <linearGradient id="colorPulse" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />

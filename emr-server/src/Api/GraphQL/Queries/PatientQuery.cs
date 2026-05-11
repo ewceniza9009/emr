@@ -1,4 +1,5 @@
 using Api.GraphQL.Attributes;
+using Api.GraphQL.DataLoaders;
 using Application.Common.Interfaces;
 using Application.Patients.Dtos;
 using Application.Patients.Queries;
@@ -34,41 +35,45 @@ public class PatientQuery
         CancellationToken cancellationToken = default
     )
     {
-        return await mediator.Send(new GetPatientsQuery(search, skip, take, directiveTypes, biologicalSex, visitStatuses), cancellationToken);
+        return await mediator.Send(
+            new GetPatientsQuery(search, skip, take, directiveTypes, biologicalSex, visitStatuses),
+            cancellationToken
+        );
     }
 
-    public IQueryable<Prescription> GetPrescriptionsByPatient(
+    public async Task<IEnumerable<Prescription>> GetPrescriptionsByPatient(
         Guid patientId,
-        [Service] IApplicationDbContext context
+        PrescriptionsByPatientIdDataLoader dataLoader,
+        CancellationToken cancellationToken
     )
     {
-        return context
-            .Prescriptions.Include(x => x.Medication)
-            .AsNoTracking()
-            .Where(x => x.PatientId == patientId);
+        return await dataLoader.LoadAsync(patientId, cancellationToken);
     }
 
-    public IQueryable<Diagnosis> GetDiagnosesByPatient(
+    public async Task<IEnumerable<Diagnosis>> GetDiagnosesByPatient(
         Guid patientId,
-        [Service] IApplicationDbContext context
+        DiagnosesByPatientIdDataLoader dataLoader,
+        CancellationToken cancellationToken
     )
     {
-        return context.Diagnoses.AsNoTracking().Where(x => x.PatientId == patientId);
+        return await dataLoader.LoadAsync(patientId, cancellationToken);
     }
 
-    public IQueryable<Allergy> GetAllergiesByPatient(
+    public async Task<IEnumerable<Allergy>> GetAllergiesByPatient(
         Guid patientId,
-        [Service] IApplicationDbContext context
+        AllergiesByPatientIdDataLoader dataLoader,
+        CancellationToken cancellationToken
     )
     {
-        return context.Allergies.AsNoTracking().Where(x => x.PatientId == patientId);
+        return await dataLoader.LoadAsync(patientId, cancellationToken);
     }
 
-    public IQueryable<PatientDocument> GetDocumentsByPatient(
+    public async Task<IEnumerable<PatientDocument>> GetDocumentsByPatient(
         Guid patientId,
-        [Service] IApplicationDbContext context
+        DocumentsByPatientIdDataLoader dataLoader,
+        CancellationToken cancellationToken
     )
     {
-        return context.PatientDocuments.AsNoTracking().Where(x => x.PatientId == patientId);
+        return await dataLoader.LoadAsync(patientId, cancellationToken);
     }
 }
