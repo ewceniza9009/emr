@@ -15,6 +15,8 @@ public class SchedulingServiceTests
     private readonly Mock<IDbContextFactory<ApplicationDbContext>> _mockFactory;
     private readonly Mock<ApplicationDbContext> _mockContext;
     private readonly Mock<ILogger<SchedulingService>> _mockLogger;
+    private readonly Mock<Application.Common.Interfaces.ICurrentUserService> _mockUserService;
+    private readonly Mock<Application.Common.Interfaces.ISearchService> _mockSearchService;
     private readonly SchedulingService _service;
 
     // Realistic coordinates (e.g. within a city)
@@ -26,7 +28,14 @@ public class SchedulingServiceTests
     public SchedulingServiceTests()
     {
         _mockFactory = new Mock<IDbContextFactory<ApplicationDbContext>>();
-        _mockContext = new Mock<ApplicationDbContext>(new DbContextOptions<ApplicationDbContext>());
+        _mockUserService = new Mock<Application.Common.Interfaces.ICurrentUserService>();
+        _mockSearchService = new Mock<Application.Common.Interfaces.ISearchService>();
+
+        _mockContext = new Mock<ApplicationDbContext>(
+            new DbContextOptions<ApplicationDbContext>(),
+            _mockUserService.Object,
+            _mockSearchService.Object
+        );
         _mockLogger = new Mock<ILogger<SchedulingService>>();
 
         _mockFactory
