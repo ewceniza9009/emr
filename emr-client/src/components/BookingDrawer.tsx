@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { useCommandModal } from "./CommandModalProvider";
@@ -267,13 +267,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     URGENT_WELLBEING_THRESHOLD: tenantConfig.urgentWellbeingThreshold
   }), [tenantConfig]);
 
-  const createZonedISO = (date: Date, hours: number, minutes: number) => {
+  const createZonedISO = useCallback((date: Date, hours: number, minutes: number) => {
     const year = date.getFullYear(), month = date.getMonth(), day = date.getDate();
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
     return fromZonedTime(dateStr, clinicalConfig.TIMEZONE).toISOString();
-  };
+  }, [clinicalConfig.TIMEZONE]);
 
-  const formatForEngine = (date: Date, hours: number) => {
+  const formatForEngine = useCallback((date: Date, hours: number) => {
     const d = new Date(date);
     d.setHours(hours, 0, 0, 0);
     const offset = -d.getTimezoneOffset();
@@ -286,7 +286,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     const day = pad(d.getDate());
     const h = pad(hours);
     return `${y}-${m}-${day}T${h}:00:00${sign}${offH}:${offM}`;
-  };
+  }, []);
 
   useEffect(() => {
     if (open && !appointmentId && !prefillDate && !propPatientId) {
@@ -435,7 +435,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       }
     });
     return map;
-  }, [currentGeoData, period]);
+  }, [currentGeoData, period, clinicalConfig.AM_START, clinicalConfig.CUTOFF_HOUR, clinicalConfig.DAY_END]);
 
   const displayCns = useMemo(() => {
     const geoProviders = currentGeoData?.availableProviders || [];
@@ -511,7 +511,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       };
     }
     return slots[0];
-  }, [practitionerId, practitionerSlots, appointmentId, appointmentData, period, selectedDate, duration]);
+  }, [practitionerId, practitionerSlots, appointmentId, appointmentData, period, selectedDate, duration, clinicalConfig.AM_START, clinicalConfig.PM_START, createZonedISO]);
 
   const [book, { loading: bookingLoading }] = useMutation(BOOK_APPOINTMENT, {
     refetchQueries: ["GetScheduleData"],

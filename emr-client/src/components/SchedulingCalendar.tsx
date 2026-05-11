@@ -201,7 +201,7 @@ export default function SchedulingCalendar() {
     if (scrollRef.current && !initializedRef.current) {
       scrollRef.current.scrollTop = 8 * GRID_CONFIG.ROW_HEIGHT;
     }
-  }, [practitioners]);
+  }, [practitioners, GRID_CONFIG.ROW_HEIGHT]);
 
   useEffect(() => {
     if (practitioners.length > 0 && status === "authenticated" && !initializedRef.current) {
@@ -315,7 +315,7 @@ export default function SchedulingCalendar() {
       });
     });
     return { visibleAppointments: va, visibleBlocks: vb, conflicts: conf };
-  }, [localAppointments, localBlocks, selectedPositions, selectedPractitioners, practitioners]);
+  }, [localAppointments, localBlocks, selectedPositions, selectedPractitioners, practitioners, GRID_CONFIG.START_HOUR, GRID_CONFIG.END_HOUR]);
 
   const handleDrop = (e: React.DragEvent, targetDate: Date) => {
     e.preventDefault();
@@ -378,7 +378,7 @@ export default function SchedulingCalendar() {
     }
   };
 
-  const HOURS = useMemo(() => Array.from({ length: GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR }, (_, i) => i + GRID_CONFIG.START_HOUR), []);
+  const HOURS = useMemo(() => Array.from({ length: GRID_CONFIG.END_HOUR - GRID_CONFIG.START_HOUR }, (_, i) => i + GRID_CONFIG.START_HOUR), [GRID_CONFIG.START_HOUR, GRID_CONFIG.END_HOUR]);
 
   if (loading && !data) return (
     <div className="flex-1 min-h-0 flex flex-col gap-3 p-1 animate-in fade-in duration-700 overflow-hidden">

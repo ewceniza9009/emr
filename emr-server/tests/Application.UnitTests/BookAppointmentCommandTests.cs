@@ -22,6 +22,15 @@ public class BookAppointmentCommandTests
             _mockContext.Object,
             _mockSchedulingService.Object
         );
+
+        // Default successful logistics setups
+        _mockSchedulingService
+            .Setup(s => s.RecalculateAppointmentStatsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((0.0, 0.0));
+
+        _mockSchedulingService
+            .Setup(s => s.ValidateLogisticsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((true, null));
     }
 
     [Fact]

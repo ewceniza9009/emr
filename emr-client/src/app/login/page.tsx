@@ -196,7 +196,7 @@ export default function LoginPage() {
               </div>
               <div>
                 <p className="text-base font-bold text-white tracking-wide">Victory Sotto</p>
-                <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-[0.2em]">St. Vincent's Hospice Clinical Director</p>
+                <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-[0.2em]">St. Vincent&apos;s Hospice Clinical Director</p>
               </div>
             </div>
           </div>
