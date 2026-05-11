@@ -314,7 +314,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
         setCivilStatus(lead.civilStatus);
       }
     }
-  }, [leadData]);
+  }, [lead]);
 
   const { data: duplicateData } = useQuery(SEARCH_PATIENTS, {
     variables: {
@@ -408,13 +408,13 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
       setLogNotes("");
       setFollowUpDate("");
       setShowDispositionModal(false);
-      
+
       if (pendingOutcome === "CONNECTED") {
         setActiveTab("ADMIN");
       }
       setPendingOutcome(null);
-    } catch (e) { 
-      console.error(e); 
+    } catch (e) {
+      console.error(e);
       showToast("Failed to log disposition", "error");
     }
   };
@@ -566,7 +566,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
         showToast("Enrollment successful. Transitioning to registry...", "success");
         // Ensure navigation is initialized before unmounting
         router.push(`/dashboard/patients/${data.finalizeEnrollment}`);
-        
+
         // Small delay to allow router to handle the request before unmounting the drawer
         setTimeout(() => {
           onClose();
@@ -1059,7 +1059,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/seal:opacity-30 transition-opacity">
                             <Fingerprint className="w-24 h-24 text-teal-500" />
                           </div>
-                          
+
                           <div className="relative z-10 space-y-6">
                             <div className="flex items-center gap-4">
                               <div className="w-12 h-12 rounded-2xl bg-teal-500/10 flex items-center justify-center text-teal-500 border border-teal-500/20">
@@ -1088,7 +1088,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                                 </div>
                               </div>
                             ) : (
-                              <button 
+                              <button
                                 onClick={() => {
                                   setIsConsentSealed(true);
                                   setConsentTimestamp(new Date().toLocaleString());
@@ -1103,7 +1103,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                                 Establish Digital Seal
                               </button>
                             )}
-                            
+
                             <p className="text-[8px] font-medium text-[var(--text-muted)] leading-relaxed italic opacity-40 px-2">
                               By establishing this seal, the practitioner verifies that verbal or written consent has been obtained from the patient or legal representative according to clinical protocol HAL-PR-01.
                             </p>
@@ -1346,8 +1346,8 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                               <input type="text" value={groupId} onChange={e => setGroupId(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="GROUP..." />
                             </div>
                           </div>
-                          <button 
-                            onClick={verifyInsurance} 
+                          <button
+                            onClick={verifyInsurance}
                             disabled={isVerifyingInsurance || eligibilityStatus === 'VERIFIED'}
                             className={`w-full h-11 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] shadow-lg transition-all flex items-center justify-center gap-2
                               ${eligibilityStatus === 'VERIFIED' ? 'bg-teal-500/10 border border-teal-500/30 text-teal-500 cursor-default' : 'bg-[var(--primary)] text-black hover:scale-[1.01] active:scale-[0.98]'}`}
