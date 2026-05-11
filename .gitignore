@@ -45,5 +45,4 @@ emr-server/src/Api/appsettings.json
 *.txt
 test-results/
 playwright-report/
-qa_report/
 playwright/.auth/

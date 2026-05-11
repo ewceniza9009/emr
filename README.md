@@ -348,7 +348,7 @@ The administrative nerve center for platform hardening. Administrators can toggl
 
 ### 4. Clinical Enrollment Lifecycle
 A verified, multi-stage wizard for patient onboarding, synchronizing demographics, insurance eligibility, and clinical priority in a single workflow.
-![Enrollment](qa_report/assets/enrollment.png)
+![Enrollment](qa_report/assets/enrollment_drawer.png)
 
 ### 5. Master Scheduling & Logistics
 A geospatial command center for multi-stage booking, clinician deployment, and regional service area management.
@@ -357,6 +357,7 @@ A geospatial command center for multi-stage booking, clinician deployment, and r
 ### 6. Patient Registry & Master Roster
 The unified registry for the entire patient population, providing sub-second search latency and high-density demographic visibility.
 ![Patients](qa_report/assets/patients.png)
+![Patients](qa_report/assets/patient_detail.png)
 
 ### 7. Clinical Outreach & CRM
 The conversion engine for the Halcyon OS, managing the transition of outreach leads into fully verified clinical patients.
