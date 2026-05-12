@@ -4,11 +4,11 @@ const authFile = 'playwright/.auth/user.json';
 
 setup('authenticate', async ({ page }) => {
   // Perform clinical login
-  const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || 'Halcyon@Initial!2026';
+  const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || 'Halkyone@Initial!2026';
   await page.goto('/login');
-  await page.getByPlaceholder('name@halcyon.clinical').fill('admin@palliative.emr');
+  await page.getByPlaceholder('name@halkyone.clinical').fill('admin@palliative.emr');
   await page.getByPlaceholder('••••••••').fill(adminPassword);
-  
+
   const signInButton = page.getByRole('button', { name: /Sign in to Workspace/i });
   await expect(signInButton).toBeEnabled();
   await signInButton.click();

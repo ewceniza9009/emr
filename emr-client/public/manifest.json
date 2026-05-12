@@ -1,6 +1,6 @@
 {
-  "name": "Halcyon Clinical OS",
-  "short_name": "Halcyon",
+  "name": "Halkyone Clinical OS",
+  "short_name": "Halkyone",
   "description": "Enterprise-grade medical platform for clinical operations.",
   "start_url": "/dashboard",
   "display": "standalone",

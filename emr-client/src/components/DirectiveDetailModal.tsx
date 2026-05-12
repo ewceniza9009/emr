@@ -109,7 +109,7 @@ export default function DirectiveDetailModal({ isOpen, onClose, directive }: Dir
           <div className="px-8 py-5 border-t border-[var(--card-border)] shrink-0 flex items-center justify-between">
             <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50 flex items-center gap-2">
               <Zap className="w-3 h-3" />
-              Halcyon Clinical OS · Legal Archive
+              Halkyone Clinical OS · Legal Archive
             </p>
             <button
               onClick={onClose}

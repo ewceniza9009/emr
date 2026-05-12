@@ -73,7 +73,7 @@ public class QuestPdfService : IPdfService
                             .Column(col =>
                             {
                                 col.Item()
-                                    .Text("HALCYON CLINICAL OS")
+                                    .Text("HALYONE CLINICAL OS")
                                     .FontSize(22)
                                     .ExtraBold()
                                     .FontColor(Colors.Teal.Medium);
@@ -347,7 +347,7 @@ public class QuestPdfService : IPdfService
                             .Column(col =>
                             {
                                 col.Item()
-                                    .Text("HALCYON CLINICAL OS")
+                                    .Text("HALYONE CLINICAL OS")
                                     .FontSize(22)
                                     .ExtraBold()
                                     .FontColor(Colors.Teal.Medium);
@@ -449,7 +449,7 @@ public class QuestPdfService : IPdfService
                             .AlignCenter()
                             .DefaultTextStyle(x => x.FontSize(8).FontColor(Colors.Grey.Medium))
                             .Text(
-                                "Please make all checks payable to Halcyon Clinical Services. For billing inquiries, call (555) 012-3456."
+                                "Please make all checks payable to Halkyone Clinical Services. For billing inquiries, call (555) 012-3456."
                             );
                         footer
                             .Item()
@@ -699,7 +699,7 @@ public class QuestPdfService : IPdfService
                             .Column(col =>
                             {
                                 col.Item()
-                                    .Text("HALCYON CLINICAL OS")
+                                    .Text("HALYONE CLINICAL OS")
                                     .FontSize(20)
                                     .ExtraBold()
                                     .FontColor(Colors.Teal.Medium);

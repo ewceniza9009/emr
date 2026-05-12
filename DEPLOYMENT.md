@@ -1,6 +1,6 @@
-# Halcyon Clinical OS: Deployment & Production Strategy
+# Halkyone Clinical OS: Deployment & Production Strategy
 
-Halcyon Clinical OS is engineered for high-availability clinical environments. This document outlines the architectural readiness, DevOps strategy, and recommended production infrastructure for scaling the platform to enterprise-grade operations.
+Halkyone Clinical OS is engineered for high-availability clinical environments. This document outlines the architectural readiness, DevOps strategy, and recommended production infrastructure for scaling the platform to enterprise-grade operations.
 
 ---
 
@@ -76,7 +76,7 @@ In a multi-instance production environment, standard SignalR connections are sto
 ### 4. Edge-Optimized Frontend (Next.js)
 Your Next.js 14 frontend requires more than static hosting due to its server-side logic (SSR/ISR).
 *   **Global Distribution**: Using Vercel or Azure SWA ensures that the initial EMR dashboard load is generated at the data center closest to the clinician, minimizing latency.
-*   **PWA & Offline Capability**: Managed hosting platforms optimize the delivery of Service Workers, crucial for Halcyon’s offline-first clinical documentation strategy.
+*   **PWA & Offline Capability**: Managed hosting platforms optimize the delivery of Service Workers, crucial for Halkyone’s offline-first clinical documentation strategy.
 
 ### 5. Secure Storage via SAS
 Storing patient PDFs or images in a public folder is a security violation.
@@ -126,7 +126,7 @@ Below are step-by-step variations for implementing the most critical infrastruct
 
 ## 📈 Go-To-Market Infrastructure
 
-> "Halcyon Clinical OS is engineered for rapid, secure cloud deployment. The .NET 8 API and Next.js frontend are decoupled and containerized. The target production environment utilizes **Microsoft Azure** to ensure enterprise-grade security. By leveraging **Azure SQL** for encrypted, multi-tenant data isolation and **Azure SignalR Service** for high-throughput live clinical telemetry, the platform is designed to be highly available, scalable, and fully compliant with healthcare data privacy regulations from day one."
+> "Halkyone Clinical OS is engineered for rapid, secure cloud deployment. The .NET 8 API and Next.js frontend are decoupled and containerized. The target production environment utilizes **Microsoft Azure** to ensure enterprise-grade security. By leveraging **Azure SQL** for encrypted, multi-tenant data isolation and **Azure SignalR Service** for high-throughput live clinical telemetry, the platform is designed to be highly available, scalable, and fully compliant with healthcare data privacy regulations from day one."
 
 ---
 

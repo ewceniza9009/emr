@@ -72,13 +72,13 @@ export default function AdminLoginPage() {
 
         <div className="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] p-10 shadow-2xl space-y-8">
           <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-             <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                <Terminal className="w-5 h-5" />
-             </div>
-             <div>
-                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Security Protocol</p>
-                <p className="text-xs font-bold text-white uppercase tracking-tight">RSA-4096 · TLS 1.3</p>
-             </div>
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+              <Terminal className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Security Protocol</p>
+              <p className="text-xs font-bold text-white uppercase tracking-tight">RSA-4096 · TLS 1.3</p>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -97,7 +97,7 @@ export default function AdminLoginPage() {
                   {...register("email")}
                   type="email"
                   className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:outline-none focus:border-indigo-500/50 focus:bg-slate-950 transition-all placeholder:text-slate-700"
-                  placeholder="sysadmin@halcyon.clinical"
+                  placeholder="sysadmin@halkyone.clinical"
                 />
               </div>
               {errors.email && <p className="text-[9px] text-rose-400 ml-1 font-black uppercase tracking-widest">{errors.email.message}</p>}
@@ -135,24 +135,24 @@ export default function AdminLoginPage() {
         </div>
 
         <div className="mt-12 flex flex-col items-center gap-6">
-           <div className="flex items-center justify-center gap-8 opacity-40">
-              <div className="flex items-center gap-2">
-                 <Database className="w-3 h-3" />
-                 <span className="text-[8px] font-black uppercase tracking-[0.2em]">Live Registry</span>
-              </div>
-              <div className="w-1 h-1 rounded-full bg-slate-800" />
-              <div className="flex items-center gap-2">
-                 <Zap className="w-3 h-3" />
-                 <span className="text-[8px] font-black uppercase tracking-[0.2em]">Encrypted Link</span>
-              </div>
-           </div>
+          <div className="flex items-center justify-center gap-8 opacity-40">
+            <div className="flex items-center gap-2">
+              <Database className="w-3 h-3" />
+              <span className="text-[8px] font-black uppercase tracking-[0.2em]">Live Registry</span>
+            </div>
+            <div className="w-1 h-1 rounded-full bg-slate-800" />
+            <div className="flex items-center gap-2">
+              <Zap className="w-3 h-3" />
+              <span className="text-[8px] font-black uppercase tracking-[0.2em]">Encrypted Link</span>
+            </div>
+          </div>
 
-           <button 
-             onClick={() => window.location.href = "/login"}
-             className="text-[10px] font-black text-slate-700 hover:text-indigo-500 uppercase tracking-widest transition-colors"
-           >
-             Switch to Clinical Portal
-           </button>
+          <button
+            onClick={() => window.location.href = "/login"}
+            className="text-[10px] font-black text-slate-700 hover:text-indigo-500 uppercase tracking-widest transition-colors"
+          >
+            Switch to Clinical Portal
+          </button>
         </div>
       </div>
     </div>

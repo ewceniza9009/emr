@@ -1,4 +1,4 @@
-# Halcyon Clinical OS
+# Halkyone Clinical OS
 
 [![Architecture: Clean](https://img.shields.io/badge/Architecture-Clean--Architecture-blue.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 [![Pattern: CQRS--MediatR](https://img.shields.io/badge/Pattern-CQRS--MediatR-blueviolet.svg)](https://github.com/jbogard/MediatR)
@@ -18,7 +18,7 @@
 [![Testing: Playwright](https://img.shields.io/badge/Testing-Playwright--E2E-45ba4b.svg)](https://playwright.dev/)
 [![Clinical: 100%--Verified](https://img.shields.io/badge/Clinical-100%25--Verified-success.svg)](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml)
 
-[![Halcyon CI](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml/badge.svg)](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml)
+[![Halkyone CI](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml/badge.svg)](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml)
 
 ---
 
@@ -32,9 +32,9 @@
 ---
 ## 🏥 Strategic Vision & Mission
 
-**Halcyon Clinical OS** is an enterprise-grade, high-fidelity Electronic Medical Record (EMR) system architected for the mission-critical demands of palliative, hospice, and complex care. It transcends traditional data entry by providing a **Tactical Command Center** that synchronizes clinical documentation, geospatial logistics, and real-time patient telemetry into a unified workstation.
+**Halkyone Clinical OS** is an enterprise-grade, high-fidelity Electronic Medical Record (EMR) system architected for the mission-critical demands of palliative, hospice, and complex care. It transcends traditional data entry by providing a **Tactical Command Center** that synchronizes clinical documentation, geospatial logistics, and real-time patient telemetry into a unified workstation.
 
-Built for **Clinical Authority**, Halcyon empowers practitioners to execute at the bedside with sub-second latency, declarative security, and automated documentation paths.
+Built for **Clinical Authority**, Halkyone empowers practitioners to execute at the bedside with sub-second latency, declarative security, and automated documentation paths.
 
 ---
 
@@ -96,7 +96,7 @@ flowchart TD
 
 ## 🏛️ System Divisions: The Dual-Portal Architecture
 
-Halcyon is split into two specialized frontend ecosystems, each optimized for specific operational roles:
+Halkyone is split into two specialized frontend ecosystems, each optimized for specific operational roles:
 
 ### 1. Clinical Main Portal (`/dashboard`)
 Designed for **Clinical Execution**, this portal is the primary workstation for Practitioners, Nurses, and Care Navigators.
@@ -125,19 +125,19 @@ The backend follows a strict **Clean Architecture** pattern, ensuring the Domain
 - **Api Layer:** Delivery head for GraphQL (HotChocolate), SignalR Hubs, and Background Workers.
 
 ### 2. GraphQL Performance & DataLoaders
-Halcyon utilizes a high-performance **Batch-Loading Architecture** via HotChocolate DataLoaders to eliminate the N+1 query problem.
+Halkyone utilizes a high-performance **Batch-Loading Architecture** via HotChocolate DataLoaders to eliminate the N+1 query problem.
 - **Batched Resolvers**: Complex clinical relationships (Prescriptions, Allergies, Diagnoses, Documents) are resolved in optimized batches.
 - **Request-Scoped Caching**: Data is cached globally for the duration of a single GraphQL request, preventing redundant database round-trips for shared entities like Practitioners.
 - **Sub-Second Hydration**: Even high-density clinical summaries load with minimal SQL overhead, ensuring sub-second Time-to-Interactive (TTI).
 
 ### 3. Transactional Outbox & Eventual Consistency
-To guarantee 100% reliability between the core Clinical DB and the Elasticsearch search index, Halcyon implements the **Transactional Outbox Pattern**:
+To guarantee 100% reliability between the core Clinical DB and the Elasticsearch search index, Halkyone implements the **Transactional Outbox Pattern**:
 - **Atomic Capture**: Domain events (e.g., `PatientCreated`, `LeadEnrolled`) are captured and stored in a SQL-based outbox within the same database transaction as the clinical data.
 - **Reliable Background Draining**: A resilient background worker (`ProcessOutboxMessagesJob`) polls and processes the outbox, ensuring that side-effects like search indexing and external API syncs succeed even if services are temporarily unavailable.
 - **Guaranteed Consistency**: This architecture ensures that the "Global Search" and "Clinical Registry" never fall out of sync, providing practitioners with a mathematically verifiable "Single Source of Truth."
 
 ### 4. Multi-Tenancy & Security
-Halcyon implements a **Shared Database / Row-Level Isolation** model:
+Halkyone implements a **Shared Database / Row-Level Isolation** model:
 - **Unified Schema**: All tenants (hospitals/clinics) share a single database, maximizing cost-efficiency and simplifying migrations.
 - **Row-Level Security**: Every clinical entity is anchored to a `TenantId`. Data isolation is enforced at the repository level via EF Core Global Query Filters, ensuring a practitioner from Tenant A can never view data from Tenant B.
 - **`[UseClinicalAccess]` Attribute**: Centralized GQL middleware for identity resolution and deep-inspection security.
@@ -215,7 +215,7 @@ The `SchedulingService.cs` manages clinical deployment complexity:
 
 ---
 
-## ✏️ Halcyon Theme Hardening (Phase II)
+## ✏️ Halkyone Theme Hardening (Phase II)
 - **Administrative Parity:** Extended full theme-aware support to the entire /admin ecosystem. Residual "Black Artifacts" in components like SecurityAuditVault, IdentityManagement, and IntegrationsSync have been eliminated, ensuring 100% legibility in high-density light-mode environments.
 - **Forensic Legibility:** Standardized all forensic table headers and status tags with clinical theme variables. High-authority administrative data now retains its professional "Tactical Command" aesthetic while adapting seamlessly to workstation lighting conditions.
 - **Dynamic Designer Synchronization:** Refactored the SurveyCreatorWidget and FormDesignerPage to ensure that the SurveyJS authoring environment respects the global theme context, providing a consistent and strain-free experience for clinical instrument architects.
@@ -225,7 +225,7 @@ The `SchedulingService.cs` manages clinical deployment complexity:
 
 ## 🧪 Enterprise Reliability & Performance (Phase III)
 
-The Halcyon Clinical OS has undergone rigorous hardening to transition from a high-fidelity prototype into a production-ready enterprise system.
+The Halkyone Clinical OS has undergone rigorous hardening to transition from a high-fidelity prototype into a production-ready enterprise system.
 
 ### 1. Performance & UI Optimization
 - **Dynamic Component Architecture:** Heavy dependencies (SurveyJS, Leaflet Maps, and Recharts) are now loaded on-demand using `next/dynamic`. This significantly reduces initial bundle sizes and ensures sub-second Time-to-Interactive (TTI).
@@ -234,7 +234,7 @@ The Halcyon Clinical OS has undergone rigorous hardening to transition from a hi
 
 ### 2. Clinical Resilience (PWA)
 - **Offline Clinical Capabilities:** Integrated `next-pwa` and Service Worker orchestration. Practitioners can now access cached clinical interfaces in "dead zones" or low-connectivity environments (e.g., rural home health visits).
-- **Installable Desktop/Mobile App:** Full PWA compliance with `manifest.json` and optimized metadata, allowing Halcyon to be deployed as a standalone native application.
+- **Installable Desktop/Mobile App:** Full PWA compliance with `manifest.json` and optimized metadata, allowing Halkyone to be deployed as a standalone native application.
 
 ### 3. Professional E2E Testing Suite
 - **Playwright Integration:** Established a robust End-to-End testing framework to automate mission-critical clinical validation.
@@ -279,7 +279,7 @@ The Halcyon Clinical OS has undergone rigorous hardening to transition from a hi
 
 ## ✅ Clinical QA Verification (E2E & Unit)
 
-Halcyon maintains a **100% Reliability Target** via automated mission-critical audits.
+Halkyone maintains a **100% Reliability Target** via automated mission-critical audits.
 
 ### 🛡️ Playwright E2E Verification
 The full clinical lifecycle is validated on every push:
@@ -332,7 +332,7 @@ The full clinical lifecycle is validated on every push:
 
 ## 🖼️ Production Workstation Gallery
 
-The following are high-fidelity, real-time captures of the Halcyon Clinical OS in its production-verified state. These HUDs demonstrate the platform's ability to handle multi-tenant security, live telemetry, and complex clinical logistics.
+The following are high-fidelity, real-time captures of the Halkyone Clinical OS in its production-verified state. These HUDs demonstrate the platform's ability to handle multi-tenant security, live telemetry, and complex clinical logistics.
 
 ### 1. Clinical Command Center (Dashboard)
 The primary HUD for practitioners, featuring real-time **Clinical Alerts** (telemetry distress & compliance risks) and an **Operational Pulse** engagement monitor.
@@ -360,7 +360,7 @@ The unified registry for the entire patient population, providing sub-second sea
 ![Patients](qa_report/assets/patient_detail.png)
 
 ### 7. Clinical Outreach & CRM
-The conversion engine for the Halcyon OS, managing the transition of outreach leads into fully verified clinical patients.
+The conversion engine for the Halkyone OS, managing the transition of outreach leads into fully verified clinical patients.
 ![Outreach](qa_report/assets/outreach.png)
 
 ### 8. Real-time Telemetry & IoT Monitor
@@ -369,15 +369,15 @@ A live SignalR node monitoring system for tracking IoT connectivity across the c
 
 ---
 
-## 🏥 A Day in the Life: Halcyon in Action
+## 🏥 A Day in the Life: Halkyone in Action
 
-To truly understand the efficacy, scalability, and industry-level architecture of Halcyon Clinical OS, we must observe it under the extreme pressures of a live clinical environment. This is a look at how Halcyon’s architectural choices solve real-world medical challenges.
+To truly understand the efficacy, scalability, and industry-level architecture of Halkyone Clinical OS, we must observe it under the extreme pressures of a live clinical environment. This is a look at how Halkyone’s architectural choices solve real-world medical challenges.
 
 ### 📍 07:30 AM | The Operational Briefing (Mandaue City Command Center)
 
-David, a Senior Care Navigator for the Visayas Health Network, logs into the Halcyon `/dashboard`. Instantly, the Next.js frontend resolves his JWT session and establishes a secure Apollo Client connection.
+David, a Senior Care Navigator for the Visayas Health Network, logs into the Halkyone `/dashboard`. Instantly, the Next.js frontend resolves his JWT session and establishes a secure Apollo Client connection.
 
-Halcyon operates on a strict **Row-Level Isolation** architecture. When David’s dashboard queries the PostgreSQL database via Entity Framework Core, Global Query Filters automatically append his specific `TenantId`. David only sees the thousands of patients belonging to his specific healthcare network. The data of other hospital chains using the system is cryptographically and structurally invisible to him, ensuring absolute zero-trust tenant segregation.
+Halkyone operates on a strict **Row-Level Isolation** architecture. When David’s dashboard queries the PostgreSQL database via Entity Framework Core, Global Query Filters automatically append his specific `TenantId`. David only sees the thousands of patients belonging to his specific healthcare network. The data of other hospital chains using the system is cryptographically and structurally invisible to him, ensuring absolute zero-trust tenant segregation.
 
 ### 🚨 08:15 AM | Geospatial Dispatch
 
@@ -393,13 +393,13 @@ Elena launches the `DynamicAssessment` module. Instead of loading hardcoded Reac
 
 ### 📝 09:30 AM | Automated Synthesis and Storage
 
-After administering a fast-acting analgesic, Elena needs to chart the encounter. She types `/soap` and `/meds`. Halcyon's **Smart Phrase Engine** detects the commands and instantly expands her shortcuts into standardized, highly formatted clinical notes.
+After administering a fast-acting analgesic, Elena needs to chart the encounter. She types `/soap` and `/meds`. Halkyone's **Smart Phrase Engine** detects the commands and instantly expands her shortcuts into standardized, highly formatted clinical notes.
 
 She hits "Sign." The backend intercepts the MediatR command and triggers the **QuestPDF engine**. In milliseconds, it silently generates a high-fidelity, legally compliant PDF Visit Summary. This document is immediately encrypted and routed to the **Azurite Document Vault**, securing Maria's Advance Directives and clinical summaries off the main database thread.
 
 ### 📉 11:45 PM | The Telemetry Crisis and The Break-Glass Protocol
 
-Maria is resting, but her vital signs are constantly monitored by Halcyon’s **LiveHeartbeat** module. A pulse oximeter on her finger streams data seamlessly through Halcyon’s **SignalR Telemetry Hubs**.
+Maria is resting, but her vital signs are constantly monitored by Halkyone’s **LiveHeartbeat** module. A pulse oximeter on her finger streams data seamlessly through Halkyone’s **SignalR Telemetry Hubs**.
 
 Suddenly, Maria’s SpO2 levels dip dangerously low. The system does not wait for a browser refresh. The asynchronous WebSocket connection pushes a high-priority blip directly to the night-shift dispatcher’s screen at the Regional Telemetry Hub.
 
@@ -411,16 +411,16 @@ Dr. Aris clicks the **"Break-Glass" Emergency Override**. He types his override 
 
 Dr. Aris successfully guided the night nurse through a medication adjustment. Maria is stabilized and resting comfortably.
 
-Back at the Nerve Center, billing administrators log into the `/admin` portal. The previous day's encounters—Elena's dynamic assessment and Dr. Aris's emergency intervention—are already waiting in the **Revenue Cycle Management** module. Halcyon has automatically verified the multi-state practitioner licensures and queued the encounter data into the **Z-Benefit Claim Engine** for Philhealth processing.
+Back at the Nerve Center, billing administrators log into the `/admin` portal. The previous day's encounters—Elena's dynamic assessment and Dr. Aris's emergency intervention—are already waiting in the **Revenue Cycle Management** module. Halkyone has automatically verified the multi-state practitioner licensures and queued the encounter data into the **Z-Benefit Claim Engine** for Philhealth processing.
 
-In exactly 24 hours, Halcyon Clinical OS navigated complex geospatial logistics, handled real-time streaming telemetry, executed dynamic clinical documentation, enforced enterprise-grade security overrides, and prepped financial billing—all without a single system stutter, latency delay, or data leak.
+In exactly 24 hours, Halkyone Clinical OS navigated complex geospatial logistics, handled real-time streaming telemetry, executed dynamic clinical documentation, enforced enterprise-grade security overrides, and prepped financial billing—all without a single system stutter, latency delay, or data leak.
 
 
 ---
 
 ## 🚀 Recent Architectural Stabilizations (May 2026)
 
-The following high-fidelity enhancements have been integrated to ensure Halcyon remains the most stable and visually professional Clinical OS on the market:
+The following high-fidelity enhancements have been integrated to ensure Halkyone remains the most stable and visually professional Clinical OS on the market:
 
 ### 1. Unified Telemetry Handshake
 - **State Synchronization:** Fully synchronized the `LiveHeartbeat` telemetry link with backend state machines. The system now performs a real-time handshake between the frontend toggle and the patient's active `ClinicalEncounter` or `Appointment` status.
@@ -443,4 +443,4 @@ The following high-fidelity enhancements have been integrated to ensure Halcyon 
 
 Developed with ❤️ by **Erwin Wilson Ceniza**
 
-© 2026 Halcyon Clinical Operations. All rights reserved.
+© 2026 Halkyone Clinical Operations. All rights reserved.

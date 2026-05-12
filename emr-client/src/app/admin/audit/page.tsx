@@ -1,8 +1,8 @@
 "use client";
 
 import { useQuery, gql } from "@apollo/client";
-import { 
-  Shield, Search, Filter, Clock, User, 
+import {
+  Shield, Search, Filter, Clock, User,
   Terminal, AlertCircle, FileText, Activity,
   ChevronLeft, ChevronRight, Lock, Zap
 } from "lucide-react";
@@ -56,7 +56,7 @@ export default function AuditLogPage() {
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-700">
-      <title>Halcyon - Security Audit Vault</title>
+      <title>Halkyone - Security Audit Vault</title>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-6">
@@ -73,8 +73,8 @@ export default function AuditLogPage() {
         <div className="flex items-center gap-3">
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
-            <input 
-              placeholder="Search actions or users..." 
+            <input
+              placeholder="Search actions or users..."
               className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 pl-10 pr-4 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all w-64"
             />
           </div>
@@ -125,13 +125,12 @@ export default function AuditLogPage() {
                     </div>
                   </td>
                   <td className="px-8 py-5">
-                    <span className={`px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${
-                      log.action.includes('UNAUTHORIZED') 
-                        ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' 
-                        : log.action.includes('ACTIVATED') 
+                    <span className={`px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${log.action.includes('UNAUTHORIZED')
+                        ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                        : log.action.includes('ACTIVATED')
                           ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
                           : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                    }`}>
+                      }`}>
                       {log.action}
                     </span>
                   </td>
@@ -157,9 +156,9 @@ export default function AuditLogPage() {
                         {log.ipAddress || '0.0.0.0'}
                       </div>
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest hover:underline">
-                           View Trace
-                         </button>
+                        <button className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest hover:underline">
+                          View Trace
+                        </button>
                       </div>
                     </div>
                   </td>
@@ -175,7 +174,7 @@ export default function AuditLogPage() {
             Showing {page * take + 1} to {Math.min((page + 1) * take, totalCount)} of {totalCount} events
           </p>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               disabled={page === 0}
               onClick={() => setPage(p => p - 1)}
               className="p-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"
@@ -183,10 +182,10 @@ export default function AuditLogPage() {
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-1 px-4">
-               <span className="text-xs font-black text-[var(--text-primary)]">{page + 1}</span>
-               <span className="text-xs font-black text-[var(--text-muted)]">/ {Math.ceil(totalCount / take)}</span>
+              <span className="text-xs font-black text-[var(--text-primary)]">{page + 1}</span>
+              <span className="text-xs font-black text-[var(--text-muted)]">/ {Math.ceil(totalCount / take)}</span>
             </div>
-            <button 
+            <button
               disabled={!data?.securityAuditLogs?.pageInfo?.hasNextPage}
               onClick={() => setPage(p => p + 1)}
               className="p-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"

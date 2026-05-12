@@ -228,7 +228,7 @@ export default function InvoiceDetailsPage() {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-teal-500 rounded-2xl flex items-center justify-center text-3xl">A</div>
               <div>
-                <h2 className="text-2xl font-black tracking-tighter uppercase leading-none text-white">Halcyon Clinical OS</h2>
+                <h2 className="text-2xl font-black tracking-tighter uppercase leading-none text-white">Halkyone Clinical OS</h2>
                 <p className="text-[10px] font-black text-teal-500 uppercase tracking-widest mt-1">Advanced Medical Infrastructure</p>
               </div>
             </div>

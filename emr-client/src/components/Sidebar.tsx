@@ -89,7 +89,7 @@ export function Sidebar() {
       {/* Brand Section */}
       <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-14 border-b border-[var(--card-border)] shrink-0`}>
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)] animate-halcyon-pulse">
+          <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)] animate-halkyone-pulse">
             <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z" />
               <path d="M8 12h3l1-3 2 6 1-3h2" />
@@ -97,7 +97,7 @@ export function Sidebar() {
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALCYON</h2>
+              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALYONE</h2>
               <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-0.5">Clinical OS</span>
             </div>
           )}
@@ -189,7 +189,7 @@ export function Sidebar() {
             {!isCollapsed && <span className="text-[11px] font-black uppercase tracking-widest">Break Glass</span>}
           </button>
         ) : (
-          <div className="w-full mt-4 flex flex-col gap-2 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 animate-halcyon-pulse shadow-lg shadow-rose-500/20">
+          <div className="w-full mt-4 flex flex-col gap-2 p-3 rounded-xl bg-rose-500/20 border border-rose-500/40 animate-halkyone-pulse shadow-lg shadow-rose-500/20">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4 text-rose-500" />
               <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Emergency Active</span>

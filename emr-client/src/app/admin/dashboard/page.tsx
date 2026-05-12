@@ -189,7 +189,7 @@ function AdminDashboardContent() {
   };
 
   const { data, loading, error, refetch } = useQuery(GET_SETUP_DATA);
-  
+
   const mutation = (DELETE_MUTATIONS as any)[activeTab] || gql`mutation { __typename }`;
   const [deleteItem] = useMutation(mutation, {
     onCompleted: () => refetch()
@@ -202,11 +202,11 @@ function AdminDashboardContent() {
   const filteredData = useMemo(() => {
     const rawData = data?.[activeTab] || [];
     if (!debouncedSearch) return rawData;
-    
+
     const query = debouncedSearch.toLowerCase();
     return rawData.filter((item: any) => {
       // Search across all string values in the item
-      return Object.values(item).some(val => 
+      return Object.values(item).some(val =>
         val && typeof val === 'string' && val.toLowerCase().includes(query)
       ) || (item.firstName && `${item.firstName} ${item.lastName}`.toLowerCase().includes(query));
     });
@@ -281,7 +281,7 @@ function AdminDashboardContent() {
                         {hasAccount ? "Linked" : "No Access"}
                       </span>
                       {!hasAccount && (
-                        <button 
+                        <button
                           onClick={async (e) => {
                             e.stopPropagation();
                             const email = window.prompt(`Enter invitation email for ${item.firstName} ${item.lastName}:`);
@@ -436,7 +436,7 @@ function AdminDashboardContent() {
           <div className="space-y-8">
             <IntegrationsSync />
             <div className="px-8 pb-8">
-            <h3 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.3em] mb-4">Registry Endpoints</h3>
+              <h3 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.3em] mb-4">Registry Endpoints</h3>
               <SetupTable
                 {...tableProps}
                 columns={[
@@ -467,7 +467,7 @@ function AdminDashboardContent() {
 
   return (
     <div className="flex min-h-screen bg-[var(--background)]">
-      <title>Halcyon - Admin Portal</title>
+      <title>Halkyone - Admin Portal</title>
       <AdminSidebar activeTab={activeTab} setActiveTab={handleTabChange} />
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
@@ -515,10 +515,10 @@ function AdminDashboardContent() {
               </PermissionGate>
             </div>
           )}
-          
+
           {activeTab === "utilization" && (
             <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
-               <div>
+              <div>
                 <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
                   Workforce Intelligence
                 </h1>

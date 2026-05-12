@@ -1,4 +1,4 @@
-name: Halcyon Clinical OS CI
+name: Halkyone Clinical OS CI
 
 on:
   push:
@@ -79,7 +79,7 @@ jobs:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:34732
           NEXT_PUBLIC_GRAPHQL_URL: http://127.0.0.1:34732/graphql
           NEXT_PUBLIC_GRAPHQL_WS_URL: ws://127.0.0.1:34732/graphql
-          NEXTAUTH_SECRET: "ci-secret-halcyon"
+          NEXTAUTH_SECRET: "ci-secret-halkyone"
           NEXTAUTH_URL: http://127.0.0.1:3431
 
       - name: Run E2E Tests
@@ -111,11 +111,11 @@ jobs:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:34732
           NEXT_PUBLIC_GRAPHQL_URL: http://127.0.0.1:34732/graphql
           NEXT_PUBLIC_GRAPHQL_WS_URL: ws://127.0.0.1:34732/graphql
-          SeedSettings__InitialAdminPassword: ${{ secrets.INITIAL_ADMIN_PASSWORD || 'Halcyon@Initial!2026' }}
+          SeedSettings__InitialAdminPassword: ${{ secrets.INITIAL_ADMIN_PASSWORD || 'Halkyone@Initial!2026' }}
           SeedSettings__InitialPractitionerPassword: ${{ secrets.INITIAL_PRACTITIONER_PASSWORD || 'HalcyonPractitioner@Initial!2026' }}
           # Keep these for Playwright as well
-          INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD || 'Halcyon@Initial!2026' }}
-          NEXTAUTH_SECRET: "ci-secret-halcyon"
+          INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD || 'Halkyone@Initial!2026' }}
+          NEXTAUTH_SECRET: "ci-secret-halkyone"
           NEXTAUTH_URL: http://127.0.0.1:3431
           Logging__LogLevel__Default: Warning
           Serilog__MinimumLevel__Default: Warning

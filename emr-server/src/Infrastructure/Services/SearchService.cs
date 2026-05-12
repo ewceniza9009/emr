@@ -12,8 +12,8 @@ public class SearchService : ISearchService
     private readonly IElasticClient _client;
     private readonly ICurrentUserService _currentUserService;
     private readonly IServiceProvider _serviceProvider;
-    private const string PatientIndex = "halcyon-patients";
-    private const string OutreachIndex = "halcyon-outreach";
+    private const string PatientIndex = "halkyone-patients";
+    private const string OutreachIndex = "halkyone-outreach";
 
     public SearchService(
         IConfiguration configuration,

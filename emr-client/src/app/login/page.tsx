@@ -63,14 +63,14 @@ export default function LoginPage() {
           </button>
 
           <div className="flex items-center gap-3 mb-12 group cursor-default">
-            <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary-glow)] animate-halcyon-pulse group-hover:scale-110 transition-transform duration-500">
+            <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary-glow)] animate-halkyone-pulse group-hover:scale-110 transition-transform duration-500">
               <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z" />
                 <path d="M8 12h3l1-3 2 6 1-3h2" />
               </svg>
             </div>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-white tracking-tight leading-none uppercase">HALCYON</h1>
+              <h1 className="text-2xl font-bold text-white tracking-tight leading-none uppercase">HALYONE</h1>
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Clinical OS</span>
             </div>
           </div>
@@ -96,7 +96,7 @@ export default function LoginPage() {
                   {...register("email")}
                   type="email"
                   className="w-full bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary)]/50 focus:border-transparent focus:bg-slate-900/80 transition-all placeholder:text-slate-600 hover:border-slate-700 shadow-inner"
-                  placeholder="name@halcyon.clinical"
+                  placeholder="name@halkyone.clinical"
                 />
               </div>
               {errors.email && <p className="text-[10px] text-rose-400 ml-1 font-bold">{errors.email.message}</p>}
@@ -186,7 +186,7 @@ export default function LoginPage() {
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 relative z-10">
             <div className="w-16 h-1 bg-gradient-to-r from-[var(--primary)] to-emerald-500 rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
             <blockquote className="text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight drop-shadow-2xl">
-              &quot;Halcyon transformed our clinical pipeline from a messy spreadsheet into a <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200">predictable engine.</span>&quot;
+              &quot;Halkyone transformed our clinical pipeline from a messy spreadsheet into a <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200">predictable engine.</span>&quot;
             </blockquote>
 
             <div className="flex items-center gap-5 pt-4">

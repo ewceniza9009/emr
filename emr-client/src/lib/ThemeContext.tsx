@@ -17,11 +17,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Basic safety check for theme on mount
     try {
-      const savedTheme = localStorage.getItem("halcyon-theme") as Theme;
+      const savedTheme = localStorage.getItem("halkyone-theme") as Theme;
       if (savedTheme) {
         setTheme(savedTheme);
       }
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const toggleTheme = () => {
     setTheme((prev) => {
       const next = prev === "dark" ? "light" : "dark";
-      localStorage.setItem("halcyon-theme", next);
+      localStorage.setItem("halkyone-theme", next);
       return next;
     });
   };

@@ -39,7 +39,7 @@ namespace Infrastructure.Data
             var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
             var adminPassword =
-                configuration["SeedSettings:InitialAdminPassword"] ?? "Halcyon@Initial!2026";
+                configuration["SeedSettings:InitialAdminPassword"] ?? "Halkyone@Initial!2026";
             var practitionerPassword =
                 configuration["SeedSettings:InitialPractitionerPassword"]
                 ?? "HalcyonPractitioner@Initial!2026";
@@ -226,7 +226,7 @@ namespace Infrastructure.Data
                     new TenantConfiguration
                     {
                         TenantId = defaultTenantId,
-                        OrganizationName = "Halcyon Clinical",
+                        OrganizationName = "Halkyone Clinical",
                         Currency = "PHP",
                         Timezone = "Asia/Manila",
                         Language = "en",
@@ -2137,7 +2137,7 @@ namespace Infrastructure.Data
                     LocationName = "Mandaue City",
                     PostalCode = "84101",
                     Content =
-                        "Hello, I am calling from the Halcyon Clinical Logistics Team. We've identified you as a candidate for our specialized health support services in the Mandaue region. Our goal is to verify your eligibility and schedule a diagnostic orientation at your convenience.",
+                        "Hello, I am calling from the Halkyone Clinical Logistics Team. We've identified you as a candidate for our specialized health support services in the Mandaue region. Our goal is to verify your eligibility and schedule a diagnostic orientation at your convenience.",
                     IsDefault = true,
                 },
                 new OutreachScript
@@ -2185,7 +2185,7 @@ namespace Infrastructure.Data
                     ScriptTitle = "DME Logistics Sync",
                     LocationName = "Cebu City",
                     Content =
-                        "This is Halcyon Logistics. We are confirming the delivery of your medical equipment scheduled for today. Our technician will arrive within the next 2 hours.",
+                        "This is Halkyone Logistics. We are confirming the delivery of your medical equipment scheduled for today. Our technician will arrive within the next 2 hours.",
                 },
                 new OutreachScript
                 {
@@ -2221,7 +2221,7 @@ namespace Infrastructure.Data
                     ScriptTitle = "Bereavement Outreach",
                     LocationName = "Region VII",
                     Content =
-                        "Hello, I am calling from the Halcyon Bereavement Team. We wanted to reach out and offer our support and resources during this difficult time.",
+                        "Hello, I am calling from the Halkyone Bereavement Team. We wanted to reach out and offer our support and resources during this difficult time.",
                 },
                 new OutreachScript
                 {
@@ -3042,7 +3042,7 @@ namespace Infrastructure.Data
                 new Notification
                 {
                     NotificationId = Guid.NewGuid(),
-                    Title = "Welcome to Halcyon",
+                    Title = "Welcome to Halkyone",
                     Message =
                         "Your clinical operating system is ready. Explore the new dashboard features.",
                     Priority = NotificationPriority.Normal,

@@ -1,5 +1,5 @@
 ﻿/**
- * Halcyon Clinical Mapping & Migration Utility
+ * Halkyone Clinical Mapping & Migration Utility
  * 
  * This utility handles translations between legacy client-side identifiers
  * and the finalized HotChocolate GraphQL schema patterns.
@@ -9,7 +9,7 @@
 
 export const migrateDirectiveType = (type: string): string => {
   if (!type) return type;
-  
+
   const map: Record<string, string> = {
     "DNR": "DNR",
     "DNI": "DNI",

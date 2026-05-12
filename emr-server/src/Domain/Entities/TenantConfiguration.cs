@@ -6,7 +6,7 @@ public class TenantConfiguration : BaseEntity, ITenantEntity
 {
     public Guid TenantConfigurationId { get; set; } = Guid.NewGuid();
     public Guid TenantId { get; set; } = Guid.NewGuid();
-    public string OrganizationName { get; set; } = "Halcyon Clinical";
+    public string OrganizationName { get; set; } = "Halkyone Clinical";
 
     // Regional Settings
     public string Currency { get; set; } = "PHP";

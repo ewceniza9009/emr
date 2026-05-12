@@ -122,7 +122,7 @@ export default function SpiritualDetailModal({ isOpen, onClose, spiritual }: Spi
           <div className="px-8 py-5 border-t border-[var(--card-border)] shrink-0 flex items-center justify-between">
             <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50 flex items-center gap-2">
               <Zap className="w-3 h-3" />
-              Halcyon Clinical OS · Holistic Care
+              Halkyone Clinical OS · Holistic Care
             </p>
             <button
               onClick={onClose}

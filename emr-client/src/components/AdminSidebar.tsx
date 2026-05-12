@@ -58,12 +58,12 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
       {/* Brand Section */}
       <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-14 border-b border-[var(--card-border)] shrink-0`}>
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)] animate-halcyon-pulse">
+          <div className="w-8 h-8 bg-[var(--primary)] rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-[var(--primary-glow)] animate-halkyone-pulse">
             <Shield className="w-5 h-5 text-[var(--sidebar-bg)]" strokeWidth={2} />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALCYON SETUP</h2>
+              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALYONE SETUP</h2>
               <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-0.5">Admin Terminal</span>
             </div>
           )}
@@ -77,7 +77,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
             <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Master Registries</p>
           </div>
         )}
-        
+
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
@@ -86,8 +86,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
                 onClick={() => setActiveTab(item.id)}
                 title={isCollapsed ? item.label : ""}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all group relative ${isActive
-                    ? "bg-[var(--primary)]/10 text-[var(--primary)]"
-                    : "text-[var(--text-muted)] hover:bg-[var(--primary)]/5 hover:text-[var(--text-secondary)]"
+                  ? "bg-[var(--primary)]/10 text-[var(--primary)]"
+                  : "text-[var(--text-muted)] hover:bg-[var(--primary)]/5 hover:text-[var(--text-secondary)]"
                   }`}
               >
                 <div className="relative">

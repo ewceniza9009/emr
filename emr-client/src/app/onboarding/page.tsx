@@ -113,7 +113,7 @@ function OnboardingContent() {
             <Shield className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-black text-white uppercase tracking-[0.2em]">Halcyon</h1>
+            <h1 className="text-lg font-black text-white uppercase tracking-[0.2em]">Halkyone</h1>
             <p className="text-[9px] font-black text-blue-500/60 uppercase tracking-[0.4em]">Clinical OS Onboarding</p>
           </div>
         </div>
@@ -187,7 +187,7 @@ function OnboardingContent() {
 
           <div className="text-center">
             <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">
-              Secured by Halcyon Cryptographic Identity Protocol
+              Secured by Halkyone Cryptographic Identity Protocol
             </p>
           </div>
         </div>

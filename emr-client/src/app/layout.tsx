@@ -8,7 +8,7 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 
 export const metadata: Metadata = {
-  title: "Halcyon",
+  title: "Halkyone",
   description: "Enterprise-grade Clinical Electronic Medical Record system.",
   manifest: "/manifest.json",
   icons: {
@@ -28,10 +28,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `
+        <script dangerouslySetInnerHTML={{
+          __html: `
           (function() {
             try {
-              const savedTheme = localStorage.getItem("halcyon-theme");
+              const savedTheme = localStorage.getItem("halkyone-theme");
               if (savedTheme === "light") {
                 document.documentElement.classList.add("light");
               } else {

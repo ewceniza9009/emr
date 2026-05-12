@@ -821,7 +821,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                             </select>
                           </div>
                           <p className="text-[11px] font-medium text-[var(--text-secondary)] leading-relaxed italic opacity-80">
-                            {activeScript?.content ? activeScript.content.replace("{firstName}", lead.firstName).replace("{lastName}", lead.lastName).replaceAll("deployment", "home visit") : `"Hello ${lead.firstName}, I'm calling from Halcyon Health..."`}
+                            {activeScript?.content ? activeScript.content.replace("{firstName}", lead.firstName).replace("{lastName}", lead.lastName).replaceAll("deployment", "home visit") : `"Hello ${lead.firstName}, I'm calling from Halkyone Health..."`}
                           </p>
                         </div>
                       </div>
@@ -1774,7 +1774,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                       </button>
                     )}
                     <div className="flex flex-col items-center gap-1.5 opacity-40">
-                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Halcyon OS · System ID 09-E</p>
+                      <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Halkyone OS · System ID 09-E</p>
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-1 rounded-full bg-teal-500" />
                         <div className="w-1 h-1 rounded-full bg-teal-500/50" />

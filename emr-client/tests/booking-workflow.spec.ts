@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Halcyon Clinical OS - Appointment Booking', () => {
+test.describe('Halkyone Clinical OS - Appointment Booking', () => {
 
   test.beforeEach(async ({ page }) => {
     // Session Verification: Ensure we have a valid clinical context

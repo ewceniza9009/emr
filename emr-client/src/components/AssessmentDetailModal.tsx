@@ -235,11 +235,10 @@ export default function AssessmentDetailModal({ isOpen, onClose, assessment }: A
                               {options.map((opt, i) => (
                                 <span
                                   key={i}
-                                  className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all ${
-                                    String(rawAnswer) === opt
+                                  className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all ${String(rawAnswer) === opt
                                       ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-md"
                                       : "bg-[var(--card-border)]/30 text-[var(--text-muted)] border-[var(--card-border)]"
-                                  }`}
+                                    }`}
                                 >
                                   {opt}
                                 </span>
@@ -302,7 +301,7 @@ export default function AssessmentDetailModal({ isOpen, onClose, assessment }: A
           <div className="px-8 py-5 border-t border-[var(--card-border)] shrink-0 flex items-center justify-between">
             <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50 flex items-center gap-2">
               <Zap className="w-3 h-3" />
-              Halcyon Clinical OS · Encrypted Record
+              Halkyone Clinical OS · Encrypted Record
             </p>
             <button
               onClick={onClose}

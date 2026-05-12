@@ -69,7 +69,7 @@ export default function HomePage() {
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-white tracking-tight leading-none uppercase">HALCYON</span>
+              <span className="text-xl font-bold text-white tracking-tight leading-none uppercase">HALYONE</span>
               <span className="text-[8px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] mt-1">Clinical OS</span>
             </div>
           </motion.div>
@@ -148,7 +148,7 @@ export default function HomePage() {
                 Distributed data. <br />Centralized control.
               </h2>
               <p className="text-lg text-slate-500 leading-relaxed mb-12">
-                Halcyon&apos;s core engine handles complex clinical synchronization at scale, ensuring your providers stay connected across disparate clinical environments and geospatial boundaries.
+                Halkyone&apos;s core engine handles complex clinical synchronization at scale, ensuring your providers stay connected across disparate clinical environments and geospatial boundaries.
               </p>
 
               <div className="grid grid-cols-2 gap-8">
@@ -275,7 +275,7 @@ export default function HomePage() {
 
             <div className="relative z-10 flex flex-col items-center text-center">
               <h2 className="text-4xl lg:text-5xl font-bold text-white tracking-tight mb-8">Ready to modernize?</h2>
-              <p className="text-white/70 text-lg mb-12 font-medium">Join the fleet of high-performance clinical teams running on Halcyon.</p>
+              <p className="text-white/70 text-lg mb-12 font-medium">Join the fleet of high-performance clinical teams running on Halkyone.</p>
               <Link href="/login" className="h-16 px-12 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[12px] font-bold uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center group shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] hover:shadow-[0_20px_50px_-10px_var(--primary-glow)] active:scale-[0.98]">
                 Get Started Now
                 <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1.5 transition-transform" />
@@ -293,7 +293,7 @@ export default function HomePage() {
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="text-xl font-bold text-white tracking-tighter block leading-none">Halcyon</span>
+              <span className="text-xl font-bold text-white tracking-tighter block leading-none">Halkyone</span>
               <span className="text-[8px] font-bold text-slate-700 uppercase tracking-widest">Next-Gen Protocol</span>
             </div>
           </div>
@@ -306,7 +306,7 @@ export default function HomePage() {
 
           <div className="text-right">
             <p className="text-[9px] font-bold text-slate-800 uppercase tracking-widest leading-relaxed">
-              © 2026 Halcyon Clinical Technologies <br />
+              © 2026 Halkyone Clinical Technologies <br />
               All Vector Units Reserved.
             </p>
           </div>

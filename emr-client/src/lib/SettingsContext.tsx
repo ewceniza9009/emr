@@ -96,7 +96,7 @@ export const DEFAULT_TENANT: TenantSettings = {
   timezone: "Asia/Manila",
   language: "en",
   dateFormat: "MM/DD/YYYY",
-  organizationName: "Halcyon Clinical Center",
+  organizationName: "Halkyone Clinical Center",
   enableElasticsearch: false,
   enforceMfa: false,
   sessionTimeoutMinutes: 30,
@@ -154,7 +154,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   // Load Workstation Preferences from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("halcyon-workstation-prefs");
+      const saved = localStorage.getItem("halkyone-workstation-prefs");
       if (saved) {
         const parsed = JSON.parse(saved);
         setPreferences({ ...DEFAULT_PREFERENCES, ...parsed });
@@ -172,8 +172,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setPreferences((prev) => {
       const updated = { ...prev, ...newPrefs };
       try {
-        localStorage.setItem("halcyon-workstation-prefs", JSON.stringify(updated));
-      } catch (e) {}
+        localStorage.setItem("halkyone-workstation-prefs", JSON.stringify(updated));
+      } catch (e) { }
       return updated;
     });
   };

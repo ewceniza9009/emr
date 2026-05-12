@@ -106,10 +106,10 @@ import BillingFilterPopover, { BillingFilters } from "@/components/BillingFilter
 export default function BillingPage() {
   const { showToast } = useToast();
   const { formatCurrency } = useSettings();
-  const [filters, setFilters] = useState<BillingFilters>({ 
-    invoiceStatuses: [], 
-    claimStatuses: [], 
-    period: "All Time" 
+  const [filters, setFilters] = useState<BillingFilters>({
+    invoiceStatuses: [],
+    claimStatuses: [],
+    period: "All Time"
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -262,7 +262,7 @@ export default function BillingPage() {
             <h1 className="text-sm font-bold text-[var(--text-primary)] tracking-tight uppercase">Billing & Financials</h1>
             <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-1 flex items-center gap-2">
               <FileText className="w-3.5 h-3.5 text-[var(--primary)]" />
-              Halcyon Revenue Cycle Management
+              Halkyone Revenue Cycle Management
             </p>
           </div>
         </div>
@@ -328,7 +328,7 @@ export default function BillingPage() {
         </div>
 
         <div className="flex-1" />
- 
+
         <div className="relative w-full md:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
           <input
@@ -340,7 +340,7 @@ export default function BillingPage() {
           />
         </div>
 
-        <BillingFilterPopover 
+        <BillingFilterPopover
           currentFilters={filters}
           activeTab={activeTab}
           onFilterChange={(newFilters) => setFilters(newFilters)}
@@ -427,7 +427,7 @@ export default function BillingPage() {
                   Showing {invoicePage * take + 1} to {Math.min((invoicePage + 1) * take, totalInvoices)} of {totalInvoices} Invoices
                 </p>
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     disabled={invoicePage === 0}
                     onClick={() => setInvoicePage(p => p - 1)}
                     className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"
@@ -438,7 +438,7 @@ export default function BillingPage() {
                     <span className="text-xs font-black text-[var(--text-primary)]">{invoicePage + 1}</span>
                     <span className="text-xs font-black text-[var(--text-muted)]">/ {Math.ceil(totalInvoices / take)}</span>
                   </div>
-                  <button 
+                  <button
                     disabled={(invoicePage + 1) * take >= totalInvoices}
                     onClick={() => setInvoicePage(p => p + 1)}
                     className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"
@@ -531,7 +531,7 @@ export default function BillingPage() {
                   Showing {claimPage * take + 1} to {Math.min((claimPage + 1) * take, totalClaims)} of {totalClaims} Claims
                 </p>
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     disabled={claimPage === 0}
                     onClick={() => setClaimPage(p => p - 1)}
                     className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"
@@ -542,7 +542,7 @@ export default function BillingPage() {
                     <span className="text-xs font-black text-[var(--text-primary)]">{claimPage + 1}</span>
                     <span className="text-xs font-black text-[var(--text-muted)]">/ {Math.ceil(totalClaims / take)}</span>
                   </div>
-                  <button 
+                  <button
                     disabled={(claimPage + 1) * take >= totalClaims}
                     onClick={() => setClaimPage(p => p + 1)}
                     className="p-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-20 transition-all"

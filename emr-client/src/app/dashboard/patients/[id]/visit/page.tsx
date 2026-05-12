@@ -191,7 +191,7 @@ export default function GuidedVisitPage() {
   const smartPhrases = allQuestionnairesData?.smartPhrases || [];
 
   // Persistence Key
-  const persistenceKey = `halcyon-visit-persist-${params.id}-${appointmentId || 'adhoc'}`;
+  const persistenceKey = `halkyone-visit-persist-${params.id}-${appointmentId || 'adhoc'}`;
 
   // 1. Load Persisted State on Mount
   useEffect(() => {
@@ -239,7 +239,7 @@ export default function GuidedVisitPage() {
   // 1. Initial Sync from Appointment Plan
   useEffect(() => {
     if (!isHydrated || activeAssessments.length > 0 || !appointment?.plannedAssessments) return;
-    
+
     const planned = appointment.plannedAssessments;
     const stubs = planned.map((code: string) => ({
       name: code,
@@ -452,78 +452,78 @@ export default function GuidedVisitPage() {
         }
       });
 
-    router.push(`/dashboard/patients/${params.id}`);
-    clearPersistence();
-  } catch (err) {
-    console.error(err);
-  }
-};
+      router.push(`/dashboard/patients/${params.id}`);
+      clearPersistence();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-const handleSmartPhraseChange = (id: string, value: string, selectionStart: number) => {
-  setNote(prev => ({ ...prev, [id]: value }));
+  const handleSmartPhraseChange = (id: string, value: string, selectionStart: number) => {
+    setNote(prev => ({ ...prev, [id]: value }));
 
-  const textBeforeCursor = value.slice(0, selectionStart);
-  const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
+    const textBeforeCursor = value.slice(0, selectionStart);
+    const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
 
-  if (lastSlashIdx !== -1) {
-    const segment = textBeforeCursor.slice(lastSlashIdx);
-    if (segment.startsWith("/") && !segment.includes(" ")) {
-      setShowSmartPhrases(id);
-      setPhraseFilter(segment.slice(1).toLowerCase());
-      setSelectedIndex(0);
+    if (lastSlashIdx !== -1) {
+      const segment = textBeforeCursor.slice(lastSlashIdx);
+      if (segment.startsWith("/") && !segment.includes(" ")) {
+        setShowSmartPhrases(id);
+        setPhraseFilter(segment.slice(1).toLowerCase());
+        setSelectedIndex(0);
 
-      // Rough estimate of position - simplified for SOAPs
-      const lines = textBeforeCursor.split('\n');
-      const top = Math.min(lines.length * 20 + 20, 150);
-      const left = Math.min(lines[lines.length - 1].length * 8 + 20, 200);
-      setPopupPosition({ top, left });
+        // Rough estimate of position - simplified for SOAPs
+        const lines = textBeforeCursor.split('\n');
+        const top = Math.min(lines.length * 20 + 20, 150);
+        const left = Math.min(lines[lines.length - 1].length * 8 + 20, 200);
+        setPopupPosition({ top, left });
+      } else {
+        setShowSmartPhrases(null);
+      }
     } else {
       setShowSmartPhrases(null);
     }
-  } else {
-    setShowSmartPhrases(null);
-  }
-};
+  };
 
-const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, id: string) => {
-  if (showSmartPhrases !== id) return;
+  const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, id: string) => {
+    if (showSmartPhrases !== id) return;
 
-  const filtered = smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter));
+    const filtered = smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter));
 
-  if (e.key === "ArrowDown") {
-    e.preventDefault();
-    setSelectedIndex(prev => (prev + 1) % filtered.length);
-  } else if (e.key === "ArrowUp") {
-    e.preventDefault();
-    setSelectedIndex(prev => (prev - 1 + filtered.length) % filtered.length);
-  } else if (e.key === "Enter" || e.key === "Tab") {
-    if (filtered.length > 0) {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
-      const phrase = filtered[selectedIndex].templateText;
-      const currentText = note[id as keyof typeof note];
-      const cursor = e.currentTarget.selectionStart;
-      const textBefore = currentText.slice(0, cursor);
-      const lastSlashIdx = textBefore.lastIndexOf("/");
+      setSelectedIndex(prev => (prev + 1) % filtered.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev - 1 + filtered.length) % filtered.length);
+    } else if (e.key === "Enter" || e.key === "Tab") {
+      if (filtered.length > 0) {
+        e.preventDefault();
+        const phrase = filtered[selectedIndex].templateText;
+        const currentText = note[id as keyof typeof note];
+        const cursor = e.currentTarget.selectionStart;
+        const textBefore = currentText.slice(0, cursor);
+        const lastSlashIdx = textBefore.lastIndexOf("/");
 
-      if (lastSlashIdx !== -1) {
-        const newText = currentText.slice(0, lastSlashIdx) + phrase + currentText.slice(cursor);
-        setNote(prev => ({ ...prev, [id]: newText }));
-        
-        // Reset focus position after state update
-        const textarea = e.currentTarget;
-        setTimeout(() => {
-          textarea.focus();
-          const newPos = lastSlashIdx + phrase.length;
-          textarea.setSelectionRange(newPos, newPos);
-        }, 0);
+        if (lastSlashIdx !== -1) {
+          const newText = currentText.slice(0, lastSlashIdx) + phrase + currentText.slice(cursor);
+          setNote(prev => ({ ...prev, [id]: newText }));
+
+          // Reset focus position after state update
+          const textarea = e.currentTarget;
+          setTimeout(() => {
+            textarea.focus();
+            const newPos = lastSlashIdx + phrase.length;
+            textarea.setSelectionRange(newPos, newPos);
+          }, 0);
+        }
+        setShowSmartPhrases(null);
       }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
       setShowSmartPhrases(null);
     }
-  } else if (e.key === "Escape") {
-    e.preventDefault();
-    setShowSmartPhrases(null);
-  }
-};
+  };
 
   return (
     <div className="h-full flex flex-col bg-[var(--background)] text-[var(--foreground)] overflow-hidden font-sans transition-colors duration-300">
@@ -536,7 +536,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
           >
             <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
           </button>
-          
+
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-black text-[var(--text-primary)] tracking-tight uppercase leading-none">
@@ -547,7 +547,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                 <span className="text-[9px] font-bold text-teal-500 uppercase tracking-widest">ACTIVE ENCOUNTER</span>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 mt-2">
               <div className="flex items-center gap-1.5">
                 <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">MRN</span>
@@ -590,8 +590,8 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                 </div>
                 <div className="flex -space-x-2 justify-end">
                   {appointment.supportingClinicians.map((sc: any) => (
-                    <div 
-                      key={sc.practitionerId} 
+                    <div
+                      key={sc.practitionerId}
                       className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[9px] font-black text-blue-500 shadow-sm cursor-help group/sc relative"
                       title={`${sc.firstName} ${sc.lastName} (${sc.position})`}
                     >
@@ -617,7 +617,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
               </div>
               <p className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{session?.user?.name || "System Admin"}</p>
             </div>
-            
+
             <div className="relative group">
               <div className="w-10 h-10 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center shadow-2xl group-hover:border-teal-500/30 transition-all cursor-pointer">
                 <Stethoscope className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform" />
@@ -625,9 +625,9 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[var(--background)]" />
             </div>
           </div>
-          
+
           <div className="flex items-center ml-6 border-l border-[var(--divider-color)] pl-6">
-            <button 
+            <button
               onClick={async () => {
                 const ok = await confirm({
                   title: "Abort Mission",
@@ -664,7 +664,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                     <button
                       onClick={() => (isUnlocked || isActive) && setStep(s.id)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${isActive
-                        ? isAssessment 
+                        ? isAssessment
                           ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 scale-105"
                           : "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20 scale-105"
                         : isUnlocked
@@ -674,7 +674,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                           : "text-[var(--text-muted)] opacity-40 cursor-not-allowed"
                         }`}
                     >
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border text-[9px] font-black ${isActive 
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border text-[9px] font-black ${isActive
                         ? "bg-white border-white " + (isAssessment ? "text-indigo-500" : "text-[var(--primary)]")
                         : "border-current"
                         }`}>
@@ -711,7 +711,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                     <h2 className="text-sm font-bold uppercase tracking-tight text-[var(--text-primary)]">Ready to Begin</h2>
                     <p className="text-xs text-[var(--text-muted)] uppercase tracking-[0.4em] font-bold">Select Start to establish secure clinical session</p>
                   </div>
- 
+
                   <button
                     onClick={handleStart}
                     disabled={starting || (!session?.user?.practitionerId && process.env.NODE_ENV !== 'development')}
@@ -741,7 +741,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                       </div>
                     </div>
                   )}
-                  
+
                   {appointment?.supportingClinicians?.length > 0 && (
                     <div className="w-full max-w-sm pt-8 border-t border-[var(--border-color,rgba(0,0,0,0.05))] space-y-6 text-center">
                       <p className="text-[10px] font-medium text-[var(--text-muted)] uppercase tracking-[0.5em]">Clinical Team</p>
@@ -925,60 +925,60 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                       </div>
                     </div>
                   ) : loadingQuestionnaire ? (
-                      <div className="flex-1 flex flex-col items-center justify-center py-20 space-y-6 animate-in fade-in duration-500">
-                        <div className="relative">
-                          <div className="w-16 h-16 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin" />
-                          <ClipboardList className="w-6 h-6 text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                          <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Hydrating Assessment Schema</p>
-                          <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-                          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Syncing Clinical Metadata</p>
-                        </div>
+                    <div className="flex-1 flex flex-col items-center justify-center py-20 space-y-6 animate-in fade-in duration-500">
+                      <div className="relative">
+                        <div className="w-16 h-16 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin" />
+                        <ClipboardList className="w-6 h-6 text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
                       </div>
-                    ) : questionnaireData?.questionnaireByType ? (
-                      <DynamicAssessment
-                        questionnaire={questionnaireData.questionnaireByType}
-                        initialAnswers={assessmentResults[currentStep.assessmentId!]?.answers || {}}
-                        onPartialUpdate={(answers) => {
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Hydrating Assessment Schema</p>
+                        <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
+                        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Syncing Clinical Metadata</p>
+                      </div>
+                    </div>
+                  ) : questionnaireData?.questionnaireByType ? (
+                    <DynamicAssessment
+                      questionnaire={questionnaireData.questionnaireByType}
+                      initialAnswers={assessmentResults[currentStep.assessmentId!]?.answers || {}}
+                      onPartialUpdate={(answers) => {
+                        setAssessmentResults(prev => ({
+                          ...prev,
+                          [currentStep.assessmentId!]: { ...prev[currentStep.assessmentId!], answers }
+                        }));
+                      }}
+                      onBack={() => setExecutingAssessment(false)}
+                      onComplete={async (answers, score) => {
+                        try {
+                          await logAssessmentResponse({
+                            variables: {
+                              input: {
+                                questionnaireId: questionnaireData.questionnaireByType.questionnaireId,
+                                patientId: params.id,
+                                encounterId: encounterId,
+                                assessorId: session?.user?.practitionerId || session?.user?.id,
+                                answersJson: JSON.stringify(answers),
+                                totalScore: score
+                              }
+                            }
+                          });
                           setAssessmentResults(prev => ({
                             ...prev,
-                            [currentStep.assessmentId!]: { ...prev[currentStep.assessmentId!], answers }
+                            [currentStep.assessmentId!]: { answers, score, completed: true }
                           }));
-                        }}
-                        onBack={() => setExecutingAssessment(false)}
-                        onComplete={async (answers, score) => {
-                          try {
-                            await logAssessmentResponse({
-                              variables: {
-                                input: {
-                                  questionnaireId: questionnaireData.questionnaireByType.questionnaireId,
-                                  patientId: params.id,
-                                  encounterId: encounterId,
-                                  assessorId: session?.user?.practitionerId || session?.user?.id,
-                                  answersJson: JSON.stringify(answers),
-                                  totalScore: score
-                                }
-                              }
-                            });
-                            setAssessmentResults(prev => ({
-                              ...prev,
-                              [currentStep.assessmentId!]: { answers, score, completed: true }
-                            }));
-                            setExecutingAssessment(false);
-                            setStep(nextStep.id);
-                          } catch (err) {
-                            console.error("Failed to save assessment response", err);
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="p-16 bg-[var(--card-bg)] border border-[var(--border-color,rgba(0,0,0,0.1))] rounded-[2rem] text-center space-y-6">
-                        <HelpCircle className="w-10 h-10 text-blue-400 mx-auto" />
-                        <p className="text-[var(--text-muted)] italic text-xs">Protocol metadata missing in backend.</p>
-                        <button onClick={() => setExecutingAssessment(false)} className="px-6 py-3 rounded-xl bg-[var(--background)] text-[var(--text-muted)] font-bold text-xs">Cancel</button>
-                      </div>
-                    )}
+                          setExecutingAssessment(false);
+                          setStep(nextStep.id);
+                        } catch (err) {
+                          console.error("Failed to save assessment response", err);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="p-16 bg-[var(--card-bg)] border border-[var(--border-color,rgba(0,0,0,0.1))] rounded-[2rem] text-center space-y-6">
+                      <HelpCircle className="w-10 h-10 text-blue-400 mx-auto" />
+                      <p className="text-[var(--text-muted)] italic text-xs">Protocol metadata missing in backend.</p>
+                      <button onClick={() => setExecutingAssessment(false)} className="px-6 py-3 rounded-xl bg-[var(--background)] text-[var(--text-muted)] font-bold text-xs">Cancel</button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1052,7 +1052,7 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                       </div>
                     </div>
                   </div>
-                  
+
                   {appointment?.supportingClinicians?.length > 0 && (
                     <div className="p-8 rounded-[2rem] bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.05))] space-y-6">
                       <div className="flex items-center gap-3 border-b border-[var(--border-color,rgba(0,0,0,0.05))] pb-4">
@@ -1097,63 +1097,62 @@ const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, i
                     <p className="text-[var(--text-muted)] text-[8px] uppercase tracking-widest font-bold">Synthesize encounter findings into a permanent SOAP record.</p>
                   </div>
                   <div className="space-y-10">
-                      {[
-                        { id: 's', label: 'Subjective', placeholder: 'Patient reports... symptoms, history, concerns.' },
-                        { id: 'o', label: 'Objective', placeholder: 'Clinical findings... vitals, physical exam, observations.' },
-                        { id: 'a', label: 'Assessment', placeholder: 'Clinical reasoning... diagnosis, status, progress.' },
-                        { id: 'p', label: 'Plan', placeholder: 'Care strategy... medications, follow-up, interventions.' },
-                      ].map((section) => (
-                        <div key={section.id} className="space-y-2 relative">
-                          <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                            <span className="w-4 h-4 rounded bg-[var(--primary)] text-white flex items-center justify-center text-[9px]">{section.id.toUpperCase()}</span>
-                            {section.label}
-                          </label>
-                          <textarea
-                            value={note[section.id as keyof typeof note]}
-                            onChange={e => handleSmartPhraseChange(section.id, e.target.value, e.target.selectionStart)}
-                            onKeyDown={e => handleSmartPhraseKeyDown(e, section.id)}
-                            placeholder={section.placeholder}
-                            className="w-full bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] rounded-xl p-4 text-sm min-h-[120px] focus:border-[var(--primary)]/50 outline-none transition-all placeholder:text-[var(--text-muted)]/20 leading-relaxed text-[var(--foreground)]"
-                          />
-                          {showSmartPhrases === section.id && (
-                            <div 
-                              style={{ top: `${popupPosition.top}px`, left: `${popupPosition.left}px` }}
-                              className="absolute w-64 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-xl shadow-2xl z-[150] overflow-hidden animate-in fade-in zoom-in duration-200 backdrop-blur-xl"
-                            >
-                              <div className="p-3 border-b border-[var(--card-border)] bg-[var(--primary)]/5 flex items-center justify-between">
-                                <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Smart Phrases</p>
-                                <span className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">ESC</span>
-                              </div>
-                              <div className="max-h-48 overflow-y-auto custom-scrollbar">
-                                {smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter)).map((p: any, idx: number) => (
-                                  <div
-                                    key={p.shortcut}
-                                    onClick={() => {
-                                      const phrase = p.templateText;
-                                      const currentText = note[section.id as keyof typeof note];
-                                      const lastSlashIdx = currentText.slice(0, currentText.length).lastIndexOf("/"); // This is a bit simplified
-                                      const newText = currentText.slice(0, Math.max(0, lastSlashIdx)) + phrase;
-                                      setNote(prev => ({ ...prev, [section.id]: newText }));
-                                      setShowSmartPhrases(null);
-                                    }}
-                                    onMouseEnter={() => setSelectedIndex(idx)}
-                                    className={`p-3 cursor-pointer border-b border-[var(--card-border)] last:border-0 transition-all flex flex-col ${
-                                      idx === selectedIndex ? 'bg-[var(--primary)]/20 border-l-4 border-l-[var(--primary)]' : 'hover:bg-[var(--primary)]/10'
-                                    }`}
-                                  >
-                                    <div className="flex items-center justify-between mb-0.5">
-                                      <span className={`text-[9px] font-black uppercase ${idx === selectedIndex ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'}`}>{p.shortcut}</span>
-                                      <ChevronRight className={`w-3 h-3 transition-transform ${idx === selectedIndex ? 'translate-x-1 text-[var(--primary)]' : 'text-[var(--text-muted)]'}`} />
-                                    </div>
-                                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest truncate">{p.label}</p>
-                                  </div>
-                                ))}
-                              </div>
+                    {[
+                      { id: 's', label: 'Subjective', placeholder: 'Patient reports... symptoms, history, concerns.' },
+                      { id: 'o', label: 'Objective', placeholder: 'Clinical findings... vitals, physical exam, observations.' },
+                      { id: 'a', label: 'Assessment', placeholder: 'Clinical reasoning... diagnosis, status, progress.' },
+                      { id: 'p', label: 'Plan', placeholder: 'Care strategy... medications, follow-up, interventions.' },
+                    ].map((section) => (
+                      <div key={section.id} className="space-y-2 relative">
+                        <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
+                          <span className="w-4 h-4 rounded bg-[var(--primary)] text-white flex items-center justify-center text-[9px]">{section.id.toUpperCase()}</span>
+                          {section.label}
+                        </label>
+                        <textarea
+                          value={note[section.id as keyof typeof note]}
+                          onChange={e => handleSmartPhraseChange(section.id, e.target.value, e.target.selectionStart)}
+                          onKeyDown={e => handleSmartPhraseKeyDown(e, section.id)}
+                          placeholder={section.placeholder}
+                          className="w-full bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] rounded-xl p-4 text-sm min-h-[120px] focus:border-[var(--primary)]/50 outline-none transition-all placeholder:text-[var(--text-muted)]/20 leading-relaxed text-[var(--foreground)]"
+                        />
+                        {showSmartPhrases === section.id && (
+                          <div
+                            style={{ top: `${popupPosition.top}px`, left: `${popupPosition.left}px` }}
+                            className="absolute w-64 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-xl shadow-2xl z-[150] overflow-hidden animate-in fade-in zoom-in duration-200 backdrop-blur-xl"
+                          >
+                            <div className="p-3 border-b border-[var(--card-border)] bg-[var(--primary)]/5 flex items-center justify-between">
+                              <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Smart Phrases</p>
+                              <span className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">ESC</span>
                             </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                            <div className="max-h-48 overflow-y-auto custom-scrollbar">
+                              {smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter)).map((p: any, idx: number) => (
+                                <div
+                                  key={p.shortcut}
+                                  onClick={() => {
+                                    const phrase = p.templateText;
+                                    const currentText = note[section.id as keyof typeof note];
+                                    const lastSlashIdx = currentText.slice(0, currentText.length).lastIndexOf("/"); // This is a bit simplified
+                                    const newText = currentText.slice(0, Math.max(0, lastSlashIdx)) + phrase;
+                                    setNote(prev => ({ ...prev, [section.id]: newText }));
+                                    setShowSmartPhrases(null);
+                                  }}
+                                  onMouseEnter={() => setSelectedIndex(idx)}
+                                  className={`p-3 cursor-pointer border-b border-[var(--card-border)] last:border-0 transition-all flex flex-col ${idx === selectedIndex ? 'bg-[var(--primary)]/20 border-l-4 border-l-[var(--primary)]' : 'hover:bg-[var(--primary)]/10'
+                                    }`}
+                                >
+                                  <div className="flex items-center justify-between mb-0.5">
+                                    <span className={`text-[9px] font-black uppercase ${idx === selectedIndex ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'}`}>{p.shortcut}</span>
+                                    <ChevronRight className={`w-3 h-3 transition-transform ${idx === selectedIndex ? 'translate-x-1 text-[var(--primary)]' : 'text-[var(--text-muted)]'}`} />
+                                  </div>
+                                  <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest truncate">{p.label}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
 
                   <div className="p-8 bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.05))] rounded-2xl space-y-6">
                     <div className="space-y-3">

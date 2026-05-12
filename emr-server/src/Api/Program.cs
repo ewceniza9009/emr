@@ -38,7 +38,7 @@ try
             "v1",
             new Microsoft.OpenApi.Models.OpenApiInfo
             {
-                Title = "Halcyon Clinical API",
+                Title = "Halkyone Clinical API",
                 Version = "v1",
                 Description = "Enterprise-grade Clinical Operating System for Palliative Care.",
             }
@@ -70,9 +70,9 @@ try
         .WithTracing(tracing =>
         {
             tracing
-                .AddSource("Halcyon.Clinical.Api")
+                .AddSource("Halkyone.Clinical.Api")
                 .SetResourceBuilder(
-                    ResourceBuilder.CreateDefault().AddService("Halcyon.Clinical.Api")
+                    ResourceBuilder.CreateDefault().AddService("Halkyone.Clinical.Api")
                 )
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()

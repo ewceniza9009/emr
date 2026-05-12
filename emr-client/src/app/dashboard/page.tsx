@@ -147,8 +147,8 @@ export default function Dashboard() {
       variants={containerVariants}
       className="w-full space-y-4 pb-8"
     >
-      <BookingDrawer open={isBookingOpen} onClose={() => setIsBookingOpen(false)} onBooked={() => {}} />
-      <AddPatientDrawer open={isAddPatientOpen} onClose={() => setIsAddPatientOpen(false)} onSuccess={() => {}} />
+      <BookingDrawer open={isBookingOpen} onClose={() => setIsBookingOpen(false)} onBooked={() => { }} />
+      <AddPatientDrawer open={isAddPatientOpen} onClose={() => setIsAddPatientOpen(false)} onSuccess={() => { }} />
       {/* Premium Hero Header - Compact */}
       <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2rem] bg-slate-900 border border-white/10 p-6 sm:p-8 shadow-xl">
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-teal-500/20 to-blue-600/20 blur-[100px] pointer-events-none" />
@@ -368,15 +368,15 @@ export default function Dashboard() {
 
             <div className="space-y-3">
               {loading ? (
-                 <div className="space-y-3">
-                    {[1, 2].map(i => (
-                      <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
-                        <Skeleton className="h-3 w-20" />
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-8 w-full" />
-                      </div>
-                    ))}
-                 </div>
+                <div className="space-y-3">
+                  {[1, 2].map(i => (
+                    <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
+                      <Skeleton className="h-3 w-20" />
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-8 w-full" />
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <>
                   {(data?.dashboardStats?.alerts || []).length === 0 ? (
@@ -408,29 +408,29 @@ export default function Dashboard() {
 
           {/* Quick Navigation Clusters - Compact */}
           <div className="grid grid-cols-2 gap-2">
-            <NavTile 
-              icon={ShieldAlert} 
-              label="Security" 
-              color="text-teal-500" 
-              onClick={() => showToast("Security Protocol: AES-256 Verified. All node connections encrypted.", "success")} 
+            <NavTile
+              icon={ShieldAlert}
+              label="Security"
+              color="text-teal-500"
+              onClick={() => showToast("Security Protocol: AES-256 Verified. All node connections encrypted.", "success")}
             />
-            <NavTile 
-              icon={Boxes} 
-              label="Assets" 
-              color="text-blue-500" 
-              href="/dashboard/telemetry" 
+            <NavTile
+              icon={Boxes}
+              label="Assets"
+              color="text-blue-500"
+              href="/dashboard/telemetry"
             />
-            <NavTile 
-              icon={Microscope} 
-              label="Review" 
-              color="text-purple-500" 
-              href="/dashboard/triage" 
+            <NavTile
+              icon={Microscope}
+              label="Review"
+              color="text-purple-500"
+              href="/dashboard/triage"
             />
-            <NavTile 
-              icon={Settings} 
-              label="System" 
-              color="text-slate-500" 
-              href="/admin" 
+            <NavTile
+              icon={Settings}
+              label="System"
+              color="text-slate-500"
+              href="/admin"
             />
           </div>
         </motion.div>
@@ -440,7 +440,7 @@ export default function Dashboard() {
       {/* Footer Branding - Compact */}
       <div className="pt-4 flex flex-col items-center gap-2 opacity-20">
         <div className="w-px h-8 bg-[var(--card-border)]" />
-        <p className="text-[8px] font-bold text-[var(--text-muted)] tracking-[0.4em] uppercase">Halcyon Clinical Operations Group · Secure Health Systems</p>
+        <p className="text-[8px] font-bold text-[var(--text-muted)] tracking-[0.4em] uppercase">Halkyone Clinical Operations Group · Secure Health Systems</p>
       </div>
     </motion.div>
   );
@@ -449,7 +449,7 @@ export default function Dashboard() {
 function NavTile({ icon: Icon, label, color, href, onClick }: { icon: any, label: string, color: string, href?: string, onClick?: () => void }) {
   const router = useRouter();
   return (
-    <div 
+    <div
       onClick={() => {
         if (onClick) onClick();
         else if (href) router.push(href);

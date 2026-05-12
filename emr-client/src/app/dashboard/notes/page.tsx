@@ -23,7 +23,7 @@ import {
 import BookingDrawer from "@/components/BookingDrawer";
 
 import { Skeleton } from "@/components/ui/skeleton";
- 
+
 const GET_NOTES_DATA = gql`
   query GetNotesData {
     appointments {
@@ -50,26 +50,26 @@ const GET_NOTES_DATA = gql`
     }
   }
 `;
- 
+
 const START_ENCOUNTER = gql`
   mutation StartEncounter($input: CreateClinicalEncounterCommandInput!) {
     createClinicalEncounter(input: $input)
   }
 `;
- 
+
 const SAVE_NOTE = gql`
   mutation SaveNote($input: SaveClinicalNoteCommandInput!) {
     saveClinicalNote(input: $input)
   }
 `;
- 
+
 export default function ClinicalNotesPage() {
   const { data: session } = useSession();
   const { showToast } = useToast();
   const { data, loading, error } = useQuery(GET_NOTES_DATA);
   const [startEncounter] = useMutation(START_ENCOUNTER);
   const [saveNote] = useMutation(SAVE_NOTE);
- 
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [narrative, setNarrative] = useState("");
   const [showSmartPhrases, setShowSmartPhrases] = useState(false);
@@ -81,17 +81,17 @@ export default function ClinicalNotesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
- 
+
   const appointmentsData = data?.appointments?.items || [];
   const appointments = appointmentsData.filter((n: any) =>
     `${n.patient?.firstName} ${n.patient?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     n.patient?.mrn?.toLowerCase().includes(searchTerm.toLowerCase())
   );
- 
+
   const smartPhrases = data?.smartPhrases || [];
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const selectedNote = appointments.find((a: any) => a.appointmentId === selectedId);
- 
+
   useEffect(() => {
     const saved = localStorage.getItem("halcyon_notes_cache");
     if (saved) {
@@ -102,48 +102,48 @@ export default function ClinicalNotesPage() {
       }
     }
   }, []);
- 
+
   useEffect(() => {
     if (Object.keys(noteCache).length > 0) {
       localStorage.setItem("halcyon_notes_cache", JSON.stringify(noteCache));
       setLastSaved(new Date());
     }
   }, [noteCache]);
- 
+
   useEffect(() => {
     if (selectedId) {
       setNarrative(noteCache[selectedId] || "");
     }
   }, [selectedId, noteCache]);
- 
+
   useEffect(() => {
     if (appointments.length > 0 && !selectedId) {
       setSelectedId(appointments[0].appointmentId);
     }
   }, [appointments, selectedId]);
- 
+
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
- 
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     const selectionStart = e.target.selectionStart;
     setNarrative(value);
- 
+
     if (selectedId) {
       setNoteCache(prev => ({ ...prev, [selectedId]: value }));
     }
- 
+
     const textBeforeCursor = value.slice(0, selectionStart);
     const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
- 
+
     if (lastSlashIdx !== -1) {
       const segment = textBeforeCursor.slice(lastSlashIdx);
       if (segment.startsWith("/") && !segment.includes(" ")) {
         setShowSmartPhrases(true);
         setPhraseFilter(segment.slice(1).toLowerCase());
         setSelectedIndex(0);
- 
+
         // Position popup near cursor
         if (textareaRef.current) {
           const { selectionStart } = textareaRef.current;
@@ -151,7 +151,7 @@ export default function ClinicalNotesPage() {
           const lines = textBefore.split('\n');
           const currentLine = lines.length;
           const currentColumn = lines[lines.length - 1].length;
-          
+
           // Rough estimate of position
           const top = Math.min(currentLine * 24 + 40, 400);
           const left = Math.min(currentColumn * 8 + 40, 600);
@@ -164,12 +164,12 @@ export default function ClinicalNotesPage() {
       setShowSmartPhrases(false);
     }
   };
- 
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (!showSmartPhrases) return;
- 
+
     const filtered = smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter));
- 
+
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex(prev => (prev + 1) % filtered.length);
@@ -186,22 +186,22 @@ export default function ClinicalNotesPage() {
       setShowSmartPhrases(false);
     }
   };
- 
+
   const selectPhrase = (phrase: string) => {
     if (!textareaRef.current) return;
- 
+
     const cursor = textareaRef.current.selectionStart;
     const textBeforeCursor = narrative.slice(0, cursor);
     const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
- 
+
     if (lastSlashIdx !== -1) {
       const newText = narrative.slice(0, lastSlashIdx) + phrase + narrative.slice(cursor);
       setNarrative(newText);
- 
+
       if (selectedId) {
         setNoteCache(prev => ({ ...prev, [selectedId]: newText }));
       }
- 
+
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.focus();
@@ -212,14 +212,14 @@ export default function ClinicalNotesPage() {
     }
     setShowSmartPhrases(false);
   };
- 
+
   const handleSave = async (finalize: boolean) => {
     if (!selectedId || !selectedNote) return;
- 
+
     setIsSyncing(true);
     try {
       let encounterId = encounterCache[selectedId];
- 
+
       if (!encounterId) {
         const { data: startData } = await startEncounter({
           variables: {
@@ -235,7 +235,7 @@ export default function ClinicalNotesPage() {
         encounterId = startData.createClinicalEncounter;
         setEncounterCache(prev => ({ ...prev, [selectedId]: encounterId }));
       }
- 
+
       await saveNote({
         variables: {
           input: {
@@ -246,7 +246,7 @@ export default function ClinicalNotesPage() {
           }
         }
       });
- 
+
       showToast(finalize ? "Note Finalized & Locked" : "Progress Note Synced", "success");
     } catch (err) {
       console.error("Sync failed", err);
@@ -255,7 +255,7 @@ export default function ClinicalNotesPage() {
       setIsSyncing(false);
     }
   };
- 
+
   const handleDownload = async () => {
     if (!selectedId) return;
     try {
@@ -264,7 +264,7 @@ export default function ClinicalNotesPage() {
       showToast("FAILED TO GENERATE PDF", "error");
     }
   };
- 
+
   if (loading) return (
     <div className="flex h-[calc(100vh-100px)] gap-4 overflow-hidden p-1 animate-in fade-in duration-700">
       <div className="w-[400px] space-y-4">
@@ -443,12 +443,12 @@ export default function ClinicalNotesPage() {
                   />
 
                   {showSmartPhrases && (
-                    <div 
+                    <div
                       style={{ top: `${popupPosition.top}px`, left: `${popupPosition.left}px` }}
                       className="absolute w-80 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200 backdrop-blur-xl"
                     >
                       <div className="p-4 border-b border-[var(--card-border)] bg-[var(--primary)]/5 flex items-center justify-between">
-                        <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Halcyon Smart Phrases</p>
+                        <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Halkyone Smart Phrases</p>
                         <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase">ESC to close</span>
                       </div>
                       <div className="max-h-60 overflow-y-auto">
@@ -457,9 +457,8 @@ export default function ClinicalNotesPage() {
                             key={p.shortcut}
                             onClick={() => selectPhrase(p.templateText)}
                             onMouseEnter={() => setSelectedIndex(idx)}
-                            className={`p-4 cursor-pointer border-b border-[var(--card-border)] last:border-0 group transition-all flex flex-col ${
-                              idx === selectedIndex ? 'bg-[var(--primary)]/20 border-l-4 border-l-[var(--primary)]' : 'hover:bg-[var(--primary)]/10'
-                            }`}
+                            className={`p-4 cursor-pointer border-b border-[var(--card-border)] last:border-0 group transition-all flex flex-col ${idx === selectedIndex ? 'bg-[var(--primary)]/20 border-l-4 border-l-[var(--primary)]' : 'hover:bg-[var(--primary)]/10'
+                              }`}
                           >
                             <div className="flex items-center justify-between mb-1">
                               <span className={`text-[10px] font-black uppercase ${idx === selectedIndex ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'}`}>{p.shortcut}</span>

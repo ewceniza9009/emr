@@ -121,7 +121,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
                         className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all"
                         value={form.primaryEmail}
                         onChange={e => setForm({ ...form, primaryEmail: e.target.value })}
-                        placeholder="e.g. patient@halcyon.com"
+                        placeholder="e.g. patient@halkyone.com"
                       />
                     </div>
                   </div>
