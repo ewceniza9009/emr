@@ -4,6 +4,7 @@ using Domain.Entities;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Infrastructure.Data;
 
@@ -251,6 +252,32 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
                     ?.MakeGenericMethod(entityType.ClrType);
 
                 method?.Invoke(this, new object[] { modelBuilder });
+            }
+        }
+
+        // --- GLOBAL TEMPORAL HARDENING: Npgsql/PostgreSQL UTC Enforcement ---
+        var dateTimeOffsetConverter = new ValueConverter<DateTimeOffset, DateTimeOffset>(
+            v => v.ToUniversalTime(),
+            v => v
+        );
+
+        var nullableDateTimeOffsetConverter = new ValueConverter<DateTimeOffset?, DateTimeOffset?>(
+            v => v.HasValue ? v.Value.ToUniversalTime() : v,
+            v => v
+        );
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTimeOffset))
+                {
+                    property.SetValueConverter(dateTimeOffsetConverter);
+                }
+                else if (property.ClrType == typeof(DateTimeOffset?))
+                {
+                    property.SetValueConverter(nullableDateTimeOffsetConverter);
+                }
             }
         }
     }

@@ -30,7 +30,13 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
                 p.FirstName.ToLower().StartsWith(searchTerm)
                 || p.LastName.ToLower().StartsWith(searchTerm)
                 || p.Mrn.ToLower().Contains(searchTerm)
-                || (searchTerm.Length > 2 && (p.FirstName.ToLower().Contains(searchTerm) || p.LastName.ToLower().Contains(searchTerm)))
+                || (
+                    searchTerm.Length > 2
+                    && (
+                        p.FirstName.ToLower().Contains(searchTerm)
+                        || p.LastName.ToLower().Contains(searchTerm)
+                    )
+                )
             );
         }
 
@@ -38,13 +44,20 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
         {
             if (request.DirectiveTypes.Contains("None"))
             {
-                query = query.Where(p => !p.AdvanceDirectives.Any(ad => ad.IsActive) || 
-                    p.AdvanceDirectives.Any(ad => ad.IsActive && request.DirectiveTypes.Contains(ad.Type.ToString())));
+                query = query.Where(p =>
+                    !p.AdvanceDirectives.Any(ad => ad.IsActive)
+                    || p.AdvanceDirectives.Any(ad =>
+                        ad.IsActive && request.DirectiveTypes.Contains(ad.Type.ToString())
+                    )
+                );
             }
             else
             {
-                query = query.Where(p => p.AdvanceDirectives
-                    .Any(ad => ad.IsActive && request.DirectiveTypes.Contains(ad.Type.ToString())));
+                query = query.Where(p =>
+                    p.AdvanceDirectives.Any(ad =>
+                        ad.IsActive && request.DirectiveTypes.Contains(ad.Type.ToString())
+                    )
+                );
             }
         }
 
@@ -55,12 +68,15 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
 
         if (request.VisitStatuses != null && request.VisitStatuses.Any())
         {
-            query = query.Where(p => request.VisitStatuses.Contains(
-                p.Appointments.Where(a => a.Status != AppointmentStatus.Cancelled)
-                    .OrderByDescending(a => a.ScheduledStart)
-                    .Select(a => a.Status.ToString())
-                    .FirstOrDefault() ?? "No Visit"
-            ));
+            query = query.Where(p =>
+                request.VisitStatuses.Contains(
+                    p.Appointments.Where(a => a.Status != AppointmentStatus.Cancelled)
+                        .OrderByDescending(a => a.ScheduledStart)
+                        .Select(a => a.Status.ToString())
+                        .FirstOrDefault()
+                        ?? "No Visit"
+                )
+            );
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -84,22 +100,28 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
                         .Select(a => a.Status.ToString())
                         .FirstOrDefault()
                     ?? "No Visit",
-                Addresses = p.Addresses.Select(a => new Application.Common.Dtos.EntityAddressDto
-                {
-                    Type = a.Type,
-                    IsPrimary = a.IsPrimary,
-                    Address = new Application.Common.Dtos.AddressDto
+                Addresses = p
+                    .Addresses.Select(a => new Application.Common.Dtos.EntityAddressDto
                     {
-                        City = a.Address.City,
-                        State = a.Address.State
-                    }
-                }).ToList(),
-                Phones = p.Phones.Select(ph => new PatientPhoneDto
-                {
-                    PhoneNumber = ph.PhoneNumber,
-                    Type = ph.Type,
-                    IsPrimary = ph.IsPrimary
-                }).ToList()
+                        Type = a.Type,
+                        IsPrimary = a.IsPrimary,
+                        Address = new Application.Common.Dtos.AddressDto
+                        {
+                            Street = a.Address.Street,
+                            City = a.Address.City,
+                            State = a.Address.State,
+                            PostalCode = a.Address.PostalCode,
+                        },
+                    })
+                    .ToList(),
+                Phones = p
+                    .Phones.Select(ph => new PatientPhoneDto
+                    {
+                        PhoneNumber = ph.PhoneNumber,
+                        Type = ph.Type,
+                        IsPrimary = ph.IsPrimary,
+                    })
+                    .ToList(),
             })
             .ToListAsync(cancellationToken);
 

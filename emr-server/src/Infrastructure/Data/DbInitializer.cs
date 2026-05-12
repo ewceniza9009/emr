@@ -38,27 +38,23 @@ namespace Infrastructure.Data
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
-            // Configuration-driven Credential Injection
             var adminPassword =
                 configuration["SeedSettings:InitialAdminPassword"] ?? "Halcyon@Initial!2026";
             var practitionerPassword =
                 configuration["SeedSettings:InitialPractitionerPassword"]
                 ?? "HalcyonPractitioner@Initial!2026";
 
-            // 1. SOLID INFRASTRUCTURE: Always ensure migrations are applied before anything else
             await context.Database.MigrateAsync();
 
             var now = DateTimeOffset.UtcNow;
             Console.WriteLine($"[TACTICAL SEEDING] InitializeAsync started at {now}");
 
-            // 2. PERFORM WIPE (IF REQUESTED) - Don't exit early if we are supposed to wipe
             if (wipeDb)
             {
                 Console.WriteLine("[TACTICAL SEEDING] Wiping database...");
                 await WipeDatabaseAsync(context);
             }
 
-            // 3. CHECK FOR EXISTING DATA (EARLY EXIT FOR PERSISTENT ENVIRONMENTS)
             if (!wipeDb && await context.Patients.IgnoreQueryFilters().AnyAsync())
             {
                 if (seedDb)
@@ -68,19 +64,14 @@ namespace Infrastructure.Data
                 return;
             }
 
-            // 4. RESILIENCE: Drop the PascalCase shadow column that sometimes gets orphaned
             try
             {
                 await context.Database.ExecuteSqlRawAsync(
                     "ALTER TABLE spiritual_assessments DROP COLUMN IF EXISTS \"ClinicalEncounterEncounterId\";"
                 );
             }
-            catch
-            {
-                /* Ignore if already dropped */
-            }
+            catch { }
 
-            // 5. SEED CORE DATA
             await SeedIdentityAsync(
                 context,
                 userManager,
@@ -103,7 +94,6 @@ namespace Infrastructure.Data
             string practitionerPassword
         )
         {
-            // Seed Roles and Permissions
             var rolePermissions = new Dictionary<string, string[]>
             {
                 { Roles.Admin, GetAllPermissions() },
@@ -216,7 +206,6 @@ namespace Infrastructure.Data
                     await roleManager.CreateAsync(role);
                 }
 
-                // Sync permissions (claims) for the role
                 var existingClaims = await roleManager.GetClaimsAsync(role);
                 foreach (var permission in rp.Value)
                 {
@@ -227,7 +216,6 @@ namespace Infrastructure.Data
                 }
             }
 
-            // Seed Default Tenant Configuration
             if (
                 !await context
                     .TenantConfigurations.IgnoreQueryFilters()
@@ -252,8 +240,6 @@ namespace Infrastructure.Data
                 await context.SaveChangesAsync();
             }
 
-            // --- UNIVERSAL TENANT SYNCHRONIZATION ---
-            // Ensure EVERY existing user has the correct TenantId and Claim
             var allUsers = await userManager.Users.ToListAsync();
             foreach (var user in allUsers)
             {
@@ -279,7 +265,6 @@ namespace Infrastructure.Data
                 }
             }
 
-            // Seed Admin User & Practitioner
             var adminEmail = "admin@palliative.emr";
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
@@ -305,7 +290,6 @@ namespace Infrastructure.Data
             }
             else
             {
-                // FIX: Ensure existing admin user has a valid PractitionerId
                 if (!adminUser.PractitionerId.HasValue || adminUser.PractitionerId == Guid.Empty)
                 {
                     adminUser.PractitionerId = adminPractitionerId;
@@ -322,7 +306,6 @@ namespace Infrastructure.Data
                 && existingAdminPractitioner.PractitionerId == Guid.Empty
             )
             {
-                // PK Mutation is dangerous in EF. Delete and re-create instead.
                 context.Practitioners.Remove(existingAdminPractitioner);
                 await context.SaveChangesAsync(default);
                 existingAdminPractitioner = null;
@@ -344,7 +327,6 @@ namespace Infrastructure.Data
                 };
                 context.Practitioners.Add(adminPractitioner);
 
-                // SEED ADMIN CLINICAL BASE: System Admin resides in Cebu
                 var adminAddr = new EntityAddress
                 {
                     EntityAddressId = Guid.NewGuid(),
@@ -366,7 +348,6 @@ namespace Infrastructure.Data
                 context.EntityAddresses.Add(adminAddr);
             }
 
-            // Seed Other Practitioners from CREDENTIALS.md
             var practitionerAccounts = new[]
             {
                 new
@@ -377,6 +358,7 @@ namespace Infrastructure.Data
                     Role = Roles.CareNavigator,
                     Position = PractitionerPosition.Admin,
                     IsCareNavigator = true,
+                    IsSupportingClinician = false,
                 },
                 new
                 {
@@ -386,6 +368,7 @@ namespace Infrastructure.Data
                     Role = Roles.CareNavigator,
                     Position = PractitionerPosition.Admin,
                     IsCareNavigator = true,
+                    IsSupportingClinician = false,
                 },
                 new
                 {
@@ -395,6 +378,7 @@ namespace Infrastructure.Data
                     Role = Roles.CareNavigator,
                     Position = PractitionerPosition.Admin,
                     IsCareNavigator = true,
+                    IsSupportingClinician = false,
                 },
                 new
                 {
@@ -404,6 +388,7 @@ namespace Infrastructure.Data
                     Role = Roles.CareNavigator,
                     Position = PractitionerPosition.Admin,
                     IsCareNavigator = true,
+                    IsSupportingClinician = false,
                 },
                 new
                 {
@@ -413,6 +398,7 @@ namespace Infrastructure.Data
                     Role = Roles.CareNavigator,
                     Position = PractitionerPosition.Admin,
                     IsCareNavigator = true,
+                    IsSupportingClinician = false,
                 },
                 new
                 {
@@ -422,6 +408,7 @@ namespace Infrastructure.Data
                     Role = Roles.MedicalDirector,
                     Position = PractitionerPosition.Physician,
                     IsCareNavigator = false,
+                    IsSupportingClinician = true,
                 },
                 new
                 {
@@ -431,6 +418,7 @@ namespace Infrastructure.Data
                     Role = Roles.Chaplain,
                     Position = PractitionerPosition.Physician,
                     IsCareNavigator = false,
+                    IsSupportingClinician = true,
                 },
                 new
                 {
@@ -440,6 +428,7 @@ namespace Infrastructure.Data
                     Role = Roles.Nurse,
                     Position = PractitionerPosition.Physician,
                     IsCareNavigator = false,
+                    IsSupportingClinician = true,
                 },
                 new
                 {
@@ -449,6 +438,7 @@ namespace Infrastructure.Data
                     Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
                     IsCareNavigator = false,
+                    IsSupportingClinician = true,
                 },
                 new
                 {
@@ -458,6 +448,7 @@ namespace Infrastructure.Data
                     Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
                     IsCareNavigator = false,
+                    IsSupportingClinician = true,
                 },
                 new
                 {
@@ -467,6 +458,7 @@ namespace Infrastructure.Data
                     Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
                     IsCareNavigator = false,
+                    IsSupportingClinician = true,
                 },
                 new
                 {
@@ -476,6 +468,7 @@ namespace Infrastructure.Data
                     Role = Roles.Practitioner,
                     Position = PractitionerPosition.Physician,
                     IsCareNavigator = false,
+                    IsSupportingClinician = true,
                 },
             };
 
@@ -506,7 +499,6 @@ namespace Infrastructure.Data
                 }
                 else
                 {
-                    // FIX: Handle cases where the user exists but has an empty or null PractitionerId
                     if (!user.PractitionerId.HasValue || user.PractitionerId == Guid.Empty)
                     {
                         user.PractitionerId = pId;
@@ -549,20 +541,122 @@ namespace Infrastructure.Data
                         LastName = acc.Last,
                         IsActive = true,
                         IsCareNavigator = acc.IsCareNavigator,
-                        IsSupportingClinician = acc.Role == Roles.Practitioner,
+                        IsSupportingClinician = acc.IsSupportingClinician,
                         Position = acc.Position,
                     };
 
-                    // CEBU OPERATIONS HUB
-                    var areas = new[]
+                    var locations = new[]
                     {
-                        "Cebu City",
-                        "Mandaue City",
-                        "Lapu-Lapu City",
-                        "Consolacion",
-                        "Liloan",
+                        new
+                        {
+                            City = "Cebu City",
+                            State = "Cebu",
+                            Zip = "6000",
+                            Lat = 10.3157,
+                            Lon = 123.8854,
+                            Var = 0.03,
+                        },
+                        new
+                        {
+                            City = "Mandaue City",
+                            State = "Cebu",
+                            Zip = "6014",
+                            Lat = 10.3450,
+                            Lon = 123.9444,
+                            Var = 0.02,
+                        },
+                        new
+                        {
+                            City = "Lapu-Lapu City",
+                            State = "Cebu",
+                            Zip = "6015",
+                            Lat = 10.3111,
+                            Lon = 123.9493,
+                            Var = 0.04,
+                        },
+                        new
+                        {
+                            City = "Talisay City",
+                            State = "Cebu",
+                            Zip = "6045",
+                            Lat = 10.2447,
+                            Lon = 123.8483,
+                            Var = 0.02,
+                        },
+                        new
+                        {
+                            City = "Carcar City",
+                            State = "Cebu",
+                            Zip = "6019",
+                            Lat = 10.1086,
+                            Lon = 123.6403,
+                            Var = 0.05,
+                        },
+                        new
+                        {
+                            City = "Argao",
+                            State = "Cebu",
+                            Zip = "6021",
+                            Lat = 9.8833,
+                            Lon = 123.6000,
+                            Var = 0.05,
+                        },
+                        new
+                        {
+                            City = "Santander",
+                            State = "Cebu",
+                            Zip = "6026",
+                            Lat = 9.4200,
+                            Lon = 123.3300,
+                            Var = 0.03,
+                        },
+                        new
+                        {
+                            City = "Danao City",
+                            State = "Cebu",
+                            Zip = "6004",
+                            Lat = 10.5222,
+                            Lon = 124.0292,
+                            Var = 0.03,
+                        },
+                        new
+                        {
+                            City = "Bogo City",
+                            State = "Cebu",
+                            Zip = "6010",
+                            Lat = 11.0500,
+                            Lon = 124.0000,
+                            Var = 0.05,
+                        },
+                        new
+                        {
+                            City = "Daanbantayan",
+                            State = "Cebu",
+                            Zip = "6013",
+                            Lat = 11.2333,
+                            Lon = 123.9833,
+                            Var = 0.05,
+                        },
+                        new
+                        {
+                            City = "Toledo City",
+                            State = "Cebu",
+                            Zip = "6038",
+                            Lat = 10.3800,
+                            Lon = 123.6300,
+                            Var = 0.06,
+                        },
+                        new
+                        {
+                            City = "Balamban",
+                            State = "Cebu",
+                            Zip = "6041",
+                            Lat = 10.5000,
+                            Lon = 123.7167,
+                            Var = 0.04,
+                        },
                     };
-                    var area = areas[new Random().Next(areas.Length)];
+                    var loc = locations[new Random().Next(locations.Length)];
 
                     var entityAddr = new EntityAddress
                     {
@@ -595,17 +689,13 @@ namespace Infrastructure.Data
                                         "Juan Luna Ave",
                                     }
                                 ),
-                            City = area,
+                            City = loc.City,
                             State = "Cebu",
-                            PostalCode = "6000",
+                            PostalCode = loc.Zip,
                             Latitude =
-                                area == "Cebu City"
-                                    ? 10.3157 + (new Random().NextDouble() * 0.02 - 0.01)
-                                    : 10.35 + (new Random().NextDouble() * 0.05 - 0.025),
+                                loc.Lat + (new Random().NextDouble() * loc.Var * 2 - loc.Var),
                             Longitude =
-                                area == "Cebu City"
-                                    ? 123.8854 + (new Random().NextDouble() * 0.02 - 0.01)
-                                    : 123.95 + (new Random().NextDouble() * 0.05 - 0.025),
+                                loc.Lon + (new Random().NextDouble() * loc.Var * 2 - loc.Var),
                             Country = "Philippines",
                         },
                     };
@@ -615,16 +705,73 @@ namespace Infrastructure.Data
                 }
                 else if (!existingPractitioner.Addresses.Any())
                 {
-                    // Repair existing practitioners missing addresses - CEBU HUB
-                    var tacticalAreas = new[]
+                    var locations = new[]
                     {
-                        "Cebu City",
-                        "Mandaue City",
-                        "Lapu-Lapu City",
-                        "Consolacion",
-                        "Liloan",
+                        new
+                        {
+                            City = "Cebu City",
+                            State = "Cebu",
+                            Zip = "6000",
+                            Lat = 10.3157,
+                            Lon = 123.8854,
+                            Var = 0.03,
+                        },
+                        new
+                        {
+                            City = "Mandaue City",
+                            State = "Cebu",
+                            Zip = "6014",
+                            Lat = 10.3450,
+                            Lon = 123.9444,
+                            Var = 0.02,
+                        },
+                        new
+                        {
+                            City = "Lapu-Lapu City",
+                            State = "Cebu",
+                            Zip = "6015",
+                            Lat = 10.3111,
+                            Lon = 123.9493,
+                            Var = 0.04,
+                        },
+                        new
+                        {
+                            City = "Talisay City",
+                            State = "Cebu",
+                            Zip = "6045",
+                            Lat = 10.2447,
+                            Lon = 123.8483,
+                            Var = 0.02,
+                        },
+                        new
+                        {
+                            City = "Carcar City",
+                            State = "Cebu",
+                            Zip = "6019",
+                            Lat = 10.1086,
+                            Lon = 123.6403,
+                            Var = 0.05,
+                        },
+                        new
+                        {
+                            City = "Toledo City",
+                            State = "Cebu",
+                            Zip = "6038",
+                            Lat = 10.3800,
+                            Lon = 123.6300,
+                            Var = 0.06,
+                        },
+                        new
+                        {
+                            City = "Danao City",
+                            State = "Cebu",
+                            Zip = "6004",
+                            Lat = 10.5222,
+                            Lon = 124.0292,
+                            Var = 0.03,
+                        },
                     };
-                    var area = tacticalAreas[new Random().Next(tacticalAreas.Length)];
+                    var loc = locations[new Random().Next(locations.Length)];
 
                     var entityAddr = new EntityAddress
                     {
@@ -657,17 +804,13 @@ namespace Infrastructure.Data
                                         "Juan Luna Ave",
                                     }
                                 ),
-                            City = area,
+                            City = loc.City,
                             State = "Cebu",
-                            PostalCode = "6000",
+                            PostalCode = loc.Zip,
                             Latitude =
-                                area == "Cebu City"
-                                    ? 10.3157 + (new Random().NextDouble() * 0.02 - 0.01)
-                                    : 10.35 + (new Random().NextDouble() * 0.05 - 0.025),
+                                loc.Lat + (new Random().NextDouble() * loc.Var * 2 - loc.Var),
                             Longitude =
-                                area == "Cebu City"
-                                    ? 123.8854 + (new Random().NextDouble() * 0.02 - 0.01)
-                                    : 123.95 + (new Random().NextDouble() * 0.05 - 0.025),
+                                loc.Lon + (new Random().NextDouble() * loc.Var * 2 - loc.Var),
                             Country = "Philippines",
                         },
                     };
@@ -677,7 +820,6 @@ namespace Infrastructure.Data
 
             await context.SaveChangesAsync(default);
 
-            // Seed Recurring Provider Shifts (Base Availability)
             await SeedProviderShiftsAsync(context, defaultTenantId);
         }
 
@@ -692,7 +834,6 @@ namespace Infrastructure.Data
             var practitioners = await context.Practitioners.IgnoreQueryFilters().ToListAsync();
             foreach (var p in practitioners)
             {
-                // Give every practitioner a standard 8 AM - 5 PM shift (Mon-Sat, NO SUNDAYS)
                 for (int i = 1; i < 7; i++)
                 {
                     context.ProviderShifts.Add(
@@ -718,11 +859,7 @@ namespace Infrastructure.Data
                 .Model.GetEntityTypes()
                 .Select(t => t.GetTableName())
                 .Distinct()
-                .Where(t =>
-                    !string.IsNullOrEmpty(t)
-                // We now allow wiping AspNet tables if a full wipe is requested
-                // to ensure no "dirty" identity data persists across resets
-                )
+                .Where(t => !string.IsNullOrEmpty(t))
                 .ToList();
 
             if (tableNames.Any())
@@ -738,10 +875,9 @@ namespace Infrastructure.Data
             await SeedQuestionnairesAsync(context);
             await context.SaveChangesAsync(default);
 
-            Randomizer.Seed = new Random(8675309); // Deterministic test data
+            Randomizer.Seed = new Random(8675309);
             var faker = new Faker();
 
-            // Fetch practitioners seeded in Identity phase
             var allPractitioners = await context.Practitioners.IgnoreQueryFilters().ToListAsync();
             var practitioners = allPractitioners
                 .Where(p => p.PractitionerId != Guid.Empty)
@@ -760,13 +896,8 @@ namespace Infrastructure.Data
 
             var practitionerIds = practitioners.Select(p => p.PractitionerId).ToList();
 
-            // Guard for Patient Seeding
             if (!await context.Patients.IgnoreQueryFilters().AnyAsync())
             {
-                // ==========================================
-                // SETUP TABLES (5 Records Each)
-                // ==========================================
-
                 var healthPlans = new Faker<HealthPlan>()
                     .RuleFor(x => x.HealthPlanId, Guid.NewGuid)
                     .RuleFor(x => x.TenantId, defaultTenantId)
@@ -862,7 +993,6 @@ namespace Infrastructure.Data
                 context.Set<Medication>().AddRange(medications);
 
                 faker = new Faker();
-                // SEED CEBU CLUSTER: Seed coordinates for practitioners around Cebu tactical sectors
                 foreach (var p in practitioners)
                 {
                     var tacticalAreas = new[]
@@ -925,9 +1055,6 @@ namespace Infrastructure.Data
 
                 await context.SaveChangesAsync(default);
 
-                // ==========================================
-                // TRANSACTIONAL TABLES (10 Records Each)
-                // ==========================================
                 var patients = new Faker<Patient>()
                     .RuleFor(p => p.PatientId, f => Guid.NewGuid())
                     .RuleFor(p => p.TenantId, f => defaultTenantId)
@@ -980,7 +1107,6 @@ namespace Infrastructure.Data
                     .Generate(10);
                 context.Patients.AddRange(patients);
 
-                // SEED STATIC TEST PATIENT: PEARLINE BAUCH
                 var pearline = new Patient
                 {
                     PatientId = Guid.NewGuid(),
@@ -1001,9 +1127,8 @@ namespace Infrastructure.Data
                     PreferredContactMethod = "PHONE",
                 };
                 context.Patients.Add(pearline);
-                patients.Add(pearline); // Add to list so she gets contacts/docs
+                patients.Add(pearline);
 
-                // Seed Pearline's specific contact details
                 context
                     .Set<PatientPhone>()
                     .Add(
@@ -1041,11 +1166,9 @@ namespace Infrastructure.Data
 
                 await context.SaveChangesAsync(default);
 
-                // Seed Patient Contacts with POA
                 var patientContacts = new List<PatientContact>();
                 foreach (var p in patients)
                 {
-                    // Spouse (Primary & POA)
                     patientContacts.Add(
                         new PatientContact
                         {
@@ -1064,7 +1187,6 @@ namespace Infrastructure.Data
                         }
                     );
 
-                    // Sibling (Legal Guardian)
                     patientContacts.Add(
                         new PatientContact
                         {
@@ -1083,7 +1205,6 @@ namespace Infrastructure.Data
                         }
                     );
 
-                    // Legal Representative
                     patientContacts.Add(
                         new PatientContact
                         {
@@ -1104,7 +1225,6 @@ namespace Infrastructure.Data
                 }
                 context.PatientContacts.AddRange(patientContacts);
 
-                // Seed POA Documents
                 var poaDocuments = patientContacts
                     .Where(c => c.HasPowerOfAttorney)
                     .Select(c => new PatientDocument
@@ -1124,7 +1244,7 @@ namespace Infrastructure.Data
                 context.PatientDocuments.AddRange(poaDocuments);
 
                 var patientOutreaches = new Faker<PatientOutreach>()
-                    .UseSeed(8888) // Offset seed to avoid collisions with patients
+                    .UseSeed(8888)
                     .RuleFor(x => x.PatientOutreachId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.FirstName, f => f.Name.FirstName())
@@ -1233,7 +1353,7 @@ namespace Infrastructure.Data
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
                     .RuleFor(x => x.PatientId, (f, u) => f.PickRandom(patients).PatientId)
                     .RuleFor(x => x.PhoneNumber, f => f.Phone.PhoneNumber())
-                    .Generate(patients.Count); // Ensure all patients get at least one phone
+                    .Generate(patients.Count);
                 context.Set<PatientPhone>().AddRange(patientPhones);
 
                 var entityAddresses = new Faker<EntityAddress>()
@@ -1248,15 +1368,128 @@ namespace Infrastructure.Data
                         x => x.Address,
                         (f, u) =>
                         {
-                            var patientAreas = new[]
+                            var locations = new[]
                             {
-                                "Cebu City",
-                                "Mandaue City",
-                                "Lapu-Lapu City",
-                                "Consolacion",
-                                "Liloan",
+                                new
+                                {
+                                    City = "Cebu City",
+                                    State = "Cebu",
+                                    Zip = "6000",
+                                    Lat = 10.3157,
+                                    Lon = 123.8854,
+                                    Var = 0.03,
+                                },
+                                new
+                                {
+                                    City = "Mandaue City",
+                                    State = "Cebu",
+                                    Zip = "6014",
+                                    Lat = 10.3450,
+                                    Lon = 123.9444,
+                                    Var = 0.02,
+                                },
+                                new
+                                {
+                                    City = "Lapu-Lapu City",
+                                    State = "Cebu",
+                                    Zip = "6015",
+                                    Lat = 10.3111,
+                                    Lon = 123.9493,
+                                    Var = 0.04,
+                                },
+                                new
+                                {
+                                    City = "Talisay City",
+                                    State = "Cebu",
+                                    Zip = "6045",
+                                    Lat = 10.2447,
+                                    Lon = 123.8483,
+                                    Var = 0.02,
+                                },
+                                new
+                                {
+                                    City = "Minglanilla",
+                                    State = "Cebu",
+                                    Zip = "6046",
+                                    Lat = 10.2458,
+                                    Lon = 123.7972,
+                                    Var = 0.02,
+                                },
+                                new
+                                {
+                                    City = "Carcar City",
+                                    State = "Cebu",
+                                    Zip = "6019",
+                                    Lat = 10.1086,
+                                    Lon = 123.6403,
+                                    Var = 0.05,
+                                },
+                                new
+                                {
+                                    City = "Argao",
+                                    State = "Cebu",
+                                    Zip = "6021",
+                                    Lat = 9.8833,
+                                    Lon = 123.6000,
+                                    Var = 0.05,
+                                },
+                                new
+                                {
+                                    City = "Consolacion",
+                                    State = "Cebu",
+                                    Zip = "6001",
+                                    Lat = 10.3833,
+                                    Lon = 123.9667,
+                                    Var = 0.03,
+                                },
+                                new
+                                {
+                                    City = "Liloan",
+                                    State = "Cebu",
+                                    Zip = "6002",
+                                    Lat = 10.4000,
+                                    Lon = 124.0000,
+                                    Var = 0.03,
+                                },
+                                new
+                                {
+                                    City = "Danao City",
+                                    State = "Cebu",
+                                    Zip = "6004",
+                                    Lat = 10.5222,
+                                    Lon = 124.0292,
+                                    Var = 0.03,
+                                },
+                                new
+                                {
+                                    City = "Bogo City",
+                                    State = "Cebu",
+                                    Zip = "6010",
+                                    Lat = 11.0500,
+                                    Lon = 124.0000,
+                                    Var = 0.05,
+                                },
+                                new
+                                {
+                                    City = "Toledo City",
+                                    State = "Cebu",
+                                    Zip = "6038",
+                                    Lat = 10.3800,
+                                    Lon = 123.6300,
+                                    Var = 0.06,
+                                },
+                                new
+                                {
+                                    City = "Balamban",
+                                    State = "Cebu",
+                                    Zip = "6041",
+                                    Lat = 10.5000,
+                                    Lon = 123.7167,
+                                    Var = 0.04,
+                                },
                             };
-                            var area = f.PickRandom(patientAreas);
+                            var loc = locations[f.Random.Number(locations.Length - 1)];
+
                             return new Address
                             {
                                 Street =
@@ -1285,22 +1518,16 @@ namespace Infrastructure.Data
                                             "T. Padilla St",
                                         }
                                     ),
-                                City = area,
+                                City = loc.City,
                                 State = "Cebu",
                                 Country = "Philippines",
-                                PostalCode = "6000",
-                                Latitude =
-                                    area == "Cebu City"
-                                        ? 10.3157 + f.Random.Double(-0.03, 0.03)
-                                        : 10.35 + f.Random.Double(-0.06, 0.06),
-                                Longitude =
-                                    area == "Cebu City"
-                                        ? 123.8854 + f.Random.Double(-0.03, 0.03)
-                                        : 123.95 + f.Random.Double(-0.06, 0.06),
+                                PostalCode = loc.Zip,
+                                Latitude = loc.Lat + f.Random.Double(-loc.Var, loc.Var),
+                                Longitude = loc.Lon + f.Random.Double(-loc.Var, loc.Var),
                             };
                         }
                     )
-                    .Generate(patients.Count); // Ensure all patients get a primary address
+                    .Generate(patients.Count);
                 context.Set<EntityAddress>().AddRange(entityAddresses);
 
                 var patientEmails = new Faker<PatientEmail>()
@@ -1338,25 +1565,19 @@ namespace Infrastructure.Data
                     .RuleFor(x => x.Reaction, f => f.Lorem.Word())
                     .Generate(10);
                 context.Set<Allergy>().AddRange(allergiesList);
-                // Anchor to the UPCOMING Monday (or today if it is Monday)
                 var now = DateTimeOffset.UtcNow;
-                int diff = (7 + (DayOfWeek.Monday - now.DayOfWeek)) % 7;
-                // PostgreSQL timestamptz requires UTC (Offset 0).
-                // 00:00 UTC is 08:00 Manila.
+                int diff = -(int)now.DayOfWeek;
                 var baseDate = new DateTimeOffset(now.AddDays(diff).Date, TimeSpan.Zero);
                 Console.WriteLine(
-                    $"[TACTICAL SEEDING] Monday-Start baseDate: {baseDate:yyyy-MM-dd}"
+                    $"[TACTICAL SEEDING] Current-Week baseDate: {baseDate:yyyy-MM-dd}"
                 );
 
-                // --- TACTICAL SCHEDULING SEEDING ---
-                // We need to ensure NO OVERLAPS and NO SUNDAYS.
                 var allAppointments = new List<Appointment>();
                 var allAddresses = await context
                     .EntityAddresses.Include(ea => ea.Address)
                     .IgnoreQueryFilters()
                     .ToListAsync();
 
-                // Helper: Unified Geospatial Logic
                 double GetDistance(Guid pId, Guid patId, AppointmentModality mod)
                 {
                     if (
@@ -1378,7 +1599,6 @@ namespace Infrastructure.Data
                         ptA.Longitude ?? 123.8854
                     );
 
-                    // Ensure minimum believable distance (0.5 miles) to avoid "zero distance travel"
                     return Math.Max(distance, 0.5);
                 }
 
@@ -1390,81 +1610,101 @@ namespace Infrastructure.Data
                     )
                         return 0;
                     var baseT = Application.Common.Utils.GeoUtils.EstimateTravelTimeMinutes(dist);
-                    return (int)Math.Clamp(baseT * f.Random.Double(1.2, 2.5), 5, 60);
+                    return (int)Math.Clamp(baseT * f.Random.Double(1.2, 2.5), 2, 60);
                 }
 
-                // Seed for the next 7 days (starting Monday)
+                var localOffset = DateTimeOffset.Now.Offset;
+                // Atomic clear to prevent any ghost data
+                await context.Database.ExecuteSqlRawAsync("DELETE FROM appointments");
+                
+                var pracsToSeed = practitioners != null && practitioners.Any() 
+                    ? practitioners 
+                    : await context.Practitioners.IgnoreQueryFilters().ToListAsync();
+                
+                var uniquePracs = pracsToSeed.GroupBy(p => p.PractitionerId).Select(g => g.First()).ToList();
+                var eligibleSupporters = uniquePracs.Where(p => p.IsSupportingClinician || p.IsCareNavigator).ToList();
+
+                // Track busy windows: Dictionary<Day, Dictionary<PractitionerId, List<(Start, End)>>>
+                var busyWindows = new Dictionary<int, Dictionary<Guid, List<(DateTimeOffset, DateTimeOffset)>>>();
+
                 for (int dayOffset = 0; dayOffset < 7; dayOffset++)
                 {
                     var currentDate = baseDate.AddDays(dayOffset);
-                    if (currentDate.DayOfWeek == DayOfWeek.Sunday)
-                        continue;
+                    if (currentDate.DayOfWeek == DayOfWeek.Sunday) continue;
 
-                    foreach (var prac in practitioners)
+                    busyWindows[dayOffset] = new Dictionary<Guid, List<(DateTimeOffset, DateTimeOffset)>>();
+                    foreach (var p in uniquePracs) busyWindows[dayOffset][p.PractitionerId] = new List<(DateTimeOffset, DateTimeOffset)>();
+
+                    for (int pIdx = 0; pIdx < uniquePracs.Count; pIdx++)
                     {
-                        if (prac.PractitionerId == Guid.Empty)
-                            continue;
+                        var leadPrac = uniquePracs[pIdx];
+                        if (leadPrac.PractitionerId == Guid.Empty) continue;
+                        if (pIdx >= uniquePracs.Count - 3) continue; // Skip 3 for empty test
 
-                        var currentTime = currentDate; // Starts at 08:00 Manila (00:00 UTC)
-                        var dayBusyPatients = new HashSet<Guid>();
-
-                        for (int i = 0; i < 4; i++) // 4 appointments per day
+                        var sessions = new[] { 8, 13 }; // 8 AM and 1 PM
+                        foreach (var hour in sessions)
                         {
-                            var patient = patients[faker.Random.Number(patients.Count - 1)];
-                            if (dayBusyPatients.Contains(patient.PatientId))
-                                continue;
+                            var currentTime = new DateTimeOffset(currentDate.Year, currentDate.Month, currentDate.Day, hour, 0, 0, localOffset);
+                            int apptsInSession = hour == 8 ? 2 : 1;
 
-                            var roll = faker.Random.Number(1, 100);
-                            var modality =
-                                roll <= 70 ? AppointmentModality.InPersonHomeVisit
-                                : roll <= 90 ? AppointmentModality.TelehealthVideo
-                                : AppointmentModality.InPersonFacility;
+                            for (int i = 0; i < apptsInSession; i++)
+                            {
+                                var patient = patients[faker.Random.Number(patients.Count - 1)];
+                                var modality = faker.PickRandom<AppointmentModality>();
+                                double dist = GetDistance(leadPrac.PractitionerId, patient.PatientId, modality);
+                                int driveTime = GetTravelTime(dist, modality, faker);
+                                int buffer = (modality == AppointmentModality.TelehealthVideo) ? 15 : 30;
 
-                            // 1. Calculate REAL logistics
-                            double dist = GetDistance(
-                                prac.PractitionerId,
-                                patient.PatientId,
-                                modality
-                            );
-                            int driveTime = GetTravelTime(dist, modality, faker);
-                            int buffer =
-                                (modality == AppointmentModality.TelehealthVideo)
-                                    ? CLINICAL_TELEHEALTH_BUFFER
-                                    : CLINICAL_IN_PERSON_BUFFER;
+                                currentTime = currentTime.AddMinutes(buffer + driveTime);
+                                int minutesToNext15 = (15 - (currentTime.Minute % 15)) % 15;
+                                var start = currentTime.AddMinutes(minutesToNext15);
+                                var duration = faker.Random.Number(30, 60);
+                                var end = start.AddMinutes(duration);
 
-                            // 2. Advance time: Previous End + Buffer + DriveTime
-                            currentTime = currentTime.AddMinutes(buffer + driveTime);
+                                if (end.Hour >= (hour == 8 ? 12 : 17)) break;
 
-                            // 3. Snap to next 15-minute increment for clean UI
-                            int minutesToNext15 = (15 - (currentTime.Minute % 15)) % 15;
-                            var start = currentTime.AddMinutes(minutesToNext15);
+                                // Check if LEAD is busy (shouldn't be, but good for safety)
+                                if (busyWindows[dayOffset][leadPrac.PractitionerId].Any(w => start < w.Item2 && end > w.Item1))
+                                {
+                                    currentTime = end;
+                                    continue;
+                                }
 
-                            var duration = faker.Random.Number(20, 60);
-                            var end = start.AddMinutes(duration);
-
-                            // Boundary Check: Ensure we don't exceed 6 PM Manila (10:00 UTC)
-                            if (end.Hour > 10 || (end.Hour == 10 && end.Minute > 0))
-                                break;
-
-                            allAppointments.Add(
-                                new Appointment
+                                var appt = new Appointment
                                 {
                                     AppointmentId = Guid.NewGuid(),
                                     TenantId = defaultTenantId,
                                     PatientId = patient.PatientId,
-                                    PractitionerId = prac.PractitionerId,
+                                    PractitionerId = leadPrac.PractitionerId,
                                     VisitType = faker.PickRandom<VisitType>(),
                                     Status = AppointmentStatus.Scheduled,
                                     Modality = modality,
-                                    ScheduledStart = start,
-                                    ScheduledEnd = end,
+                                    ScheduledStart = start.ToUniversalTime(),
+                                    ScheduledEnd = end.ToUniversalTime(),
                                     DistanceInMiles = dist,
-                                    TravelTimeMinutes = driveTime, // Only drive time in DB per user request
-                                }
-                            );
+                                    TravelTimeMinutes = driveTime,
+                                    SupportingClinicians = new List<Practitioner>()
+                                };
 
-                            dayBusyPatients.Add(patient.PatientId);
-                            currentTime = end; // Pointer for next visit
+                                // Add 0-1 Supporting Clinician who is NOT busy
+                                if (faker.Random.Bool(0.4f))
+                                {
+                                    var potentialSupporter = faker.PickRandom(eligibleSupporters);
+                                    if (potentialSupporter.PractitionerId != leadPrac.PractitionerId)
+                                    {
+                                        var isBusy = busyWindows[dayOffset][potentialSupporter.PractitionerId].Any(w => start < w.Item2 && end > w.Item1);
+                                        if (!isBusy)
+                                        {
+                                            appt.SupportingClinicians.Add(potentialSupporter);
+                                            busyWindows[dayOffset][potentialSupporter.PractitionerId].Add((start, end));
+                                        }
+                                    }
+                                }
+
+                                allAppointments.Add(appt);
+                                busyWindows[dayOffset][leadPrac.PractitionerId].Add((start, end));
+                                currentTime = end;
+                            }
                         }
                     }
                 }
@@ -1474,10 +1714,8 @@ namespace Infrastructure.Data
 
                 var meds = context.Set<Medication>().Local.ToList();
 
-                // --- CLINICAL DATA HARDENING ---
                 foreach (var p in patients)
                 {
-                    // Allergies
                     var pAllergies = new Faker<Allergy>()
                         .RuleFor(a => a.PatientId, p.PatientId)
                         .RuleFor(a => a.TenantId, defaultTenantId)
@@ -1514,7 +1752,6 @@ namespace Infrastructure.Data
                         .Generate(new Random().Next(0, 3));
                     context.Set<Allergy>().AddRange(pAllergies);
 
-                    // Diagnoses (Problem List)
                     var pDiagnoses = new Faker<Diagnosis>()
                         .RuleFor(d => d.PatientId, p.PatientId)
                         .RuleFor(d => d.TenantId, defaultTenantId)
@@ -1542,7 +1779,6 @@ namespace Infrastructure.Data
                         .Generate(new Random().Next(1, 4));
                     context.Set<Diagnosis>().AddRange(pDiagnoses);
 
-                    // Medications (Prescriptions)
                     var pPrescriptions = new Faker<Prescription>()
                         .RuleFor(pr => pr.PatientId, p.PatientId)
                         .RuleFor(pr => pr.TenantId, defaultTenantId)
@@ -1563,7 +1799,6 @@ namespace Infrastructure.Data
                 }
                 await context.SaveChangesAsync(default);
 
-                // --- CLINICAL HISTORY RECONCILIATION ---
                 if (!await context.ClinicalEncounters.IgnoreQueryFilters().AnyAsync())
                 {
                     var allEncounters = new List<ClinicalEncounter>();
@@ -1592,7 +1827,6 @@ namespace Infrastructure.Data
                                 e => e.Status,
                                 (f, e) =>
                                 {
-                                    // Make 30% of seeded encounters active so telemetry dashboard isn't empty
                                     return f.Random.WeightedRandom(
                                         new[]
                                         {
@@ -1618,7 +1852,6 @@ namespace Infrastructure.Data
                     var vitals = new List<VitalSign>();
                     foreach (var e in allEncounters)
                     {
-                        // Generate 1-2 vitals per encounter for high density history
                         var count = new Random().Next(1, 3);
                         for (int i = 0; i < count; i++)
                         {
@@ -1673,7 +1906,7 @@ namespace Infrastructure.Data
                     .RuleFor(n => n.AuthorId, f => f.PickRandom(practitioners).PractitionerId)
                     .RuleFor(n => n.Type, f => f.PickRandom<NoteType>())
                     .RuleFor(n => n.Content, f => f.PickRandom(clinicalSummaries))
-                    .Generate(encountersList.Count); // Match every encounter with a note for high fidelity
+                    .Generate(encountersList.Count);
                 context.Set<ClinicalNote>().AddRange(notes);
 
                 var esas = new Faker<EsasAssessment>()
@@ -1800,7 +2033,6 @@ namespace Infrastructure.Data
                 await context.SaveChangesAsync(default);
             }
 
-            // Fetch patients for RCM seeding (required even if seeding was skipped above)
             var patientsRegistry = await context.Patients.IgnoreQueryFilters().ToListAsync();
             if (!patientsRegistry.Any())
                 return;
@@ -1813,7 +2045,6 @@ namespace Infrastructure.Data
                 .Generate(10);
             context.Set<PractitionerServiceArea>().AddRange(areas);
 
-            // --- RCM & BENEFIT SEEDING ---
             if (!await context.Set<BillingInvoice>().IgnoreQueryFilters().AnyAsync())
             {
                 var claims = new Faker<ZBenefitClaim>()
@@ -1861,7 +2092,6 @@ namespace Infrastructure.Data
                 context.Set<BillingInvoice>().AddRange(invoices);
                 await context.SaveChangesAsync(default);
 
-                // Seed Line Items for each invoice
                 var invoiceItems = new List<BillingInvoiceItem>();
                 var serviceNames = new[]
                 {
@@ -2190,7 +2420,6 @@ namespace Infrastructure.Data
             if (await context.Questionnaires.IgnoreQueryFilters().AnyAsync())
                 return;
 
-            // 1. Symptom and Pain
             var symptomInstruments = new List<Questionnaire>
             {
                 new Questionnaire
@@ -2226,7 +2455,6 @@ namespace Infrastructure.Data
             };
             context.Questionnaires.AddRange(symptomInstruments);
 
-            // Seed ESAS Questions (Scale)
             var esas = symptomInstruments[0];
             var esasQuestions = new[]
             {
@@ -2255,7 +2483,6 @@ namespace Infrastructure.Data
                 );
             }
 
-            // Seed BPI (Scale)
             var bpi = symptomInstruments[1];
             context.Questions.Add(
                 new Question
@@ -2280,7 +2507,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // Seed VBPS (Choice)
             var vbps = symptomInstruments[3];
             context.Questions.Add(
                 new Question
@@ -2295,7 +2521,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // Seed MSAS (Scale)
             var msas = symptomInstruments[2];
             context.Questions.Add(
                 new Question
@@ -2320,7 +2545,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // 2. Functional Status
             var functionalInstruments = new List<Questionnaire>
             {
                 new Questionnaire
@@ -2355,7 +2579,6 @@ namespace Infrastructure.Data
             };
             context.Questionnaires.AddRange(functionalInstruments);
 
-            // Seed PPSv2 Questions (Multiple Choice)
             var pps = functionalInstruments[0];
             var ppsQuestions = new[]
             {
@@ -2400,7 +2623,6 @@ namespace Infrastructure.Data
                 );
             }
 
-            // Seed KPS (Choice)
             var kps = functionalInstruments[1];
             context.Questions.Add(
                 new Question
@@ -2415,7 +2637,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // Seed ECOG (Choice)
             var ecog = functionalInstruments[2];
             context.Questions.Add(
                 new Question
@@ -2430,7 +2651,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // Seed FAST (Choice)
             var fast = functionalInstruments[3];
             context.Questions.Add(
                 new Question
@@ -2445,7 +2665,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // 3. Psychological and Cognitive
             var psychInstruments = new List<Questionnaire>
             {
                 new Questionnaire
@@ -2472,7 +2691,6 @@ namespace Infrastructure.Data
             };
             context.Questionnaires.AddRange(psychInstruments);
 
-            // Seed HADS (Scale)
             var hads = psychInstruments[0];
             context.Questions.Add(
                 new Question
@@ -2497,7 +2715,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // Seed PHQ-9 Questions (Multiple Choice)
             var phq9 = psychInstruments[1];
             var phq9Options =
                 "[\"Not at all\", \"Several days\", \"More than half the days\", \"Nearly every day\"]";
@@ -2528,7 +2745,6 @@ namespace Infrastructure.Data
                 );
             }
 
-            // Seed MMSE (Choice)
             var mmse = psychInstruments[2];
             context.Questions.Add(
                 new Question
@@ -2555,7 +2771,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // 4. Quality of Life
             var qolInstruments = new List<Questionnaire>
             {
                 new Questionnaire
@@ -2597,7 +2812,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // 5. Spiritual and Existential
             var spiritualInstruments = new List<Questionnaire>
             {
                 new Questionnaire
@@ -2617,7 +2831,6 @@ namespace Infrastructure.Data
             };
             context.Questionnaires.AddRange(spiritualInstruments);
 
-            // Seed FICA Questions (Text)
             var fica = spiritualInstruments[0];
             var ficaQuestions = new[]
             {
@@ -2657,7 +2870,6 @@ namespace Infrastructure.Data
                 );
             }
 
-            // Seed HOPE Questions (Text)
             var hope = spiritualInstruments[1];
             context.Questions.Add(
                 new Question
@@ -2680,7 +2892,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // 6. Prognostic
             var prognosticInstruments = new List<Questionnaire>
             {
                 new Questionnaire
@@ -2721,7 +2932,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // 7. Caregiver
             var caregiverInstruments = new List<Questionnaire>
             {
                 new Questionnaire
@@ -2750,7 +2960,6 @@ namespace Infrastructure.Data
                 }
             );
 
-            // Seed CSI Questions (Choice)
             var csi = caregiverInstruments[1];
             context.Questions.Add(
                 new Question

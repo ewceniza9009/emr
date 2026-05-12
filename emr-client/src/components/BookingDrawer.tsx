@@ -8,7 +8,7 @@ import { format, addMinutes } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import Link from "next/link";
 import {
-  X, Calendar, Clock, User, MapPin, Video, Home,
+  X, Calendar, Clock, User, MapPin, Video, Home, Loader2,
   Building2, CheckCircle, Car, Search, ChevronRight,
   Stethoscope, Shield, Users, Info, ChevronLeft,
   Timer, Zap, Navigation, Check, Activity, Target, Phone, Edit3, AlertCircle,
@@ -376,29 +376,20 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     }
   }, [appointmentData]);
 
-  const { data: amData, loading: amLoading } = useQuery(GET_GEOSPATIAL_AVAILABILITY, {
+  const { data: availabilityData, loading: availabilityLoading } = useQuery(GET_GEOSPATIAL_AVAILABILITY, {
     variables: {
       patientId,
-      targetStart: formatForEngine(debouncedDate, clinicalConfig.AM_START),
+      // Always scan from the start of the day to get a complete picture
+      targetStart: createZonedISO(debouncedDate, clinicalConfig.AM_START, 0),
       modality: debouncedModality,
       durationMinutes: debouncedDuration,
       appointmentId: appointmentId || null
     },
-    skip: !patientId || !open
+    skip: !patientId || !open,
+    fetchPolicy: "network-only"
   });
 
-  const { data: pmData, loading: pmLoading } = useQuery(GET_GEOSPATIAL_AVAILABILITY, {
-    variables: {
-      patientId,
-      targetStart: formatForEngine(debouncedDate, clinicalConfig.PM_START),
-      modality: debouncedModality,
-      durationMinutes: debouncedDuration,
-      appointmentId: appointmentId || null
-    },
-    skip: !patientId || !open
-  });
-
-  const currentGeoData = period === "AM" ? amData : pmData;
+  const currentGeoData = availabilityData;
 
   useEffect(() => {
     if (currentGeoData?.availableProviders?.length > 0 && !practitionerId) {
@@ -423,65 +414,92 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
   const practitionerSlots = useMemo(() => {
     const map = new Map<string, any[]>();
-    currentGeoData?.availableProviders?.forEach((slot: any) => {
-      const start = new Date(slot.shiftStart);
-      const end = new Date(slot.shiftEnd);
-      const isWithinClinicalHours = start.getHours() >= clinicalConfig.AM_START && end.getHours() <= clinicalConfig.DAY_END;
-      const isAM = start.getHours() < clinicalConfig.CUTOFF_HOUR;
-      const isCorrectPeriod = period === "AM" ? isAM : !isAM;
-      if (isWithinClinicalHours && isCorrectPeriod) {
-        const existing = map.get(slot.practitionerId) || [];
-        map.set(slot.practitionerId, [...existing, slot]);
-      }
+    availabilityData?.availableProviders?.forEach((slot: any) => {
+      // Trust the backend results - if it's in availabilityData, it's valid for this view.
+      const existing = map.get(slot.practitionerId) || [];
+      map.set(slot.practitionerId, [...existing, slot]);
     });
     return map;
-  }, [currentGeoData, period, clinicalConfig.AM_START, clinicalConfig.CUTOFF_HOUR, clinicalConfig.DAY_END]);
+  }, [availabilityData]);
 
   const displayCns = useMemo(() => {
-    const geoProviders = currentGeoData?.availableProviders || [];
+    const geoProviders = availabilityData?.availableProviders || [];
     const allPractitioners = practitionerData?.practitioners || [];
+    const isEditingExisting = !!appointmentId && !!appointmentData?.appointment;
+    const targetTime = appointmentData?.appointment?.scheduledStart || createZonedISO(selectedDate, startHour, startMinute);
+
     const combined = allPractitioners.filter((p: any) =>
       (p.isCareNavigator || p.practitionerId?.toLowerCase() === practitionerId?.toLowerCase()) &&
       !supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
+
     const filtered = combined.filter((p: any) =>
       !cnSearch ||
       p.firstName?.toLowerCase().includes(cnSearch.toLowerCase()) ||
       p.lastName?.toLowerCase().includes(cnSearch.toLowerCase()) ||
       p.fullName?.toLowerCase().includes(cnSearch.toLowerCase())
     );
-    return filtered.map((p: any) => {
-      const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
+
+    if (availabilityLoading && availabilityData?.availableProviders?.length === 0) return [];
+
+    const withGeo = filtered.map((p: any) => {
+      // Look for ANY slot for this practitioner that falls within our active window (AM vs PM)
+      const geo = geoProviders.find((g: any) => {
+        if (g.practitionerId?.toLowerCase() !== p.practitionerId?.toLowerCase()) return false;
+        const slotHour = new Date(g.shiftStart).getHours();
+        return period === "AM" ? slotHour < clinicalConfig.CUTOFF_HOUR : slotHour >= clinicalConfig.CUTOFF_HOUR;
+      });
+        
       const isExistingLead = appointmentData?.appointment?.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase();
 
       return {
         ...p,
         ...geo,
+        hasRealSlot: !!geo,
         travelTimeInMinutes: isExistingLead ? (appointmentData.appointment.travelTimeMinutes ?? geo?.travelTimeInMinutes) : geo?.travelTimeInMinutes,
         distanceInMiles: isExistingLead ? (appointmentData.appointment.distanceInMiles ?? geo?.distanceInMiles) : geo?.distanceInMiles
       };
     });
-  }, [currentGeoData, practitionerData, practitionerId, supportingIds, appointmentData, cnSearch]);
+    return withGeo.filter((p: any) => p.hasRealSlot || p.practitionerId?.toLowerCase() === practitionerId?.toLowerCase());
+  }, [availabilityData, practitionerData, practitionerId, supportingIds, appointmentData, appointmentId, cnSearch, selectedDate, startHour, startMinute, period, clinicalConfig, availabilityLoading, createZonedISO]);
 
   const displayScs = useMemo(() => {
-    const geoProviders = currentGeoData?.availableProviders || [];
+    const geoProviders = availabilityData?.availableProviders || [];
     const allPractitioners = practitionerData?.practitioners || [];
+    const isEditingExisting = !!appointmentId && !!appointmentData?.appointment;
+    
     const combined = allPractitioners.filter((p: any) =>
-      (p.isSupportingClinician || supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())) &&
-      p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase() &&
-      p.position?.toLowerCase() !== "admin"
+      (p.isSupportingClinician || p.isCareNavigator || supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase())) &&
+      p.practitionerId?.toLowerCase() !== practitionerId?.toLowerCase()
     ).sort((a: any, b: any) => (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName));
+
     const filtered = combined.filter((p: any) =>
       !scSearch ||
       p.firstName?.toLowerCase().includes(scSearch.toLowerCase()) ||
       p.lastName?.toLowerCase().includes(scSearch.toLowerCase()) ||
       p.fullName?.toLowerCase().includes(scSearch.toLowerCase())
     );
-    return filtered.map((p: any) => {
-      const geo = geoProviders.find((g: any) => g.practitionerId?.toLowerCase() === p.practitionerId?.toLowerCase());
-      return { ...p, ...geo };
+
+    const targetTime = appointmentData?.appointment?.scheduledStart || createZonedISO(selectedDate, startHour, startMinute);
+
+    const filteredByTime = filtered; // Absolute Discoverability: Don't hide anyone based on the engine window.
+
+    if (availabilityLoading && availabilityData?.availableProviders?.length === 0) return [];
+
+    const withGeo = filtered.map((p: any) => {
+      const geo = geoProviders.find((g: any) => {
+        if (g.practitionerId?.toLowerCase() !== p.practitionerId?.toLowerCase()) return false;
+        const slotHour = new Date(g.shiftStart).getHours();
+        return period === "AM" ? slotHour < clinicalConfig.CUTOFF_HOUR : slotHour >= clinicalConfig.CUTOFF_HOUR;
+      });
+      return {
+        ...p,
+        ...geo,
+        hasRealSlot: !!geo
+      };
     });
-  }, [currentGeoData, practitionerData, practitionerId, supportingIds, scSearch]);
+    return withGeo.filter((p: any) => p.hasRealSlot || supportingIds.some(id => id?.toLowerCase() === p.practitionerId?.toLowerCase()));
+  }, [availabilityData, practitionerData, practitionerId, supportingIds, appointmentData, appointmentId, scSearch, selectedDate, startHour, startMinute, period, clinicalConfig, availabilityLoading, createZonedISO]);
 
   const selectedSlot = useMemo(() => {
     const isEditingExisting = !!appointmentId && !!appointmentData?.appointment;
@@ -502,7 +520,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     const slots = practitionerSlots.get(practitionerId) || [];
     if (slots.length === 0) {
       const fallbackHour = period === "AM" ? clinicalConfig.AM_START : clinicalConfig.PM_START;
-      const startISO = createZonedISO(selectedDate, fallbackHour, 0);
+      const startISO = appointmentId && appointmentData?.appointment
+        ? appointmentData.appointment.scheduledStart
+        : createZonedISO(selectedDate, fallbackHour, 0);
       return {
         shiftStart: startISO,
         shiftEnd: addMinutes(new Date(startISO), duration).toISOString(),
@@ -510,8 +530,28 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
         distanceInMiles: null
       };
     }
+
+    // If reassignment, try to match the existing time exactly
+    if (isEditingExisting) {
+      const exactMatch = slots.find(s => s.shiftStart === appointmentData.appointment.scheduledStart);
+      if (exactMatch) return exactMatch;
+    }
+
+    // Prioritize slots that fall within the currently selected period
+    const periodSlots = slots.filter(s => {
+      const hour = new Date(s.shiftStart).getHours();
+      return period === "AM" ? hour < clinicalConfig.CUTOFF_HOUR : hour >= clinicalConfig.CUTOFF_HOUR;
+    });
+
+    // If we have slots in the current period, pick the one closest to our startHour
+    if (periodSlots.length > 0) {
+      return periodSlots.reduce((prev: any, curr: any) => 
+        Math.abs(new Date(curr.shiftStart).getHours() - startHour) < Math.abs(new Date(prev.shiftStart).getHours() - startHour) ? curr : prev
+      );
+    }
+
     return slots[0];
-  }, [practitionerId, practitionerSlots, appointmentId, appointmentData, period, selectedDate, duration, clinicalConfig.AM_START, clinicalConfig.PM_START, createZonedISO]);
+  }, [practitionerId, practitionerSlots, appointmentId, appointmentData, period, selectedDate, duration, clinicalConfig.AM_START, clinicalConfig.PM_START, clinicalConfig.CUTOFF_HOUR, startHour, createZonedISO]);
 
   const [book, { loading: bookingLoading }] = useMutation(BOOK_APPOINTMENT, {
     refetchQueries: ["GetScheduleData"],
@@ -635,26 +675,39 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
             <div className="flex items-center gap-6">
               <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
               <div className="flex flex-col">
-                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight leading-none">Schedule Appointment</h2>
-                <span className="text-xs font-medium text-[var(--text-muted)] mt-1.5">Configure encounter details and clinical team</span>
+                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight leading-none">
+                  {appointmentId ? "Modify Encounter Details" : "Schedule New Encounter"}
+                </h2>
+                <span className="text-xs font-medium text-[var(--text-muted)] mt-1.5">
+                  {appointmentId ? "Adjusting clinical team assignments and encounter parameters" : "Configure encounter details and clinical team"}
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-6">
               {appointmentId && (() => {
-                  const status = appointmentData?.appointment?.status?.toUpperCase();
-                  return (status === "LIVE" || status?.includes("PROGRESS")) && (
-                    <Link
-                      href={`/dashboard/patients/${appointmentData?.appointment?.patientId}/visit?appointmentId=${appointmentId}`}
-                      className="px-5 py-2.5 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all flex items-center gap-2 animate-pulse"
-                    >
-                      <Video className="w-4 h-4" />
-                      Join Session
-                    </Link>
-                  );
-                })()}
-              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)]">
-                <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />
-                <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Booking Engine Active</span>
+                const status = appointmentData?.appointment?.status?.toUpperCase();
+                return (status === "LIVE" || status?.includes("PROGRESS")) && (
+                  <Link
+                    href={`/dashboard/patients/${appointmentData?.appointment?.patientId}/visit?appointmentId=${appointmentId}`}
+                    className="px-5 py-2.5 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all flex items-center gap-2 animate-pulse"
+                  >
+                    <Video className="w-4 h-4" />
+                    Join Session
+                  </Link>
+                );
+              })()}
+              <div className="flex items-center gap-3 px-4 py-2 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)]">
+                {availabilityLoading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-3 h-3 animate-spin text-[var(--primary)]" />
+                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Scanning...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[var(--primary)]" />
+                    <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Booking Engine Active</span>
+                  </div>
+                )}
               </div>
               <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                 <X className="w-6 h-6" />
@@ -1012,25 +1065,21 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                                 </div>
                                 <div className="text-right">
                                   <div className="flex flex-col items-end gap-0.5">
-                                    {p.travelTimeInMinutes != null || p.distanceInMiles != null ? (
+                                    {p.travelTimeInMinutes != null ? (
                                       <>
                                         <div className="flex items-center gap-1.5">
                                           <Car className={`w-3 h-3 ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
                                           <span className={`text-[11px] font-bold ${isPrimary || isSupporting ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"}`}>
-                                            {isPrimary || isSupporting
-                                              ? (selectedSlot?.travelTimeInMinutes != null ? `${selectedSlot.travelTimeInMinutes}m` : "0m")
-                                              : (p.travelTimeInMinutes != null ? `${p.travelTimeInMinutes}m` : "0m")}
+                                            {p.travelTimeInMinutes}m
                                           </span>
                                         </div>
                                         <span className={`text-[9px] font-black uppercase tracking-tight ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"} opacity-70`}>
-                                          {isPrimary || isSupporting
-                                            ? (selectedSlot?.distanceInMiles != null ? `${selectedSlot.distanceInMiles.toFixed(1)}mi` : "0.0mi")
-                                            : (p.distanceInMiles != null ? `${p.distanceInMiles.toFixed(1)}mi` : "0.0mi")}
+                                          {p.distanceInMiles?.toFixed(1)}mi
                                         </span>
                                       </>
                                     ) : (
-                                      <span className="text-[9px] font-semibold text-rose-500/80 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/10 uppercase">
-                                        N/A
+                                      <span className="text-[9px] font-black text-rose-500/80 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/10 uppercase tracking-widest">
+                                        No Data
                                       </span>
                                     )}
                                   </div>
@@ -1192,17 +1241,39 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                     </div>
                   </div>
                 </div>
-                 {patientId && (
+                {patientId && (
                   <div className={`flex bg-[var(--input-bg)] rounded-2xl p-1.5 border border-[var(--card-border)] gap-1.5 shadow-inner ${isLocked ? "pointer-events-none opacity-50" : ""}`}>
-                    <button type="button" onClick={() => { if (period !== "AM") { setPeriod("AM"); setPractitionerId(""); setSupportingIds([]); } }}
-                      className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
-                                   ${period === "AM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--input-bg)]"}`}>
-                      {amLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "MORNING SLOT"}
+                    <button
+                      onClick={() => {
+                        setPeriod("AM");
+                        setStartHour(clinicalConfig.AM_START);
+                        setStartMinute(0);
+                        setPractitionerId(""); // Clear selection to reset target time
+                        setSupportingIds([]);
+                      }}
+                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        period === "AM"
+                          ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20"
+                          : "bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--card-border)]"
+                      }`}
+                    >
+                      {availabilityLoading && period === "AM" ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "MORNING SLOT"}
                     </button>
-                    <button type="button" onClick={() => { if (period !== "PM") { setPeriod("PM"); setPractitionerId(""); setSupportingIds([]); } }}
-                      className={`flex-1 py-3.5 rounded-xl text-[10px] font-bold tracking-widest transition-all
-                                   ${period === "PM" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--input-bg)]"}`}>
-                      {pmLoading ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "AFTERNOON SLOT"}
+                    <button
+                      onClick={() => {
+                        setPeriod("PM");
+                        setStartHour(clinicalConfig.PM_START);
+                        setStartMinute(0);
+                        setPractitionerId(""); // Clear selection to reset target time
+                        setSupportingIds([]);
+                      }}
+                      className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                        period === "PM"
+                          ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary)]/20"
+                          : "bg-[var(--input-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--card-border)]"
+                      }`}
+                    >
+                      {availabilityLoading && period === "PM" ? <Activity className="w-4 h-4 animate-spin mx-auto" /> : "AFTERNOON SLOT"}
                     </button>
                   </div>
                 )}
@@ -1257,11 +1328,15 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                   {selectedSlot?.shiftStart && (
                     <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-bold uppercase tracking-wider
                                 ${(modality.includes("TELEHEALTH") || modality.includes("VIDEO")) ? "bg-[var(--primary)]/10 border-[var(--primary)]/20 text-[var(--primary)]" :
-                        selectedSlot.travelTimeInMinutes < 15 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" :
-                          selectedSlot.travelTimeInMinutes < 30 ? "bg-amber-500/10 border-amber-500/20 text-amber-500" :
-                            "bg-rose-500/10 border-rose-500/20 text-rose-500"}`}>
+                        selectedSlot.distanceInMiles < 0.1 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.1)]" :
+                          selectedSlot.travelTimeInMinutes < 15 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" :
+                            selectedSlot.travelTimeInMinutes < 30 ? "bg-amber-500/10 border-amber-500/20 text-amber-500" :
+                              "bg-rose-500/10 border-rose-500/20 text-rose-500"}`}>
                       <Timer className="w-3 h-3" />
-                      {modality.includes("TELE") ? "Virtual Sync" : selectedSlot.travelTimeInMinutes < 15 ? "Efficient Window" : "Transit Warning"}
+                      {modality.includes("TELE") ? "Virtual Sync" :
+                        selectedSlot.distanceInMiles < 0.1 ? "Back-to-back Visit" :
+                          selectedSlot.travelTimeInMinutes < 15 ? "Efficient Window" :
+                            "Transit Warning"}
                     </div>
                   )}
                 </div>
@@ -1275,13 +1350,47 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         </div>
                         <div>
                           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-0.5">Scheduled Time</p>
-                          <div className="flex items-baseline gap-2">
+                          <div className="flex items-center gap-2">
                             <h4 className="text-sm font-bold text-[var(--text-primary)] tracking-tight">
                               {new Date(selectedSlot.shiftStart).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                             </h4>
+                            {selectedSlot.distanceInMiles < 0.1 && (
+                              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-tighter">
+                                <Zap className="w-2.5 h-2.5 fill-emerald-500" />
+                                Optimized
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
+
+                      {selectedSlot.distanceInMiles < 0.1 && (
+                        <div className="p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-500">
+                          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                            <MapPin className="w-4 h-4 text-emerald-500" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Back-to-back Advantage</p>
+                            <p className="text-[9px] font-medium text-slate-500 leading-normal">
+                              Practitioner is already at this location (or extremely close). Travel time has been negated for maximum efficiency.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedSlot.distanceInMiles > 0 && selectedSlot.travelTimeInMinutes < 15 && (
+                        <div className="p-3 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-500">
+                          <div className="w-8 h-8 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0">
+                            <Car className="w-4 h-4 text-indigo-500" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Proximity Advantage</p>
+                            <p className="text-[9px] font-medium text-slate-500 leading-normal">
+                              Clinician is in the immediate vicinity. Minimal transit time allows for a more flexible start window.
+                            </p>
+                          </div>
+                        </div>
+                      )}
                       <div className="pt-6 flex items-center justify-between border-t border-white/5">
                         <div className="text-left space-y-1">
                           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Travel Time</p>
