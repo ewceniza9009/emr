@@ -24,7 +24,7 @@
 
 ## 📊 Clinical QA & Reliability Report
 
-[**📊 View Full CI/CD History**](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/25642801606/artifacts/6907913736)
+[**📊 View Full CI (Continues Integration) History**](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/25642801606/artifacts/6907913736)
 
 > [!IMPORTANT]
 > The link above represents a **100% successful verification** of all clinical modules: Enrollment, Scheduling, Booking, and Real-time Telemetry.
@@ -35,6 +35,16 @@
 **Halkyone Clinical OS** is an enterprise-grade, high-fidelity Electronic Medical Record (EMR) system architected for the mission-critical demands of palliative, hospice, and complex care. It transcends traditional data entry by providing a **Tactical Command Center** that synchronizes clinical documentation, geospatial logistics, and real-time patient telemetry into a unified workstation.
 
 Built for **Clinical Authority**, Halkyone empowers practitioners to execute at the bedside with sub-second latency, declarative security, and automated documentation paths.
+
+### The Bounded Contexts
+The application is logically partitioned into distinct domains:
+* **Clinical:** Patient health records, triage, SOAP notes, vitals, diagnoses, allergies, and prescriptions.
+* **Assessments:** Dynamic survey engine and standardized scoring instruments (ESAS/PHQ9/PPS).
+* **Billing:** Revenue cycle management, invoice generation, and ZBenefit claim tracking.
+* **Logistics & Scheduling:** Multi-stage booking, geospatial clinician dispatch, equipment tracking, and care coordination.
+* **Outreach:** Lead management, patient enrollment, and contact logs.
+* **Telemetry & IoT:** Real-time vital sign streaming, live patient heartbeats, and device connectivity.
+* **Infrastructure & Security:** Multi-tenant isolation, forensic audit trails, and system-wide security governance.
 
 ---
 
