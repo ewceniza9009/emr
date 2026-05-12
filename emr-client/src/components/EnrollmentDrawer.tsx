@@ -320,12 +320,16 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
     variables: {
       search: lead?.lastName
     },
-    skip: !lead || !open,
-    onCompleted: (data) => {
-      const match = data?.patients?.items?.find((p: any) => p.patientId !== outreachId);
+    skip: !lead || !open
+  });
+
+  useEffect(() => {
+    if (duplicateData?.patients?.items) {
+      const match = duplicateData.patients.items.find((p: any) => p.patientId !== outreachId);
       if (match) setDuplicateMatch(match);
     }
-  });
+  }, [duplicateData, outreachId]);
+
 
   const { data: enrollmentData } = useQuery(GET_ENROLLMENT_DATA, { skip: !open });
 

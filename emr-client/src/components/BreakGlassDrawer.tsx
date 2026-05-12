@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, gql } from "@apollo/client";
-import { 
-  X, ShieldAlert, Lock as LockIcon, AlertTriangle, 
+import {
+  X, ShieldAlert, Lock as LockIcon, AlertTriangle,
   Terminal, ShieldCheck, Loader2, ArrowRight
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
@@ -24,15 +24,17 @@ export default function BreakGlassDrawer({ open, onClose, onSuccess }: Props) {
   const [justification, setJustification] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
 
-  const [activate, { loading }] = useMutation(ACTIVATE_BREAK_GLASS, {
-    variables: { justification },
-    onCompleted: (data) => {
-      if (data.activateBreakGlass) {
-        onSuccess();
-        onClose();
-      }
-    }
+  const [activate, { loading, data }] = useMutation(ACTIVATE_BREAK_GLASS, {
+    variables: { justification }
   });
+
+  useEffect(() => {
+    if (data?.activateBreakGlass) {
+      onSuccess();
+      onClose();
+    }
+  }, [data, onSuccess, onClose]);
+
 
   if (!open) return null;
 
@@ -40,7 +42,7 @@ export default function BreakGlassDrawer({ open, onClose, onSuccess }: Props) {
     <HalcyonPortal>
       <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-500" onClick={onClose} />
-        
+
         <div className={`relative h-full w-full max-w-[500px] bg-slate-950 shadow-[-50px_0_150px_rgba(0,0,0,0.5)] 
           flex flex-col transition-transform duration-500 ease-out border-l border-white/10
           ${open ? "translate-x-0" : "translate-x-full"}`}>
@@ -73,8 +75,8 @@ export default function BreakGlassDrawer({ open, onClose, onSuccess }: Props) {
                 <h3 className="text-xs font-black text-rose-500 uppercase tracking-widest">Legal & Forensic Warning</h3>
               </div>
               <p className="text-[11px] text-rose-200/70 leading-relaxed font-medium">
-                You are about to bypass standard clinical assignment filters. This action will be 
-                <span className="text-rose-400 font-bold"> permanently logged</span> in the forensic audit vault. 
+                You are about to bypass standard clinical assignment filters. This action will be
+                <span className="text-rose-400 font-bold"> permanently logged</span> in the forensic audit vault.
                 Misuse of the Break-Glass protocol is a violation of HIPAA/GDPR standards and internal clinical policy.
               </p>
             </div>
@@ -108,7 +110,7 @@ export default function BreakGlassDrawer({ open, onClose, onSuccess }: Props) {
 
             {/* Authorization Specs */}
             <div className="space-y-4">
-               <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4">
                 <h3 className="text-[10px] font-black text-slate-500 tracking-[0.3em] uppercase">Session Parameters</h3>
                 <div className="flex-1 h-px bg-white/10" />
               </div>
@@ -128,7 +130,7 @@ export default function BreakGlassDrawer({ open, onClose, onSuccess }: Props) {
           {/* Action Footer */}
           <div className="p-8 bg-slate-900/50 border-t border-white/10 shrink-0 space-y-4">
             {!isConfirming ? (
-              <button 
+              <button
                 onClick={() => setIsConfirming(true)}
                 disabled={justification.length < 10}
                 className="w-full h-16 rounded-2xl bg-rose-600 text-white font-black text-xs uppercase tracking-[0.3em] hover:bg-rose-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-rose-600/20 active:scale-[0.98] disabled:opacity-30 disabled:grayscale"
@@ -138,13 +140,13 @@ export default function BreakGlassDrawer({ open, onClose, onSuccess }: Props) {
               </button>
             ) : (
               <div className="flex gap-4 animate-in slide-in-from-bottom-2 duration-300">
-                <button 
+                <button
                   onClick={() => setIsConfirming(false)}
                   className="flex-1 h-16 rounded-2xl bg-slate-800 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-slate-700 hover:text-white transition-all border border-white/5"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={() => activate()}
                   disabled={loading}
                   className="flex-[2] h-16 rounded-2xl bg-emerald-600 text-white font-black text-xs uppercase tracking-[0.3em] hover:bg-emerald-500 transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/20 active:scale-[0.98]"

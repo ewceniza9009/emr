@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery, gql } from "@apollo/client";
 import { 
@@ -39,8 +39,9 @@ export default function SymptomTrendChart({ patientId }: { patientId: string }) 
 
   return (
     <div className="h-64 w-full">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
         <LineChart data={chartData}>
+
           <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
           <XAxis 
             dataKey="name" 

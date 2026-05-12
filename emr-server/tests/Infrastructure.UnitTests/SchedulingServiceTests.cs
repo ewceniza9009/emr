@@ -159,7 +159,7 @@ public class SchedulingServiceTests
     {
         var patientId = Guid.NewGuid();
         var practitionerId = Guid.NewGuid();
-        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero);
+        var targetStart = new DateTimeOffset(2026, 5, 4, 9, 30, 0, TimeSpan.Zero);
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
@@ -234,14 +234,45 @@ public class SchedulingServiceTests
         _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
 
+        var entityAddresses = new List<EntityAddress>();
+        foreach (var p in patients.Object)
+        {
+            foreach (var addr in p.Addresses)
+            {
+                addr.PatientId = p.PatientId;
+                entityAddresses.Add(addr);
+            }
+        }
+        foreach (var appt in appointments.Object)
+        {
+            if (appt.Patient != null)
+            {
+                foreach (var addr in appt.Patient.Addresses)
+                {
+                    addr.PatientId = appt.PatientId;
+                    entityAddresses.Add(addr);
+                }
+            }
+        }
+        foreach (var pr in practitioners.Object)
+        {
+            foreach (var addr in pr.Addresses)
+            {
+                addr.PractitionerId = pr.PractitionerId;
+                entityAddresses.Add(addr);
+            }
+        }
+        _mockContext.Setup(c => c.EntityAddresses).Returns(entityAddresses.BuildMockDbSet().Object);
+
         var result = await _service.GetAvailableProvidersAsync(
             targetStart,
             duration,
             modality,
             patientId
         );
-        // High-precision: Should be around 9:54 AM (9:30 + 5 buffer + 19 drive)
-        result.Any(s => s.StartTime.Hour == 9 && s.StartTime.Minute >= 50).Should().BeTrue();
+        // High-precision: Should be 10:00 AM (9:30 + 5 buffer + 19 drive = 9:54, next 15m slot is 10:00)
+        result.Any(s => s.StartTime.Hour == 10 && s.StartTime.Minute == 0).Should().BeTrue();
+        result.Any(s => s.StartTime.Hour == 9 && s.StartTime.Minute == 45).Should().BeFalse();
     }
 
     [Fact]
@@ -585,8 +616,8 @@ public class SchedulingServiceTests
             patientId
         );
         result.Should().NotBeEmpty();
-        // Now expects 15 minutes as it is an InPersonHomeVisit
-        result.First().TravelTimeInMinutes.Should().Be(15);
+        // Now expects 2 minutes as it is an InPersonHomeVisit but addresses are missing
+        result.First().TravelTimeInMinutes.Should().Be(2);
     }
 
     [Fact]

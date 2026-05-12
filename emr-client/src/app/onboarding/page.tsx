@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Shield, Key, CheckCircle, Activity, ArrowRight, UserCheck } from "lucide-react";
@@ -24,22 +24,27 @@ function OnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const [complete, { loading }] = useMutation(COMPLETE_ONBOARDING, {
-    onCompleted: (data) => {
-      if (data.completePractitionerOnboarding) {
-        setIsSuccess(true);
-      } else {
-        setErrorMsg("The invitation token is invalid or has expired. Please contact your administrator.");
-      }
-    },
-    onError: (err) => setErrorMsg(err.message)
-  });
+  const [complete, { loading, data, error }] = useMutation(COMPLETE_ONBOARDING);
+
+  useEffect(() => {
+    if (data?.completePractitionerOnboarding) {
+      setIsSuccess(true);
+    } else if (data && !data.completePractitionerOnboarding) {
+      setErrorMsg("The invitation token is invalid or has expired. Please contact your administrator.");
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (error) setErrorMsg(error.message);
+  }, [error]);
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +93,7 @@ function OnboardingContent() {
               Your clinical identity has been successfully verified and linked to the master registry.
             </p>
           </div>
-          <button 
+          <button
             onClick={() => router.push("/login")}
             className="w-full py-5 bg-emerald-500 text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
           >
@@ -115,7 +120,7 @@ function OnboardingContent() {
 
         <div className="bg-slate-900/50 backdrop-blur-3xl border border-white/5 rounded-[3rem] p-12 shadow-2xl space-y-8 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
-          
+
           <div className="space-y-2">
             <div className="flex items-center gap-3 text-blue-500 mb-2">
               <UserCheck className="w-5 h-5" />
@@ -133,9 +138,9 @@ function OnboardingContent() {
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">New Passphrase</label>
                 <div className="relative group">
                   <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500 transition-colors" />
-                  <input 
-                    type="password" 
-                    required 
+                  <input
+                    type="password"
+                    required
                     placeholder="Enter secure password..."
                     className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 focus:bg-slate-950 transition-all placeholder:text-slate-700"
                     value={password}
@@ -148,9 +153,9 @@ function OnboardingContent() {
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Confirm Identity</label>
                 <div className="relative group">
                   <UserCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500 transition-colors" />
-                  <input 
-                    type="password" 
-                    required 
+                  <input
+                    type="password"
+                    required
                     placeholder="Repeat passphrase..."
                     className="w-full bg-slate-950/50 border border-slate-800 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:outline-none focus:border-blue-500/50 focus:bg-slate-950 transition-all placeholder:text-slate-700"
                     value={confirmPassword}
@@ -167,7 +172,7 @@ function OnboardingContent() {
               </div>
             )}
 
-            <button 
+            <button
               type="submit"
               disabled={loading}
               className="group relative w-full py-5 bg-white text-slate-950 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all overflow-hidden"

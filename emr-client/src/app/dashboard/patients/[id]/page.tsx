@@ -1008,8 +1008,9 @@ export default function PatientDetailPage() {
                     <div className="bg-black/20 rounded-3xl border border-[var(--card-border)] overflow-hidden h-[180px] relative">
                       {telemetryData.length > 0 ? (
                         <div className="absolute inset-0 p-4">
-                          <ResponsiveContainer width="100%" height="100%">
+                          <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
                             <AreaChart data={telemetryData}>
+
                               <defs>
                                 <linearGradient id="colorHr" x1="0" y1="0" x2="0" y2="1">
                                   <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3} />
