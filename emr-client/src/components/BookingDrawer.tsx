@@ -364,12 +364,28 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setPractitionerId(a.practitionerId || "");
       const rawSupporting = a.supportingClinicians?.map((s: any) => s.practitionerId) || [];
       setSupportingIds(rawSupporting);
-      setModality(a.modality);
+      // Normalize modality and visit type to match UI IDs (handles PascalCase from backend)
+      if (a.modality) {
+        const m = a.modality.toUpperCase();
+        if (m.includes("HOME")) setModality("IN_PERSON_HOME_VISIT");
+        else if (m.includes("FACILITY")) setModality("IN_PERSON_FACILITY");
+        else if (m.includes("VIDEO") || m.includes("TELEHEALTH")) setModality("TELEHEALTH_VIDEO");
+        else if (m.includes("PHONE") || m.includes("AUDIO")) setModality("TELEPHONE");
+        else setModality(a.modality);
+      }
+      
       const start = new Date(a.scheduledStart);
       setSelectedDate(start);
       setPeriod(start.getHours() < 12 ? "AM" : "PM");
       setDuration(Math.round((new Date(a.scheduledEnd).getTime() - start.getTime()) / 60000));
-      setVisitType(a.visitType || "ROUTINE_SYMPTOM_MANAGEMENT");
+      
+      if (a.visitType) {
+        // Robust PascalCase to SNAKE_CASE for enum matching
+        const normalized = a.visitType.split(/(?=[A-Z])/).join('_').toUpperCase().replace(/^_/, "");
+        setVisitType(normalized);
+      } else {
+        setVisitType("ROUTINE_SYMPTOM_MANAGEMENT");
+      }
       setPlannedAssessments(a.plannedAssessments || []);
       setPatientSearch(`${a.patient?.firstName} ${a.patient?.lastName}`);
       setIsEditingAddress(false);
