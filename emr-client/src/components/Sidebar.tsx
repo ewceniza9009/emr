@@ -97,7 +97,7 @@ export function Sidebar() {
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALYONE</h2>
+              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALKYONE</h2>
               <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-0.5">Clinical OS</span>
             </div>
           )}

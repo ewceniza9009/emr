@@ -69,7 +69,7 @@ export default function HomePage() {
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-white tracking-tight leading-none uppercase">HALYONE</span>
+              <span className="text-xl font-bold text-white tracking-tight leading-none uppercase">HALKYONE</span>
               <span className="text-[8px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] mt-1">Clinical OS</span>
             </div>
           </motion.div>

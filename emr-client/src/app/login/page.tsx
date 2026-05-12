@@ -70,7 +70,7 @@ export default function LoginPage() {
               </svg>
             </div>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-white tracking-tight leading-none uppercase">HALYONE</h1>
+              <h1 className="text-2xl font-bold text-white tracking-tight leading-none uppercase">HALKYONE</h1>
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Clinical OS</span>
             </div>
           </div>

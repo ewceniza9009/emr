@@ -73,7 +73,7 @@ public class QuestPdfService : IPdfService
                             .Column(col =>
                             {
                                 col.Item()
-                                    .Text("HALYONE CLINICAL OS")
+                                    .Text("HALKYONE CLINICAL OS")
                                     .FontSize(22)
                                     .ExtraBold()
                                     .FontColor(Colors.Teal.Medium);
@@ -347,7 +347,7 @@ public class QuestPdfService : IPdfService
                             .Column(col =>
                             {
                                 col.Item()
-                                    .Text("HALYONE CLINICAL OS")
+                                    .Text("HALKYONE CLINICAL OS")
                                     .FontSize(22)
                                     .ExtraBold()
                                     .FontColor(Colors.Teal.Medium);
@@ -699,7 +699,7 @@ public class QuestPdfService : IPdfService
                             .Column(col =>
                             {
                                 col.Item()
-                                    .Text("HALYONE CLINICAL OS")
+                                    .Text("HALKYONE CLINICAL OS")
                                     .FontSize(20)
                                     .ExtraBold()
                                     .FontColor(Colors.Teal.Medium);

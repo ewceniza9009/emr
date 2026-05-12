@@ -63,7 +63,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALYONE SETUP</h2>
+              <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALKYONE SETUP</h2>
               <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-0.5">Admin Terminal</span>
             </div>
           )}
