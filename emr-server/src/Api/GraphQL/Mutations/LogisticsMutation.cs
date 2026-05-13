@@ -23,7 +23,14 @@ public class LogisticsMutation
         CancellationToken cancellationToken
     )
     {
-        return await mediator.Send(input, cancellationToken);
+        try
+        {
+            return await mediator.Send(input, cancellationToken);
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new HotChocolate.GraphQLException(ex.Message);
+        }
     }
 
     public async Task<bool> UpdateDeploymentStatus(

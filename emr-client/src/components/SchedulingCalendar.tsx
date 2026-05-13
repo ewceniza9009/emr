@@ -287,6 +287,8 @@ export default function SchedulingCalendar() {
     d.setHours(hours, mins, secs, 0);
     return d.toISOString();
   };
+  const [view, setView] = useState<'week' | 'team' | 'month'>('week');
+  const [expandedMonthDay, setExpandedMonthDay] = useState<Date | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [drawerPrefill, setDrawerPrefill] = useState<string | undefined>();
@@ -322,10 +324,24 @@ export default function SchedulingCalendar() {
     });
   }, [anchor]);
 
+  const monthDates = useMemo(() => {
+    const start = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+    const startDay = start.getDay();
+    const gridStart = new Date(start);
+    gridStart.setDate(start.getDate() - startDay);
+    return Array.from({ length: 42 }, (_, i) => {
+      const d = new Date(gridStart);
+      d.setDate(gridStart.getDate() + i);
+      return d;
+    });
+  }, [anchor]);
+
+  const activeDates = view === 'month' ? monthDates : weekDates;
+
   const { data, loading, refetch } = useQuery(GET_SCHEDULE_DATA, {
     variables: {
-      startDate: formatTimezoneISO(weekDates[0], 0, 0, 0),
-      endDate: formatTimezoneISO(weekDates[6], 23, 59, 59),
+      startDate: formatTimezoneISO(activeDates[0], 0, 0, 0),
+      endDate: formatTimezoneISO(activeDates[activeDates.length - 1], 23, 59, 59),
     },
     fetchPolicy: "network-only",
   });
@@ -334,6 +350,16 @@ export default function SchedulingCalendar() {
     () => data?.practitioners ?? [],
     [data?.practitioners],
   );
+
+  const displayPractitioners = useMemo(() => {
+    let pList = practitioners;
+    if (selectedPractitioners.size > 0) {
+      pList = pList.filter((p: any) => selectedPractitioners.has(p.practitionerId));
+    } else if (selectedPositions.size > 0) {
+      pList = pList.filter((p: any) => selectedPositions.has(p.position.toLowerCase()));
+    }
+    return [...pList].sort((a: any, b: any) => a.lastName.localeCompare(b.lastName));
+  }, [practitioners, selectedPractitioners, selectedPositions]);
   const [localAppointments, setLocalAppointments] = useState<any[]>([]);
   const [localBlocks, setLocalBlocks] = useState<any[]>([]);
 
@@ -613,7 +639,7 @@ export default function SchedulingCalendar() {
     GRID_CONFIG.END_HOUR,
   ]);
 
-  const handleDrop = (e: React.DragEvent, targetDate: Date) => {
+  const handleDrop = (e: React.DragEvent, targetDate: Date, targetPractitionerId?: string) => {
     e.preventDefault();
     const apptId = e.dataTransfer.getData("appointmentId");
     const blockId = e.dataTransfer.getData("blockId");
@@ -644,6 +670,11 @@ export default function SchedulingCalendar() {
           "Completed or active visits cannot be rescheduled.",
           "error",
         );
+      }
+      if (view === 'team' && targetPractitionerId) {
+        if (appointment.practitionerId !== targetPractitionerId) {
+          return showToast("To reassign practitioner, click the appointment and use Reassign.", "error");
+        }
       }
 
       setConfirmModal({
@@ -821,27 +852,68 @@ export default function SchedulingCalendar() {
               Clinical Scheduling
             </h1>
             <div className="flex items-center gap-3 ml-4 border-l border-[var(--card-border)] pl-4">
+              <div className="flex bg-[var(--input-bg)] rounded-lg p-0.5 border border-[var(--card-border)] mr-2">
+                <button
+                  onClick={() => setView("month")}
+                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${view === "month" ? "bg-[var(--card-bg)] text-[var(--primary)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+                >
+                  Month
+                </button>
+                <button
+                  onClick={() => setView("week")}
+                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${view === "week" ? "bg-[var(--card-bg)] text-[var(--primary)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+                >
+                  Week
+                </button>
+                <button
+                  onClick={() => setView("team")}
+                  className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${view === "team" ? "bg-[var(--card-bg)] text-[var(--primary)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+                >
+                  Team Day
+                </button>
+              </div>
               <button
-                onClick={() =>
-                  setAnchor(new Date(anchor.setDate(anchor.getDate() - 7)))
-                }
+                onClick={() => {
+                  const next = new Date(anchor);
+                  if (view === "month") {
+                     next.setMonth(next.getMonth() - 1);
+                  } else {
+                     next.setDate(next.getDate() - (view === "week" ? 7 : 1));
+                  }
+                  setAnchor(next);
+                }}
                 className="p-1.5 hover:bg-[var(--primary)]/10 rounded-xl text-[var(--text-muted)] transition-all"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
+              <button
+                onClick={() => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  setAnchor(today);
+                }}
+                className="px-3 py-1 bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 rounded-lg text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all shadow-sm"
+              >
+                Today
+              </button>
               <span className="text-sm font-black text-[var(--text-primary)] min-w-[140px] text-center tracking-tight">
-                {monthLabel}
+                {view === "month" ? monthLabel : view === "week" ? monthLabel : anchor.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
               </span>
               <button
-                onClick={() =>
-                  setAnchor(new Date(anchor.setDate(anchor.getDate() + 7)))
-                }
+                onClick={() => {
+                  const next = new Date(anchor);
+                  if (view === "month") {
+                     next.setMonth(next.getMonth() + 1);
+                  } else {
+                     next.setDate(next.getDate() + (view === "week" ? 7 : 1));
+                  }
+                  setAnchor(next);
+                }}
                 className="p-1.5 hover:bg-[var(--primary)]/10 rounded-xl text-[var(--text-muted)] transition-all"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
-            </div>
-          </div>
+            </div>          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => refetch()}
@@ -959,13 +1031,194 @@ export default function SchedulingCalendar() {
 
       {/* Calendar Grid */}
       <div className="flex-1 min-h-0 bg-[var(--background)] rounded-2xl border border-[var(--card-border)] flex flex-col overflow-hidden relative">
+        {view === 'month' ? (
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="grid grid-cols-7 bg-[var(--card-bg)] border-b border-slate-200 dark:border-white/10 shrink-0 sticky top-0 z-[60] backdrop-blur-md">
+               {GRID_CONFIG.DAYS.map((day, i) => (
+                  <div key={i} className="py-2.5 text-center text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] border-r border-slate-200 dark:border-white/10 last:border-r-0">
+                     {day}
+                  </div>
+               ))}
+            </div>
+            <div className="flex-1 grid grid-cols-7 grid-rows-6 divide-x divide-y divide-slate-200 dark:divide-white/10 bg-[var(--card-bg)]/30 min-h-0">
+               {monthDates.map((d, i) => {
+                  const isCurrentMonth = d.getMonth() === anchor.getMonth();
+                  const isToday = d.toDateString() === new Date().toDateString();
+                  const dayAppts = visibleAppointments
+                    .filter((a: any) => new Date(a.scheduledStart).toDateString() === d.toDateString())
+                    .sort((a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime());
+                  const dayBlocks = visibleBlocks
+                    .filter((b: any) => new Date(b.startTime).toDateString() === d.toDateString())
+                    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+                  
+                  return (
+                     <div key={i} className={`p-1.5 flex flex-col gap-1 transition-colors hover:bg-[var(--input-bg)] relative ${!isCurrentMonth ? 'opacity-40 bg-[var(--input-bg)]/30' : ''}`}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => handleDrop(e, d)}
+                     >
+                        <div className="flex items-center justify-between px-1 mb-1">
+                           <span className={`text-xs font-bold ${isToday ? 'bg-[var(--primary)] text-white w-5 h-5 rounded-full flex items-center justify-center' : 'text-[var(--text-primary)]'}`}>
+                              {d.getDate()}
+                           </span>
+                           {(dayAppts.length > 0 || dayBlocks.length > 0) && <span className="text-[10px] text-[var(--text-muted)] font-semibold">{dayAppts.length + dayBlocks.length}</span>}
+                        </div>
+                        <div className="flex flex-col gap-1">
+                           {dayBlocks.slice(0, 2).map((block: any) => {
+                              const start = new Date(block.startTime);
+                              return (
+                                 <div 
+                                    key={block.blockId}
+                                    draggable
+                                    onDragStart={(e) => {
+                                      const durMin = (new Date(block.endTime).getTime() - new Date(block.startTime).getTime()) / 60000;
+                                      e.dataTransfer.setData("blockId", block.blockId);
+                                      e.dataTransfer.setData("duration", durMin.toString());
+                                    }}
+                                    className={`text-[10px] px-1.5 py-1 rounded truncate border bg-[var(--input-bg)]/80 border-[var(--card-border)] text-[var(--text-muted)] flex items-center gap-1 cursor-grab active:cursor-grabbing hover:bg-[var(--input-bg)]`}
+                                 >
+                                    <Shield className="w-2.5 h-2.5 opacity-50" />
+                                    <span className="font-bold">{start.getHours() % 12 || 12}:{start.getMinutes().toString().padStart(2, '0')}</span>
+                                    <span className="truncate">Unavailable</span>
+                                 </div>
+                              );
+                           })}
+                           {dayAppts.slice(0, Math.max(0, 4 - Math.min(2, dayBlocks.length))).map((appt: any) => {
+                              const statusConfig = getStatusConfig(appt.status);
+                              const start = new Date(appt.scheduledStart);
+                              return (
+                                 <div 
+                                    key={appt.appointmentId}
+                                    draggable
+                                    onDragStart={(e) => {
+                                      if (isVisitMoveLocked(appt.status)) {
+                                         e.preventDefault();
+                                         return;
+                                      }
+                                      const durMin = (new Date(appt.scheduledEnd).getTime() - new Date(appt.scheduledStart).getTime()) / 60000;
+                                      e.dataTransfer.setData("appointmentId", appt.appointmentId);
+                                      e.dataTransfer.setData("duration", durMin.toString());
+                                    }}
+                                    onClick={() => {
+                                      if (statusConfig.label === "DONE") return;
+                                      setReassignApptId(appt.appointmentId);
+                                      setReassignOpen(true);
+                                    }}
+                                    className={`text-[10px] px-1.5 py-1 rounded cursor-pointer border flex flex-col gap-0.5 ${statusConfig.label === "DONE" ? "opacity-60 cursor-default" : "hover:-translate-y-[1px] hover:shadow-md"} transition-all ${statusConfig.bg} ${statusConfig.border} ${statusConfig.text}`}
+                                 >
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-1 truncate">
+                                        <span className="font-bold shrink-0">{start.getHours() % 12 || 12}:{start.getMinutes().toString().padStart(2, '0')}{start.getHours() >= 12 ? 'p' : 'a'}</span>
+                                        <span className="truncate font-semibold">{appt.patient?.firstName} {appt.patient?.lastName}</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center justify-between opacity-80">
+                                      <span className="text-[8px] truncate">{appt.practitioner?.firstName} {appt.practitioner?.lastName}</span>
+                                      <div className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+                                    </div>
+                                 </div>
+                              );
+                           })}
+                           {(dayAppts.length + dayBlocks.length) > 4 && (
+                              <div className="text-[10px] text-[var(--text-muted)] font-bold text-center mt-0.5 hover:text-[var(--primary)] cursor-pointer transition-colors"
+                                   onClick={() => setExpandedMonthDay(d)}>
+                                 +{(dayAppts.length + dayBlocks.length) - 4} more
+                              </div>
+                           )}
+                        </div>
+
+                        {/* Floating Popover for Expanded Day */}
+                        {expandedMonthDay?.toDateString() === d.toDateString() && (
+                          <div className="absolute top-0 left-1/2 -translate-x-1/2 min-w-[240px] max-w-[320px] max-h-[400px] bg-[var(--card-bg)] shadow-2xl rounded-2xl border border-[var(--card-border)] z-[200] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                             <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--card-border)] bg-[var(--input-bg)]/50 shrink-0 sticky top-0 backdrop-blur-sm z-10">
+                                <span className={`text-sm font-black ${isToday ? 'text-[var(--primary)]' : 'text-[var(--text-primary)]'}`}>
+                                   {d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                                </span>
+                                <button onClick={(e) => { e.stopPropagation(); setExpandedMonthDay(null); }} className="w-6 h-6 rounded-full hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-center text-[var(--text-muted)] transition-colors">
+                                   <Plus className="w-4 h-4 rotate-45" />
+                                </button>
+                             </div>
+                             <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5">
+                                {dayBlocks.map((block: any) => {
+                                   const start = new Date(block.startTime);
+                                   return (
+                                      <div 
+                                         key={block.blockId}
+                                         draggable
+                                         onDragStart={(e) => {
+                                           const durMin = (new Date(block.endTime).getTime() - new Date(block.startTime).getTime()) / 60000;
+                                           e.dataTransfer.setData("blockId", block.blockId);
+                                           e.dataTransfer.setData("duration", durMin.toString());
+                                           setExpandedMonthDay(null);
+                                         }}
+                                         className={`text-xs px-2 py-1.5 rounded truncate border bg-[var(--input-bg)]/80 border-[var(--card-border)] text-[var(--text-muted)] flex items-center gap-2 cursor-grab active:cursor-grabbing hover:bg-[var(--input-bg)]`}
+                                      >
+                                         <Shield className="w-3.5 h-3.5 opacity-50" />
+                                         <span className="font-bold">{start.getHours() % 12 || 12}:{start.getMinutes().toString().padStart(2, '0')}</span>
+                                         <span className="truncate">Unavailable</span>
+                                      </div>
+                                   );
+                                })}
+                                {dayAppts.map((appt: any) => {
+                                   const statusConfig = getStatusConfig(appt.status);
+                                   const start = new Date(appt.scheduledStart);
+                                   return (
+                                      <div 
+                                         key={appt.appointmentId}
+                                         draggable
+                                         onDragStart={(e) => {
+                                           if (isVisitMoveLocked(appt.status)) {
+                                              e.preventDefault();
+                                              return;
+                                           }
+                                           const durMin = (new Date(appt.scheduledEnd).getTime() - new Date(appt.scheduledStart).getTime()) / 60000;
+                                           e.dataTransfer.setData("appointmentId", appt.appointmentId);
+                                           e.dataTransfer.setData("duration", durMin.toString());
+                                           setExpandedMonthDay(null);
+                                         }}
+                                         onClick={() => {
+                                           if (statusConfig.label === "DONE") return;
+                                           setReassignApptId(appt.appointmentId);
+                                           setReassignOpen(true);
+                                           setExpandedMonthDay(null);
+                                         }}
+                                         className={`text-xs px-2 py-1.5 rounded cursor-pointer border flex flex-col gap-1 ${statusConfig.label === "DONE" ? "opacity-60 cursor-default" : "hover:-translate-y-[1px] hover:shadow-md"} transition-all ${statusConfig.bg} ${statusConfig.border} ${statusConfig.text}`}
+                                      >
+                                         <div className="flex items-center justify-between">
+                                           <div className="flex items-center gap-2 truncate">
+                                             <span className="font-bold shrink-0">{start.getHours() % 12 || 12}:{start.getMinutes().toString().padStart(2, '0')}{start.getHours() >= 12 ? 'pm' : 'am'}</span>
+                                             <span className="truncate font-semibold text-[var(--text-primary)]">{appt.patient?.firstName} {appt.patient?.lastName}</span>
+                                           </div>
+                                         </div>
+                                         <div className="flex items-center justify-between opacity-90 pl-[52px]">
+                                           <span className="text-[10px] truncate">{appt.practitioner?.firstName} {appt.practitioner?.lastName}</span>
+                                           <div className="flex items-center gap-1.5">
+                                              <span className="text-[9px] font-bold uppercase tracking-widest">{statusConfig.label}</span>
+                                              <div className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
+                                           </div>
+                                         </div>
+                                      </div>
+                                   );
+                                })}
+                             </div>
+                          </div>
+                        )}
+                     </div>
+                  );
+               })}
+            </div>
+          </div>
+        ) : (
+          <>
         {/* Header Row */}
         <div className="grid grid-cols-[80px_1fr] bg-[var(--card-bg)] border-b border-slate-200 dark:border-white/10 shrink-0 sticky top-0 z-[60] backdrop-blur-md">
           <div className="flex items-center justify-center border-r border-slate-200 dark:border-white/10">
             <Clock className="w-4 h-4 text-[var(--text-muted)] opacity-50" />
           </div>
-          <div className="grid grid-cols-7 divide-x divide-slate-200 dark:divide-white/10">
-            {weekDates.map((date, i) => {
+          <div 
+            className="grid divide-x divide-slate-200 dark:divide-white/10"
+            style={{ gridTemplateColumns: `repeat(${view === 'week' ? 7 : Math.max(1, displayPractitioners.length)}, minmax(0, 1fr))` }}
+          >
+            {view === 'week' ? weekDates.map((date, i) => {
               const isToday = date.toDateString() === new Date().toDateString();
               return (
                 <div
@@ -989,7 +1242,12 @@ export default function SchedulingCalendar() {
                   </div>
                 </div>
               );
-            })}
+            }) : displayPractitioners.map((p: any) => (
+                <div key={p.practitionerId} className="flex flex-col items-center justify-center py-2 transition-all relative">
+                   <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-wider">{p.position}</span>
+                   <span className="text-sm font-black text-[var(--text-primary)] tracking-tight truncate w-full text-center px-2">{p.firstName} {p.lastName}</span>
+                </div>
+            ))}
           </div>
         </div>
 
@@ -1019,30 +1277,47 @@ export default function SchedulingCalendar() {
               <div className="h-0 border-t border-slate-200 dark:border-white/10" />
             </div>
 
-            <div className="flex-1 grid grid-cols-7 relative divide-x divide-slate-200 dark:divide-white/10">
-              {weekDates.map((d, dayIdx) => {
-                const dayAppts = visibleAppointments
-                  .filter(
-                    (a: any) =>
-                      new Date(a.scheduledStart).toDateString() ===
-                      d.toDateString(),
-                  )
-                  .sort(
-                    (a, b) =>
-                      new Date(a.scheduledStart).getTime() -
-                      new Date(b.scheduledStart).getTime(),
-                  );
-                const dayBlocks = visibleBlocks.filter(
-                  (b: any) =>
-                    new Date(b.startTime).toDateString() === d.toDateString(),
-                );
+            <div 
+              className="flex-1 grid relative divide-x divide-slate-200 dark:divide-white/10"
+              style={{ gridTemplateColumns: `repeat(${view === 'week' ? 7 : Math.max(1, displayPractitioners.length)}, minmax(0, 1fr))` }}
+            >
+              {(view === 'week' ? weekDates : displayPractitioners).map((colItem: any, colIdx: number) => {
+                let dayAppts: any[] = [];
+                let dayBlocks: any[] = [];
+                let targetDate: Date;
+
+                if (view === 'week') {
+                   const d = colItem as Date;
+                   targetDate = d;
+                   dayAppts = visibleAppointments.filter((a: any) => new Date(a.scheduledStart).toDateString() === d.toDateString());
+                   dayBlocks = visibleBlocks.filter((b: any) => new Date(b.startTime).toDateString() === d.toDateString());
+                } else {
+                   const p = colItem as any;
+                   targetDate = anchor;
+                   dayAppts = visibleAppointments.filter((a: any) => {
+                      if (new Date(a.scheduledStart).toDateString() !== anchor.toDateString()) return false;
+                      const primaryId = (a.practitionerId || a.practitioner?.practitionerId || "").toLowerCase();
+                      const pId = p.practitionerId.toLowerCase();
+                      const isPrimary = primaryId === pId;
+                      const isSupporting = a.supportingClinicians?.some((sc: any) => sc.practitionerId?.toLowerCase() === pId);
+                      const isEncounter = a.encounters?.[0]?.practitioner?.practitionerId?.toLowerCase() === pId;
+                      return isPrimary || isSupporting || isEncounter;
+                   });
+                   dayBlocks = visibleBlocks.filter((b: any) => {
+                      if (new Date(b.startTime).toDateString() !== anchor.toDateString()) return false;
+                      const bId = (b.practitionerId || b.practitioner?.practitionerId || "").toLowerCase();
+                      return bId === p.practitionerId.toLowerCase();
+                   });
+                }
+                
+                dayAppts = dayAppts.sort((a, b) => new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime());
 
                 return (
                   <div
-                    key={dayIdx}
+                    key={view === 'week' ? (colItem as Date).toISOString() : (colItem as any).practitionerId}
                     className="relative transition-colors hover:bg-[var(--input-bg)]"
                     onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => handleDrop(e, d)}
+                    onDrop={(e) => handleDrop(e, targetDate, view === 'team' ? colItem.practitionerId : undefined)}
                   >
                     {HOURS.map((h) => (
                       <div
@@ -1458,6 +1733,8 @@ export default function SchedulingCalendar() {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
 
       <BookingDrawer
