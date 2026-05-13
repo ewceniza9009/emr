@@ -653,17 +653,26 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     });
   };
 
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
   const renderCalendar = () => {
     const days = [];
     const count = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
     const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
     for (let i = 0; i < first; i++) days.push(<div key={`empty-${i}`} className="h-10" />);
     for (let d = 1; d <= count; d++) {
+      const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
       const isSelected = selectedDate.getDate() === d && selectedDate.getMonth() === viewDate.getMonth();
+      const isPast = date < today;
       days.push(
-        <button key={d} type="button" onClick={() => { setSelectedDate(new Date(viewDate.getFullYear(), viewDate.getMonth(), d)); setPeriod(null); setPractitionerId(""); }}
+        <button key={d} type="button" disabled={isPast}
+          onClick={() => { if (!isPast) { setSelectedDate(date); setPeriod(null); setPractitionerId(""); } }}
           className={`h-10 w-full rounded-2xl text-xs font-semibold transition-all flex items-center justify-center
-            ${isSelected ? "bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+            ${isSelected ? "bg-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" : isPast ? "text-[var(--text-muted)] opacity-50 cursor-not-allowed" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
           {d}
         </button>
       );

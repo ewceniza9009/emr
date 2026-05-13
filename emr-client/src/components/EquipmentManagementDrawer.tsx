@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
+import { useToast } from "./ToastProvider";
 import { 
   Package, 
   Truck, 
@@ -67,10 +68,15 @@ export default function EquipmentManagementDrawer({
     }
   });
 
+  const { showToast } = useToast();
+
   const [deploy] = useMutation(DEPLOY_EQUIPMENT, {
     onCompleted: () => {
       onSuccess();
       onClose();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
     }
   });
 

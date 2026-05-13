@@ -1,6 +1,7 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.Extensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,8 +34,14 @@ public class RequestEquipmentDeploymentCommandHandler
             cancellationToken
         );
 
-        if (equipment == null) throw new InvalidOperationException("The requested medical equipment could not be located in our active inventory.");
-        if (equipment.Status != EquipmentStatus.Available) throw new InvalidOperationException($"Deployment failed: This equipment is currently marked as '{equipment.Status}'. Please select an available unit.");
+        if (equipment == null)
+            throw new InvalidOperationException(
+                "The requested medical equipment could not be located in our active inventory."
+            );
+        if (equipment.Status != EquipmentStatus.Available)
+            throw new InvalidOperationException(
+                $"Deployment failed: This equipment is currently marked as '{equipment.Status.GetDisplayName()}'."
+            );
 
         var delivery = new EquipmentDelivery
         {

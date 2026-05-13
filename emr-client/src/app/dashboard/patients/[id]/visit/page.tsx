@@ -30,7 +30,8 @@ import {
   Users,
   MapPin
 } from "lucide-react";
-import { ToastProvider } from "@/components/ToastProvider";
+import { ToastProvider, useToast } from "@/components/ToastProvider";
+import { handleModelImageInputError } from "@/lib/ai-errors";
 import ProblemList from "@/components/ProblemList";
 import MedicationRegistry from "@/components/MedicationRegistry";
 import DynamicAssessment from "@/components/DynamicAssessment";
@@ -172,6 +173,7 @@ export default function GuidedVisitPage() {
   const [encounterId, setEncounterId] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const lastValidIndex = useRef(0);
+  const { showToast } = useToast();
 
   // Form States
   const [vitals, setVitals] = useState({ hr: "", sbp: "", dbp: "", rr: "", temp: "", spo2: "" });
@@ -456,6 +458,9 @@ export default function GuidedVisitPage() {
       clearPersistence();
     } catch (err) {
       console.error(err);
+      if (!handleModelImageInputError(err, showToast)) {
+        showToast("Failed to save clinical note. Please try again.", "error");
+      }
     }
   };
 
