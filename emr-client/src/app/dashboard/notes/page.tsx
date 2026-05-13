@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ToastProvider";
-import { handleModelImageInputError } from "@/lib/ai-errors";
+
 import {
   FileText,
   Search,
@@ -250,9 +250,7 @@ export default function ClinicalNotesPage() {
 
       showToast(finalize ? "Note Finalized & Locked" : "Progress Note Synced", "success");
     } catch (err) {
-      if (!handleModelImageInputError(err, showToast)) {
-        showToast("Sync Failed. Check Connection.", "error");
-      }
+      showToast("Sync Failed. Check Connection.", "error");
     } finally {
       setIsSyncing(false);
     }

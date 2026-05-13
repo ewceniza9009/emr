@@ -293,6 +293,8 @@ export default function SchedulingCalendar() {
   const [reassignOpen, setReassignOpen] = useState(false);
   const [drawerPrefill, setDrawerPrefill] = useState<string | undefined>();
   const [reassignApptId, setReassignApptId] = useState<string | null>(null);
+  const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
+  const [dragOverColKey, setDragOverColKey] = useState<string | null>(null);
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(
     new Set(),
   );
@@ -1052,9 +1054,11 @@ export default function SchedulingCalendar() {
                     .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
                   
                   return (
-                     <div key={i} className={`p-1.5 flex flex-col gap-1 transition-colors hover:bg-[var(--input-bg)] relative ${!isCurrentMonth ? 'opacity-40 bg-[var(--input-bg)]/30' : ''}`}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => handleDrop(e, d)}
+                      <div key={i} className={`p-1.5 flex flex-col gap-1 transition-colors hover:bg-[var(--input-bg)] relative ${!isCurrentMonth ? 'opacity-40 bg-[var(--input-bg)]/30' : ''} ${dragOverDate?.toDateString() === d.toDateString() ? 'ring-2 ring-[var(--primary)]/50 bg-[var(--primary)]/5' : ''}`}
+                         onDragOver={(e) => e.preventDefault()}
+                         onDragEnter={() => setDragOverDate(d)}
+                         onDragLeave={() => setDragOverDate(null)}
+                         onDrop={(e) => handleDrop(e, d)}
                      >
                         <div className="flex items-center justify-between px-1 mb-1">
                            <span className={`text-xs font-bold ${isToday ? 'bg-[var(--primary)] text-white w-5 h-5 rounded-full flex items-center justify-center' : 'text-[var(--text-primary)]'}`}>
@@ -1128,7 +1132,7 @@ export default function SchedulingCalendar() {
 
                         {/* Floating Popover for Expanded Day */}
                         {expandedMonthDay?.toDateString() === d.toDateString() && (
-                          <div className="absolute top-0 left-1/2 -translate-x-1/2 min-w-[240px] max-w-[320px] max-h-[400px] bg-[var(--card-bg)] shadow-2xl rounded-2xl border border-[var(--card-border)] z-[200] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                          <div className={`absolute top-0 min-w-[240px] max-w-[320px] max-h-[400px] bg-[var(--card-bg)] shadow-2xl rounded-2xl border border-[var(--card-border)] z-[200] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${i % 7 === 0 ? 'left-0' : i % 7 === 6 ? 'right-0' : 'left-1/2 -translate-x-1/2'}`}>
                              <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--card-border)] bg-[var(--input-bg)]/50 shrink-0 sticky top-0 backdrop-blur-sm z-10">
                                 <span className={`text-sm font-black ${isToday ? 'text-[var(--primary)]' : 'text-[var(--text-primary)]'}`}>
                                    {d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -1315,8 +1319,10 @@ export default function SchedulingCalendar() {
                 return (
                   <div
                     key={view === 'week' ? (colItem as Date).toISOString() : (colItem as any).practitionerId}
-                    className="relative transition-colors hover:bg-[var(--input-bg)]"
+                    className={`relative transition-colors hover:bg-[var(--input-bg)] ${dragOverColKey === (view === 'week' ? (colItem as Date).toISOString() : (colItem as any).practitionerId) ? 'ring-2 ring-[var(--primary)]/50 bg-[var(--primary)]/5' : ''}`}
                     onDragOver={(e) => e.preventDefault()}
+                    onDragEnter={() => setDragOverColKey(view === 'week' ? (colItem as Date).toISOString() : (colItem as any).practitionerId)}
+                    onDragLeave={() => setDragOverColKey(null)}
                     onDrop={(e) => handleDrop(e, targetDate, view === 'team' ? colItem.practitionerId : undefined)}
                   >
                     {HOURS.map((h) => (

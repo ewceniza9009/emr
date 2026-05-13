@@ -101,6 +101,15 @@ const DELETE_APPOINTMENT = gql`
   }
 `;
 
+const UPDATE_APPOINTMENT_STATUS = gql`
+  mutation UpdateAppointmentStatus($input: UpdateAppointmentStatusInput!) {
+    updateAppointmentStatus(input: $input) {
+      appointmentId
+      status
+    }
+  }
+`;
+
 const ASSESSMENT_OPTIONS = [
   {
     category: "Symptom and Pain",
@@ -211,6 +220,7 @@ export default function ReassignmentBookingDrawer({
   const [supportSearch, setSupportSearch] = useState("");
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [selectedSupportIds, setSelectedSupportIds] = useState<string[]>([]);
+  const [plannedAssessments, setPlannedAssessments] = useState<string[]>([]);
 
   const canAccess = useMemo(() => {
     const allowed = [
@@ -236,6 +246,7 @@ export default function ReassignmentBookingDrawer({
             (s: any) => s.practitionerId,
           ) || [],
         );
+        setPlannedAssessments(data.appointment.plannedAssessments || []);
       }
     },
   });
@@ -249,6 +260,14 @@ export default function ReassignmentBookingDrawer({
   });
 
   const [deleteAppt] = useMutation(DELETE_APPOINTMENT, {
+    refetchQueries: ["GetScheduleData"],
+    onCompleted: () => {
+      onSuccess();
+      onClose();
+    },
+  });
+
+  const [updateStatus, { loading: statusUpdating }] = useMutation(UPDATE_APPOINTMENT_STATUS, {
     refetchQueries: ["GetScheduleData"],
     onCompleted: () => {
       onSuccess();
@@ -318,7 +337,9 @@ export default function ReassignmentBookingDrawer({
   )?.address;
   const modalityConfig = getModalityConfig(appointment?.modality);
   const isInProgress = isAppointmentInProgress(appointment?.status);
-  const updateDisabled = !selectedLeadId || updating || isInProgress;
+  const isCompleted = appointment?.status?.toUpperCase().replace(/[^A-Z]/g, "") === "COMPLETED" || appointment?.status?.toUpperCase().replace(/[^A-Z]/g, "") === "DONE";
+  const isLocked = isInProgress || isCompleted;
+  const updateDisabled = !selectedLeadId || updating || isLocked;
 
   return (
     <HalcyonPortal>
@@ -429,35 +450,37 @@ export default function ReassignmentBookingDrawer({
             </div>
 
             {/* Planned Assessments */}
-            {appointment?.plannedAssessments?.length > 0 && (
-              <div className="p-3 bg-[var(--input-bg)]/40 rounded-xl border border-[var(--card-border)] space-y-2">
-                <div className="flex items-center gap-1.5">
-                  <ClipboardList className="w-3 h-3 text-[var(--primary)]" />
-                  <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
-                    Planned Assessments
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {appointment.plannedAssessments.map(
-                    (assessmentId: string) => {
-                      const opt = ASSESSMENT_OPTIONS.flatMap(
-                        (c) => c.items,
-                      ).find((i) => i.id === assessmentId);
-                      return (
-                        <div
-                          key={assessmentId}
-                          className="flex items-center gap-1.5 px-2 py-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-md"
-                        >
-                          <span className="text-[10px] font-bold text-[var(--text-secondary)]">
-                            {opt ? opt.label : assessmentId.replace(/_/g, " ")}
-                          </span>
-                        </div>
-                      );
-                    },
-                  )}
-                </div>
+            <div className="p-3 bg-[var(--input-bg)]/40 rounded-xl border border-[var(--card-border)] space-y-3">
+              <div className="flex items-center gap-1.5">
+                <ClipboardList className="w-3 h-3 text-[var(--primary)]" />
+                <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                  Planned Assessments
+                </span>
               </div>
-            )}
+              <div className="flex flex-wrap gap-2">
+                {ASSESSMENT_OPTIONS.flatMap(cat => cat.items).map(item => {
+                  const isSelected = plannedAssessments.includes(item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setPlannedAssessments(prev =>
+                          isSelected ? prev.filter(id => id !== item.id) : [...prev, item.id]
+                        );
+                      }}
+                      className={`px-2 py-1 rounded-md border text-[10px] font-bold transition-all ${
+                        isSelected
+                          ? "bg-[var(--primary)]/10 border-[var(--primary)]/40 text-[var(--primary)]"
+                          : "bg-[var(--card-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--primary)]/30 hover:text-[var(--text-secondary)]"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* Logistics & Current Assignments */}
             <div className="grid grid-cols-2 gap-3">
@@ -629,15 +652,36 @@ export default function ReassignmentBookingDrawer({
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
+                disabled={isLocked || statusUpdating}
                 onClick={async () => {
-                  await alert({
-                    title: "Appointment Completed",
-                    message:
-                      "The encounter has been successfully finalized in the clinical record.",
+                  if (isLocked) return;
+                  const ok = await confirm({
+                    title: "Complete Appointment",
+                    message: "Mark this encounter as completed? This will finalize the visit record.",
                     type: "success",
                   });
+                  if (ok) {
+                    try {
+                      await updateStatus({
+                        variables: { input: { appointmentId, status: "COMPLETED" } },
+                      });
+                    } catch (err) {
+                      alert({
+                        title: "Error",
+                        message: "Failed to mark appointment as completed.",
+                        type: "danger",
+                      });
+                    }
+                  }
                 }}
-                className="p-2.5 bg-[var(--input-bg)] hover:bg-emerald-500/10 rounded-xl border border-[var(--card-border)] hover:border-emerald-500/30 flex flex-col items-center justify-center gap-1 group transition-all"
+                className={`p-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)] flex flex-col items-center justify-center gap-1 group transition-all ${
+                  isLocked || statusUpdating
+                    ? "cursor-not-allowed opacity-50"
+                    : "hover:bg-emerald-500/10 hover:border-emerald-500/30"
+                }`}
+                title={
+                  isLocked ? "Appointment is already finalized." : undefined
+                }
               >
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
                 <span className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:text-emerald-500">
@@ -647,9 +691,9 @@ export default function ReassignmentBookingDrawer({
 
               <button
                 type="button"
-                disabled={isInProgress}
+                disabled={isLocked || statusUpdating}
                 onClick={async () => {
-                  if (isInProgress) return;
+                  if (isLocked) return;
                   const ok = await confirm({
                     title: "Cancel Appointment",
                     message:
@@ -657,17 +701,27 @@ export default function ReassignmentBookingDrawer({
                     type: "warning",
                   });
                   if (ok) {
-                    // Logic for cancel if needed
+                    try {
+                      await updateStatus({
+                        variables: { input: { appointmentId, status: "CANCELLED" } },
+                      });
+                    } catch (err) {
+                      alert({
+                        title: "Error",
+                        message: "Failed to cancel appointment.",
+                        type: "danger",
+                      });
+                    }
                   }
                 }}
                 className={`p-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)] flex flex-col items-center justify-center gap-1 group transition-all ${
-                  isInProgress
+                  isLocked || statusUpdating
                     ? "cursor-not-allowed opacity-50"
                     : "hover:bg-rose-500/10 hover:border-rose-500/30"
                 }`}
                 title={
-                  isInProgress
-                    ? "Cancel is disabled while the visit is in progress."
+                  isLocked
+                    ? "Cancel is disabled for active or completed visits."
                     : undefined
                 }
               >
@@ -679,9 +733,9 @@ export default function ReassignmentBookingDrawer({
 
               <button
                 type="button"
-                disabled={isInProgress}
+                disabled={isLocked}
                 onClick={async () => {
-                  if (isInProgress) return;
+                  if (isLocked) return;
                   const ok = await confirm({
                     title: "Delete Appointment",
                     message:
@@ -701,13 +755,13 @@ export default function ReassignmentBookingDrawer({
                   }
                 }}
                 className={`p-2.5 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)] flex flex-col items-center justify-center gap-1 group transition-all ${
-                  isInProgress
+                  isLocked
                     ? "cursor-not-allowed opacity-50"
                     : "hover:bg-red-600/20 hover:border-red-600/50"
                 }`}
                 title={
-                  isInProgress
-                    ? "Delete is disabled while the visit is in progress."
+                  isLocked
+                    ? "Delete is disabled for active or completed visits."
                     : undefined
                 }
               >
@@ -751,7 +805,7 @@ export default function ReassignmentBookingDrawer({
                           scheduledStart: appointment.scheduledStart,
                           scheduledEnd: appointment.scheduledEnd,
                           modality: appointment.modality,
-                          plannedAssessments: appointment.plannedAssessments,
+                          plannedAssessments,
                         },
                       },
                     });
@@ -762,8 +816,8 @@ export default function ReassignmentBookingDrawer({
                       : "bg-[var(--primary)] text-white shadow-[var(--primary)]/20 hover:scale-[1.02] active:scale-[0.98]"
                   }`}
                   title={
-                    isInProgress
-                      ? "Updates are disabled while the visit is in progress."
+                    isLocked
+                      ? "Updates are disabled for active or completed visits."
                       : undefined
                   }
                 >

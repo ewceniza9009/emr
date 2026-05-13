@@ -31,7 +31,6 @@ import {
   MapPin
 } from "lucide-react";
 import { ToastProvider, useToast } from "@/components/ToastProvider";
-import { handleModelImageInputError } from "@/lib/ai-errors";
 import ProblemList from "@/components/ProblemList";
 import MedicationRegistry from "@/components/MedicationRegistry";
 import DynamicAssessment from "@/components/DynamicAssessment";
@@ -457,10 +456,7 @@ export default function GuidedVisitPage() {
       router.push(`/dashboard/patients/${params.id}`);
       clearPersistence();
     } catch (err) {
-      console.error(err);
-      if (!handleModelImageInputError(err, showToast)) {
-        showToast("Failed to save clinical note. Please try again.", "error");
-      }
+      showToast("Failed to save clinical note. Please try again.", "error");
     }
   };
 

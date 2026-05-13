@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { useCommandModal } from "./CommandModalProvider";
+import { useToast } from "./ToastProvider";
 import { format, addMinutes } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import Link from "next/link";
@@ -220,6 +221,7 @@ interface Props {
 
 export default function BookingDrawer({ open, onClose, onBooked, prefillDate, appointmentId, patientId: propPatientId }: Props) {
   const { confirm, alert } = useCommandModal();
+  const { showToast } = useToast();
   const { data: session } = useSession();
   const [patientId, setPatientId] = useState("");
   const [patientAddress, setPatientAddress] = useState({
@@ -575,6 +577,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setBooked(true);
       setTimeout(() => { setBooked(false); onBooked(); onClose(); }, 1500);
     },
+    onError: (err) => showToast(err.message, "error"),
   });
 
   const [createBlock, { loading: blockLoading }] = useMutation(CREATE_SCHEDULE_BLOCK, {
@@ -583,6 +586,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setBooked(true);
       setTimeout(() => { setBooked(false); onBooked(); onClose(); }, 1500);
     },
+    onError: (err) => showToast(err.message, "error"),
   });
 
   const [deleteAppt] = useMutation(DELETE_APPOINTMENT, {
@@ -590,7 +594,8 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     onCompleted: () => {
       setBooked(true);
       setTimeout(() => { setBooked(false); onBooked(); onClose(); }, 1500);
-    }
+    },
+    onError: (err) => showToast(err.message, "error"),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -655,6 +660,13 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
   const today = useMemo(() => {
     const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  const currentMonthStart = useMemo(() => {
+    const d = new Date();
+    d.setDate(1);
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
@@ -1246,7 +1258,9 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                         {isNaN(viewDate.getTime()) ? "Select Date" : `${monthNames[viewDate.getMonth()]} ${viewDate.getFullYear()}`}
                       </span>
                       <div className="flex gap-2">
-                        <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1))} className="p-1.5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"><ChevronLeft className="w-4 h-4 text-slate-400" /></button>
+                        <button type="button" disabled={new Date(viewDate.getFullYear(), viewDate.getMonth()) <= currentMonthStart}
+                          onClick={() => { const prev = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1); if (prev >= currentMonthStart) setViewDate(prev); }}
+                          className={`p-1.5 rounded-lg border transition-colors ${new Date(viewDate.getFullYear(), viewDate.getMonth()) <= currentMonthStart ? "opacity-30 cursor-not-allowed border-white/5" : "hover:bg-white/10 border-white/10"}`}><ChevronLeft className="w-4 h-4 text-slate-400" /></button>
                         <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1))} className="p-1.5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors"><ChevronRight className="w-4 h-4 text-slate-400" /></button>
                       </div>
                     </div>
