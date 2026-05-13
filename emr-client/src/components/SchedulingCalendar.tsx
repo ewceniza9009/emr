@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import BookingDrawer from "./BookingDrawer";
@@ -295,6 +295,10 @@ export default function SchedulingCalendar() {
   const [reassignApptId, setReassignApptId] = useState<string | null>(null);
   const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
   const [dragOverColKey, setDragOverColKey] = useState<string | null>(null);
+  const [dragOverTime, setDragOverTime] = useState<string | null>(null);
+  const [dragOverConflict, setDragOverConflict] = useState(false);
+  const draggingDurationRef = useRef(0);
+  const draggingAppointmentIdRef = useRef<string | null>(null);
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(
     new Set(),
   );
@@ -416,6 +420,12 @@ export default function SchedulingCalendar() {
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const initializedRef = React.useRef(false);
+
+  useEffect(() => {
+    const clearDrag = () => { setDragOverDate(null); setDragOverColKey(null); setDragOverTime(null); setDragOverConflict(false); };
+    window.addEventListener("dragend", clearDrag);
+    return () => window.removeEventListener("dragend", clearDrag);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current && !initializedRef.current) {
@@ -640,6 +650,41 @@ export default function SchedulingCalendar() {
     GRID_CONFIG.START_HOUR,
     GRID_CONFIG.END_HOUR,
   ]);
+
+  const getDropTimeFromEvent = useCallback((e: React.DragEvent, targetDate: Date) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const pct = y / rect.height;
+    const startMin = pct * GRID_CONFIG.TOTAL_MINUTES;
+    const snapped = Math.round(startMin / 15) * 15;
+    const d = new Date(targetDate);
+    d.setHours(GRID_CONFIG.START_HOUR, snapped, 0, 0);
+    return d;
+  }, [GRID_CONFIG.START_HOUR, GRID_CONFIG.TOTAL_MINUTES]);
+
+  const checkTimeConflict = useCallback((
+    start: Date,
+    end: Date,
+    practitionerId?: string,
+    excludeAppointmentId?: string,
+  ) => {
+    const targetPracId = practitionerId || (selectedPractitioners.size === 1 ? Array.from(selectedPractitioners)[0] : null);
+    if (!targetPracId) return false;
+    const items = [
+      ...localAppointments.filter((a: any) => a.appointmentId !== excludeAppointmentId),
+      ...localBlocks,
+    ];
+    for (const item of items) {
+      const itemPracId = item.practitionerId || item.practitioner?.practitionerId;
+      if (itemPracId?.toLowerCase() !== targetPracId.toLowerCase()) continue;
+      const itemStart = new Date(item.scheduledStart || item.startTime).getTime();
+      const itemEnd = new Date(item.scheduledEnd || item.endTime).getTime();
+      const newStart = start.getTime();
+      const newEnd = end.getTime();
+      if (newStart < itemEnd && itemStart < newEnd) return true;
+    }
+    return false;
+  }, [localAppointments, localBlocks, selectedPractitioners]);
 
   const handleDrop = (e: React.DragEvent, targetDate: Date, targetPractitionerId?: string) => {
     e.preventDefault();
@@ -1055,11 +1100,18 @@ export default function SchedulingCalendar() {
                     .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
                   
                   return (
-                      <div key={i} className={`p-1.5 flex flex-col gap-1 transition-colors hover:bg-[var(--input-bg)] relative ${!isCurrentMonth ? 'opacity-40 bg-[var(--input-bg)]/30' : ''} ${dragOverDate?.toDateString() === d.toDateString() ? 'ring-2 ring-[var(--primary)]/50 bg-[var(--primary)]/5' : ''}`}
-                         onDragOver={(e) => e.preventDefault()}
-                         onDragEnter={() => setDragOverDate(d)}
-                         onDragLeave={() => setDragOverDate(null)}
-                         onDrop={(e) => handleDrop(e, d)}
+                      <div key={i} className={`p-1.5 flex flex-col gap-1 transition-colors relative ${
+                        !isCurrentMonth ? 'opacity-40 bg-[var(--input-bg)]/30' : ''
+                      } ${
+                        dragOverDate?.toDateString() === d.toDateString()
+                          ? 'bg-[var(--primary)]/15 ring-2 ring-[var(--primary)] shadow-[0_0_25px_var(--primary-glow)]'
+                          : 'hover:bg-[var(--input-bg)]'
+                      }`}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setDragOverDate(d);
+                          }}
+                          onDrop={(e) => { handleDrop(e, d); setDragOverDate(null); }}
                      >
                         <div className="flex items-center justify-between px-1 mb-1">
                            <span className={`text-xs font-bold ${isToday ? 'bg-[var(--primary)] text-white w-5 h-5 rounded-full flex items-center justify-center' : 'text-[var(--text-primary)]'}`}>
@@ -1076,6 +1128,8 @@ export default function SchedulingCalendar() {
                                     draggable
                                     onDragStart={(e) => {
                                       const durMin = (new Date(block.endTime).getTime() - new Date(block.startTime).getTime()) / 60000;
+                                      draggingDurationRef.current = durMin;
+                                      draggingAppointmentIdRef.current = null;
                                       e.dataTransfer.setData("blockId", block.blockId);
                                       e.dataTransfer.setData("duration", durMin.toString());
                                     }}
@@ -1094,12 +1148,14 @@ export default function SchedulingCalendar() {
                                  <div 
                                     key={appt.appointmentId}
                                     draggable
-                                    onDragStart={(e) => {
+                                     onDragStart={(e) => {
                                       if (isVisitMoveLocked(appt.status)) {
                                          e.preventDefault();
                                          return;
                                       }
                                       const durMin = (new Date(appt.scheduledEnd).getTime() - new Date(appt.scheduledStart).getTime()) / 60000;
+                                      draggingDurationRef.current = durMin;
+                                      draggingAppointmentIdRef.current = appt.appointmentId;
                                       e.dataTransfer.setData("appointmentId", appt.appointmentId);
                                       e.dataTransfer.setData("duration", durMin.toString());
                                     }}
@@ -1149,12 +1205,14 @@ export default function SchedulingCalendar() {
                                       <div 
                                          key={block.blockId}
                                          draggable
-                                         onDragStart={(e) => {
-                                           const durMin = (new Date(block.endTime).getTime() - new Date(block.startTime).getTime()) / 60000;
-                                           e.dataTransfer.setData("blockId", block.blockId);
-                                           e.dataTransfer.setData("duration", durMin.toString());
-                                           setExpandedMonthDay(null);
-                                         }}
+                                          onDragStart={(e) => {
+                                            const durMin = (new Date(block.endTime).getTime() - new Date(block.startTime).getTime()) / 60000;
+                                            draggingDurationRef.current = durMin;
+                                            draggingAppointmentIdRef.current = null;
+                                            e.dataTransfer.setData("blockId", block.blockId);
+                                            e.dataTransfer.setData("duration", durMin.toString());
+                                            setExpandedMonthDay(null);
+                                          }}
                                          className={`text-xs px-2 py-1.5 rounded truncate border bg-[var(--input-bg)]/80 border-[var(--card-border)] text-[var(--text-muted)] flex items-center gap-2 cursor-grab active:cursor-grabbing hover:bg-[var(--input-bg)]`}
                                       >
                                          <Shield className="w-3.5 h-3.5 opacity-50" />
@@ -1170,16 +1228,18 @@ export default function SchedulingCalendar() {
                                       <div 
                                          key={appt.appointmentId}
                                          draggable
-                                         onDragStart={(e) => {
-                                           if (isVisitMoveLocked(appt.status)) {
-                                              e.preventDefault();
-                                              return;
-                                           }
-                                           const durMin = (new Date(appt.scheduledEnd).getTime() - new Date(appt.scheduledStart).getTime()) / 60000;
-                                           e.dataTransfer.setData("appointmentId", appt.appointmentId);
-                                           e.dataTransfer.setData("duration", durMin.toString());
-                                           setExpandedMonthDay(null);
-                                         }}
+                                          onDragStart={(e) => {
+                                            if (isVisitMoveLocked(appt.status)) {
+                                               e.preventDefault();
+                                               return;
+                                            }
+                                            const durMin = (new Date(appt.scheduledEnd).getTime() - new Date(appt.scheduledStart).getTime()) / 60000;
+                                            draggingDurationRef.current = durMin;
+                                            draggingAppointmentIdRef.current = appt.appointmentId;
+                                            e.dataTransfer.setData("appointmentId", appt.appointmentId);
+                                            e.dataTransfer.setData("duration", durMin.toString());
+                                            setExpandedMonthDay(null);
+                                          }}
                                          onClick={() => {
                                            if (statusConfig.label === "DONE") return;
                                            setReassignApptId(appt.appointmentId);
@@ -1205,6 +1265,14 @@ export default function SchedulingCalendar() {
                                    );
                                 })}
                              </div>
+                          </div>
+                        )}
+
+                        {dragOverDate?.toDateString() === d.toDateString() && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                            <div className="px-3 py-1.5 bg-[var(--primary)] text-white rounded-xl shadow-2xl shadow-[var(--primary-glow)] border border-[var(--primary)]/50 font-black text-xs tracking-wider animate-in fade-in zoom-in-95 duration-150">
+                              Drop Here
+                            </div>
                           </div>
                         )}
                      </div>
@@ -1320,11 +1388,34 @@ export default function SchedulingCalendar() {
                 return (
                   <div
                     key={view === 'week' ? (colItem as Date).toISOString() : (colItem as any).practitionerId}
-                    className={`relative transition-colors hover:bg-[var(--input-bg)] ${dragOverColKey === (view === 'week' ? (colItem as Date).toISOString() : (colItem as any).practitionerId) ? 'ring-2 ring-[var(--primary)]/50 bg-[var(--primary)]/5' : ''}`}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDragEnter={() => setDragOverColKey(view === 'week' ? (colItem as Date).toISOString() : (colItem as any).practitionerId)}
-                    onDragLeave={() => setDragOverColKey(null)}
-                    onDrop={(e) => handleDrop(e, targetDate, view === 'team' ? colItem.practitionerId : undefined)}
+                     className={`relative transition-colors ${
+                       dragOverColKey === (view === 'week' ? (colItem as Date).toISOString() : (colItem as any).practitionerId)
+                         ? (dragOverConflict
+                           ? 'bg-red-500/10 ring-2 ring-red-500 shadow-[0_0_30px_rgba(239,68,68,0.3)]'
+                           : 'bg-[var(--primary)]/10 ring-2 ring-[var(--primary)] shadow-[0_0_30px_var(--primary-glow)]')
+                         : 'hover:bg-[var(--input-bg)]'
+                     }`}
+                     onDragOver={(e) => {
+                       e.preventDefault();
+                       setDragOverColKey(view === 'week' ? (colItem as Date).toISOString() : (colItem as any).practitionerId);
+                       const dropStart = getDropTimeFromEvent(e, targetDate);
+                       const dropEnd = new Date(dropStart.getTime() + draggingDurationRef.current * 60000);
+                       const pracId = view === 'team' ? (colItem as any).practitionerId : undefined;
+                       setDragOverTime(`${dropStart.getHours() % 12 || 12}:${dropStart.getMinutes().toString().padStart(2, '0')} ${dropStart.getHours() >= 12 ? 'PM' : 'AM'}`);
+                       setDragOverConflict(checkTimeConflict(dropStart, dropEnd, pracId, draggingAppointmentIdRef.current ?? undefined));
+                     }}
+                     onDrop={(e) => {
+                       const dropStart = getDropTimeFromEvent(e, targetDate);
+                       const dropEnd = new Date(dropStart.getTime() + draggingDurationRef.current * 60000);
+                       const pracId = view === 'team' ? (colItem as any).practitionerId : undefined;
+                       if (checkTimeConflict(dropStart, dropEnd, pracId, draggingAppointmentIdRef.current ?? undefined)) {
+                         showToast("Time slot conflicts with an existing appointment or block.", "error");
+                         setDragOverColKey(null); setDragOverTime(null); setDragOverConflict(false);
+                         return;
+                       }
+                       handleDrop(e, targetDate, view === 'team' ? colItem.practitionerId : undefined);
+                       setDragOverColKey(null); setDragOverTime(null); setDragOverConflict(false);
+                     }}
                   >
                     {HOURS.map((h) => (
                       <div
@@ -1365,6 +1456,8 @@ export default function SchedulingCalendar() {
                           key={block.blockId}
                           draggable
                           onDragStart={(e) => {
+                            draggingDurationRef.current = durMin;
+                            draggingAppointmentIdRef.current = null;
                             e.dataTransfer.setData("blockId", block.blockId);
                             e.dataTransfer.setData(
                               "duration",
@@ -1546,6 +1639,8 @@ export default function SchedulingCalendar() {
                                   e.preventDefault();
                                   return;
                                 }
+                                draggingDurationRef.current = durMin;
+                                draggingAppointmentIdRef.current = appt.appointmentId;
                                 e.dataTransfer.setData(
                                   "appointmentId",
                                   appt.appointmentId,
@@ -1734,6 +1829,18 @@ export default function SchedulingCalendar() {
                         </React.Fragment>
                       );
                     })}
+
+                    {dragOverColKey === (view === 'week' ? (colItem as Date).toISOString() : (colItem as any).practitionerId) && dragOverTime && (
+                      <div className={`absolute top-0 left-1/2 -translate-x-1/2 z-50 mt-2 px-4 py-2 rounded-xl shadow-2xl font-black text-xs tracking-wider whitespace-nowrap animate-in fade-in zoom-in-95 duration-150 border ${
+                        dragOverConflict
+                          ? 'bg-red-500 text-white border-red-400 shadow-[0_0_30px_rgba(239,68,68,0.4)]'
+                          : 'bg-[var(--primary)] text-white border-[var(--primary)]/50 shadow-[var(--primary-glow)]'
+                      }`}>
+                        <Clock className="w-3.5 h-3.5 inline-block mr-1.5 -mt-0.5" />
+                        {dragOverTime} · {draggingDurationRef.current}m
+                        {dragOverConflict && <span className="ml-2">⚠ Conflict</span>}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -1766,47 +1873,47 @@ export default function SchedulingCalendar() {
       {/* Confirmation Modal */}
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-md flex items-center justify-center p-6 animate-fade-in">
-          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-10 max-w-sm w-full space-y-8 shadow-2xl">
-            <div className="w-16 h-16 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mx-auto border border-[var(--primary)]/20">
-              <Calendar className="w-8 h-8" />
-            </div>
-            <div className="text-center space-y-2">
-              <h3 className="text-xl font-bold text-[var(--text-primary)]">
+          <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-8 max-w-sm w-full space-y-6 shadow-2xl">
+            <div className="text-center space-y-3">
+              <div className="w-14 h-14 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center text-[var(--primary)] mx-auto border border-[var(--primary)]/20">
+                <Calendar className="w-7 h-7" />
+              </div>
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">
                 {confirmModal.title}
               </h3>
-              <p className="text-[var(--text-muted)] text-sm">
+              <p className="text-[var(--text-muted)] text-sm leading-relaxed">
                 {confirmModal.message}
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={() =>
-                  setConfirmModal((prev) => ({ ...prev, isOpen: false }))
-                }
-                className="py-3 rounded-xl bg-[var(--input-bg)] text-[var(--text-muted)] font-semibold text-sm border border-[var(--card-border)] hover:bg-[var(--primary)]/10 transition-all"
-              >
-                Cancel
-              </button>
-              <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3 pt-2">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => {
                     confirmModal.onConfirm(true);
                     setConfirmModal((prev) => ({ ...prev, isOpen: false }));
                   }}
-                  className="py-3 rounded-xl bg-[var(--primary)] text-white font-semibold text-sm shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all"
+                  className="py-2 px-3 rounded-lg bg-[var(--primary)] text-white font-bold text-xs shadow-md shadow-[var(--primary-glow)] hover:opacity-90 transition-all active:scale-[0.97]"
                 >
-                  Recalculate Travel
+                  Recalc Travel
                 </button>
                 <button
                   onClick={() => {
                     confirmModal.onConfirm(false);
                     setConfirmModal((prev) => ({ ...prev, isOpen: false }));
                   }}
-                  className="py-2 rounded-xl bg-[var(--input-bg)] text-[var(--text-muted)] font-semibold text-xs border border-[var(--card-border)] hover:bg-[var(--primary)]/10 transition-all"
+                  className="py-2 px-3 rounded-lg bg-[var(--input-bg)] text-[var(--text-secondary)] font-bold text-xs border border-[var(--card-border)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-all active:scale-[0.97]"
                 >
-                  Keep Current Time
+                  Keep Current
                 </button>
               </div>
+              <button
+                onClick={() =>
+                  setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+                }
+                className="py-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
