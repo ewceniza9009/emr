@@ -6,9 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Appointments.Commands;
 
-public record ReassignAppointmentCommand(Guid AppointmentId, Guid PractitionerId) : IRequest<Appointment>;
+public record ReassignAppointmentCommand(Guid AppointmentId, Guid PractitionerId)
+    : IRequest<Appointment>;
 
-public class ReassignAppointmentCommandHandler : IRequestHandler<ReassignAppointmentCommand, Appointment>
+public class ReassignAppointmentCommandHandler
+    : IRequestHandler<ReassignAppointmentCommand, Appointment>
 {
     private readonly IApplicationDbContext _context;
     private readonly ISchedulingService _schedulingService;
@@ -17,7 +19,8 @@ public class ReassignAppointmentCommandHandler : IRequestHandler<ReassignAppoint
     public ReassignAppointmentCommandHandler(
         IApplicationDbContext context,
         ISchedulingService schedulingService,
-        INotificationService notificationService)
+        INotificationService notificationService
+    )
     {
         _context = context;
         _schedulingService = schedulingService;
@@ -29,16 +32,22 @@ public class ReassignAppointmentCommandHandler : IRequestHandler<ReassignAppoint
         using var transaction = await _context.Database.BeginTransactionAsync(ct);
         try
         {
-            var appointment = await _context.Appointments
-                .Include(a => a.Patient)
+            var appointment = await _context
+                .Appointments.Include(a => a.Patient)
                 .FirstOrDefaultAsync(a => a.AppointmentId == request.AppointmentId, ct);
 
-            if (appointment == null) throw new KeyNotFoundException("Appointment not found");
+            if (appointment == null)
+                throw new KeyNotFoundException("Appointment not found");
 
-            var available = await _schedulingService.GetAvailableProvidersForReassignmentAsync(request.AppointmentId, ct);
+            var available = await _schedulingService.GetAvailableProvidersForReassignmentAsync(
+                request.AppointmentId,
+                ct
+            );
             if (!available.Any(p => p.PractitionerId == request.PractitionerId))
             {
-                throw new InvalidOperationException("Provider is not available for this appointment slot.");
+                throw new InvalidOperationException(
+                    "Provider is not available for this appointment slot."
+                );
             }
 
             var oldPractitionerId = appointment.PractitionerId;
@@ -47,7 +56,10 @@ public class ReassignAppointmentCommandHandler : IRequestHandler<ReassignAppoint
             await _context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
-            var practitioner = await _context.Practitioners.FindAsync(new object[] { request.PractitionerId }, ct);
+            var practitioner = await _context.Practitioners.FindAsync(
+                new object[] { request.PractitionerId },
+                ct
+            );
             if (practitioner != null)
             {
                 await _notificationService.SendUserNotificationAsync(

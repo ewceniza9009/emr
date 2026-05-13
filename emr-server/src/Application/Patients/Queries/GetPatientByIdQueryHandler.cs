@@ -20,23 +20,10 @@ public class GetPatientByIdQueryHandler : IRequestHandler<GetPatientByIdQuery, P
         CancellationToken cancellationToken
     )
     {
-        var patient = await _context
-            .Patients.Include(p => p.Addresses)
-            .Include(p => p.Phones)
-            .Include(p => p.Emails)
-            .Include(p => p.Contacts)
-            .Include(p => p.PatientDocuments)
-            .Include(p => p.Encounters)
-                .ThenInclude(e => e.VitalSigns)
-            .Include(p => p.Encounters)
-                .ThenInclude(e => e.Practitioner)
-            .Include(p => p.Encounters)
-                .ThenInclude(e => e.ClinicalNotes)
-            .FirstOrDefaultAsync(p => p.PatientId == request.PatientId, cancellationToken);
-
-        if (patient is null)
-            return null;
-
-        return patient.Adapt<PatientDto>();
+        return await _context
+            .Patients.AsNoTracking()
+            .Where(p => p.PatientId == request.PatientId)
+            .ProjectToType<PatientDto>()
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }

@@ -1,13 +1,15 @@
+using Application.Appointments.Dtos;
 using Application.Common.Interfaces;
 using Application.Common.Models;
 using Domain.Entities;
+using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Appointments.Queries;
 
 public class GetAppointmentsQueryHandler
-    : IRequestHandler<GetAppointmentsQuery, PagedResponse<Appointment>>
+    : IRequestHandler<GetAppointmentsQuery, PagedResponse<AppointmentDto>>
 {
     private readonly IApplicationDbContext _context;
 
@@ -16,17 +18,12 @@ public class GetAppointmentsQueryHandler
         _context = context;
     }
 
-    public async Task<PagedResponse<Appointment>> Handle(
+    public async Task<PagedResponse<AppointmentDto>> Handle(
         GetAppointmentsQuery request,
         CancellationToken cancellationToken
     )
     {
-        var query = _context
-            .Appointments.Include(a => a.Patient)
-                .ThenInclude(p => p!.Addresses)
-            .Include(a => a.Practitioner)
-            .Include(a => a.SupportingClinicians)
-            .AsNoTracking();
+        var query = _context.Appointments.AsNoTracking();
 
         if (request.StartDate.HasValue)
             query = query.Where(a => a.ScheduledStart >= request.StartDate.Value);
@@ -35,9 +32,15 @@ public class GetAppointmentsQueryHandler
             query = query.Where(a => a.ScheduledEnd <= request.EndDate.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
-        var items = await query.ToListAsync(cancellationToken);
 
-        return new PagedResponse<Appointment> { Items = items, TotalCount = totalCount };
+        var items = await query
+            .OrderBy(a => a.ScheduledStart)
+            .Skip(request.Skip)
+            .Take(request.Take)
+            .ProjectToType<AppointmentDto>()
+            .ToListAsync(cancellationToken);
+
+        return new PagedResponse<AppointmentDto> { Items = items, TotalCount = totalCount };
     }
 }
 
@@ -65,7 +68,12 @@ public class GetScheduleBlocksQueryHandler
             query = query.Where(b => b.EndTime <= request.EndDate.Value);
 
         var totalCount = await query.CountAsync(cancellationToken);
-        var items = await query.ToListAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(b => b.StartTime)
+            .Skip(request.Skip)
+            .Take(request.Take)
+            .ToListAsync(cancellationToken);
 
         return new PagedResponse<ScheduleBlock> { Items = items, TotalCount = totalCount };
     }

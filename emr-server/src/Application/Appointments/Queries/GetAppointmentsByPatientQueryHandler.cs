@@ -21,12 +21,11 @@ public class GetAppointmentsByPatientQueryHandler
         CancellationToken cancellationToken
     )
     {
-        var appointments = await _context
+        return await _context
             .Appointments.AsNoTracking()
             .Where(a => a.PatientId == request.PatientId)
             .OrderBy(a => a.ScheduledStart)
+            .ProjectToType<AppointmentDto>()
             .ToListAsync(cancellationToken);
-
-        return appointments.Adapt<List<AppointmentDto>>();
     }
 }

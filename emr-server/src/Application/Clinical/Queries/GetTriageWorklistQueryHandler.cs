@@ -1,6 +1,7 @@
 using Application.Clinical.Dtos;
 using Application.Common.Interfaces;
 using Application.Common.Models;
+using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,28 +31,39 @@ public class GetTriageWorklistQueryHandler
                 p.FirstName.ToLower().StartsWith(searchTerm)
                 || p.LastName.ToLower().StartsWith(searchTerm)
                 || p.Mrn.ToLower().Contains(searchTerm)
-                || (searchTerm.Length > 2 && (p.FirstName.ToLower().Contains(searchTerm) || p.LastName.ToLower().Contains(searchTerm)))
+                || (
+                    searchTerm.Length > 2
+                    && (p.FirstName.ToLower().Contains(searchTerm) || p.LastName.ToLower().Contains(searchTerm))
+                )
             );
         }
 
         if (request.IsAlert.HasValue)
         {
-            query = query.Where(p => p.EsasAssessments
-                .OrderByDescending(e => e.AssessedAt)
-                .Any(e => e.Pain > 7 || e.Wellbeing > 7) == request.IsAlert.Value);
+            query = query.Where(p =>
+                p.EsasAssessments.OrderByDescending(e => e.AssessedAt)
+                    .Any(e => e.Pain > 7 || e.Wellbeing > 7) == request.IsAlert.Value
+            );
         }
 
         if (request.DirectiveTypes != null && request.DirectiveTypes.Any())
         {
             if (request.DirectiveTypes.Contains("None"))
             {
-                query = query.Where(p => !p.AdvanceDirectives.Any(ad => ad.IsActive) || 
-                    p.AdvanceDirectives.Any(ad => ad.IsActive && request.DirectiveTypes.Contains(ad.Type.ToString())));
+                query = query.Where(p =>
+                    !p.AdvanceDirectives.Any(ad => ad.IsActive)
+                    || p.AdvanceDirectives.Any(ad =>
+                        ad.IsActive && request.DirectiveTypes.Contains(ad.Type.ToString())
+                    )
+                );
             }
             else
             {
-                query = query.Where(p => p.AdvanceDirectives
-                    .Any(ad => ad.IsActive && request.DirectiveTypes.Contains(ad.Type.ToString())));
+                query = query.Where(p =>
+                    p.AdvanceDirectives.Any(ad =>
+                        ad.IsActive && request.DirectiveTypes.Contains(ad.Type.ToString())
+                    )
+                );
             }
         }
 
@@ -59,33 +71,10 @@ public class GetTriageWorklistQueryHandler
 
         var items = await query
             .OrderBy(p => p.LastName)
+            .ThenBy(p => p.FirstName)
             .Skip(request.Skip)
             .Take(request.Take)
-            .Select(p => new TriageItemDto
-            {
-                PatientId = p.PatientId,
-                Mrn = p.Mrn,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
-                LatestPainScore = p
-                    .EsasAssessments.OrderByDescending(e => e.AssessedAt)
-                    .Select(e => e.Pain)
-                    .FirstOrDefault(),
-                LatestWellbeingScore = p
-                    .EsasAssessments.OrderByDescending(e => e.AssessedAt)
-                    .Select(e => e.Wellbeing)
-                    .FirstOrDefault(),
-                AdvanceDirectiveType =
-                    p.AdvanceDirectives.Where(ad => ad.IsActive)
-                        .OrderByDescending(ad => ad.CreatedAt)
-                        .Select(ad => ad.Type.ToString())
-                        .FirstOrDefault()
-                    ?? "None",
-                IsAlert = p
-                    .EsasAssessments.OrderByDescending(e => e.AssessedAt)
-                    .Any(e => e.Pain > 7 || e.Wellbeing > 7),
-                TriageNote = p.TriageNote
-            })
+            .ProjectToType<TriageItemDto>()
             .ToListAsync(cancellationToken);
 
         return new PagedResponse<TriageItemDto> { Items = items, TotalCount = totalCount };

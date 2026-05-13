@@ -37,7 +37,7 @@ public class OutreachQuery
             );
         }
 
-        return query;
+        return query.OrderBy(o => o.LastName).ThenBy(o => o.FirstName);
     }
 
     [UseClinicalAccess(argumentName: "outreachId", source: ClinicalIdSource.Outreach)]

@@ -24,7 +24,9 @@ public interface ISchedulingService
         CancellationToken cancellationToken = default
     );
 
-    Task<List<Application.Appointments.Dtos.ReassignmentProviderDto>> GetAvailableProvidersForReassignmentAsync(
+    Task<
+        List<Application.Appointments.Dtos.ReassignmentProviderDto>
+    > GetAvailableProvidersForReassignmentAsync(
         Guid appointmentId,
         CancellationToken cancellationToken = default
     );

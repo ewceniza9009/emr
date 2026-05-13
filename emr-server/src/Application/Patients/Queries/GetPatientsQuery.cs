@@ -5,8 +5,8 @@ using MediatR;
 namespace Application.Patients.Queries;
 
 public record GetPatientsQuery(
-    string? Search = null, 
-    int Skip = 0, 
+    string? Search = null,
+    int Skip = 0,
     int Take = 50,
     List<string>? DirectiveTypes = null,
     string? BiologicalSex = null,

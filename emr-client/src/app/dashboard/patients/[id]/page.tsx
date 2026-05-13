@@ -357,14 +357,16 @@ export default function PatientDetailPage() {
       });
 
       // Auto-enable telemetry if there is an active encounter or appointment
-      const hasActiveEncounter = patient.encounters?.some((e: any) =>
-        e.status === "InProgress" || e.status === "Arrived" || e.status === "Triaged"
-      );
+      const hasActiveEncounter = patient.encounters?.some((e: any) => {
+        const s = e.status?.toUpperCase();
+        return s === "INPROGRESS" || s === "IN_PROGRESS" || s === "ARRIVED" || s === "TRIAGED";
+      });
 
       const appointments = [...(apptData?.appointments?.items || [])];
-      const hasActiveAppointment = appointments.some((a: any) =>
-        a.status?.toUpperCase().includes('PROGRESS') || a.status?.toUpperCase() === 'LIVE'
-      );
+      const hasActiveAppointment = appointments.some((a: any) => {
+        const s = a.status?.toUpperCase();
+        return s?.includes('PROGRESS') || s === 'LIVE';
+      });
 
       if (hasActiveEncounter || hasActiveAppointment) {
         setTelemetryEnabled(true);

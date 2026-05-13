@@ -1,6 +1,7 @@
 using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Domain.Entities;
+using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +25,7 @@ public class GetPatientClinicalSummaryQueryHandler
     )
     {
         var patient = await _context
-            .Patients.Include(p => p.Addresses)
+            .Patients.AsNoTracking()
             .FirstOrDefaultAsync(p => p.PatientId == request.PatientId, cancellationToken);
 
         if (patient == null)
@@ -35,7 +36,7 @@ public class GetPatientClinicalSummaryQueryHandler
             .Where(p => p.PatientId == request.PatientId && p.IsActive)
             .OrderByDescending(p => p.StartDate)
             .Select(p => new ActiveMedicationDto(
-                p.Medication.Name,
+                p.Medication!.Name,
                 p.Dose,
                 p.Frequency,
                 p.Route.ToString(),
@@ -100,7 +101,7 @@ public class GetPatientClinicalSummaryQueryHandler
             PatientId = patient.PatientId,
             FullName = $"{patient.FirstName} {patient.LastName}",
             Mrn = patient.Mrn,
-            Age = DateTime.UtcNow.Year - patient.Dob.Year, // Simplified age calc
+            Age = DateTime.UtcNow.Year - patient.Dob.Year,
             Gender = patient.BiologicalSex.ToString(),
             ActiveMedications = meds,
             RecentVitals = flattenedVitals,

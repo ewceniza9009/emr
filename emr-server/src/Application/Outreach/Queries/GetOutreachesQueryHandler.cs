@@ -33,27 +33,36 @@ public class GetOutreachesQueryHandler
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
+
         var items = await query
             .OrderByDescending(o => o.CreatedAt)
             .Skip(request.Skip)
             .Take(request.Take)
             .ToListAsync(cancellationToken);
 
-        // Aggressive retroactive fill for legacy data
-        foreach (var item in items)
+        // Optimized retroactive fill for legacy data (batch fetch to avoid N+1)
+        var missingDataIds = items
+            .Where(i => string.IsNullOrEmpty(i.LatestActivityOutcome))
+            .Select(i => i.PatientOutreachId)
+            .ToList();
+
+        if (missingDataIds.Any())
         {
-            if (string.IsNullOrEmpty(item.LatestActivityOutcome))
+            var latestActivities = await _context.OutreachActivities
+                .Where(a => missingDataIds.Contains(a.OutreachId))
+                .OrderByDescending(a => a.ActivityDate)
+                .ToListAsync(cancellationToken);
+
+            var activityMap = latestActivities
+                .GroupBy(a => a.OutreachId)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            foreach (var item in items)
             {
-                var last = await _context.OutreachActivities
-                    .Where(a => a.OutreachId == item.PatientOutreachId)
-                    .OrderByDescending(a => a.ActivityDate)
-                    .FirstOrDefaultAsync(cancellationToken);
-                
-                if (last != null)
+                if (string.IsNullOrEmpty(item.LatestActivityOutcome) && activityMap.TryGetValue(item.PatientOutreachId, out var last))
                 {
                     item.LatestActivityOutcome = last.Outcome;
                     item.LatestActivityReason = last.Reason;
-                    // Heal the missing activity date if possible
                     item.LastActivityDate ??= last.ActivityDate;
                 }
             }

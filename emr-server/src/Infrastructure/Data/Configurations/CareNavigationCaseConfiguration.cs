@@ -36,7 +36,7 @@ public class CareNavigationCaseConfiguration : IEntityTypeConfiguration<CareNavi
 
         builder
             .HasOne(c => c.Patient)
-            .WithMany()
+            .WithMany(p => p.CareNavigationCases)
             .HasForeignKey(c => c.PatientId)
             .OnDelete(DeleteBehavior.Restrict);
 

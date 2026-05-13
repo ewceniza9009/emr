@@ -8,6 +8,7 @@ import {
   AlertCircle, CheckCircle
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useCommandModal } from "./CommandModalProvider";
 import HalcyonPortal from "./Portal";
 
@@ -193,9 +194,23 @@ export default function ReassignmentBookingDrawer({ open, onClose, onSuccess, ap
               <h2 className="text-md font-black text-[var(--text-primary)] uppercase tracking-tight">Modify Encounter Details</h2>
               <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Adjust clinical assignments and lifecycle</p>
             </div>
-            <button onClick={onClose} className="p-1.5 hover:bg-[var(--primary)]/10 rounded-full transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-3">
+              {(() => {
+                const status = appointment?.status?.toUpperCase();
+                return (status === "LIVE" || status?.includes("PROGRESS")) && (
+                  <Link
+                    href={`/dashboard/patients/${appointment.patient.patientId}/visit?appointmentId=${appointmentId}`}
+                    className="px-4 py-2 rounded-xl bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all flex items-center gap-2 animate-pulse"
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    Join Session
+                  </Link>
+                );
+              })()}
+              <button onClick={onClose} className="p-1.5 hover:bg-[var(--primary)]/10 rounded-full transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
@@ -492,7 +507,15 @@ function ProviderCard({ p, isSelected, onClick, role }: { p: any, isSelected: bo
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {p.avatarUrl ? (
-            <img src={p.avatarUrl} alt="" className="w-10 h-10 rounded-lg border border-[var(--card-border)] object-cover shadow-sm" />
+            <div className="relative w-10 h-10 shrink-0">
+              <Image 
+                src={p.avatarUrl} 
+                alt={p.fullName || "Provider"} 
+                fill 
+                className="rounded-lg border border-[var(--card-border)] object-cover shadow-sm"
+                unoptimized
+              />
+            </div>
           ) : (
             <div className={`w-10 h-10 rounded-lg border flex items-center justify-center transition-colors ${
               isSelected ? "bg-[var(--primary)]/20 border-[var(--primary)] text-[var(--primary)]" : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] group-hover:text-[var(--primary)]"

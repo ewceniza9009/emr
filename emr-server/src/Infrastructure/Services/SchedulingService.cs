@@ -623,7 +623,9 @@ public class SchedulingService : ISchedulingService
         return (true, null);
     }
 
-    public async Task<List<Application.Appointments.Dtos.ReassignmentProviderDto>> GetAvailableProvidersForReassignmentAsync(
+    public async Task<
+        List<Application.Appointments.Dtos.ReassignmentProviderDto>
+    > GetAvailableProvidersForReassignmentAsync(
         Guid appointmentId,
         CancellationToken cancellationToken = default
     )
@@ -682,22 +684,30 @@ public class SchedulingService : ISchedulingService
                 double? driveTime = null;
 
                 // Calculate distance from previous appointment on the same day
-                var dayAppts = await context.Appointments
-                    .AsNoTracking()
+                var dayAppts = await context
+                    .Appointments.AsNoTracking()
                     .Include(a => a.Patient)
                         .ThenInclude(pat => pat.Addresses)
                             .ThenInclude(addr => addr.Address)
-                    .Where(a => a.PractitionerId == p.PractitionerId && 
-                               a.ScheduledStart.Date == appointment.ScheduledStart.Date &&
-                               a.Status != AppointmentStatus.Cancelled &&
-                               !a.IsDeleted)
+                    .Where(a =>
+                        a.PractitionerId == p.PractitionerId
+                        && a.ScheduledStart.Date == appointment.ScheduledStart.Date
+                        && a.Status != AppointmentStatus.Cancelled
+                        && !a.IsDeleted
+                    )
                     .OrderBy(a => a.ScheduledStart)
                     .ToListAsync(cancellationToken);
 
                 var prev = dayAppts.LastOrDefault(a => a.ScheduledStart < start);
-                if (prev != null && patientAddr?.Latitude.HasValue == true && patientAddr?.Longitude.HasValue == true)
+                if (
+                    prev != null
+                    && patientAddr?.Latitude.HasValue == true
+                    && patientAddr?.Longitude.HasValue == true
+                )
                 {
-                    var prevAddr = prev.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+                    var prevAddr = prev
+                        .Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)
+                        ?.Address;
                     if (prevAddr?.Latitude.HasValue == true && prevAddr?.Longitude.HasValue == true)
                     {
                         distance = GeoUtils.CalculateDistance(
@@ -710,16 +720,18 @@ public class SchedulingService : ISchedulingService
                     }
                 }
 
-                available.Add(new Application.Appointments.Dtos.ReassignmentProviderDto
-                {
-                    PractitionerId = p.PractitionerId,
-                    FullName = p.FullName,
-                    TravelTimeMinutes = driveTime,
-                    DistanceInMiles = distance,
-                    IsCareNavigator = p.IsCareNavigator,
-                    IsSupportingClinician = p.IsSupportingClinician,
-                    Position = p.Position.ToString()
-                });
+                available.Add(
+                    new Application.Appointments.Dtos.ReassignmentProviderDto
+                    {
+                        PractitionerId = p.PractitionerId,
+                        FullName = p.FullName,
+                        TravelTimeMinutes = driveTime,
+                        DistanceInMiles = distance,
+                        IsCareNavigator = p.IsCareNavigator,
+                        IsSupportingClinician = p.IsSupportingClinician,
+                        Position = p.Position.ToString(),
+                    }
+                );
             }
         }
 

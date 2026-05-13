@@ -1,3 +1,4 @@
+using Api.GraphQL.Attributes;
 using Application.Appointments.Dtos;
 using Application.Appointments.Queries;
 using Application.Common.Interfaces;
@@ -8,7 +9,6 @@ using HotChocolate.Authorization;
 using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Api.GraphQL.Attributes;
 
 namespace Api.GraphQL.Queries;
 
@@ -56,22 +56,19 @@ public class AppointmentQuery
         var totalCount = await query.CountAsync();
         var items = await query.ProjectToType<AppointmentDto>().ToListAsync();
 
-        return new PagedResponse<AppointmentDto>
-        {
-            Items = items,
-            TotalCount = totalCount
-        };
+        return new PagedResponse<AppointmentDto> { Items = items, TotalCount = totalCount };
     }
 
     [GraphQLName("appointment")]
     [UseClinicalAccess(argumentName: "id", source: ClinicalIdSource.Appointment)]
     public async Task<AppointmentDto?> GetAppointmentById(
-        Guid id, 
+        Guid id,
         [Service] IApplicationDbContext context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+    )
     {
-        return await context.Appointments
-            .Include(a => a.Patient)
+        return await context
+            .Appointments.Include(a => a.Patient)
             .Include(a => a.Practitioner)
             .Include(a => a.SupportingClinicians)
             .Include(a => a.Encounters)
@@ -92,19 +89,24 @@ public class AppointmentQuery
     )
     {
         return await mediator.Send(
-            new GetAvailableProvidersQuery(patientId, targetStart, durationMinutes, modality, appointmentId),
+            new GetAvailableProvidersQuery(
+                patientId,
+                targetStart,
+                durationMinutes,
+                modality,
+                appointmentId
+            ),
             cancellationToken
         );
     }
 
     public async Task<List<ScheduleBlock>> GetScheduleBlocks(
         [Service] IApplicationDbContext context,
-        DateTime? startDate = null, 
-        DateTime? endDate = null)
+        DateTime? startDate = null,
+        DateTime? endDate = null
+    )
     {
-        var query = context.ScheduleBlocks
-            .Include(b => b.Practitioner)
-            .AsNoTracking();
+        var query = context.ScheduleBlocks.Include(b => b.Practitioner).AsNoTracking();
 
         if (startDate.HasValue)
             query = query.Where(b => b.StartTime >= startDate.Value);
@@ -122,6 +124,9 @@ public class AppointmentQuery
         CancellationToken cancellationToken
     )
     {
-        return await schedulingService.GetAvailableProvidersForReassignmentAsync(appointmentId, cancellationToken);
+        return await schedulingService.GetAvailableProvidersForReassignmentAsync(
+            appointmentId,
+            cancellationToken
+        );
     }
 }

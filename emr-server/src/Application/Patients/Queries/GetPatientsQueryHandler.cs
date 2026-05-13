@@ -2,6 +2,7 @@ using Application.Common.Interfaces;
 using Application.Common.Models;
 using Application.Patients.Dtos;
 using Domain.Enums;
+using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,10 +33,7 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
                 || p.Mrn.ToLower().Contains(searchTerm)
                 || (
                     searchTerm.Length > 2
-                    && (
-                        p.FirstName.ToLower().Contains(searchTerm)
-                        || p.LastName.ToLower().Contains(searchTerm)
-                    )
+                    && (p.FirstName.ToLower().Contains(searchTerm) || p.LastName.ToLower().Contains(searchTerm))
                 )
             );
         }
@@ -61,9 +59,12 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
             }
         }
 
-        if (!string.IsNullOrEmpty(request.BiologicalSex))
+        if (
+            !string.IsNullOrEmpty(request.BiologicalSex)
+            && Enum.TryParse<BiologicalSex>(request.BiologicalSex, true, out var sex)
+        )
         {
-            query = query.Where(p => p.BiologicalSex.ToString() == request.BiologicalSex);
+            query = query.Where(p => p.BiologicalSex == sex);
         }
 
         if (request.VisitStatuses != null && request.VisitStatuses.Any())
@@ -86,43 +87,7 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
             .ThenBy(p => p.FirstName)
             .Skip(request.Skip)
             .Take(request.Take)
-            .Select(p => new PatientDto
-            {
-                PatientId = p.PatientId,
-                Mrn = p.Mrn,
-                FirstName = p.FirstName,
-                LastName = p.LastName,
-                Dob = p.Dob,
-                CreatedAt = p.CreatedAt,
-                VisitStatus =
-                    p.Appointments.Where(a => a.Status != AppointmentStatus.Cancelled)
-                        .OrderByDescending(a => a.ScheduledStart)
-                        .Select(a => a.Status.ToString())
-                        .FirstOrDefault()
-                    ?? "No Visit",
-                Addresses = p
-                    .Addresses.Select(a => new Application.Common.Dtos.EntityAddressDto
-                    {
-                        Type = a.Type,
-                        IsPrimary = a.IsPrimary,
-                        Address = new Application.Common.Dtos.AddressDto
-                        {
-                            Street = a.Address.Street,
-                            City = a.Address.City,
-                            State = a.Address.State,
-                            PostalCode = a.Address.PostalCode,
-                        },
-                    })
-                    .ToList(),
-                Phones = p
-                    .Phones.Select(ph => new PatientPhoneDto
-                    {
-                        PhoneNumber = ph.PhoneNumber,
-                        Type = ph.Type,
-                        IsPrimary = ph.IsPrimary,
-                    })
-                    .ToList(),
-            })
+            .ProjectToType<PatientDto>()
             .ToListAsync(cancellationToken);
 
         return new PagedResponse<PatientDto> { Items = items, TotalCount = totalCount };

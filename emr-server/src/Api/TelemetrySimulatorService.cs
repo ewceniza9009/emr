@@ -64,7 +64,7 @@ public class TelemetrySimulatorService : BackgroundService
                     .Distinct()
                     .ToList();
 
-                _logger.LogInformation("Telemetry Simulator found {Count} active patients.", activePatientIds.Count);
+                _logger.LogDebug("Telemetry Simulator found {Count} active patients.", activePatientIds.Count);
 
                 foreach (var patientId in activePatientIds)
                 {

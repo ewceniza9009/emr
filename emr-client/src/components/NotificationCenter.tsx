@@ -174,12 +174,12 @@ export function NotificationCenter() {
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
             className="absolute right-0 mt-3 w-[400px] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] z-[100] overflow-hidden"
           >
-            <div className="px-6 py-4 border-b border-[var(--card-border)] bg-[var(--input-bg)] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-[var(--primary)]" />
+            <div className="px-5 py-3 border-b border-[var(--card-border)] bg-[var(--input-bg)] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
+                  <Zap className="w-3 h-3 text-[var(--primary)]" />
                 </div>
-                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)]">Notifications</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)]">Notifications</h3>
               </div>
               {unreadCount > 0 && (
                 <button
@@ -207,36 +207,36 @@ export function NotificationCenter() {
                   {notifications.map((notif) => (
                     <div
                       key={notif.notificationId}
-                      className={`relative p-6 transition-all hover:bg-[var(--primary)]/[0.02] ${!notif.isRead ? 'bg-[var(--primary)]/[0.03]' : 'opacity-60 grayscale'}`}
+                      className={`relative p-4 transition-all hover:bg-[var(--primary)]/[0.02] ${!notif.isRead ? 'bg-[var(--primary)]/[0.03]' : 'opacity-60 grayscale'}`}
                     >
-                      <div className={`absolute left-0 top-0 bottom-0 w-[3px] transition-all ${notif.priority === 'CRITICAL' ? 'bg-red-500' :
+                      <div className={`absolute left-0 top-0 bottom-0 w-[2px] transition-all ${notif.priority === 'CRITICAL' ? 'bg-red-500' :
                           notif.priority === 'URGENT' ? 'bg-orange-500' :
                             'bg-[var(--primary)]'
                         } ${!notif.isRead ? 'opacity-100' : 'opacity-0'}`} />
 
-                      <div className="flex flex-col gap-3">
+                      <div className="flex flex-col gap-1.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[9px] font-bold font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                          <span className="text-[8px] font-bold font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]">
                             {notif.category || 'Clinical'} {"//"} {notif.notificationId.slice(0, 4)}
                           </span>
-                          <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                          <span className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                             {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true })}
                           </span>
                         </div>
 
-                        <h4 className="text-[12px] font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">
+                        <h4 className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">
                           {notif.title}
                         </h4>
 
-                        <p className="text-[11px] font-medium text-[var(--text-secondary)] leading-relaxed">
+                        <p className="text-[10px] font-medium text-[var(--text-secondary)] leading-relaxed">
                           {notif.message}
                         </p>
 
                         {!notif.isRead && (
-                          <div className="mt-2 flex justify-end">
+                          <div className="mt-1 flex justify-end">
                             <button
                               onClick={() => handleMarkRead(notif.notificationId)}
-                              className="px-4 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--primary)] text-[9px] font-bold uppercase tracking-widest hover:border-[var(--primary)] hover:bg-[var(--card-bg)] transition-all"
+                              className="px-2.5 py-1 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--primary)] text-[8px] font-bold uppercase tracking-widest hover:border-[var(--primary)] hover:bg-[var(--card-bg)] transition-all"
                             >
                               Mark Read
                             </button>
@@ -249,15 +249,15 @@ export function NotificationCenter() {
               )}
             </div>
 
-            <div className="px-6 py-4 border-t border-[var(--card-border)] bg-[var(--input-bg)]/50">
+            <div className="px-5 py-3 border-t border-[var(--card-border)] bg-[var(--input-bg)]/50">
               <button
                 onClick={() => {
                   setIsHistoryOpen(true);
                   setIsOpen(false);
                 }}
-                className="w-full flex items-center justify-center gap-3 py-1 text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
-                <HistoryIcon className="w-4 h-4" />
+                <HistoryIcon className="w-3 h-3" />
                 History Archive
               </button>
             </div>

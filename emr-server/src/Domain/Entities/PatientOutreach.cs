@@ -35,6 +35,7 @@ public class PatientOutreach : BaseEntity, ITenantEntity
     public bool IsOptedOut { get; set; }
     public string? LatestActivityOutcome { get; set; }
     public string? LatestActivityReason { get; set; }
+    public string? PreferredContactTime { get; set; }
 
     public HealthPlan? HealthPlan { get; set; }
     public ICollection<OutreachActivity> Activities { get; set; } = new List<OutreachActivity>();
