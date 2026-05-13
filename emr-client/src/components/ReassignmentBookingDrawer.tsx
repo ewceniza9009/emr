@@ -364,18 +364,27 @@ export default function ReassignmentBookingDrawer({
           <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
             {/* Appointment Header Data */}
             <div className="p-3 bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] shadow-sm space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20 shadow-sm">
-                  <User className="w-4 h-4 text-[var(--primary)]" />
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20 shadow-sm">
+                    <User className="w-4 h-4 text-[var(--primary)]" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">
+                      Patient
+                    </span>
+                    <p className="text-sm font-black text-[var(--text-primary)] tracking-tight">
+                      {appointment?.patient?.fullName || "Loading..."}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">
-                    Patient
-                  </span>
-                  <p className="text-sm font-black text-[var(--text-primary)] tracking-tight">
-                    {appointment?.patient?.fullName || "Loading..."}
-                  </p>
-                </div>
+                {appointment?.status && (
+                  <div className="px-2.5 py-1 rounded-md border border-[var(--card-border)] bg-[var(--input-bg)] shadow-sm">
+                    <span className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-widest">
+                      {appointment.status.replace(/([A-Z])/g, " $1").trim()}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-3 border-t border-[var(--card-border)]">
@@ -385,13 +394,23 @@ export default function ReassignmentBookingDrawer({
                     <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">
                       Time Slot
                     </span>
-                    <p className="text-[11px] font-bold text-[var(--text-secondary)]">
+                    <p className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1.5 mt-0.5">
                       {appointment
                         ? new Date(appointment.scheduledStart).toLocaleString(
                             [],
                             { dateStyle: "medium", timeStyle: "short" },
                           )
                         : "..."}
+                      {appointment?.scheduledEnd && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-black border border-[var(--primary)]/20">
+                          {Math.round(
+                            (new Date(appointment.scheduledEnd).getTime() -
+                              new Date(appointment.scheduledStart).getTime()) /
+                              60000,
+                          )}
+                          m
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -401,13 +420,44 @@ export default function ReassignmentBookingDrawer({
                     <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">
                       Location
                     </span>
-                    <p className="text-[11px] font-bold text-[var(--text-secondary)] truncate">
+                    <p className="text-[11px] font-bold text-[var(--text-secondary)] truncate mt-0.5">
                       {address ? `${address.street}, ${address.city}` : "..."}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Planned Assessments */}
+            {appointment?.plannedAssessments?.length > 0 && (
+              <div className="p-3 bg-[var(--input-bg)]/40 rounded-xl border border-[var(--card-border)] space-y-2">
+                <div className="flex items-center gap-1.5">
+                  <ClipboardList className="w-3 h-3 text-[var(--primary)]" />
+                  <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                    Planned Assessments
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {appointment.plannedAssessments.map(
+                    (assessmentId: string) => {
+                      const opt = ASSESSMENT_OPTIONS.flatMap(
+                        (c) => c.items,
+                      ).find((i) => i.id === assessmentId);
+                      return (
+                        <div
+                          key={assessmentId}
+                          className="flex items-center gap-1.5 px-2 py-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-md"
+                        >
+                          <span className="text-[10px] font-bold text-[var(--text-secondary)]">
+                            {opt ? opt.label : assessmentId.replace(/_/g, " ")}
+                          </span>
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Logistics & Current Assignments */}
             <div className="grid grid-cols-2 gap-3">

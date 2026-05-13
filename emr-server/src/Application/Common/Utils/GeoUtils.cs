@@ -30,6 +30,14 @@ public static class GeoUtils
         return (miles / AverageSpeedMph) * 60;
     }
 
+    public static DateTimeOffset FloorToNearestMinutes(DateTimeOffset dateTime, int minutes)
+    {
+        var ticks = dateTime.Ticks;
+        var minuteTicks = TimeSpan.TicksPerMinute * minutes;
+        var flooredTicks = (ticks / minuteTicks) * minuteTicks;
+        return new DateTimeOffset(flooredTicks, dateTime.Offset);
+    }
+
     private static double ToRadians(double angle)
     {
         return Math.PI * angle / 180.0;
