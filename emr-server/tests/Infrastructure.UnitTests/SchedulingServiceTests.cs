@@ -17,6 +17,7 @@ public class SchedulingServiceTests
     private readonly Mock<ILogger<SchedulingService>> _mockLogger;
     private readonly Mock<Application.Common.Interfaces.ICurrentUserService> _mockUserService;
     private readonly Mock<Application.Common.Interfaces.ISearchService> _mockSearchService;
+    private readonly Mock<Application.Common.Interfaces.ITravelService> _mockTravelService;
     private readonly SchedulingService _service;
 
     // Realistic coordinates (e.g. within a city)
@@ -30,6 +31,7 @@ public class SchedulingServiceTests
         _mockFactory = new Mock<IDbContextFactory<ApplicationDbContext>>();
         _mockUserService = new Mock<Application.Common.Interfaces.ICurrentUserService>();
         _mockSearchService = new Mock<Application.Common.Interfaces.ISearchService>();
+        _mockTravelService = new Mock<Application.Common.Interfaces.ITravelService>();
 
         _mockContext = new Mock<ApplicationDbContext>(
             new DbContextOptions<ApplicationDbContext>(),
@@ -43,7 +45,11 @@ public class SchedulingServiceTests
             .ReturnsAsync(_mockContext.Object);
         _mockFactory.Setup(f => f.CreateDbContext()).Returns(_mockContext.Object);
 
-        _service = new SchedulingService(_mockFactory.Object, _mockLogger.Object);
+        _service = new SchedulingService(
+            _mockFactory.Object,
+            _mockTravelService.Object,
+            _mockLogger.Object
+        );
 
         // Default empty setups to avoid NullReferenceExceptions
         _mockContext.Setup(c => c.Patients).Returns(new List<Patient>().BuildMockDbSet().Object);

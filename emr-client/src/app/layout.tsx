@@ -8,7 +8,7 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 
 export const metadata: Metadata = {
-  title: "Halkyone",
+  title: "HALKYONE",
   description: "Enterprise-grade Clinical Electronic Medical Record system.",
   manifest: "/manifest.json",
   icons: {

@@ -95,6 +95,17 @@ public class AppointmentMutation
     {
         return await mediator.Send(new DeleteScheduleBlockCommand(id), cancellationToken);
     }
+
+    [UseClinicalAccess(argumentName: "appointmentId", source: ClinicalIdSource.Appointment)]
+    public async Task<Appointment> ReassignAppointment(
+        Guid appointmentId,
+        Guid practitionerId,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        return await mediator.Send(new ReassignAppointmentCommand(appointmentId, practitionerId), cancellationToken);
+    }
 }
 
 public record CreateScheduleBlockInput(

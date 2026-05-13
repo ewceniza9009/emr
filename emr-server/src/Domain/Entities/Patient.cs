@@ -24,6 +24,8 @@ public class Patient : BaseEntity, ITenantEntity
     public string? TriageNote { get; set; }
     public bool IsActive { get; set; } = true;
 
+    public string FullName => $"{FirstName} {LastName}".Trim();
+
     // Navigation Properties
     public ICollection<EntityAddress> Addresses { get; set; } = new List<EntityAddress>();
 

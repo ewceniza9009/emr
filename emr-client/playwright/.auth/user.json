@@ -2,7 +2,7 @@
   "cookies": [
     {
       "name": "next-auth.callback-url",
-      "value": "http%3A%2F%2Flocalhost%3A3431",
+      "value": "http%3A%2F%2Flocalhost%3A3671",
       "domain": "127.0.0.1",
       "path": "/",
       "expires": -1,
@@ -33,7 +33,7 @@
   ],
   "origins": [
     {
-      "origin": "http://127.0.0.1:3431",
+      "origin": "http://127.0.0.1:3671",
       "localStorage": [
         {
           "name": "nextauth.message",

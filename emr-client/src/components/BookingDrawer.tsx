@@ -700,18 +700,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               </div>
             </div>
             <div className="flex items-center gap-6">
-              {appointmentId && (() => {
-                const status = appointmentData?.appointment?.status?.toUpperCase();
-                return (status === "LIVE" || status?.includes("PROGRESS")) && (
-                  <Link
-                    href={`/dashboard/patients/${appointmentData?.appointment?.patientId}/visit?appointmentId=${appointmentId}`}
-                    className="px-5 py-2.5 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all flex items-center gap-2 animate-pulse"
-                  >
-                    <Video className="w-4 h-4" />
-                    Join Session
-                  </Link>
-                );
-              })()}
+
               <div className="flex items-center gap-3 px-4 py-2 bg-[var(--input-bg)] rounded-xl border border-[var(--card-border)]">
                 {availabilityLoading ? (
                   <div className="flex items-center gap-2">
@@ -1430,49 +1419,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
               </section>
 
               <div className="mt-auto pt-8 space-y-6">
-                {appointmentId && (
-                  <div className="grid grid-cols-3 gap-2">
-                    <button type="button" disabled={isLocked} onClick={async () => {
-                      await alert({
-                        title: "Appointment Completed",
-                        message: "The encounter has been successfully finalized in the clinical record.",
-                        type: "success"
-                      });
-                    }} className="p-3 bg-[var(--input-bg)] hover:bg-emerald-500/10 rounded-xl border border-[var(--card-border)] hover:border-emerald-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all disabled:opacity-20">
-                      <CheckCircle className="w-4 h-4 text-emerald-500" />
-                      <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-emerald-500">Done</span>
-                    </button>
-                    <button type="button" disabled={isLocked} onClick={async () => {
-                      const ok = await confirm({
-                        title: "Cancel Appointment",
-                        message: "Are you sure you want to cancel this scheduled encounter?",
-                        type: "warning"
-                      });
-                      if (ok) {
-                      }
-                    }} className="p-3 bg-[var(--input-bg)] hover:bg-rose-500/10 rounded-xl border border-[var(--card-border)] hover:border-rose-500/30 flex flex-col items-center justify-center gap-1.5 group transition-all disabled:opacity-20">
-                      <X className="w-4 h-4 text-rose-500" />
-                      <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-rose-500">Cancel</span>
-                    </button>
-                    <button type="button" disabled={isLocked} onClick={async () => {
-                      const ok = await confirm({
-                        title: "Delete Appointment",
-                        message: "Are you sure you want to permanently delete this appointment record? This action cannot be undone.",
-                        type: "danger"
-                      });
-                      if (ok && appointmentId) {
-                        try {
-                          await deleteAppt({ variables: { id: appointmentId } });
-                        } catch (err) {
-                          alert({ title: "Error", message: "Failed to delete appointment.", type: "danger" });
-                        }
-                      }
-                    }} className="p-3 bg-[var(--input-bg)] hover:bg-red-600/20 rounded-xl border border-[var(--card-border)] hover:border-red-600/50 flex flex-col items-center justify-center gap-1.5 group transition-all disabled:opacity-20">
-                      <AlertCircle className="w-4 h-4 text-red-600" />
-                      <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--text-muted)] group-hover:text-red-600">Delete</span>
-                    </button>
-                  </div>
-                )}
+
                 {isLocked && (
                   <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-4 animate-in slide-in-from-bottom-2">
                     <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center shrink-0">

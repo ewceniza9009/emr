@@ -467,7 +467,7 @@ function AdminDashboardContent() {
 
   return (
     <div className="flex min-h-screen bg-[var(--background)]">
-      <title>Halkyone - Admin Portal</title>
+      <title>HALKYONE - Admin Portal</title>
       <AdminSidebar activeTab={activeTab} setActiveTab={handleTabChange} />
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">

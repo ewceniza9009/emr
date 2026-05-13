@@ -58,7 +58,7 @@ public class ProcessOutboxMessagesJob : BackgroundService
         {
             try
             {
-                _logger.LogInformation(
+                _logger.LogDebug(
                     "Processing outbox message {MessageId} of type {MessageType}",
                     message.Id,
                     message.Type

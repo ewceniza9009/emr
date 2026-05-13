@@ -114,4 +114,14 @@ public class AppointmentQuery
 
         return await query.ToListAsync();
     }
+
+    [GraphQLName("availableProvidersForReassignment")]
+    public async Task<List<ReassignmentProviderDto>> GetAvailableProvidersForReassignment(
+        Guid appointmentId,
+        [Service] ISchedulingService schedulingService,
+        CancellationToken cancellationToken
+    )
+    {
+        return await schedulingService.GetAvailableProvidersForReassignmentAsync(appointmentId, cancellationToken);
+    }
 }

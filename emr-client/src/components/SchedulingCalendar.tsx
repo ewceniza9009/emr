@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import BookingDrawer from "./BookingDrawer";
+import ReassignmentBookingDrawer from "./ReassignmentBookingDrawer";
 import {
   ChevronLeft, ChevronRight, Calendar, User, Stethoscope, Shield,
   Users, Filter, Plus, Video, Home, Building2, Activity,
@@ -131,7 +132,9 @@ export default function SchedulingCalendar() {
     return d.toISOString();
   };
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
   const [drawerPrefill, setDrawerPrefill] = useState<string | undefined>();
+  const [reassignApptId, setReassignApptId] = useState<string | null>(null);
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set());
   const [selectedPractitioners, setSelectedPractitioners] = useState<Set<string>>(new Set());
 
@@ -755,8 +758,8 @@ export default function SchedulingCalendar() {
                               }}
                               onClick={() => { 
                                 if (statusConfig.label === "DONE") return;
-                                setDrawerPrefill(appt.appointmentId); 
-                                setDrawerOpen(true); 
+                                setReassignApptId(appt.appointmentId);
+                                setReassignOpen(true);
                               }}
                               className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col ${statusConfig.label === "DONE" ? "cursor-default select-none" : "cursor-grab active:cursor-grabbing"} overflow-hidden z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px] backdrop-blur-[2px]
                                     ${isViewedAsAttending 
@@ -856,6 +859,16 @@ export default function SchedulingCalendar() {
       </div>
 
       <BookingDrawer key={drawerPrefill} open={drawerOpen} onClose={() => setDrawerOpen(false)} onBooked={() => refetch()} prefillDate={drawerPrefill} appointmentId={drawerPrefill?.length === 36 ? drawerPrefill : undefined} />
+      
+      {reassignApptId && (
+        <ReassignmentBookingDrawer 
+          open={reassignOpen} 
+          onClose={() => setReassignOpen(false)} 
+          onSuccess={() => refetch()} 
+          appointmentId={reassignApptId}
+          userRoles={(session?.user as any)?.roles || []}
+        />
+      )}
 
       {/* Confirmation Modal */}
       {confirmModal.isOpen && (

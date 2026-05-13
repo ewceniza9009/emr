@@ -261,9 +261,9 @@ public static class ConfigureServices
                     builder
                         .WithOrigins(
                             "https://carenavigator.emr.local",
-                            "http://localhost:3431",
+                            "http://localhost:3671",
                             "http://localhost:3000",
-                            "http://127.0.0.1:3431"
+                            "http://127.0.0.1:3671"
                         )
                         .AllowAnyMethod()
                         .AllowAnyHeader()

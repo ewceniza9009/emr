@@ -80,7 +80,7 @@ jobs:
           NEXT_PUBLIC_GRAPHQL_URL: http://127.0.0.1:34732/graphql
           NEXT_PUBLIC_GRAPHQL_WS_URL: ws://127.0.0.1:34732/graphql
           NEXTAUTH_SECRET: "ci-secret-halkyone"
-          NEXTAUTH_URL: http://127.0.0.1:3431
+          NEXTAUTH_URL: http://127.0.0.1:3671
 
       - name: Run E2E Tests
         run: |
@@ -91,11 +91,11 @@ jobs:
           export ASPNETCORE_ENVIRONMENT=Production
           (cd emr-server/src/Api && dotnet run --no-build --no-launch-profile --configuration Release --urls "http://127.0.0.1:34732" -- --seed) &
           
-          # Start Frontend (Forcing port 3431)
-          (cd emr-client && npm start -- -p 3431) &
+          # Start Frontend (Forcing port 3671)
+          (cd emr-client && npm start -- -p 3671) &
           
           # Wait for services to be 100% Healthy
-          npx wait-on -t 600000 http://127.0.0.1:34732/health http://127.0.0.1:3431
+          npx wait-on -t 600000 http://127.0.0.1:34732/health http://127.0.0.1:3671
           
           # SEEDING BUFFER: Give the cloud runner 60s to finish the heavy database seeding
           echo "Services online. Waiting 60s for clinical seeding to finalize..."
@@ -116,7 +116,7 @@ jobs:
           # Keep these for Playwright as well
           INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD || 'Halkyone@Initial!2026' }}
           NEXTAUTH_SECRET: "ci-secret-halkyone"
-          NEXTAUTH_URL: http://127.0.0.1:3431
+          NEXTAUTH_URL: http://127.0.0.1:3671
           Logging__LogLevel__Default: Warning
           Serilog__MinimumLevel__Default: Warning
 
