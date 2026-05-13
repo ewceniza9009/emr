@@ -1,7 +1,7 @@
+using System.Linq;
 using Application.Billing.Commands;
 using HotChocolate.Authorization;
 using MediatR;
-using System.Linq;
 
 namespace Api.GraphQL.Mutations;
 
@@ -18,8 +18,8 @@ public class BillingMutation
         return await mediator.Send(command, cancellationToken);
     }
 
-    public async Task<Application.Billing.Dtos.BillingInvoiceDto> CreateInvoice(
-        CreateInvoiceInput input,
+    public async Task<Application.Billing.Dtos.BillingInvoiceDto> CreateBillingInvoice(
+        CreateInvoiceCommandInput input,
         [Service] IMediator mediator,
         CancellationToken cancellationToken
     )
@@ -28,14 +28,13 @@ public class BillingMutation
         {
             PatientId = input.PatientId,
             EncounterId = input.EncounterId,
+            ClaimId = input.ClaimId,
             SubtotalAmount = input.SubtotalAmount,
             CoveredAmount = input.CoveredAmount,
             DueInDays = input.DueInDays ?? 30,
-            Items = input.Items.Select(i => new InvoiceItemInput(
-                i.Description,
-                i.Quantity,
-                i.UnitPrice
-            )).ToList()
+            Items = input
+                .Items.Select(i => new InvoiceItemInput(i.Description, i.Quantity, i.UnitPrice))
+                .ToList(),
         };
 
         return await mediator.Send(command, cancellationToken);
@@ -60,39 +59,36 @@ public class BillingMutation
     }
 
     public async Task<Application.Billing.Dtos.BillingInvoiceDto> UpdateInvoice(
-        UpdateInvoiceInput input,
+        UpdateInvoiceCommandInput command,
         [Service] IMediator mediator,
         CancellationToken cancellationToken
     )
     {
-        var command = new UpdateInvoiceCommand
+        var mediatorCommand = new UpdateInvoiceCommand
         {
-            InvoiceId = input.InvoiceId,
-            SubtotalAmount = input.SubtotalAmount,
-            CoveredAmount = input.CoveredAmount,
-            DueInDays = input.DueInDays ?? 30
+            InvoiceId = command.InvoiceId,
+            SubtotalAmount = command.SubtotalAmount,
+            CoveredAmount = command.CoveredAmount,
+            DueInDays = command.DueInDays ?? 30,
         };
 
-        return await mediator.Send(command, cancellationToken);
+        return await mediator.Send(mediatorCommand, cancellationToken);
     }
 }
 
-public record CreateInvoiceInput(
+public record CreateInvoiceCommandInput(
     Guid PatientId,
     Guid? EncounterId,
+    Guid? ClaimId,
     decimal SubtotalAmount,
     decimal CoveredAmount,
     int? DueInDays,
     List<InvoiceItemInputRecord> Items
 );
 
-public record InvoiceItemInputRecord(
-    string Description,
-    decimal Quantity,
-    decimal UnitPrice
-);
+public record InvoiceItemInputRecord(string Description, decimal Quantity, decimal UnitPrice);
 
-public record UpdateInvoiceInput(
+public record UpdateInvoiceCommandInput(
     Guid InvoiceId,
     decimal SubtotalAmount,
     decimal CoveredAmount,

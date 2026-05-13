@@ -14,6 +14,7 @@ public record UpdateOutreachLeadCommand : IRequest<bool>
     public string? CommunicationStatus { get; init; }
     public string? TechAccess { get; init; }
     public string? BarriersToCare { get; init; }
+    public string? PreferredContactTime { get; init; }
 }
 
 public class UpdateOutreachLeadCommandHandler : IRequestHandler<UpdateOutreachLeadCommand, bool>
@@ -52,6 +53,9 @@ public class UpdateOutreachLeadCommandHandler : IRequestHandler<UpdateOutreachLe
             
         if (request.BarriersToCare != null)
             outreach.BarriersToCare = request.BarriersToCare;
+
+        if (request.PreferredContactTime != null)
+            outreach.PreferredContactTime = request.PreferredContactTime;
 
         await _context.SaveChangesAsync(cancellationToken);
 

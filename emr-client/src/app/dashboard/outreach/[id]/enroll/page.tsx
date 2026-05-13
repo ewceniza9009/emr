@@ -55,6 +55,7 @@ const GET_LEAD_DETAILS = gql`
       selectedModality
       disposition
       healthPlanId
+      preferredContactTime
       otherContacts {
         outreachContactId
         firstName
@@ -152,6 +153,7 @@ export default function OutreachDetail() {
   const [communicationStatus, setCommunicationStatus] = useState("Verbal");
   const [techAccess, setTechAccess] = useState("SmartphoneOnly");
   const [barriersToCare, setBarriersToCare] = useState("");
+  const [preferredContactTime, setPreferredContactTime] = useState("");
   const [orientationDate, setOrientationDate] = useState("");
 
   // Operational State
@@ -201,6 +203,7 @@ export default function OutreachDetail() {
       if (lead.selectedModality) setSelectedModality(heal(lead.selectedModality));
       if (lead.healthPlanId) setSelectedPlan(lead.healthPlanId);
       if (lead.barriersToCare) setBarriersToCare(lead.barriersToCare);
+      if (lead.preferredContactTime) setPreferredContactTime(lead.preferredContactTime);
     }
   }, [leadData]);
 
@@ -728,14 +731,30 @@ export default function OutreachDetail() {
                       <Zap className="w-3 h-3 text-teal-500 animate-pulse" />
                     </div>
                     <div className="bg-teal-500/5 border border-teal-500/10 rounded-xl p-3">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <Clock className="w-3 h-3 text-teal-500" />
-                        <span className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-tight">Best Time to Call</span>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3 h-3 text-teal-500" />
+                          <span className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-tight">Best Time to Call</span>
+                        </div>
+                        <select 
+                          value={preferredContactTime || "Morning (09:00 - 11:00)"} 
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setPreferredContactTime(val);
+                            handleUpdateLead({ preferredContactTime: val });
+                          }}
+                          className="bg-transparent border-none text-[8px] font-black text-teal-500 uppercase tracking-widest outline-none cursor-pointer hover:opacity-80 transition-all text-right appearance-none"
+                        >
+                          <option value="Morning (09:00 - 11:00)" className="bg-slate-900">Morning (09:00 - 11:00)</option>
+                          <option value="Afternoon (14:00 - 16:00)" className="bg-slate-900">Afternoon (14:00 - 16:00)</option>
+                          <option value="Evening (18:00 - 20:00)" className="bg-slate-900">Evening (18:00 - 20:00)</option>
+                          <option value="Anytime" className="bg-slate-900">Anytime</option>
+                        </select>
                       </div>
-                      <p className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">
-                        {parseInt(params.id as string, 16) % 2 === 0 ? "Morning (09:00 - 11:00)" : "Afternoon (14:00 - 16:00)"}
+                      <p className="text-[10px] font-bold text-teal-400 uppercase tracking-widest leading-none">
+                        {preferredContactTime || (parseInt(params.id as string, 16) % 2 === 0 ? "Morning (09:00 - 11:00)" : "Afternoon (14:00 - 16:00)")}
                       </p>
-                      <p className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-tight mt-1 opacity-60 italic">Based on historical success patterns.</p>
+                      <p className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-tight mt-2 opacity-60 italic">Based on historical success patterns.</p>
                     </div>
                   </div>
                   {lead.notes && (

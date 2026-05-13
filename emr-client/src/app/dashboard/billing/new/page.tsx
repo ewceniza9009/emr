@@ -331,10 +331,10 @@ export default function NewInvoicePage() {
                {/* Framework & Entities */}
                <div className="col-span-12 xl:col-span-4 space-y-4 flex flex-col h-full overflow-y-auto custom-scrollbar">
                   {/* Recipient Module */}
-                  <div className="bg-[var(--card-bg)] rounded-[1.5rem] border border-[var(--card-border)] p-5 shadow-xl relative overflow-hidden group flex flex-col min-h-[220px]">
+                  <div className="bg-[var(--card-bg)] rounded-[1.5rem] border border-[var(--card-border)] p-6 shadow-xl relative overflow-hidden group flex flex-col min-h-[260px]">
                      <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full blur-[60px] -mr-16 -mt-16 group-hover:bg-[var(--primary)]/10 transition-all duration-700" />
 
-                     <div className="flex items-center justify-between relative">
+                     <div className="flex items-center justify-between relative mb-6">
                         <h3 className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Recipient Protocol</h3>
                         {selectedPatient && (
                            <button
@@ -345,7 +345,7 @@ export default function NewInvoicePage() {
                            </button>
                         )}
                      </div>
-                     <div className="flex-1 flex flex-col justify-center mt-4">
+                     <div className="flex-1 flex flex-col justify-center">
                         {selectedPatient ? (
                            <div className="space-y-4 relative">
                               <div className="flex items-center gap-3">
@@ -379,7 +379,7 @@ export default function NewInvoicePage() {
                         ) : (
                            <button
                               onClick={() => setIsPatientLookupOpen(true)}
-                              className="w-full py-12 rounded-[2rem] border-2 border-dashed border-[var(--card-border)] flex flex-col items-center justify-center gap-4 hover:border-[var(--primary)]/50 hover:bg-[var(--input-bg)]/50 transition-all group relative overflow-hidden"
+                              className="w-full py-8 rounded-[2rem] border-2 border-dashed border-[var(--card-border)] flex flex-col items-center justify-center gap-4 hover:border-[var(--primary)]/50 hover:bg-[var(--input-bg)]/50 transition-all group relative overflow-hidden"
                            >
                               <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                               <div className="w-16 h-16 rounded-xl bg-[var(--input-bg)] flex items-center justify-center text-[var(--text-muted)] group-hover:text-[var(--primary)] group-hover:scale-105 transition-all border border-[var(--card-border)] shadow-xl relative">
@@ -395,8 +395,8 @@ export default function NewInvoicePage() {
                   </div>
 
                   {/* Z-Benefit Integration */}
-                  <div className="bg-[var(--card-bg)] rounded-[1.5rem] border border-[var(--card-border)] p-5 shadow-xl flex flex-col relative overflow-hidden group min-h-[220px]">
-                     <div className="flex items-center justify-between mb-4">
+                  <div className="bg-[var(--card-bg)] rounded-[1.5rem] border border-[var(--card-border)] p-6 shadow-xl flex flex-col relative overflow-hidden group min-h-[260px]">
+                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                            <CheckCircle2 className="w-5 h-5 text-[var(--primary)]" />
                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Benefit Integration</h3>

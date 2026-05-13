@@ -80,7 +80,7 @@ try
 
             if (builder.Environment.IsDevelopment())
             {
-                tracing.AddConsoleExporter();
+                // tracing.AddConsoleExporter();
             }
         });
 
