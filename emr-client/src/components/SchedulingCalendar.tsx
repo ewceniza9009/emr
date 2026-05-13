@@ -299,6 +299,7 @@ export default function SchedulingCalendar() {
   const [dragOverConflict, setDragOverConflict] = useState(false);
   const draggingDurationRef = useRef(0);
   const draggingAppointmentIdRef = useRef<string | null>(null);
+  const draggingTravelTimeRef = useRef(0);
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(
     new Set(),
   );
@@ -1156,6 +1157,7 @@ export default function SchedulingCalendar() {
                                       const durMin = (new Date(appt.scheduledEnd).getTime() - new Date(appt.scheduledStart).getTime()) / 60000;
                                       draggingDurationRef.current = durMin;
                                       draggingAppointmentIdRef.current = appt.appointmentId;
+                                      draggingTravelTimeRef.current = appt.travelTimeMinutes || 0;
                                       e.dataTransfer.setData("appointmentId", appt.appointmentId);
                                       e.dataTransfer.setData("duration", durMin.toString());
                                     }}
@@ -1209,6 +1211,7 @@ export default function SchedulingCalendar() {
                                             const durMin = (new Date(block.endTime).getTime() - new Date(block.startTime).getTime()) / 60000;
                                             draggingDurationRef.current = durMin;
                                             draggingAppointmentIdRef.current = null;
+                                            draggingTravelTimeRef.current = 0;
                                             e.dataTransfer.setData("blockId", block.blockId);
                                             e.dataTransfer.setData("duration", durMin.toString());
                                             setExpandedMonthDay(null);
