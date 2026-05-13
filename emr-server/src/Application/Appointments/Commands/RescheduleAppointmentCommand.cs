@@ -8,7 +8,8 @@ namespace Application.Appointments.Commands;
 public record RescheduleAppointmentCommand(
     Guid AppointmentId,
     DateTimeOffset NewStart,
-    DateTimeOffset NewEnd
+    DateTimeOffset NewEnd,
+    bool RecalculateTravelTime = true
 ) : IRequest<Appointment>;
 
 public class RescheduleAppointmentCommandHandler(
@@ -41,24 +42,27 @@ public class RescheduleAppointmentCommandHandler(
 
         await context.SaveChangesAsync(cancellationToken);
 
-        // Recalculate stats after saving the new time
-        var stats = await schedulingService.RecalculateAppointmentStatsAsync(
-            appointment.AppointmentId,
-            cancellationToken
-        );
-        appointment.DistanceInMiles = stats.distance;
-        appointment.TravelTimeMinutes = stats.travelTime;
-
-        await context.SaveChangesAsync(cancellationToken);
-
-        // Validate logistics for the new time slot
-        var (isValid, reason) = await schedulingService.ValidateLogisticsAsync(
-            appointment.AppointmentId,
-            cancellationToken
-        );
-        if (!isValid)
+        if (request.RecalculateTravelTime)
         {
-            throw new Exception(reason);
+            // Recalculate stats after saving the new time
+            var stats = await schedulingService.RecalculateAppointmentStatsAsync(
+                appointment.AppointmentId,
+                cancellationToken
+            );
+            appointment.DistanceInMiles = stats.distance;
+            appointment.TravelTimeMinutes = stats.travelTime;
+
+            await context.SaveChangesAsync(cancellationToken);
+
+            // Validate logistics for the new time slot
+            var (isValid, reason) = await schedulingService.ValidateLogisticsAsync(
+                appointment.AppointmentId,
+                cancellationToken
+            );
+            if (!isValid)
+            {
+                throw new Exception(reason);
+            }
         }
 
         // Also update the next appointment's logistics as they may have changed

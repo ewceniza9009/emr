@@ -304,7 +304,7 @@ export default function SchedulingCalendar() {
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
-    onConfirm: () => void;
+    onConfirm: (recalculateTravelTime: boolean) => void;
     title: string;
     message: string;
   }>({ isOpen: false, onConfirm: () => {}, title: "", message: "" });
@@ -681,9 +681,9 @@ export default function SchedulingCalendar() {
 
       setConfirmModal({
         isOpen: true,
-        title: "Confirm Reschedule",
-        message: "Are you sure you want to reschedule this encounter?",
-        onConfirm: () => {
+        title: "Reschedule Encounter",
+        message: `Travel time may change with the new time slot. Do you want to recalculate or keep the current travel time?`,
+        onConfirm: (recalculateTravelTime: boolean) => {
           setLocalAppointments((prev) =>
             prev.map((a) =>
               a.appointmentId === apptId
@@ -701,6 +701,7 @@ export default function SchedulingCalendar() {
                 appointmentId: apptId,
                 newStart: newStart.toISOString(),
                 newEnd: newEnd.toISOString(),
+                recalculateTravelTime,
               },
             },
           });
@@ -1774,7 +1775,7 @@ export default function SchedulingCalendar() {
                 {confirmModal.title}
               </h3>
               <p className="text-[var(--text-muted)] text-sm">
-                {confirmModal.message.toLowerCase()}
+                {confirmModal.message}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -1786,15 +1787,26 @@ export default function SchedulingCalendar() {
               >
                 Cancel
               </button>
-              <button
-                onClick={() => {
-                  confirmModal.onConfirm();
-                  setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-                }}
-                className="py-3 rounded-xl bg-[var(--primary)] text-white font-semibold text-sm shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all"
-              >
-                Confirm Move
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => {
+                    confirmModal.onConfirm(true);
+                    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                  }}
+                  className="py-3 rounded-xl bg-[var(--primary)] text-white font-semibold text-sm shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all"
+                >
+                  Recalculate Travel
+                </button>
+                <button
+                  onClick={() => {
+                    confirmModal.onConfirm(false);
+                    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                  }}
+                  className="py-2 rounded-xl bg-[var(--input-bg)] text-[var(--text-muted)] font-semibold text-xs border border-[var(--card-border)] hover:bg-[var(--primary)]/10 transition-all"
+                >
+                  Keep Current Time
+                </button>
+              </div>
             </div>
           </div>
         </div>

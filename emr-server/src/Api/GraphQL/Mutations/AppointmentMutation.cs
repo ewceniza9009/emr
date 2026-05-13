@@ -43,7 +43,7 @@ public class AppointmentMutation
     )
     {
         return await mediator.Send(
-            new RescheduleAppointmentCommand(input.AppointmentId, input.NewStart, input.NewEnd),
+            new RescheduleAppointmentCommand(input.AppointmentId, input.NewStart, input.NewEnd, input.RecalculateTravelTime),
             cancellationToken
         );
     }
@@ -142,7 +142,8 @@ public record BookAppointmentInput(
 public record RescheduleAppointmentInput(
     Guid AppointmentId,
     DateTimeOffset NewStart,
-    DateTimeOffset NewEnd
+    DateTimeOffset NewEnd,
+    bool RecalculateTravelTime = true
 );
 
 public record UpdateScheduleBlockInput(
