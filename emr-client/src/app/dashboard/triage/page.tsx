@@ -24,8 +24,8 @@ import TriageNoteDrawer from "@/components/TriageNoteDrawer";
 import TriageFilterPopover, { TriageFilters } from "@/components/TriageFilterPopover";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const GET_TRIAGE_WORKLIST = gql`
-  query GetTriageWorklist($search: String, $isAlert: Boolean, $directiveTypes: [String!]) {
+const GET_TRIAGE_DASHBOARD_DATA = gql`
+  query GetTriageDashboardData($search: String, $isAlert: Boolean, $directiveTypes: [String!]) {
     triageWorklist(search: $search, isAlert: $isAlert, directiveTypes: $directiveTypes) {
       items {
         patientId
@@ -39,6 +39,12 @@ const GET_TRIAGE_WORKLIST = gql`
         triageNote
       }
       totalCount
+    }
+    facilityOutreach {
+      facilityId
+      name
+      patientCount
+      crisisCount
     }
   }
 `;
@@ -55,7 +61,7 @@ export default function TriageDashboard() {
 
   const [filters, setFilters] = useState<TriageFilters>({ isAlert: null, directiveTypes: [] });
 
-  const { data, loading, refetch, networkStatus } = useQuery(GET_TRIAGE_WORKLIST, {
+  const { data, loading, refetch, networkStatus } = useQuery(GET_TRIAGE_DASHBOARD_DATA, {
     variables: {
       search: debouncedSearch || undefined,
       isAlert: filters.isAlert,
@@ -118,6 +124,7 @@ export default function TriageDashboard() {
   );
 
   const triageItems = data?.triageWorklist?.items || [];
+  const facilityOutreach = data?.facilityOutreach || [];
 
   const handleLogDnr = (patientId: string) => {
     setSelectedPatientId(patientId);
@@ -301,13 +308,9 @@ export default function TriageDashboard() {
               Facility Outreach
             </h2>
             <div className="space-y-4">
-              {[
-                { name: "Manila Medical Center", patients: 12, crisis: 2 },
-                { name: "QC Care Home", patients: 8, crisis: 0 },
-                { name: "St. Lukes Hospital", patients: 5, crisis: 1 },
-              ].map((f) => (
+              {facilityOutreach.map((f: any) => (
                 <div
-                  key={f.name}
+                  key={f.facilityId}
                   onClick={() => router.push("/dashboard/navigation")}
                   className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-emerald-500/30 transition-all cursor-pointer group active:scale-[0.98]"
                 >
@@ -316,13 +319,18 @@ export default function TriageDashboard() {
                     <TrendingUp className="w-4 h-4 text-[var(--text-muted)]" />
                   </div>
                   <div className="flex gap-3">
-                    <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">{f.patients} Patients</div>
-                    {f.crisis > 0 && (
-                      <div className="text-[10px] text-red-500 uppercase tracking-wider font-bold">{f.crisis} In Crisis</div>
+                    <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-bold">{f.patientCount} Patients</div>
+                    {f.crisisCount > 0 && (
+                      <div className="text-[10px] text-red-500 uppercase tracking-wider font-bold">{f.crisisCount} In Crisis</div>
                     )}
                   </div>
                 </div>
               ))}
+              {facilityOutreach.length === 0 && (
+                <div className="py-8 text-center">
+                  <p className="text-[var(--text-muted)] text-xs italic">No active facility outreach programs found.</p>
+                </div>
+              )}
             </div>
             <button
               onClick={() => router.push("/dashboard/navigation")}

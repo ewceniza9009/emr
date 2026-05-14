@@ -126,6 +126,30 @@ public class ClinicalQuery
         );
     }
 
+    [GraphQLName("facilityOutreach")]
+    public async Task<List<FacilityOutreachDto>> GetFacilityOutreach(
+        [Service] IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        return await context.Facilities
+            .AsNoTracking()
+            .Select(f => new FacilityOutreachDto
+            {
+                FacilityId = f.FacilityId,
+                Name = f.Name,
+                PatientCount = f.Residents.Count(),
+                CrisisCount = f.Residents.Count(p => p.EsasAssessments
+                    .OrderByDescending(e => e.AssessedAt)
+                    .Take(1)
+                    .Any(e => e.Pain > 7 || e.Wellbeing > 7))
+            })
+            .OrderByDescending(f => f.CrisisCount)
+            .ThenByDescending(f => f.PatientCount)
+            .Take(3) // The UI shows top 3
+            .ToListAsync(cancellationToken);
+    }
+
     public IQueryable<SmartPhrase> GetSmartPhrases([Service] IApplicationDbContext context)
     {
         return context.SmartPhrases.AsNoTracking();
