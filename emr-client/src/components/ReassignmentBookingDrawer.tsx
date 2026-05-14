@@ -33,6 +33,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useCommandModal } from "./CommandModalProvider";
+import { useToast } from "./ToastProvider";
 import HalcyonPortal from "./Portal";
 
 const GET_REASSIGNMENT_DATA = gql`
@@ -216,11 +217,13 @@ export default function ReassignmentBookingDrawer({
   userRoles,
 }: Props) {
   const { confirm, alert } = useCommandModal();
+  const { showToast } = useToast();
   const [leadSearch, setLeadSearch] = useState("");
   const [supportSearch, setSupportSearch] = useState("");
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [selectedSupportIds, setSelectedSupportIds] = useState<string[]>([]);
   const [plannedAssessments, setPlannedAssessments] = useState<string[]>([]);
+  const [booked, setBooked] = useState(false);
 
   const canAccess = useMemo(() => {
     const allowed = [
@@ -254,25 +257,40 @@ export default function ReassignmentBookingDrawer({
   const [updateAppt, { loading: updating }] = useMutation(BOOK_APPOINTMENT, {
     refetchQueries: ["GetScheduleData"],
     onCompleted: () => {
-      onSuccess();
-      onClose();
+      setBooked(true);
+      setTimeout(() => {
+        setBooked(false);
+        onSuccess();
+        onClose();
+      }, 1500);
     },
+    onError: (err) => showToast(err.message, "error"),
   });
 
   const [deleteAppt] = useMutation(DELETE_APPOINTMENT, {
     refetchQueries: ["GetScheduleData"],
     onCompleted: () => {
-      onSuccess();
-      onClose();
+      setBooked(true);
+      setTimeout(() => {
+        setBooked(false);
+        onSuccess();
+        onClose();
+      }, 1500);
     },
+    onError: (err) => showToast(err.message, "error"),
   });
 
   const [updateStatus, { loading: statusUpdating }] = useMutation(UPDATE_APPOINTMENT_STATUS, {
     refetchQueries: ["GetScheduleData"],
     onCompleted: () => {
-      onSuccess();
-      onClose();
+      setBooked(true);
+      setTimeout(() => {
+        setBooked(false);
+        onSuccess();
+        onClose();
+      }, 1500);
     },
+    onError: (err) => showToast(err.message, "error"),
   });
 
   const { cns, scs } = useMemo(() => {
@@ -343,7 +361,7 @@ export default function ReassignmentBookingDrawer({
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end">
+      <div className="fixed inset-0 z-[1000] flex justify-end">
         <div
           className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           onClick={onClose}
@@ -790,25 +808,33 @@ export default function ReassignmentBookingDrawer({
                 </button>
                 <button
                   disabled={updateDisabled}
-                  onClick={() => {
+                  onClick={async () => {
                     if (updateDisabled) return;
                     const appointment = data?.appointment;
                     if (!appointment) return;
 
-                    updateAppt({
-                      variables: {
-                        input: {
-                          appointmentId,
-                          patientId: appointment.patient.patientId,
-                          practitionerId: selectedLeadId,
-                          supportingPractitionerIds: selectedSupportIds,
-                          scheduledStart: appointment.scheduledStart,
-                          scheduledEnd: appointment.scheduledEnd,
-                          modality: appointment.modality,
-                          plannedAssessments,
-                        },
-                      },
+                    const ok = await confirm({
+                      title: "Confirm Changes",
+                      message: "Are you sure you want to update the clinical team and parameters for this encounter?",
+                      type: "warning",
                     });
+
+                    if (ok) {
+                      updateAppt({
+                        variables: {
+                          input: {
+                            appointmentId,
+                            patientId: appointment.patient.patientId,
+                            practitionerId: selectedLeadId,
+                            supportingPractitionerIds: selectedSupportIds,
+                            scheduledStart: appointment.scheduledStart,
+                            scheduledEnd: appointment.scheduledEnd,
+                            modality: appointment.modality,
+                            plannedAssessments,
+                          },
+                        },
+                      });
+                    }
                   }}
                   className={`px-6 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg ${
                     updateDisabled
@@ -831,6 +857,15 @@ export default function ReassignmentBookingDrawer({
               </div>
             </div>
           </div>
+          {booked && (
+            <div className="absolute inset-0 bg-[var(--background)]/95 backdrop-blur-3xl z-[50] flex flex-col items-center justify-center animate-in fade-in duration-500 rounded-l-[2rem] overflow-hidden">
+              <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mb-8 border-4 border-emerald-500/20 shadow-[0_0_50px_rgba(16,185,129,0.2)]">
+                <CheckCircle className="w-12 h-12 text-emerald-500 animate-in zoom-in duration-700" />
+              </div>
+              <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight mb-2 uppercase">Changes Confirmed</h2>
+              <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-xs">Clinical records synchronized successfully</p>
+            </div>
+          )}
         </div>
       </div>
     </HalcyonPortal>

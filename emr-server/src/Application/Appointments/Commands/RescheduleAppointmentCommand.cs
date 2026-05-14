@@ -10,14 +10,16 @@ public record RescheduleAppointmentCommand(
     DateTimeOffset NewStart,
     DateTimeOffset NewEnd,
     bool RecalculateTravelTime = true
-) : IRequest<Appointment>;
+) : IRequest<RescheduleAppointmentResponse>;
+
+public record RescheduleAppointmentResponse(Appointment? Appointment, string? Error = null);
 
 public class RescheduleAppointmentCommandHandler(
     IApplicationDbContext context,
     ISchedulingService schedulingService
-) : IRequestHandler<RescheduleAppointmentCommand, Appointment>
+) : IRequestHandler<RescheduleAppointmentCommand, RescheduleAppointmentResponse>
 {
-    public async Task<Appointment> Handle(
+    public async Task<RescheduleAppointmentResponse> Handle(
         RescheduleAppointmentCommand request,
         CancellationToken cancellationToken
     )
@@ -29,12 +31,15 @@ public class RescheduleAppointmentCommandHandler(
 
         if (appointment == null)
         {
-            throw new Exception("Appointment not found");
+            return new RescheduleAppointmentResponse(null, "Appointment not found");
         }
 
         if (appointment.Status == Domain.Enums.AppointmentStatus.InProgress)
         {
-            throw new Exception("Cannot reschedule an appointment that is already in progress.");
+            return new RescheduleAppointmentResponse(
+                null,
+                "Cannot reschedule an appointment that is already in progress."
+            );
         }
 
         appointment.ScheduledStart = request.NewStart;
@@ -46,7 +51,7 @@ public class RescheduleAppointmentCommandHandler(
         {
             // Recalculate stats after saving the new time
             var stats = await schedulingService.RecalculateAppointmentStatsAsync(
-                appointment.AppointmentId,
+                appointment,
                 cancellationToken
             );
             appointment.DistanceInMiles = stats.distance;
@@ -56,12 +61,12 @@ public class RescheduleAppointmentCommandHandler(
 
             // Validate logistics for the new time slot
             var (isValid, reason) = await schedulingService.ValidateLogisticsAsync(
-                appointment.AppointmentId,
+                appointment,
                 cancellationToken
             );
             if (!isValid)
             {
-                throw new Exception(reason);
+                return new RescheduleAppointmentResponse(null, reason);
             }
         }
 
@@ -78,7 +83,7 @@ public class RescheduleAppointmentCommandHandler(
         if (nextAppt != null)
         {
             var nextStats = await schedulingService.RecalculateAppointmentStatsAsync(
-                nextAppt.AppointmentId,
+                nextAppt,
                 cancellationToken
             );
             nextAppt.TravelTimeMinutes = nextStats.travelTime;
@@ -86,6 +91,6 @@ public class RescheduleAppointmentCommandHandler(
             await context.SaveChangesAsync(cancellationToken);
         }
 
-        return appointment;
+        return new RescheduleAppointmentResponse(appointment);
     }
 }

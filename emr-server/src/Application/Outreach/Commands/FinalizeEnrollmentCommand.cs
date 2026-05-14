@@ -98,16 +98,31 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         );
 
         // Map remaining command-specific fields
-        if (!string.IsNullOrEmpty(request.CommunicationStatus) && Enum.TryParse<CommunicationAbility>(request.CommunicationStatus.Replace("_", ""), true, out var commStatus))
+        if (
+            !string.IsNullOrEmpty(request.CommunicationStatus)
+            && Enum.TryParse<CommunicationAbility>(
+                request.CommunicationStatus.Replace("_", ""),
+                true,
+                out var commStatus
+            )
+        )
         {
             patient.CommunicationStatus = commStatus;
         }
         else
         {
-            patient.CommunicationStatus = outreach.CommunicationStatus ?? CommunicationAbility.Verbal;
+            patient.CommunicationStatus =
+                outreach.CommunicationStatus ?? CommunicationAbility.Verbal;
         }
 
-        if (!string.IsNullOrEmpty(request.TechAccess) && Enum.TryParse<TechAccessLevel>(request.TechAccess.Replace("_", ""), true, out var techAccess))
+        if (
+            !string.IsNullOrEmpty(request.TechAccess)
+            && Enum.TryParse<TechAccessLevel>(
+                request.TechAccess.Replace("_", ""),
+                true,
+                out var techAccess
+            )
+        )
         {
             patient.TechAccess = techAccess;
         }
@@ -117,8 +132,14 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         }
 
         patient.BarriersToCare = request.BarriersToCare ?? outreach.BarriersToCare;
-        patient.Dob = request.DateOfBirth == default ? (outreach.DateOfBirth ?? default) : request.DateOfBirth;
-        patient.BiologicalSex = request.BiologicalSex == BiologicalSex.Unknown ? (outreach.BiologicalSex ?? BiologicalSex.Unknown) : request.BiologicalSex;
+        patient.Dob =
+            request.DateOfBirth == default
+                ? (outreach.DateOfBirth ?? default)
+                : request.DateOfBirth;
+        patient.BiologicalSex =
+            request.BiologicalSex == BiologicalSex.Unknown
+                ? (outreach.BiologicalSex ?? BiologicalSex.Unknown)
+                : request.BiologicalSex;
         patient.GenderIdentity = request.GenderIdentity ?? outreach.GenderIdentity;
         patient.Language = request.Language ?? outreach.Language ?? "English";
         patient.CivilStatus = request.CivilStatus ?? outreach.CivilStatus;
@@ -140,8 +161,8 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         var navigatorId = request.CareNavigatorId;
         if (!navigatorId.HasValue)
         {
-            var navigator = await _context.Practitioners
-                .Where(p => p.IsCareNavigator && p.IsActive)
+            var navigator = await _context
+                .Practitioners.Where(p => p.IsCareNavigator && p.IsActive)
                 .FirstOrDefaultAsync(cancellationToken);
             navigatorId = navigator?.PractitionerId;
         }
@@ -154,10 +175,10 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                 NavigatorId = navigatorId.Value,
                 Status = CaseStatus.Open,
                 OpenedAt = _dateTimeProvider.UtcNow,
-                AcuityLevel = AcuityLevel.Moderate
+                AcuityLevel = AcuityLevel.Moderate,
             };
             _context.CareNavigationCases.Add(careCase);
-            
+
             // Add initial task: "Initial Clinical Assessment"
             var task = new NavigationTask
             {
@@ -165,12 +186,16 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                 AssignedToId = request.PrimaryClinicianId ?? navigatorId.Value,
                 Description = "Initial Comprehensive Clinical Assessment & Care Plan",
                 DueDate = request.OrientationDate ?? _dateTimeProvider.UtcNow.AddDays(2),
-                Status = NavigationTaskStatus.Pending
+                Status = NavigationTaskStatus.Pending,
             };
             _context.NavigationTasks.Add(task);
 
             // 4. Create Clinical Appointment (Booking) - Optional
-            if (request.ScheduleIntakeNow && request.OrientationDate.HasValue && request.PrimaryClinicianId.HasValue)
+            if (
+                request.ScheduleIntakeNow
+                && request.OrientationDate.HasValue
+                && request.PrimaryClinicianId.HasValue
+            )
             {
                 var appointment = new Appointment
                 {
@@ -182,31 +207,39 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                     ScheduledEnd = request.OrientationDate.Value.AddMinutes(60), // Default 1hr intake
                     Status = AppointmentStatus.Scheduled,
                     VisitType = VisitType.InitialHospiceIntake,
-                    Modality = request.Modality.ToLower() switch
+                    Modality = (request.Modality ?? "HomeCare").ToLower() switch
                     {
                         "homecare" => AppointmentModality.InPersonHomeVisit,
                         "facility" => AppointmentModality.InPersonFacility,
                         "virtual" => AppointmentModality.TelehealthVideo,
-                        _ => AppointmentModality.InPersonHomeVisit
+                        _ => AppointmentModality.InPersonHomeVisit,
                     },
-                    CreatedAt = _dateTimeProvider.UtcNow
+                    CreatedAt = _dateTimeProvider.UtcNow,
                 };
                 _context.Appointments.Add(appointment);
-                
+
                 // Save first to ensure the service can fetch the record with relations
                 await _context.SaveChangesAsync(cancellationToken);
 
                 // 4-A. Hydrate Geospatial Telemetry (Distance & Drive Time)
-                try {
-                  var (distance, travelTime) = await _schedulingService.RecalculateAppointmentStatsAsync(
-                      appointment.AppointmentId,
-                      cancellationToken
-                  );
-                  
-                  appointment.DistanceInMiles = distance;
-                  appointment.TravelTimeMinutes = travelTime;
-                } catch (Exception ex) {
-                  _logger.LogWarning(ex, "Failed to recalculate geospatial stats for appointment {AppointmentId}. Proceeding with enrollment.", appointment.AppointmentId);
+                try
+                {
+                    var (distance, travelTime) =
+                        await _schedulingService.RecalculateAppointmentStatsAsync(
+                            appointment,
+                            cancellationToken
+                        );
+
+                    appointment.DistanceInMiles = distance;
+                    appointment.TravelTimeMinutes = travelTime;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Failed to recalculate geospatial stats for appointment {AppointmentId}. Proceeding with enrollment.",
+                        appointment.AppointmentId
+                    );
                 }
             }
         }
@@ -214,25 +247,53 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         // 5. Update Outreach Lead
         outreach.Status = OutreachStatus.Enrolled;
         outreach.EnrolledPatientId = patient.PatientId;
-        
-        if (!string.IsNullOrEmpty(request.Modality) && Enum.TryParse<CareModality>(request.Modality.Replace("_", ""), true, out var modality))
+
+        if (
+            !string.IsNullOrEmpty(request.Modality)
+            && Enum.TryParse<CareModality>(
+                request.Modality.Replace("_", ""),
+                true,
+                out var modality
+            )
+        )
         {
             outreach.SelectedModality = modality;
         }
 
         outreach.HealthPlanId = request.HealthPlanId;
-        
-        if (!string.IsNullOrEmpty(request.Disposition) && Enum.TryParse<EnrollmentDisposition>(request.Disposition.Replace("_", ""), true, out var disposition))
+
+        if (
+            !string.IsNullOrEmpty(request.Disposition)
+            && Enum.TryParse<EnrollmentDisposition>(
+                request.Disposition.Replace("_", ""),
+                true,
+                out var disposition
+            )
+        )
         {
             outreach.Disposition = disposition;
         }
 
-        if (!string.IsNullOrEmpty(request.CommunicationStatus) && Enum.TryParse<CommunicationAbility>(request.CommunicationStatus.Replace("_", ""), true, out var outreachCommStatus))
+        if (
+            !string.IsNullOrEmpty(request.CommunicationStatus)
+            && Enum.TryParse<CommunicationAbility>(
+                request.CommunicationStatus.Replace("_", ""),
+                true,
+                out var outreachCommStatus
+            )
+        )
         {
             outreach.CommunicationStatus = outreachCommStatus;
         }
 
-        if (!string.IsNullOrEmpty(request.TechAccess) && Enum.TryParse<TechAccessLevel>(request.TechAccess.Replace("_", ""), true, out var outreachTechAccess))
+        if (
+            !string.IsNullOrEmpty(request.TechAccess)
+            && Enum.TryParse<TechAccessLevel>(
+                request.TechAccess.Replace("_", ""),
+                true,
+                out var outreachTechAccess
+            )
+        )
         {
             outreach.TechAccess = outreachTechAccess;
         }

@@ -6,17 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Appointments.Commands;
 
-public record UpdateAppointmentStatusCommand(
-    Guid AppointmentId,
-    AppointmentStatus Status
-) : IRequest<Appointment>;
+public record UpdateAppointmentStatusCommand(Guid AppointmentId, AppointmentStatus Status)
+    : IRequest<UpdateAppointmentStatusResponse>;
+
+public record UpdateAppointmentStatusResponse(Appointment? Appointment, string? Error = null);
 
 public class UpdateAppointmentStatusCommandHandler(
     IApplicationDbContext context,
     INotificationService notificationService
-) : IRequestHandler<UpdateAppointmentStatusCommand, Appointment>
+) : IRequestHandler<UpdateAppointmentStatusCommand, UpdateAppointmentStatusResponse>
 {
-    public async Task<Appointment> Handle(
+    public async Task<UpdateAppointmentStatusResponse> Handle(
         UpdateAppointmentStatusCommand request,
         CancellationToken cancellationToken
     )
@@ -26,13 +26,25 @@ public class UpdateAppointmentStatusCommandHandler(
             .FirstOrDefaultAsync(a => a.AppointmentId == request.AppointmentId, cancellationToken);
 
         if (appointment == null)
-            throw new Exception("Appointment not found");
+            return new UpdateAppointmentStatusResponse(null, "Appointment not found");
 
-        if (appointment.Status == AppointmentStatus.InProgress && request.Status != AppointmentStatus.InProgress)
-            throw new InvalidOperationException("Cannot change status of an appointment that is already in progress.");
+        if (
+            appointment.Status == AppointmentStatus.InProgress
+            && request.Status != AppointmentStatus.InProgress
+        )
+            return new UpdateAppointmentStatusResponse(
+                null,
+                "Cannot change status of an appointment that is already in progress."
+            );
 
-        if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled)
-            throw new InvalidOperationException($"Cannot change status of a {appointment.Status.ToString().ToLower()} appointment.");
+        if (
+            appointment.Status == AppointmentStatus.Completed
+            || appointment.Status == AppointmentStatus.Cancelled
+        )
+            return new UpdateAppointmentStatusResponse(
+                null,
+                $"Cannot change status of a {appointment.Status.ToString().ToLower()} appointment."
+            );
 
         var oldStatus = appointment.Status;
         appointment.Status = request.Status;
@@ -53,6 +65,6 @@ public class UpdateAppointmentStatusCommandHandler(
             );
         }
 
-        return appointment;
+        return new UpdateAppointmentStatusResponse(appointment);
     }
 }

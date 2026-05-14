@@ -2,7 +2,10 @@ using Api.GraphQL.Attributes;
 using Application.Appointments.Commands;
 using Domain.Entities;
 using Domain.Enums;
+using HotChocolate;
 using HotChocolate.Authorization;
+using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using MediatR;
 
 namespace Api.GraphQL.Mutations;
@@ -12,13 +15,14 @@ namespace Api.GraphQL.Mutations;
 public class AppointmentMutation
 {
     [UseClinicalAccess(argumentName: "PatientId")]
-    public async Task<Appointment> BookAppointment(
+    public async Task<Appointment?> BookAppointment(
         BookAppointmentInput input,
         [Service] IMediator mediator,
+        IResolverContext context,
         CancellationToken cancellationToken
     )
     {
-        return await mediator.Send(
+        var response = await mediator.Send(
             new BookAppointmentCommand(
                 input.PatientId,
                 input.PractitionerId,
@@ -33,19 +37,40 @@ public class AppointmentMutation
             ),
             cancellationToken
         );
+
+        if (response.Error != null)
+        {
+            context.ReportError(response.Error);
+            return null;
+        }
+
+        return response.Appointment;
     }
 
     [UseClinicalAccess(argumentName: "AppointmentId", source: ClinicalIdSource.Appointment)]
-    public async Task<Appointment> RescheduleAppointment(
+    public async Task<Appointment?> RescheduleAppointment(
         RescheduleAppointmentInput input,
         [Service] IMediator mediator,
+        IResolverContext context,
         CancellationToken cancellationToken
     )
     {
-        return await mediator.Send(
-            new RescheduleAppointmentCommand(input.AppointmentId, input.NewStart, input.NewEnd, input.RecalculateTravelTime),
+        var response = await mediator.Send(
+            new RescheduleAppointmentCommand(
+                input.AppointmentId,
+                input.NewStart,
+                input.NewEnd
+            ),
             cancellationToken
         );
+
+        if (response.Error != null)
+        {
+            context.ReportError(response.Error);
+            return null;
+        }
+
+        return response.Appointment;
     }
 
     public async Task<ScheduleBlock> UpdateScheduleBlock(
@@ -81,10 +106,17 @@ public class AppointmentMutation
     public async Task<bool> DeleteAppointment(
         Guid id,
         [Service] IMediator mediator,
+        IResolverContext context,
         CancellationToken cancellationToken
     )
     {
-        return await mediator.Send(new DeleteAppointmentCommand(id), cancellationToken);
+        var response = await mediator.Send(new DeleteAppointmentCommand(id), cancellationToken);
+        if (response.Error != null)
+        {
+            context.ReportError(response.Error);
+            return false;
+        }
+        return response.Success;
     }
 
     public async Task<bool> DeleteScheduleBlock(
@@ -108,16 +140,26 @@ public class AppointmentMutation
     }
 
     [UseClinicalAccess(argumentName: "appointmentId", source: ClinicalIdSource.Appointment)]
-    public async Task<Appointment> UpdateAppointmentStatus(
-        UpdateAppointmentStatusInput input,
+    public async Task<Appointment?> UpdateAppointmentStatus(
+        Guid appointmentId,
+        AppointmentStatus status,
         [Service] IMediator mediator,
+        IResolverContext context,
         CancellationToken cancellationToken
     )
     {
-        return await mediator.Send(
-            new UpdateAppointmentStatusCommand(input.AppointmentId, input.Status),
+        var response = await mediator.Send(
+            new UpdateAppointmentStatusCommand(appointmentId, status),
             cancellationToken
         );
+
+        if (response.Error != null)
+        {
+            context.ReportError(response.Error);
+            return null;
+        }
+
+        return response.Appointment;
     }
 }
 

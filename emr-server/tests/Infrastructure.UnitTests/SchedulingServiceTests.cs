@@ -683,7 +683,9 @@ public class SchedulingServiceTests
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
 
-        var (distance, travelTime) = await _service.RecalculateAppointmentStatsAsync(appointmentId);
+        var (distance, travelTime) = await _service.RecalculateAppointmentStatsAsync(
+            appointments.Object.First()
+        );
 
         distance.Should().BeGreaterThan(0);
         travelTime.Should().BeGreaterThan(0);
@@ -754,7 +756,7 @@ public class SchedulingServiceTests
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
 
         var (distance, travelTime) = await _service.RecalculateAppointmentStatsAsync(
-            appointmentId2
+            appointments.Object.First(a => a.AppointmentId == appointmentId2)
         );
 
         distance.Should().BeApproximately(9.74, 0.1);
@@ -776,7 +778,9 @@ public class SchedulingServiceTests
 
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
 
-        var (distance, travelTime) = await _service.RecalculateAppointmentStatsAsync(appointmentId);
+        var (distance, travelTime) = await _service.RecalculateAppointmentStatsAsync(
+            appointments.Object.First()
+        );
 
         distance.Should().Be(0);
         travelTime.Should().Be(0);
@@ -826,7 +830,9 @@ public class SchedulingServiceTests
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
 
-        var (isValid, reason) = await _service.ValidateLogisticsAsync(appointmentId2);
+        var (isValid, reason) = await _service.ValidateLogisticsAsync(
+            appointments.Object.First(a => a.AppointmentId == appointmentId2)
+        );
 
         isValid.Should().BeFalse();
         reason.Should().Contain("Logistics Violation");

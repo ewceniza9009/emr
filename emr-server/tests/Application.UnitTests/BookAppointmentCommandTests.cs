@@ -3,6 +3,7 @@ using Application.Common.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore.Storage;
 using MockQueryable.Moq;
 using Moq;
 
@@ -25,12 +26,24 @@ public class BookAppointmentCommandTests
 
         // Default successful logistics setups
         _mockSchedulingService
-            .Setup(s => s.RecalculateAppointmentStatsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Setup(s =>
+                s.RecalculateAppointmentStatsAsync(
+                    It.IsAny<Appointment>(),
+                    It.IsAny<CancellationToken>()
+                )
+            )
             .ReturnsAsync((0.0, 0.0));
 
         _mockSchedulingService
-            .Setup(s => s.ValidateLogisticsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .Setup(s =>
+                s.ValidateLogisticsAsync(It.IsAny<Appointment>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync((true, null));
+
+        var mockTransaction = new Mock<IDbContextTransaction>();
+        _mockContext
+            .Setup(c => c.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mockTransaction.Object);
     }
 
     [Fact]
@@ -57,10 +70,14 @@ public class BookAppointmentCommandTests
 
         // Assert
         result.Should().NotBeNull();
-        result.PatientId.Should().Be(command.PatientId);
-        result.PractitionerId.Should().Be(command.PractitionerId);
+        result.Appointment.Should().NotBeNull();
+        result.Appointment.PatientId.Should().Be(command.PatientId);
+        result.Appointment.PractitionerId.Should().Be(command.PractitionerId);
         _mockContext.Verify(c => c.Appointments.Add(It.IsAny<Appointment>()), Times.Once);
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce());
+        _mockContext.Verify(
+            c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.AtLeastOnce()
+        );
     }
 
     [Fact]
@@ -96,10 +113,14 @@ public class BookAppointmentCommandTests
 
         // Assert
         result.Should().NotBeNull();
-        result.AppointmentId.Should().Be(appointmentId);
-        result.PatientId.Should().Be(command.PatientId); // Updated
+        result.Appointment.Should().NotBeNull();
+        result.Appointment.AppointmentId.Should().Be(appointmentId);
+        result.Appointment.PatientId.Should().Be(command.PatientId); // Updated
         _mockContext.Verify(c => c.Appointments.Add(It.IsAny<Appointment>()), Times.Never);
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce());
+        _mockContext.Verify(
+            c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
+            Times.AtLeastOnce()
+        );
     }
 
     [Fact]

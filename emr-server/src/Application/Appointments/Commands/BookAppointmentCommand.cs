@@ -17,14 +17,16 @@ public record BookAppointmentCommand(
     double? DistanceInMiles = null,
     List<AssessmentType>? PlannedAssessments = null,
     Guid? AppointmentId = null
-) : IRequest<Appointment>;
+) : IRequest<BookAppointmentResponse>;
+
+public record BookAppointmentResponse(Appointment? Appointment, string? Error = null);
 
 public class BookAppointmentCommandHandler(
     IApplicationDbContext context,
     ISchedulingService schedulingService
-) : IRequestHandler<BookAppointmentCommand, Appointment>
+) : IRequestHandler<BookAppointmentCommand, BookAppointmentResponse>
 {
-    public async Task<Appointment> Handle(
+    public async Task<BookAppointmentResponse> Handle(
         BookAppointmentCommand request,
         CancellationToken cancellationToken
     )
@@ -46,7 +48,8 @@ public class BookAppointmentCommandHandler(
 
         if (hasConflict)
         {
-            throw new InvalidOperationException(
+            return new BookAppointmentResponse(
+                null,
                 "Collision Detected: This practitioner already has an appointment scheduled during this time window."
             );
         }
@@ -71,7 +74,8 @@ public class BookAppointmentCommandHandler(
 
             if (appointment.Status == AppointmentStatus.InProgress)
             {
-                throw new InvalidOperationException(
+                return new BookAppointmentResponse(
+                    null,
                     "Cannot update or reschedule an appointment that is already in progress."
                 );
             }
@@ -135,6 +139,10 @@ public class BookAppointmentCommandHandler(
             context.Appointments.Add(appointment);
         }
 
+        await using var transaction = await context.BeginTransactionAsync(
+            cancellationToken
+        );
+
         await context.SaveChangesAsync(cancellationToken);
 
         // Recalculate if needed (new appointment or location-impacting change)
@@ -143,7 +151,7 @@ public class BookAppointmentCommandHandler(
             try
             {
                 var stats = await schedulingService.RecalculateAppointmentStatsAsync(
-                    appointment.AppointmentId,
+                    appointment,
                     cancellationToken
                 );
                 appointment.TravelTimeMinutes = stats.travelTime;
@@ -152,13 +160,13 @@ public class BookAppointmentCommandHandler(
 
                 // FINAL LOGISTICS VALIDATION: Ensure this appointment fits between neighbors
                 var (isValid, reason) = await schedulingService.ValidateLogisticsAsync(
-                    appointment.AppointmentId,
+                    appointment,
                     cancellationToken
                 );
                 if (!isValid)
                 {
-                    // Rollback or throw (for now we throw to prevent bad data)
-                    throw new InvalidOperationException(reason);
+                    await transaction.RollbackAsync(cancellationToken);
+                    return new BookAppointmentResponse(null, reason);
                 }
 
                 // RECALCULATE NEXT APPOINTMENT: The next visit's transit time might have changed
@@ -174,7 +182,7 @@ public class BookAppointmentCommandHandler(
                 if (nextAppt != null)
                 {
                     var nextStats = await schedulingService.RecalculateAppointmentStatsAsync(
-                        nextAppt.AppointmentId,
+                        nextAppt,
                         cancellationToken
                     );
                     nextAppt.TravelTimeMinutes = nextStats.travelTime;
@@ -192,6 +200,8 @@ public class BookAppointmentCommandHandler(
             }
         }
 
-        return appointment;
+        await transaction.CommitAsync(cancellationToken);
+
+        return new BookAppointmentResponse(appointment);
     }
 }

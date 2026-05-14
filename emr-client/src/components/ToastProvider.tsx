@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
@@ -31,7 +31,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div className="fixed bottom-8 right-8 z-[100] flex flex-col gap-4">
+      <div className="fixed bottom-8 right-8 z-[2000] flex flex-col gap-4">
         {toasts.map((t) => (
           <div 
             key={t.id} 

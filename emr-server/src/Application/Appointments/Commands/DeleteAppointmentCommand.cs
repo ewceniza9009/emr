@@ -1,18 +1,21 @@
 using Application.Common.Interfaces;
+using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Appointments.Commands;
 
-public record DeleteAppointmentCommand(Guid AppointmentId) : IRequest<bool>;
+public record DeleteAppointmentCommand(Guid AppointmentId) : IRequest<DeleteAppointmentResponse>;
+
+public record DeleteAppointmentResponse(bool Success, string? Error = null);
 
 public class DeleteAppointmentCommandHandler(
     IApplicationDbContext context,
     INotificationService notificationService,
     ISchedulingService schedulingService
-) : IRequestHandler<DeleteAppointmentCommand, bool>
+) : IRequestHandler<DeleteAppointmentCommand, DeleteAppointmentResponse>
 {
-    public async Task<bool> Handle(
+    public async Task<DeleteAppointmentResponse> Handle(
         DeleteAppointmentCommand request,
         CancellationToken cancellationToken
     )
@@ -22,11 +25,12 @@ public class DeleteAppointmentCommandHandler(
             .FirstOrDefaultAsync(a => a.AppointmentId == request.AppointmentId, cancellationToken);
 
         if (appointment == null)
-            return false;
+            return new DeleteAppointmentResponse(false, "Appointment not found");
 
-        if (appointment.Status == Domain.Enums.AppointmentStatus.InProgress)
+        if (appointment.Status == AppointmentStatus.InProgress)
         {
-            throw new InvalidOperationException(
+            return new DeleteAppointmentResponse(
+                false,
                 "Cannot delete an appointment that is already in progress."
             );
         }
@@ -54,7 +58,7 @@ public class DeleteAppointmentCommandHandler(
         if (nextAppt != null)
         {
             var nextStats = await schedulingService.RecalculateAppointmentStatsAsync(
-                nextAppt.AppointmentId,
+                nextAppt,
                 cancellationToken
             );
             nextAppt.TravelTimeMinutes = nextStats.travelTime;
@@ -70,6 +74,6 @@ public class DeleteAppointmentCommandHandler(
             Domain.Enums.NotificationPriority.High
         );
 
-        return true;
+        return new DeleteAppointmentResponse(true);
     }
 }

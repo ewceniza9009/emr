@@ -15,12 +15,12 @@ public interface ISchedulingService
     );
 
     Task<(double distance, double travelTime)> RecalculateAppointmentStatsAsync(
-        Guid appointmentId,
+        Appointment appointment,
         CancellationToken cancellationToken = default
     );
 
     Task<(bool isValid, string? reason)> ValidateLogisticsAsync(
-        Guid appointmentId,
+        Appointment appointment,
         CancellationToken cancellationToken = default
     );
 
