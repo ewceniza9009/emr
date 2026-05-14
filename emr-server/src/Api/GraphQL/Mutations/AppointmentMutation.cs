@@ -171,6 +171,8 @@ public record CreateScheduleBlockInput(
     ScheduleBlockStatus Status = ScheduleBlockStatus.Blocked
 );
 
+public record ReassignAppointmentInput(Guid AppointmentId, Guid PractitionerId, bool OverrideLogistics = false);
+
 public record BookAppointmentInput(
     Guid PatientId,
     Guid PractitionerId,

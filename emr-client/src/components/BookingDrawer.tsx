@@ -577,48 +577,49 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       setBooked(true);
       setTimeout(() => { setBooked(false); onBooked(); onClose(); }, 1500);
     },
-    onError: (err) => {
+    onError: async (err) => {
       if (err.message.includes("Logistics Violation")) {
-        confirm({
+        const ok = await confirm({
           title: "Logistics Violation",
           message: `${err.message} Would you like to force this booking anyway?`,
           confirmText: "Force Book",
           cancelText: "Go Back",
           type: "warning",
-          onConfirm: async () => {
-            // Re-run with override
-            try {
-              const baseSlot = isBlockMode ? null : selectedSlot;
-              const slotStart = baseSlot?.shiftStart || createZonedISO(
-                selectedDate,
-                period === "AM" ? clinicalConfig.AM_START : clinicalConfig.PM_START,
-                0
-              );
-              const slotEnd = addMinutes(new Date(slotStart), duration).toISOString();
-
-              await book({
-                variables: {
-                  input: {
-                    appointmentId: appointmentId || null,
-                    patientId,
-                    practitionerId,
-                    supportingPractitionerIds: supportingIds,
-                    scheduledStart: slotStart,
-                    scheduledEnd: slotEnd,
-                    modality,
-                    visitType,
-                    plannedAssessments,
-                    travelTimeMinutes: baseSlot?.travelTimeInMinutes || 0,
-                    distanceInMiles: baseSlot?.distanceInMiles || 0,
-                    overrideLogistics: true
-                  }
-                }
-              });
-            } catch (retryErr: any) {
-              showToast(retryErr.message, "error");
-            }
-          }
         });
+
+        if (ok) {
+          // Re-run with override
+          try {
+            const baseSlot = isBlockMode ? null : selectedSlot;
+            const slotStart = baseSlot?.shiftStart || createZonedISO(
+              selectedDate,
+              period === "AM" ? clinicalConfig.AM_START : clinicalConfig.PM_START,
+              0
+            );
+            const slotEnd = addMinutes(new Date(slotStart), duration).toISOString();
+
+            await book({
+              variables: {
+                input: {
+                  appointmentId: appointmentId || null,
+                  patientId,
+                  practitionerId,
+                  supportingPractitionerIds: supportingIds,
+                  scheduledStart: slotStart,
+                  scheduledEnd: slotEnd,
+                  modality,
+                  visitType,
+                  plannedAssessments,
+                  travelTimeMinutes: baseSlot?.travelTimeInMinutes || 0,
+                  distanceInMiles: baseSlot?.distanceInMiles || 0,
+                  overrideLogistics: true
+                }
+              }
+            });
+          } catch (retryErr: any) {
+            showToast(retryErr.message, "error");
+          }
+        }
       } else {
         showToast(err.message, "error");
       }

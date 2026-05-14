@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Appointments.Commands;
 
-public record ReassignAppointmentCommand(Guid AppointmentId, Guid PractitionerId)
+public record ReassignAppointmentCommand(Guid AppointmentId, Guid PractitionerId, bool OverrideLogistics = false)
     : IRequest<Appointment>;
 
 public class ReassignAppointmentCommandHandler
@@ -39,19 +39,19 @@ public class ReassignAppointmentCommandHandler
             if (appointment == null)
                 throw new KeyNotFoundException("Appointment not found");
 
-            var available = await _schedulingService.GetAvailableProvidersForReassignmentAsync(
-                request.AppointmentId,
-                ct
-            );
-            if (!available.Any(p => p.PractitionerId == request.PractitionerId))
-            {
-                throw new InvalidOperationException(
-                    "Provider is not available for this appointment slot."
-                );
-            }
-
             var oldPractitionerId = appointment.PractitionerId;
             appointment.PractitionerId = request.PractitionerId;
+
+            // Final validation before commit
+            if (!request.OverrideLogistics)
+            {
+                var (isValid, reason) = await _schedulingService.ValidateLogisticsAsync(appointment, ct);
+                if (!isValid)
+                {
+                    appointment.PractitionerId = oldPractitionerId; // Rollback entity state
+                    throw new InvalidOperationException(reason);
+                }
+            }
 
             await _context.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);

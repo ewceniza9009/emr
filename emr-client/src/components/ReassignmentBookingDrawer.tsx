@@ -264,7 +264,42 @@ export default function ReassignmentBookingDrawer({
         onClose();
       }, 1500);
     },
-    onError: (err) => showToast(err.message, "error"),
+    onError: async (err) => {
+      if (err.message.includes("Logistics Violation")) {
+        const ok = await confirm({
+          title: "Logistics Violation",
+          message: `${err.message} Would you like to force this reassignment anyway?`,
+          confirmText: "Force Update",
+          cancelText: "Go Back",
+          type: "warning",
+        });
+
+        if (ok) {
+          try {
+            const appointment = data?.appointment;
+            await updateAppt({
+              variables: {
+                input: {
+                  appointmentId,
+                  patientId: appointment.patient.patientId,
+                  practitionerId: selectedLeadId,
+                  supportingPractitionerIds: selectedSupportIds,
+                  scheduledStart: appointment.scheduledStart,
+                  scheduledEnd: appointment.scheduledEnd,
+                  modality: appointment.modality,
+                  plannedAssessments,
+                  overrideLogistics: true
+                },
+              },
+            });
+          } catch (retryErr: any) {
+            showToast(retryErr.message, "error");
+          }
+        }
+      } else {
+        showToast(err.message, "error");
+      }
+    },
   });
 
   const [deleteAppt] = useMutation(DELETE_APPOINTMENT, {

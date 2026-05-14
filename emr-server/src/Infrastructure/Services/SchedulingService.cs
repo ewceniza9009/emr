@@ -559,6 +559,8 @@ public class SchedulingService : ISchedulingService
                     && a.ScheduledStart >= startOfDay
                     && a.ScheduledStart < endOfDay
                     && a.AppointmentId != appt.AppointmentId
+                    && a.Status != AppointmentStatus.Cancelled
+                    && !a.IsDeleted
                 )
                 .OrderBy(a => a.ScheduledStart)
                 .ToListAsync(cancellationToken);
@@ -646,8 +648,11 @@ public class SchedulingService : ISchedulingService
 
                 double effectiveDriveTime = isTargetInPerson ? Math.Max(driveTime, 2) : 0;
                 double totalLogisticsTime = buffer + effectiveDriveTime;
+                
+                var requiredStart = prev.ScheduledEnd.AddMinutes(totalLogisticsTime);
+                requiredStart = GeoUtils.FloorToNearestMinutes(requiredStart, 5);
 
-                if (appt.ScheduledStart < prev.ScheduledEnd.AddMinutes(totalLogisticsTime))
+                if (appt.ScheduledStart < requiredStart)
                 {
                     return (
                         false,
@@ -727,16 +732,48 @@ public class SchedulingService : ISchedulingService
 
                 double nextBuffer = nextIsInPerson ? safetyBuffer : TELEHEALTH_BUFFER_MINS;
                 double effectiveDriveToNext = nextIsInPerson ? Math.Max(driveToNext, 2) : 0;
+                
+                var requiredArrival = appt.ScheduledEnd.AddMinutes(effectiveDriveToNext + nextBuffer);
+                requiredArrival = GeoUtils.FloorToNearestMinutes(requiredArrival, 5);
 
-                if (
-                    appt.ScheduledEnd.AddMinutes(effectiveDriveToNext + nextBuffer)
-                    > next.ScheduledStart
-                )
+                if (requiredArrival > next.ScheduledStart)
                 {
                     return (
                         false,
                         $"Logistics Violation: This slot would prevent arriving on time for the next visit (requires {Math.Round(effectiveDriveToNext)}m drive + {nextBuffer}m buffer)."
                     );
+                }
+            }
+
+            // --- SHIFT END VALIDATION: Ensure return to home fits within shift ---
+            var shift = await context.ProviderShifts.AsNoTracking()
+                .Where(s => s.PractitionerId == appt.PractitionerId && s.DayOfWeek == appt.ScheduledStart.DayOfWeek && s.IsActive)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (shift != null)
+            {
+                var shiftEnd = new DateTimeOffset(appt.ScheduledStart.Date.Add(shift.EndTime), appt.ScheduledStart.Offset);
+                double returnDistance = 0;
+                
+                if (isTargetInPerson && practitionerHomeAddr != null && patientAddr != null)
+                {
+                    returnDistance = GeoUtils.CalculateDistance(
+                        patientAddr.Latitude.Value,
+                        patientAddr.Longitude.Value,
+                        practitionerHomeAddr.Latitude.Value,
+                        practitionerHomeAddr.Longitude.Value
+                    );
+                }
+
+                double returnTravelTime = isTargetInPerson ? GeoUtils.EstimateTravelTimeMinutes(returnDistance) : 0;
+                double effectiveReturnTime = isTargetInPerson ? Math.Max(returnTravelTime, 2) : 0;
+
+                var finalReturnTime = appt.ScheduledEnd.AddMinutes(effectiveReturnTime);
+                finalReturnTime = GeoUtils.FloorToNearestMinutes(finalReturnTime, 5);
+
+                if (finalReturnTime > shiftEnd)
+                {
+                    return (false, $"Logistics Violation: This appointment would end after the practitioner's shift (including {Math.Round(effectiveReturnTime)}m travel time home).");
                 }
             }
 
