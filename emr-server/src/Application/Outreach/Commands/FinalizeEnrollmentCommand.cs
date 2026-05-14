@@ -218,9 +218,6 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                 };
                 _context.Appointments.Add(appointment);
 
-                // Save first to ensure the service can fetch the record with relations
-                await _context.SaveChangesAsync(cancellationToken);
-
                 // 4-A. Hydrate Geospatial Telemetry (Distance & Drive Time)
                 try
                 {

@@ -16,7 +16,8 @@ public record BookAppointmentCommand(
     double? TravelTimeMinutes = null,
     double? DistanceInMiles = null,
     List<AssessmentType>? PlannedAssessments = null,
-    Guid? AppointmentId = null
+    Guid? AppointmentId = null,
+    bool OverrideLogistics = false
 ) : IRequest<BookAppointmentResponse>;
 
 public record BookAppointmentResponse(Appointment? Appointment, string? Error = null);
@@ -159,14 +160,17 @@ public class BookAppointmentCommandHandler(
                 await context.SaveChangesAsync(cancellationToken);
 
                 // FINAL LOGISTICS VALIDATION: Ensure this appointment fits between neighbors
-                var (isValid, reason) = await schedulingService.ValidateLogisticsAsync(
-                    appointment,
-                    cancellationToken
-                );
-                if (!isValid)
+                if (!request.OverrideLogistics)
                 {
-                    await transaction.RollbackAsync(cancellationToken);
-                    return new BookAppointmentResponse(null, reason);
+                    var (isValid, reason) = await schedulingService.ValidateLogisticsAsync(
+                        appointment,
+                        cancellationToken
+                    );
+                    if (!isValid)
+                    {
+                        await transaction.RollbackAsync(cancellationToken);
+                        return new BookAppointmentResponse(null, reason);
+                    }
                 }
 
                 // RECALCULATE NEXT APPOINTMENT: The next visit's transit time might have changed

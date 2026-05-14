@@ -33,7 +33,8 @@ public class AppointmentMutation
                 null, // TravelTimeMinutes
                 null, // DistanceInMiles
                 input.PlannedAssessments,
-                input.AppointmentId
+                input.AppointmentId,
+                input.OverrideLogistics
             ),
             cancellationToken
         );
@@ -178,7 +179,8 @@ public record BookAppointmentInput(
     DateTimeOffset ScheduledEnd,
     AppointmentModality Modality,
     List<AssessmentType>? PlannedAssessments = null,
-    Guid? AppointmentId = null
+    Guid? AppointmentId = null,
+    bool OverrideLogistics = false
 );
 
 public record RescheduleAppointmentInput(

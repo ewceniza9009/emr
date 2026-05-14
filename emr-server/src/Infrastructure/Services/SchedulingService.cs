@@ -433,20 +433,24 @@ public class SchedulingService : ISchedulingService
                 .FirstOrDefaultAsync(cancellationToken);
             var safetyBuffer = settings?.EngineSafetyDriveMins ?? FALLBACK_IN_PERSON_BUFFER;
 
-            var appt = await context
-                .Appointments.AsNoTracking()
-                .Include(a => a.Patient)
-                    .ThenInclude(p => p.Addresses)
-                        .ThenInclude(a => a.Address)
-                .FirstOrDefaultAsync(
-                    a => a.AppointmentId == appointment.AppointmentId,
-                    cancellationToken
-                );
+            // Use the passed entity's data to avoid stale reads from the DB during transactions
+            var appt = appointment;
 
             if (appt == null || !IsInPerson(appt.Modality))
                 return (0, 0);
 
-            var patientAddr = appt.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+            // Fetch patient/address only if not already hydrated in the entity
+            var patient = appt.Patient;
+            if (patient == null || !patient.Addresses.Any())
+            {
+                patient = await context.Patients
+                    .AsNoTracking()
+                    .Include(p => p.Addresses)
+                    .ThenInclude(a => a.Address)
+                    .FirstOrDefaultAsync(p => p.PatientId == appt.PatientId, cancellationToken);
+            }
+
+            var patientAddr = patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
             if (patientAddr?.Latitude == null || patientAddr?.Longitude == null)
                 return (0, 0);
 
@@ -533,15 +537,8 @@ public class SchedulingService : ISchedulingService
                 .FirstOrDefaultAsync(cancellationToken);
             var safetyBuffer = settings?.EngineSafetyDriveMins ?? FALLBACK_IN_PERSON_BUFFER;
 
-            var appt = await context
-                .Appointments.AsNoTracking()
-                .Include(a => a.Patient)
-                    .ThenInclude(p => p.Addresses)
-                        .ThenInclude(a => a.Address)
-                .FirstOrDefaultAsync(
-                    a => a.AppointmentId == appointment.AppointmentId,
-                    cancellationToken
-                );
+            // Use the passed entity's data to avoid stale reads from the DB during transactions
+            var appt = appointment;
 
             if (appt == null)
                 return (false, "Appointment not found");
@@ -566,7 +563,18 @@ public class SchedulingService : ISchedulingService
                 .OrderBy(a => a.ScheduledStart)
                 .ToListAsync(cancellationToken);
 
-            var patientAddr = appt.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
+            // Fetch patient/address only if not already hydrated in the entity
+            var patient = appt.Patient;
+            if (patient == null || !patient.Addresses.Any())
+            {
+                patient = await context.Patients
+                    .AsNoTracking()
+                    .Include(p => p.Addresses)
+                    .ThenInclude(a => a.Address)
+                    .FirstOrDefaultAsync(p => p.PatientId == appt.PatientId, cancellationToken);
+            }
+
+            var patientAddr = patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
             bool isTargetInPerson = IsInPerson(appt.Modality);
             double buffer = isTargetInPerson ? safetyBuffer : TELEHEALTH_BUFFER_MINS;
 
