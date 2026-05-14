@@ -464,7 +464,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
       // Look for ANY slot for this practitioner that falls within our active window (AM vs PM)
       const geo = geoProviders.find((g: any) => {
         if (g.practitionerId?.toLowerCase() !== p.practitionerId?.toLowerCase()) return false;
-        const slotHour = new Date(g.shiftStart).getHours();
+        const slotHour = parseInt(formatInTimeZone(new Date(g.shiftStart), clinicalConfig.TIMEZONE, "H"));
         return period === "AM" ? slotHour < clinicalConfig.CUTOFF_HOUR : slotHour >= clinicalConfig.CUTOFF_HOUR;
       });
         
@@ -507,7 +507,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     const withGeo = filtered.map((p: any) => {
       const geo = geoProviders.find((g: any) => {
         if (g.practitionerId?.toLowerCase() !== p.practitionerId?.toLowerCase()) return false;
-        const slotHour = new Date(g.shiftStart).getHours();
+        const slotHour = parseInt(formatInTimeZone(new Date(g.shiftStart), clinicalConfig.TIMEZONE, "H"));
         return period === "AM" ? slotHour < clinicalConfig.CUTOFF_HOUR : slotHour >= clinicalConfig.CUTOFF_HOUR;
       });
       return {
@@ -557,15 +557,17 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
     // Prioritize slots that fall within the currently selected period
     const periodSlots = slots.filter(s => {
-      const hour = new Date(s.shiftStart).getHours();
+      const hour = parseInt(formatInTimeZone(new Date(s.shiftStart), clinicalConfig.TIMEZONE, "H"));
       return period === "AM" ? hour < clinicalConfig.CUTOFF_HOUR : hour >= clinicalConfig.CUTOFF_HOUR;
     });
 
     // If we have slots in the current period, pick the one closest to our startHour
     if (periodSlots.length > 0) {
-      return periodSlots.reduce((prev: any, curr: any) => 
-        Math.abs(new Date(curr.shiftStart).getHours() - startHour) < Math.abs(new Date(prev.shiftStart).getHours() - startHour) ? curr : prev
-      );
+      return periodSlots.reduce((prev: any, curr: any) => {
+        const currHour = parseInt(formatInTimeZone(new Date(curr.shiftStart), clinicalConfig.TIMEZONE, "H"));
+        const prevHour = parseInt(formatInTimeZone(new Date(prev.shiftStart), clinicalConfig.TIMEZONE, "H"));
+        return Math.abs(currHour - startHour) < Math.abs(prevHour - startHour) ? curr : prev;
+      });
     }
 
     return slots[0];

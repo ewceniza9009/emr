@@ -46,10 +46,6 @@ public class SchedulingService : ISchedulingService
         {
             await _semaphore.WaitAsync(cancellationToken);
 
-            var offset = targetStart.Offset;
-            var targetDate = targetStart.Date;
-            var dayOfWeek = targetDate.DayOfWeek;
-
             using var context = await _dbFactory.CreateDbContextAsync(cancellationToken);
             var settings = await context
                 .TenantConfigurations.AsNoTracking()
@@ -59,6 +55,21 @@ public class SchedulingService : ISchedulingService
             var pmStart = settings?.PmStartHour ?? 13;
             var dayEnd = settings?.DayEndHour ?? 18;
             var safetyBuffer = settings?.EngineSafetyDriveMins ?? FALLBACK_IN_PERSON_BUFFER;
+
+            TimeZoneInfo tzi;
+            try
+            {
+                tzi = TimeZoneInfo.FindSystemTimeZoneById(settings?.Timezone ?? "Asia/Manila");
+            }
+            catch
+            {
+                tzi = TimeZoneInfo.Local;
+            }
+
+            var targetInTz = TimeZoneInfo.ConvertTime(targetStart, tzi);
+            var offset = targetInTz.Offset;
+            var targetDate = targetInTz.Date;
+            var dayOfWeek = targetDate.DayOfWeek;
 
             var slotWindowStart = new DateTimeOffset(targetDate.AddHours(amStart), offset);
             var slotWindowEnd = new DateTimeOffset(targetDate.AddHours(dayEnd), offset);
@@ -436,17 +447,28 @@ public class SchedulingService : ISchedulingService
             // Use the passed entity's data to avoid stale reads from the DB during transactions
             var appt = appointment;
 
-            if (appt == null || !IsInPerson(appt.Modality))
+            if (appt == null)
+                return (0, 0);
+
+            TimeZoneInfo tzi;
+            try { tzi = TimeZoneInfo.FindSystemTimeZoneById(settings?.Timezone ?? "Asia/Manila"); }
+            catch { tzi = TimeZoneInfo.Local; }
+
+            var targetInTz = TimeZoneInfo.ConvertTime(appt.ScheduledStart, tzi);
+            var offset = targetInTz.Offset;
+            var targetDate = targetInTz.Date;
+
+            if (!IsInPerson(appt.Modality))
                 return (0, 0);
 
             // Fetch patient/address only if not already hydrated in the entity
             var patient = appt.Patient;
             if (patient == null || !patient.Addresses.Any())
             {
-                patient = await context.Patients
-                    .AsNoTracking()
+                patient = await context
+                    .Patients.AsNoTracking()
                     .Include(p => p.Addresses)
-                    .ThenInclude(a => a.Address)
+                        .ThenInclude(a => a.Address)
                     .FirstOrDefaultAsync(p => p.PatientId == appt.PatientId, cancellationToken);
             }
 
@@ -454,10 +476,7 @@ public class SchedulingService : ISchedulingService
             if (patientAddr?.Latitude == null || patientAddr?.Longitude == null)
                 return (0, 0);
 
-            var startOfDay = new DateTimeOffset(
-                appt.ScheduledStart.Date,
-                appt.ScheduledStart.Offset
-            );
+            var startOfDay = new DateTimeOffset(targetDate, offset);
 
             var prevAppts = await context
                 .Appointments.AsNoTracking()
@@ -569,10 +588,10 @@ public class SchedulingService : ISchedulingService
             var patient = appt.Patient;
             if (patient == null || !patient.Addresses.Any())
             {
-                patient = await context.Patients
-                    .AsNoTracking()
+                patient = await context
+                    .Patients.AsNoTracking()
                     .Include(p => p.Addresses)
-                    .ThenInclude(a => a.Address)
+                        .ThenInclude(a => a.Address)
                     .FirstOrDefaultAsync(p => p.PatientId == appt.PatientId, cancellationToken);
             }
 
@@ -648,7 +667,7 @@ public class SchedulingService : ISchedulingService
 
                 double effectiveDriveTime = isTargetInPerson ? Math.Max(driveTime, 2) : 0;
                 double totalLogisticsTime = buffer + effectiveDriveTime;
-                
+
                 var requiredStart = prev.ScheduledEnd.AddMinutes(totalLogisticsTime);
                 requiredStart = GeoUtils.CeilToNearestMinutes(requiredStart, 5);
 
@@ -732,8 +751,10 @@ public class SchedulingService : ISchedulingService
 
                 double nextBuffer = nextIsInPerson ? safetyBuffer : TELEHEALTH_BUFFER_MINS;
                 double effectiveDriveToNext = nextIsInPerson ? Math.Max(driveToNext, 2) : 0;
-                
-                var requiredArrival = appt.ScheduledEnd.AddMinutes(effectiveDriveToNext + nextBuffer);
+
+                var requiredArrival = appt.ScheduledEnd.AddMinutes(
+                    effectiveDriveToNext + nextBuffer
+                );
                 requiredArrival = GeoUtils.CeilToNearestMinutes(requiredArrival, 5);
 
                 if (requiredArrival > next.ScheduledStart)
@@ -746,15 +767,23 @@ public class SchedulingService : ISchedulingService
             }
 
             // --- SHIFT END VALIDATION: Ensure return to home fits within shift ---
-            var shift = await context.ProviderShifts.AsNoTracking()
-                .Where(s => s.PractitionerId == appt.PractitionerId && s.DayOfWeek == appt.ScheduledStart.DayOfWeek && s.IsActive)
+            var shift = await context
+                .ProviderShifts.AsNoTracking()
+                .Where(s =>
+                    s.PractitionerId == appt.PractitionerId
+                    && s.DayOfWeek == appt.ScheduledStart.DayOfWeek
+                    && s.IsActive
+                )
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (shift != null)
             {
-                var shiftEnd = new DateTimeOffset(appt.ScheduledStart.Date.Add(shift.EndTime), appt.ScheduledStart.Offset);
+                var shiftEnd = new DateTimeOffset(
+                    appt.ScheduledStart.Date.Add(shift.EndTime),
+                    appt.ScheduledStart.Offset
+                );
                 double returnDistance = 0;
-                
+
                 if (isTargetInPerson && practitionerHomeAddr != null && patientAddr != null)
                 {
                     returnDistance = GeoUtils.CalculateDistance(
@@ -765,7 +794,9 @@ public class SchedulingService : ISchedulingService
                     );
                 }
 
-                double returnTravelTime = isTargetInPerson ? GeoUtils.EstimateTravelTimeMinutes(returnDistance) : 0;
+                double returnTravelTime = isTargetInPerson
+                    ? GeoUtils.EstimateTravelTimeMinutes(returnDistance)
+                    : 0;
                 double effectiveReturnTime = isTargetInPerson ? Math.Max(returnTravelTime, 2) : 0;
 
                 var finalReturnTime = appt.ScheduledEnd.AddMinutes(effectiveReturnTime);
@@ -773,7 +804,10 @@ public class SchedulingService : ISchedulingService
 
                 if (finalReturnTime > shiftEnd)
                 {
-                    return (false, $"Logistics Violation: This appointment would end after the practitioner's shift (including {Math.Round(effectiveReturnTime)}m travel time home).");
+                    return (
+                        false,
+                        $"Logistics Violation: This appointment would end after the practitioner's shift (including {Math.Round(effectiveReturnTime)}m travel time home)."
+                    );
                 }
             }
 
