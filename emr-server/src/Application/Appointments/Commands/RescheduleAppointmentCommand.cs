@@ -42,6 +42,9 @@ public class RescheduleAppointmentCommandHandler(
             );
         }
 
+        var oldStart = appointment.ScheduledStart;
+        var practitionerId = appointment.PractitionerId;
+
         appointment.ScheduledStart = request.NewStart;
         appointment.ScheduledEnd = request.NewEnd;
 
@@ -70,27 +73,34 @@ public class RescheduleAppointmentCommandHandler(
             }
         }
 
-        // Also update the next appointment's logistics as they may have changed
-        var nextAppt = await context
-            .Appointments.Where(a =>
-                a.PractitionerId == appointment.PractitionerId
-                && a.ScheduledStart > appointment.ScheduledStart
-                && a.ScheduledStart < request.NewStart.Date.AddDays(1)
-            )
+        // Update logistics for the appointment that follows the new position
+        if (appointment.PractitionerId.HasValue)
+        {
+            await UpdateNextAppointmentStats(appointment.PractitionerId.Value, appointment.ScheduledStart, cancellationToken);
+        }
+
+        // Update logistics for the appointment that used to follow this one in its old position
+        if (oldStart != appointment.ScheduledStart && practitionerId.HasValue)
+        {
+            await UpdateNextAppointmentStats(practitionerId.Value, oldStart, cancellationToken);
+        }
+
+        return new RescheduleAppointmentResponse(appointment);
+    }
+
+    private async Task UpdateNextAppointmentStats(Guid practitionerId, DateTimeOffset afterTime, CancellationToken cancellationToken)
+    {
+        var nextAppt = await context.Appointments
+            .Where(a => a.PractitionerId == practitionerId && a.ScheduledStart > afterTime && a.ScheduledStart < afterTime.Date.AddDays(1))
             .OrderBy(a => a.ScheduledStart)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (nextAppt != null)
         {
-            var nextStats = await schedulingService.RecalculateAppointmentStatsAsync(
-                nextAppt,
-                cancellationToken
-            );
-            nextAppt.TravelTimeMinutes = nextStats.travelTime;
-            nextAppt.DistanceInMiles = nextStats.distance;
+            var stats = await schedulingService.RecalculateAppointmentStatsAsync(nextAppt, cancellationToken);
+            nextAppt.TravelTimeMinutes = stats.travelTime;
+            nextAppt.DistanceInMiles = stats.distance;
             await context.SaveChangesAsync(cancellationToken);
         }
-
-        return new RescheduleAppointmentResponse(appointment);
     }
 }

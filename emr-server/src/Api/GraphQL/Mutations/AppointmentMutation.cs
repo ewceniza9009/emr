@@ -60,7 +60,8 @@ public class AppointmentMutation
             new RescheduleAppointmentCommand(
                 input.AppointmentId,
                 input.NewStart,
-                input.NewEnd
+                input.NewEnd,
+                input.RecalculateTravelTime
             ),
             cancellationToken
         );
