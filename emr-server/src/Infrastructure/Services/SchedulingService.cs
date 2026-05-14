@@ -288,7 +288,7 @@ public class SchedulingService : ISchedulingService
                                         : shiftStart.AddMinutes(buffer + effectiveDriveTime)
                                 );
 
-                        earliestArrival = GeoUtils.FloorToNearestMinutes(earliestArrival, 5);
+                        earliestArrival = GeoUtils.CeilToNearestMinutes(earliestArrival, 5);
 
                         if (time < earliestArrival)
                             continue;
@@ -650,7 +650,7 @@ public class SchedulingService : ISchedulingService
                 double totalLogisticsTime = buffer + effectiveDriveTime;
                 
                 var requiredStart = prev.ScheduledEnd.AddMinutes(totalLogisticsTime);
-                requiredStart = GeoUtils.FloorToNearestMinutes(requiredStart, 5);
+                requiredStart = GeoUtils.CeilToNearestMinutes(requiredStart, 5);
 
                 if (appt.ScheduledStart < requiredStart)
                 {
@@ -734,7 +734,7 @@ public class SchedulingService : ISchedulingService
                 double effectiveDriveToNext = nextIsInPerson ? Math.Max(driveToNext, 2) : 0;
                 
                 var requiredArrival = appt.ScheduledEnd.AddMinutes(effectiveDriveToNext + nextBuffer);
-                requiredArrival = GeoUtils.FloorToNearestMinutes(requiredArrival, 5);
+                requiredArrival = GeoUtils.CeilToNearestMinutes(requiredArrival, 5);
 
                 if (requiredArrival > next.ScheduledStart)
                 {
@@ -769,7 +769,7 @@ public class SchedulingService : ISchedulingService
                 double effectiveReturnTime = isTargetInPerson ? Math.Max(returnTravelTime, 2) : 0;
 
                 var finalReturnTime = appt.ScheduledEnd.AddMinutes(effectiveReturnTime);
-                finalReturnTime = GeoUtils.FloorToNearestMinutes(finalReturnTime, 5);
+                finalReturnTime = GeoUtils.CeilToNearestMinutes(finalReturnTime, 5);
 
                 if (finalReturnTime > shiftEnd)
                 {

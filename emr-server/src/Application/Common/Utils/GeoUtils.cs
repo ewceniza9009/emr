@@ -38,6 +38,16 @@ public static class GeoUtils
         return new DateTimeOffset(flooredTicks, dateTime.Offset);
     }
 
+    public static DateTimeOffset CeilToNearestMinutes(DateTimeOffset dateTime, int minutes)
+    {
+        var ticks = dateTime.Ticks;
+        var minuteTicks = TimeSpan.TicksPerMinute * minutes;
+        var remainder = ticks % minuteTicks;
+        if (remainder == 0) return dateTime;
+        var ceiledTicks = (ticks / minuteTicks + 1) * minuteTicks;
+        return new DateTimeOffset(ceiledTicks, dateTime.Offset);
+    }
+
     private static double ToRadians(double angle)
     {
         return Math.PI * angle / 180.0;
