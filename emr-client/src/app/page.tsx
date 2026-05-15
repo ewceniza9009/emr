@@ -109,12 +109,12 @@ export default function HomePage() {
             </motion.div>
 
             <motion.h1 variants={itemVariants} className="text-7xl lg:text-[110px] font-bold text-white leading-[1] tracking-tight mb-8 max-w-6xl drop-shadow-2xl">
-              <span className="inline-block text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">The future of</span> <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-emerald-400 animate-gradient-x drop-shadow-[0_0_40px_var(--primary-glow)]">clinical operations.</span>
+              <span className="inline-block text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">Clinical operations,</span> <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-emerald-400 animate-gradient-x drop-shadow-[0_0_40px_var(--primary-glow)]">simplified.</span>
             </motion.h1>
 
             <motion.p variants={itemVariants} className="text-xl lg:text-2xl text-slate-400 font-medium leading-relaxed mb-16 max-w-3xl">
-              A beautifully engineered clinical operating system designed to unify workflows and empower high-performance medical teams.
+              Take the friction out of your daily workflows. Halkyone unifies your scheduling, logistics, and security so your team can stay focused on what matters: the patient.
             </motion.p>
 
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-6">
@@ -145,10 +145,10 @@ export default function HomePage() {
                 <span className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.4em]">Core Architecture</span>
               </div>
               <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight mb-8">
-                Distributed data. <br />Centralized control.
+                Engineered for reach. <br />Optimized for care.
               </h2>
               <p className="text-lg text-slate-500 leading-relaxed mb-12">
-                Halkyone&apos;s core engine handles complex clinical synchronization at scale, ensuring your providers stay connected across disparate clinical environments and geospatial boundaries.
+                Halkyone&apos;s logistics layer helps manage safety drive times and clinician capacity, ensuring your team can focus on delivering high-quality care without the scheduling friction.
               </p>
 
               <div className="grid grid-cols-2 gap-8">
@@ -207,7 +207,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-8">
           <div className="text-center mb-24">
             <span className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.5em] mb-6 block">Capability Matrix</span>
-            <h2 className="text-5xl font-bold text-white tracking-tighter">Unified clinical workflows.</h2>
+            <h2 className="text-5xl font-bold text-white tracking-tighter">A command center for care.</h2>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
