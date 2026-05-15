@@ -228,7 +228,7 @@ namespace Infrastructure.Data
                         TenantId = defaultTenantId,
                         OrganizationName = "Halkyone Clinical",
                         Currency = "PHP",
-                        Timezone = "Asia/Manila",
+                        Timezone = TimeZoneInfo.Local.Id,
                         Language = "en",
                         DateFormat = "MM/DD/YYYY",
                         AmStartHour = 8,

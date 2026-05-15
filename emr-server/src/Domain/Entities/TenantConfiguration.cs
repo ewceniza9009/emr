@@ -10,7 +10,7 @@ public class TenantConfiguration : BaseEntity, ITenantEntity
 
     // Regional Settings
     public string Currency { get; set; } = "PHP";
-    public string Timezone { get; set; } = "Asia/Manila";
+    public string Timezone { get; set; } = TimeZoneInfo.Local.Id;
     public string Language { get; set; } = "en";
     public string DateFormat { get; set; } = "MM/DD/YYYY";
 

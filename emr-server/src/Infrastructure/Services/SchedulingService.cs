@@ -60,7 +60,7 @@ public class SchedulingService : ISchedulingService
             TimeZoneInfo tzi;
             try
             {
-                tzi = TimeZoneInfo.FindSystemTimeZoneById(settings?.Timezone ?? "Asia/Manila");
+                tzi = TimeZoneInfo.FindSystemTimeZoneById(settings?.Timezone ?? TimeZoneInfo.Local.Id);
             }
             catch
             {
@@ -475,7 +475,7 @@ public class SchedulingService : ISchedulingService
                 return (0, 0);
 
             TimeZoneInfo tzi;
-            try { tzi = TimeZoneInfo.FindSystemTimeZoneById(settings?.Timezone ?? "Asia/Manila"); }
+            try { tzi = TimeZoneInfo.FindSystemTimeZoneById(settings?.Timezone ?? TimeZoneInfo.Local.Id); }
             catch { tzi = TimeZoneInfo.Local; }
 
             var targetInTz = TimeZoneInfo.ConvertTime(appt.ScheduledStart, tzi);

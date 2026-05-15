@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Globe, 
-  Clock, 
-  DollarSign, 
-  Bell, 
-  Shield, 
-  User, 
+import {
+  Globe,
+  Clock,
+  DollarSign,
+  Bell,
+  Shield,
+  User,
   Save,
   CheckCircle2,
   ChevronRight,
@@ -23,7 +23,7 @@ import {
   Zap,
   Building2,
   ServerCrash,
-  Activity
+  Activity,
 } from "lucide-react";
 import { useTheme } from "@/lib/ThemeContext";
 import { useSettings } from "@/lib/SettingsContext";
@@ -38,6 +38,17 @@ const timezones = [
   { value: "Europe/London", label: "EUROPE/LONDON (GMT/BST)" },
   { value: "Asia/Singapore", label: "ASIA/SINGAPORE (SGT)" },
 ];
+
+// Add local browser timezone if not present
+if (typeof window !== "undefined") {
+  const localTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (!timezones.find((tz) => tz.value === localTz)) {
+    timezones.push({
+      value: localTz,
+      label: `${localTz.toUpperCase()} (LOCAL BROWSER TIME)`,
+    });
+  }
+}
 
 const currencies = [
   { value: "PHP", label: "PHP - PHILIPPINE PESO (₱)", symbol: "₱" },
@@ -55,9 +66,15 @@ const languages = [
 export default function RegistrySettings() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "Admin";
-  
+
   const [activeTab, setActiveTab] = useState("workstation");
-  const { preferences, tenantConfig, updatePreferences, updateTenantConfig, isLoaded } = useSettings();
+  const {
+    preferences,
+    tenantConfig,
+    updatePreferences,
+    updateTenantConfig,
+    isLoaded,
+  } = useSettings();
   const { theme, toggleTheme } = useTheme();
   const { confirm, alert } = useCommandModal();
 
@@ -70,7 +87,7 @@ export default function RegistrySettings() {
   // Staged states for transactional saving
   const [stagedPrefs, setStagedPrefs] = useState(preferences);
   const [stagedTenant, setStagedTenant] = useState(tenantConfig);
-  
+
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -83,10 +100,10 @@ export default function RegistrySettings() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    
+
     // Save User Preferences (Local)
     updatePreferences(stagedPrefs);
-    
+
     // Save Tenant Configuration (Server-side)
     if (isAdmin) {
       await updateTenantConfig(stagedTenant);
@@ -102,7 +119,12 @@ export default function RegistrySettings() {
     { id: "tenant", label: "ORGANIZATION", icon: Building2, adminOnly: true },
     { id: "security", label: "SECURITY", icon: Shield, adminOnly: false },
     { id: "notifications", label: "ALERTS", icon: Bell, adminOnly: false },
-    { id: "infrastructure", label: "INFRASTRUCTURE", icon: Database, adminOnly: true },
+    {
+      id: "infrastructure",
+      label: "INFRASTRUCTURE",
+      icon: Database,
+      adminOnly: true,
+    },
   ];
 
   return (
@@ -115,25 +137,39 @@ export default function RegistrySettings() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative ${
-                activeTab === tab.id 
-                ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" 
-                : "text-[var(--text-muted)] hover:bg-[var(--input-bg)] hover:text-[var(--text-primary)]"
+                activeTab === tab.id
+                  ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]"
+                  : "text-[var(--text-muted)] hover:bg-[var(--input-bg)] hover:text-[var(--text-primary)]"
               }`}
             >
-              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "text-[var(--sidebar-bg)]" : "group-hover:text-[var(--primary)]"}`} />
-              <span className="text-[10px] font-bold uppercase tracking-widest">{tab.label}</span>
-              {tab.adminOnly && !isAdmin && <Lock className="w-2.5 h-2.5 ml-auto opacity-40" />}
-              {activeTab === tab.id && <div className="absolute right-3 w-1 h-1 bg-[var(--sidebar-bg)] rounded-full" />}
+              <tab.icon
+                className={`w-4 h-4 ${activeTab === tab.id ? "text-[var(--sidebar-bg)]" : "group-hover:text-[var(--primary)]"}`}
+              />
+              <span className="text-[10px] font-bold uppercase tracking-widest">
+                {tab.label}
+              </span>
+              {tab.adminOnly && !isAdmin && (
+                <Lock className="w-2.5 h-2.5 ml-auto opacity-40" />
+              )}
+              {activeTab === tab.id && (
+                <div className="absolute right-3 w-1 h-1 bg-[var(--sidebar-bg)] rounded-full" />
+              )}
             </button>
           ))}
-          
+
           <div className="mt-8 p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10">
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-3 h-3 text-indigo-400" />
-              <span className="text-[8px] font-bold text-indigo-400 uppercase tracking-[0.2em]">Clinical Context</span>
+              <span className="text-[8px] font-bold text-indigo-400 uppercase tracking-[0.2em]">
+                Clinical Context
+              </span>
             </div>
             <p className="text-[9px] text-[var(--text-muted)] leading-relaxed font-medium uppercase">
-              Operational state is bound to <span className="text-indigo-400 font-black">{tenantConfig.organizationName}</span> and persists across all authenticated sessions.
+              Operational state is bound to{" "}
+              <span className="text-indigo-400 font-black">
+                {tenantConfig.organizationName}
+              </span>{" "}
+              and persists across all authenticated sessions.
             </p>
           </div>
         </nav>
@@ -141,36 +177,55 @@ export default function RegistrySettings() {
         {/* Content Rail */}
         <div className="bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] shadow-sm flex flex-col overflow-hidden">
           <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
-            
             {activeTab === "workstation" && (
               <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
-                <SectionLabel title="INTERFACE PREFERENCES" subtitle="Workstation Display" icon={<Layout className="w-3.5 h-3.5" />} color="amber" />
+                <SectionLabel
+                  title="INTERFACE PREFERENCES"
+                  subtitle="Workstation Display"
+                  icon={<Layout className="w-3.5 h-3.5" />}
+                  color="amber"
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ControlCard 
-                    title="Interface Mode" 
+                  <ControlCard
+                    title="Interface Mode"
                     subtitle="Switch between High-Contrast modes"
-                    icon={theme === "dark" ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-400" />}
+                    icon={
+                      theme === "dark" ? (
+                        <Moon className="w-4 h-4 text-indigo-400" />
+                      ) : (
+                        <Sun className="w-4 h-4 text-amber-400" />
+                      )
+                    }
                     action={
-                      <div 
+                      <div
                         onClick={toggleTheme}
                         className={`w-10 h-5 rounded-full relative cursor-pointer transition-all ${theme === "dark" ? "bg-indigo-600" : "bg-amber-400"}`}
                       >
-                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${theme === "dark" ? "left-6" : "left-1"}`} />
+                        <div
+                          className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${theme === "dark" ? "left-6" : "left-1"}`}
+                        />
                       </div>
                     }
                   />
 
-                  <ControlCard 
-                    title="Data Density" 
+                  <ControlCard
+                    title="Data Density"
                     subtitle="Optimize for professional displays"
                     icon={<Eye className="w-4 h-4 text-emerald-400" />}
                     action={
-                      <div 
-                        onClick={() => setStagedPrefs({...stagedPrefs, compactMode: !stagedPrefs.compactMode})}
+                      <div
+                        onClick={() =>
+                          setStagedPrefs({
+                            ...stagedPrefs,
+                            compactMode: !stagedPrefs.compactMode,
+                          })
+                        }
                         className={`w-10 h-5 rounded-full relative cursor-pointer transition-all ${stagedPrefs.compactMode ? "bg-emerald-600" : "bg-slate-700"}`}
                       >
-                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${stagedPrefs.compactMode ? "left-6" : "left-1"}`} />
+                        <div
+                          className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${stagedPrefs.compactMode ? "left-6" : "left-1"}`}
+                        />
                       </div>
                     }
                   />
@@ -180,44 +235,62 @@ export default function RegistrySettings() {
 
             {activeTab === "tenant" && (
               <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
-                <SectionLabel title="ORGANIZATION PROTOCOLS" subtitle="Global Clinical Parameters" icon={<Building2 className="w-3.5 h-3.5" />} color="teal" />
+                <SectionLabel
+                  title="ORGANIZATION PROTOCOLS"
+                  subtitle="Global Clinical Parameters"
+                  icon={<Building2 className="w-3.5 h-3.5" />}
+                  color="teal"
+                />
 
                 {!isAdmin ? (
                   <div className="p-8 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex flex-col items-center text-center space-y-4">
                     <Lock className="w-8 h-8 text-amber-500/40" />
                     <div>
-                      <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Administrative Access Required</h3>
-                      <p className="text-[9px] text-[var(--text-muted)] uppercase mt-1 max-w-[300px]">Tenant-level operational state can only be modified by system administrators.</p>
+                      <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">
+                        Administrative Access Required
+                      </h3>
+                      <p className="text-[9px] text-[var(--text-muted)] uppercase mt-1 max-w-[300px]">
+                        Tenant-level operational state can only be modified by
+                        system administrators.
+                      </p>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <SelectField 
-                        label="SYSTEM TIME ZONE" 
+                      <SelectField
+                        label="SYSTEM TIME ZONE"
                         value={stagedTenant.timezone}
-                        onChange={(v: string) => setStagedTenant({...stagedTenant, timezone: v})}
+                        onChange={(v: string) =>
+                          setStagedTenant({ ...stagedTenant, timezone: v })
+                        }
                         options={timezones}
                         icon={<Clock className="w-3.5 h-3.5" />}
                       />
-                      <SelectField 
-                        label="BASE CURRENCY" 
+                      <SelectField
+                        label="BASE CURRENCY"
                         value={stagedTenant.currency}
-                        onChange={(v: string) => setStagedTenant({...stagedTenant, currency: v})}
+                        onChange={(v: string) =>
+                          setStagedTenant({ ...stagedTenant, currency: v })
+                        }
                         options={currencies}
                         icon={<DollarSign className="w-3.5 h-3.5" />}
                       />
-                      <SelectField 
-                        label="DEFAULT LANGUAGE" 
+                      <SelectField
+                        label="DEFAULT LANGUAGE"
                         value={stagedTenant.language}
-                        onChange={(v: string) => setStagedTenant({...stagedTenant, language: v})}
+                        onChange={(v: string) =>
+                          setStagedTenant({ ...stagedTenant, language: v })
+                        }
                         options={languages}
                         icon={<Languages className="w-3.5 h-3.5" />}
                       />
-                      <SelectField 
-                        label="DATE DISPLAY PROTOCOL" 
+                      <SelectField
+                        label="DATE DISPLAY PROTOCOL"
                         value={stagedTenant.dateFormat}
-                        onChange={(v: string) => setStagedTenant({...stagedTenant, dateFormat: v})}
+                        onChange={(v: string) =>
+                          setStagedTenant({ ...stagedTenant, dateFormat: v })
+                        }
                         options={[
                           { value: "MM/DD/YYYY", label: "MM/DD/YYYY (US)" },
                           { value: "DD/MM/YYYY", label: "DD/MM/YYYY (INTL)" },
@@ -228,27 +301,66 @@ export default function RegistrySettings() {
                     </div>
 
                     <div className="pt-6 space-y-6">
-                      <SectionLabel title="SCHEDULING BUCKETS" subtitle="Operational Slot Distribution" icon={<Clock className="w-3.5 h-3.5" />} color="amber" />
+                      <SectionLabel
+                        title="SCHEDULING BUCKETS"
+                        subtitle="Operational Slot Distribution"
+                        icon={<Clock className="w-3.5 h-3.5" />}
+                        color="amber"
+                      />
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <SelectField 
-                          label="AM BUCKET START" 
+                        <SelectField
+                          label="AM BUCKET START"
                           value={stagedTenant.amStartHour.toString()}
-                          onChange={(v: string) => setStagedTenant({...stagedTenant, amStartHour: parseInt(v)})}
-                          options={Array.from({length: 12}, (_, i) => ({ value: (i + 1).toString(), label: `${i + 1}:00 AM` }))}
+                          onChange={(v: string) =>
+                            setStagedTenant({
+                              ...stagedTenant,
+                              amStartHour: parseInt(v),
+                            })
+                          }
+                          options={Array.from({ length: 12 }, (_, i) => ({
+                            value: (i + 1).toString(),
+                            label: `${i + 1}:00 AM`,
+                          }))}
                           icon={<Clock className="w-3.5 h-3.5" />}
                         />
-                        <SelectField 
-                          label="PM BUCKET START" 
+                        <SelectField
+                          label="PM BUCKET START"
                           value={stagedTenant.pmStartHour.toString()}
-                          onChange={(v: string) => setStagedTenant({...stagedTenant, pmStartHour: parseInt(v)})}
-                          options={Array.from({length: 24}, (_, i) => ({ value: i.toString(), label: i === 12 ? '12:00 PM' : i > 12 ? `${i-12}:00 PM` : `${i}:00 AM` }))}
+                          onChange={(v: string) =>
+                            setStagedTenant({
+                              ...stagedTenant,
+                              pmStartHour: parseInt(v),
+                            })
+                          }
+                          options={Array.from({ length: 24 }, (_, i) => ({
+                            value: i.toString(),
+                            label:
+                              i === 12
+                                ? "12:00 PM"
+                                : i > 12
+                                  ? `${i - 12}:00 PM`
+                                  : `${i}:00 AM`,
+                          }))}
                           icon={<Clock className="w-3.5 h-3.5" />}
                         />
-                        <SelectField 
-                          label="OPERATIONAL DAY END" 
+                        <SelectField
+                          label="OPERATIONAL DAY END"
                           value={stagedTenant.dayEndHour.toString()}
-                          onChange={(v: string) => setStagedTenant({...stagedTenant, dayEndHour: parseInt(v)})}
-                          options={Array.from({length: 24}, (_, i) => ({ value: i.toString(), label: i === 12 ? '12:00 PM' : i > 12 ? `${i-12}:00 PM` : `${i}:00 AM` }))}
+                          onChange={(v: string) =>
+                            setStagedTenant({
+                              ...stagedTenant,
+                              dayEndHour: parseInt(v),
+                            })
+                          }
+                          options={Array.from({ length: 24 }, (_, i) => ({
+                            value: i.toString(),
+                            label:
+                              i === 12
+                                ? "12:00 PM"
+                                : i > 12
+                                  ? `${i - 12}:00 PM`
+                                  : `${i}:00 AM`,
+                          }))}
                           icon={<Clock className="w-3.5 h-3.5" />}
                         />
                       </div>
@@ -260,13 +372,23 @@ export default function RegistrySettings() {
 
             {activeTab === "notifications" && (
               <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
-                <SectionLabel title="ALERT PROTOCOLS" subtitle="Notification Management" icon={<Bell className="w-3.5 h-3.5" />} color="rose" />
+                <SectionLabel
+                  title="ALERT PROTOCOLS"
+                  subtitle="Notification Management"
+                  icon={<Bell className="w-3.5 h-3.5" />}
+                  color="rose"
+                />
                 <div className="space-y-3">
-                  <ProtocolToggle 
-                    title="Browser Push Alerts" 
+                  <ProtocolToggle
+                    title="Browser Push Alerts"
                     desc="Real-time clinical state synchronization"
                     checked={stagedPrefs.notificationsEnabled}
-                    onChange={(val: boolean) => setStagedPrefs({...stagedPrefs, notificationsEnabled: val})}
+                    onChange={(val: boolean) =>
+                      setStagedPrefs({
+                        ...stagedPrefs,
+                        notificationsEnabled: val,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -274,23 +396,38 @@ export default function RegistrySettings() {
 
             {activeTab === "infrastructure" && (
               <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
-                <SectionLabel title="CORE INFRASTRUCTURE" subtitle="System Engine Management" icon={<Database className="w-3.5 h-3.5" />} color="teal" />
-                
+                <SectionLabel
+                  title="CORE INFRASTRUCTURE"
+                  subtitle="System Engine Management"
+                  icon={<Database className="w-3.5 h-3.5" />}
+                  color="teal"
+                />
+
                 {!isAdmin ? (
                   <div className="p-8 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex flex-col items-center text-center space-y-4">
                     <Lock className="w-8 h-8 text-amber-500/40" />
                     <div>
-                      <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Administrative Access Required</h3>
-                      <p className="text-[9px] text-[var(--text-muted)] uppercase mt-1 max-w-[300px]">Infrastructure parameters can only be modified by system administrators.</p>
+                      <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">
+                        Administrative Access Required
+                      </h3>
+                      <p className="text-[9px] text-[var(--text-muted)] uppercase mt-1 max-w-[300px]">
+                        Infrastructure parameters can only be modified by system
+                        administrators.
+                      </p>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    <ProtocolToggle 
-                      title="Elasticsearch Core" 
+                    <ProtocolToggle
+                      title="Elasticsearch Core"
                       desc="High-performance clinical search engine (v7.17)"
                       checked={stagedTenant.enableElasticsearch}
-                      onChange={(val: boolean) => setStagedTenant({...stagedTenant, enableElasticsearch: val})}
+                      onChange={(val: boolean) =>
+                        setStagedTenant({
+                          ...stagedTenant,
+                          enableElasticsearch: val,
+                        })
+                      }
                     />
 
                     <div className="p-6 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-between group">
@@ -299,27 +436,37 @@ export default function RegistrySettings() {
                           <RefreshCw className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">Registry Synchronization</h4>
-                          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Push all existing nodes to the search cluster</p>
+                          <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">
+                            Registry Synchronization
+                          </h4>
+                          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                            Push all existing nodes to the search cluster
+                          </p>
                         </div>
                       </div>
-                      <button 
+                      <button
                         onClick={async () => {
-                           // This calls the SyncAllToElasticsearch mutation we added earlier
-                           const ok = await confirm({
-                             title: "Trigger Bulk Sync",
-                             message: "Are you sure you want to re-index all clinical nodes? This will refresh the entire search registry and may temporarily increase system load.",
-                             confirmText: "Initialize Synchronization"
-                           });
-                           if (ok) {
-                              setIsSaving(true);
-                              try {
-                                 await executeSync(); // We'll add this hook below
-                                 await alert({ title: "Sync Complete", message: "All clinical nodes have been successfully synchronized with the search cluster.", type: "success" });
-                              } finally {
-                                 setIsSaving(false);
-                              }
-                           }
+                          // This calls the SyncAllToElasticsearch mutation we added earlier
+                          const ok = await confirm({
+                            title: "Trigger Bulk Sync",
+                            message:
+                              "Are you sure you want to re-index all clinical nodes? This will refresh the entire search registry and may temporarily increase system load.",
+                            confirmText: "Initialize Synchronization",
+                          });
+                          if (ok) {
+                            setIsSaving(true);
+                            try {
+                              await executeSync(); // We'll add this hook below
+                              await alert({
+                                title: "Sync Complete",
+                                message:
+                                  "All clinical nodes have been successfully synchronized with the search cluster.",
+                                type: "success",
+                              });
+                            } finally {
+                              setIsSaving(false);
+                            }
+                          }
                         }}
                         className="px-6 py-2 rounded-xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
                       >
@@ -333,28 +480,45 @@ export default function RegistrySettings() {
 
             {activeTab === "security" && (
               <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
-                <SectionLabel title="SECURITY PROTOCOLS" subtitle="Environmental Hardening" icon={<Shield className="w-3.5 h-3.5" />} color="rose" />
-                
+                <SectionLabel
+                  title="SECURITY PROTOCOLS"
+                  subtitle="Environmental Hardening"
+                  icon={<Shield className="w-3.5 h-3.5" />}
+                  color="rose"
+                />
+
                 <div className="grid grid-cols-1 gap-6">
-                  <ProtocolToggle 
-                    title="Multi-Factor Authentication (MFA)" 
+                  <ProtocolToggle
+                    title="Multi-Factor Authentication (MFA)"
                     desc="Require TOTP verification for all clinical workstations"
                     checked={stagedTenant.enforceMfa}
-                    onChange={(val: boolean) => setStagedTenant({...stagedTenant, enforceMfa: val})}
+                    onChange={(val: boolean) =>
+                      setStagedTenant({ ...stagedTenant, enforceMfa: val })
+                    }
                   />
 
-                  <ProtocolToggle 
-                    title="Strict Onboarding Mode" 
+                  <ProtocolToggle
+                    title="Strict Onboarding Mode"
                     desc="Disable public registration; require cryptographic invitations"
                     checked={stagedTenant.strictOnboarding}
-                    onChange={(val: boolean) => setStagedTenant({...stagedTenant, strictOnboarding: val})}
+                    onChange={(val: boolean) =>
+                      setStagedTenant({
+                        ...stagedTenant,
+                        strictOnboarding: val,
+                      })
+                    }
                   />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                    <SelectField 
-                      label="CLINICAL SESSION TIMEOUT" 
+                    <SelectField
+                      label="CLINICAL SESSION TIMEOUT"
                       value={stagedTenant.sessionTimeoutMinutes.toString()}
-                      onChange={(v: string) => setStagedTenant({...stagedTenant, sessionTimeoutMinutes: parseInt(v)})}
+                      onChange={(v: string) =>
+                        setStagedTenant({
+                          ...stagedTenant,
+                          sessionTimeoutMinutes: parseInt(v),
+                        })
+                      }
                       options={[
                         { value: "15", label: "15 MINUTES (HIGH SECURITY)" },
                         { value: "30", label: "30 MINUTES (BALANCED)" },
@@ -370,9 +534,15 @@ export default function RegistrySettings() {
                       <Lock className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">Forensic Vault Linkage</h4>
+                      <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">
+                        Forensic Vault Linkage
+                      </h4>
                       <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-relaxed">
-                        Security state changes are permanently logged in the <span className="text-rose-500">Security Audit Registry</span> for compliance oversight.
+                        Security state changes are permanently logged in the{" "}
+                        <span className="text-rose-500">
+                          Security Audit Registry
+                        </span>{" "}
+                        for compliance oversight.
                       </p>
                     </div>
                   </div>
@@ -432,8 +602,12 @@ function SectionLabel({ title, subtitle, icon, color }: SectionLabelProps) {
     <div className="flex items-center gap-3">
       <div className={`p-2 rounded-lg ${colors[color]}`}>{icon}</div>
       <div>
-        <h2 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest leading-none">{title}</h2>
-        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">{subtitle}</p>
+        <h2 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest leading-none">
+          {title}
+        </h2>
+        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">
+          {subtitle}
+        </p>
       </div>
     </div>
   );
@@ -454,8 +628,12 @@ function ControlCard({ title, subtitle, icon, action }: ControlCardProps) {
           {icon}
         </div>
         <div>
-          <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">{title}</h4>
-          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{subtitle}</p>
+          <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">
+            {title}
+          </h4>
+          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+            {subtitle}
+          </p>
         </div>
       </div>
       {action}
@@ -470,21 +648,32 @@ interface ProtocolToggleProps {
   onChange: (val: boolean) => void;
 }
 
-function ProtocolToggle({ title, desc, checked, onChange }: ProtocolToggleProps) {
+function ProtocolToggle({
+  title,
+  desc,
+  checked,
+  onChange,
+}: ProtocolToggleProps) {
   return (
     <label className="flex items-center justify-between p-4 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer hover:border-[var(--primary)]/20 transition-all">
       <div className="flex items-center gap-4">
-        <div className={`w-2 h-2 rounded-full ${checked ? 'bg-[var(--primary)] animate-pulse' : 'bg-slate-700'}`} />
+        <div
+          className={`w-2 h-2 rounded-full ${checked ? "bg-[var(--primary)] animate-pulse" : "bg-slate-700"}`}
+        />
         <div>
-          <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">{title}</p>
-          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">{desc}</p>
+          <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">
+            {title}
+          </p>
+          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+            {desc}
+          </p>
         </div>
       </div>
-      <input 
-        type="checkbox" 
-        checked={checked} 
+      <input
+        type="checkbox"
+        checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="w-4 h-4 rounded border-[var(--card-border)] bg-[var(--background)] text-[var(--primary)] focus:ring-[var(--primary)]" 
+        className="w-4 h-4 rounded border-[var(--card-border)] bg-[var(--background)] text-[var(--primary)] focus:ring-[var(--primary)]"
       />
     </label>
   );
@@ -498,7 +687,13 @@ interface SelectFieldProps {
   icon: React.ReactNode;
 }
 
-function SelectField({ label, value, onChange, options, icon }: SelectFieldProps) {
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+  icon,
+}: SelectFieldProps) {
   return (
     <div className="space-y-2">
       <label className="clinical-label px-1">{label}</label>
@@ -506,15 +701,15 @@ function SelectField({ label, value, onChange, options, icon }: SelectFieldProps
         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors">
           {icon}
         </div>
-        <select 
+        <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="w-full h-11 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-10 pr-4 text-[10px] font-black uppercase tracking-tight text-[var(--text-primary)] focus:border-[var(--primary)] focus:ring-4 focus:ring-[var(--primary)]/5 outline-none appearance-none cursor-pointer transition-all"
         >
           {options.map((opt) => (
-            <option 
-              key={opt.value} 
-              value={opt.value} 
+            <option
+              key={opt.value}
+              value={opt.value}
               className="bg-[var(--sidebar-bg)] text-[var(--text-primary)] py-2"
             >
               {opt.label}

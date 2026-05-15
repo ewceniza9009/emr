@@ -39,7 +39,7 @@ const UPDATE_TENANT_CONFIG = gql`
  * UserPreferences: Local workstation settings (Safe for LocalStorage)
  */
 export interface UserPreferences {
-  theme: 'light' | 'dark';
+  theme: "light" | "dark";
   compactMode: boolean;
   notificationsEnabled: boolean;
 }
@@ -93,7 +93,10 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 
 export const DEFAULT_TENANT: TenantSettings = {
   currency: "PHP",
-  timezone: "Asia/Manila",
+  timezone:
+    typeof window !== "undefined"
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone
+      : "UTC",
   language: "en",
   dateFormat: "MM/DD/YYYY",
   organizationName: "Halkyone Clinical Center",
@@ -111,17 +114,24 @@ export const DEFAULT_TENANT: TenantSettings = {
   urgentWellbeingThreshold: 7,
 };
 
-const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+const SettingsContext = createContext<SettingsContextType | undefined>(
+  undefined,
+);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
-  const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
-  const [tenantConfig, setTenantConfig] = useState<TenantSettings>(DEFAULT_TENANT);
+  const [preferences, setPreferences] =
+    useState<UserPreferences>(DEFAULT_PREFERENCES);
+  const [tenantConfig, setTenantConfig] =
+    useState<TenantSettings>(DEFAULT_TENANT);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const { data: tenantData, loading: tenantLoading } = useQuery(GET_TENANT_CONFIG, {
-    skip: !session
-  });
+  const { data: tenantData, loading: tenantLoading } = useQuery(
+    GET_TENANT_CONFIG,
+    {
+      skip: !session,
+    },
+  );
 
   const [mutateTenantConfig] = useMutation(UPDATE_TENANT_CONFIG);
 
@@ -172,8 +182,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setPreferences((prev) => {
       const updated = { ...prev, ...newPrefs };
       try {
-        localStorage.setItem("halkyone-workstation-prefs", JSON.stringify(updated));
-      } catch (e) { }
+        localStorage.setItem(
+          "halkyone-workstation-prefs",
+          JSON.stringify(updated),
+        );
+      } catch (e) {}
       return updated;
     });
   };
@@ -206,9 +219,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             iotSyncIntervalMs: merged.iotSyncIntervalMs,
             urgentPainThreshold: merged.urgentPainThreshold,
             urgentWellbeingThreshold: merged.urgentWellbeingThreshold,
-            isActive: true
-          }
-        }
+            isActive: true,
+          },
+        },
       });
 
       setTenantConfig(merged);
@@ -226,25 +239,27 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const formatDate = (date: string | Date) => {
     if (!date) return "--";
     return new Date(date).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const currencySymbol = currencySymbols[tenantConfig.currency] || "$";
 
   return (
-    <SettingsContext.Provider value={{
-      preferences,
-      tenantConfig,
-      updatePreferences,
-      updateTenantConfig,
-      formatCurrency,
-      formatDate,
-      currencySymbol,
-      isLoaded
-    }}>
+    <SettingsContext.Provider
+      value={{
+        preferences,
+        tenantConfig,
+        updatePreferences,
+        updateTenantConfig,
+        formatCurrency,
+        formatDate,
+        currencySymbol,
+        isLoaded,
+      }}
+    >
       {children}
     </SettingsContext.Provider>
   );
