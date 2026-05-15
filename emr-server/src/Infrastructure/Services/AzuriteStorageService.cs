@@ -18,10 +18,6 @@ public class AzuriteStorageService : IStorageService
         var connectionString = configuration.GetConnectionString("AzureStorage") ?? "UseDevelopmentStorage=true";
         _blobServiceClient = new BlobServiceClient(connectionString);
         _containerName = configuration["AzureStorage:ContainerName"] ?? "clinical-documents";
-        
-        // Ensure container exists
-        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
-        containerClient.CreateIfNotExists(PublicAccessType.Blob);
     }
 
     public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)

@@ -121,6 +121,8 @@ try
 
     app.UseMiddleware<Api.Middleware.ExceptionMiddleware>();
     app.UseSerilogRequestLogging();
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
 
     if (app.Environment.IsDevelopment())
     {

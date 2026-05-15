@@ -70,7 +70,7 @@ public static class DependencyInjection
         services.AddScoped<ISchedulingService, Infrastructure.Services.SchedulingService>();
         services.AddScoped<ITravelService, Infrastructure.Services.TravelService>();
         services.AddScoped<IMrnGenerator, Infrastructure.Services.MrnGenerator>();
-        services.AddScoped<IStorageService, Infrastructure.Services.AzuriteStorageService>();
+        services.AddScoped<IStorageService, Infrastructure.Services.LocalFileStorageService>();
         services.AddScoped<IPdfService, Infrastructure.Services.QuestPdfService>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
