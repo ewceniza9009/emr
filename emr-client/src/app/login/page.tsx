@@ -12,6 +12,7 @@ import Image from "next/image";
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid work email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  remember: z.boolean().optional(),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -37,6 +38,7 @@ export default function LoginPage() {
       const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
+        remember: data.remember ? "true" : "false",
         redirect: false,
       });
 
@@ -121,7 +123,12 @@ export default function LoginPage() {
 
             <div className="flex items-center gap-3 pt-2">
               <div className="relative flex items-center">
-                <input type="checkbox" className="peer w-4 h-4 rounded border-slate-700 bg-slate-900/50 text-[var(--primary)] focus:ring-[var(--primary)] focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer transition-all" id="remember" />
+                <input 
+                  {...register("remember")}
+                  type="checkbox" 
+                  className="peer w-4 h-4 rounded border-slate-700 bg-slate-900/50 text-[var(--primary)] focus:ring-[var(--primary)] focus:ring-offset-0 focus:ring-offset-transparent cursor-pointer transition-all" 
+                  id="remember" 
+                />
               </div>
               <label htmlFor="remember" className="text-xs font-bold text-slate-400 select-none cursor-pointer hover:text-slate-300 transition-colors">Keep me logged in</label>
             </div>
