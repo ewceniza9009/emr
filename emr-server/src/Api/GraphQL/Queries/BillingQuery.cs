@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
-[Authorize(Policy = "CanManageBilling")]
 public class BillingQuery
 {
     private readonly ICurrentUserService _currentUserService;
@@ -19,6 +18,7 @@ public class BillingQuery
         _currentUserService = currentUserService;
     }
 
+    [Authorize(Policy = "CanManageBilling")]
     [UseOffsetPaging(DefaultPageSize = 50, IncludeTotalCount = true)]
     [UseFiltering(typeof(ZBenefitClaimFilterInputType))]
     [UseSorting]
@@ -27,6 +27,7 @@ public class BillingQuery
         return context.ZBenefitClaims.AsNoTracking().ProjectToType<ZBenefitClaimDto>();
     }
 
+    [Authorize(Policy = "CanManageBilling")]
     [UseOffsetPaging(DefaultPageSize = 50, IncludeTotalCount = true)]
     [UseFiltering(typeof(BillingInvoiceFilterInputType))]
     [UseSorting]
@@ -43,6 +44,7 @@ public class BillingQuery
         return query.ProjectToType<BillingInvoiceDto>();
     }
 
+    [Authorize(Policy = "CanManageBilling")]
     public async Task<BillingSummaryDto> GetBillingSummary([Service] IApplicationDbContext context)
     {
         // Consolidated into a single database round-trip using subqueries
@@ -68,6 +70,7 @@ public class BillingQuery
             ?? new BillingSummaryDto();
     }
 
+    [Authorize(Policy = "CanManageBilling")]
     public async Task<BillingInvoiceDto?> GetBillingInvoiceById(
         Guid id,
         [Service] IApplicationDbContext context,

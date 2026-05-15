@@ -37,6 +37,7 @@ import { useState, useEffect } from "react";
 import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
 import BookingDrawer from "@/components/BookingDrawer";
 import AddPatientDrawer from "@/components/AddPatientDrawer";
+import { PermissionGate } from "@/components/PermissionGate";
 import {
   AreaChart,
   Area,
@@ -167,53 +168,67 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => router.push("/dashboard/schedule?action=new")}
-              className="px-5 h-10 rounded-xl bg-white text-slate-900 text-xs font-bold hover:bg-teal-50 transition-all flex items-center gap-2 shadow-xl active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              New Encounter
-            </button>
-            <button
-              onClick={() => showToast("Preparing clinical report...", "info")}
-              className="px-5 h-10 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold hover:bg-white/10 transition-all flex items-center gap-2 backdrop-blur-md active:scale-95"
-            >
-              <BarChart3 className="w-4 h-4 text-teal-400" />
-              Reports
-            </button>
+            <PermissionGate permission="scheduling:manage">
+              <button
+                onClick={() => router.push("/dashboard/schedule?action=new")}
+                className="px-5 h-10 rounded-xl bg-white text-slate-900 text-xs font-bold hover:bg-teal-50 transition-all flex items-center gap-2 shadow-xl active:scale-95"
+              >
+                <Plus className="w-4 h-4" />
+                New Encounter
+              </button>
+            </PermissionGate>
+            <PermissionGate permission="analytics:view">
+              <button
+                onClick={() => showToast("Preparing clinical report...", "info")}
+                className="px-5 h-10 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold hover:bg-white/10 transition-all flex items-center gap-2 backdrop-blur-md active:scale-95"
+              >
+                <BarChart3 className="w-4 h-4 text-teal-400" />
+                Reports
+              </button>
+            </PermissionGate>
           </div>
         </div>
       </motion.div>
 
       {/* Stats Row - Compact */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        {stats.map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            variants={itemVariants}
-            onClick={() => {
-              if (stat.href) router.push(stat.href);
-              if (stat.action === "BOOK_APPOINTMENT") setIsBookingOpen(true);
-              if (stat.action === "ADD_PATIENT") setIsAddPatientOpen(true);
-            }}
-            className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] hover:bg-white/[0.02] transition-all cursor-pointer group active:scale-[0.98]"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
-                <stat.icon className="w-4 h-4" />
-              </div>
-              <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md bg-white/5 ${stat.color}`}>
-                {stat.trend}
-              </span>
-            </div>
-            <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{stat.label}</p>
-            {loading ? (
-              <Skeleton className="h-8 w-24 mt-2 rounded-lg" />
-            ) : (
-              <h3 className="text-2xl font-bold text-[var(--text-primary)] mt-1">{stat.value}</h3>
-            )}
-          </motion.div>
-        ))}
+        {stats.map((stat, i) => {
+          const permissionMap: Record<string, string> = {
+            "Patients": "patients:view",
+            "Encounters": "clinical:view",
+            "Reviews": "clinical:view",
+            "Alerts": "clinical:view",
+            "Equipment": "logistics:view"
+          };
+          return (
+            <PermissionGate key={stat.label} permission={permissionMap[stat.label] || "clinical:view"}>
+              <motion.div
+                variants={itemVariants}
+                onClick={() => {
+                  if (stat.href) router.push(stat.href);
+                  if (stat.action === "BOOK_APPOINTMENT") setIsBookingOpen(true);
+                  if (stat.action === "ADD_PATIENT") setIsAddPatientOpen(true);
+                }}
+                className="glass-morphism rounded-2xl p-4 border border-[var(--card-border)] hover:bg-white/[0.02] transition-all cursor-pointer group active:scale-[0.98]"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
+                    <stat.icon className="w-4 h-4" />
+                  </div>
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md bg-white/5 ${stat.color}`}>
+                    {stat.trend}
+                  </span>
+                </div>
+                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{stat.label}</p>
+                {loading ? (
+                  <Skeleton className="h-8 w-24 mt-2 rounded-lg" />
+                ) : (
+                  <h3 className="text-2xl font-bold text-[var(--text-primary)] mt-1">{stat.value}</h3>
+                )}
+              </motion.div>
+            </PermissionGate>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -251,110 +266,114 @@ export default function Dashboard() {
           )}
 
           {/* Activity Log - Compact */}
-          <motion.div variants={itemVariants} className="glass-morphism rounded-[2rem] p-4 border border-[var(--card-border)]">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-1 h-4 bg-[var(--primary)] rounded-full shadow-[0_0_10px_var(--primary-glow)]" />
-                <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Recent Activity Log</h2>
+          <PermissionGate permission="clinical:view">
+            <motion.div variants={itemVariants} className="glass-morphism rounded-[2rem] p-4 border border-[var(--card-border)]">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-4 bg-[var(--primary)] rounded-full shadow-[0_0_10px_var(--primary-glow)]" />
+                  <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Recent Activity Log</h2>
+                </div>
+                <button
+                  onClick={() => router.push("/dashboard/patients")}
+                  className="text-[10px] font-bold text-[var(--primary)] hover:opacity-80 flex items-center gap-1 group"
+                >
+                  View All <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </button>
               </div>
-              <button
-                onClick={() => router.push("/dashboard/patients")}
-                className="text-[10px] font-bold text-[var(--primary)] hover:opacity-80 flex items-center gap-1 group"
-              >
-                View All <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </button>
-            </div>
 
-            <div className="space-y-1.5">
-              {loading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)]">
-                    <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Skeleton className="h-4 w-48" />
-                        <Skeleton className="h-3 w-16" />
-                      </div>
-                      <Skeleton className="h-3 w-32" />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                (data?.triageWorklist?.items || []).slice(0, 4).map((item: any, i: number) => {
-                  const isReal = !!item.patientId;
-                  const patientId = isReal ? item.patientId : "sample-id";
-                  const mrn = isReal ? item.mrn : `PRN-${48291 + i}`;
-                  const name = isReal ? `${item.firstName} ${item.lastName}` : "Patient Assessment";
-                  const isAlert = isReal ? item.isAlert : i === 0;
-
-                  return (
-                    <div
-                      key={isReal ? item.patientId : i}
-                      onClick={() => router.push(`/dashboard/patients/${patientId}`)}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20 transition-all cursor-pointer active:scale-[0.99] group"
-                    >
-                      <div className={`w-10 h-10 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0 ${isAlert ? 'border-rose-500/30 bg-rose-500/5' : ''}`}>
-                        <Zap className={`${isAlert ? 'text-rose-500 animate-pulse' : 'text-[var(--primary)]'} w-5 h-5`} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors truncate">
-                          {isReal ? `Assessment: ${name}` : `Patient Assessment: ${mrn}`}
-                        </p>
-                        <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-medium truncate">
-                          {isReal ? `MRN: ${mrn} · Verified Registry` : "Clinical Review · Synchronized 2h ago"}
-                        </p>
-                      </div>
-                      <div className="text-right hidden sm:block">
-                        <div className="flex items-center justify-end gap-1 mb-0.5">
-                          <Shield className={`w-2.5 h-2.5 ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`} />
-                          <span className={`text-[8px] font-bold uppercase tracking-widest ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`}>
-                            {isAlert ? 'Urgent' : 'Validated'}
-                          </span>
+              <div className="space-y-1.5">
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)]">
+                      <Skeleton className="w-10 h-10 rounded-lg shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Skeleton className="h-4 w-48" />
+                          <Skeleton className="h-3 w-16" />
                         </div>
-                        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
-                          System Admin
-                        </p>
+                        <Skeleton className="h-3 w-32" />
                       </div>
                     </div>
-                  );
-                })
-              )}
-            </div>
-          </motion.div>
+                  ))
+                ) : (
+                  (data?.triageWorklist?.items || []).slice(0, 4).map((item: any, i: number) => {
+                    const isReal = !!item.patientId;
+                    const patientId = isReal ? item.patientId : "sample-id";
+                    const mrn = isReal ? item.mrn : `PRN-${48291 + i}`;
+                    const name = isReal ? `${item.firstName} ${item.lastName}` : "Patient Assessment";
+                    const isAlert = isReal ? item.isAlert : i === 0;
+
+                    return (
+                      <div
+                        key={isReal ? item.patientId : i}
+                        onClick={() => router.push(`/dashboard/patients/${patientId}`)}
+                        className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20 transition-all cursor-pointer active:scale-[0.99] group"
+                      >
+                        <div className={`w-10 h-10 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0 ${isAlert ? 'border-rose-500/30 bg-rose-500/5' : ''}`}>
+                          <Zap className={`${isAlert ? 'text-rose-500 animate-pulse' : 'text-[var(--primary)]'} w-5 h-5`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors truncate">
+                            {isReal ? `Assessment: ${name}` : `Patient Assessment: ${mrn}`}
+                          </p>
+                          <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-medium truncate">
+                            {isReal ? `MRN: ${mrn} · Verified Registry` : "Clinical Review · Synchronized 2h ago"}
+                          </p>
+                        </div>
+                        <div className="text-right hidden sm:block">
+                          <div className="flex items-center justify-end gap-1 mb-0.5">
+                            <Shield className={`w-2.5 h-2.5 ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`} />
+                            <span className={`text-[8px] font-bold uppercase tracking-widest ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`}>
+                              {isAlert ? 'Urgent' : 'Validated'}
+                            </span>
+                          </div>
+                          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
+                            System Admin
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </motion.div>
+          </PermissionGate>
 
           {/* Operational Pulse Chart - Compact */}
-          <motion.div variants={itemVariants} className="glass-morphism rounded-[2rem] border border-[var(--card-border)] p-5 overflow-hidden relative">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Operational Pulse</h2>
-                <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-bold uppercase tracking-widest">Real-time engagement metrics</p>
+          <PermissionGate permission="analytics:view">
+            <motion.div variants={itemVariants} className="glass-morphism rounded-[2rem] border border-[var(--card-border)] p-5 overflow-hidden relative">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Operational Pulse</h2>
+                  <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-bold uppercase tracking-widest">Real-time engagement metrics</p>
+                </div>
               </div>
-            </div>
-            <div className="h-[140px] w-full">
-              <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
-                <AreaChart data={data?.dashboardStats?.pulse || []}>
+              <div className="h-[140px] w-full">
+                <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+                  <AreaChart data={data?.dashboardStats?.pulse || []}>
 
-                  <defs>
-                    <linearGradient id="colorPulse" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      backdropFilter: 'blur(10px)',
-                      color: '#fff',
-                      fontSize: '10px'
-                    }}
-                  />
-                  <Area type="monotone" dataKey="active" stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorPulse)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
+                    <defs>
+                      <linearGradient id="colorPulse" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        backdropFilter: 'blur(10px)',
+                        color: '#fff',
+                        fontSize: '10px'
+                      }}
+                    />
+                    <Area type="monotone" dataKey="active" stroke="var(--primary)" strokeWidth={2} fillOpacity={1} fill="url(#colorPulse)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </motion.div>
+          </PermissionGate>
         </div>
 
         {/* Sidebar - Compact Alerts */}
@@ -426,12 +445,14 @@ export default function Dashboard() {
               color="text-purple-500"
               href="/dashboard/triage"
             />
-            <NavTile
-              icon={Settings}
-              label="System"
-              color="text-slate-500"
-              href="/admin"
-            />
+            <PermissionGate permission="setup:view">
+              <NavTile
+                icon={Settings}
+                label="System"
+                color="text-slate-500"
+                href="/admin"
+              />
+            </PermissionGate>
           </div>
         </motion.div>
 

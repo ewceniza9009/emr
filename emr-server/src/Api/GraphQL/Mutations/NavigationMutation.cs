@@ -5,9 +5,9 @@ using MediatR;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
-[Authorize(Policy = "CanViewPatients")]
 public class NavigationMutation
 {
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<Guid> CreateCareNavigationCase(
         CreateCareNavigationCaseCommand input,
         [Service] IMediator mediator,

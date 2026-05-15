@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   backend:
-    name: Backend Pipeline (.NET 10)
+    name: Backend Pipeline (.NET 9)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

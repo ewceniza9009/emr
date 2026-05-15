@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
-[Authorize(Policy = "CanViewPatients")]
 public class ClinicalQuery
 {
     private readonly ISecurityAuditService _auditService;
@@ -22,6 +21,7 @@ public class ClinicalQuery
         _auditService = auditService;
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseFiltering]
     [UseSorting]
     [GraphQLName("encountersByPatient")]
@@ -48,6 +48,7 @@ public class ClinicalQuery
             .Where(e => e.PatientId == patientId);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseFiltering]
     [UseSorting]
     [GraphQLName("vitalSignsByPatient")]
@@ -64,6 +65,7 @@ public class ClinicalQuery
             .Where(v => v.Encounter.PatientId == patientId);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseFiltering]
     [UseSorting]
     [GraphQLName("esasHistoryByPatient")]
@@ -77,6 +79,7 @@ public class ClinicalQuery
         return context.EsasAssessments.AsNoTracking().Where(e => e.PatientId == patientId);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseFiltering]
     [UseSorting]
     [GraphQLName("equipmentDeliveriesByPatient")]
@@ -93,6 +96,7 @@ public class ClinicalQuery
             .Where(e => e.PatientId == patientId);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [GraphQLName("patientClinicalSummary")]
     [UseClinicalAccess]
     public async Task<PatientClinicalSummaryDto> GetPatientClinicalSummary(
@@ -107,6 +111,7 @@ public class ClinicalQuery
         );
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseFiltering]
     [UseSorting]
     [GraphQLName("triageWorklist")]
@@ -126,6 +131,7 @@ public class ClinicalQuery
         );
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [GraphQLName("facilityOutreach")]
     public async Task<List<FacilityOutreachDto>> GetFacilityOutreach(
         [Service] IApplicationDbContext context,
@@ -150,11 +156,13 @@ public class ClinicalQuery
             .ToListAsync(cancellationToken);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     public IQueryable<SmartPhrase> GetSmartPhrases([Service] IApplicationDbContext context)
     {
         return context.SmartPhrases.AsNoTracking();
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseFiltering]
     [UseSorting]
     [GraphQLName("spiritualAssessmentsByEncounter")]
@@ -168,6 +176,7 @@ public class ClinicalQuery
         return context.SpiritualAssessments.AsNoTracking().Where(r => r.EncounterId == encounterId);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseFiltering]
     [UseSorting]
     [GraphQLName("advanceDirectivesByPatient")]
@@ -181,6 +190,7 @@ public class ClinicalQuery
         return context.AdvanceDirectives.AsNoTracking().Where(r => r.PatientId == patientId);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseFiltering]
     [UseSorting]
     [GraphQLName("assessmentResponsesByEncounter")]
@@ -199,6 +209,7 @@ public class ClinicalQuery
             .Where(r => r.EncounterId == encounterId);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [GraphQLName("searchDiagnosisLibrary")]
     public async Task<List<Diagnosis>> SearchDiagnosisLibrary(
         string term,

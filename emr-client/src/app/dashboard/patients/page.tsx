@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PatientFilterPopover, { PatientFilters } from "@/components/PatientFilterPopover";
 import DispatchModal from "@/components/DispatchModal";
 import { Navigation } from "lucide-react";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const GET_PATIENTS = gql`
   query GetPatients($search: String, $skip: Int!, $take: Int!, $directiveTypes: [String!], $biologicalSex: String, $visitStatuses: [String!]) {
@@ -84,13 +85,15 @@ export default function PatientsPage() {
           <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Patient Registry</h1>
           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Master record of all patients under clinical supervision.</p>
         </div>
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="premium-button premium-gradient px-5 h-10 rounded-xl text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20"
-        >
-          <Plus className="w-4 h-4" />
-          Add New Patient
-        </button>
+        <PermissionGate permission="patients:edit">
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="premium-button premium-gradient px-5 h-10 rounded-xl text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20"
+          >
+            <Plus className="w-4 h-4" />
+            Add New Patient
+          </button>
+        </PermissionGate>
       </div>
 
       <AddPatientDrawer
@@ -266,48 +269,54 @@ export default function PatientsPage() {
                             <UserCircle className="w-4 h-4 text-blue-400" />
                             View Clinical Profile
                           </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenMenuId(null);
-                              router.push(`/dashboard/schedule?patientId=${patient.patientId}`);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--primary-glow)] transition-all text-left"
-                          >
-                            <Plus className="w-4 h-4 text-purple-400" />
-                            Schedule Encounter
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenMenuId(null);
-                              setDispatchPatient({ id: patient.patientId, name: `${patient.firstName} ${patient.lastName}` });
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--primary-glow)] transition-all text-left"
-                          >
-                            <Navigation className="w-4 h-4 text-emerald-400" />
-                            Dispatch Clinician
-                          </button>
-                          <div className="h-px bg-[var(--card-border)] my-1" />
-                          <button
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-all font-semibold text-left"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const ok = await confirm({
-                                title: "Archive Patient",
-                                message: `Are you sure you want to archive ${patient.firstName} ${patient.lastName}? This will remove them from the active clinical roster.`,
-                                type: "warning",
-                                confirmText: "Archive"
-                              });
-                              if (ok) {
-                                // Archive logic
+                          <PermissionGate permission="scheduling:manage">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setOpenMenuId(null);
-                              }
-                            }}
-                          >
-                            <Mail className="w-4 h-4" />
-                            Archive Patient Record
-                          </button>
+                                router.push(`/dashboard/schedule?patientId=${patient.patientId}`);
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--primary-glow)] transition-all text-left"
+                            >
+                              <Plus className="w-4 h-4 text-purple-400" />
+                              Schedule Encounter
+                            </button>
+                          </PermissionGate>
+                          <PermissionGate permission="scheduling:manage">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                                setDispatchPatient({ id: patient.patientId, name: `${patient.firstName} ${patient.lastName}` });
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--primary-glow)] transition-all text-left"
+                            >
+                              <Navigation className="w-4 h-4 text-emerald-400" />
+                              Dispatch Clinician
+                            </button>
+                          </PermissionGate>
+                          <div className="h-px bg-[var(--card-border)] my-1" />
+                          <PermissionGate permission="patients:delete">
+                            <button
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-all font-semibold text-left"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                const ok = await confirm({
+                                  title: "Archive Patient",
+                                  message: `Are you sure you want to archive ${patient.firstName} ${patient.lastName}? This will remove them from the active clinical roster.`,
+                                  type: "warning",
+                                  confirmText: "Archive"
+                                });
+                                if (ok) {
+                                  // Archive logic
+                                  setOpenMenuId(null);
+                                }
+                              }}
+                            >
+                              <Mail className="w-4 h-4" />
+                              Archive Patient Record
+                            </button>
+                          </PermissionGate>
                         </div>
                       </>
                     )}

@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
-[Authorize(Policy = "CanViewPatients")]
 public class NavigationQuery
 {
+    [Authorize(Policy = "CanViewPatients")]
     [UseFiltering]
     [UseSorting]
     public IQueryable<CareNavigationCaseDto> GetCareNavigationCases(

@@ -22,6 +22,7 @@ import Link from "next/link";
 import EsasScoring from "@/components/EsasScoring";
 import PpsSelector from "@/components/PpsSelector";
 import * as signalR from "@microsoft/signalr";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const CREATE_ENCOUNTER = gql`
   mutation CreateEncounter($input: CreateClinicalEncounterCommandInput!) {
@@ -476,13 +477,15 @@ export default function NewAssessmentPage() {
            <Link href={`/dashboard/patients/${params.id}`} className="px-8 py-3 rounded-2xl text-[var(--text-muted)] hover:text-[var(--text-primary)] font-bold transition-all">
              Discard
            </Link>
-           <button 
-             type="submit" 
-             disabled={isSubmitting}
-             className="premium-button premium-gradient px-10 py-4 rounded-2xl text-white font-black flex items-center gap-3 shadow-xl shadow-blue-500/20 disabled:opacity-50 active:scale-95 transition-all"
-           >
-             {isSubmitting ? "Saving Record..." : <><Save className="w-5 h-5" /> Save & Finalize Encounter</>}
-           </button>
+           <PermissionGate permission="clinical:chart">
+             <button 
+               type="submit" 
+               disabled={isSubmitting}
+               className="premium-button premium-gradient px-10 py-4 rounded-2xl text-white font-black flex items-center gap-3 shadow-xl shadow-blue-500/20 disabled:opacity-50 active:scale-95 transition-all"
+             >
+               {isSubmitting ? "Saving Record..." : <><Save className="w-5 h-5" /> Save & Finalize Encounter</>}
+             </button>
+           </PermissionGate>
         </div>
       </form>
     </div>

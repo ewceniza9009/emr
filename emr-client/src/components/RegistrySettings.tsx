@@ -30,6 +30,7 @@ import { useSettings } from "@/lib/SettingsContext";
 import { useSession } from "next-auth/react";
 import { useMutation, gql } from "@apollo/client";
 import { useCommandModal } from "./CommandModalProvider";
+import { PermissionGate } from "./PermissionGate";
 
 const timezones = [
   { value: "UTC", label: "UTC (COORDINATED UNIVERSAL TIME)" },
@@ -117,7 +118,7 @@ export default function RegistrySettings() {
   const tabs = [
     { id: "workstation", label: "WORKSTATION", icon: Layout, adminOnly: false },
     { id: "tenant", label: "ORGANIZATION", icon: Building2, adminOnly: true },
-    { id: "security", label: "SECURITY", icon: Shield, adminOnly: false },
+    { id: "security", label: "SECURITY", icon: Shield, adminOnly: true },
     { id: "notifications", label: "ALERTS", icon: Bell, adminOnly: false },
     {
       id: "infrastructure",
@@ -148,9 +149,11 @@ export default function RegistrySettings() {
               <span className="text-[10px] font-bold uppercase tracking-widest">
                 {tab.label}
               </span>
-              {tab.adminOnly && !isAdmin && (
-                <Lock className="w-2.5 h-2.5 ml-auto opacity-40" />
-              )}
+              <PermissionGate permission="setup:manage">
+                {tab.adminOnly && (
+                  <Lock className="w-2.5 h-2.5 ml-auto opacity-40" />
+                )}
+              </PermissionGate>
               {activeTab === tab.id && (
                 <div className="absolute right-3 w-1 h-1 bg-[var(--sidebar-bg)] rounded-full" />
               )}
@@ -242,131 +245,116 @@ export default function RegistrySettings() {
                   color="teal"
                 />
 
-                {!isAdmin ? (
-                  <div className="p-8 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex flex-col items-center text-center space-y-4">
-                    <Lock className="w-8 h-8 text-amber-500/40" />
-                    <div>
-                      <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">
-                        Administrative Access Required
-                      </h3>
-                      <p className="text-[9px] text-[var(--text-muted)] uppercase mt-1 max-w-[300px]">
-                        Tenant-level operational state can only be modified by
-                        system administrators.
-                      </p>
+                <PermissionGate permission="setup:manage">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <SelectField
+                      label="SYSTEM TIME ZONE"
+                      value={stagedTenant.timezone}
+                      onChange={(v: string) =>
+                        setStagedTenant({ ...stagedTenant, timezone: v })
+                      }
+                      options={timezones}
+                      icon={<Clock className="w-3.5 h-3.5" />}
+                    />
+                    <SelectField
+                      label="BASE CURRENCY"
+                      value={stagedTenant.currency}
+                      onChange={(v: string) =>
+                        setStagedTenant({ ...stagedTenant, currency: v })
+                      }
+                      options={currencies}
+                      icon={<DollarSign className="w-3.5 h-3.5" />}
+                    />
+                    <SelectField
+                      label="DEFAULT LANGUAGE"
+                      value={stagedTenant.language}
+                      onChange={(v: string) =>
+                        setStagedTenant({ ...stagedTenant, language: v })
+                      }
+                      options={languages}
+                      icon={<Languages className="w-3.5 h-3.5" />}
+                    />
+                    <SelectField
+                      label="DATE DISPLAY PROTOCOL"
+                      value={stagedTenant.dateFormat}
+                      onChange={(v: string) =>
+                        setStagedTenant({ ...stagedTenant, dateFormat: v })
+                      }
+                      options={[
+                        { value: "MM/DD/YYYY", label: "MM/DD/YYYY (US)" },
+                        { value: "DD/MM/YYYY", label: "DD/MM/YYYY (INTL)" },
+                        { value: "YYYY-MM-DD", label: "YYYY-MM-DD (ISO)" },
+                      ]}
+                      icon={<Activity className="w-3.5 h-3.5" />}
+                    />
+                  </div>
+
+                  <div className="pt-6 space-y-6">
+                    <SectionLabel
+                      title="SCHEDULING BUCKETS"
+                      subtitle="Operational Slot Distribution"
+                      icon={<Clock className="w-3.5 h-3.5" />}
+                      color="amber"
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <SelectField
+                        label="AM BUCKET START"
+                        value={stagedTenant.amStartHour.toString()}
+                        onChange={(v: string) =>
+                          setStagedTenant({
+                            ...stagedTenant,
+                            amStartHour: parseInt(v),
+                          })
+                        }
+                        options={Array.from({ length: 12 }, (_, i) => ({
+                          value: (i + 1).toString(),
+                          label: `${i + 1}:00 AM`,
+                        }))}
+                        icon={<Clock className="w-3.5 h-3.5" />}
+                      />
+                      <SelectField
+                        label="PM BUCKET START"
+                        value={stagedTenant.pmStartHour.toString()}
+                        onChange={(v: string) =>
+                          setStagedTenant({
+                            ...stagedTenant,
+                            pmStartHour: parseInt(v),
+                          })
+                        }
+                        options={Array.from({ length: 24 }, (_, i) => ({
+                          value: i.toString(),
+                          label:
+                            i === 12
+                              ? "12:00 PM"
+                              : i > 12
+                                ? `${i - 12}:00 PM`
+                                : `${i}:00 AM`,
+                        }))}
+                        icon={<Clock className="w-3.5 h-3.5" />}
+                      />
+                      <SelectField
+                        label="OPERATIONAL DAY END"
+                        value={stagedTenant.dayEndHour.toString()}
+                        onChange={(v: string) =>
+                          setStagedTenant({
+                            ...stagedTenant,
+                            dayEndHour: parseInt(v),
+                          })
+                        }
+                        options={Array.from({ length: 24 }, (_, i) => ({
+                          value: i.toString(),
+                          label:
+                            i === 12
+                              ? "12:00 PM"
+                              : i > 12
+                                ? `${i - 12}:00 PM`
+                                : `${i}:00 AM`,
+                        }))}
+                        icon={<Clock className="w-3.5 h-3.5" />}
+                      />
                     </div>
                   </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <SelectField
-                        label="SYSTEM TIME ZONE"
-                        value={stagedTenant.timezone}
-                        onChange={(v: string) =>
-                          setStagedTenant({ ...stagedTenant, timezone: v })
-                        }
-                        options={timezones}
-                        icon={<Clock className="w-3.5 h-3.5" />}
-                      />
-                      <SelectField
-                        label="BASE CURRENCY"
-                        value={stagedTenant.currency}
-                        onChange={(v: string) =>
-                          setStagedTenant({ ...stagedTenant, currency: v })
-                        }
-                        options={currencies}
-                        icon={<DollarSign className="w-3.5 h-3.5" />}
-                      />
-                      <SelectField
-                        label="DEFAULT LANGUAGE"
-                        value={stagedTenant.language}
-                        onChange={(v: string) =>
-                          setStagedTenant({ ...stagedTenant, language: v })
-                        }
-                        options={languages}
-                        icon={<Languages className="w-3.5 h-3.5" />}
-                      />
-                      <SelectField
-                        label="DATE DISPLAY PROTOCOL"
-                        value={stagedTenant.dateFormat}
-                        onChange={(v: string) =>
-                          setStagedTenant({ ...stagedTenant, dateFormat: v })
-                        }
-                        options={[
-                          { value: "MM/DD/YYYY", label: "MM/DD/YYYY (US)" },
-                          { value: "DD/MM/YYYY", label: "DD/MM/YYYY (INTL)" },
-                          { value: "YYYY-MM-DD", label: "YYYY-MM-DD (ISO)" },
-                        ]}
-                        icon={<Activity className="w-3.5 h-3.5" />}
-                      />
-                    </div>
-
-                    <div className="pt-6 space-y-6">
-                      <SectionLabel
-                        title="SCHEDULING BUCKETS"
-                        subtitle="Operational Slot Distribution"
-                        icon={<Clock className="w-3.5 h-3.5" />}
-                        color="amber"
-                      />
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <SelectField
-                          label="AM BUCKET START"
-                          value={stagedTenant.amStartHour.toString()}
-                          onChange={(v: string) =>
-                            setStagedTenant({
-                              ...stagedTenant,
-                              amStartHour: parseInt(v),
-                            })
-                          }
-                          options={Array.from({ length: 12 }, (_, i) => ({
-                            value: (i + 1).toString(),
-                            label: `${i + 1}:00 AM`,
-                          }))}
-                          icon={<Clock className="w-3.5 h-3.5" />}
-                        />
-                        <SelectField
-                          label="PM BUCKET START"
-                          value={stagedTenant.pmStartHour.toString()}
-                          onChange={(v: string) =>
-                            setStagedTenant({
-                              ...stagedTenant,
-                              pmStartHour: parseInt(v),
-                            })
-                          }
-                          options={Array.from({ length: 24 }, (_, i) => ({
-                            value: i.toString(),
-                            label:
-                              i === 12
-                                ? "12:00 PM"
-                                : i > 12
-                                  ? `${i - 12}:00 PM`
-                                  : `${i}:00 AM`,
-                          }))}
-                          icon={<Clock className="w-3.5 h-3.5" />}
-                        />
-                        <SelectField
-                          label="OPERATIONAL DAY END"
-                          value={stagedTenant.dayEndHour.toString()}
-                          onChange={(v: string) =>
-                            setStagedTenant({
-                              ...stagedTenant,
-                              dayEndHour: parseInt(v),
-                            })
-                          }
-                          options={Array.from({ length: 24 }, (_, i) => ({
-                            value: i.toString(),
-                            label:
-                              i === 12
-                                ? "12:00 PM"
-                                : i > 12
-                                  ? `${i - 12}:00 PM`
-                                  : `${i}:00 AM`,
-                          }))}
-                          icon={<Clock className="w-3.5 h-3.5" />}
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
+                </PermissionGate>
               </div>
             )}
 
@@ -403,20 +391,7 @@ export default function RegistrySettings() {
                   color="teal"
                 />
 
-                {!isAdmin ? (
-                  <div className="p-8 rounded-2xl bg-amber-500/5 border border-amber-500/10 flex flex-col items-center text-center space-y-4">
-                    <Lock className="w-8 h-8 text-amber-500/40" />
-                    <div>
-                      <h3 className="text-[10px] font-black text-amber-500 uppercase tracking-widest">
-                        Administrative Access Required
-                      </h3>
-                      <p className="text-[9px] text-[var(--text-muted)] uppercase mt-1 max-w-[300px]">
-                        Infrastructure parameters can only be modified by system
-                        administrators.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
+                <PermissionGate permission="setup:manage">
                   <div className="space-y-6">
                     <ProtocolToggle
                       title="Elasticsearch Core"
@@ -474,7 +449,7 @@ export default function RegistrySettings() {
                       </button>
                     </div>
                   </div>
-                )}
+                </PermissionGate>
               </div>
             )}
 
@@ -487,66 +462,68 @@ export default function RegistrySettings() {
                   color="rose"
                 />
 
-                <div className="grid grid-cols-1 gap-6">
-                  <ProtocolToggle
-                    title="Multi-Factor Authentication (MFA)"
-                    desc="Require TOTP verification for all clinical workstations"
-                    checked={stagedTenant.enforceMfa}
-                    onChange={(val: boolean) =>
-                      setStagedTenant({ ...stagedTenant, enforceMfa: val })
-                    }
-                  />
+                <PermissionGate permission="setup:manage">
+                  <div className="grid grid-cols-1 gap-6">
+                    <ProtocolToggle
+                      title="Multi-Factor Authentication (MFA)"
+                      desc="Require TOTP verification for all clinical workstations"
+                      checked={stagedTenant.enforceMfa}
+                      onChange={(val: boolean) =>
+                        setStagedTenant({ ...stagedTenant, enforceMfa: val })
+                      }
+                    />
 
-                  <ProtocolToggle
-                    title="Strict Onboarding Mode"
-                    desc="Disable public registration; require cryptographic invitations"
-                    checked={stagedTenant.strictOnboarding}
-                    onChange={(val: boolean) =>
-                      setStagedTenant({
-                        ...stagedTenant,
-                        strictOnboarding: val,
-                      })
-                    }
-                  />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                    <SelectField
-                      label="CLINICAL SESSION TIMEOUT"
-                      value={stagedTenant.sessionTimeoutMinutes.toString()}
-                      onChange={(v: string) =>
+                    <ProtocolToggle
+                      title="Strict Onboarding Mode"
+                      desc="Disable public registration; require cryptographic invitations"
+                      checked={stagedTenant.strictOnboarding}
+                      onChange={(val: boolean) =>
                         setStagedTenant({
                           ...stagedTenant,
-                          sessionTimeoutMinutes: parseInt(v),
+                          strictOnboarding: val,
                         })
                       }
-                      options={[
-                        { value: "15", label: "15 MINUTES (HIGH SECURITY)" },
-                        { value: "30", label: "30 MINUTES (BALANCED)" },
-                        { value: "60", label: "60 MINUTES (STANDARD)" },
-                        { value: "240", label: "4 HOURS (EXTENDED)" },
-                      ]}
-                      icon={<Clock className="w-3.5 h-3.5" />}
                     />
-                  </div>
 
-                  <div className="p-6 rounded-2xl bg-rose-500/5 border border-rose-500/10 flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-rose-500/10 text-rose-500">
-                      <Lock className="w-5 h-5" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                      <SelectField
+                        label="CLINICAL SESSION TIMEOUT"
+                        value={stagedTenant.sessionTimeoutMinutes.toString()}
+                        onChange={(v: string) =>
+                          setStagedTenant({
+                            ...stagedTenant,
+                            sessionTimeoutMinutes: parseInt(v),
+                          })
+                        }
+                        options={[
+                          { value: "15", label: "15 MINUTES (HIGH SECURITY)" },
+                          { value: "30", label: "30 MINUTES (BALANCED)" },
+                          { value: "60", label: "60 MINUTES (STANDARD)" },
+                          { value: "240", label: "4 HOURS (EXTENDED)" },
+                        ]}
+                        icon={<Clock className="w-3.5 h-3.5" />}
+                      />
                     </div>
-                    <div>
-                      <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">
-                        Forensic Vault Linkage
-                      </h4>
-                      <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-relaxed">
-                        Security state changes are permanently logged in the{" "}
-                        <span className="text-rose-500">
-                          Security Audit Registry
-                        </span>{" "}
-                        for compliance oversight.
-                      </p>
+
+                    <div className="p-6 rounded-2xl bg-rose-500/5 border border-rose-500/10 flex items-center gap-4">
+                      <div className="p-3 rounded-xl bg-rose-500/10 text-rose-500">
+                        <Lock className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">
+                          Forensic Vault Linkage
+                        </h4>
+                        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-relaxed">
+                          Security state changes are permanently logged in the{" "}
+                          <span className="text-rose-500">
+                            Security Audit Registry
+                          </span>{" "}
+                          for compliance oversight.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </PermissionGate>
               </div>
             )}
           </div>

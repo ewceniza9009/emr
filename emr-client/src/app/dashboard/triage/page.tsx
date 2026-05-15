@@ -23,6 +23,7 @@ import UploadDocumentDrawer from "@/components/UploadDocumentDrawer";
 import TriageNoteDrawer from "@/components/TriageNoteDrawer";
 import TriageFilterPopover, { TriageFilters } from "@/components/TriageFilterPopover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const GET_TRIAGE_DASHBOARD_DATA = gql`
   query GetTriageDashboardData($search: String, $isAlert: Boolean, $directiveTypes: [String!]) {
@@ -262,27 +263,33 @@ export default function TriageDashboard() {
                       </td>
                       <td className="px-8 py-5 text-right">
                         <div className="flex items-center justify-end gap-3">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleTriageNote(p.patientId, `${p.firstName} ${p.lastName}`); }}
-                            className="p-2.5 rounded-xl bg-amber-500/5 text-amber-500 hover:bg-amber-500 hover:text-black transition-all border border-amber-500/10 shadow-sm"
-                            title="Add Triage Note"
-                          >
-                            <ClipboardList className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); handleLogDnr(p.patientId); }}
-                            className="p-2.5 rounded-xl bg-blue-500/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/10 shadow-sm"
-                            title="Update Advance Directive"
-                          >
-                            <ShieldAlert className="w-4 h-4" />
-                          </button>
-                          <Link
-                            href={`/dashboard/patients/${p.patientId}/visit`}
-                            className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
-                            title="Start Clinical Encounter"
-                          >
-                            <Stethoscope className="w-4 h-4" />
-                          </Link>
+                          <PermissionGate permission="clinical:assessments">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleTriageNote(p.patientId, `${p.firstName} ${p.lastName}`); }}
+                              className="p-2.5 rounded-xl bg-amber-500/5 text-amber-500 hover:bg-amber-500 hover:text-black transition-all border border-amber-500/10 shadow-sm"
+                              title="Add Triage Note"
+                            >
+                              <ClipboardList className="w-4 h-4" />
+                            </button>
+                          </PermissionGate>
+                          <PermissionGate permission="clinical:chart">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); handleLogDnr(p.patientId); }}
+                              className="p-2.5 rounded-xl bg-blue-500/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/10 shadow-sm"
+                              title="Update Advance Directive"
+                            >
+                              <ShieldAlert className="w-4 h-4" />
+                            </button>
+                          </PermissionGate>
+                          <PermissionGate permission="clinical:order">
+                            <Link
+                              href={`/dashboard/patients/${p.patientId}/visit`}
+                              className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
+                              title="Start Clinical Encounter"
+                            >
+                              <Stethoscope className="w-4 h-4" />
+                            </Link>
+                          </PermissionGate>
                           <Link
                             href={`/dashboard/patients/${p.patientId}`}
                             className="p-2.5 rounded-xl bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 transition-all border border-white/5 shadow-sm"
@@ -356,12 +363,14 @@ export default function TriageDashboard() {
                   >
                     {p.firstName} {p.lastName}
                   </span>
-                  <button
-                    onClick={() => handleLogDnr(p.patientId)}
-                    className="text-blue-500 font-bold text-[10px] uppercase tracking-widest hover:underline hover:text-blue-400 transition-all"
-                  >
-                    Log DNR
-                  </button>
+                  <PermissionGate permission="clinical:chart">
+                    <button
+                      onClick={() => handleLogDnr(p.patientId)}
+                      className="text-blue-500 font-bold text-[10px] uppercase tracking-widest hover:underline hover:text-blue-400 transition-all"
+                    >
+                      Log DNR
+                    </button>
+                  </PermissionGate>
                 </div>
               ))}
               {triageItems.filter((p: any) => p.advanceDirectiveType === 'None').length === 0 && (

@@ -24,6 +24,7 @@ import {
 import BookingDrawer from "@/components/BookingDrawer";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const GET_NOTES_DATA = gql`
   query GetNotesData {
@@ -313,12 +314,14 @@ export default function ClinicalNotesPage() {
               <h2 className="text-sm font-black uppercase tracking-tighter">Clinical Notes</h2>
               <p className="text-[10px] font-black text-[var(--primary)] tracking-widest uppercase">Documentation Registry</p>
             </div>
-            <button
-              onClick={() => setIsBookingOpen(true)}
-              className="p-3 bg-[var(--primary)] text-white rounded-xl shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all active:scale-95"
-            >
-              <Plus className="w-5 h-5" />
-            </button>
+            <PermissionGate permission="scheduling:manage">
+              <button
+                onClick={() => setIsBookingOpen(true)}
+                className="p-3 bg-[var(--primary)] text-white rounded-xl shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all active:scale-95"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            </PermissionGate>
           </div>
 
           <div className="relative">
@@ -386,21 +389,25 @@ export default function ClinicalNotesPage() {
                   <Download className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--primary)]" />
                   <span className="text-[var(--text-muted)] group-hover:text-[var(--primary)]">Download PDF</span>
                 </button>
-                <button
-                  disabled={isSyncing}
-                  onClick={() => handleSave(false)}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl border border-[var(--card-border)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary-glow)] transition-all disabled:opacity-50"
-                >
-                  {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {isSyncing ? "Syncing..." : "Save Draft"}
-                </button>
-                <button
-                  disabled={isSyncing}
-                  onClick={() => handleSave(true)}
-                  className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[var(--primary-glow)] hover:opacity-90 transition-all disabled:opacity-50"
-                >
-                  <CheckCircle2 className="w-4 h-4" /> Finalize Note
-                </button>
+                <PermissionGate permission="docs:edit">
+                  <button
+                    disabled={isSyncing}
+                    onClick={() => handleSave(false)}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl border border-[var(--card-border)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary-glow)] transition-all disabled:opacity-50"
+                  >
+                    {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isSyncing ? "Syncing..." : "Save Draft"}
+                  </button>
+                </PermissionGate>
+                <PermissionGate permission="docs:sign">
+                  <button
+                    disabled={isSyncing}
+                    onClick={() => handleSave(true)}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[var(--primary-glow)] hover:opacity-90 transition-all disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-4 h-4" /> Finalize Note
+                  </button>
+                </PermissionGate>
               </div>
             </div>
 

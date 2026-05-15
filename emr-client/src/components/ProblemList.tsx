@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useQuery, gql } from "@apollo/client";
 import { 
   ClipboardList, 
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import AddDiagnosisDrawer from "./AddDiagnosisDrawer";
 import DiagnosisDetailDrawer from "./DiagnosisDetailDrawer";
+import { PermissionGate } from "./PermissionGate";
 
 const GET_DIAGNOSES = gql`
   query GetDiagnoses($patientId: UUID!) {
@@ -45,13 +46,15 @@ export default function ProblemList({ patientId }: { patientId: string }) {
           <ClipboardList className="w-4 h-4 text-blue-400" />
           Problem List (Diagnoses)
         </h2>
-        <button 
-          onClick={() => setShowAddDrawer(true)}
-          className="flex items-center gap-1 text-blue-400 text-xs font-bold uppercase tracking-widest hover:text-blue-300 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Diagnosis
-        </button>
+        <PermissionGate permission="clinical:chart">
+          <button 
+            onClick={() => setShowAddDrawer(true)}
+            className="flex items-center gap-1 text-blue-400 text-xs font-bold uppercase tracking-widest hover:text-blue-300 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Diagnosis
+          </button>
+        </PermissionGate>
       </div>
 
       <div className="divide-y divide-[var(--card-border)]">
@@ -79,12 +82,14 @@ export default function ProblemList({ patientId }: { patientId: string }) {
                   </div>
                 </div>
               </div>
-              <button 
-                onClick={() => setSelectedDiagnosis(p)}
-                className="p-2 text-[var(--text-muted)] hover:text-blue-400 transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              <PermissionGate permission="clinical:view">
+                <button 
+                  onClick={() => setSelectedDiagnosis(p)}
+                  className="p-2 text-[var(--text-muted)] hover:text-blue-400 transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </PermissionGate>
             </div>
           ))
         )}

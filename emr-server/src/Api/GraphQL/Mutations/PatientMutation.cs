@@ -9,7 +9,6 @@ using Api.GraphQL.Attributes;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
-[Authorize(Policy = "CanEditPatients")]
 public class PatientMutation
 {
     private readonly ISecurityAuditService _auditService;
@@ -19,6 +18,7 @@ public class PatientMutation
         _auditService = auditService;
     }
 
+    [Authorize(Policy = "CanEditPatients")]
     public async Task<Guid> CreatePatient(
         CreatePatientCommand command,
         [Service] IMediator mediator
@@ -29,6 +29,7 @@ public class PatientMutation
         return result;
     }
 
+    [Authorize(Policy = "CanEditPatients")]
     [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<bool> UpdatePatientDemographics(
         UpdatePatientCommand command,
@@ -41,6 +42,7 @@ public class PatientMutation
         return result;
     }
 
+    [Authorize(Policy = "CanEditPatients")]
     [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Guid> AddContact(
         AddContactCommand command,
@@ -53,6 +55,7 @@ public class PatientMutation
         return result;
     }
 
+    [Authorize(Policy = "CanEditPatients")]
     [UseClinicalAccess(argumentName: "PatientContactId", source: ClinicalIdSource.Contact)]
     public async Task<bool> UpdateContact(
         UpdateContactCommand command,
@@ -65,6 +68,7 @@ public class PatientMutation
         return result;
     }
 
+    [Authorize(Policy = "CanEditPatients")]
     [UseClinicalAccess(argumentName: "PatientContactId", source: ClinicalIdSource.Contact)]
     public async Task<bool> DeleteContact(
         DeleteContactCommand command,

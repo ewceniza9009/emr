@@ -10,39 +10,44 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
-[Authorize(Policy = "CanViewPatients")]
 public class SetupQuery
 {
+    [Authorize(Policy = "CanViewPatients")]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Practitioner> GetPractitioners([Service] IApplicationDbContext context) =>
         context.Practitioners.AsNoTracking();
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Facility> GetFacilities([Service] IApplicationDbContext context) =>
         context.Facilities.AsNoTracking();
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<HealthPlan> GetHealthPlans([Service] IApplicationDbContext context) =>
         context.HealthPlans.AsNoTracking();
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Medication> GetMedications([Service] IApplicationDbContext context) =>
         context.Medications.AsNoTracking();
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<Questionnaire> GetQuestionnaires([Service] IApplicationDbContext context) =>
         context.Questionnaires.AsNoTracking();
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
@@ -50,6 +55,7 @@ public class SetupQuery
         [Service] IApplicationDbContext context
     ) => context.DurableMedicalEquipment.AsNoTracking();
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
@@ -65,12 +71,14 @@ public class SetupQuery
                 )
             );
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
     public IQueryable<OutreachScript> GetOutreachScripts([Service] IApplicationDbContext context) =>
         context.OutreachScripts.AsNoTracking();
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
@@ -78,6 +86,7 @@ public class SetupQuery
         [Service] IApplicationDbContext context
     ) => context.IntegrationProfiles.AsNoTracking();
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
@@ -85,6 +94,7 @@ public class SetupQuery
         [Service] IApplicationDbContext context
     ) => context.TenantConfigurations.AsNoTracking();
 
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<List<PractitionerResourceDto>> GetSuggestedPractitioners(
         Guid patientId,
         [Service] IApplicationDbContext context
@@ -127,6 +137,7 @@ public class SetupQuery
             .ToList();
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<List<PractitionerUtilizationDto>> GetPractitionerUtilization(
         [Service] IApplicationDbContext context
     )
@@ -167,6 +178,7 @@ public class SetupQuery
             .ToList();
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [UseFiltering]
     public async Task<List<WorkloadItemDto>> GetPractitionerWorkloadDetails(
         Guid practitionerId,

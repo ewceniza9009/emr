@@ -7,6 +7,7 @@ import {
   MapPin, CheckCircle, Activity
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
+import { PermissionGate } from "./PermissionGate";
 
 const UPDATE_FACILITY = gql`
   mutation UpdateFacility($input: UpdateFacilityCommandInput!) {
@@ -203,21 +204,23 @@ export default function EditFacilityDrawer({ open, onClose, onSuccess, facility 
           </form>
 
           <div className="p-8 bg-[var(--sidebar-bg)] border-t border-[var(--card-border)] mt-auto">
-            <button 
-              type="submit" 
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full py-4 rounded-xl bg-[var(--primary)] hover:opacity-90 disabled:opacity-50 text-white font-black text-sm uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_var(--primary-glow)] flex items-center justify-center gap-3 active:scale-[0.98]"
-            >
-              {loading ? (
-                <Activity className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <Save className="w-5 h-5" />
-                  <span>Commit Configuration</span>
-                </>
-              )}
-            </button>
+            <PermissionGate permission="setup:manage">
+              <button 
+                type="submit" 
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full py-4 rounded-xl bg-[var(--primary)] hover:opacity-90 disabled:opacity-50 text-white font-black text-sm uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_var(--primary-glow)] flex items-center justify-center gap-3 active:scale-[0.98]"
+              >
+                {loading ? (
+                  <Activity className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Save className="w-5 h-5" />
+                    <span>Commit Configuration</span>
+                  </>
+                )}
+              </button>
+            </PermissionGate>
           </div>
         </div>
       </div>

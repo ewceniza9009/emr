@@ -19,6 +19,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import EditFacilityDrawer from "@/components/EditFacilityDrawer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const GET_FACILITIES = gql`
   query GetFacilities {
@@ -61,10 +62,12 @@ export default function FacilitiesPage() {
           <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Facility Management</h1>
           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Oversee multi-site clinical operations and facility-specific patient volumes.</p>
         </div>
-        <button className="premium-button premium-gradient px-5 h-10 rounded-xl text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20">
-          <Plus className="w-4 h-4" />
-          Add Facility
-        </button>
+        <PermissionGate permission="setup:manage">
+          <button className="premium-button premium-gradient px-5 h-10 rounded-xl text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20">
+            <Plus className="w-4 h-4" />
+            Add Facility
+          </button>
+        </PermissionGate>
       </div>
 
       {/* Search Bar */}
@@ -112,16 +115,18 @@ export default function FacilitiesPage() {
                 <span className="px-2.5 py-1 rounded-lg bg-[var(--input-bg)] text-[var(--text-muted)] text-[9px] font-black uppercase tracking-widest border border-[var(--card-border)] shadow-sm">
                   {f.type?.replace(/([A-Z])/g, ' $1').trim() || "GENERAL"}
                 </span>
-                <button 
-                  onClick={() => {
-                    setSelectedFacility(f);
-                    setIsEditOpen(true);
-                  }}
-                  className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-all border border-white/5"
-                  title="Edit Facility Configuration"
-                >
-                  <Edit2 className="w-3 h-3" />
-                </button>
+                <PermissionGate permission="setup:manage">
+                  <button 
+                    onClick={() => {
+                      setSelectedFacility(f);
+                      setIsEditOpen(true);
+                    }}
+                    className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-all border border-white/5"
+                    title="Edit Facility Configuration"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </button>
+                </PermissionGate>
               </div>
             </div>
             

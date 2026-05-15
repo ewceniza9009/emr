@@ -7,6 +7,7 @@ import {
   MapPin, Globe, Briefcase, Heart
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
+import { PermissionGate } from "./PermissionGate";
 
 const UPDATE_PATIENT = gql`
   mutation UpdatePatient($command: UpdatePatientCommandInput!) {
@@ -217,6 +218,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
 
             {/* Action Footer */}
             <div className="p-8 bg-[var(--sidebar-bg)] border-t border-[var(--card-border)] shrink-0">
+            <PermissionGate permission="clinical:chart">
               <button 
                 onClick={handleSubmit}
                 disabled={loading}
@@ -225,6 +227,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                 {loading ? <Save className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                 Save Demographics
               </button>
+            </PermissionGate>
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useToast } from "./ToastProvider";
 import { 
@@ -12,6 +12,7 @@ import {
   Trash2,
   X
 } from "lucide-react";
+import { PermissionGate } from "./PermissionGate";
 import HalcyonPortal from "./Portal";
 
 const GET_ALLERGIES = gql`
@@ -79,13 +80,15 @@ export default function AllergyRegistry({ patientId }: { patientId: string }) {
           <ShieldAlert className="w-4 h-4 text-rose-500" />
           Allergy Registry
         </h2>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-1 text-rose-500 text-xs font-bold uppercase tracking-widest hover:text-rose-400 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Record Allergy
-        </button>
+        <PermissionGate permission="clinical:chart">
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-1 text-rose-500 text-xs font-bold uppercase tracking-widest hover:text-rose-400 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Record Allergy
+          </button>
+        </PermissionGate>
       </div>
 
       <div className="divide-y divide-[var(--card-border)]">
@@ -128,10 +131,12 @@ export default function AllergyRegistry({ patientId }: { patientId: string }) {
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setActiveMenu(null)} />
                     <div className="absolute right-0 top-full mt-2 w-40 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl shadow-2xl z-50 p-1 animate-in fade-in zoom-in-95 duration-200">
-                      <button className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all uppercase tracking-widest">
-                         <Trash2 className="w-3.5 h-3.5" />
-                         Void Record
-                      </button>
+                      <PermissionGate permission="clinical:chart">
+                        <button className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all uppercase tracking-widest">
+                           <Trash2 className="w-3.5 h-3.5" />
+                           Void Record
+                        </button>
+                      </PermissionGate>
                     </div>
                   </>
                 )}
@@ -201,20 +206,22 @@ export default function AllergyRegistry({ patientId }: { patientId: string }) {
                    </div>
                 </div>
 
-                <button 
-                  onClick={handleAdd}
-                  disabled={adding || !newAllergy.allergen}
-                  className="w-full py-5 rounded-2xl bg-rose-500 text-white font-black text-xs uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_rgba(244,63,94,0.3)] flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
-                >
-                  {adding ? (
-                    <Activity className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <ShieldAlert className="w-5 h-5" />
-                      <span>Record Safety Alert</span>
-                    </>
-                  )}
-                </button>
+                <PermissionGate permission="clinical:chart">
+                  <button 
+                    onClick={handleAdd}
+                    disabled={adding || !newAllergy.allergen}
+                    className="w-full py-5 rounded-2xl bg-rose-500 text-white font-black text-xs uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_rgba(244,63,94,0.3)] flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+                  >
+                    {adding ? (
+                      <Activity className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <ShieldAlert className="w-5 h-5" />
+                        <span>Record Safety Alert</span>
+                      </>
+                    )}
+                  </button>
+                </PermissionGate>
              </div>
           </div>
         </HalcyonPortal>

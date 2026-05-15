@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "./ToastProvider";
+import { PermissionGate } from "./PermissionGate";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useSettings } from "@/lib/SettingsContext";
 import { addMinutes } from "date-fns";
@@ -952,7 +953,9 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                             </div>
                             <div className="flex gap-2">
                               <button onClick={() => setIsAddingContact(false)} className="flex-1 h-8 bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] font-bold text-[9px] uppercase tracking-widest rounded-lg">Cancel</button>
-                              <button onClick={handleAddContact} disabled={addingContact} className="flex-1 h-8 bg-teal-500 text-black font-bold text-[9px] uppercase tracking-widest rounded-lg shadow-lg">Commit Contact</button>
+                              <PermissionGate permission="outreach:manage">
+                                <button onClick={handleAddContact} disabled={addingContact} className="flex-1 h-8 bg-teal-500 text-black font-bold text-[9px] uppercase tracking-widest rounded-lg shadow-lg">Commit Contact</button>
+                              </PermissionGate>
                             </div>
                           </div>
                         )}
@@ -987,23 +990,25 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                       {/* MISSION RESULT SECTION */}
                       <div className="pt-5 border-t border-[var(--card-border)] space-y-4">
                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] text-center">Quick Disposition Log</p>
-                        <div className="grid grid-cols-4 gap-2">
-                          {[
-                            { id: "CONNECTED", label: "Connected", c: "bg-teal-500/5 border-teal-500/20 text-teal-500/70 hover:bg-teal-500 hover:text-black hover:border-transparent hover:shadow-[0_0_15px_rgba(20,184,166,0.4)]" },
-                            { id: "NO_ANSWER", label: "No Answer", c: "hover:text-amber-500" },
-                            { id: "VOICEMAIL", label: "Voicemail", c: "hover:text-amber-500" },
-                            { id: "BUSY", label: "Busy", c: "hover:text-amber-500" },
-                            { id: "WRONG_NUMBER", label: "Wrong #", c: "hover:text-rose-500" },
-                            { id: "DISCONNECTED", label: "Disconnected", c: "hover:text-rose-500" },
-                            { id: "DNC", label: "Do Not Call", c: "hover:text-rose-600" },
-                            { id: "OPT_OUT", label: "Opt Out", c: "hover:text-rose-700" },
-                            { id: "CALL_BACK", label: "Call Back", c: "hover:text-[var(--primary)]" }
-                          ].map(btn => (
-                            <button key={btn.id} onClick={() => handleLogActivity(btn.id)} className={`h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest transition-all active:scale-95 hover:bg-[var(--card-bg)] hover:border-[var(--primary)]/30 ${btn.c}`}>
-                              {btn.label}
-                            </button>
-                          ))}
-                        </div>
+                        <PermissionGate permission="outreach:manage">
+                          <div className="grid grid-cols-4 gap-2">
+                            {[
+                              { id: "CONNECTED", label: "Connected", c: "bg-teal-500/5 border-teal-500/20 text-teal-500/70 hover:bg-teal-500 hover:text-black hover:border-transparent hover:shadow-[0_0_15px_rgba(20,184,166,0.4)]" },
+                              { id: "NO_ANSWER", label: "No Answer", c: "hover:text-amber-500" },
+                              { id: "VOICEMAIL", label: "Voicemail", c: "hover:text-amber-500" },
+                              { id: "BUSY", label: "Busy", c: "hover:text-amber-500" },
+                              { id: "WRONG_NUMBER", label: "Wrong #", c: "hover:text-rose-500" },
+                              { id: "DISCONNECTED", label: "Disconnected", c: "hover:text-rose-500" },
+                              { id: "DNC", label: "Do Not Call", c: "hover:text-rose-600" },
+                              { id: "OPT_OUT", label: "Opt Out", c: "hover:text-rose-700" },
+                              { id: "CALL_BACK", label: "Call Back", c: "hover:text-[var(--primary)]" }
+                            ].map(btn => (
+                              <button key={btn.id} onClick={() => handleLogActivity(btn.id)} className={`h-11 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest transition-all active:scale-95 hover:bg-[var(--card-bg)] hover:border-[var(--primary)]/30 ${btn.c}`}>
+                                {btn.label}
+                              </button>
+                            ))}
+                          </div>
+                        </PermissionGate>
                       </div>
 
                       {/* UNENROLL REASON MODAL */}
@@ -1047,13 +1052,15 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                                 >
                                   Abort
                                 </button>
-                                <button
-                                  onClick={confirmUnenroll}
-                                  disabled={!logNotes}
-                                  className="flex-[2] h-12 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:shadow-[0_0_25px_rgba(239,68,68,0.4)] transition-all active:scale-95 disabled:opacity-20"
-                                >
-                                  Commit Reversal
-                                </button>
+                                <PermissionGate permission="patients:enrollment">
+                                  <button
+                                    onClick={confirmUnenroll}
+                                    disabled={!logNotes}
+                                    className="flex-[2] h-12 rounded-xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:shadow-[0_0_25px_rgba(239,68,68,0.4)] transition-all active:scale-95 disabled:opacity-20"
+                                  >
+                                    Commit Reversal
+                                  </button>
+                                </PermissionGate>
                               </div>
                             </div>
                           </div>
@@ -1108,12 +1115,14 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                                 >
                                   Abort
                                 </button>
-                                <button
-                                  onClick={confirmLogActivity}
-                                  className="flex-[2] h-12 rounded-xl bg-[var(--primary)] text-black text-[10px] font-black uppercase tracking-widest hover:shadow-[0_0_25px_rgba(var(--primary-rgb),0.4)] transition-all active:scale-95"
-                                >
-                                  Commit Disposition
-                                </button>
+                                <PermissionGate permission="outreach:manage">
+                                  <button
+                                    onClick={confirmLogActivity}
+                                    className="flex-[2] h-12 rounded-xl bg-[var(--primary)] text-black text-[10px] font-black uppercase tracking-widest hover:shadow-[0_0_25px_rgba(var(--primary-rgb),0.4)] transition-all active:scale-95"
+                                  >
+                                    Commit Disposition
+                                  </button>
+                                </PermissionGate>
                               </div>
                             </div>
                           </div>
@@ -1188,6 +1197,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                                 </div>
                               </div>
                             ) : (
+                            <PermissionGate permission="patients:enrollment">
                               <button
                                 onClick={() => {
                                   setIsConsentSealed(true);
@@ -1202,6 +1212,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                                 <Fingerprint className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
                                 Establish Digital Seal
                               </button>
+                            </PermissionGate>
                             )}
 
                             <p className="text-[8px] font-medium text-[var(--text-muted)] leading-relaxed italic opacity-40 px-2">
@@ -1411,26 +1422,28 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                               <input type="text" value={groupId} onChange={e => setGroupId(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2.5 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="GROUP..." />
                             </div>
                           </div>
-                          <button
-                            onClick={verifyInsurance}
-                            disabled={isVerifyingInsurance || eligibilityStatus === 'VERIFIED'}
-                            className={`w-full h-11 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] shadow-lg transition-all flex items-center justify-center gap-2
-                              ${eligibilityStatus === 'VERIFIED' ? 'bg-teal-500/10 border border-teal-500/30 text-teal-500 cursor-default' : 'bg-[var(--primary)] text-black hover:scale-[1.01] active:scale-[0.98]'}`}
-                          >
-                            {isVerifyingInsurance ? (
-                              <>
-                                <div className="w-3 h-3 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                                Pinging Payer Gateway...
-                              </>
-                            ) : eligibilityStatus === 'VERIFIED' ? (
-                              <>
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                Verified: {insuranceRef}
-                              </>
-                            ) : (
-                              "Verify Eligibility Status"
-                            )}
-                          </button>
+                          <PermissionGate permission="patients:enrollment">
+                            <button
+                              onClick={verifyInsurance}
+                              disabled={isVerifyingInsurance || eligibilityStatus === 'VERIFIED'}
+                              className={`w-full h-11 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] shadow-lg transition-all flex items-center justify-center gap-2
+                                ${eligibilityStatus === 'VERIFIED' ? 'bg-teal-500/10 border border-teal-500/30 text-teal-500 cursor-default' : 'bg-[var(--primary)] text-black hover:scale-[1.01] active:scale-[0.98]'}`}
+                            >
+                              {isVerifyingInsurance ? (
+                                <>
+                                  <div className="w-3 h-3 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                                  Pinging Payer Gateway...
+                                </>
+                              ) : eligibilityStatus === 'VERIFIED' ? (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  Verified: {insuranceRef}
+                                </>
+                              ) : (
+                                "Verify Eligibility Status"
+                              )}
+                            </button>
+                          </PermissionGate>
                         </div>
                       </section>
 
@@ -1888,14 +1901,16 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                     )}
 
                     {lead?.status === 'ENROLLED' ? (
-                      <button
-                        onClick={handleUnenroll}
-                        disabled={unenrolling}
-                        className="w-full h-14 bg-rose-500 rounded-2xl text-white font-black text-[11px] uppercase tracking-[0.4em] shadow-xl shadow-rose-500/20 hover:bg-rose-600 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center gap-3 group"
-                      >
-                        <Trash2 className="w-4 h-4 group-hover:shake" />
-                        {unenrolling ? "REVERSING..." : "REVERSE ENROLLMENT"}
-                      </button>
+                        <PermissionGate permission="patients:enrollment">
+                          <button
+                            onClick={handleUnenroll}
+                            disabled={unenrolling}
+                            className="w-full h-14 bg-rose-500 rounded-2xl text-white font-black text-[11px] uppercase tracking-[0.4em] shadow-xl shadow-rose-500/20 hover:bg-rose-600 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center gap-3 group"
+                          >
+                            <Trash2 className="w-4 h-4 group-hover:shake" />
+                            {unenrolling ? "REVERSING..." : "REVERSE ENROLLMENT"}
+                          </button>
+                        </PermissionGate>
                     ) : (
                       <div className="flex gap-3">
                         <button
@@ -1909,14 +1924,16 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                         </button>
 
                         {activeTab === "LOGISTICS" ? (
-                          <button
-                            onClick={handleFinalize}
-                            disabled={finalizing}
-                            className="flex-1 h-14 bg-gradient-to-r from-[var(--primary)] to-teal-500 rounded-2xl text-black font-black text-[11px] uppercase tracking-[0.4em] shadow-2xl shadow-[var(--primary-glow)] hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center gap-3 group overflow-hidden relative"
-                          >
-                            <ShieldCheck className="w-5 h-5 relative z-10" />
-                            <span className="relative z-10">{finalizing ? "ENROLLING..." : "ENROLL"}</span>
-                          </button>
+                            <PermissionGate permission="patients:enrollment">
+                              <button
+                                onClick={handleFinalize}
+                                disabled={finalizing}
+                                className="flex-1 h-14 bg-gradient-to-r from-[var(--primary)] to-teal-500 rounded-2xl text-black font-black text-[11px] uppercase tracking-[0.4em] shadow-2xl shadow-[var(--primary-glow)] hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center gap-3 group overflow-hidden relative"
+                              >
+                                <ShieldCheck className="w-5 h-5 relative z-10" />
+                                <span className="relative z-10">{finalizing ? "ENROLLING..." : "ENROLL"}</span>
+                              </button>
+                            </PermissionGate>
                         ) : (
                           <button
                             onClick={handleNext}

@@ -37,6 +37,7 @@ import DynamicAssessment from "@/components/DynamicAssessment";
 import CommandModal from "@/components/CommandModal";
 import { useCommandModal } from "@/components/CommandModalProvider";
 import { migrateDirectiveType } from "@/lib/clinical-mappings";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const SKIP_REASONS = [
   "PATIENT_REFUSED",
@@ -713,16 +714,18 @@ export default function GuidedVisitPage() {
                     <p className="text-xs text-[var(--text-muted)] uppercase tracking-[0.4em] font-bold">Select Start to establish secure clinical session</p>
                   </div>
 
-                  <button
-                    onClick={handleStart}
-                    disabled={starting || (!session?.user?.practitionerId && process.env.NODE_ENV !== 'development')}
-                    className={`w-full max-w-sm py-6 rounded-2xl text-white font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl ${(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') || starting
-                      ? "bg-[var(--input-bg)] text-[var(--text-muted)] cursor-not-allowed grayscale"
-                      : "premium-gradient shadow-[var(--primary-glow)] hover:scale-[1.02] active:scale-[0.98]"
-                      }`}
-                  >
-                    {(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') ? "Identifying..." : (starting ? "Establishing..." : "Start Encounter")} <ChevronRight className="w-5 h-5" />
-                  </button>
+                  <PermissionGate permission="clinical:chart">
+                    <button
+                      onClick={handleStart}
+                      disabled={starting || (!session?.user?.practitionerId && process.env.NODE_ENV !== 'development')}
+                      className={`w-full max-w-sm py-6 rounded-2xl text-white font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl ${(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') || starting
+                        ? "bg-[var(--input-bg)] text-[var(--text-muted)] cursor-not-allowed grayscale"
+                        : "premium-gradient shadow-[var(--primary-glow)] hover:scale-[1.02] active:scale-[0.98]"
+                        }`}
+                    >
+                      {(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') ? "Identifying..." : (starting ? "Establishing..." : "Start Encounter")} <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </PermissionGate>
 
                   {appointment?.plannedAssessments?.length > 0 && (
                     <div className="w-full max-w-sm pt-12 border-t border-[var(--border-color,rgba(0,0,0,0.05))] space-y-6">
@@ -1165,13 +1168,15 @@ export default function GuidedVisitPage() {
 
                   <div className="pt-8 flex gap-4 border-t border-[var(--border-color,rgba(0,0,0,0.05))]">
                     <button onClick={() => setStep(prevStep.id)} className="flex-1 py-3.5 rounded-xl bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:text-[var(--foreground)] hover:bg-[var(--background)]/80 transition-all">Back</button>
-                    <button
-                      onClick={handleFinish}
-                      disabled={savingNote || !note.signature}
-                      className="flex-1 py-3.5 rounded-xl bg-[var(--primary)] text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-all"
-                    >
-                      {savingNote ? "Securing..." : "Finalize & Save Encounter"} <Save className="w-4 h-4" />
-                    </button>
+                    <PermissionGate permission="clinical:chart">
+                      <button
+                        onClick={handleFinish}
+                        disabled={savingNote || !note.signature}
+                        className="flex-1 py-3.5 rounded-xl bg-[var(--primary)] text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-all"
+                      >
+                        {savingNote ? "Securing..." : "Finalize & Save Encounter"} <Save className="w-4 h-4" />
+                      </button>
+                    </PermissionGate>
                   </div>
                 </div>
               )}

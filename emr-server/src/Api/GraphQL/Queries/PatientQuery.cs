@@ -11,9 +11,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
-[Authorize(Policy = "CanViewPatients")]
 public class PatientQuery
 {
+    [Authorize(Policy = "CanViewPatients")]
     [UseClinicalAccess]
     public async Task<PatientDto?> GetPatientById(
         Guid patientId,
@@ -24,6 +24,7 @@ public class PatientQuery
         return await mediator.Send(new GetPatientByIdQuery(patientId), cancellationToken);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<Application.Common.Models.PagedResponse<PatientDto>> GetPatients(
         [Service] IMediator mediator,
         string? search = null,
@@ -41,6 +42,7 @@ public class PatientQuery
         );
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<IEnumerable<Prescription>> GetPrescriptionsByPatient(
         Guid patientId,
         PrescriptionsByPatientIdDataLoader dataLoader,
@@ -50,6 +52,7 @@ public class PatientQuery
         return await dataLoader.LoadAsync(patientId, cancellationToken);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<IEnumerable<Diagnosis>> GetDiagnosesByPatient(
         Guid patientId,
         DiagnosesByPatientIdDataLoader dataLoader,
@@ -59,6 +62,7 @@ public class PatientQuery
         return await dataLoader.LoadAsync(patientId, cancellationToken);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<IEnumerable<Allergy>> GetAllergiesByPatient(
         Guid patientId,
         AllergiesByPatientIdDataLoader dataLoader,
@@ -68,6 +72,7 @@ public class PatientQuery
         return await dataLoader.LoadAsync(patientId, cancellationToken);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<IEnumerable<PatientDocument>> GetDocumentsByPatient(
         Guid patientId,
         DocumentsByPatientIdDataLoader dataLoader,

@@ -23,6 +23,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import BenefitClaimDrawer from "@/components/BenefitClaimDrawer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const GET_INVOICES = gql`
   query GetInvoices($skip: Int, $take: Int, $where: BillingInvoiceFilterInput) {
@@ -267,20 +268,24 @@ export default function BillingPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/billing/new"
-            className="px-6 h-11 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-100 transition-all flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            New Invoice
-          </Link>
-          <button
-            onClick={() => { setEditingClaim(null); setIsClaimOpen(true); }}
-            className="px-6 h-11 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all flex items-center gap-2"
-          >
-            <ArrowUpRight className="w-4 h-4" />
-            Submit Z-Claim
-          </button>
+          <PermissionGate permission="billing:manage">
+            <Link
+              href="/dashboard/billing/new"
+              className="px-6 h-11 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-100 transition-all flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              New Invoice
+            </Link>
+          </PermissionGate>
+          <PermissionGate permission="billing:manage">
+            <button
+              onClick={() => { setEditingClaim(null); setIsClaimOpen(true); }}
+              className="px-6 h-11 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] hover:opacity-90 transition-all flex items-center gap-2"
+            >
+              <ArrowUpRight className="w-4 h-4" />
+              Submit Z-Claim
+            </button>
+          </PermissionGate>
         </div>
       </div>
 
@@ -506,18 +511,22 @@ export default function BillingPage() {
                       </td>
                       <td className="py-5 px-4 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleEditClaim(claim)}
-                            className="p-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)]/10 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all border border-[var(--card-border)]"
-                          >
-                            <TrendingUp className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setSelectedClaimId(selectedClaimId === claim.claimId ? null : claim.claimId)}
-                            className="p-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-white text-[var(--text-muted)] hover:text-black transition-all border border-[var(--card-border)]"
-                          >
-                            <History className="w-4 h-4" />
-                          </button>
+                          <PermissionGate permission="billing:manage">
+                            <button
+                              onClick={() => handleEditClaim(claim)}
+                              className="p-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)]/10 text-[var(--text-muted)] hover:text-[var(--primary)] transition-all border border-[var(--card-border)]"
+                            >
+                              <TrendingUp className="w-4 h-4" />
+                            </button>
+                          </PermissionGate>
+                          <PermissionGate permission="billing:manage">
+                            <button
+                              onClick={() => setSelectedClaimId(selectedClaimId === claim.claimId ? null : claim.claimId)}
+                              className="p-2.5 rounded-xl bg-[var(--input-bg)] hover:bg-white text-[var(--text-muted)] hover:text-black transition-all border border-[var(--card-border)]"
+                            >
+                              <History className="w-4 h-4" />
+                            </button>
+                          </PermissionGate>
                         </div>
                       </td>
                     </tr>

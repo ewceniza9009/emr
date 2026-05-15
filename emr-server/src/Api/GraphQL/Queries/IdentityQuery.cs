@@ -10,9 +10,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
-[Authorize(Policy = "CanManageSetup")]
 public class IdentityQuery
 {
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<List<UserDto>> GetUsers(
         [Service] UserManager<ApplicationUser> userManager,
         [Service] RoleManager<IdentityRole> roleManager,
@@ -51,6 +51,7 @@ public class IdentityQuery
                     LastName = u.LastName,
                     Roles = userRoles.ToList(),
                     TenantId = u.TenantId,
+                    EmergencyAccessExpiry = u.EmergencyAccessExpiry
                 }
             );
         }
@@ -58,6 +59,7 @@ public class IdentityQuery
         return userDtos;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<List<RoleDto>> GetRoles([Service] RoleManager<IdentityRole> roleManager)
     {
         var roles = await roleManager.Roles.ToListAsync();
@@ -82,6 +84,7 @@ public class IdentityQuery
         return roleDtos;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     [UseOffsetPaging(DefaultPageSize = 50)]
     [UseFiltering]
     [UseSorting]
@@ -101,6 +104,7 @@ public class UserDto
     public string LastName { get; set; } = string.Empty;
     public List<string> Roles { get; set; } = new();
     public Guid? TenantId { get; set; }
+    public DateTimeOffset? EmergencyAccessExpiry { get; set; }
 }
 
 public class RoleDto

@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useSession } from "next-auth/react";
+import { PermissionGate } from "./PermissionGate";
 import BookingDrawer from "./BookingDrawer";
 import ReassignmentBookingDrawer from "./ReassignmentBookingDrawer";
 import {
@@ -972,15 +973,17 @@ export default function SchedulingCalendar() {
                 className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
               />
             </button>
-            <button
-              onClick={() => {
-                setDrawerPrefill(undefined);
-                setDrawerOpen(true);
-              }}
-              className="px-4 h-9 bg-[var(--primary)] hover:opacity-90 rounded-lg text-xs font-bold text-white transition-all active:scale-95 shadow-sm shadow-[var(--primary-glow)]"
-            >
-              New Encounter
-            </button>
+            <PermissionGate permission="scheduling:manage">
+              <button
+                onClick={() => {
+                  setDrawerPrefill(undefined);
+                  setDrawerOpen(true);
+                }}
+                className="px-4 h-9 bg-[var(--primary)] hover:opacity-90 rounded-lg text-xs font-bold text-white transition-all active:scale-95 shadow-sm shadow-[var(--primary-glow)]"
+              >
+                New Encounter
+              </button>
+            </PermissionGate>
           </div>
         </div>
 
@@ -1482,24 +1485,26 @@ export default function SchedulingCalendar() {
                                 {blockHour % 12 || 12}:
                                 {blockMinute.toString().padStart(2, "0")}
                               </span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setConfirmModal({
-                                    isOpen: true,
-                                    title: "Remove Unavailable Block",
-                                    message:
-                                      "Are you sure you want to delete this busy block? This time will become available for scheduling.",
-                                    onConfirm: () =>
-                                      deleteBlock({
-                                        variables: { id: block.blockId },
-                                      }),
-                                  });
-                                }}
-                                className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all ml-1"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              <PermissionGate permission="scheduling:manage">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setConfirmModal({
+                                      isOpen: true,
+                                      title: "Remove Unavailable Block",
+                                      message:
+                                        "Are you sure you want to delete this busy block? This time will become available for scheduling.",
+                                      onConfirm: () =>
+                                        deleteBlock({
+                                          variables: { id: block.blockId },
+                                        }),
+                                    });
+                                  }}
+                                  className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all ml-1"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </PermissionGate>
                             </div>
                           </div>
                         </div>
@@ -1636,7 +1641,12 @@ export default function SchedulingCalendar() {
                             }}
                           >
                             <div
-                              draggable={!isMoveLocked}
+                              onClick={() => {
+                                if (statusConfig.label === "DONE") return;
+                                setReassignApptId(appt.appointmentId);
+                                setReassignOpen(true);
+                              }}
+                              {...(!isMoveLocked ? { draggable: true } : {})}
                               onDragStart={(e) => {
                                 if (isMoveLocked) {
                                   e.preventDefault();
@@ -1652,11 +1662,6 @@ export default function SchedulingCalendar() {
                                   "duration",
                                   durMin.toString(),
                                 );
-                              }}
-                              onClick={() => {
-                                if (statusConfig.label === "DONE") return;
-                                setReassignApptId(appt.appointmentId);
-                                setReassignOpen(true);
                               }}
                               className={`absolute top-0 left-0 right-0 h-full group-hover:h-auto p-2 border shadow-md transition-all duration-300 ease-out flex flex-col ${statusConfig.label === "DONE" ? "cursor-default select-none" : isMoveLocked ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"} overflow-hidden z-10 group-hover:shadow-2xl group-hover:translate-y-[-4px] backdrop-blur-[2px]
                                     ${
@@ -1890,24 +1895,28 @@ export default function SchedulingCalendar() {
             </div>
             <div className="flex flex-col gap-3 pt-2">
               <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => {
-                    confirmModal.onConfirm(true);
-                    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-                  }}
-                  className="py-2 px-3 rounded-lg bg-[var(--primary)] text-white font-bold text-xs shadow-md shadow-[var(--primary-glow)] hover:opacity-90 transition-all active:scale-[0.97]"
-                >
-                  Recalc Travel
-                </button>
-                <button
-                  onClick={() => {
-                    confirmModal.onConfirm(false);
-                    setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-                  }}
-                  className="py-2 px-3 rounded-lg bg-[var(--input-bg)] text-[var(--text-secondary)] font-bold text-xs border border-[var(--card-border)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-all active:scale-[0.97]"
-                >
-                  Keep Current
-                </button>
+                <PermissionGate permission="scheduling:manage">
+                  <button
+                    onClick={() => {
+                      confirmModal.onConfirm(true);
+                      setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                    }}
+                    className="py-2 px-3 rounded-lg bg-[var(--primary)] text-white font-bold text-xs shadow-md shadow-[var(--primary-glow)] hover:opacity-90 transition-all active:scale-[0.97]"
+                  >
+                    Recalc Travel
+                  </button>
+                </PermissionGate>
+                <PermissionGate permission="scheduling:manage">
+                  <button
+                    onClick={() => {
+                      confirmModal.onConfirm(false);
+                      setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                    }}
+                    className="py-2 px-3 rounded-lg bg-[var(--input-bg)] text-[var(--text-secondary)] font-bold text-xs border border-[var(--card-border)] hover:bg-[var(--primary)]/10 hover:border-[var(--primary)]/30 transition-all active:scale-[0.97]"
+                  >
+                    Keep Current
+                  </button>
+                </PermissionGate>
               </div>
               <button
                 onClick={() =>

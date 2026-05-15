@@ -5,9 +5,9 @@ using MediatR;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
-[Authorize(Policy = "CanManageLogistics")]
 public class LogisticsMutation
 {
+    [Authorize(Policy = "CanManageLogistics")]
     public async Task<Guid> RegisterEquipment(
         RegisterEquipmentCommand input,
         [Service] IMediator mediator,
@@ -17,6 +17,7 @@ public class LogisticsMutation
         return await mediator.Send(input, cancellationToken);
     }
 
+    [Authorize(Policy = "CanManageLogistics")]
     public async Task<Guid> RequestEquipmentDeployment(
         RequestEquipmentDeploymentCommand input,
         [Service] IMediator mediator,
@@ -33,6 +34,7 @@ public class LogisticsMutation
         }
     }
 
+    [Authorize(Policy = "CanManageLogistics")]
     public async Task<bool> UpdateDeploymentStatus(
         UpdateDeploymentStatusCommand input,
         [Service] IMediator mediator,

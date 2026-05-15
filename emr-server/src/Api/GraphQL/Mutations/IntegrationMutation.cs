@@ -5,9 +5,9 @@ using MediatR;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
-[Authorize(Policy = "CanManageSetup")]
 public class IntegrationMutation
 {
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> SyncAllPartners(
         [Service] IElationClient elationClient,
         [Service] ICareSourceClient careSourceClient,

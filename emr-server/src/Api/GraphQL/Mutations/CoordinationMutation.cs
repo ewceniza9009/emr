@@ -10,7 +10,6 @@ using Infrastructure.Identity;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
-[Authorize(Policy = "CanEditPatients")]
 public class CoordinationMutation
 {
     private readonly ISecurityAuditService _auditService;
@@ -53,6 +52,7 @@ public class CoordinationMutation
         return hasAppointment;
     }
 
+    [Authorize(Policy = "CanEditPatients")]
     public async Task<Guid> UpdateAdvanceDirective(
         UpdateAdvanceDirectiveCommand command,
         [Service] IMediator mediator,

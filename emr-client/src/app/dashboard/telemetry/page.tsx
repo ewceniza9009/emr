@@ -18,6 +18,7 @@ import LiveHeartbeat from "@/components/LiveHeartbeat";
 import { useMutation } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const CREATE_ENCOUNTER = gql`
   mutation CreateEncounter($input: CreateClinicalEncounterCommandInput!) {

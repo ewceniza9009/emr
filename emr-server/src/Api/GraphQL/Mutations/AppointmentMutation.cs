@@ -11,9 +11,9 @@ using MediatR;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
-[Authorize(Policy = "CanManageScheduling")]
 public class AppointmentMutation
 {
+    [Authorize(Policy = "CanManageScheduling")]
     [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Appointment?> BookAppointment(
         BookAppointmentInput input,
@@ -48,6 +48,7 @@ public class AppointmentMutation
         return response.Appointment;
     }
 
+    [Authorize(Policy = "CanManageScheduling")]
     [UseClinicalAccess(argumentName: "AppointmentId", source: ClinicalIdSource.Appointment)]
     public async Task<Appointment?> RescheduleAppointment(
         RescheduleAppointmentInput input,
@@ -75,6 +76,7 @@ public class AppointmentMutation
         return response.Appointment;
     }
 
+    [Authorize(Policy = "CanManageScheduling")]
     public async Task<ScheduleBlock> UpdateScheduleBlock(
         UpdateScheduleBlockInput input,
         [Service] IMediator mediator,
@@ -87,6 +89,7 @@ public class AppointmentMutation
         );
     }
 
+    [Authorize(Policy = "CanManageScheduling")]
     public async Task<ScheduleBlock> CreateScheduleBlock(
         CreateScheduleBlockInput input,
         [Service] IMediator mediator,
@@ -104,6 +107,7 @@ public class AppointmentMutation
         );
     }
 
+    [Authorize(Policy = "CanManageScheduling")]
     [UseClinicalAccess(argumentName: "id", source: ClinicalIdSource.Appointment)]
     public async Task<bool> DeleteAppointment(
         Guid id,
@@ -121,6 +125,7 @@ public class AppointmentMutation
         return response.Success;
     }
 
+    [Authorize(Policy = "CanManageScheduling")]
     public async Task<bool> DeleteScheduleBlock(
         Guid id,
         [Service] IMediator mediator,
@@ -130,6 +135,7 @@ public class AppointmentMutation
         return await mediator.Send(new DeleteScheduleBlockCommand(id), cancellationToken);
     }
 
+    [Authorize(Policy = "CanManageScheduling")]
     [UseClinicalAccess(argumentName: "appointmentId", source: ClinicalIdSource.Appointment)]
     public async Task<Appointment> ReassignAppointment(
         Guid appointmentId,
@@ -141,6 +147,7 @@ public class AppointmentMutation
         return await mediator.Send(new ReassignAppointmentCommand(appointmentId, practitionerId), cancellationToken);
     }
 
+    [Authorize(Policy = "CanManageScheduling")]
     [UseClinicalAccess(argumentName: "appointmentId", source: ClinicalIdSource.Appointment)]
     public async Task<Appointment?> UpdateAppointmentStatus(
         Guid appointmentId,

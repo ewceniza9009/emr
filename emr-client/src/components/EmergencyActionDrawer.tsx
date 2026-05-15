@@ -6,6 +6,7 @@ import {
   Activity, Bell, CheckCircle2, Siren
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
+import { PermissionGate } from "./PermissionGate";
 
 interface Props {
   open: boolean;
@@ -128,45 +129,51 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                 <div className="flex-1 h-px bg-[var(--divider-color)]" />
               </div>
 
-              <button 
-                onClick={handleEscalate}
-                disabled={protocolStatus === "ACTIVE"}
-                className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 shadow-2xl ${
-                  protocolStatus === "ACTIVE"
-                    ? "bg-red-500/20 text-red-400 border border-red-500/30 cursor-not-allowed"
-                    : "bg-red-600 hover:bg-red-500 text-white shadow-red-600/20 active:scale-[0.98]"
-                }`}
-              >
-                {protocolStatus === "ACTIVE" ? <Activity className="w-5 h-5 animate-pulse" /> : <Siren className="w-5 h-5" />}
-                {protocolStatus === "ACTIVE" ? "PROTOCOL ACTIVE" : "ACTIVATE EMERGENCY STATE"}
-              </button>
+              <PermissionGate permission="clinical:chart">
+                <button 
+                  onClick={handleEscalate}
+                  disabled={protocolStatus === "ACTIVE"}
+                  className={`w-full py-6 rounded-2xl font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 shadow-2xl ${
+                    protocolStatus === "ACTIVE"
+                      ? "bg-red-500/20 text-red-400 border border-red-500/30 cursor-not-allowed"
+                      : "bg-red-600 hover:bg-red-500 text-white shadow-red-600/20 active:scale-[0.98]"
+                  }`}
+                >
+                  {protocolStatus === "ACTIVE" ? <Activity className="w-5 h-5 animate-pulse" /> : <Siren className="w-5 h-5" />}
+                  {protocolStatus === "ACTIVE" ? "PROTOCOL ACTIVE" : "ACTIVATE EMERGENCY STATE"}
+                </button>
+              </PermissionGate>
 
               <div className="grid grid-cols-2 gap-4">
-                <button 
-                  onClick={handleDispatch}
-                  disabled={dispatched}
-                  className={`py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex flex-col items-center gap-2 border ${
-                    dispatched 
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
-                      : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-primary)] hover:bg-[var(--divider-color)]"
-                  }`}
-                >
-                  {dispatched ? <CheckCircle2 className="w-5 h-5" /> : <PhoneCall className="w-5 h-5" />}
-                  {dispatched ? "EMS DISPATCHED" : "DISPATCH 911"}
-                </button>
+                <PermissionGate permission="clinical:chart">
+                  <button 
+                    onClick={handleDispatch}
+                    disabled={dispatched}
+                    className={`py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex flex-col items-center gap-2 border ${
+                      dispatched 
+                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
+                        : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-primary)] hover:bg-[var(--divider-color)]"
+                    }`}
+                  >
+                    {dispatched ? <CheckCircle2 className="w-5 h-5" /> : <PhoneCall className="w-5 h-5" />}
+                    {dispatched ? "EMS DISPATCHED" : "DISPATCH 911"}
+                  </button>
+                </PermissionGate>
 
-                <button 
-                  onClick={handleNotifyTeam}
-                  disabled={notified}
-                  className={`py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex flex-col items-center gap-2 border ${
-                    notified 
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
-                      : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-primary)] hover:bg-[var(--divider-color)]"
-                  }`}
-                >
-                  {notified ? <CheckCircle2 className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
-                  {notified ? "TEAM NOTIFIED" : "NOTIFY TEAM"}
-                </button>
+                <PermissionGate permission="clinical:chart">
+                  <button 
+                    onClick={handleNotifyTeam}
+                    disabled={notified}
+                    className={`py-4 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex flex-col items-center gap-2 border ${
+                      notified 
+                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
+                        : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-primary)] hover:bg-[var(--divider-color)]"
+                    }`}
+                  >
+                    {notified ? <CheckCircle2 className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
+                    {notified ? "TEAM NOTIFIED" : "NOTIFY TEAM"}
+                  </button>
+                </PermissionGate>
               </div>
             </div>
           </div>

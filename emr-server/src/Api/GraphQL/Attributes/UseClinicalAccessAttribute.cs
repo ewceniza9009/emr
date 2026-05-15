@@ -1,6 +1,8 @@
 using System.Reflection;
 using Application.Common.Interfaces;
+using Domain.Entities;
 using Domain.Enums;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -17,9 +19,14 @@ public enum ClinicalIdSource
     Contact,
 }
 
+/// <summary>
+/// Tactical Security Middleware: Enforces Method-Level Clinical Authorization.
+/// Ensures that the requesting user has a legitimate clinical relationship with the patient record.
+/// </summary>
 public class UseClinicalAccessAttribute(
     string argumentName = "patientId",
-    ClinicalIdSource source = ClinicalIdSource.Patient
+    ClinicalIdSource source = ClinicalIdSource.Patient,
+    bool allowAnyClinicalStaff = false
 ) : ObjectFieldDescriptorAttribute
 {
     protected override void OnConfigure(
@@ -29,175 +36,174 @@ public class UseClinicalAccessAttribute(
     )
     {
         descriptor.Use(next =>
-            async ctx =>
+            async (IMiddlewareContext ctx) =>
             {
                 var currentUserService = ctx.Service<ICurrentUserService>();
                 var userManager = ctx.Service<UserManager<ApplicationUser>>();
                 var dbContext = ctx.Service<IApplicationDbContext>();
 
-                Guid? patientId = null;
                 Guid targetId = Guid.Empty;
 
-                // TRY TO RESOLVE TARGET ID FROM ARGUMENTS (OR NESTED IN INPUT)
-                try
+                // 1. TACTICAL ARGUMENT RESOLUTION
+                if (ctx.ContextData.TryGetValue("ClinicalTargetId", out var cachedId))
                 {
-                    // Direct Argument Case
-                    targetId = ctx.ArgumentValue<Guid>(argumentName);
+                    targetId = (Guid)cachedId!;
                 }
-                catch
+                else
                 {
-                    // Nested Input Case (e.g. input.PatientId or command.PatientId)
-                    try
-                    {
-                        object input = null;
-                        try { input = ctx.ArgumentValue<object>("input"); } catch { }
-                        
-                        if (input == null)
-                        {
-                            try { input = ctx.ArgumentValue<object>("command"); } catch { }
-                        }
-
-                        if (input != null)
-                        {
-                            var prop = input
-                                .GetType()
-                                .GetProperty(
-                                    argumentName,
-                                    BindingFlags.Public
-                                        | BindingFlags.Instance
-                                        | BindingFlags.IgnoreCase
-                                );
-                            if (prop != null)
-                            {
-                                var val = prop.GetValue(input);
-                                if (val is Guid g)
-                                    targetId = g;
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        /* Ignore and fail later if Guid.Empty */
-                    }
+                    targetId = ResolveTargetId(ctx, argumentName);
+                    ctx.ContextData["ClinicalTargetId"] = targetId;
                 }
 
                 if (targetId == Guid.Empty)
                     throw new UnauthorizedAccessException(
-                        $"Tactical Security Failure: Required argument '{argumentName}' not found in resolver context."
+                        $"Tactical Security Failure: Required clinical identifier '{argumentName}' not found in execution context."
                     );
 
-                // RESOLVE PATIENT ID BASED ON SOURCE
-                switch (source)
-                {
-                    case ClinicalIdSource.Patient:
-                        patientId = targetId;
-                        break;
-                    case ClinicalIdSource.Encounter:
-                        var encounter = await dbContext
-                            .ClinicalEncounters.AsNoTracking()
-                            .FirstOrDefaultAsync(
-                                e => e.EncounterId == targetId,
-                                ctx.RequestAborted
-                            );
-                        patientId = encounter?.PatientId;
-                        break;
-                    case ClinicalIdSource.Appointment:
-                        var appt = await dbContext
-                            .Appointments.AsNoTracking()
-                            .FirstOrDefaultAsync(
-                                a => a.AppointmentId == targetId,
-                                ctx.RequestAborted
-                            );
-                        patientId = appt?.PatientId;
-                        break;
-                    case ClinicalIdSource.Outreach:
-                        var outreach = await dbContext
-                            .PatientOutreaches.AsNoTracking()
-                            .FirstOrDefaultAsync(
-                                o => o.PatientOutreachId == targetId,
-                                ctx.RequestAborted
-                            );
-                        patientId = outreach?.EnrolledPatientId;
-                        break;
-                    case ClinicalIdSource.Contact:
-                        var contact = await dbContext
-                            .PatientContacts.AsNoTracking()
-                            .FirstOrDefaultAsync(c => c.ContactId == targetId, ctx.RequestAborted);
-                        patientId = contact?.PatientId;
-                        break;
-                }
-
-                if (patientId == null || patientId == Guid.Empty)
-                {
-                    // If it's an outreach that isn't enrolled yet, we allow standard policy access (CanManageOutreach)
-                    if (source == ClinicalIdSource.Outreach)
-                    {
-                        await next(ctx);
-                        return;
-                    }
-                    throw new UnauthorizedAccessException(
-                        "Could not resolve patient context for clinical verification."
-                    );
-                }
-
+                // 2. IDENTITY VERIFICATION
                 var userIdStr = currentUserService.UserId;
-
                 if (string.IsNullOrEmpty(userIdStr))
-                    throw new UnauthorizedAccessException("Session expired or invalid.");
+                    throw new UnauthorizedAccessException("Clinical session expired or invalid.");
 
                 var user = await userManager.FindByIdAsync(userIdStr);
                 if (user == null)
-                    throw new UnauthorizedAccessException("User not found.");
+                    throw new UnauthorizedAccessException("Subject identity not found in registry.");
 
-                // 1. EMERGENCY ACCESS BYPASS: If 'Break Glass' is active
+                // 3. EMERGENCY & ADMINISTRATIVE BYPASS
                 if (user.EmergencyAccessExpiry > DateTimeOffset.UtcNow)
                 {
                     await next(ctx);
                     return;
                 }
 
-                // 2. ADMINISTRATIVE BYPASS: System Admins have full visibility
                 var roles = await userManager.GetRolesAsync(user);
-                if (roles.Any(r => r.Contains("Admin") || r.Contains("Administrator")))
+                if (roles.Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || r.Equals("Administrator", StringComparison.OrdinalIgnoreCase)))
+                {
+                    await next(ctx);
+                    return;
+                }
+
+                // 4. RESOURCE-PATIENT RESOLUTION & TENANT ISOLATION
+                var (patientId, tenantId) = await ResolvePatientAndTenant(dbContext, source, targetId, ctx.RequestAborted);
+
+                if (tenantId != Guid.Empty && user.TenantId != tenantId)
+                {
+                    throw new UnauthorizedAccessException("Cross-tenant clinical access violation detected. Security audit triggered.");
+                }
+
+                // 5. CLINICAL RELATIONSHIP VERIFICATION
+                if (allowAnyClinicalStaff)
                 {
                     await next(ctx);
                     return;
                 }
 
                 if (!Guid.TryParse(userIdStr, out var userId))
-                    throw new UnauthorizedAccessException("Invalid user identity.");
+                    throw new UnauthorizedAccessException("Invalid subject identity format.");
 
-                // 3. CASE ASSIGNMENT CHECK: Is this user the Care Navigator for this patient?
-                var isAssigned = await dbContext.CareNavigationCases.AnyAsync(
-                    c =>
-                        c.PatientId == patientId
-                        && c.NavigatorId == userId
-                        && c.Status == CaseStatus.Open,
-                    ctx.RequestAborted
-                );
-
-                if (isAssigned)
+                if (patientId != Guid.Empty)
                 {
-                    await next(ctx);
-                    return;
+                    var isAssigned = await dbContext.CareNavigationCases.AnyAsync(
+                        c => c.PatientId == patientId && c.NavigatorId == userId && c.Status == CaseStatus.Open,
+                        ctx.RequestAborted
+                    );
+
+                    if (isAssigned)
+                    {
+                        await next(ctx);
+                        return;
+                    }
+
+                    var hasAppointment = await dbContext.Appointments.AnyAsync(
+                        a => a.PatientId == patientId && a.PractitionerId == userId,
+                        ctx.RequestAborted
+                    );
+
+                    if (hasAppointment)
+                    {
+                        await next(ctx);
+                        return;
+                    }
                 }
-
-                // 4. APPOINTMENT LINK CHECK: Does this user have a scheduled appointment with this patient?
-                var hasAppointment = await dbContext.Appointments.AnyAsync(
-                    a => a.PatientId == patientId && a.PractitionerId == userId,
-                    ctx.RequestAborted
-                );
-
-                if (hasAppointment)
+                else if (source == ClinicalIdSource.Outreach)
                 {
-                    await next(ctx);
-                    return;
+                    var isOutreachAssignee = await dbContext.PatientOutreaches.AnyAsync(
+                        o => o.PatientOutreachId == targetId && o.AssignedPractitionerId == userId,
+                        ctx.RequestAborted
+                    );
+
+                    if (isOutreachAssignee)
+                    {
+                        await next(ctx);
+                        return;
+                    }
                 }
 
                 throw new UnauthorizedAccessException(
-                    "Tactical Security Violation: Clinical access required for this patient record."
+                    "Tactical Security Violation: Authenticated user lacks an active clinical relationship with this record."
                 );
             }
         );
+    }
+
+    private static Guid ResolveTargetId(IMiddlewareContext ctx, string name)
+    {
+        if (ctx.Selection.Field.Arguments.Any(a => a.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+        {
+            try { return ctx.ArgumentValue<Guid>(name); } catch { }
+        }
+
+        foreach (var containerName in new[] { "input", "command" })
+        {
+            if (ctx.Selection.Field.Arguments.Any(a => a.Name == containerName))
+            {
+                try
+                {
+                    var container = ctx.ArgumentValue<object>(containerName);
+                    if (container != null)
+                    {
+                        var prop = container.GetType().GetProperty(name, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                        if (prop != null && prop.GetValue(container) is Guid val)
+                            return val;
+                    }
+                }
+                catch { }
+            }
+        }
+
+        return Guid.Empty;
+    }
+
+    private static async Task<(Guid PatientId, Guid TenantId)> ResolvePatientAndTenant(
+        IApplicationDbContext dbContext, 
+        ClinicalIdSource source, 
+        Guid targetId,
+        CancellationToken ct)
+    {
+        switch (source)
+        {
+            case ClinicalIdSource.Patient:
+                var p = await dbContext.Patients.AsNoTracking().FirstOrDefaultAsync(x => x.PatientId == targetId, ct);
+                return (p?.PatientId ?? Guid.Empty, p?.TenantId ?? Guid.Empty);
+
+            case ClinicalIdSource.Encounter:
+                var e = await dbContext.ClinicalEncounters.AsNoTracking().FirstOrDefaultAsync(x => x.EncounterId == targetId, ct);
+                return (e?.PatientId ?? Guid.Empty, e?.TenantId ?? Guid.Empty);
+
+            case ClinicalIdSource.Appointment:
+                var a = await dbContext.Appointments.AsNoTracking().FirstOrDefaultAsync(x => x.AppointmentId == targetId, ct);
+                return (a?.PatientId ?? Guid.Empty, a?.TenantId ?? Guid.Empty);
+
+            case ClinicalIdSource.Outreach:
+                var o = await dbContext.PatientOutreaches.AsNoTracking().FirstOrDefaultAsync(x => x.PatientOutreachId == targetId, ct);
+                return (o?.EnrolledPatientId ?? Guid.Empty, o?.TenantId ?? Guid.Empty);
+
+            case ClinicalIdSource.Contact:
+                var c = await dbContext.PatientContacts.AsNoTracking().FirstOrDefaultAsync(x => x.ContactId == targetId, ct);
+                return (c?.PatientId ?? Guid.Empty, c?.TenantId ?? Guid.Empty);
+
+            default:
+                return (Guid.Empty, Guid.Empty);
+        }
     }
 }

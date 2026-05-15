@@ -24,6 +24,7 @@ import AddReferralDrawer from "@/components/AddReferralDrawer";
 import OutreachFilterPopover, { OutreachFilters } from "@/components/OutreachFilterPopover";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const GET_OUTREACH_LEADS = gql`
   query GetOutreachLeads($search: String, $where: PatientOutreachFilterInput) {
@@ -126,13 +127,15 @@ export default function OutreachPage() {
           <h1 className="text-sm font-bold tracking-tight text-[var(--text-primary)] uppercase">Outreach & Enrollment</h1>
           <p className="text-sm text-[var(--text-secondary)]">Manage patient referral pipeline and clinical conversions.</p>
         </div>
-        <button
-          onClick={() => setIsAddOpen(true)}
-          className="h-10 px-6 rounded-xl bg-[var(--primary)] text-white text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all shadow-md"
-        >
-          <UserPlus className="w-4 h-4" />
-          Add Referral
-        </button>
+        <PermissionGate permission="outreach:manage">
+          <button
+            onClick={() => setIsAddOpen(true)}
+            className="h-10 px-6 rounded-xl bg-[var(--primary)] text-white text-sm font-medium flex items-center gap-2 hover:opacity-90 transition-all shadow-md"
+          >
+            <UserPlus className="w-4 h-4" />
+            Add Referral
+          </button>
+        </PermissionGate>
       </div>
 
       <AddReferralDrawer
@@ -284,26 +287,32 @@ export default function OutreachPage() {
                   </td>
                   <td className="px-6 py-2.5">
                     <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => handleCall(lead)}
-                        className="w-8 h-8 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-teal-500 transition-all flex items-center justify-center border border-white/5"
-                      >
-                        <PhoneCall className="w-3.5 h-3.5" />
-                      </button>
-                      <button 
-                        onClick={() => router.push(`/dashboard/outreach/${lead.patientOutreachId}/enroll`)}
-                        className="w-10 h-10 rounded-xl bg-white/5 text-[var(--text-muted)] hover:text-white transition-all border border-white/10 flex items-center justify-center group/profile"
-                        title="View Patient Outreach Profile"
-                      >
-                        <UserSearch className="w-5 h-5 group-hover/profile:text-teal-500 transition-colors" />
-                      </button>
-                      <button 
-                        onClick={() => handleEnrollClick(lead)}
-                        className="w-10 h-10 rounded-xl bg-teal-500 text-black shadow-lg shadow-teal-500/20 hover:bg-teal-600 transition-all active:scale-[0.98] flex items-center justify-center"
-                        title="Launch Quick Enrollment Drawer"
-                      >
-                        <ClipboardCheck className="w-5 h-5" />
-                      </button>
+                      <PermissionGate permission="outreach:manage">
+                        <button
+                          onClick={() => handleCall(lead)}
+                          className="w-8 h-8 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-teal-500 transition-all flex items-center justify-center border border-white/5"
+                        >
+                          <PhoneCall className="w-3.5 h-3.5" />
+                        </button>
+                      </PermissionGate>
+                      <PermissionGate permission="outreach:manage">
+                        <button 
+                          onClick={() => router.push(`/dashboard/outreach/${lead.patientOutreachId}/enroll`)}
+                          className="w-10 h-10 rounded-xl bg-white/5 text-[var(--text-muted)] hover:text-white transition-all border border-white/10 flex items-center justify-center group/profile"
+                          title="View Patient Outreach Profile"
+                        >
+                          <UserSearch className="w-5 h-5 group-hover/profile:text-teal-500 transition-colors" />
+                        </button>
+                      </PermissionGate>
+                      <PermissionGate permission="patients:enrollment">
+                        <button 
+                          onClick={() => handleEnrollClick(lead)}
+                          className="w-10 h-10 rounded-xl bg-teal-500 text-black shadow-lg shadow-teal-500/20 hover:bg-teal-600 transition-all active:scale-[0.98] flex items-center justify-center"
+                          title="Launch Quick Enrollment Drawer"
+                        >
+                          <ClipboardCheck className="w-5 h-5" />
+                        </button>
+                      </PermissionGate>
                     </div>
                   </td>
                 </tr>

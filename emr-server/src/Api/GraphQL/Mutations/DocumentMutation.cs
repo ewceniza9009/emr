@@ -12,13 +12,13 @@ using Domain.Common;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
-[Authorize(Policy = "CanEditPatients")]
 public class DocumentMutation
 {
     public DocumentMutation()
     {
     }
 
+    [Authorize(Policy = "CanEditPatients")]
     public async Task<bool> DeleteDocument(
         Guid patientDocumentId,
         [Service] IStorageService storageService,
@@ -91,6 +91,7 @@ public class DocumentMutation
         return hasAppointment;
     }
 
+    [Authorize(Policy = "CanEditPatients")]
     public async Task<Guid> UploadDocument(
         Guid patientId,
         Guid? patientContactId,

@@ -12,9 +12,9 @@ using Microsoft.IdentityModel.Tokens;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
-[Authorize(Policy = "CanManageSetup")]
 public class IdentityMutation
 {
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> AssignRoleToUser(
         string userId,
         string roleName,
@@ -47,6 +47,7 @@ public class IdentityMutation
         return result.Succeeded;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> RemoveRoleFromUser(
         string userId,
         string roleName,
@@ -79,6 +80,7 @@ public class IdentityMutation
         return result.Succeeded;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdateRolePermissions(
         string roleName,
         List<string> permissions,
@@ -114,6 +116,58 @@ public class IdentityMutation
         return true;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
+    public async Task<bool> CreateRole(
+        string roleName,
+        [Service] RoleManager<IdentityRole> roleManager,
+        [Service] ISecurityAuditService auditService
+    )
+    {
+        if (await roleManager.RoleExistsAsync(roleName))
+            return false;
+
+        var result = await roleManager.CreateAsync(new IdentityRole(roleName));
+        if (result.Succeeded)
+        {
+            await auditService.LogActionAsync(
+                "ROLE_CREATED",
+                $"Created new security role: '{roleName}'",
+                "SYSTEM",
+                roleName
+            );
+        }
+        return result.Succeeded;
+    }
+
+    [Authorize(Policy = "CanManageSetup")]
+    public async Task<bool> DeleteRole(
+        string roleName,
+        [Service] RoleManager<IdentityRole> roleManager,
+        [Service] ISecurityAuditService auditService
+    )
+    {
+        var role = await roleManager.FindByNameAsync(roleName);
+        if (role == null)
+            return false;
+
+        // Prevent deleting core roles
+        if (roleName.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        var result = await roleManager.DeleteAsync(role);
+        if (result.Succeeded)
+        {
+            await auditService.LogActionAsync(
+                "ROLE_DELETED",
+                $"Deleted security role: '{roleName}'",
+                role.Id,
+                roleName
+            );
+        }
+        return result.Succeeded;
+    }
+
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> ActivateBreakGlass(
         string justification,
         [Service] UserManager<ApplicationUser> userManager,
@@ -146,6 +200,7 @@ public class IdentityMutation
         return result.Succeeded;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<string?> InvitePractitioner(
         Guid practitionerId,
         string email,

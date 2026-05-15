@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
@@ -8,6 +8,7 @@ import {
   CheckCircle, ChevronRight
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
+import { PermissionGate } from "./PermissionGate";
 
 const GET_METADATA = gql`
   query GetMetadata {
@@ -392,22 +393,24 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
 
           {/* Action Zone */}
           <div className="p-8 bg-[var(--sidebar-bg)] border-t border-[var(--card-border)] mt-auto flex flex-col gap-4">
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="group w-full py-4 rounded-xl bg-[var(--primary)] hover:opacity-90 disabled:opacity-10 disabled:cursor-not-allowed
-                        text-white font-black text-sm uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_var(--primary-glow)] flex items-center justify-center gap-3 active:scale-[0.98]"
-            >
-              {loading ? (
-                <Activity className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  <span>{loading ? "INITIALIZING..." : "COMMIT REGISTRATION"}</span>
-                </>
-              )}
-            </button>
+            <PermissionGate permission="patients:enrollment">
+              <button
+                type="submit"
+                onClick={handleSubmit}
+                disabled={loading}
+                className="group w-full py-4 rounded-xl bg-[var(--primary)] hover:opacity-90 disabled:opacity-10 disabled:cursor-not-allowed
+                          text-white font-black text-sm uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_var(--primary-glow)] flex items-center justify-center gap-3 active:scale-[0.98]"
+              >
+                {loading ? (
+                  <Activity className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span>{loading ? "INITIALIZING..." : "COMMIT REGISTRATION"}</span>
+                  </>
+                )}
+              </button>
+            </PermissionGate>
             <p className="text-[9px] font-bold text-[var(--text-muted)] text-center uppercase tracking-widest opacity-40">
               Authorized Clinical Enrollment Only
             </p>

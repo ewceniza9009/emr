@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { X, ClipboardList, Send, Activity, User } from "lucide-react";
 import HalcyonPortal from "./Portal";
+import { PermissionGate } from "./PermissionGate";
 
 const SAVE_TRIAGE_NOTE = gql`
   mutation SaveTriageNote($input: SaveClinicalNoteCommandInput!) {
@@ -110,22 +111,24 @@ export default function TriageNoteDrawer({ isOpen, onClose, patientId, patientNa
 
           {/* Action Footer */}
           <div className="p-8 bg-black/20 backdrop-blur-2xl border-t border-white/5 mt-auto">
-            <button 
-              type="submit" 
-              onClick={handleSubmit}
-              disabled={loading || !content.trim()}
-              className="group w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-30 disabled:cursor-not-allowed
-                        text-black font-black text-[11px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-3 active:scale-[0.98]"
-            >
-              {loading ? (
-                <Activity className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                  <span>Log Triage Record</span>
-                </>
-              )}
-            </button>
+            <PermissionGate permission="clinical:chart">
+              <button 
+                type="submit" 
+                onClick={handleSubmit}
+                disabled={loading || !content.trim()}
+                className="group w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-30 disabled:cursor-not-allowed
+                          text-black font-black text-[11px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-3 active:scale-[0.98]"
+              >
+                {loading ? (
+                  <Activity className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Send className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                    <span>Log Triage Record</span>
+                  </>
+                )}
+              </button>
+            </PermissionGate>
           </div>
         </div>
       </div>

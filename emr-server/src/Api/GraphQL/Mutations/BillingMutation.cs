@@ -6,9 +6,9 @@ using MediatR;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
-[Authorize(Policy = "CanManageBilling")]
 public class BillingMutation
 {
+    [Authorize(Policy = "CanManageBilling")]
     public async Task<Guid> SubmitZBenefitClaim(
         SubmitZBenefitClaimCommand command,
         [Service] IMediator mediator,
@@ -18,6 +18,7 @@ public class BillingMutation
         return await mediator.Send(command, cancellationToken);
     }
 
+    [Authorize(Policy = "CanManageBilling")]
     public async Task<Application.Billing.Dtos.BillingInvoiceDto> CreateBillingInvoice(
         CreateInvoiceCommandInput input,
         [Service] IMediator mediator,
@@ -40,6 +41,7 @@ public class BillingMutation
         return await mediator.Send(command, cancellationToken);
     }
 
+    [Authorize(Policy = "CanManageBilling")]
     public async Task<bool> UpdateClaimStatus(
         UpdateClaimStatusCommand command,
         [Service] IMediator mediator,
@@ -49,6 +51,7 @@ public class BillingMutation
         return await mediator.Send(command, cancellationToken);
     }
 
+    [Authorize(Policy = "CanManageBilling")]
     public async Task<bool> VoidInvoice(
         VoidInvoiceCommand command,
         [Service] IMediator mediator,
@@ -58,6 +61,7 @@ public class BillingMutation
         return await mediator.Send(command, cancellationToken);
     }
 
+    [Authorize(Policy = "CanManageBilling")]
     public async Task<Application.Billing.Dtos.BillingInvoiceDto> UpdateInvoice(
         UpdateInvoiceCommandInput command,
         [Service] IMediator mediator,

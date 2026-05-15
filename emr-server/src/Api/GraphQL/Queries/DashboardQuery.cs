@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
-[Authorize(Policy = "CanViewPatients")]
 public class DashboardQuery
 {
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<DashboardStatsDto> GetDashboardStats([Service] IApplicationDbContext context)
     {
         var tenantId = context.TenantConfigurations.Select(t => t.TenantId).FirstOrDefault();

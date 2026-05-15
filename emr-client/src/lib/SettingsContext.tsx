@@ -141,7 +141,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       const config = tenantData.tenantConfigurations[0];
       setTenantConfig({
         currency: config.currency,
-        timezone: config.timezone,
+        timezone: config.timezone || DEFAULT_TENANT.timezone,
         language: config.language,
         dateFormat: config.dateFormat,
         organizationName: config.organizationName,

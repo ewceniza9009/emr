@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import * as signalR from "@microsoft/signalr";
 import { Heart, Zap, Wind, Thermometer, Power } from "lucide-react";
+import { PermissionGate } from "./PermissionGate";
 
 interface LiveHeartbeatProps {
   patientId: string;
@@ -85,20 +86,22 @@ export default function LiveHeartbeat({ patientId, enabled, onToggle, status }: 
           </div>
 
           {/* THE TOGGLE */}
-          <button
-            type="button"
-            onClick={onToggle}
-            className={`p-2 rounded-xl border transition-all cursor-pointer ${
-              enabled
-                ? isLive 
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
-                  : "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 animate-pulse"
-                : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-emerald-500/30 hover:text-emerald-400"
-            }`}
-            title={enabled ? "Disconnect Telemetry" : "Initialize Telemetry Link"}
-          >
-            <Power className="w-4 h-4" />
-          </button>
+          <PermissionGate permission="clinical:order">
+            <button
+              type="button"
+              onClick={onToggle}
+              className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                enabled
+                  ? isLive 
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
+                    : "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20 animate-pulse"
+                  : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-emerald-500/30 hover:text-emerald-400"
+              }`}
+              title={enabled ? "Disconnect Telemetry" : "Initialize Telemetry Link"}
+            >
+              <Power className="w-4 h-4" />
+            </button>
+          </PermissionGate>
         </div>
 
         {/* Mini Waveform */}

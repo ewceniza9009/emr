@@ -8,6 +8,7 @@ import {
   Search, Shield, CheckCircle, ChevronRight
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
+import { PermissionGate } from "./PermissionGate";
 
 const CREATE_OUTREACH = gql`
   mutation CreateOutreach($input: CreateOutreachCommandInput!) {
@@ -234,22 +235,24 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
 
           {/* Submission Area */}
           <div className="p-8 bg-black/20 backdrop-blur-2xl border-t border-white/5 mt-auto flex flex-col gap-4">
-            <button 
-              type="submit" 
-              onClick={handleSubmit}
-              disabled={loading}
-              className="group w-full py-4 rounded-2xl bg-teal-500 hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed
-                        text-black font-black text-[11px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-teal-500/20 flex items-center justify-center gap-3 active:scale-[0.98]"
-            >
-              {loading ? (
-                <Activity className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  <span>Register Patient for Outreach</span>
-                </>
-              )}
-            </button>
+            <PermissionGate permission="clinical:chart">
+              <button 
+                type="submit" 
+                onClick={handleSubmit}
+                disabled={loading}
+                className="group w-full py-4 rounded-2xl bg-teal-500 hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed
+                          text-black font-black text-[11px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-teal-500/20 flex items-center justify-center gap-3 active:scale-[0.98]"
+              >
+                {loading ? (
+                  <Activity className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span>Register Patient for Outreach</span>
+                  </>
+                )}
+              </button>
+            </PermissionGate>
             <div className="flex items-center justify-center gap-2">
               <div className="w-1 h-1 rounded-full bg-teal-500/50" />
               <p className="text-[8px] font-black text-[var(--text-muted)] text-center uppercase tracking-[0.3em] opacity-60">

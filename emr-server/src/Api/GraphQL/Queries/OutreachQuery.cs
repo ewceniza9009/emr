@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
-[Authorize(Policy = "CanManageOutreach")]
 public class OutreachQuery
 {
+    [Authorize(Policy = "CanManageOutreach")]
     [UseOffsetPaging(DefaultPageSize = 50)]
     [UseFiltering]
     [UseSorting]
@@ -40,6 +40,7 @@ public class OutreachQuery
         return query.OrderBy(o => o.LastName).ThenBy(o => o.FirstName);
     }
 
+    [Authorize(Policy = "CanManageOutreach")]
     [UseClinicalAccess(argumentName: "outreachId", source: ClinicalIdSource.Outreach)]
     [UseFirstOrDefault]
     public async Task<IQueryable<PatientOutreach>> GetOutreachById(

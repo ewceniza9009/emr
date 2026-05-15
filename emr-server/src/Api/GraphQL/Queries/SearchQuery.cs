@@ -1,6 +1,7 @@
 using Application.Common.Interfaces;
 using Domain.Entities;
 using HotChocolate;
+using HotChocolate.Authorization;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ namespace Api.GraphQL.Queries;
 [ExtendObjectType("Query")]
 public class SearchQuery
 {
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<List<SearchResult>> GlobalSearch(
         string term,
         [Service] IApplicationDbContext context,
@@ -21,8 +23,8 @@ public class SearchQuery
 
         try
         {
-            var config = await context.TenantConfigurations
-                .OrderBy(c => c.TenantConfigurationId)
+            var config = await context
+                .TenantConfigurations.OrderBy(c => c.TenantConfigurationId)
                 .FirstOrDefaultAsync(cancellationToken);
             bool useElastic = config?.EnableElasticsearch ?? false;
 

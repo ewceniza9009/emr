@@ -9,6 +9,7 @@ interface ModalOptions {
   type?: "danger" | "warning" | "info" | "success";
   confirmText?: string;
   cancelText?: string;
+  placeholder?: string;
 }
 
 interface CommandModalContextType {
@@ -95,6 +96,7 @@ export function CommandModalProvider({ children }: { children: React.ReactNode }
           type={state.options.type}
           confirmText={state.options.confirmText}
           cancelText={state.options.cancelText}
+          placeholder={state.options.placeholder}
           isAlert={state.isAlert}
           isPrompt={state.isPrompt}
         />

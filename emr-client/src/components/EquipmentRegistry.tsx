@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import EquipmentManagementDrawer from "./EquipmentManagementDrawer";
+import { PermissionGate } from "./PermissionGate";
 
 const GET_EQUIPMENT = gql`
   query GetEquipment($patientId: UUID!) {
@@ -97,13 +98,15 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
           Medical Equipment & Logistics
         </h2>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsDrawerOpen(true)}
-            className="px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all flex items-center gap-2"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Manage Inventory
-          </button>
+          <PermissionGate permission="logistics:manage">
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="px-4 py-2 bg-[var(--primary)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all flex items-center gap-2"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Manage Inventory
+            </button>
+          </PermissionGate>
         </div>
       </div>
 
@@ -146,21 +149,25 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
                       }`}>
                       {d.status?.replace(/_/g, ' ')}
                     </span>
-                    <button
-                      onClick={() => handleStatusUpdate(d.deliveryId, d.status)}
-                      className="text-[6px] font-black uppercase tracking-tighter text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors flex items-center gap-1 mt-1"
-                    >
-                      <Activity className="w-2 h-2" />
-                      Update
-                    </button>
-                    {d.status === 'DELIVERED' && (
+                    <PermissionGate permission="logistics:manage">
                       <button
-                        onClick={() => handleReturnAsset(d.deliveryId)}
-                        className="text-[6px] font-black uppercase tracking-tighter text-emerald-500 hover:text-emerald-400 transition-colors flex items-center gap-1 mt-1"
+                        onClick={() => handleStatusUpdate(d.deliveryId, d.status)}
+                        className="text-[6px] font-black uppercase tracking-tighter text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors flex items-center gap-1 mt-1"
                       >
-                        <CheckCircle2 className="w-2 h-2" />
-                        Return Asset
+                        <Activity className="w-2 h-2" />
+                        Update
                       </button>
+                    </PermissionGate>
+                    {d.status === 'DELIVERED' && (
+                      <PermissionGate permission="logistics:manage">
+                        <button
+                          onClick={() => handleReturnAsset(d.deliveryId)}
+                          className="text-[6px] font-black uppercase tracking-tighter text-emerald-500 hover:text-emerald-400 transition-colors flex items-center gap-1 mt-1"
+                        >
+                          <CheckCircle2 className="w-2 h-2" />
+                          Return Asset
+                        </button>
+                      </PermissionGate>
                     )}
                   </div>
                 </div>

@@ -9,10 +9,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType(typeof(Mutation))]
-[Authorize(Policy = "CanManageSetup")]
 public class SetupMutation
 {
     // --- Practitioner ---
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<Practitioner> CreatePractitioner(
         Practitioner input,
         [Service] IApplicationDbContext context,
@@ -57,6 +57,7 @@ public class SetupMutation
         return input;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdatePractitioner(
         Practitioner input,
         [Service] IApplicationDbContext context
@@ -168,6 +169,7 @@ public class SetupMutation
     }
 
     // --- Facility ---
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<Facility> CreateFacility(
         Facility input,
         [Service] IApplicationDbContext context
@@ -178,6 +180,7 @@ public class SetupMutation
         return input;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdateFacility(Facility input, [Service] IApplicationDbContext context)
     {
         var existing = await context.Facilities.FindAsync(input.FacilityId);
@@ -203,6 +206,7 @@ public class SetupMutation
     }
 
     // --- Health Plan ---
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<HealthPlan> CreateHealthPlan(
         HealthPlan input,
         [Service] IApplicationDbContext context
@@ -213,6 +217,7 @@ public class SetupMutation
         return input;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdateHealthPlan(
         HealthPlan input,
         [Service] IApplicationDbContext context
@@ -230,6 +235,7 @@ public class SetupMutation
     }
 
     // --- Medication ---
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<Medication> CreateMedication(
         Medication input,
         [Service] IApplicationDbContext context
@@ -240,6 +246,7 @@ public class SetupMutation
         return input;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdateMedication(
         Medication input,
         [Service] IApplicationDbContext context
@@ -258,6 +265,7 @@ public class SetupMutation
     }
 
     // --- Smart Phrase ---
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<SmartPhrase> CreateSmartPhrase(
         SmartPhrase input,
         [Service] IApplicationDbContext context
@@ -268,6 +276,7 @@ public class SetupMutation
         return input;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdateSmartPhrase(
         SmartPhrase input,
         [Service] IApplicationDbContext context
@@ -286,6 +295,7 @@ public class SetupMutation
     }
 
     // --- Questionnaire ---
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<Questionnaire> CreateQuestionnaire(
         Questionnaire input,
         [Service] IApplicationDbContext context
@@ -303,6 +313,7 @@ public class SetupMutation
         string? SchemaJson
     );
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdateQuestionnaire(
         UpdateQuestionnaireInput input,
         [Service] IApplicationDbContext context
@@ -319,6 +330,7 @@ public class SetupMutation
     }
 
     // --- Equipment ---
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<DurableMedicalEquipment> CreateEquipment(
         DurableMedicalEquipment input,
         [Service] IApplicationDbContext context
@@ -329,6 +341,7 @@ public class SetupMutation
         return input;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdateEquipment(
         DurableMedicalEquipment input,
         [Service] IApplicationDbContext context
@@ -346,6 +359,7 @@ public class SetupMutation
     }
 
     // --- Outreach Script ---
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<OutreachScript> CreateOutreachScript(
         OutreachScript input,
         [Service] IApplicationDbContext context
@@ -356,6 +370,7 @@ public class SetupMutation
         return input;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdateOutreachScript(
         OutreachScript input,
         [Service] IApplicationDbContext context
@@ -372,6 +387,7 @@ public class SetupMutation
     }
 
     // --- Integration Profile ---
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<IntegrationProfile> CreateIntegrationProfile(
         IntegrationProfile input,
         [Service] IApplicationDbContext context
@@ -382,6 +398,7 @@ public class SetupMutation
         return input;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdateIntegrationProfile(
         IntegrationProfile input,
         [Service] IApplicationDbContext context
@@ -399,6 +416,7 @@ public class SetupMutation
     }
 
     // --- Delete Mutations ---
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> DeletePractitioner(Guid id, [Service] IApplicationDbContext context)
     {
         var item = await context.Practitioners.FindAsync(id);
@@ -409,6 +427,7 @@ public class SetupMutation
         return true;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> DeleteFacility(Guid id, [Service] IApplicationDbContext context)
     {
         var item = await context.Facilities.FindAsync(id);
@@ -419,6 +438,7 @@ public class SetupMutation
         return true;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> DeleteHealthPlan(Guid id, [Service] IApplicationDbContext context)
     {
         var item = await context.HealthPlans.FindAsync(id);
@@ -429,6 +449,7 @@ public class SetupMutation
         return true;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> DeleteMedication(Guid id, [Service] IApplicationDbContext context)
     {
         var item = await context.Medications.FindAsync(id);
@@ -439,6 +460,7 @@ public class SetupMutation
         return true;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> DeleteSmartPhrase(Guid id, [Service] IApplicationDbContext context)
     {
         var item = await context.SmartPhrases.FindAsync(id);
@@ -449,6 +471,7 @@ public class SetupMutation
         return true;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> DeleteQuestionnaire(Guid id, [Service] IApplicationDbContext context)
     {
         var item = await context.Questionnaires.FindAsync(id);
@@ -459,6 +482,7 @@ public class SetupMutation
         return true;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> DeleteEquipment(Guid id, [Service] IApplicationDbContext context)
     {
         var item = await context.DurableMedicalEquipment.FindAsync(id);
@@ -469,6 +493,7 @@ public class SetupMutation
         return true;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> DeleteOutreachScript(Guid id, [Service] IApplicationDbContext context)
     {
         var item = await context.OutreachScripts.FindAsync(id);
@@ -479,6 +504,7 @@ public class SetupMutation
         return true;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> DeleteIntegrationProfile(
         Guid id,
         [Service] IApplicationDbContext context
@@ -517,6 +543,7 @@ public class SetupMutation
         int? UrgentWellbeingThreshold
     );
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> UpdateTenantConfiguration(
         UpdateTenantConfigurationInput input,
         [Service] IApplicationDbContext context
@@ -563,6 +590,7 @@ public class SetupMutation
         return true;
     }
 
+    [Authorize(Policy = "CanManageSetup")]
     public async Task<bool> SyncAllToElasticsearch(
         [Service] IApplicationDbContext context,
         [Service] ISearchService searchService,

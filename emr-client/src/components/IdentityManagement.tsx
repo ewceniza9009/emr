@@ -25,6 +25,7 @@ const GET_IDENTITY_DATA = gql`
       lastName
       roles
       tenantId
+      emergencyAccessExpiry
     }
     roles {
       id
@@ -52,8 +53,27 @@ const UPDATE_PERMISSIONS = gql`
   }
 `;
 
+const CREATE_ROLE = gql`
+  mutation CreateRole($roleName: String!) {
+    createRole(roleName: $roleName)
+  }
+`;
+
+const DELETE_ROLE = gql`
+  mutation DeleteRole($roleName: String!) {
+    deleteRole(roleName: $roleName)
+  }
+`;
+
+const ACTIVATE_BREAK_GLASS = gql`
+  mutation BreakGlass($justification: String!) {
+    activateBreakGlass(justification: $justification)
+  }
+`;
+
 const AVAILABLE_PERMISSIONS = [
   "patients:view", "patients:edit", "patients:delete", "patients:enrollment",
+  "outreach:view", "outreach:manage",
   "clinical:view", "clinical:order", "clinical:chart", "clinical:assessments",
   "scheduling:view", "scheduling:manage",
   "billing:view", "billing:manage",
@@ -66,18 +86,47 @@ const AVAILABLE_PERMISSIONS = [
 ];
 
 export default function IdentityManagement() {
-  const { alert, confirm } = useCommandModal();
+  const { alert, confirm, prompt } = useCommandModal();
   const { data, loading, error, refetch } = useQuery(GET_IDENTITY_DATA);
   const [assignRole] = useMutation(ASSIGN_ROLE);
   const [removeRole] = useMutation(REMOVE_ROLE);
   const [updatePermissions] = useMutation(UPDATE_PERMISSIONS);
+  const [createRole] = useMutation(CREATE_ROLE);
+  const [deleteRole] = useMutation(DELETE_ROLE);
+  const [breakGlass] = useMutation(ACTIVATE_BREAK_GLASS);
 
   const [activeSubTab, setActiveSubTab] = useState<"users" | "roles">("users");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRole, setSelectedRole] = useState<any>(null);
+  const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
 
-  if (loading) return <div className="p-20 text-center animate-pulse text-[var(--text-muted)] font-black uppercase tracking-[0.3em]">Decoding Cryptographic Identity Vault...</div>;
-  if (error) return <div className="p-20 text-center text-rose-500 font-bold">Access Denied: {error.message}</div>;
+  if (loading) return (
+    <div className="flex-1 flex items-center justify-center bg-[var(--card-bg)]/10 rounded-3xl border border-[var(--card-border)]">
+      <div className="text-center animate-pulse">
+        <RefreshCw className="w-12 h-12 text-[var(--primary)] mx-auto mb-6 animate-spin" />
+        <div className="text-[14px] font-black uppercase tracking-[0.4em] text-[var(--text-muted)]">Decoding Cryptographic Identity Vault...</div>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex-1 flex items-center justify-center bg-rose-500/5 rounded-3xl border border-rose-500/20">
+      <div className="text-center max-w-md px-8">
+        <ShieldAlert className="w-16 h-16 text-rose-500 mx-auto mb-6 opacity-50" />
+        <h2 className="text-xl font-black text-rose-500 uppercase tracking-tighter mb-2">Access Denied</h2>
+        <p className="text-[11px] font-bold text-rose-500/60 uppercase tracking-widest leading-relaxed">{error.message}</p>
+        <button 
+          onClick={() => refetch()}
+          className="mt-8 px-6 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all"
+        >
+          Retry Authorization
+        </button>
+      </div>
+    </div>
+  );
+
+  const roles = data?.roles || [];
+  const users = data?.users || [];
+  const selectedRole = roles.find((r: any) => r.id === selectedRoleId);
 
   const handleToggleRole = async (user: any, roleName: string, hasRole: boolean) => {
     try {
@@ -105,7 +154,60 @@ export default function IdentityManagement() {
     }
   };
 
-  const filteredUsers = data?.users.filter((u: any) => 
+  const handleCreateRole = async () => {
+    const name = await prompt({
+      title: "New Security Role",
+      message: "Define a unique identifier for this security segment.",
+      placeholder: "e.g. NURSE_LEAD",
+    });
+
+    if (name) {
+      try {
+        await createRole({ variables: { roleName: name.toUpperCase() } });
+        refetch();
+      } catch (err: any) {
+        alert({ title: "Provisioning Error", message: err.message, type: "danger" });
+      }
+    }
+  };
+
+  const handleDeleteRole = async (role: any) => {
+    const ok = await confirm({
+      title: "Decommission Role",
+      message: `Are you sure you want to remove the '${role.name}' role? This may impact active sessions.`,
+      type: "danger",
+    });
+
+    if (ok) {
+      try {
+        await deleteRole({ variables: { roleName: role.name } });
+        setSelectedRoleId(null);
+        refetch();
+      } catch (err: any) {
+        alert({ title: "Decommissioning Error", message: err.message, type: "danger" });
+      }
+    }
+  };
+
+  const handleBreakGlass = async () => {
+    const justification = await prompt({
+      title: "ACTIVATE BREAK-GLASS",
+      message: "EMERGENCY: Administrative override will be logged and audited globally. Provide justification.",
+      placeholder: "e.g. Production incident response",
+    });
+
+    if (justification) {
+      try {
+        await breakGlass({ variables: { justification } });
+        alert({ title: "PROTOCOL ACTIVE", message: "Emergency access granted for 4 hours.", type: "success" });
+        refetch();
+      } catch (err: any) {
+        alert({ title: "Protocol Failure", message: err.message, type: "danger" });
+      }
+    }
+  };
+
+  const filteredUsers = users.filter((u: any) => 
     u.email.toLowerCase().includes(searchQuery.toLowerCase()) || 
     u.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.lastName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -132,10 +234,14 @@ export default function IdentityManagement() {
           </button>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 border border-rose-500/20 rounded-lg animate-pulse whitespace-nowrap">
-            <ShieldAlert className="w-3 h-3 text-rose-500" />
-            <span className="text-[7px] font-black text-rose-500 uppercase tracking-widest">Super User Mode Active</span>
-          </div>
+          <button 
+            onClick={handleBreakGlass}
+            className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 border border-rose-500/20 rounded-lg group hover:bg-rose-500/20 transition-all"
+          >
+            <ShieldAlert className="w-3 h-3 text-rose-500 group-hover:scale-110 transition-transform" />
+            <span className="text-[7px] font-black text-rose-500 uppercase tracking-widest">Break-Glass Protocol</span>
+          </button>
+          <div className="h-4 w-px bg-white/10 mx-2" />
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
             <input 
@@ -152,79 +258,97 @@ export default function IdentityManagement() {
       <div className="flex-1 overflow-y-auto p-8">
         {activeSubTab === "users" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredUsers.map((user: any) => (
-              <div key={user.id} className="group relative bg-[var(--card-bg)]/80 border border-[var(--card-border)] rounded-3xl p-6 hover:border-[var(--primary)]/30 transition-all shadow-xl hover:shadow-[var(--primary-glow)]/5">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20">
-                      <span className="text-lg font-black text-[var(--primary)] uppercase">{user.firstName[0]}{user.lastName[0]}</span>
+            {filteredUsers.map((user: any) => {
+              const isEmergency = user.emergencyAccessExpiry && new Date(user.emergencyAccessExpiry) > new Date();
+              return (
+                <div key={user.id} className={`group relative bg-[var(--card-bg)]/80 border ${isEmergency ? 'border-rose-500/40' : 'border-[var(--card-border)]'} rounded-3xl p-6 hover:border-[var(--primary)]/30 transition-all shadow-xl hover:shadow-[var(--primary-glow)]/5`}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-2xl ${isEmergency ? 'bg-rose-500/10 border-rose-500/20' : 'bg-[var(--primary)]/10 border-[var(--primary)]/20'} flex items-center justify-center border`}>
+                        <span className={`text-lg font-black ${isEmergency ? 'text-rose-500' : 'text-[var(--primary)]'} uppercase`}>{user.firstName[0]}{user.lastName[0]}</span>
+                      </div>
+                      <div>
+                        <h3 className="text-[12px] font-black text-[var(--text-primary)] uppercase tracking-tighter">{user.firstName} {user.lastName}</h3>
+                        <p className="text-[9px] font-bold text-[var(--text-muted)] opacity-70">{user.email}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {user.tenantId && (
+                            <p className="text-[7px] font-black text-[var(--primary)] uppercase tracking-[0.2em] bg-[var(--primary)]/5 px-1.5 py-0.5 rounded border border-[var(--primary)]/10">
+                              Org ID: {user.tenantId.slice(0, 8)}
+                            </p>
+                          )}
+                          {isEmergency && (
+                            <p className="text-[7px] font-black text-rose-500 uppercase tracking-[0.2em] bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20 animate-pulse">
+                              Emergency Level 1
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-[12px] font-black text-[var(--text-primary)] uppercase tracking-tighter">{user.firstName} {user.lastName}</h3>
-                      <p className="text-[9px] font-bold text-[var(--text-muted)] opacity-70">{user.email}</p>
-                      {user.tenantId && (
-                        <p className="text-[7px] font-black text-[var(--primary)] uppercase tracking-[0.2em] mt-1 bg-[var(--primary)]/5 px-1.5 py-0.5 rounded border border-[var(--primary)]/10 w-fit">
-                          Org ID: {user.tenantId.slice(0, 8)}...
-                        </p>
-                      )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-1.5 gap-y-2">
+                      {roles.map((role: any) => {
+                        const hasRole = user.roles.includes(role.name);
+                        return (
+                          <button
+                            key={role.id}
+                            onClick={() => handleToggleRole(user, role.name, hasRole)}
+                            className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all ${
+                              hasRole 
+                                ? "bg-[var(--primary)]/20 text-[var(--primary)] border-[var(--primary)]/40 shadow-inner" 
+                                : "bg-[var(--card-bg)]/50 text-[var(--text-muted)] border-[var(--card-border)] hover:border-[var(--primary)]/30"
+                            }`}
+                          >
+                            {role.name}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-1.5 gap-y-2">
-                    {data.roles.map((role: any) => {
-                      const hasRole = user.roles.includes(role.name);
-                      return (
-                        <button
-                          key={role.id}
-                          onClick={() => handleToggleRole(user, role.name, hasRole)}
-                          className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all ${
-                            hasRole 
-                              ? "bg-[var(--primary)]/20 text-[var(--primary)] border-[var(--primary)]/40 shadow-inner" 
-                              : "bg-[var(--card-bg)]/50 text-[var(--text-muted)] border-[var(--card-border)] hover:border-[var(--primary)]/30"
-                          }`}
-                        >
-                          {role.name}
-                        </button>
-                      );
-                    })}
+                  <div className="mt-4 pt-4 border-t border-[var(--card-border)] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className={`w-3 h-3 ${isEmergency ? 'text-rose-500' : 'text-[var(--primary)]'}`} />
+                      <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                        {isEmergency ? 'Audited Session' : 'Active Session'}
+                      </span>
+                    </div>
+                    <ChevronRight className="w-3 h-3 text-[var(--text-muted)]" />
                   </div>
                 </div>
-
-                <div className="mt-4 pt-4 border-t border-[var(--card-border)] flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <RefreshCw className="w-3 h-3 text-[var(--primary)]" />
-                    <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Active Session</span>
-                  </div>
-                  <ChevronRight className="w-3 h-3 text-[var(--text-muted)]" />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 h-full">
             {/* Roles List */}
             <div className="lg:col-span-1 space-y-3">
-              <div className="px-4 mb-4">
+              <div className="px-4 mb-4 flex items-center justify-between">
                 <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Security Definitions</p>
+                <button 
+                  onClick={handleCreateRole}
+                  className="w-6 h-6 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center hover:bg-[var(--primary)] transition-all hover:text-white"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
               </div>
-              {data.roles.map((role: any) => (
+              {roles.map((role: any) => (
                 <button
                   key={role.id}
-                  onClick={() => setSelectedRole(role)}
+                  onClick={() => setSelectedRoleId(role.id)}
                   className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl border transition-all ${
-                    selectedRole?.id === role.id 
+                    selectedRoleId === role.id 
                       ? "bg-[var(--primary)] border-[var(--primary)] text-white shadow-xl shadow-[var(--primary-glow)]" 
                       : "bg-[var(--card-bg)]/80 border border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--primary)]/30"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <ShieldCheck className={`w-4 h-4 ${selectedRole?.id === role.id ? "text-white" : "text-[var(--primary)]"}`} />
+                    <ShieldCheck className={`w-4 h-4 ${selectedRoleId === role.id ? "text-white" : "text-[var(--primary)]"}`} />
                     <span className="text-[11px] font-black uppercase tracking-tighter">{role.name}</span>
                   </div>
                   <div className={`px-2 py-0.5 rounded text-[8px] font-black border ${
-                    selectedRole?.id === role.id ? "bg-white/20 border-white/30" : "bg-white/5 border-white/10"
+                    selectedRoleId === role.id ? "bg-white/20 border-white/30" : "bg-white/5 border-white/10"
                   }`}>
                     {role.permissions.length}
                   </div>
@@ -246,6 +370,14 @@ export default function IdentityManagement() {
                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-60">Granting granular authority across clinical nodes</p>
                       </div>
                     </div>
+                    {selectedRole.name !== "Admin" && (
+                      <button 
+                        onClick={() => handleDeleteRole(selectedRole)}
+                        className="p-3 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-lg active:scale-95"
+                      >
+                        <ShieldAlert className="w-5 h-5" />
+                      </button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

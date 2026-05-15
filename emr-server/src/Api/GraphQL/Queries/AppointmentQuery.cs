@@ -13,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Api.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
-[Authorize(Policy = "CanViewPatients")]
 public class AppointmentQuery
 {
     private readonly ISecurityAuditService _auditService;
@@ -23,6 +22,7 @@ public class AppointmentQuery
         _auditService = auditService;
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [GraphQLName("appointments")]
     [UseFiltering]
     [UseSorting]
@@ -59,6 +59,7 @@ public class AppointmentQuery
         return new PagedResponse<AppointmentDto> { Items = items, TotalCount = totalCount };
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [GraphQLName("appointment")]
     [UseClinicalAccess(argumentName: "id", source: ClinicalIdSource.Appointment)]
     public async Task<AppointmentDto?> GetAppointmentById(
@@ -78,6 +79,7 @@ public class AppointmentQuery
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<List<AvailableProviderDto>> GetAvailableProviders(
         Guid patientId,
         DateTimeOffset targetStart,
@@ -100,6 +102,7 @@ public class AppointmentQuery
         );
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     public async Task<List<ScheduleBlock>> GetScheduleBlocks(
         [Service] IApplicationDbContext context,
         DateTime? startDate = null,
@@ -117,6 +120,7 @@ public class AppointmentQuery
         return await query.ToListAsync();
     }
 
+    [Authorize(Policy = "CanViewPatients")]
     [GraphQLName("availableProvidersForReassignment")]
     public async Task<List<ReassignmentProviderDto>> GetAvailableProvidersForReassignment(
         Guid appointmentId,

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { X, Save, Activity, CheckCircle, Shield, Building2, Stethoscope, Pill, Zap, MessageSquare } from "lucide-react";
 import HalcyonPortal from "./Portal";
+import { PermissionGate } from "./PermissionGate";
 
 const MUTATIONS = {
   practitioners: gql`
@@ -613,13 +614,15 @@ export default function SetupDrawer({ open, type, initialData, onClose, onSucces
           </form>
 
           <div className="p-8 border-t border-[var(--card-border)] bg-[var(--sidebar-bg)]">
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full py-4 rounded-xl bg-[var(--primary)] text-white font-bold text-sm uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] flex items-center justify-center gap-3 disabled:opacity-50"
-            >
-              {loading ? <Activity className="w-5 h-5 animate-spin" /> : <><CheckCircle className="w-5 h-5" /> <span>Commit Changes</span></>}
-            </button>
+            <PermissionGate permission="setup:manage">
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full py-4 rounded-xl bg-[var(--primary)] text-white font-bold text-sm uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                {loading ? <Activity className="w-5 h-5 animate-spin" /> : <><CheckCircle className="w-5 h-5" /> <span>Commit Changes</span></>}
+              </button>
+            </PermissionGate>
           </div>
         </div>
       </div>

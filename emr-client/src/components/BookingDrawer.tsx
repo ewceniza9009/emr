@@ -5,6 +5,7 @@ import { useMutation, useQuery, gql } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { useCommandModal } from "./CommandModalProvider";
 import { useToast } from "./ToastProvider";
+import { PermissionGate } from "./PermissionGate";
 import { format, addMinutes } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import Link from "next/link";
@@ -270,9 +271,21 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
   }), [tenantConfig]);
 
   const createZonedISO = useCallback((date: Date, hours: number, minutes: number) => {
-    const year = date.getFullYear(), month = date.getMonth(), day = date.getDate();
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
-    return fromZonedTime(dateStr, clinicalConfig.TIMEZONE).toISOString();
+    try {
+      const d = (date && !isNaN(date.getTime())) ? date : new Date();
+      const h = isNaN(hours) ? 0 : hours;
+      const m = isNaN(minutes) ? 0 : minutes;
+
+      const year = d.getFullYear(), month = d.getMonth(), day = d.getDate();
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+      
+      const zoned = fromZonedTime(dateStr, clinicalConfig.TIMEZONE || 'UTC');
+      if (isNaN(zoned.getTime())) return new Date().toISOString();
+      return zoned.toISOString();
+    } catch (e) {
+      console.error("Tactical Date Failure:", e);
+      return new Date().toISOString();
+    }
   }, [clinicalConfig.TIMEZONE]);
 
   const formatForEngine = useCallback((date: Date, hours: number) => {
@@ -557,15 +570,26 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
 
     // Prioritize slots that fall within the currently selected period
     const periodSlots = slots.filter(s => {
-      const hour = parseInt(formatInTimeZone(new Date(s.shiftStart), clinicalConfig.TIMEZONE, "H"));
-      return period === "AM" ? hour < clinicalConfig.CUTOFF_HOUR : hour >= clinicalConfig.CUTOFF_HOUR;
+      try {
+        const d = new Date(s.shiftStart);
+        if (isNaN(d.getTime())) return false;
+        const hour = parseInt(formatInTimeZone(d, clinicalConfig.TIMEZONE || 'UTC', "H"));
+        return period === "AM" ? hour < clinicalConfig.CUTOFF_HOUR : hour >= clinicalConfig.CUTOFF_HOUR;
+      } catch { return false; }
     });
 
     // If we have slots in the current period, pick the one closest to our startHour
     if (periodSlots.length > 0) {
       return periodSlots.reduce((prev: any, curr: any) => {
-        const currHour = parseInt(formatInTimeZone(new Date(curr.shiftStart), clinicalConfig.TIMEZONE, "H"));
-        const prevHour = parseInt(formatInTimeZone(new Date(prev.shiftStart), clinicalConfig.TIMEZONE, "H"));
+        const getHour = (iso: string) => {
+          try {
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return 0;
+            return parseInt(formatInTimeZone(d, clinicalConfig.TIMEZONE || 'UTC', "H"));
+          } catch { return 0; }
+        };
+        const currHour = getHour(curr.shiftStart);
+        const prevHour = getHour(prev.shiftStart);
         return Math.abs(currHour - startHour) < Math.abs(prevHour - startHour) ? curr : prev;
       });
     }
@@ -1501,18 +1525,20 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
                     </p>
                   </div>
                 )}
-                <button type="submit" form="appointment-form" disabled={bookingLoading || !selectedSlot?.shiftStart || isLocked}
-                  className="w-full h-14 bg-[var(--primary)] hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed
-                            text-white font-bold text-sm shadow-xl shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center justify-center gap-3 rounded-2xl">
-                  {bookingLoading ? (
-                    <Activity className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <Check className="w-5 h-5" />
-                      <span>{appointmentId ? "Update Appointment" : "Schedule Appointment"}</span>
-                    </>
-                  )}
-                </button>
+                <PermissionGate permission="scheduling:manage">
+                  <button type="submit" form="appointment-form" disabled={bookingLoading || !selectedSlot?.shiftStart || isLocked}
+                    className="w-full h-14 bg-[var(--primary)] hover:opacity-90 disabled:opacity-20 disabled:cursor-not-allowed
+                              text-white font-bold text-sm shadow-xl shadow-[var(--primary-glow)] transition-all active:scale-[0.98] flex items-center justify-center gap-3 rounded-2xl">
+                    {bookingLoading ? (
+                      <Activity className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <Check className="w-5 h-5" />
+                        <span>{appointmentId ? "Update Appointment" : "Schedule Appointment"}</span>
+                      </>
+                    )}
+                  </button>
+                </PermissionGate>
                 <p className="text-[10px] font-bold text-[var(--text-muted)] text-center uppercase tracking-widest opacity-50">
                   Authorized Clinical Staff Only
                 </p>

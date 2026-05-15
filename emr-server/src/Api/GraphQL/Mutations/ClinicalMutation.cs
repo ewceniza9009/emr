@@ -11,9 +11,9 @@ using Api.GraphQL.Attributes;
 namespace Api.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
-[Authorize(Policy = "CanChart")]
 public class ClinicalMutation
 {
+    [Authorize(Policy = "CanChart")]
     [GraphQLName("createClinicalEncounter")]
     [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Guid> CreateClinicalEncounter(
@@ -42,6 +42,7 @@ public class ClinicalMutation
         return result;
     }
 
+    [Authorize(Policy = "CanChart")]
     [GraphQLName("addAllergy")]
     [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Guid> AddAllergy(
@@ -69,6 +70,7 @@ public class ClinicalMutation
         return result;
     }
 
+    [Authorize(Policy = "CanChart")]
     [GraphQLName("logVitalSign")]
     [UseClinicalAccess(argumentName: "EncounterId", source: ClinicalIdSource.Encounter)]
     public async Task<Guid> LogVitalSign(
@@ -99,6 +101,7 @@ public class ClinicalMutation
         return result;
     }
 
+    [Authorize(Policy = "CanChart")]
     [GraphQLName("completeGuidedEncounter")]
     [UseClinicalAccess(argumentName: "EncounterId", source: ClinicalIdSource.Encounter)]
     public async Task<Guid> CompleteGuidedEncounter(
@@ -137,6 +140,7 @@ public class ClinicalMutation
         return result;
     }
 
+    [Authorize(Policy = "CanChart")]
     [GraphQLName("addPrescription")]
     [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Guid> AddPrescription(
@@ -168,6 +172,7 @@ public class ClinicalMutation
         return result;
     }
 
+    [Authorize(Policy = "CanChart")]
     [GraphQLName("logAssessmentResponse")]
     [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Guid> LogAssessmentResponse(
@@ -196,6 +201,7 @@ public class ClinicalMutation
         return result;
     }
 
+    [Authorize(Policy = "CanChart")]
     [GraphQLName("saveClinicalNote")]
     [UseClinicalAccess(argumentName: "EncounterId", source: ClinicalIdSource.Encounter)]
     public async Task<Guid> SaveClinicalNote(
@@ -226,6 +232,7 @@ public class ClinicalMutation
         return result;
     }
 
+    [Authorize(Policy = "CanChart")]
     [GraphQLName("addDiagnosis")]
     [UseClinicalAccess(argumentName: "PatientId")]
     public async Task<Guid> AddDiagnosis(

@@ -80,6 +80,7 @@ const EmergencyActionDrawer = dynamic(() => import("@/components/EmergencyAction
 const BreakGlassDrawer = dynamic(() => import("@/components/BreakGlassDrawer"));
 const BenefitClaimDrawer = dynamic(() => import("@/components/BenefitClaimDrawer"));
 import { useSession } from "next-auth/react";
+import { PermissionGate } from "@/components/PermissionGate";
 
 const CREATE_ENCOUNTER = gql`
   mutation CreateEncounter($input: CreateClinicalEncounterCommandInput!) {
@@ -586,37 +587,45 @@ export default function PatientDetailPage() {
               Status: {isEmergency ? "Critical" : "Stable"}
             </span>
           </div>
-          <button
-            onClick={() => setShowBenefitClaim(true)}
-            className="px-6 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all flex items-center gap-2"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            Tag Z-Benefit
-          </button>
-          <Link
-            href={`/dashboard/patients/${params.id}/assessment/new`}
-            className="px-6 py-2 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all flex items-center gap-2"
-          >
-            <ClipboardList className="w-3.5 h-3.5" />
-            Clinical Assessment
-          </Link>
-          <button
-            onClick={handleDownloadDossier}
-            disabled={downloadingDossier}
-            className="px-6 py-2 rounded-xl bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-700 transition-all flex items-center gap-2 disabled:opacity-50"
-          >
-            {downloadingDossier ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
-            Clinical Dossier
-          </button>
-          <button
-            onClick={() => setShowEmergencyDrawer(true)}
-            className={`px-6 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all ${isEmergency
-              ? "bg-red-600 shadow-red-600/30 animate-pulse ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950"
-              : "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90"
-              }`}
-          >
-            {isEmergency ? "Protocol Active" : "Emergency Action"}
-          </button>
+          <PermissionGate permission="billing:manage">
+            <button
+              onClick={() => setShowBenefitClaim(true)}
+              className="px-6 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all flex items-center gap-2"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Tag Z-Benefit
+            </button>
+          </PermissionGate>
+          <PermissionGate permission="clinical:assessments">
+            <Link
+              href={`/dashboard/patients/${params.id}/assessment/new`}
+              className="px-6 py-2 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all flex items-center gap-2"
+            >
+              <ClipboardList className="w-3.5 h-3.5" />
+              Clinical Assessment
+            </Link>
+          </PermissionGate>
+          <PermissionGate permission="docs:view">
+            <button
+              onClick={handleDownloadDossier}
+              disabled={downloadingDossier}
+              className="px-6 py-2 rounded-xl bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-700 transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {downloadingDossier ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+              Clinical Dossier
+            </button>
+          </PermissionGate>
+          <PermissionGate permission="clinical:order">
+            <button
+              onClick={() => setShowEmergencyDrawer(true)}
+              className={`px-6 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all ${isEmergency
+                ? "bg-red-600 shadow-red-600/30 animate-pulse ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950"
+                : "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90"
+                }`}
+            >
+              {isEmergency ? "Protocol Active" : "Emergency Action"}
+            </button>
+          </PermissionGate>
         </div>
       </div>
 
@@ -657,12 +666,14 @@ export default function PatientDetailPage() {
                 <Phone className="w-3.5 h-3.5 text-[var(--primary)]" />
                 Communications
               </h2>
-              <button
-                onClick={() => setShowEditCommunications(true)}
-                className="p-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-all"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-              </button>
+              <PermissionGate permission="patients:edit">
+                <button
+                  onClick={() => setShowEditCommunications(true)}
+                  className="p-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-all"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                </button>
+              </PermissionGate>
             </div>
             <div className="space-y-3">
               {patient.phones?.map((phone: any, idx: number) => (
@@ -697,12 +708,14 @@ export default function PatientDetailPage() {
                 <Users className="w-3.5 h-3.5 text-emerald-400" />
                 Trusted Contacts
               </h2>
-              <button
-                onClick={() => setShowAddContact(true)}
-                className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
+              <PermissionGate permission="patients:edit">
+                <button
+                  onClick={() => setShowAddContact(true)}
+                  className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </PermissionGate>
             </div>
             <div className="space-y-3">
               {patient.contacts?.length > 0 ? (
@@ -721,15 +734,17 @@ export default function PatientDetailPage() {
                       {contact.isPoa && (
                         <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 uppercase tracking-tighter">POA</span>
                       )}
-                      <button
-                        onClick={() => {
-                          setEditingContact(contact);
-                          setShowAddContact(true);
-                        }}
-                        className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-white hover:bg-[var(--primary)]/20 transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <Edit3 className="w-3 h-3" />
-                      </button>
+                      <PermissionGate permission="patients:edit">
+                        <button
+                          onClick={() => {
+                            setEditingContact(contact);
+                            setShowAddContact(true);
+                          }}
+                          className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-white hover:bg-[var(--primary)]/20 transition-all opacity-0 group-hover:opacity-100"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                        </button>
+                      </PermissionGate>
                     </div>
                   </div>
                 ))
@@ -881,9 +896,11 @@ export default function PatientDetailPage() {
                       <Calendar className="w-4 h-4 text-[var(--primary)]" />
                       Patient Visit Registry
                     </h2>
-                    <button onClick={() => setDrawerOpen(true)} className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)]">
-                      <Plus className="w-4 h-4" /> Schedule Visit
-                    </button>
+                    <PermissionGate permission="scheduling:manage">
+                      <button onClick={() => setDrawerOpen(true)} className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)]">
+                        <Plus className="w-4 h-4" /> Schedule Visit
+                      </button>
+                    </PermissionGate>
                   </div>
                   <div className="space-y-4">
                     {appointments.map((appt: any) => (
@@ -932,28 +949,32 @@ export default function PatientDetailPage() {
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-3">
                             {appt.status?.toUpperCase().includes('COMPLETE') || appt.status?.toUpperCase() === 'DONE' ? (
-                              <button
-                                onClick={() => {
-                                  setSummaryAppointmentId(appt.appointmentId);
-                                  setIsSummaryOpen(true);
-                                }}
-                                className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                              >
-                                <ClipboardList className="w-4 h-4" /> View Summary
-                              </button>
+                              <PermissionGate permission="clinical:view">
+                                <button
+                                  onClick={() => {
+                                    setSummaryAppointmentId(appt.appointmentId);
+                                    setIsSummaryOpen(true);
+                                  }}
+                                  className="px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                                >
+                                  <ClipboardList className="w-4 h-4" /> View Summary
+                                </button>
+                              </PermissionGate>
                             ) : (
-                              <Link
-                                href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
-                                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 ${appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE'
-                                  ? 'bg-rose-500 text-white shadow-rose-500/30 animate-pulse hover:bg-rose-600'
-                                  : 'bg-[var(--primary)] text-white shadow-[var(--primary-glow)] hover:opacity-90'
-                                  }`}
-                              >
-                                <Stethoscope className="w-4 h-4" />
-                                {appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE'
-                                  ? 'Join Session'
-                                  : 'Start Visit'}
-                              </Link>
+                              <PermissionGate permission="clinical:chart">
+                                <Link
+                                  href={`/dashboard/patients/${params.id}/visit?appointmentId=${appt.appointmentId}`}
+                                  className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 ${appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE'
+                                    ? 'bg-rose-500 text-white shadow-rose-500/30 animate-pulse hover:bg-rose-600'
+                                    : 'bg-[var(--primary)] text-white shadow-[var(--primary-glow)] hover:opacity-90'
+                                    }`}
+                                >
+                                  <Stethoscope className="w-4 h-4" />
+                                  {appt.status?.toUpperCase().includes('PROGRESS') || appt.status?.toUpperCase() === 'LIVE'
+                                    ? 'Join Session'
+                                    : 'Start Visit'}
+                                </Link>
+                              </PermissionGate>
                             )}
                           </div>
                         </div>
@@ -1054,9 +1075,11 @@ export default function PatientDetailPage() {
                       </h2>
                       <p className="text-[var(--text-muted)] text-xs font-black uppercase tracking-widest mt-1">Authorized Representatives & Family</p>
                     </div>
-                    <button onClick={() => setShowAddContact(true)} className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-600/20 flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all">
-                      <Plus className="w-4 h-4" /> Add Contact
-                    </button>
+                    <PermissionGate permission="patients:edit">
+                      <button onClick={() => setShowAddContact(true)} className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-600/20 flex items-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all">
+                        <Plus className="w-4 h-4" /> Add Contact
+                      </button>
+                    </PermissionGate>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {patient.contacts?.map((contact: any) => (
@@ -1073,9 +1096,11 @@ export default function PatientDetailPage() {
                           </div>
                           <div className="flex gap-2">
                             {contact.isPoa && <span className="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[8px] font-black uppercase tracking-widest border border-blue-500/20">POA</span>}
-                            <button onClick={() => { setEditingContact(contact); setShowAddContact(true); }} className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-white hover:bg-[var(--primary)]/20 transition-all">
-                              <Edit3 className="w-3.5 h-3.5" />
-                            </button>
+                            <PermissionGate permission="patients:edit">
+                              <button onClick={() => { setEditingContact(contact); setShowAddContact(true); }} className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-white hover:bg-[var(--primary)]/20 transition-all">
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                            </PermissionGate>
                           </div>
                         </div>
                         <div className="space-y-2 mb-4">
@@ -1120,21 +1145,23 @@ export default function PatientDetailPage() {
                             : '#';
 
                           return (
-                            <a
-                              href={href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => {
-                                if (!poaDoc) {
-                                  e.preventDefault();
-                                  alert({ title: "Missing Documentation", message: "No POA document found for this contact.", type: "warning" });
-                                }
-                              }}
-                              className="w-full py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2"
-                            >
-                              <ShieldCheck className="w-3.5 h-3.5" />
-                              View POA Documentation ({displayDocs.length})
-                            </a>
+                            <PermissionGate permission="docs:view">
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => {
+                                  if (!poaDoc) {
+                                    e.preventDefault();
+                                    alert({ title: "Missing Documentation", message: "No POA document found for this contact.", type: "warning" });
+                                  }
+                                }}
+                                className="w-full py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2"
+                              >
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                View POA Documentation ({displayDocs.length})
+                              </a>
+                            </PermissionGate>
                           );
                         })()}
                       </div>

@@ -16,6 +16,7 @@ interface CommandModalProps {
   isAlert?: boolean;
   isPrompt?: boolean;
   onConfirmWithValue?: (value: string) => void;
+  placeholder?: string;
 }
 
 export default function CommandModal({
@@ -29,7 +30,8 @@ export default function CommandModal({
   cancelText = "Cancel",
   isAlert = false,
   isPrompt = false,
-  onConfirmWithValue
+  onConfirmWithValue,
+  placeholder
 }: CommandModalProps) {
   const [mounted, setMounted] = useState(false);
   const [promptValue, setPromptValue] = useState("");
@@ -122,7 +124,7 @@ export default function CommandModal({
                     autoFocus
                     value={promptValue}
                     onChange={(e) => setPromptValue(e.target.value)}
-                    placeholder="Enter mandatory justification..."
+                    placeholder={placeholder || "Enter mandatory justification..."}
                     className="w-full h-32 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--primary)] transition-all resize-none font-medium"
                   />
                 </div>

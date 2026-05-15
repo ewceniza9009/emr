@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useToast } from "./ToastProvider";
 import { 
@@ -11,6 +11,7 @@ import {
   MapPin,
   ClipboardCheck
 } from "lucide-react";
+import { PermissionGate } from "./PermissionGate";
 
 const GET_AVAILABLE_EQUIPMENT = gql`
   query GetAvailableEquipment {
@@ -248,17 +249,19 @@ export default function EquipmentManagementDrawer({
 
         {/* Footer */}
         <div className="p-6 border-t border-[var(--card-border)] bg-[var(--input-bg)]">
-          <button
-            onClick={activeTab === 'DEPLOY' ? handleDeploy : handleRegister}
-            disabled={activeTab === 'DEPLOY' ? !selectedEquipmentId : !regModelName || !regSerial}
-            className="w-full h-14 bg-[var(--primary)] text-white rounded-2xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
-          >
-            {activeTab === 'DEPLOY' ? (
-              <><Truck className="w-4 h-4" /> Finalize Deployment</>
-            ) : (
-              <><ClipboardCheck className="w-4 h-4" /> Register & Add to Inventory</>
-            )}
-          </button>
+          <PermissionGate permission={activeTab === 'DEPLOY' ? 'clinical:chart' : 'setup:manage'}>
+            <button
+              onClick={activeTab === 'DEPLOY' ? handleDeploy : handleRegister}
+              disabled={activeTab === 'DEPLOY' ? !selectedEquipmentId : !regModelName || !regSerial}
+              className="w-full h-14 bg-[var(--primary)] text-white rounded-2xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
+            >
+              {activeTab === 'DEPLOY' ? (
+                <><Truck className="w-4 h-4" /> Finalize Deployment</>
+              ) : (
+                <><ClipboardCheck className="w-4 h-4" /> Register & Add to Inventory</>
+              )}
+            </button>
+          </PermissionGate>
         </div>
       </div>
     </div>

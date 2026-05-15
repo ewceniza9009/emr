@@ -16,6 +16,7 @@ import {
 import { useState } from "react";
 import { useCommandModal } from "./CommandModalProvider";
 import UploadDocumentDrawer from "./UploadDocumentDrawer";
+import { PermissionGate } from "./PermissionGate";
 
 const GET_DOCUMENTS = gql`
   query GetDocumentsByPatient($patientId: UUID!) {
@@ -93,12 +94,14 @@ export default function DocumentVault({ patientId }: Props) {
                  className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2 pl-10 pr-4 text-xs text-[var(--text-primary)] focus:border-blue-500 transition-all w-60"
                />
             </div>
-           <button 
-             onClick={() => setIsUploadOpen(true)}
-             className="px-6 py-2.5 rounded-xl bg-blue-600 text-[var(--text-primary)] font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 flex items-center gap-2 hover:bg-blue-500 transition-all"
-           >
-             <Plus className="w-4 h-4" /> Upload Record
-           </button>
+           <PermissionGate permission="docs:edit">
+             <button 
+               onClick={() => setIsUploadOpen(true)}
+               className="px-6 py-2.5 rounded-xl bg-blue-600 text-[var(--text-primary)] font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-600/20 flex items-center gap-2 hover:bg-blue-500 transition-all"
+             >
+               <Plus className="w-4 h-4" /> Upload Record
+             </button>
+           </PermissionGate>
         </div>
       </div>
 
@@ -116,53 +119,59 @@ export default function DocumentVault({ patientId }: Props) {
                      {getIcon(doc.contentType || '')}
                   </div>
                    <div className="flex gap-2">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${doc.patientDocumentId}?download=true`;
-                          const link = document.createElement('a');
-                          link.href = url;
-                          link.setAttribute('download', doc.title || 'document');
-                          document.body.appendChild(link);
-                          link.click();
-                          link.remove();
-                        }}
-                        className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
-                        title="Download Record"
-                      >
-                         <Download className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${doc.patientDocumentId}`;
-                          window.open(url, '_blank');
-                        }}
-                        className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
-                        title="View Record"
-                      >
-                         <ExternalLink className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          const confirmed = await confirm({
-                            title: "Purge Document?",
-                            message: "Are you sure you want to permanently remove this record from the clinical vault?",
-                            type: "danger",
-                            confirmText: "Purge Permanently",
-                            cancelText: "Keep Record"
-                          });
-                          
-                          if (confirmed) {
-                            deleteDoc({ variables: { id: doc.patientDocumentId } });
-                          }
-                        }}
-                        className="p-2 rounded-lg hover:bg-blue-500/10 text-slate-500 hover:text-blue-500 transition-all"
-                        title="Delete Record"
-                      >
-                         <Trash2 className="w-4 h-4" />
-                      </button>
+                       <PermissionGate permission="docs:view">
+                         <button 
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${doc.patientDocumentId}?download=true`;
+                             const link = document.createElement('a');
+                             link.href = url;
+                             link.setAttribute('download', doc.title || 'document');
+                             document.body.appendChild(link);
+                             link.click();
+                             link.remove();
+                           }}
+                           className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
+                           title="Download Record"
+                         >
+                            <Download className="w-4 h-4" />
+                         </button>
+                       </PermissionGate>
+                       <PermissionGate permission="docs:view">
+                         <button 
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             const url = `${process.env.NEXT_PUBLIC_API_URL}/api/upload/document/${doc.patientDocumentId}`;
+                             window.open(url, '_blank');
+                           }}
+                           className="p-2 rounded-lg hover:bg-white/10 text-slate-500 hover:text-[var(--text-primary)] transition-all"
+                           title="View Record"
+                         >
+                            <ExternalLink className="w-4 h-4" />
+                         </button>
+                       </PermissionGate>
+                       <PermissionGate permission="docs:delete">
+                         <button 
+                           onClick={async (e) => {
+                             e.stopPropagation();
+                             const confirmed = await confirm({
+                               title: "Purge Document?",
+                               message: "Are you sure you want to permanently remove this record from the clinical vault?",
+                               type: "danger",
+                               confirmText: "Purge Permanently",
+                               cancelText: "Keep Record"
+                             });
+                             
+                             if (confirmed) {
+                               deleteDoc({ variables: { id: doc.patientDocumentId } });
+                             }
+                           }}
+                           className="p-2 rounded-lg hover:bg-blue-500/10 text-slate-500 hover:text-blue-500 transition-all"
+                           title="Delete Record"
+                         >
+                            <Trash2 className="w-4 h-4" />
+                         </button>
+                       </PermissionGate>
                    </div>
                </div>
                <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight mb-1 truncate">{doc.title}</h3>

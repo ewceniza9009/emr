@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
 import MedicationDetailDrawer from "./MedicationDetailDrawer";
+import { PermissionGate } from "./PermissionGate";
 
 const GET_PRESCRIPTIONS = gql`
   query GetPrescriptions($patientId: UUID!) {
@@ -109,13 +110,15 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
           <Pill className="w-4 h-4 text-emerald-500" />
           Active Medications
         </h2>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-1 text-emerald-400 text-xs font-bold uppercase tracking-widest hover:text-emerald-300 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Prescription
-        </button>
+        <PermissionGate permission="pharmacy:order">
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-1 text-emerald-400 text-xs font-bold uppercase tracking-widest hover:text-emerald-300 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Prescription
+          </button>
+        </PermissionGate>
       </div>
 
       <div className="divide-y divide-[var(--card-border)]">
@@ -150,20 +153,24 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setActiveMenu(null)} />
                     <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl shadow-2xl z-50 p-1 animate-in fade-in zoom-in-95 duration-200">
-                      <button 
-                        onClick={() => {
-                          setSelectedPrescription(p);
-                          setActiveMenu(null);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black text-[var(--text-primary)] hover:bg-[var(--input-bg)] rounded-lg transition-all uppercase tracking-widest"
-                      >
-                         <FileText className="w-3.5 h-3.5 text-blue-500" />
-                         View Details
-                      </button>
-                      <button className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all uppercase tracking-widest">
-                         <Trash2 className="w-3.5 h-3.5" />
-                         Discontinue
-                      </button>
+                      <PermissionGate permission="pharmacy:view">
+                        <button 
+                          onClick={() => {
+                            setSelectedPrescription(p);
+                            setActiveMenu(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black text-[var(--text-primary)] hover:bg-[var(--input-bg)] rounded-lg transition-all uppercase tracking-widest"
+                        >
+                           <FileText className="w-3.5 h-3.5 text-blue-500" />
+                           View Details
+                        </button>
+                      </PermissionGate>
+                      <PermissionGate permission="pharmacy:order">
+                        <button className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all uppercase tracking-widest">
+                           <Trash2 className="w-3.5 h-3.5" />
+                           Discontinue
+                        </button>
+                      </PermissionGate>
                     </div>
                   </>
                 )}
@@ -285,20 +292,22 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                    </div>
                 </div>
 
-                <button 
-                  onClick={handleAdd}
-                  disabled={adding || !newMed.name || !newMed.signature}
-                  className="w-full py-5 rounded-2xl bg-emerald-500 text-white font-black text-xs uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_rgba(16,185,129,0.3)] flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
-                >
-                  {adding ? (
-                    <Activity className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <>
-                      <ShieldCheck className="w-5 h-5" />
-                      <span>Authorize Order</span>
-                    </>
-                  )}
-                </button>
+                <PermissionGate permission="pharmacy:order">
+                  <button 
+                    onClick={handleAdd}
+                    disabled={adding || !newMed.name || !newMed.signature}
+                    className="w-full py-5 rounded-2xl bg-emerald-500 text-white font-black text-xs uppercase tracking-[0.4em] transition-all shadow-[0_10px_30px_rgba(16,185,129,0.3)] flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+                  >
+                    {adding ? (
+                      <Activity className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-5 h-5" />
+                        <span>Authorize Order</span>
+                      </>
+                    )}
+                  </button>
+                </PermissionGate>
              </div>
           </div>
         </HalcyonPortal>
