@@ -263,7 +263,9 @@ public static class ConfigureServices
                             "https://carenavigator.emr.local",
                             "http://localhost:3671",
                             "http://localhost:3000",
-                            "http://127.0.0.1:3671"
+                            "http://127.0.0.1:3671",
+                            "https://emr-three-hazel.vercel.app",
+                            "https://halkyone.vercel.app"
                         )
                         .AllowAnyMethod()
                         .AllowAnyHeader()
