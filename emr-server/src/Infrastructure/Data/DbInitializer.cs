@@ -1613,7 +1613,11 @@ namespace Infrastructure.Data
                     return (int)Math.Clamp(baseT * f.Random.Double(1.2, 2.5), 2, 60);
                 }
 
-                var localOffset = DateTimeOffset.Now.Offset;
+                // Dynamically calculate offset based on Tenant's configured business timezone
+                var tenantConfig = await context.TenantConfigurations.IgnoreQueryFilters().FirstOrDefaultAsync(t => t.TenantId == defaultTenantId);
+                var tzId = tenantConfig?.Timezone ?? "UTC";
+                var tz = TimeZoneInfo.FindSystemTimeZoneById(tzId);
+                var localOffset = tz.GetUtcOffset(DateTime.UtcNow);
                 // Atomic clear to prevent any ghost data
                 await context.Database.ExecuteSqlRawAsync("DELETE FROM appointments");
                 
