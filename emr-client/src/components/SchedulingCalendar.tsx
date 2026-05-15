@@ -256,17 +256,20 @@ export default function SchedulingCalendar() {
   const { showToast } = useToast();
   const { tenantConfig } = useSettings();
 
-  const GRID_CONFIG = useMemo(
-    () => ({
+  const GRID_CONFIG = useMemo(() => {
+    const rawTz = tenantConfig.timezone || "UTC";
+    // Normalize: "UTC (Coordinated Universal Time)" -> "UTC"
+    const normalizedTz = rawTz.includes("(") ? rawTz.split("(")[0].trim() : rawTz;
+
+    return {
       START_HOUR: tenantConfig.amStartHour,
       END_HOUR: tenantConfig.dayEndHour,
       TOTAL_MINUTES: (tenantConfig.dayEndHour - tenantConfig.amStartHour) * 60,
       ROW_HEIGHT: 80,
       DAYS: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-      TIMEZONE: tenantConfig.timezone,
-    }),
-    [tenantConfig],
-  );
+      TIMEZONE: normalizedTz,
+    };
+  }, [tenantConfig]);
 
   const [anchor, setAnchor] = useState(() => {
     const d = new Date();

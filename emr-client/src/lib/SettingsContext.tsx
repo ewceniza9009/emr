@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation, gql } from "@apollo/client";
+import { formatInTimeZone } from "date-fns-tz";
 
 const GET_TENANT_CONFIG = gql`
   query GetTenantConfig {
@@ -238,11 +239,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   const formatDate = (date: string | Date) => {
     if (!date) return "--";
-    return new Date(date).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    const rawTz = tenantConfig.timezone || "UTC";
+    const normalizedTz = rawTz.includes("(") ? rawTz.split("(")[0].trim() : rawTz;
+    
+    try {
+      return formatInTimeZone(new Date(date), normalizedTz, "MMM d, yyyy");
+    } catch (e) {
+      return new Date(date).toLocaleDateString();
+    }
   };
 
   const currencySymbol = currencySymbols[tenantConfig.currency] || "$";

@@ -6,39 +6,11 @@ public class TenantConfiguration : BaseEntity, ITenantEntity
 {
     public Guid TenantConfigurationId { get; set; } = Guid.NewGuid();
     public Guid TenantId { get; set; } = Guid.NewGuid();
-    public string OrganizationName { get; set; } = "Halkyone Clinical Center";
+    public string OrganizationName { get; set; } = "Halkyone Clinical";
 
     // Regional Settings
     public string Currency { get; set; } = "PHP";
-
-    private string _timezone = TimeZoneInfo.Local.Id;
-    public string Timezone
-    {
-        get => _timezone;
-        set
-        {
-            _timezone = value;
-            UpdateCurrencyFromTimezone();
-        }
-    }
-
-    public void UpdateCurrencyFromTimezone()
-    {
-        Currency = _timezone switch
-        {
-            "Asia/Manila" or "Singapore Standard Time" => "PHP",
-            "America/New_York" or "Eastern Standard Time" or "US Eastern Standard Time" => "USD",
-            "America/Chicago" or "Central Standard Time" => "USD",
-            "America/Denver" or "Mountain Standard Time" => "USD",
-            "America/Los_Angeles" or "Pacific Standard Time" => "USD",
-            "Europe/London" or "GMT Standard Time" => "GBP",
-            "Europe/Paris" or "Central European Standard Time" => "EUR",
-            "Australia/Sydney" or "AUS Eastern Standard Time" => "AUD",
-            "Asia/Singapore" => "SGD",
-            "Asia/Hong_Kong" => "HKD",
-            _ => Currency // Fallback to existing if unknown
-        };
-    }
+    public string Timezone { get; set; } = "Asia/Manila";
     public string Language { get; set; } = "en";
     public string DateFormat { get; set; } = "MM/DD/YYYY";
 

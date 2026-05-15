@@ -9,7 +9,7 @@ setup('authenticate', async ({ page }) => {
   await page.getByPlaceholder('name@halkyone.clinical').fill('admin@palliative.emr');
   await page.getByPlaceholder('••••••••').fill(adminPassword);
 
-  const signInButton = page.getByRole('button', { name: /Sign in to Workspace/i });
+  const signInButton = page.getByRole('button', { name: /Access Workspace/i });
   await expect(signInButton).toBeEnabled();
   await signInButton.click();
 

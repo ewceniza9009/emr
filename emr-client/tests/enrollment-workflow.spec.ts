@@ -14,17 +14,60 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     await page.goto('/dashboard/outreach');
     await page.waitForSelector('main', { state: 'visible' });
 
-    // 2. Launch the Quick Enrollment Drawer for the test lead
+    // 2. Find a lead that is NOT yet enrolled (status = LEAD or INITIAL ASSESSMENT)
+    //    We need an unenrolled lead to test the enrollment flow.
+    //    First, try Christopher Heard. If already enrolled, reverse it first.
     const leadRow = page.locator('table tbody tr').filter({ hasText: 'Christopher Heard' }).first();
     await expect(leadRow).toBeVisible({ timeout: 15000 });
 
+    // Check if already enrolled — if so, reverse enrollment first
+    const statusCell = leadRow.locator('td').nth(5); // STATUS column
+    const statusText = await statusCell.textContent();
+
+    if (statusText?.includes('ENROLLED')) {
+      console.log('[SETUP] Christopher Heard is already enrolled. Reversing enrollment...');
+
+      const quickEnrollBtn = leadRow.getByRole('button', { name: /Launch Quick Enrollment Drawer/i });
+      await quickEnrollBtn.click();
+      await expect(page.locator('text=Enrollment Workstation')).toBeVisible({ timeout: 10000 });
+
+      // Click "REVERSE ENROLLMENT" button
+      const reverseBtn = page.locator('button:has-text("REVERSE ENROLLMENT")');
+      await expect(reverseBtn).toBeVisible({ timeout: 5000 });
+      await reverseBtn.click();
+
+      // Fill in the reversal reason in the modal
+      const reversalTextarea = page.locator('textarea').first();
+      await expect(reversalTextarea).toBeVisible({ timeout: 5000 });
+      await reversalTextarea.fill('Automated test cleanup: resetting enrollment state');
+
+      // Confirm the reversal (button text is "COMMIT REVERSAL")
+      const confirmReverseBtn = page.locator('button:has-text("COMMIT REVERSAL")');
+      await expect(confirmReverseBtn).toBeVisible({ timeout: 5000 });
+      await confirmReverseBtn.click();
+
+      // Wait for the reversal to complete
+      await page.waitForTimeout(2000);
+
+      // Close the drawer
+      const closeBtn = page.locator('button').filter({ has: page.locator('svg.lucide-x') }).first();
+      await closeBtn.click();
+      await page.waitForTimeout(1000);
+
+      // Reload to get fresh state
+      await page.goto('/dashboard/outreach');
+      await page.waitForSelector('main', { state: 'visible' });
+      await expect(leadRow).toBeVisible({ timeout: 15000 });
+    }
+
+    // 3. Launch the Quick Enrollment Drawer
     const quickEnrollBtn = leadRow.getByRole('button', { name: /Launch Quick Enrollment Drawer/i });
     await quickEnrollBtn.click();
 
-    // 3. Fill out the High-Fidelity Enrollment Terminal
-    // Move to the Administrative Tab to select Health Plan
+    // Wait for the drawer to fully render
+    await expect(page.locator('text=Enrollment Workstation')).toBeVisible({ timeout: 10000 });
 
-    // 2. ADMIN PHASE
+    // 4. ADMIN PHASE
     await page.getByRole('button', { name: /Next Step/i }).click();
     await page.waitForTimeout(500);
 
@@ -44,7 +87,7 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     await sexSelect.selectOption('MALE');
     await page.waitForTimeout(500);
 
-    // 3. LEGAL PHASE
+    // 5. LEGAL PHASE
     await page.getByRole('button', { name: /Next Step/i }).click();
     await page.waitForTimeout(1000);
 
@@ -69,7 +112,7 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     await expect(advBtn).toHaveClass(/bg-teal-500/);
     await page.waitForTimeout(300);
 
-    // 4. CLINICAL PHASE
+    // 6. CLINICAL PHASE
     await page.getByRole('button', { name: /Next Step/i }).click();
     await page.waitForTimeout(500);
     await page.fill('input[placeholder*="Search codes"]', 'I50.9');
@@ -77,28 +120,45 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     await clinicalResult.click();
     await page.click('button:has-text("MODERATE ACUITY")');
 
-    // 5. LOGISTICS PHASE
+    // 7. LOGISTICS PHASE
     await page.getByRole('button', { name: /Next Step/i }).click();
     await page.waitForTimeout(500);
 
-    // Explicitly confirm the "Book Now" strategy
-    await page.getByRole('button', { name: /Book Now/i }).click();
-
-    // Select Modality: Facility
+    // Select Modality: Facility (in left panel)
     await page.getByRole('button', { name: /Facility/i }).click();
     await page.waitForTimeout(300);
 
-    // Assign Practitioners
-    await page.locator('button:has-text("Patient Navigation")').first().click();
-    await page.locator('button:has-text("Lead Practitioner")').first().click();
+    // Assign Practitioners - wait for the practitioner cards to render
+    const navCard = page.locator('button:has-text("Patient Navigation")').first();
+    await expect(navCard).toBeVisible({ timeout: 10000 });
+    await navCard.click();
+
+    const leadCard = page.locator('button:has-text("Lead Practitioner")').first();
+    await expect(leadCard).toBeVisible({ timeout: 10000 });
+    await leadCard.click();
 
     // Verify selection visibility (wait for React state to sync)
     await page.waitForTimeout(500);
 
-    // 6. ENROLL 
+    // 8. ENROLL - Intercept the GraphQL response BEFORE clicking
+    const enrollmentResponsePromise = page.waitForResponse(
+      resp => resp.url().includes('/graphql') && (resp.request().postData()?.includes('FinalizeEnrollment') ?? false),
+      { timeout: 30000 }
+    );
+
     const enrollBtn = page.locator('button:has-text("ENROLL")').last();
     await expect(enrollBtn).toBeEnabled({ timeout: 15000 });
     await enrollBtn.click();
+
+    // Wait for the mutation to complete
+    const enrollmentResponse = await enrollmentResponsePromise;
+    const responseBody = await enrollmentResponse.json();
+
+    if (responseBody.errors) {
+      console.error('[ENROLLMENT ERRORS]', JSON.stringify(responseBody.errors));
+    } else {
+      console.log('[ENROLLMENT OK] Patient ID:', responseBody.data?.finalizeEnrollment);
+    }
 
     // VERIFY REDIRECTION
     await expect(page).toHaveURL(/\/dashboard\/patients\/.+/, { timeout: 20000 });
