@@ -67,7 +67,10 @@ public class SchedulingServiceTests
             .Returns(new List<ScheduleBlock>().BuildMockDbSet().Object);
         _mockContext
             .Setup(c => c.TenantConfigurations)
-            .Returns(new List<TenantConfiguration>().BuildMockDbSet().Object);
+            .Returns(new List<TenantConfiguration> 
+            { 
+                new TenantConfiguration { Timezone = "Asia/Manila" } 
+            }.BuildMockDbSet().Object);
         _mockContext
             .Setup(c => c.EntityAddresses)
             .Returns(new List<EntityAddress>().BuildMockDbSet().Object);
