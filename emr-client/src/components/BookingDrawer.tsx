@@ -571,7 +571,7 @@ export default function BookingDrawer({ open, onClose, onBooked, prefillDate, ap
     }
 
     return slots[0];
-  }, [practitionerId, practitionerSlots, appointmentId, appointmentData, period, selectedDate, duration, clinicalConfig.AM_START, clinicalConfig.PM_START, clinicalConfig.CUTOFF_HOUR, startHour, createZonedISO]);
+  }, [practitionerId, practitionerSlots, appointmentId, appointmentData, period, selectedDate, duration, clinicalConfig.AM_START, clinicalConfig.PM_START, clinicalConfig.CUTOFF_HOUR, clinicalConfig.TIMEZONE, startHour, createZonedISO]);
 
   const [book, { loading: bookingLoading }] = useMutation(BOOK_APPOINTMENT, {
     refetchQueries: ["GetScheduleData"],

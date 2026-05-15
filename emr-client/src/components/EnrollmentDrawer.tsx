@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import HalcyonPortal from "./Portal";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import {
@@ -15,6 +15,9 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useToast } from "./ToastProvider";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import { useSettings } from "@/lib/SettingsContext";
+import { addMinutes } from "date-fns";
 import {
   BiologicalSex,
   CareModality,
@@ -156,6 +159,30 @@ const FINALIZE_ENROLLMENT = gql`
   }
 `;
 
+const GET_GEOSPATIAL_AVAILABILITY = gql`
+  query GetGeospatialAvailability(
+    $patientId: UUID!
+    $targetStart: DateTime!
+    $durationMinutes: Int!
+    $modality: AppointmentModality!
+  ) {
+    availableProviders(
+      patientId: $patientId
+      targetStart: $targetStart
+      durationMinutes: $durationMinutes
+      modality: $modality
+    ) {
+      practitionerId
+      fullName
+      role
+      distanceInMiles
+      travelTimeInMinutes
+      shiftStart
+      shiftEnd
+    }
+  }
+`;
+
 const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
 
 interface Props {
@@ -168,6 +195,7 @@ type TabType = "OUTREACH" | "ADMIN" | "LEGAL" | "CLINICAL" | "LOGISTICS";
 
 export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const router = useRouter();
+  const { tenantConfig } = useSettings();
   const [activeTab, setActiveTab] = useState<TabType>("OUTREACH");
   const [selectedPlan, setSelectedPlan] = useState("");
   const [selectedFacilityId, setSelectedFacilityId] = useState("");
@@ -247,6 +275,12 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const [showIcd10Search, setShowIcd10Search] = useState(false);
   const [icd10Results, setIcd10Results] = useState<any[]>([]);
   const [isSearchingIcd10, setIsSearchingIcd10] = useState(false);
+
+  const createZonedISO = useCallback((date: Date, hours: number, minutes: number) => {
+    const year = date.getFullYear(), month = date.getMonth(), day = date.getDate();
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+    return fromZonedTime(dateStr, tenantConfig.timezone).toISOString();
+  }, [tenantConfig.timezone]);
 
   const { refetch: searchIcd10 } = useQuery(SEARCH_DIAGNOSIS_LIBRARY, {
     skip: true,
@@ -341,6 +375,34 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const [finalize, { loading: finalizing }] = useMutation(FINALIZE_ENROLLMENT);
   const { showToast } = useToast();
 
+  const { data: availabilityData, loading: availabilityLoading } = useQuery(GET_GEOSPATIAL_AVAILABILITY, {
+    variables: {
+      patientId: outreachId,
+      targetStart: createZonedISO(selectedDate, period === "AM" ? tenantConfig.amStartHour : tenantConfig.pmStartHour, 0),
+      durationMinutes: duration,
+      modality: modality === CareModality.HomeCare ? "IN_PERSON_HOME_VISIT" :
+        modality === CareModality.InPatientHospice ? "IN_PERSON_FACILITY" :
+          modality === CareModality.VirtualCare ? "TELEHEALTH_VIDEO" :
+            modality === CareModality.HybridCare ? "TELEHEALTH_AUDIO_ONLY" : "IN_PERSON_HOME_VISIT"
+    },
+    skip: !outreachId || !open || activeTab !== "LOGISTICS",
+    fetchPolicy: "network-only"
+  });
+
+  const availability = useMemo(() => {
+    const map = new Map<string, any>();
+    availabilityData?.availableProviders?.forEach((p: any) => {
+      map.set(p.practitionerId, p);
+    });
+    return map;
+  }, [availabilityData]);
+
+  const selectedLogistics = useMemo(() => {
+    const targetId = primaryClinicianId || careNavigatorId;
+    if (!targetId) return null;
+    return availability.get(targetId);
+  }, [primaryClinicianId, careNavigatorId, availability]);
+
   useEffect(() => {
     if (open) {
       setActiveTab("OUTREACH");
@@ -354,6 +416,39 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
   const practitioners = enrollmentData?.practitioners || [];
   const scripts = enrollmentData?.outreachScripts || [];
   const activeScript = scripts.find((s: any) => s.outreachScriptId === selectedScriptId) || scripts[0];
+
+  const TABS: TabType[] = ["OUTREACH", "ADMIN", "LEGAL", "CLINICAL", "LOGISTICS"];
+
+  const validateCurrentStep = () => {
+    if (activeTab === "ADMIN") {
+      if (!selectedPlan) { showToast("Validation Error: Health Plan is missing", "error"); return false; }
+      if (!patientDob) { showToast("Validation Error: Date of Birth is missing", "error"); return false; }
+      if (!patientSex || patientSex === "UNKNOWN") { showToast("Validation Error: Biological Sex is missing", "error"); return false; }
+    }
+    if (activeTab === "LEGAL") {
+      if (!consentTreat) { showToast("Validation Error: Consent to Treat required", "error"); return false; }
+      if (!consentHIPAA) { showToast("Validation Error: HIPAA Notice required", "error"); return false; }
+    }
+    if (activeTab === "LOGISTICS") {
+      if (!careNavigatorId) { showToast("Validation Error: Care Navigator missing", "error"); return false; }
+      if (!primaryClinicianId) { showToast("Validation Error: Primary Clinician missing", "error"); return false; }
+    }
+    return true;
+  };
+
+  const handleNext = () => {
+    const idx = TABS.indexOf(activeTab);
+    if (idx < TABS.length - 1) {
+      if (validateCurrentStep()) {
+        setActiveTab(TABS[idx + 1]);
+      }
+    }
+  };
+
+  const handleBack = () => {
+    const idx = TABS.indexOf(activeTab);
+    if (idx > 0) setActiveTab(TABS[idx - 1]);
+  };
 
   const handleCall = (contact: any) => {
     setActiveCall({ ...contact, status: 'CONNECTING...' });
@@ -562,7 +657,8 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
             hasPoa: legalDocs.poa,
             hasAdvanceDirective: legalDocs.advanceDirective,
             facilityId: selectedFacilityId || null,
-            scheduleIntakeNow: scheduleIntakeNow
+            scheduleIntakeNow: scheduleIntakeNow,
+            durationMinutes: duration
           }
         }
       });
@@ -1147,103 +1243,68 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                   {activeTab === "ADMIN" && (
                     <div className="space-y-8 animate-in slide-in-from-right duration-300">
                       {/* Patient Demographics */}
+                      {/* DEMOGRAPHICS SECTION - ALWAYS EDITABLE IN ENROLLMENT */}
                       <section className="space-y-5">
                         <div className="flex items-center gap-3">
                           <User className="w-4 h-4 text-[var(--primary)]" />
                           <h3 className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Patient Demographics</h3>
                         </div>
-                        <div className="bg-[var(--input-bg)] rounded-2xl p-5 border border-[var(--card-border)] space-y-5 shadow-inner relative group/demo">
-                          {!isEditingDemographics ? (
-                            <div className="space-y-6">
-                              <div className="flex items-start justify-between">
-                                <div className="grid grid-cols-2 gap-x-12 gap-y-6 flex-1">
-                                  <div className="space-y-1">
-                                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Date of Birth</p>
-                                    <p className="text-[10px] font-black text-[var(--text-primary)]">{patientDob || "NOT SPECIFIED"}</p>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Biological Sex</p>
-                                    <p className="text-[10px] font-black text-[var(--text-primary)]">{patientSex || "NOT SPECIFIED"}</p>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Gender Identity</p>
-                                    <p className="text-[10px] font-black text-[var(--text-primary)]">{genderIdentity || "NOT SPECIFIED"}</p>
-                                  </div>
-                                  <div className="space-y-1">
-                                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Primary Language</p>
-                                    <p className="text-[10px] font-black text-[var(--text-primary)]">{patientLanguage || "NOT SPECIFIED"}</p>
-                                  </div>
-                                </div>
-                                <button onClick={() => setIsEditingDemographics(true)} className="p-2 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--primary)] opacity-0 group-hover/demo:opacity-100 transition-all">
-                                  <Edit3 className="w-3 h-3" />
-                                </button>
-                              </div>
-                              <div className="pt-4 border-t border-[var(--card-border)]/50">
-                                <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1">Civil Status</p>
-                                <p className="text-[10px] font-black text-[var(--text-primary)]">{civilStatus || "NOT SPECIFIED"}</p>
-                              </div>
+                        <div className="bg-[var(--input-bg)] rounded-2xl p-5 border border-[var(--card-border)] space-y-5 shadow-inner">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Date of Birth</label>
+                              <input type="date" value={patientDob} onChange={e => setPatientDob(e.target.value)} onClick={(e) => e.currentTarget.showPicker()} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" />
                             </div>
-                          ) : (
-                            <div className="space-y-5 animate-in fade-in duration-300">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                  <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Date of Birth</label>
-                                  <input type="date" value={patientDob} onChange={e => setPatientDob(e.target.value)} onClick={(e) => e.currentTarget.showPicker()} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" />
-                                </div>
-                                <div className="space-y-1.5">
-                                  <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Biological Sex</label>
-                                  <select value={patientSex} onChange={e => setPatientSex(e.target.value as BiologicalSex)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 appearance-none">
-                                    <option value={BiologicalSex.UNKNOWN}>Select...</option>
-                                    <option value={BiologicalSex.MALE}>Male</option>
-                                    <option value={BiologicalSex.FEMALE}>Female</option>
-                                    <option value={BiologicalSex.OTHER}>Other</option>
-                                  </select>
-                                </div>
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                  <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Gender Identity</label>
-                                  <input type="text" value={genderIdentity} onChange={e => setGenderIdentity(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Identity..." />
-                                </div>
-                                <div className="space-y-1.5">
-                                  <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Primary Language</label>
-                                  <input type="text" value={patientLanguage} onChange={e => setPatientLanguage(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Language..." />
-                                </div>
-                              </div>
-                              <div className="space-y-1.5">
-                                <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Marital / Civil Status</label>
-                                <div className="space-y-2">
-                                  <label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Clinical Facility / Location</label>
-                                  <div className="relative group/facility">
-                                    <Building2 className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within/facility:text-[var(--primary)] transition-colors" />
-                                    <select
-                                      value={selectedFacilityId}
-                                      onChange={e => setSelectedFacilityId(e.target.value)}
-                                      className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-10 pr-4 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/40 transition-all appearance-none"
-                                    >
-                                      <option value="">PRIVATE RESIDENCE / HOME CARE</option>
-                                      {(enrollmentData?.facilities || []).map((f: any) => (
-                                        <option key={f.facilityId} value={f.facilityId}>{f.name} ({f.type})</option>
-                                      ))}
-                                    </select>
-                                    <ChevronRight className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] rotate-90 pointer-events-none" />
-                                  </div>
-                                </div>
-                                <select value={civilStatus} onChange={e => setCivilStatus(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 appearance-none">
-                                  <option value="">Select...</option>
-                                  <option value="Single">Single</option>
-                                  <option value="Married">Married</option>
-                                  <option value="Divorced">Divorced</option>
-                                  <option value="Widowed">Widowed</option>
-                                  <option value="Common Law">Common Law</option>
-                                </select>
-                              </div>
-                              <div className="flex gap-2 pt-2">
-                                <button onClick={() => setIsEditingDemographics(false)} className="flex-1 h-9 bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] font-bold text-[9px] uppercase tracking-widest rounded-xl">Discard</button>
-                                <button onClick={() => setIsEditingDemographics(false)} className="flex-1 h-9 bg-teal-500 text-black font-bold text-[9px] uppercase tracking-widest rounded-xl">Update Identity</button>
-                              </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Biological Sex</label>
+                              <select value={patientSex} onChange={e => setPatientSex(e.target.value as BiologicalSex)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 appearance-none [color-scheme:dark]">
+                                <option value="">Select...</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                                <option value="OTHER">Other</option>
+                                <option value="UNKNOWN">Unknown</option>
+                              </select>
                             </div>
-                          )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Gender Identity</label>
+                              <input type="text" value={genderIdentity} onChange={e => setGenderIdentity(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Identity..." />
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Primary Language</label>
+                              <input type="text" value={patientLanguage} onChange={e => setPatientLanguage(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50" placeholder="Language..." />
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Clinical Facility / Location</label>
+                            <div className="relative group/facility">
+                              <Building2 className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within/facility:text-[var(--primary)] transition-colors" />
+                              <select
+                                value={selectedFacilityId}
+                                onChange={e => setSelectedFacilityId(e.target.value)}
+                                className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-10 pr-4 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/40 transition-all appearance-none [color-scheme:dark]"
+                              >
+                                <option value="">PRIVATE RESIDENCE / HOME CARE</option>
+                                {(enrollmentData?.facilities || []).map((f: any) => (
+                                  <option key={f.facilityId} value={f.facilityId}>{f.name} ({f.type})</option>
+                                ))}
+                              </select>
+                              <ChevronRight className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] rotate-90 pointer-events-none" />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">Marital / Civil Status</label>
+                            <select value={civilStatus} onChange={e => setCivilStatus(e.target.value)} className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 appearance-none [color-scheme:dark]">
+                              <option value="">Select...</option>
+                              <option value="Single">Single</option>
+                              <option value="Married">Married</option>
+                              <option value="Divorced">Divorced</option>
+                              <option value="Widowed">Widowed</option>
+                              <option value="Common Law">Common Law</option>
+                            </select>
+                          </div>
                         </div>
                       </section>
                       {/* Address Management HUD */}
@@ -1536,6 +1597,26 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                         </div>
                       </section>
 
+                      {/* 01-B: VISIT DURATION */}
+                      <section className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] font-bold text-[var(--primary)] bg-[var(--primary)]/10 w-8 h-8 rounded-lg flex items-center justify-center font-black">1B</span>
+                          <h3 className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Visit Duration</h3>
+                        </div>
+                        <div className="flex bg-[var(--input-bg)] rounded-2xl p-1.5 border border-[var(--card-border)] shadow-inner">
+                          {[30, 45, 60, 90, 120].map((d) => (
+                            <button
+                              key={d}
+                              onClick={() => setDuration(d)}
+                              className={`flex-1 py-2.5 rounded-xl text-[10px] font-black transition-all
+                                ${duration === d ? "bg-[var(--primary)] text-black shadow-md" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+                            >
+                              {d} MIN
+                            </button>
+                          ))}
+                        </div>
+                      </section>
+
                       {/* 02: CLINICAL TEAM ASSIGNMENT */}
                       <section className="space-y-5">
                         <div className="flex items-center justify-between">
@@ -1553,35 +1634,80 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                           {/* Care Navigator Selection */}
                           <div>
                             <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 px-1">02-A • Care Navigator Assignment</p>
-                            <div className="grid grid-cols-3 gap-2">
-                              {practitioners
+                            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto scrollbar-hide">
+                              {availabilityLoading && practitioners.length === 0 ? (
+                                <div className="col-span-2 py-4 flex flex-col items-center justify-center opacity-30">
+                                  <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mb-2" />
+                                  <p className="text-[8px] font-bold uppercase tracking-widest">Scanning Availability...</p>
+                                </div>
+                              ) : practitioners
                                 .filter((p: any) => p.isCareNavigator && (!staffSearch || p.fullName.toLowerCase().includes(staffSearch.toLowerCase())))
-                                .slice(0, 3)
-                                .map((p: any) => (
-                                  <button key={p.practitionerId} onClick={() => setCareNavigatorId(p.practitionerId)} className={`p-3 rounded-xl border text-left transition-all group relative overflow-hidden ${careNavigatorId === p.practitionerId ? 'bg-teal-500/10 border-teal-500 shadow-sm' : 'bg-[var(--input-bg)] border-[var(--card-border)] hover:border-teal-500/30'}`}>
-                                    <p className={`text-[10px] font-black truncate leading-none ${careNavigatorId === p.practitionerId ? 'text-teal-500' : 'text-[var(--text-primary)]'}`}>{p.fullName}</p>
-                                    <p className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] mt-1.5 opacity-60">Patient Navigation</p>
-                                  </button>
-                                ))}
+                                .map((p: any) => {
+                                  const avail = availability.get(p.practitionerId);
+                                  const isSelected = careNavigatorId === p.practitionerId;
+                                  return (
+                                    <button key={p.practitionerId} onClick={() => setCareNavigatorId(p.practitionerId)} className={`p-3 rounded-xl border text-left transition-all group relative overflow-hidden ${isSelected ? 'bg-teal-500/10 border-teal-500 shadow-sm' : 'bg-[var(--input-bg)] border-[var(--card-border)] hover:border-teal-500/30'}`}>
+                                      <div className="flex justify-between items-start gap-2">
+                                        <div className="min-w-0 flex-1">
+                                          <p className={`text-[10px] font-black truncate leading-tight ${isSelected ? 'text-teal-500' : 'text-[var(--text-primary)]'}`}>{p.fullName}</p>
+                                          <p className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] mt-1 opacity-60">Patient Navigation</p>
+                                        </div>
+                                        {avail && (
+                                          <div className={`flex flex-col items-end shrink-0 ${isSelected ? 'text-teal-500' : 'text-[var(--text-primary)]'}`}>
+                                            <span className="text-[10px] font-black leading-none">{avail.travelTimeInMinutes}M</span>
+                                            <span className="text-[7px] font-bold opacity-50 mt-1 uppercase tracking-tighter">{avail.distanceInMiles.toFixed(1)}MI</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      {!avail && !availabilityLoading && (
+                                        <div className="mt-2 flex items-center gap-1 opacity-30">
+                                          <Car className="w-2 h-2" />
+                                          <span className="text-[7px] font-bold uppercase tracking-tighter">Scan Unavailable</span>
+                                        </div>
+                                      )}
+                                    </button>
+                                  );
+                                })}
                             </div>
                           </div>
 
                           {/* Primary Lead Selection */}
                           <div>
                             <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 px-1">02-B • Primary Clinician Lead</p>
-                            <div className="grid grid-cols-3 gap-2">
-                              {practitioners
+                            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto scrollbar-hide">
+                              {availabilityLoading && practitioners.length === 0 ? (
+                                <div className="col-span-2 py-4 flex flex-col items-center justify-center opacity-30">
+                                  <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mb-2" />
+                                  <p className="text-[8px] font-bold uppercase tracking-widest">Scanning Availability...</p>
+                                </div>
+                              ) : practitioners
                                 .filter((p: any) => p.isSupportingClinician && (!staffSearch || p.fullName.toLowerCase().includes(staffSearch.toLowerCase())))
-                                .slice(0, 3)
-                                .map((p: any) => (
-                                  <button key={p.practitionerId} onClick={() => setPrimaryClinicianId(p.practitionerId)} className={`p-3 rounded-xl border text-left transition-all group relative overflow-hidden ${primaryClinicianId === p.practitionerId ? 'bg-[var(--primary)]/10 border-[var(--primary)] shadow-sm' : 'bg-[var(--input-bg)] border-[var(--card-border)] hover:border-[var(--primary)]/30'}`}>
-                                    <p className={`text-[10px] font-black truncate leading-none ${primaryClinicianId === p.practitionerId ? 'text-[var(--primary)]' : 'text-[var(--text-primary)]'}`}>{p.fullName}</p>
-                                    <p className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] mt-1.5 opacity-60">Lead Practitioner</p>
-                                    <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-[var(--card-border)] opacity-60">
-                                      <Car className="w-2 h-2" /><span className="text-[7px] font-bold uppercase tracking-tighter">20m • 2.6mi</span>
-                                    </div>
-                                  </button>
-                                ))}
+                                .map((p: any) => {
+                                  const avail = availability.get(p.practitionerId);
+                                  const isSelected = primaryClinicianId === p.practitionerId;
+                                  return (
+                                    <button key={p.practitionerId} onClick={() => setPrimaryClinicianId(p.practitionerId)} className={`p-3 rounded-xl border text-left transition-all group relative overflow-hidden ${isSelected ? 'bg-[var(--primary)]/10 border-[var(--primary)] shadow-sm' : 'bg-[var(--input-bg)] border-[var(--card-border)] hover:border-[var(--primary)]/30'}`}>
+                                      <div className="flex justify-between items-start gap-2">
+                                        <div className="min-w-0 flex-1">
+                                          <p className={`text-[10px] font-black truncate leading-tight ${isSelected ? 'text-[var(--primary)]' : 'text-[var(--text-primary)]'}`}>{p.fullName}</p>
+                                          <p className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] mt-1 opacity-60">Lead Practitioner</p>
+                                        </div>
+                                        {avail && (
+                                          <div className={`flex flex-col items-end shrink-0 ${isSelected ? 'text-[var(--primary)]' : 'text-[var(--text-primary)]'}`}>
+                                            <span className="text-[10px] font-black leading-none">{avail.travelTimeInMinutes}M</span>
+                                            <span className="text-[7px] font-bold opacity-50 mt-1 uppercase tracking-tighter">{avail.distanceInMiles.toFixed(1)}MI</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      {!avail && !availabilityLoading && (
+                                        <div className="mt-2 flex items-center gap-1 opacity-30">
+                                          <Car className="w-2 h-2" />
+                                          <span className="text-[7px] font-bold uppercase tracking-tighter">Scan Unavailable</span>
+                                        </div>
+                                      )}
+                                    </button>
+                                  );
+                                })}
                             </div>
                           </div>
                         </div>
@@ -1591,7 +1717,8 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                 </div>
 
                 {/* RIGHT TELEMETRY PANEL */}
-                <div className="w-[380px] flex flex-col bg-[var(--sidebar-bg)] p-6 space-y-6 overflow-y-auto scrollbar-hide">
+                <div className="w-[380px] flex flex-col bg-[var(--sidebar-bg)] border-l border-[var(--card-border)] relative">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
 
                   {/* TOP METRICS (2-COLUMN) - Luxury Upgrade */}
                   <div className="grid grid-cols-2 gap-5 pb-8 border-b border-[var(--card-border)] shrink-0 relative">
@@ -1602,7 +1729,10 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                         <Navigation className="w-3.5 h-3.5" />
                         Travel Distance
                       </div>
-                      <p className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">2.6<span className="text-xs font-bold opacity-30 ml-1.5 tracking-widest">MI</span></p>
+                      <p className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">
+                        {selectedLogistics ? selectedLogistics.distanceInMiles.toFixed(1) : "--"}
+                        <span className="text-xs font-bold opacity-30 ml-1.5 tracking-widest">MI</span>
+                      </p>
                     </div>
 
                     <div className="space-y-2 group/metric">
@@ -1610,7 +1740,10 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                         <Timer className="w-3.5 h-3.5" />
                         Duration
                       </div>
-                      <p className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">20<span className="text-xs font-bold opacity-30 ml-1.5 tracking-widest">MIN</span></p>
+                      <p className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">
+                        {selectedLogistics ? selectedLogistics.travelTimeInMinutes : "--"}
+                        <span className="text-xs font-bold opacity-30 ml-1.5 tracking-widest">MIN</span>
+                      </p>
                     </div>
                   </div>
 
@@ -1728,10 +1861,11 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                       ))}
                     </div>
                   </div>
+                  </div>
 
-                  {/* Operational Controls */}
-                  <div className="pt-6 border-t border-[var(--card-border)] space-y-4 shrink-0 relative">
-                    <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-[var(--primary)]/20 to-transparent" />
+                  {/* STICKY FOOTER CONTROLS */}
+                  <div className="p-6 border-t border-[var(--card-border)] bg-[var(--sidebar-bg)]/80 backdrop-blur-xl space-y-4 shrink-0 relative shadow-[0_-10px_40px_rgba(0,0,0,0.15)]">
+                    <div className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-[var(--primary)]/30 to-transparent" />
 
                     {/* ENROLLMENT SUMMARY */}
                     {lead?.status !== 'ENROLLED' && (
@@ -1763,23 +1897,39 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: Props) {
                         {unenrolling ? "REVERSING..." : "REVERSE ENROLLMENT"}
                       </button>
                     ) : (
-                      <button
-                        onClick={handleFinalize}
-                        disabled={finalizing || !primaryClinicianId || !selectedPlan || !consentTreat || !consentHIPAA || !patientDob}
-                        className="w-full h-14 bg-gradient-to-r from-[var(--primary)] to-teal-500 rounded-2xl text-black font-black text-[11px] uppercase tracking-[0.4em] shadow-2xl shadow-[var(--primary-glow)] hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center gap-3 group overflow-hidden relative"
-                      >
-                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                        <ShieldCheck className="w-5 h-5 relative z-10" />
-                        <span className="relative z-10">{finalizing ? "ENROLLING..." : "COMMIT ENROLLMENT"}</span>
-                      </button>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleBack}
+                          disabled={activeTab === "OUTREACH"}
+                          className={`w-1/3 h-14 rounded-2xl border font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2
+                            ${activeTab === "OUTREACH" ? 'opacity-20 cursor-not-allowed bg-transparent border-[var(--card-border)] text-[var(--text-muted)]' : 'bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-[var(--primary)]'}`}
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          Back
+                        </button>
+
+                        {activeTab === "LOGISTICS" ? (
+                          <button
+                            onClick={handleFinalize}
+                            disabled={finalizing}
+                            className="flex-1 h-14 bg-gradient-to-r from-[var(--primary)] to-teal-500 rounded-2xl text-black font-black text-[11px] uppercase tracking-[0.4em] shadow-2xl shadow-[var(--primary-glow)] hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center gap-3 group overflow-hidden relative"
+                          >
+                            <ShieldCheck className="w-5 h-5 relative z-10" />
+                            <span className="relative z-10">{finalizing ? "ENROLLING..." : "ENROLL"}</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={handleNext}
+                            className="flex-1 h-14 bg-[var(--primary)] rounded-2xl text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-xl shadow-[var(--primary-glow)] hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-2 group"
+                          >
+                            <span>Next Step</span>
+                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </button>
+                        )}
+                      </div>
                     )}
                     <div className="flex flex-col items-center gap-1.5 opacity-40">
                       <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">Halkyone OS · System ID 09-E</p>
-                      <div className="flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-teal-500" />
-                        <div className="w-1 h-1 rounded-full bg-teal-500/50" />
-                        <div className="w-1 h-1 rounded-full bg-teal-500/20" />
-                      </div>
                     </div>
                   </div>
                 </div>

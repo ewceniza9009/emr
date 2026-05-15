@@ -36,6 +36,7 @@ public record FinalizeEnrollmentCommand : IRequest<Guid>
     public bool HasPoa { get; init; }
     public bool HasAdvanceDirective { get; init; }
     public bool ScheduleIntakeNow { get; init; }
+    public int DurationMinutes { get; init; }
 }
 
 public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollmentCommand, Guid>
@@ -204,14 +205,16 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                     PatientId = patient.PatientId,
                     PractitionerId = request.PrimaryClinicianId.Value,
                     ScheduledStart = request.OrientationDate.Value,
-                    ScheduledEnd = request.OrientationDate.Value.AddMinutes(60), // Default 1hr intake
+                    ScheduledEnd = request.OrientationDate.Value.AddMinutes(request.DurationMinutes > 0 ? request.DurationMinutes : 60),
                     Status = AppointmentStatus.Scheduled,
                     VisitType = VisitType.InitialHospiceIntake,
-                    Modality = (request.Modality ?? "HomeCare").ToLower() switch
+                    Modality = (request.Modality ?? "HomeCare") switch
                     {
-                        "homecare" => AppointmentModality.InPersonHomeVisit,
-                        "facility" => AppointmentModality.InPersonFacility,
-                        "virtual" => AppointmentModality.TelehealthVideo,
+                        "HomeCare" => AppointmentModality.InPersonHomeVisit,
+                        "InPatientHospice" => AppointmentModality.InPersonFacility,
+                        "OutpatientClinic" => AppointmentModality.InPersonFacility,
+                        "VirtualCare" => AppointmentModality.TelehealthVideo,
+                        "HybridCare" => AppointmentModality.TelehealthAudioOnly,
                         _ => AppointmentModality.InPersonHomeVisit,
                     },
                     CreatedAt = _dateTimeProvider.UtcNow,

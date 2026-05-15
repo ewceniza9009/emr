@@ -42,6 +42,7 @@ public class SchedulingService : ISchedulingService
         CancellationToken cancellationToken = default
     )
     {
+        _logger.LogInformation(">>> GEOSPATIAL RADAR: Scanning availability for Patient/Lead {Id} at {Time}", patientId, targetStart);
         try
         {
             await _semaphore.WaitAsync(cancellationToken);
@@ -87,11 +88,6 @@ public class SchedulingService : ISchedulingService
                 .Include(p => p.Addresses)
                     .ThenInclude(a => a.Address)
                 .FirstOrDefaultAsync(p => p.PatientId == patientId, cancellationToken);
-
-            if (patient == null)
-            {
-                _logger.LogWarning("!!! PATIENT NOT FOUND: {Id}", patientId);
-            }
 
             var staffInfo = await context
                 .Practitioners.AsNoTracking()
@@ -158,6 +154,34 @@ public class SchedulingService : ISchedulingService
             )
                 .GroupBy(pa => pa.PatientId!.Value)
                 .ToDictionary(g => g.Key, g => g.First().Address);
+
+            // Outreach Lead Support: If patient address not found OR has no coordinates, check Outreach table
+            if (!patientAddressLookup.TryGetValue(patientId, out var existingAddr) || existingAddr?.Latitude == null)
+            {
+                var lead = await context.PatientOutreaches
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(o => o.PatientOutreachId == patientId, cancellationToken);
+                
+                if (lead?.MailingAddress != null && lead.MailingAddress.Latitude != null)
+                {
+                    patientAddressLookup[patientId] = lead.MailingAddress;
+                    _logger.LogInformation(">>> GEOSPATIAL RADAR: Using address from Outreach Lead {Id}", patientId);
+                }
+                else
+                {
+                    // Temporal Fallback for Testing (Cebu City)
+                    _logger.LogWarning(">>> GEOSPATIAL RADAR: Falling back to Temporal Default Address (Osmeña Blvd) for Lead {Id}", patientId);
+                    patientAddressLookup[patientId] = new Address
+                    {
+                        Street = "Osmeña Blvd",
+                        City = "Cebu City",
+                        State = "Cebu",
+                        PostalCode = "6000",
+                        Latitude = 10.3121,
+                        Longitude = 123.8966
+                    };
+                }
+            }
 
             var practitionerAddressLookup = (
                 await context

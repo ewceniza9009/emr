@@ -71,13 +71,16 @@ public class SchedulingServiceTests
         _mockContext
             .Setup(c => c.EntityAddresses)
             .Returns(new List<EntityAddress>().BuildMockDbSet().Object);
+        _mockContext
+            .Setup(c => c.PatientOutreaches)
+            .Returns(new List<PatientOutreach>().BuildMockDbSet().Object);
     }
 
     [Fact]
     public async Task GetAvailableProvidersAsync_ShouldSkipProvidersWithoutShifts()
     {
         var patientId = Guid.NewGuid();
-        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero);
+        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.FromHours(8));
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
@@ -110,7 +113,7 @@ public class SchedulingServiceTests
     {
         var patientId = Guid.NewGuid();
         var practitionerId = Guid.NewGuid();
-        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero);
+        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.FromHours(8));
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
@@ -140,9 +143,14 @@ public class SchedulingServiceTests
         {
             new Appointment
             {
+                AppointmentId = Guid.NewGuid(),
                 PractitionerId = practitionerId,
-                ScheduledStart = new DateTimeOffset(2026, 5, 4, 10, 30, 0, TimeSpan.Zero),
-                ScheduledEnd = new DateTimeOffset(2026, 5, 4, 11, 30, 0, TimeSpan.Zero),
+                PatientId = patientId,
+                ScheduledStart = new DateTimeOffset(2026, 5, 4, 10, 30, 0, TimeSpan.FromHours(8)),
+                ScheduledEnd = new DateTimeOffset(2026, 5, 4, 11, 30, 0, TimeSpan.FromHours(8)),
+                Status = AppointmentStatus.Scheduled,
+                IsDeleted = false,
+                SupportingClinicians = new List<Practitioner>()
             },
         }.BuildMockDbSet();
 
@@ -165,7 +173,7 @@ public class SchedulingServiceTests
     {
         var patientId = Guid.NewGuid();
         var practitionerId = Guid.NewGuid();
-        var targetStart = new DateTimeOffset(2026, 5, 4, 9, 30, 0, TimeSpan.Zero);
+        var targetStart = new DateTimeOffset(2026, 5, 4, 9, 30, 0, TimeSpan.FromHours(8));
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
@@ -219,8 +227,8 @@ public class SchedulingServiceTests
             new Appointment
             {
                 PractitionerId = practitionerId,
-                ScheduledStart = new DateTimeOffset(2026, 5, 4, 8, 30, 0, TimeSpan.Zero),
-                ScheduledEnd = new DateTimeOffset(2026, 5, 4, 9, 30, 0, TimeSpan.Zero),
+                ScheduledStart = new DateTimeOffset(2026, 5, 4, 8, 30, 0, TimeSpan.FromHours(8)),
+                ScheduledEnd = new DateTimeOffset(2026, 5, 4, 9, 30, 0, TimeSpan.FromHours(8)),
                 Patient = new Patient
                 {
                     Addresses = new List<EntityAddress>
@@ -287,7 +295,7 @@ public class SchedulingServiceTests
         var patientId = Guid.NewGuid();
         var practitionerId = Guid.NewGuid();
         var shiftEnd = new TimeSpan(17, 0, 0);
-        var targetStart = new DateTimeOffset(2026, 5, 4, 16, 30, 0, TimeSpan.Zero);
+        var targetStart = new DateTimeOffset(2026, 5, 4, 16, 30, 0, TimeSpan.FromHours(8));
         var duration = TimeSpan.FromMinutes(30);
         var modality = AppointmentModality.InPersonHomeVisit;
 
@@ -377,7 +385,7 @@ public class SchedulingServiceTests
     {
         var patientId = Guid.NewGuid();
         var practitionerId = Guid.NewGuid();
-        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero);
+        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.FromHours(8));
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
@@ -469,7 +477,7 @@ public class SchedulingServiceTests
     {
         var patientId = Guid.NewGuid();
         var practitionerId = Guid.NewGuid();
-        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero);
+        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.FromHours(8));
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
@@ -498,8 +506,8 @@ public class SchedulingServiceTests
             new ScheduleBlock
             {
                 PractitionerId = practitionerId,
-                StartTime = new DateTimeOffset(2026, 5, 4, 10, 30, 0, TimeSpan.Zero),
-                EndTime = new DateTimeOffset(2026, 5, 4, 11, 30, 0, TimeSpan.Zero),
+                StartTime = new DateTimeOffset(2026, 5, 4, 10, 30, 0, TimeSpan.FromHours(8)),
+                EndTime = new DateTimeOffset(2026, 5, 4, 11, 30, 0, TimeSpan.FromHours(8)),
                 Status = ScheduleBlockStatus.Blocked,
             },
         }.BuildMockDbSet();
@@ -523,7 +531,7 @@ public class SchedulingServiceTests
     {
         var patientId = Guid.NewGuid();
         var practitionerId = Guid.NewGuid();
-        var targetStart = new DateTimeOffset(2026, 5, 4, 0, 0, 0, TimeSpan.Zero);
+        var targetStart = new DateTimeOffset(2026, 5, 4, 0, 0, 0, TimeSpan.FromHours(8));
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
@@ -575,7 +583,7 @@ public class SchedulingServiceTests
     {
         var patientId = Guid.NewGuid();
         var practitionerId = Guid.NewGuid();
-        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero);
+        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.FromHours(8));
         var duration = TimeSpan.FromHours(1);
         var modality = AppointmentModality.InPersonHomeVisit;
 
@@ -632,7 +640,7 @@ public class SchedulingServiceTests
         var practitionerId = Guid.NewGuid();
         var patientId = Guid.NewGuid();
         var appointmentId = Guid.NewGuid();
-        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.Zero);
+        var targetStart = new DateTimeOffset(2026, 5, 4, 10, 0, 0, TimeSpan.FromHours(8));
 
         var patients = new List<Patient>
         {
@@ -737,8 +745,8 @@ public class SchedulingServiceTests
                 AppointmentId = Guid.NewGuid(),
                 PatientId = patientId1,
                 PractitionerId = practitionerId,
-                ScheduledStart = new DateTimeOffset(targetDate.AddHours(9), TimeSpan.Zero),
-                ScheduledEnd = new DateTimeOffset(targetDate.AddHours(10), TimeSpan.Zero),
+                ScheduledStart = new DateTimeOffset(targetDate.AddHours(9), TimeSpan.FromHours(8)),
+                ScheduledEnd = new DateTimeOffset(targetDate.AddHours(10), TimeSpan.FromHours(8)),
                 Patient = patientList[0],
             },
             new Appointment
@@ -746,7 +754,7 @@ public class SchedulingServiceTests
                 AppointmentId = appointmentId2,
                 PatientId = patientId2,
                 PractitionerId = practitionerId,
-                ScheduledStart = new DateTimeOffset(targetDate.AddHours(11), TimeSpan.Zero),
+                ScheduledStart = new DateTimeOffset(targetDate.AddHours(11), TimeSpan.FromHours(8)),
                 Modality = AppointmentModality.InPersonHomeVisit,
                 Patient = patientList[1],
             },
@@ -808,8 +816,8 @@ public class SchedulingServiceTests
             {
                 AppointmentId = Guid.NewGuid(),
                 PractitionerId = practitionerId,
-                ScheduledStart = new DateTimeOffset(targetDate.AddHours(9), TimeSpan.Zero),
-                ScheduledEnd = new DateTimeOffset(targetDate.AddHours(10), TimeSpan.Zero),
+                ScheduledStart = new DateTimeOffset(targetDate.AddHours(9), TimeSpan.FromHours(8)),
+                ScheduledEnd = new DateTimeOffset(targetDate.AddHours(10), TimeSpan.FromHours(8)),
                 Patient = patientList[0],
                 Modality = AppointmentModality.InPersonHomeVisit,
             },
@@ -819,9 +827,9 @@ public class SchedulingServiceTests
                 PractitionerId = practitionerId,
                 ScheduledStart = new DateTimeOffset(
                     targetDate.AddHours(10).AddMinutes(5),
-                    TimeSpan.Zero
+                    TimeSpan.FromHours(8)
                 ), // Only 5 mins after
-                ScheduledEnd = new DateTimeOffset(targetDate.AddHours(11), TimeSpan.Zero),
+                ScheduledEnd = new DateTimeOffset(targetDate.AddHours(11), TimeSpan.FromHours(8)),
                 Patient = patientList[1],
                 Modality = AppointmentModality.InPersonHomeVisit,
             },

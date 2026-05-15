@@ -25,18 +25,27 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     // Move to the Administrative Tab to select Health Plan
 
     // 2. ADMIN PHASE
-    await page.getByRole('button', { name: /02\s+ADMIN/i }).click();
-    await page.waitForTimeout(1000);
+    await page.getByRole('button', { name: /Next Step/i }).click();
+    await page.waitForTimeout(500);
 
-    // Ensure Health Plan is selected and verified (Targeting specific Insurance section)
-    const planSelect = page.locator('div:has-text("Health Plan Assignment") select').first();
-    await planSelect.waitFor({ state: 'visible' });
+    // Health Plan Selection (Targeting by label specifically)
+    const planSelect = page.locator('label:has-text("Health Plan Assignment") + select').first();
+    await expect(async () => {
+      const count = await planSelect.locator('option').count();
+      expect(count).toBeGreaterThan(1);
+    }).toPass({ timeout: 10000 });
+    
     await planSelect.selectOption({ index: 1 });
     await expect(planSelect).not.toHaveValue("");
-    await page.waitForTimeout(300);
+
+    // MANDATORY VALIDATION: Fill DOB and Biological Sex
+    await page.fill('label:has-text("Date of Birth") + input', '1985-05-20');
+    const sexSelect = page.locator('label:has-text("Biological Sex") + select').first();
+    await sexSelect.selectOption('MALE');
+    await page.waitForTimeout(500);
 
     // 3. LEGAL PHASE
-    await page.getByRole('button', { name: /03\s+LEGAL/i }).click();
+    await page.getByRole('button', { name: /Next Step/i }).click();
     await page.waitForTimeout(1000);
 
     // Using high-fidelity locators for precise consent capture
@@ -61,16 +70,16 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     await page.waitForTimeout(300);
 
     // 4. CLINICAL PHASE
-    await page.getByRole('button', { name: /04\s+CLINICAL/i }).click();
-    await page.waitForTimeout(1000);
+    await page.getByRole('button', { name: /Next Step/i }).click();
+    await page.waitForTimeout(500);
     await page.fill('input[placeholder*="Search codes"]', 'I50.9');
     const clinicalResult = page.getByRole('button').filter({ hasText: 'I50.9' }).first();
     await clinicalResult.click();
     await page.click('button:has-text("MODERATE ACUITY")');
 
     // 5. LOGISTICS PHASE
-    await page.getByRole('button', { name: /05\s+LOGISTICS/i }).click();
-    await page.waitForTimeout(1000);
+    await page.getByRole('button', { name: /Next Step/i }).click();
+    await page.waitForTimeout(500);
 
     // Explicitly confirm the "Book Now" strategy
     await page.getByRole('button', { name: /Book Now/i }).click();
@@ -79,24 +88,17 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     await page.getByRole('button', { name: /Facility/i }).click();
     await page.waitForTimeout(300);
 
-    // Assign a Care Navigator (Section 02-A)
-    const navigatorBtn = page.locator('button:has-text("Patient Navigation")').first();
-    await expect(navigatorBtn).toBeVisible();
-    await navigatorBtn.click();
-    await page.waitForTimeout(300);
-
-    // Assign a Primary Clinician (Section 02-B)
-    const practitionerBtn = page.locator('button:has-text("Lead Practitioner")').first();
-    await expect(practitionerBtn).toBeVisible();
-    await practitionerBtn.click();
+    // Assign Practitioners
+    await page.locator('button:has-text("Patient Navigation")').first().click();
+    await page.locator('button:has-text("Lead Practitioner")').first().click();
 
     // Verify selection visibility (wait for React state to sync)
     await page.waitForTimeout(500);
 
-    // 6. COMMIT ENROLLMENT
-    const commitBtn = page.locator('button:has-text("COMMIT ENROLLMENT")');
-    await expect(commitBtn).toBeEnabled({ timeout: 15000 });
-    await commitBtn.click();
+    // 6. ENROLL 
+    const enrollBtn = page.locator('button:has-text("ENROLL")').last();
+    await expect(enrollBtn).toBeEnabled({ timeout: 15000 });
+    await enrollBtn.click();
 
     // VERIFY REDIRECTION
     await expect(page).toHaveURL(/\/dashboard\/patients\/.+/, { timeout: 20000 });
