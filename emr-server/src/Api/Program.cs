@@ -158,9 +158,19 @@ try
 
     using (var scope = app.Services.CreateScope())
     {
-        var wipeDb = builder.Configuration.GetValue<bool?>("EMR_WIPE_DB") ?? true;
-        var seedDb = builder.Configuration.GetValue<bool?>("EMR_SEED_DB") ?? true;
-        await DbInitializer.InitializeAsync(scope.ServiceProvider, wipeDb, seedDb);
+        var _logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        try
+        {
+            _logger.LogInformation("Starting database initialization...");
+            await DbInitializer.InitializeAsync(scope.ServiceProvider, 
+                bool.Parse(builder.Configuration["EMR_WIPE_DB"] ?? "false"),
+                bool.Parse(builder.Configuration["EMR_SEED_DB"] ?? "true"));
+            _logger.LogInformation("Database initialization completed successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex, "An error occurred during database initialization. The app will continue starting, but database features may be unavailable.");
+        }
     }
 
     app.Run();
