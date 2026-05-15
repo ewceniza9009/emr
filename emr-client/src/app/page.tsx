@@ -14,14 +14,17 @@ import {
   Globe,
   Database,
   Cpu,
-  Fingerprint
+  Fingerprint,
+  History,
+  X,
 } from "lucide-react";
-import { motion, Variants } from "framer-motion";
+import { motion, Variants, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Dev from "@/components/Dev";
 
 export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isChangelogOpen, setIsChangelogOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -33,8 +36,8 @@ export default function HomePage() {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+      transition: { staggerChildren: 0.1 },
+    },
   };
 
   const itemVariants: Variants = {
@@ -42,8 +45,8 @@ export default function HomePage() {
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.8 }
-    }
+      transition: { duration: 0.8 },
+    },
   };
 
   return (
@@ -51,11 +54,16 @@ export default function HomePage() {
       {/* AMBIENT BACKGROUND GLOWS */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[var(--primary)]/5 rounded-full blur-[160px] animate-pulse" />
-        <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/5 rounded-full blur-[140px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div
+          className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/5 rounded-full blur-[140px] animate-pulse"
+          style={{ animationDelay: "2s" }}
+        />
       </div>
 
       {/* NAVBAR */}
-      <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 border-b ${isScrolled ? "bg-black/60 backdrop-blur-2xl border-white/10 py-3" : "bg-transparent border-transparent py-6"}`}>
+      <nav
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 border-b ${isScrolled ? "bg-black/60 backdrop-blur-2xl border-white/10 py-3" : "bg-transparent border-transparent py-6"}`}
+      >
         <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -63,31 +71,57 @@ export default function HomePage() {
             className="flex items-center gap-3 group cursor-pointer"
           >
             <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-[var(--primary-glow)] group-hover:scale-110 transition-transform duration-500">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M12 2L3 7v9c0 5 9 6 9 6s9-1 9-6V7l-9-5z" />
                 <path d="M8 12h3l1-3 2 6 1-3h2" />
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-white tracking-tight leading-none uppercase">HALKYONE</span>
-              <span className="text-[8px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] mt-1">Clinical OS</span>
+              <span className="text-xl font-bold text-white tracking-tight leading-none uppercase">
+                HALKYONE
+              </span>
+              <span className="text-[8px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] mt-1">
+                Clinical OS
+              </span>
             </div>
           </motion.div>
 
           <div className="hidden lg:flex items-center gap-10">
             {[
-              { label: 'Features', id: 'engine' },
-              { label: 'Workflows', id: 'network' },
-              { label: 'Platform & Safety', id: 'security' }
+              { label: "Features", id: "engine" },
+              { label: "Workflows", id: "network" },
+              { label: "Platform & Safety", id: "security" },
             ].map((item) => (
-              <Link key={item.id} href={`#${item.id}`} className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all">
+              <Link
+                key={item.id}
+                href={`#${item.id}`}
+                className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all"
+              >
                 {item.label}
               </Link>
             ))}
+            <button
+              onClick={() => setIsChangelogOpen(true)}
+              className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all flex items-center gap-2"
+            >
+              <History className="w-3 h-3" />
+              Changelog
+            </button>
           </div>
 
           <div className="flex items-center gap-4">
-            <Link href="/login" className="h-11 px-8 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[11px] font-bold uppercase tracking-[0.2em] rounded-xl flex items-center justify-center shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] active:scale-[0.98] group">
+            <Link
+              href="/login"
+              className="h-11 px-8 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[11px] font-bold uppercase tracking-[0.2em] rounded-xl flex items-center justify-center shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] active:scale-[0.98] group"
+            >
               Launch App
               <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -104,25 +138,55 @@ export default function HomePage() {
             animate="visible"
             className="flex flex-col items-center text-center"
           >
-            <motion.div variants={itemVariants} className="mb-12">
+            <motion.div
+              variants={itemVariants}
+              className="mb-12 flex flex-col items-center gap-6"
+            >
               <Dev>{"<DEV>ERWIN WILSON E. CENIZA</DEV>"}</Dev>
+              <div className="px-4 py-1.5 rounded-full bg-white/[0.05] border border-white/10 text-[8px] font-bold uppercase tracking-[0.3em] text-slate-400 flex items-center gap-3 select-none backdrop-blur-sm shadow-xl">
+                <span className="text-[var(--primary)]">v1.0.15</span>
+                <span className="w-1 h-1 rounded-full bg-slate-700" />
+                <span className="text-white/60">Build 20260515</span>
+              </div>
             </motion.div>
 
-            <motion.h1 variants={itemVariants} className="text-7xl lg:text-[110px] font-bold text-white leading-[1] tracking-tight mb-8 max-w-6xl drop-shadow-2xl">
-              <span className="inline-block text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">Clinical operations,</span> <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-emerald-400 animate-gradient-x drop-shadow-[0_0_40px_var(--primary-glow)]">simplified.</span>
+            <motion.h1
+              variants={itemVariants}
+              className="text-7xl lg:text-[110px] font-bold text-white leading-[1] tracking-tight mb-8 max-w-6xl drop-shadow-2xl"
+            >
+              <span className="inline-block text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70">
+                Clinical operations,
+              </span>{" "}
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-emerald-400 animate-gradient-x drop-shadow-[0_0_40px_var(--primary-glow)]">
+                simplified.
+              </span>
             </motion.h1>
 
-            <motion.p variants={itemVariants} className="text-xl lg:text-2xl text-slate-400 font-medium leading-relaxed mb-16 max-w-3xl">
-              Take the friction out of your daily workflows. Halkyone unifies your scheduling, logistics, and security so your team can stay focused on what matters: the patient.
+            <motion.p
+              variants={itemVariants}
+              className="text-xl lg:text-2xl text-slate-400 font-medium leading-relaxed mb-16 max-w-3xl"
+            >
+              Take the friction out of your daily workflows. Halkyone unifies
+              your scheduling, logistics, and security so your team can stay
+              focused on what matters: the patient.
             </motion.p>
 
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-6">
-              <Link href="/login" className="h-16 px-12 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[12px] font-bold uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center group shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] hover:shadow-[0_20px_50px_-10px_var(--primary-glow)] active:scale-[0.98]">
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col sm:flex-row items-center gap-6"
+            >
+              <Link
+                href="/login"
+                className="h-16 px-12 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[12px] font-bold uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center group shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] hover:shadow-[0_20px_50px_-10px_var(--primary-glow)] active:scale-[0.98]"
+              >
                 Get Started
                 <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1.5 transition-transform" />
               </Link>
-              <Link href="#engine" className="h-16 px-12 bg-slate-900/40 border border-slate-800 text-white text-[12px] font-bold uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:bg-slate-800/60 hover:border-slate-700 transition-all backdrop-blur-md shadow-inner">
+              <Link
+                href="#engine"
+                className="h-16 px-12 bg-slate-900/40 border border-slate-800 text-white text-[12px] font-bold uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center hover:bg-slate-800/60 hover:border-slate-700 transition-all backdrop-blur-md shadow-inner"
+              >
                 See Features
               </Link>
             </motion.div>
@@ -142,13 +206,18 @@ export default function HomePage() {
             >
               <div className="inline-flex items-center gap-3 mb-8">
                 <div className="w-12 h-px bg-[var(--primary)]" />
-                <span className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.4em]">Core Architecture</span>
+                <span className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.4em]">
+                  Core Architecture
+                </span>
               </div>
               <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight tracking-tight mb-8">
-                Engineered for reach. <br />Optimized for care.
+                Engineered for reach. <br />
+                Optimized for care.
               </h2>
               <p className="text-lg text-slate-500 leading-relaxed mb-12">
-                Halkyone&apos;s logistics layer helps manage safety drive times and clinician capacity, ensuring your team can focus on delivering high-quality care without the scheduling friction.
+                Halkyone&apos;s logistics layer helps manage safety drive times
+                and clinician capacity, ensuring your team can focus on
+                delivering high-quality care without the scheduling friction.
               </p>
 
               <div className="grid grid-cols-2 gap-8">
@@ -156,10 +225,17 @@ export default function HomePage() {
                   { label: "Uptime SLA", val: "99.999%", icon: Zap },
                   { label: "Sync Latency", val: "<40ms", icon: Activity },
                 ].map((item, i) => (
-                  <div key={i} className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5">
+                  <div
+                    key={i}
+                    className="p-6 rounded-[2rem] bg-white/[0.02] border border-white/5"
+                  >
                     <item.icon className="w-5 h-5 text-[var(--primary)] mb-4" />
-                    <p className="text-2xl font-bold text-white mb-1">{item.val}</p>
-                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">{item.label}</p>
+                    <p className="text-2xl font-bold text-white mb-1">
+                      {item.val}
+                    </p>
+                    <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">
+                      {item.label}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -190,11 +266,17 @@ export default function HomePage() {
                     <motion.div
                       initial={{ x: "-100%" }}
                       animate={{ x: "100%" }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
                       className="h-full w-1/2 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent"
                     />
                   </div>
-                  <p className="text-[8px] font-bold text-slate-600 uppercase tracking-[0.3em] mt-4 text-center">Encrypted Telemetry Stream</p>
+                  <p className="text-[8px] font-bold text-slate-600 uppercase tracking-[0.3em] mt-4 text-center">
+                    Encrypted Telemetry Stream
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -203,19 +285,42 @@ export default function HomePage() {
       </section>
 
       {/* CORE CAPABILITIES */}
-      <section id="network" className="py-32 border-y border-white/[0.03] bg-white/[0.01]">
+      <section
+        id="network"
+        className="py-32 border-y border-white/[0.03] bg-white/[0.01]"
+      >
         <div className="max-w-7xl mx-auto px-8">
           <div className="text-center mb-24">
-            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.5em] mb-6 block">Capability Matrix</span>
-            <h2 className="text-5xl font-bold text-white tracking-tighter">A command center for care.</h2>
+            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.5em] mb-6 block">
+              Capability Matrix
+            </span>
+            <h2 className="text-5xl font-bold text-white tracking-tighter">
+              A command center for care.
+            </h2>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "Tactical Navigation", desc: "Real-time geospatial provider tracking.", icon: Map },
-              { title: "Revenue Cycle", desc: "Deep integration with billing registries.", icon: CreditCard },
-              { title: "Node Telemetry", desc: "Low-latency clinical IoT connectivity.", icon: Cpu },
-              { title: "Identity Vault", desc: "Level 1 security for patient records.", icon: Fingerprint }
+              {
+                title: "Tactical Navigation",
+                desc: "Real-time geospatial provider tracking.",
+                icon: Map,
+              },
+              {
+                title: "Revenue Cycle",
+                desc: "Deep integration with billing registries.",
+                icon: CreditCard,
+              },
+              {
+                title: "Node Telemetry",
+                desc: "Low-latency clinical IoT connectivity.",
+                icon: Cpu,
+              },
+              {
+                title: "Identity Vault",
+                desc: "Level 1 security for patient records.",
+                icon: Fingerprint,
+              },
             ].map((card, i) => (
               <motion.div
                 key={i}
@@ -225,8 +330,12 @@ export default function HomePage() {
                 <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-8 group-hover:scale-110 group-hover:bg-[var(--primary)]/10 transition-all">
                   <card.icon className="w-6 h-6 text-slate-400 group-hover:text-[var(--primary)]" />
                 </div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4">{card.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed mb-8">{card.desc}</p>
+                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4">
+                  {card.title}
+                </h3>
+                <p className="text-sm text-slate-500 leading-relaxed mb-8">
+                  {card.desc}
+                </p>
                 <div className="h-px w-8 bg-white/10 group-hover:w-full group-hover:bg-[var(--primary)] transition-all duration-700" />
               </motion.div>
             ))}
@@ -241,18 +350,23 @@ export default function HomePage() {
           <div className="flex flex-col items-center text-center">
             <Globe className="w-12 h-12 text-[var(--primary)] opacity-20 mb-12 animate-pulse" />
             <h2 className="text-5xl lg:text-7xl font-bold text-white tracking-tighter mb-16 max-w-4xl">
-              Engineered for the <span className="text-slate-700 italic">mission critical.</span>
+              Engineered for the{" "}
+              <span className="text-slate-700 italic">mission critical.</span>
             </h2>
 
             <div className="grid md:grid-cols-3 gap-16 w-full max-w-5xl">
               {[
                 { label: "Active Deployments", val: "148" },
                 { label: "Data Throughput", val: "2.8 TB/s" },
-                { label: "Security Layer", val: "AES-256" }
+                { label: "Security Layer", val: "AES-256" },
               ].map((stat, i) => (
                 <div key={i}>
-                  <p className="text-4xl font-bold text-white mb-3 tracking-tighter">{stat.val}</p>
-                  <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.3em]">{stat.label}</p>
+                  <p className="text-4xl font-bold text-white mb-3 tracking-tighter">
+                    {stat.val}
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.3em]">
+                    {stat.label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -274,9 +388,17 @@ export default function HomePage() {
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
 
             <div className="relative z-10 flex flex-col items-center text-center">
-              <h2 className="text-4xl lg:text-5xl font-bold text-white tracking-tight mb-8">Ready to modernize?</h2>
-              <p className="text-white/70 text-lg mb-12 font-medium">Join the fleet of high-performance clinical teams running on Halkyone.</p>
-              <Link href="/login" className="h-16 px-12 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[12px] font-bold uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center group shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] hover:shadow-[0_20px_50px_-10px_var(--primary-glow)] active:scale-[0.98]">
+              <h2 className="text-4xl lg:text-5xl font-bold text-white tracking-tight mb-8">
+                Ready to modernize?
+              </h2>
+              <p className="text-white/70 text-lg mb-12 font-medium">
+                Join the fleet of high-performance clinical teams running on
+                Halkyone.
+              </p>
+              <Link
+                href="/login"
+                className="h-16 px-12 bg-gradient-to-r from-[var(--primary)] to-emerald-500 hover:from-[var(--primary)] hover:to-emerald-400 text-white text-[12px] font-bold uppercase tracking-[0.2em] rounded-2xl flex items-center justify-center group shadow-[0_10px_40px_-10px_var(--primary-glow)] transition-all hover:scale-[1.02] hover:shadow-[0_20px_50px_-10px_var(--primary-glow)] active:scale-[0.98]"
+              >
                 Get Started Now
                 <ArrowRight className="w-4 h-4 ml-3 group-hover:translate-x-1.5 transition-transform" />
               </Link>
@@ -293,15 +415,27 @@ export default function HomePage() {
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="text-xl font-bold text-white tracking-tighter block leading-none">Halkyone</span>
-              <span className="text-[8px] font-bold text-slate-700 uppercase tracking-widest">Next-Gen Protocol</span>
+              <span className="text-xl font-bold text-white tracking-tighter block leading-none">
+                Halkyone
+              </span>
+              <span className="text-[8px] font-bold text-slate-700 uppercase tracking-widest">
+                Clinical Infrastructure
+              </span>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-10 text-[10px] font-bold text-slate-700 uppercase tracking-widest">
-            {['Status', 'Security', 'Privacy', 'Network', 'API', 'Legal'].map(link => (
-              <Link key={link} href="#" className="hover:text-[var(--primary)] transition-colors tracking-[0.2em]">{link}</Link>
-            ))}
+            {["Status", "Security", "Privacy", "Network", "API", "Legal"].map(
+              (link) => (
+                <Link
+                  key={link}
+                  href="#"
+                  className="hover:text-[var(--primary)] transition-colors tracking-[0.2em]"
+                >
+                  {link}
+                </Link>
+              ),
+            )}
           </div>
 
           <div className="text-right">
@@ -312,6 +446,122 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* CHANGELOG MODAL */}
+      <AnimatePresence>
+        {isChangelogOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsChangelogOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-2xl bg-[#0a0f1d] border border-white/10 rounded-[2.5rem] p-12 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary)]/5 blur-[100px] -z-10" />
+              
+              <div className="flex items-center justify-between mb-12 shrink-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center">
+                    <History className="w-6 h-6 text-[var(--primary)]" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white tracking-tighter uppercase">System Updates</h2>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Halkyone Clinical OS — Engineering Ledger</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setIsChangelogOpen(false)}
+                  className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-8 overflow-y-auto pr-6 -mr-6 custom-scrollbar scroll-smooth">
+                {[
+                  {
+                    version: "v1.0.15",
+                    date: "2026-05-15",
+                    type: "Regional",
+                    changes: [
+                      "Automated billing currency matching for different regions and timezones.",
+                      "Improved accuracy of logistical calculations across international borders.",
+                      "Enhanced regional configuration stability for global clinical nodes."
+                    ]
+                  },
+                  {
+                    version: "v1.0.14",
+                    date: "2026-05-15",
+                    type: "Core",
+                    changes: [
+                      "Improved clinic scheduling reliability and finalized identity security controls.",
+                      "Finalized the Identity Vault with Break-Glass emergency access protocols.",
+                      "Stabilized administrative registry layout for better data visibility."
+                    ]
+                  },
+                  {
+                    version: "v1.0.13",
+                    date: "2026-05-14",
+                    type: "Stability",
+                    changes: [
+                      "Enhanced system stability and patched high-priority security vulnerabilities.",
+                      "Resolved deployment blockers to ensure maximum uptime during updates.",
+                      "Strengthened core infrastructure against external network disruptions."
+                    ]
+                  },
+                  {
+                    version: "v1.0.12",
+                    date: "2026-05-14",
+                    type: "Optimization",
+                    changes: [
+                      "Optimized database performance and resolved background system errors.",
+                      "Reduced data sync latency for real-time clinical IoT telemetry.",
+                      "Streamlined background task processing for improved responsiveness."
+                    ]
+                  },
+                  {
+                    version: "v1.0.11",
+                    date: "2026-05-14",
+                    type: "Auth",
+                    changes: [
+                      "Added 'Remember Me' feature for faster and more secure logins.",
+                      "Improved persistent session management for high-performance teams.",
+                      "Streamlined the login workflow to reduce administrative friction."
+                    ]
+                  }
+                ].map((entry, i) => (
+                  <div key={i} className="relative pl-8 border-l border-white/5 pb-8 last:pb-0">
+                    <div className="absolute left-[-5px] top-0 w-[9px] h-[9px] rounded-full bg-[var(--primary)] shadow-[0_0_10px_var(--primary-glow)]" />
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-[11px] font-black text-white px-2 py-0.5 rounded bg-[var(--primary)]/20 border border-[var(--primary)]/30 uppercase tracking-widest">{entry.version}</span>
+                      {i === 0 && (
+                        <span className="text-[7px] font-black bg-emerald-500 text-black px-1.5 py-0.5 rounded-sm tracking-[0.2em] animate-pulse">NEW</span>
+                      )}
+                      <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">{entry.date}</span>
+                      <span className="text-[8px] font-bold text-slate-800 border border-white/5 px-2 py-0.5 rounded uppercase tracking-widest">{entry.type}</span>
+                    </div>
+                    <ul className="space-y-3">
+                      {entry.changes.map((change, j) => (
+                        <li key={j} className="text-sm text-slate-400 flex items-start gap-3">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-800 mt-2 shrink-0" />
+                          {change}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
