@@ -142,3 +142,39 @@ jobs:
       - name: Build Local Images (Validation)
         run: |
           docker compose build
+
+  deploy:
+    name: Continuous Deployment (GHCR & Demo)
+    needs: [containerize]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./emr-server/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/emr-backend:latest
+            ghcr.io/${{ github.repository }}/emr-backend:${{ github.sha }}
+
+      - name: Trigger Demo Deployment (Optional)
+        run: |
+          echo "Backend image pushed to GHCR."
+          echo "To complete CD to a free provider like Render or Railway:"
+          echo "1. Connect your Render/Railway service to the GHCR image."
+          echo "2. Add a RENDER_DEPLOY_HOOK secret to your GitHub Repo."
+          # curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
