@@ -1,5 +1,7 @@
 # Halkyone Clinical OS
 
+**[🚀 View Live Demo](https://emr-three-hazel.vercel.app)**
+
 [![Architecture: Clean](https://img.shields.io/badge/Architecture-Clean--Architecture-blue.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 [![Pattern: CQRS--MediatR](https://img.shields.io/badge/Pattern-CQRS--MediatR-blueviolet.svg)](https://github.com/jbogard/MediatR)
 [![Frontend: Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black.svg)](https://nextjs.org/)
@@ -16,15 +18,15 @@
 [![Assessments: SurveyJS](https://img.shields.io/badge/Assessments-SurveyJS-brightgreen.svg)](https://surveyjs.io/)
 [![Reports: QuestPDF](https://img.shields.io/badge/Reports-QuestPDF--2026-blueviolet.svg)](https://www.questpdf.com/)
 [![Testing: Playwright](https://img.shields.io/badge/Testing-Playwright--E2E-45ba4b.svg)](https://playwright.dev/)
-[![Clinical: 100%--Verified](https://img.shields.io/badge/Clinical-100%25--Verified-success.svg)](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml)
+[![Clinical: 100%--Verified](https://img.shields.io/badge/Clinical-100%25--Verified-success.svg)](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml)
 
-[![Halkyone CI](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml/badge.svg)](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml)
+[![Halkyone CI/CD](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml/badge.svg)](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml)
 
 ---
 
 ## 📊 Clinical QA & Reliability Report
 
-[**📊 View Full CI (Continues Integration) History**](https://github.com/ewceniza9009/emr/actions/workflows/ci.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/25642801606/artifacts/6907913736)
+[**📊 View Full CI/CD (Continuous Integration & Deployment) History**](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/25899185774/artifacts/7009812326)
 
 > [!IMPORTANT]
 > The link above represents a **100% successful verification** of all clinical modules: Enrollment, Scheduling, Booking, and Real-time Telemetry.
