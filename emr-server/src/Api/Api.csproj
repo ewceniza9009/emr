@@ -26,7 +26,7 @@
 
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.12.6" />
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.0" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.1" />
 
     <!-- Observability & Monitoring -->
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
