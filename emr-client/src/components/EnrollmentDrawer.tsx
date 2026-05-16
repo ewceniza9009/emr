@@ -939,17 +939,8 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: any) {
         },
       });
       if (data?.finalizeEnrollment) {
-        showToast(
-          "Enrollment successful. Transitioning to registry...",
-          "success",
-        );
-        // Ensure navigation is initialized before unmounting
-        router.push(`/dashboard/patients/${data.finalizeEnrollment}`);
-
-        // Small delay to allow router to handle the request before unmounting the drawer
-        setTimeout(() => {
-          onClose();
-        }, 100);
+        showToast("Enrollment successful. Redirecting to registry...", "success");
+        window.location.href = `/dashboard/patients/${data.finalizeEnrollment}`;
       } else {
         showToast(
           "Enrollment successful, but registry ID missing. Redirecting to Patient List.",

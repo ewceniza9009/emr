@@ -96,7 +96,9 @@ export function NotificationCenter() {
     return () => {
       isMounted = false;
       if (connection.state !== signalR.HubConnectionState.Disconnected) {
-        connection.stop();
+        connection.stop().catch(() => {
+          // Gracefully handle AbortError during negotiation/unmount
+        });
       }
     };
   }, [session, refetch]);
