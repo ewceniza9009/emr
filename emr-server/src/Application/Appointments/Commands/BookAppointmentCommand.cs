@@ -24,7 +24,8 @@ public record BookAppointmentResponse(Appointment? Appointment, string? Error = 
 
 public class BookAppointmentCommandHandler(
     IApplicationDbContext context,
-    ISchedulingService schedulingService
+    ISchedulingService schedulingService,
+    INotificationService notificationService
 ) : IRequestHandler<BookAppointmentCommand, BookAppointmentResponse>
 {
     public async Task<BookAppointmentResponse> Handle(
@@ -205,6 +206,26 @@ public class BookAppointmentCommandHandler(
         }
 
         await transaction.CommitAsync(cancellationToken);
+
+        // Send Notification
+        var patient = await context.Patients.AsNoTracking().FirstOrDefaultAsync(p => p.PatientId == request.PatientId, cancellationToken);
+        var clinician = await context.Practitioners.AsNoTracking().FirstOrDefaultAsync(p => p.PractitionerId == request.PractitionerId, cancellationToken);
+        var patientName = patient != null ? $"{patient.FirstName} {patient.LastName}" : "Unknown Patient";
+        var clinicianName = clinician != null ? $"{clinician.FirstName} {clinician.LastName}" : "Unknown Clinician";
+
+        var isUpdate = request.AppointmentId.HasValue && request.AppointmentId.Value != Guid.Empty;
+        var title = isUpdate ? "Appointment Updated" : "New Appointment Booked";
+        var message = isUpdate 
+            ? $"Appointment for {patientName} with {clinicianName} has been rescheduled to {request.ScheduledStart:f}."
+            : $"A new appointment has been scheduled for {patientName} with {clinicianName} on {request.ScheduledStart:f}.";
+
+        await notificationService.SendGlobalNotificationAsync(
+            title,
+            message,
+            NotificationPriority.Normal,
+            category: "Scheduling",
+            actionUrl: $"/dashboard/patients/{request.PatientId}"
+        );
 
         return new BookAppointmentResponse(appointment);
     }

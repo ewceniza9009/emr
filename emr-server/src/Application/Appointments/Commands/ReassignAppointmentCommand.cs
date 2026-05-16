@@ -69,6 +69,14 @@ public class ReassignAppointmentCommandHandler
                     NotificationPriority.High,
                     "Scheduling"
                 );
+
+                await _notificationService.SendGlobalNotificationAsync(
+                    "Appointment Reassigned",
+                    $"Appointment for {appointment.Patient.FullName} has been reassigned to {practitioner.FirstName} {practitioner.LastName}.",
+                    NotificationPriority.Normal,
+                    "Scheduling",
+                    $"/dashboard/patients/{appointment.PatientId}"
+                );
             }
 
             return appointment;

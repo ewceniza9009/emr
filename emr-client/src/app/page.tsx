@@ -208,7 +208,7 @@ export default function HomePage() {
                 </span>
                 <div className="w-1 h-1 rounded-full bg-slate-600" />
                 <span className="text-[9px] md:text-[10px] font-mono text-slate-500 uppercase tracking-[0.2em]">
-                  Build 20260515
+                  Build 20260516
                 </span>
               </div>
             </div>
@@ -842,32 +842,33 @@ export default function HomePage() {
         <div className="max-w-[1400px] mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-8">
-                <Lock className="w-4 h-4 text-blue-400" />
-                <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">
-                  Enterprise Security
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-teal-500/10 border border-teal-500/20 mb-8">
+                <History className="w-4 h-4 text-teal-400" />
+                <span className="text-[10px] font-black text-teal-400 uppercase tracking-[0.2em]">
+                  Forensic Accountability
                 </span>
               </div>
               <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tighter mb-8 leading-tight">
-                Fortified for <br /> mission critical care.
+                Clinical Integrity, <br /> Built on Forensics.
               </h2>
               <p className="text-lg text-slate-400 mb-12 max-w-xl">
-                We don&apos;t just build software, we build infrastructure. Halkyone
-                is hardened against intrusion and optimized for relentless
-                uptime.
+                We believe clinical software should be verifiable. Halkyone
+                anchors every interaction in a high-fidelity forensic audit
+                trail, providing unprecedented context and accountability for
+                mission-critical care.
               </p>
 
               <div className="space-y-6">
                 {[
                   {
-                    label: "Uptime SLA",
-                    val: "99.999%",
-                    desc: "Guaranteed node availability",
+                    label: "Forensic Depth",
+                    val: "Context-Rich",
+                    desc: "Record-level metadata for every action",
                   },
                   {
-                    label: "Data Encryption",
-                    val: "AES-GCM",
-                    desc: "Military grade at-rest protection",
+                    label: "Data Integrity",
+                    val: "Verifiable",
+                    desc: "Immutable system-of-record architecture",
                   },
                 ].map((stat, i) => (
                   <div
@@ -1007,6 +1008,16 @@ export default function HomePage() {
               </div>
               <div className="overflow-y-auto pr-4 space-y-8 custom-scrollbar">
                 {[
+                  {
+                    v: "v1.1.0",
+                    date: "2026-05-16",
+                    desc: [
+                      "Hardened forensic audit trail with record-level context and searchable descriptions.",
+                      "Implemented global scheduling notifications for real-time team awareness.",
+                      "Stabilized infrastructure via pinned .NET 9 SDK and formal database migrations.",
+                      "Fixed critical scheduling regressions and optimized clinician travel time logic.",
+                    ],
+                  },
                   {
                     v: "v1.0.15",
                     date: "2026-05-15",

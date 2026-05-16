@@ -16,7 +16,8 @@ public record RescheduleAppointmentResponse(Appointment? Appointment, string? Er
 
 public class RescheduleAppointmentCommandHandler(
     IApplicationDbContext context,
-    ISchedulingService schedulingService
+    ISchedulingService schedulingService,
+    INotificationService notificationService
 ) : IRequestHandler<RescheduleAppointmentCommand, RescheduleAppointmentResponse>
 {
     public async Task<RescheduleAppointmentResponse> Handle(
@@ -24,10 +25,13 @@ public class RescheduleAppointmentCommandHandler(
         CancellationToken cancellationToken
     )
     {
-        var appointment = await context.Appointments.FirstOrDefaultAsync(
-            a => a.AppointmentId == request.AppointmentId,
-            cancellationToken
-        );
+        var appointment = await context.Appointments
+            .Include(a => a.Patient)
+            .Include(a => a.Practitioner)
+            .FirstOrDefaultAsync(
+                a => a.AppointmentId == request.AppointmentId,
+                cancellationToken
+            );
 
         if (appointment == null)
         {
@@ -84,6 +88,18 @@ public class RescheduleAppointmentCommandHandler(
         {
             await UpdateNextAppointmentStats(practitionerId.Value, oldStart, cancellationToken);
         }
+
+        // Send Notification
+        var patientName = appointment.Patient != null ? $"{appointment.Patient.FirstName} {appointment.Patient.LastName}" : "Unknown Patient";
+        var clinicianName = appointment.Practitioner != null ? $"{appointment.Practitioner.FirstName} {appointment.Practitioner.LastName}" : "Unknown Clinician";
+
+        await notificationService.SendGlobalNotificationAsync(
+            "Appointment Rescheduled",
+            $"Appointment for {patientName} with {clinicianName} has been moved to {request.NewStart:f}.",
+            Domain.Enums.NotificationPriority.Normal,
+            category: "Scheduling",
+            actionUrl: $"/dashboard/patients/{appointment.PatientId}"
+        );
 
         return new RescheduleAppointmentResponse(appointment);
     }

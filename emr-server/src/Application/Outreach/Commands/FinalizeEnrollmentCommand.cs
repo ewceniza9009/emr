@@ -324,6 +324,14 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
             );
         }
 
+        await _notificationService.SendGlobalNotificationAsync(
+            "Patient Enrolled",
+            $"New patient {patient.FirstName} {patient.LastName} has been successfully enrolled with MRN: {mrn}.",
+            NotificationPriority.Normal,
+            "Enrollment",
+            $"/dashboard/patients/{patient.PatientId}"
+        );
+
         _logger.LogInformation(
             "Successfully enrolled patient and opened care case. MRN: {MRN}, Patient ID: {PatientId}",
             mrn,

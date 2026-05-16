@@ -9,6 +9,7 @@ public class SecurityAuditLogDto
     public string? TargetUserId { get; set; }
     public string? TargetName { get; set; }
     public string? Details { get; set; }
+    public string? RecordDescription { get; set; }
     public string? IpAddress { get; set; }
     public string? UserAgent { get; set; }
     public DateTimeOffset Timestamp { get; set; }

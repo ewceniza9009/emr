@@ -32,10 +32,15 @@ public class ClinicalQuery
         CancellationToken cancellationToken
     )
     {
+        var patient = await context.Patients.AsNoTracking().FirstOrDefaultAsync(p => p.PatientId == patientId, cancellationToken);
+        var patientName = patient != null ? $"{patient.FirstName} {patient.LastName}" : "Unknown Patient";
+
         await _auditService.LogActionAsync(
             "CLINICAL_HISTORY_VIEWED",
-            "Patient clinical encounter history accessed.",
-            patientId.ToString()
+            $"Patient clinical encounter history accessed for {patientName}.",
+            patientId.ToString(),
+            patientName,
+            $"Patient Record: {patientName} ({patientId})"
         );
 
         return context

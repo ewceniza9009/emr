@@ -6,6 +6,7 @@ public interface ISecurityAuditService
         string action,
         string details,
         string? targetUserId = null,
-        string? targetName = null
+        string? targetName = null,
+        string? recordDescription = null
     );
 }

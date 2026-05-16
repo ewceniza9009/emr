@@ -66,12 +66,13 @@ public class DeleteAppointmentCommandHandler(
             await context.SaveChangesAsync(cancellationToken);
         }
 
-        // Notify practitioner
-        await notificationService.SendUserNotificationAsync(
-            practitionerId,
+        // Notify team
+        await notificationService.SendGlobalNotificationAsync(
             "Appointment Cancelled",
-            $"Your appointment with {patientName} on {startTime} has been removed from the schedule.",
-            Domain.Enums.NotificationPriority.High
+            $"Appointment for {patientName} on {startTime} with clinician {practitionerId} has been removed from the schedule.",
+            Domain.Enums.NotificationPriority.High,
+            category: "Scheduling",
+            actionUrl: "/dashboard/schedule"
         );
 
         return new DeleteAppointmentResponse(true);

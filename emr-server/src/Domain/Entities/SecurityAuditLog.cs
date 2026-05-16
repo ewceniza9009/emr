@@ -11,6 +11,7 @@ public class SecurityAuditLog : BaseEntity, ITenantEntity
     public string? TargetUserId { get; set; }
     public string? TargetName { get; set; }
     public string? Details { get; set; }
+    public string? RecordDescription { get; set; }
     public string? IpAddress { get; set; }
     public string? UserAgent { get; set; }
     public Guid TenantId { get; set; }

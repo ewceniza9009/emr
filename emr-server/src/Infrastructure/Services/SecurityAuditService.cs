@@ -31,7 +31,8 @@ public class SecurityAuditService : ISecurityAuditService
         string action,
         string details,
         string? targetUserId = null,
-        string? targetName = null
+        string? targetName = null,
+        string? recordDescription = null
     )
     {
         var userId = _currentUserService.UserId;
@@ -65,6 +66,7 @@ public class SecurityAuditService : ISecurityAuditService
             TargetUserId = targetUserId,
             TargetName = targetName,
             Details = details,
+            RecordDescription = recordDescription,
             IpAddress = _httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress?.ToString(),
             UserAgent = _httpContextAccessor.HttpContext?.Request?.Headers["User-Agent"].ToString(),
             TenantId = _currentUserService.TenantId ?? Guid.Empty,

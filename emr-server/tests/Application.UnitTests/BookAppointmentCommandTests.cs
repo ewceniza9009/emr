@@ -13,15 +13,18 @@ public class BookAppointmentCommandTests
 {
     private readonly Mock<IApplicationDbContext> _mockContext;
     private readonly Mock<ISchedulingService> _mockSchedulingService;
+    private readonly Mock<INotificationService> _mockNotificationService;
     private readonly BookAppointmentCommandHandler _handler;
 
     public BookAppointmentCommandTests()
     {
         _mockContext = new Mock<IApplicationDbContext>();
         _mockSchedulingService = new Mock<ISchedulingService>();
+        _mockNotificationService = new Mock<INotificationService>();
         _handler = new BookAppointmentCommandHandler(
             _mockContext.Object,
-            _mockSchedulingService.Object
+            _mockSchedulingService.Object,
+            _mockNotificationService.Object
         );
 
         // Default successful logistics setups
@@ -61,9 +64,13 @@ public class BookAppointmentCommandTests
 
         var practitioners = new List<Practitioner>().BuildMockDbSet();
         var appointments = new List<Appointment>().BuildMockDbSet();
+        var patients = new List<Patient> { 
+            new Patient { PatientId = command.PatientId, FirstName = "Test", LastName = "Patient" } 
+        }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
+        _mockContext.Setup(c => c.Patients).Returns(patients.Object);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -104,9 +111,13 @@ public class BookAppointmentCommandTests
 
         var practitioners = new List<Practitioner>().BuildMockDbSet();
         var appointments = new List<Appointment> { existingAppointment }.BuildMockDbSet();
+        var patients = new List<Patient> { 
+            new Patient { PatientId = command.PatientId, FirstName = "Test", LastName = "Patient" } 
+        }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
+        _mockContext.Setup(c => c.Patients).Returns(patients.Object);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -139,9 +150,11 @@ public class BookAppointmentCommandTests
 
         var practitioners = new List<Practitioner>().BuildMockDbSet();
         var appointments = new List<Appointment>().BuildMockDbSet();
+        var patients = new List<Patient>().BuildMockDbSet();
 
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
+        _mockContext.Setup(c => c.Patients).Returns(patients.Object);
 
         // Act
         var act = () => _handler.Handle(command, CancellationToken.None);

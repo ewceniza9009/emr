@@ -64,14 +64,6 @@ namespace Infrastructure.Data
                 return;
             }
 
-            try
-            {
-                await context.Database.ExecuteSqlRawAsync(
-                    "ALTER TABLE spiritual_assessments DROP COLUMN IF EXISTS \"ClinicalEncounterEncounterId\";"
-                );
-            }
-            catch { }
-
             await SeedIdentityAsync(
                 context,
                 userManager,

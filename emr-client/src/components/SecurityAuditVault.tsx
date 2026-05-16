@@ -17,6 +17,7 @@ const GET_AUDIT_LOGS = gql`
         auditLogId
         action
         details
+        recordDescription
         timestamp
         userId
         userName
@@ -57,7 +58,8 @@ export default function SecurityAuditVault() {
           { action: { contains: debouncedSearch } },
           { userName: { contains: debouncedSearch } },
           { details: { contains: debouncedSearch } },
-          { targetName: { contains: debouncedSearch } }
+          { targetName: { contains: debouncedSearch } },
+          { recordDescription: { contains: debouncedSearch } }
         ]
       } : null
     },
@@ -332,13 +334,22 @@ export default function SecurityAuditVault() {
                   </div>
                 </div>
 
+                {selectedLog.recordDescription && (
+                  <div className="space-y-3">
+                    <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Record Description</span>
+                    <div className="p-4 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10 text-[11px] font-bold text-[var(--text-primary)]">
+                      {selectedLog.recordDescription}
+                    </div>
+                  </div>
+                )}
+
                 <div className="space-y-3">
                   <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Forensic Payload</span>
                   <div className="p-5 rounded-2xl bg-slate-950 dark:bg-black border border-[var(--card-border)] font-mono text-[10px] leading-relaxed text-emerald-400/80 shadow-inner overflow-x-auto">
-                    {selectedLog.details.startsWith('{') ? (
+                    {selectedLog.details && selectedLog.details.startsWith('{') ? (
                       <pre className="whitespace-pre-wrap break-all">{JSON.stringify(JSON.parse(selectedLog.details), null, 2)}</pre>
                     ) : (
-                      <p className="whitespace-pre-wrap break-all">{selectedLog.details}</p>
+                      <p className="whitespace-pre-wrap break-all">{selectedLog.details || 'No payload data available.'}</p>
                     )}
                   </div>
                 </div>
