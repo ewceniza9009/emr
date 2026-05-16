@@ -40,7 +40,46 @@ const splitLink = authLink.concat(httpLink);
 
 export const client = new ApolloClient({
   link: splitLink,
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Patient: {
+        keyFields: ["patientId"],
+      },
+      PatientOutreach: {
+        keyFields: ["patientOutreachId"],
+      },
+      Practitioner: {
+        keyFields: ["practitionerId"],
+      },
+      Appointment: {
+        keyFields: ["appointmentId"],
+      },
+      ClinicalEncounter: {
+        keyFields: ["clinicalEncounterId"],
+      },
+      CareNavigationCase: {
+        keyFields: ["careNavigationCaseId"],
+      },
+      HealthPlan: {
+        keyFields: ["healthPlanId"],
+      },
+      Facility: {
+        keyFields: ["facilityId"],
+      },
+      OutreachActivity: {
+        keyFields: ["outreachActivityId"],
+      },
+      OutreachContact: {
+        keyFields: ["outreachContactId"],
+      },
+      PatientDocument: {
+        keyFields: ["patientDocumentId"],
+      },
+      EsasAssessment: {
+        keyFields: ["esasAssessmentId"],
+      },
+    },
+  }),
   defaultOptions: {
     watchQuery: {
       fetchPolicy: 'cache-and-network',

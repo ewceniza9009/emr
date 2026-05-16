@@ -242,25 +242,37 @@ export default function Dashboard() {
                 <div className="w-1 h-4 bg-teal-500 rounded-full" />
                 <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Recently Browsed</h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-                {recentItems.map((item) => (
-                  <div
-                    key={`${item.type}-${item.id}`}
-                    onClick={() => router.push(item.type === 'PATIENT' ? `/dashboard/patients/${item.id}` : `/dashboard/outreach/${item.id}/enroll`)}
-                    className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-teal-500/30 hover:bg-teal-500/5 transition-all cursor-pointer group text-center flex flex-col items-center gap-2"
-                  >
-                    <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-teal-400 group-hover:scale-110 group-hover:bg-teal-500/10 transition-all`}>
-                      {item.type === 'PATIENT' ? <UserCircle className="w-5 h-5" /> : <Target className="w-5 h-5" />}
-                    </div>
-                    <div className="min-w-0 w-full">
-                      <p className="text-[10px] font-black text-[var(--text-primary)] truncate uppercase tracking-tight">{item.firstName} {item.lastName}</p>
-                      <div className="flex items-center justify-center gap-1.5 mt-1">
-                        <span className={`w-1 h-1 rounded-full ${item.type === 'PATIENT' ? 'bg-blue-500' : 'bg-teal-500'}`} />
-                        <p className="text-[8px] font-bold text-[var(--text-muted)] truncate tracking-widest uppercase">{item.subtitle || 'NO MRN'}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-10 gap-3">
+                {recentItems.map((item) => {
+                  const isDuplicateName = recentItems.filter(r => r.firstName === item.firstName && r.lastName === item.lastName).length > 1;
+                  return (
+                    <div
+                      key={`${item.type}-${item.id}`}
+                      onClick={() => router.push(item.type === 'PATIENT' ? `/dashboard/patients/${item.id}` : `/dashboard/outreach/${item.id}/enroll`)}
+                      className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-teal-500/30 hover:bg-teal-500/5 transition-all cursor-pointer group text-center flex flex-col items-center gap-2 relative overflow-hidden"
+                    >
+                      {item.visitCount && item.visitCount > 1 && (
+                        <div className="absolute -top-1 -right-1 bg-teal-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-lg z-10">
+                          {item.visitCount}x
+                        </div>
+                      )}
+                      <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-teal-400 group-hover:scale-110 group-hover:bg-teal-500/10 transition-all`}>
+                        {item.type === 'PATIENT' ? <UserCircle className="w-5 h-5" /> : <Target className="w-5 h-5" />}
+                      </div>
+                      <div className="min-w-0 w-full">
+                        <p className={`text-[10px] font-black text-[var(--text-primary)] truncate uppercase tracking-tight ${isDuplicateName ? 'text-amber-200/90' : ''}`}>
+                          {item.firstName} {item.lastName}
+                        </p>
+                        <div className="flex items-center justify-center gap-1.5 mt-1">
+                          <span className={`w-1 h-1 rounded-full ${item.type === 'PATIENT' ? 'bg-blue-500' : 'bg-teal-500'}`} />
+                          <p className={`text-[8px] font-bold truncate tracking-widest uppercase ${isDuplicateName ? 'text-teal-400' : 'text-[var(--text-muted)]'}`}>
+                            {item.subtitle || 'NO MRN'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </motion.div>
           )}
