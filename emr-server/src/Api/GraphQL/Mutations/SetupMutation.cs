@@ -319,7 +319,9 @@ public class SetupMutation
         [Service] IApplicationDbContext context
     )
     {
-        var existing = await context.Questionnaires.FindAsync(input.QuestionnaireId);
+        var existing = await context.Questionnaires
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(q => q.QuestionnaireId == input.QuestionnaireId);
         if (existing == null)
             return false;
         existing.Name = input.Name;

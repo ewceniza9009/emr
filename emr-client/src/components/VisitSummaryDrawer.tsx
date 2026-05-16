@@ -126,6 +126,7 @@ const GET_ASSESSMENT_RESPONSES = gql`
         questionnaireId
         name
         description
+        schemaJson
         questions {
           questionId
           text

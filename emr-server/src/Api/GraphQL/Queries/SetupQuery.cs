@@ -45,7 +45,7 @@ public class SetupQuery
     [UseFiltering]
     [UseSorting]
     public IQueryable<Questionnaire> GetQuestionnaires([Service] IApplicationDbContext context) =>
-        context.Questionnaires.AsNoTracking();
+        context.Questionnaires.IgnoreQueryFilters().AsNoTracking();
 
     [Authorize(Policy = "CanViewPatients")]
     [UseProjection]

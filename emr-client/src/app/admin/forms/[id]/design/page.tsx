@@ -15,12 +15,13 @@ const SurveyCreatorWidget = dynamic(
 
 const GET_FORM = gql`
   query GetForm($id: UUID!) {
-    questionnaires(where: { questionnaireId: { eq: $id } }) {
+    questionnaireById(id: $id) {
       questionnaireId
       name
       schemaJson
       assessmentType
       questions {
+        questionId
         text
         type
         optionsJson
@@ -50,7 +51,7 @@ export default function FormDesignerPage() {
   const params = useParams();
   const id = params.id as string;
   const { data, loading, error } = useQuery(GET_FORM, { variables: { id } });
-  const form = data?.questionnaires?.[0];
+  const form = data?.questionnaireById;
 
   const [updateForm, { loading: saving }] = useMutation(UPDATE_FORM, {
     refetchQueries: ["GetQuestionnaires"]

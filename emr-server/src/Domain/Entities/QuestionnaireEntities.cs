@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Domain.Common;
 using Domain.Enums;
 
@@ -5,6 +6,7 @@ namespace Domain.Entities;
 
 public class Questionnaire : BaseEntity, ITenantEntity
 {
+    [Key]
     public Guid QuestionnaireId { get; set; } = Guid.NewGuid();
     public Guid TenantId { get; set; }
     public string Name { get; set; } = null!;
@@ -17,6 +19,7 @@ public class Questionnaire : BaseEntity, ITenantEntity
 
 public class Question : BaseEntity, ITenantEntity
 {
+    [Key]
     public Guid QuestionId { get; set; } = Guid.NewGuid();
     public Guid TenantId { get; set; }
     public Guid QuestionnaireId { get; set; }
@@ -31,6 +34,7 @@ public class Question : BaseEntity, ITenantEntity
 
 public class AssessmentResponse : BaseEntity, ITenantEntity
 {
+    [Key]
     public Guid AssessmentResponseId { get; set; } = Guid.NewGuid();
     public Guid TenantId { get; set; }
     public Guid QuestionnaireId { get; set; }

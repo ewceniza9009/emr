@@ -2,6 +2,19 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.2.4] - 2026-05-16
+- Stabilized Clinical Assessment hydration by prioritizing schema-based parsing for modern questionnaires.
+- Resolved 'No response recorded' display bug in historical assessment breakdowns.
+- Implemented Smart Data Parser for clinical notes to improve readability of structured responses.
+- Optimized the 'Guided Visit' navigation with polished, centered tactical action buttons.
+- Finalized SurveyJS Neural Engine integration with high-fidelity custom rendering fallback.
+
+## [1.2.3] - 2026-05-16
+- Stabilized the Clinical Form Registry by implementing direct ID-based lookups, resolving the 'FORM REGISTRY NODE NOT FOUND' error.
+- Hardened questionnaire resolution logic in the Admin Designer and Guided Visit flows with global query filter bypassing.
+- Ensured consistent clinical metadata hydration across administrative and practitioner-facing assessment modules.
+- Resolved GraphQL filtering ambiguity in the master questionnaire registry via dedicated backend query endpoints.
+
 ## [1.2.2] - 2026-05-16
 - Resolved critical Playwright CI failures by stabilizing the enrollment redirection sequence.
 - Replaced hard navigations with soft routing in the Enrollment Workspace to preserve network request integrity.

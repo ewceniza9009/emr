@@ -1,7 +1,17 @@
 {
-  "version": "1.2.2",
-  "build": "20260516",
+  "version": "1.2.3",
+  "build": "20260516.2",
   "changelog": [
+    {
+      "v": "v1.2.3",
+      "date": "2026-05-16",
+      "items": [
+        "Stabilized the Clinical Form Registry by implementing direct ID-based lookups, resolving the 'FORM REGISTRY NODE NOT FOUND' error.",
+        "Hardened questionnaire resolution logic in the Admin Designer and Guided Visit flows with global query filter bypassing.",
+        "Ensured consistent clinical metadata hydration across administrative and practitioner-facing assessment modules.",
+        "Resolved GraphQL filtering ambiguity in the master questionnaire registry via dedicated backend query endpoints."
+      ]
+    },
     {
       "v": "v1.2.2",
       "date": "2026-05-16",

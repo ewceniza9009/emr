@@ -204,27 +204,28 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
         ))}
       </div>
 
-      {/* Navigation Cluster */}
-      <div className="pt-8 flex gap-4 border-t border-[var(--divider-color)]">
-        <button
-          onClick={onBack}
-          className="flex-1 py-3.5 rounded-xl bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:text-[var(--text-primary)] hover:bg-[var(--background)]/80 transition-all active:scale-95"
-        >
-          Back
-        </button>
-        <button
-          onClick={() => onComplete(answers, calculateScore())}
-          className={`flex-1 py-3.5 rounded-xl text-white font-black text-[10px] uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 ${
-            isComplete 
-              ? "bg-indigo-500 shadow-indigo-500/20 hover:opacity-90 active:scale-[0.98]" 
-              : "bg-slate-700/20 text-slate-500/50 cursor-not-allowed grayscale"
-          }`}
-          disabled={!isComplete}
-        >
-          {isComplete ? "Confirm Assessment" : "Awaiting Data"} <ChevronRight className="w-4 h-4" />
-        </button>
+      {/* Action Buttons */}
+      <div className="pt-12 pb-20 flex justify-center border-t border-[var(--divider-color)] mt-8">
+        <div className="w-full max-w-[600px] flex gap-4">
+          <button
+            onClick={onBack}
+            className="flex-1 py-4 rounded-2xl bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] font-black text-[11px] uppercase tracking-[0.2em] hover:text-[var(--text-primary)] hover:border-indigo-500/50 transition-all active:scale-95 shadow-sm"
+          >
+            Back to Vitals
+          </button>
+          <button
+            onClick={() => onComplete(answers, calculateScore())}
+            disabled={!isComplete}
+            className={`flex-[1.5] py-4 rounded-2xl text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-[0_20px_50px_rgba(99,102,241,0.2)] transition-all flex items-center justify-center gap-3 ${
+              isComplete 
+                ? "bg-indigo-500 hover:bg-indigo-600 active:scale-[0.98]" 
+                : "bg-slate-700/20 text-slate-500/50 cursor-not-allowed grayscale"
+            }`}
+          >
+            {isComplete ? "Confirm & Save Assessment" : "Awaiting Data"} <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
   );
 }
-

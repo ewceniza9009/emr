@@ -1,7 +1,28 @@
 {
-  "version": "1.2.2",
-  "build": "20260516",
+  "version": "1.2.4",
+  "build": "20260516.3",
   "changelog": [
+    {
+      "v": "v1.2.4",
+      "date": "2026-05-16",
+      "items": [
+        "Stabilized Clinical Assessment hydration by prioritizing schema-based parsing for modern questionnaires.",
+        "Resolved 'No response recorded' display bug in historical assessment breakdowns.",
+        "Implemented Smart Data Parser for clinical notes to improve readability of structured responses.",
+        "Optimized the 'Guided Visit' navigation with polished, centered tactical action buttons.",
+        "Finalized SurveyJS Neural Engine integration with high-fidelity custom rendering fallback."
+      ]
+    },
+    {
+      "v": "v1.2.3",
+      "date": "2026-05-16",
+      "items": [
+        "Stabilized the Clinical Form Registry by implementing direct ID-based lookups, resolving the 'FORM REGISTRY NODE NOT FOUND' error.",
+        "Hardened questionnaire resolution logic in the Admin Designer and Guided Visit flows with global query filter bypassing.",
+        "Ensured consistent clinical metadata hydration across administrative and practitioner-facing assessment modules.",
+        "Resolved GraphQL filtering ambiguity in the master questionnaire registry via dedicated backend query endpoints."
+      ]
+    },
     {
       "v": "v1.2.2",
       "date": "2026-05-16",

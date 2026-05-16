@@ -97,7 +97,7 @@ export default function SecurityAuditVault() {
 
   return (
     <PermissionGate permission="setup:manage">
-      <div className="relative flex flex-col gap-6 animate-in fade-in duration-700 px-8 pt-6 pb-12">
+      <div className="relative flex flex-col gap-6 animate-in fade-in duration-700 px-8 pt-6 pb-6 h-full overflow-hidden">
         {/* Table Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0 px-2">
           <div className="flex items-center gap-6">

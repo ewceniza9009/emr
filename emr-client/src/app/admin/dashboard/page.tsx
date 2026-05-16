@@ -661,7 +661,7 @@ function AdminDashboardContent() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-5 space-y-4 scroll-smooth flex flex-col">
+        <main className={`flex-1 ${activeTab === 'audit' ? 'overflow-hidden' : 'overflow-y-auto'} p-5 space-y-4 scroll-smooth flex flex-col`}>
           {activeTab !== "settings" &&
             activeTab !== "utilization" &&
             activeTab !== "identity" &&
