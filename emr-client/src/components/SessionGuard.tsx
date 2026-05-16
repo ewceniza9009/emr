@@ -35,8 +35,8 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
                <ShieldAlert className="w-10 h-10" />
             </div>
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-white">Session Security</h1>
-              <p className="text-slate-400">Your secure clinical session is about to expire for patient safety. Please re-authenticate to preserve progress.</p>
+              <h1 className="text-3xl font-bold text-[var(--text-primary)]">Session Security</h1>
+              <p className="text-[var(--text-secondary)]">Your secure clinical session is about to expire for patient safety. Please re-authenticate to preserve progress.</p>
             </div>
             <div className="flex flex-col gap-4">
                <button 
@@ -47,7 +47,7 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
                </button>
                <button 
                  onClick={() => signOut({ callbackUrl: "/login" })}
-                 className="w-full py-4 rounded-2xl bg-white/5 text-slate-400 font-bold hover:text-white transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest"
+                 className="w-full py-4 rounded-2xl bg-white/5 text-slate-400 font-bold hover:text-[var(--text-primary)] transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-widest"
                >
                  <LogOut className="w-4 h-4" /> Secure Logout
                </button>
