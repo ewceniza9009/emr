@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Dev from "@/components/Dev";
+import changelogData from "@/data/changelog.json";
 
 export default function HomePage() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -208,7 +209,7 @@ export default function HomePage() {
                 </span>
                 <div className="w-1 h-1 rounded-full bg-slate-600" />
                 <span className="text-[9px] md:text-[10px] font-mono text-slate-500 uppercase tracking-[0.2em]">
-                  Build 20260516
+                  Build {changelogData.build}
                 </span>
               </div>
             </div>
@@ -1007,43 +1008,7 @@ export default function HomePage() {
                 </button>
               </div>
               <div className="overflow-y-auto pr-4 space-y-8 custom-scrollbar">
-                {[
-                  {
-                    v: "v1.1.0",
-                    date: "2026-05-16",
-                    desc: [
-                      "Hardened forensic audit trail with record-level context and searchable descriptions.",
-                      "Implemented global scheduling notifications for real-time team awareness.",
-                      "Stabilized infrastructure via pinned .NET 9 SDK and formal database migrations.",
-                      "Fixed critical scheduling regressions and optimized clinician travel time logic.",
-                    ],
-                  },
-                  {
-                    v: "v1.0.15",
-                    date: "2026-05-15",
-                    desc: [
-                      "Automated billing currency matching for different regions and timezones.",
-                      "Improved accuracy of logistical calculations across international borders.",
-                      "Enhanced regional configuration stability for global clinical nodes.",
-                    ],
-                  },
-                  {
-                    v: "v1.0.14",
-                    date: "2026-05-15",
-                    desc: [
-                      "Improved clinic scheduling reliability and finalized identity security controls.",
-                      "Finalized the Identity Vault with Break-Glass emergency access protocols.",
-                    ],
-                  },
-                  {
-                    v: "v1.0.13",
-                    date: "2026-05-14",
-                    desc: [
-                      "Enhanced system stability and patched high-priority security vulnerabilities.",
-                      "Resolved deployment blockers to ensure maximum uptime during updates.",
-                    ],
-                  },
-                ].map((e, i) => (
+                {changelogData.changelog.map((e, i) => (
                   <div
                     key={i}
                     className="pl-6 border-l-2 border-white/10 relative"
@@ -1058,7 +1023,7 @@ export default function HomePage() {
                       </span>
                     </div>
                     <ul className="space-y-2">
-                      {e.desc.map((d, j) => (
+                      {e.items.map((d, j) => (
                         <li
                           key={j}
                           className="text-sm text-slate-300 flex gap-2"
