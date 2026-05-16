@@ -328,21 +328,20 @@ The Halkyone Clinical OS has undergone rigorous hardening to transition from a h
 Halkyone maintains a **100% Reliability Target** via automated mission-critical audits.
 
 ### 🛡️ Playwright E2E Verification
-
 The full clinical lifecycle is validated on every push:
 
-- **✓ Dashboard Metrics**: Hero hydration and active caseload verification.
-- **✓ Outreach Worklist**: Registry search and lead tracking audit.
-- **✓ Patient Registry**: 10-patient seeded table integrity.
-- **✓ Master Schedule**: Calendar rendering and grid navigation.
-- **✓ Clinical Booking**: Full-path search, temporal slot selection, and appointment persistence.
-- **✓ Telemetry Hub**: SignalR node connectivity and real-time vital blip monitoring.
+- **✓ Patient Enrollment**: Multi-phase workflow (Admin, Legal, Clinical, Logistics) converting leads to MRN-verified patients.
+- **✓ Clinical Booking**: Search-integrated appointment scheduling with high-precision temporal slot resolution.
+- **✓ Dashboard & Registry**: Verification of clinical HUD metrics and high-density patient table hydration.
+- **✓ Master Schedule**: Multi-view calendar rendering, grid navigation, and encounter initialization.
+- **✓ Outreach Worklist**: Lead management tracking, search performance, and enrollment drawer triggers.
+- **✓ Telemetry Hub**: Verification of the clinical grid scanner and real-time monitoring interface.
 
 ### 🧪 Unit & Integration Testing
-
-- **Backend Persistence**: EF Core tenant isolation and migration stability.
-- **Clinical Logic**: MediatR command integrity and scoring instrument accuracy.
-- **Frontend Hygiene**: Next.js App Router navigation and hydration stability.
+- **Clinical Logistics**: Precision-clamped travel time, geospatial distancing, and shift boundary validation in `SchedulingService`.
+- **Command Integrity**: Atomic verification of `BookAppointment` and `FinalizeEnrollment` state transitions and MRN generation.
+- **Infrastructure Stability**: EF Core multi-tenant isolation, migration integrity, and notification service orchestration.
+- **Frontend Hygiene**: Next.js App Router navigation, hydration stability, and session context verification.
 
 ---
 
