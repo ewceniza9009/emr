@@ -46,8 +46,8 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
       await expect(confirmReverseBtn).toBeVisible({ timeout: 5000 });
       await confirmReverseBtn.click();
 
-      // Wait for the reversal to complete
-      await page.waitForTimeout(2000);
+      // Wait for the reversal to complete in the UI
+      await expect(statusCell).not.toContainText('ENROLLED', { timeout: 15000 });
 
       // Close the drawer
       const closeBtn = page.locator('button').filter({ has: page.locator('svg.lucide-x') }).first();
@@ -150,14 +150,20 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     await expect(enrollBtn).toBeEnabled({ timeout: 15000 });
     await enrollBtn.click();
 
-    // Wait for the mutation to complete
+    // Wait for the mutation to complete and capture response safely
     const enrollmentResponse = await enrollmentResponsePromise;
-    const responseBody = await enrollmentResponse.json();
-
-    if (responseBody.errors) {
-      console.error('[ENROLLMENT ERRORS]', JSON.stringify(responseBody.errors));
-    } else {
-      console.log('[ENROLLMENT OK] Patient ID:', responseBody.data?.finalizeEnrollment);
+    
+    // Safety check: ensure response is still valid before reading JSON
+    let responseBody;
+    try {
+      responseBody = await enrollmentResponse.json();
+      if (responseBody.errors) {
+        console.error('[ENROLLMENT ERRORS]', JSON.stringify(responseBody.errors));
+      } else {
+        console.log('[ENROLLMENT OK] Patient ID:', responseBody.data?.finalizeEnrollment);
+      }
+    } catch (e) {
+      console.log('[NETWORK NOTE] Response body could not be parsed, proceeding to URL verification.');
     }
 
     // VERIFY REDIRECTION

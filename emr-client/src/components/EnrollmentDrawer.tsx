@@ -940,7 +940,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: any) {
       });
       if (data?.finalizeEnrollment) {
         showToast("Enrollment successful. Redirecting to registry...", "success");
-        window.location.href = `/dashboard/patients/${data.finalizeEnrollment}`;
+        router.push(`/dashboard/patients/${data.finalizeEnrollment}`);
       } else {
         showToast(
           "Enrollment successful, but registry ID missing. Redirecting to Patient List.",
