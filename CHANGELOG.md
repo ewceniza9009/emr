@@ -7,6 +7,10 @@ All notable changes to the Halkyone Clinical OS will be documented in this file.
 - Implemented global scheduling notifications for real-time team awareness.
 - Stabilized infrastructure via pinned .NET 9 SDK and formal database migrations.
 - Fixed critical scheduling regressions and optimized clinician travel time logic.
+- Hardened Enrollment Workspace with strict Logistics Gating and contextual prerequisite checks.
+- Refactored enrollment action terminology from COMMIT to ENROLL for clinical clarity.
+- Resolved Npgsql database type mismatch for BiologicalSex in the outreach registry.
+- Updated Playwright test suite to resolve strict-mode locator ambiguity in the enrollment flow.
 
 ## [1.0.15] - 2026-05-15
 - Automated billing currency matching for different regions and timezones.
