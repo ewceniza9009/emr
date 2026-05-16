@@ -38,6 +38,8 @@ import CommandModal from "@/components/CommandModal";
 import { useCommandModal } from "@/components/CommandModalProvider";
 import { migrateDirectiveType } from "@/lib/clinical-mappings";
 import { PermissionGate } from "@/components/PermissionGate";
+import SmartTextarea from "@/components/SmartTextarea";
+
 
 const SKIP_REASONS = [
   "PATIENT_REFUSED",
@@ -185,10 +187,8 @@ export default function GuidedVisitPage() {
   const [skippingAssessment, setSkippingAssessment] = useState<{ id: string, name: string } | null>(null);
   const { confirm, alert } = useCommandModal();
   const [navSearch, setNavSearch] = useState("");
-  const [showSmartPhrases, setShowSmartPhrases] = useState<string | null>(null); // 's' | 'o' | 'a' | 'p' | null
-  const [phraseFilter, setPhraseFilter] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
+
   const { data: allQuestionnairesData } = useQuery(GET_ALL_QUESTIONNAIRES);
   const smartPhrases = allQuestionnairesData?.smartPhrases || [];
 
@@ -458,72 +458,6 @@ export default function GuidedVisitPage() {
       clearPersistence();
     } catch (err) {
       showToast("Failed to save clinical note. Please try again.", "error");
-    }
-  };
-
-  const handleSmartPhraseChange = (id: string, value: string, selectionStart: number) => {
-    setNote(prev => ({ ...prev, [id]: value }));
-
-    const textBeforeCursor = value.slice(0, selectionStart);
-    const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
-
-    if (lastSlashIdx !== -1) {
-      const segment = textBeforeCursor.slice(lastSlashIdx);
-      if (segment.startsWith("/") && !segment.includes(" ")) {
-        setShowSmartPhrases(id);
-        setPhraseFilter(segment.slice(1).toLowerCase());
-        setSelectedIndex(0);
-
-        // Rough estimate of position - simplified for SOAPs
-        const lines = textBeforeCursor.split('\n');
-        const top = Math.min(lines.length * 20 + 20, 150);
-        const left = Math.min(lines[lines.length - 1].length * 8 + 20, 200);
-        setPopupPosition({ top, left });
-      } else {
-        setShowSmartPhrases(null);
-      }
-    } else {
-      setShowSmartPhrases(null);
-    }
-  };
-
-  const handleSmartPhraseKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>, id: string) => {
-    if (showSmartPhrases !== id) return;
-
-    const filtered = smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter));
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev + 1) % filtered.length);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev - 1 + filtered.length) % filtered.length);
-    } else if (e.key === "Enter" || e.key === "Tab") {
-      if (filtered.length > 0) {
-        e.preventDefault();
-        const phrase = filtered[selectedIndex].templateText;
-        const currentText = note[id as keyof typeof note];
-        const cursor = e.currentTarget.selectionStart;
-        const textBefore = currentText.slice(0, cursor);
-        const lastSlashIdx = textBefore.lastIndexOf("/");
-
-        if (lastSlashIdx !== -1) {
-          const newText = currentText.slice(0, lastSlashIdx) + phrase + currentText.slice(cursor);
-          setNote(prev => ({ ...prev, [id]: newText }));
-
-          // Reset focus position after state update
-          const textarea = e.currentTarget;
-          setTimeout(() => {
-            textarea.focus();
-            const newPos = lastSlashIdx + phrase.length;
-            textarea.setSelectionRange(newPos, newPos);
-          }, 0);
-        }
-        setShowSmartPhrases(null);
-      }
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      setShowSmartPhrases(null);
     }
   };
 
@@ -951,6 +885,8 @@ export default function GuidedVisitPage() {
                         }));
                       }}
                       onBack={() => setExecutingAssessment(false)}
+                      smartPhrases={smartPhrases}
+
                       onComplete={async (answers, score) => {
                         try {
                           await logAssessmentResponse({
@@ -1112,48 +1048,14 @@ export default function GuidedVisitPage() {
                           <span className="w-4 h-4 rounded bg-[var(--primary)] text-white flex items-center justify-center text-[9px]">{section.id.toUpperCase()}</span>
                           {section.label}
                         </label>
-                        <textarea
+                        <SmartTextarea
                           value={note[section.id as keyof typeof note]}
-                          onChange={e => handleSmartPhraseChange(section.id, e.target.value, e.target.selectionStart)}
-                          onKeyDown={e => handleSmartPhraseKeyDown(e, section.id)}
+                          onChange={val => setNote(prev => ({ ...prev, [section.id]: val }))}
+                          smartPhrases={smartPhrases}
                           placeholder={section.placeholder}
                           className="w-full bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] rounded-xl p-4 text-sm min-h-[120px] focus:border-[var(--primary)]/50 outline-none transition-all placeholder:text-[var(--text-muted)]/20 leading-relaxed text-[var(--foreground)]"
                         />
-                        {showSmartPhrases === section.id && (
-                          <div
-                            style={{ top: `${popupPosition.top}px`, left: `${popupPosition.left}px` }}
-                            className="absolute w-64 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-xl shadow-2xl z-[150] overflow-hidden animate-in fade-in zoom-in duration-200 backdrop-blur-xl"
-                          >
-                            <div className="p-3 border-b border-[var(--card-border)] bg-[var(--primary)]/5 flex items-center justify-between">
-                              <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Smart Phrases</p>
-                              <span className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">ESC</span>
-                            </div>
-                            <div className="max-h-48 overflow-y-auto custom-scrollbar">
-                              {smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter)).map((p: any, idx: number) => (
-                                <div
-                                  key={p.shortcut}
-                                  onClick={() => {
-                                    const phrase = p.templateText;
-                                    const currentText = note[section.id as keyof typeof note];
-                                    const lastSlashIdx = currentText.slice(0, currentText.length).lastIndexOf("/"); // This is a bit simplified
-                                    const newText = currentText.slice(0, Math.max(0, lastSlashIdx)) + phrase;
-                                    setNote(prev => ({ ...prev, [section.id]: newText }));
-                                    setShowSmartPhrases(null);
-                                  }}
-                                  onMouseEnter={() => setSelectedIndex(idx)}
-                                  className={`p-3 cursor-pointer border-b border-[var(--card-border)] last:border-0 transition-all flex flex-col ${idx === selectedIndex ? 'bg-[var(--primary)]/20 border-l-4 border-l-[var(--primary)]' : 'hover:bg-[var(--primary)]/10'
-                                    }`}
-                                >
-                                  <div className="flex items-center justify-between mb-0.5">
-                                    <span className={`text-[9px] font-black uppercase ${idx === selectedIndex ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'}`}>{p.shortcut}</span>
-                                    <ChevronRight className={`w-3 h-3 transition-transform ${idx === selectedIndex ? 'translate-x-1 text-[var(--primary)]' : 'text-[var(--text-muted)]'}`} />
-                                  </div>
-                                  <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest truncate">{p.label}</p>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+
                       </div>
                     ))}
                   </div>

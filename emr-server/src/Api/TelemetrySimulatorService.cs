@@ -64,7 +64,12 @@ public class TelemetrySimulatorService : BackgroundService
                     .Distinct()
                     .ToList();
 
-                _logger.LogDebug("Telemetry Simulator found {Count} active patients.", activePatientIds.Count);
+                // Get global sync interval
+                var config = await dbContext.TenantConfigurations.IgnoreQueryFilters().FirstOrDefaultAsync(stoppingToken);
+                var syncIntervalMs = config?.IotSyncIntervalMs ?? 5000;
+
+                _logger.LogDebug("Telemetry Simulator using {Ms}ms interval for {Count} active patients.", syncIntervalMs, activePatientIds.Count);
+
 
                 foreach (var patientId in activePatientIds)
                 {
@@ -79,19 +84,17 @@ public class TelemetrySimulatorService : BackgroundService
                         .Clients.Group(patientId.ToString())
                         .SendAsync("ReceiveVitals", vitals, stoppingToken);
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while simulating telemetry data.");
-            }
-
-            try
-            {
-                await Task.Delay(2000, stoppingToken);
+                // Use the dynamic interval from DB
+                await Task.Delay(syncIntervalMs, stoppingToken);
             }
             catch (OperationCanceledException)
             {
                 break;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while simulating telemetry data.");
+                await Task.Delay(5000, stoppingToken); // Fallback delay on error
             }
         }
     }

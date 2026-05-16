@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery, gql } from "@apollo/client";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+
 import { 
   Save, 
   X, 
@@ -23,6 +24,8 @@ import EsasScoring from "@/components/EsasScoring";
 import PpsSelector from "@/components/PpsSelector";
 import * as signalR from "@microsoft/signalr";
 import { PermissionGate } from "@/components/PermissionGate";
+import SmartTextarea from "@/components/SmartTextarea";
+import { useSmartPhrases } from "@/hooks/useSmartPhrases";
 
 const CREATE_ENCOUNTER = gql`
   mutation CreateEncounter($input: CreateClinicalEncounterCommandInput!) {
@@ -60,7 +63,8 @@ export default function NewAssessmentPage() {
   const [esasScores, setEsasScores] = useState<Record<string, number>>({});
   const [ppsScore, setPpsScore] = useState<number>(100);
 
-  const { register, handleSubmit, setValue, getValues, watch, formState: { errors } } = useForm({
+  const { control, handleSubmit, setValue, formState: { errors } } = useForm({
+
     defaultValues: {
       patientId: params.id,
       encounterDate: new Date().toISOString(),
@@ -82,101 +86,8 @@ export default function NewAssessmentPage() {
   const [createEncounter] = useMutation(CREATE_ENCOUNTER);
   const [logEsas] = useMutation(LOG_ESAS_ASSESSMENT);
   const [logVital] = useMutation(LOG_VITAL_SIGN);
-  const { data: smartPhraseData } = useQuery(GET_SMART_PHRASES);
-  const smartPhrases = smartPhraseData?.smartPhrases || [];
+  const { smartPhrases } = useSmartPhrases();
 
-  const [showSmartPhrases, setShowSmartPhrases] = useState<string | null>(null);
-  const [phraseFilter, setPhraseFilter] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
-
-  const [isIotActive, setIsIotActive] = useState(false);
-  const [telemetryEnabled, setTelemetryEnabled] = useState(false);
-  
-  const telemetryEnabledRef = useRef(telemetryEnabled);
-  useEffect(() => {
-    telemetryEnabledRef.current = telemetryEnabled;
-  }, [telemetryEnabled]);
-
-  // IoT Telemetry Integration
-  useEffect(() => {
-    if (!params.id) return;
-
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl(process.env.NEXT_PUBLIC_SIGNALR_ENDPOINT || "http://localhost:34732/hubs/telemetry")
-      .withAutomaticReconnect()
-      .build();
-
-    const startConnection = async () => {
-      try {
-        await connection.start();
-        await connection.invoke("JoinPatientStream", params.id);
-
-        connection.on("ReceiveVitals", (data: any) => {
-          setIsIotActive(true);
-          if (telemetryEnabledRef.current) {
-            if (data.heartRate) setValue("heartRate", data.heartRate);
-            if (data.spO2) setValue("oxygenSaturation", data.spO2);
-            if (data.temperature) setValue("temperature", data.temperature);
-          }
-        });
-      } catch (err) {
-        console.error("SignalR Connection Error (Assessment): ", err);
-      }
-    };
-
-    startConnection();
-    return () => { connection.stop(); };
-  }, [params.id, setValue]);
-
-  const handleSmartPhraseChange = (field: string, value: string, cursor: number) => {
-    setValue(field as any, value);
-    
-    const textBeforeCursor = value.slice(0, cursor);
-    const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
-    
-    if (lastSlashIdx !== -1) {
-      const segment = textBeforeCursor.slice(lastSlashIdx);
-      if (segment.startsWith("/") && !segment.includes(" ")) {
-        setShowSmartPhrases(field);
-        setPhraseFilter(segment.slice(1).toLowerCase());
-        setSelectedIndex(0);
-        
-        // Position popup
-        setPopupPosition({ top: 40, left: 0 });
-      } else {
-        setShowSmartPhrases(null);
-      }
-    } else {
-      setShowSmartPhrases(null);
-    }
-  };
-
-  const handleSmartPhraseKeyDown = (e: React.KeyboardEvent, field: string) => {
-    if (!showSmartPhrases) return;
-    
-    const filtered = smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter));
-    
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev + 1) % filtered.length);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev - 1 + filtered.length) % filtered.length);
-    } else if (e.key === "Enter" || e.key === "Tab") {
-      if (filtered.length > 0) {
-        e.preventDefault();
-        const phrase = filtered[selectedIndex].templateText;
-        const currentText = getValues(field as any) || "";
-        const lastSlashIdx = currentText.lastIndexOf("/");
-        const newText = currentText.slice(0, lastSlashIdx) + phrase;
-        setValue(field as any, newText);
-        setShowSmartPhrases(null);
-      }
-    } else if (e.key === "Escape") {
-      setShowSmartPhrases(null);
-    }
-  };
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
@@ -242,47 +153,45 @@ export default function NewAssessmentPage() {
     }
   };
 
-  const renderSmartPhrases = (field: string) => {
-    const filtered = smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter));
-    if (filtered.length === 0) return null;
+  const [isIotActive, setIsIotActive] = useState(false);
+  const [telemetryEnabled, setTelemetryEnabled] = useState(false);
+  
+  const telemetryEnabledRef = useRef(telemetryEnabled);
+  useEffect(() => {
+    telemetryEnabledRef.current = telemetryEnabled;
+  }, [telemetryEnabled]);
 
-    return (
-      <div 
-        style={{ top: `${popupPosition.top}px`, left: `${popupPosition.left}px` }}
-        className="absolute w-64 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-xl shadow-2xl z-[150] overflow-hidden animate-in fade-in zoom-in duration-200 backdrop-blur-xl"
-      >
-        <div className="p-3 border-b border-[var(--card-border)] bg-[var(--primary)]/5 flex items-center justify-between">
-          <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Smart Phrases</p>
-          <span className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">ESC</span>
-        </div>
-        <div className="max-h-48 overflow-y-auto custom-scrollbar">
-          {filtered.map((p: any, idx: number) => (
-            <div
-              key={p.shortcut}
-              onClick={() => {
-                const phrase = p.templateText;
-                const currentText = getValues(field as any) || "";
-                const lastSlashIdx = currentText.lastIndexOf("/");
-                const newText = currentText.slice(0, lastSlashIdx) + phrase;
-                setValue(field as any, newText);
-                setShowSmartPhrases(null);
-              }}
-              onMouseEnter={() => setSelectedIndex(idx)}
-              className={`p-3 cursor-pointer border-b border-[var(--card-border)] last:border-0 transition-all flex flex-col ${
-                idx === selectedIndex ? 'bg-[var(--primary)]/20 border-l-4 border-l-[var(--primary)]' : 'hover:bg-[var(--primary)]/10'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-0.5">
-                <span className={`text-[9px] font-black uppercase ${idx === selectedIndex ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'}`}>{p.shortcut}</span>
-                <ChevronRight className={`w-3 h-3 transition-transform ${idx === selectedIndex ? 'translate-x-1 text-[var(--primary)]' : 'text-[var(--text-muted)]'}`} />
-              </div>
-              <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest truncate">{p.label}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
+  // IoT Telemetry Integration
+  useEffect(() => {
+    if (!params.id) return;
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(process.env.NEXT_PUBLIC_SIGNALR_ENDPOINT || "http://localhost:34732/hubs/telemetry")
+      .withAutomaticReconnect()
+      .build();
+
+    const startConnection = async () => {
+      try {
+        await connection.start();
+        await connection.invoke("JoinPatientStream", params.id);
+
+        connection.on("ReceiveVitals", (data: any) => {
+          setIsIotActive(true);
+          if (telemetryEnabledRef.current) {
+            if (data.heartRate) setValue("heartRate", data.heartRate);
+            if (data.spO2) setValue("oxygenSaturation", data.spO2);
+            if (data.temperature) setValue("temperature", data.temperature);
+          }
+        });
+      } catch (err) {
+        console.error("SignalR Connection Error (Assessment): ", err);
+      }
+    };
+
+    startConnection();
+    return () => { connection.stop(); };
+  }, [params.id, setValue]);
+
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -358,45 +267,60 @@ export default function NewAssessmentPage() {
               <label className="clinical-label">Heart Rate</label>
               <div className="relative">
                 <Activity className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-                <input {...register("heartRate")} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
+                <Controller name="heartRate" control={control} render={({ field }) => (
+                  <input {...field} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
+                )} />
               </div>
             </div>
             <div className="space-y-1">
               <label className="clinical-label">Temp (°C)</label>
               <div className="relative">
                 <Thermometer className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-                <input {...register("temperature")} type="number" step="0.1" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
+                <Controller name="temperature" control={control} render={({ field }) => (
+                  <input {...field} type="number" step="0.1" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
+                )} />
               </div>
             </div>
             <div className="space-y-1">
               <label className="clinical-label">Respi (RR)</label>
               <div className="relative">
                 <Wind className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-                <input {...register("respiratoryRate")} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
+                <Controller name="respiratoryRate" control={control} render={({ field }) => (
+                  <input {...field} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
+                )} />
               </div>
             </div>
             <div className="space-y-1">
               <label className="clinical-label">SpO2 (%)</label>
               <div className="relative">
                 <Droplets className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-                <input {...register("oxygenSaturation")} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
+                <Controller name="oxygenSaturation" control={control} render={({ field }) => (
+                  <input {...field} type="number" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
+                )} />
               </div>
             </div>
             <div className="space-y-1">
               <label className="clinical-label">Weight (kg)</label>
               <div className="relative">
                 <Scale className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-                <input {...register("weight")} type="number" step="0.1" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
+                <Controller name="weight" control={control} render={({ field }) => (
+                  <input {...field} type="number" step="0.1" className="w-full premium-input rounded-xl py-3 pl-10 text-[var(--text-primary)] font-bold" />
+                )} />
               </div>
             </div>
             <div className="space-y-1">
               <label className="clinical-label">BP (SYS/DIA)</label>
               <div className="flex items-center gap-2">
-                <input {...register("systolicBp")} type="number" className="w-full premium-input rounded-xl py-3 text-center text-[var(--text-primary)] font-bold" placeholder="120" />
+                <Controller name="systolicBp" control={control} render={({ field }) => (
+                  <input {...field} type="number" className="w-full premium-input rounded-xl py-3 text-center text-[var(--text-primary)] font-bold" placeholder="120" />
+                )} />
                 <span className="text-[var(--text-muted)] opacity-40">/</span>
-                <input {...register("diastolicBp")} type="number" className="w-full premium-input rounded-xl py-3 text-center text-[var(--text-primary)] font-bold" placeholder="80" />
+                <Controller name="diastolicBp" control={control} render={({ field }) => (
+                  <input {...field} type="number" className="w-full premium-input rounded-xl py-3 text-center text-[var(--text-primary)] font-bold" placeholder="80" />
+                )} />
               </div>
             </div>
+
           </div>
         </div>
 
@@ -416,14 +340,19 @@ export default function NewAssessmentPage() {
             <div className="space-y-1">
               <label className="clinical-label">Chief Complaint</label>
               <div className="relative">
-                <input 
-                  {...register("chiefComplaint")} 
-                  onChange={e => handleSmartPhraseChange("chiefComplaint", e.target.value, e.target.selectionStart || 0)}
-                  onKeyDown={e => handleSmartPhraseKeyDown(e, "chiefComplaint")}
-                  className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-bold" 
-                  placeholder="Reason for today's visit..." 
+                <Controller 
+                  name="chiefComplaint" 
+                  control={control} 
+                  render={({ field }) => (
+                    <SmartTextarea 
+                      value={field.value}
+                      onChange={field.onChange}
+                      smartPhrases={smartPhrases}
+                      placeholder="Reason for today's visit..." 
+                      className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-bold min-h-[60px]" 
+                    />
+                  )} 
                 />
-                {showSmartPhrases === "chiefComplaint" && renderSmartPhrases("chiefComplaint")}
               </div>
             </div>
             
@@ -431,27 +360,37 @@ export default function NewAssessmentPage() {
               <div className="space-y-1">
                 <label className="clinical-label">Subjective Findings</label>
                 <div className="relative">
-                  <textarea 
-                    {...register("subjective")} 
-                    onChange={e => handleSmartPhraseChange("subjective", e.target.value, e.target.selectionStart || 0)}
-                    onKeyDown={e => handleSmartPhraseKeyDown(e, "subjective")}
-                    className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[120px]" 
-                    placeholder="Patient's self-reported symptoms..." 
+                  <Controller 
+                    name="subjective" 
+                    control={control} 
+                    render={({ field }) => (
+                      <SmartTextarea 
+                        value={field.value}
+                        onChange={field.onChange}
+                        smartPhrases={smartPhrases}
+                        placeholder="Patient's self-reported symptoms..." 
+                        className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[120px]" 
+                      />
+                    )} 
                   />
-                  {showSmartPhrases === "subjective" && renderSmartPhrases("subjective")}
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="clinical-label">Objective Findings</label>
                 <div className="relative">
-                  <textarea 
-                    {...register("objective")} 
-                    onChange={e => handleSmartPhraseChange("objective", e.target.value, e.target.selectionStart || 0)}
-                    onKeyDown={e => handleSmartPhraseKeyDown(e, "objective")}
-                    className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[120px]" 
-                    placeholder="Physical exam and clinical data..." 
+                  <Controller 
+                    name="objective" 
+                    control={control} 
+                    render={({ field }) => (
+                      <SmartTextarea 
+                        value={field.value}
+                        onChange={field.onChange}
+                        smartPhrases={smartPhrases}
+                        placeholder="Physical exam and clinical data..." 
+                        className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[120px]" 
+                      />
+                    )} 
                   />
-                  {showSmartPhrases === "objective" && renderSmartPhrases("objective")}
                 </div>
               </div>
             </div>
@@ -459,16 +398,22 @@ export default function NewAssessmentPage() {
             <div className="space-y-1">
               <label className="clinical-label">Assessment & Clinical Plan</label>
               <div className="relative">
-                <textarea 
-                  {...register("plan")} 
-                  onChange={e => handleSmartPhraseChange("plan", e.target.value, e.target.selectionStart || 0)}
-                  onKeyDown={e => handleSmartPhraseKeyDown(e, "plan")}
-                  className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[150px]" 
-                  placeholder="Diagnosis and next steps in care..." 
+                <Controller 
+                  name="plan" 
+                  control={control} 
+                  render={({ field }) => (
+                    <SmartTextarea 
+                      value={field.value}
+                      onChange={field.onChange}
+                      smartPhrases={smartPhrases}
+                      placeholder="Diagnosis and next steps in care..." 
+                      className="w-full premium-input rounded-xl py-3 px-4 text-[var(--text-primary)] font-medium min-h-[150px]" 
+                    />
+                  )} 
                 />
-                {showSmartPhrases === "plan" && renderSmartPhrases("plan")}
               </div>
             </div>
+
           </div>
         </div>
 

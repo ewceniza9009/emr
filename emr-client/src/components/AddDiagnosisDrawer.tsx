@@ -6,6 +6,9 @@ import {
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
 import { useToast } from "./ToastProvider";
+import SmartTextarea from "./SmartTextarea";
+import { useSmartPhrases } from "@/hooks/useSmartPhrases";
+
 
 const ADD_DIAGNOSIS = gql`
   mutation AddDiagnosis($input: AddDiagnosisCommandInput!) {
@@ -22,6 +25,8 @@ interface Props {
 
 export default function AddDiagnosisDrawer({ isOpen, onClose, patientId, onSuccess }: Props) {
   const { showToast } = useToast();
+  const { smartPhrases } = useSmartPhrases();
+
   const [form, setForm] = useState({
     icd10Code: "",
     description: "",
@@ -100,14 +105,16 @@ export default function AddDiagnosisDrawer({ isOpen, onClose, patientId, onSucce
 
                    <div className="space-y-2">
                       <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Condition Description</label>
-                      <textarea 
+                      <SmartTextarea 
                         className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-4 px-6 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all min-h-[100px]"
                         value={form.description}
-                        onChange={e => setForm({...form, description: e.target.value})}
+                        onChange={val => setForm({...form, description: val})}
+                        smartPhrases={smartPhrases}
                         placeholder="Clinical description of the condition..."
                         required
                       />
                    </div>
+
 
                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">

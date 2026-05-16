@@ -17,6 +17,9 @@ import {
   RotateCcw
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
+import SmartTextarea from "./SmartTextarea";
+import { useSmartPhrases } from "@/hooks/useSmartPhrases";
+
 
 const UPDATE_DIRECTIVE = gql`
   mutation UpdateAdvanceDirective($command: UpdateAdvanceDirectiveCommandInput!) {
@@ -43,7 +46,9 @@ interface DirectiveDetailModalProps {
 }
 
 export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, directive }: DirectiveDetailModalProps) {
+  const { smartPhrases } = useSmartPhrases();
   const [isEditing, setIsEditing] = useState(false);
+
   const [editNotes, setEditNotes] = useState("");
 
   const [updateDirective, { loading: updating }] = useMutation(UPDATE_DIRECTIVE, {
@@ -101,17 +106,17 @@ export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, direc
 
         {/* Modal */}
         <div
-          className="relative w-full max-w-lg flex flex-col bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-[2.5rem] shadow-[0_40px_120px_rgba(0,0,0,0.6)] animate-in zoom-in-95 fade-in duration-300 overflow-hidden"
+          className="relative w-full max-w-lg flex flex-col bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-[1.5rem] shadow-[0_40px_120px_rgba(0,0,0,0.6)] animate-in zoom-in-95 fade-in duration-300 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Accent bar */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-400" />
 
           {/* Header */}
-          <div className="flex items-start justify-between gap-4 px-8 pt-8 pb-6 border-b border-[var(--card-border)] shrink-0">
+          <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-4 border-b border-[var(--card-border)] shrink-0">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-6 h-6 text-emerald-500" />
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5 text-emerald-500" />
               </div>
               <div>
                 <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">
@@ -164,10 +169,12 @@ export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, direc
               </p>
               
               {isEditing ? (
-                <textarea
-                  className="w-full h-40 bg-[var(--input-bg)] border border-[var(--primary)]/30 rounded-2xl p-6 text-sm leading-relaxed text-white font-medium outline-none focus:border-[var(--primary)] transition-all"
+                <SmartTextarea
+                  style={{ color: 'var(--text-primary)' }}
+                  className="w-full h-40 bg-[var(--input-bg)] border border-[var(--primary)]/30 rounded-2xl p-6 text-sm leading-relaxed !text-[var(--text-primary)] font-medium outline-none focus:border-[var(--primary)] transition-all"
                   value={editNotes}
-                  onChange={(e) => setEditNotes(e.target.value)}
+                  onChange={(val) => setEditNotes(val)}
+                  smartPhrases={smartPhrases}
                   placeholder="Enter updated clinical instructions or limitations..."
                 />
               ) : (

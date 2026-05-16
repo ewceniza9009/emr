@@ -2,6 +2,13 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.2.1] - 2026-05-16
+- Implemented SmartPhrase support (via '/') in the Clinical Assessment SOAP notes for accelerated documentation.
+- Consolidated real-time SignalR and IoT Telemetry controls into a dedicated administrative tab.
+- Refactored TelemetrySimulatorService to eliminate hardcoded refresh rates and respect database-backed sync intervals.
+- Elevated the Outreach & Enrollment dashboard with real-time aggregated metrics and database binding.
+- Resolved scoping and compilation errors in core infrastructure telemetry simulation loops.
+
 ## [1.2.0] - 2026-05-16
 - Implemented Administrative Telemetry and SignalR stream controls in the Registry Settings.
 - Hardened clinical data visibility with strict Apollo Cache normalization and ID-linked data retrieval.

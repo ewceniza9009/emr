@@ -15,8 +15,10 @@ import {
   Target,
   UserSearch,
   ClipboardCheck,
-  HeartPulse
+  HeartPulse,
+  Settings
 } from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import EnrollmentDrawer from "@/components/EnrollmentDrawer";
 import { useToast } from "@/components/ToastProvider";
@@ -44,6 +46,12 @@ const GET_OUTREACH_LEADS = gql`
         latestActivityReason
       }
       totalCount
+    }
+    outreachMetrics {
+      newLeadsCount
+      contactedCount
+      interestedCount
+      enrolledCount
     }
   }
 `;
@@ -145,31 +153,64 @@ export default function OutreachPage() {
       />
 
       {/* Outreach Overview Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "New Leads", count: "14", icon: Target, trend: "+2 this wk", color: "text-blue-500", glow: "shadow-blue-500/20" },
-          { label: "In Contact", count: "08", icon: PhoneCall, trend: "active", color: "text-purple-500", glow: "shadow-purple-500/20" },
-          { label: "Interested", count: "05", icon: Zap, trend: "+1 today", color: "text-teal-500", glow: "shadow-teal-500/20" },
-          { label: "Enrolled", count: "12", icon: CheckCircle2, trend: "+3 this wk", color: "text-emerald-500", glow: "shadow-emerald-500/20" },
+          { label: "New Leads", count: data?.outreachMetrics?.newLeadsCount ?? 0, icon: Target, trend: "+2 this wk", color: "text-blue-400", bg: "from-blue-500/10", accent: "bg-blue-500" },
+          { label: "In Contact", count: data?.outreachMetrics?.contactedCount ?? 0, icon: PhoneCall, trend: "active", color: "text-purple-400", bg: "from-purple-500/10", accent: "bg-purple-500" },
+          { label: "Interested", count: data?.outreachMetrics?.interestedCount ?? 0, icon: Zap, trend: "+1 today", color: "text-amber-400", bg: "from-amber-500/10", accent: "bg-amber-500" },
+          { label: "Enrolled", count: data?.outreachMetrics?.enrolledCount ?? 0, icon: CheckCircle2, trend: "+3 this wk", color: "text-emerald-400", bg: "from-emerald-500/10", accent: "bg-emerald-500" },
         ].map((stat) => (
-          <div key={stat.label} className={`group bg-[var(--card-bg)] rounded-xl p-4 border border-[var(--card-border)] hover:border-white/20 transition-all cursor-default relative overflow-hidden shadow-lg ${stat.glow} hover:shadow-2xl`}>
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-            <div className="flex items-center justify-between relative z-10">
-              <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
-                <stat.icon className="w-4 h-4" />
+          <div 
+            key={stat.label} 
+            className="group relative bg-[var(--card-bg)]/40 backdrop-blur-xl rounded-3xl p-5 border border-white/5 hover:border-white/10 transition-all duration-500 cursor-default overflow-hidden shadow-2xl hover:-translate-y-1"
+          >
+            {/* Mesh Gradient Background */}
+            <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${stat.bg} to-transparent blur-3xl opacity-60 group-hover:opacity-100 transition-opacity duration-700`} />
+            
+            {/* Ghosted Background Icons */}
+            <div className={`absolute -bottom-4 -right-4 ${stat.color} opacity-[0.07] group-hover:opacity-[0.12] transition-all duration-700 transform rotate-12 group-hover:rotate-0 group-hover:scale-125 pointer-events-none`}>
+              <stat.icon className="w-28 h-28" />
+            </div>
+            
+            <div className={`absolute top-4 right-12 ${stat.color} opacity-[0.03] group-hover:opacity-[0.06] transition-all duration-1000 transform animate-[spin_20s_linear_infinite] pointer-events-none`}>
+              <Settings className="w-20 h-20" />
+            </div>
+            
+            <div className="flex flex-col h-full relative z-10">
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-3 rounded-2xl bg-white/5 backdrop-blur-md flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform duration-500 border border-white/5`}>
+                  <stat.icon className="w-5 h-5" />
+                </div>
+                <div className="flex flex-col items-end">
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-white/5 border border-white/5 mb-2">
+                    <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${stat.accent}`} />
+                    <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">{stat.trend}</span>
+                  </div>
+                </div>
               </div>
-              <div className="text-right">
-                {loading ? <Skeleton className="h-6 w-10 ml-auto" /> : <span className="text-xl font-black text-[var(--text-primary)] tracking-tighter">{stat.count}</span>}
-                <div className="flex items-center gap-1 mt-0.5">
-                  <div className={`w-1 h-1 rounded-full animate-pulse ${stat.color === 'text-emerald-500' ? 'bg-emerald-500' : 'bg-teal-500'}`} />
-                  <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] opacity-60 group-hover:opacity-100 transition-opacity">{stat.trend}</span>
+
+              <div className="mt-auto">
+                <div className="flex items-baseline gap-1">
+                  {loading ? (
+                    <Skeleton className="h-9 w-12 bg-white/5" />
+                  ) : (
+                    <span className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">
+                      {stat.count.toString().padStart(2, '0')}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-60">
+                    {stat.label}
+                  </p>
+                  <ArrowRight className="w-3.5 h-3.5 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
                 </div>
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between">
-              <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{stat.label}</p>
-              <ArrowRight className="w-3 h-3 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-            </div>
+
+            {/* Bottom Accent Line */}
+            <div className={`absolute bottom-0 left-0 h-1 w-0 group-hover:w-full transition-all duration-700 opacity-30 group-hover:opacity-100 ${stat.accent}`} />
+            <div className={`absolute bottom-0 left-0 h-1 w-full opacity-10 ${stat.accent}`} />
           </div>
         ))}
       </div>

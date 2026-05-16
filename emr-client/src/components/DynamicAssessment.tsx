@@ -6,6 +6,8 @@ import { Model } from "survey-core";
 import { Survey } from "survey-react-ui";
 import "survey-core/survey-core.min.css";
 import { useMemo } from "react";
+import SmartTextarea from "./SmartTextarea";
+
 
 interface Question {
   questionId: string;
@@ -29,9 +31,12 @@ interface Props {
   onComplete: (answers: Record<string, any>, totalScore?: number) => void;
   onBack: () => void;
   onPartialUpdate?: (answers: Record<string, any>) => void;
+  smartPhrases?: any[];
 }
 
-export default function DynamicAssessment({ questionnaire, initialAnswers = {}, onComplete, onBack, onPartialUpdate }: Props) {
+
+export default function DynamicAssessment({ questionnaire, initialAnswers = {}, onComplete, onBack, onPartialUpdate, smartPhrases = [] }: Props) {
+
   const [answers, setAnswers] = useState<Record<string, any>>(initialAnswers);
 
   // Flattened Questions from either Legacy or Modern Schema
@@ -184,15 +189,17 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
               </div>
             )}
 
-            {/* Clean Tactical Text Area */}
+            {/* Clean Tactical Text Area with Smart Phrases */}
             {q.type === "TEXT" && (
-              <textarea
+              <SmartTextarea
                 value={answers[q.questionId] ?? ""}
-                onChange={(e) => handleAnswer(q.questionId, e.target.value)}
+                onChange={(val) => handleAnswer(q.questionId, val)}
+                smartPhrases={smartPhrases}
                 placeholder="INPUT CLINICAL OBSERVATIONS..."
                 className="ml-4 w-full bg-[var(--background)] border border-[var(--divider-color)] rounded-xl p-6 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/30 focus:border-indigo-500/50 outline-none transition-all min-h-[120px] uppercase tracking-tighter"
               />
             )}
+
           </div>
         ))}
       </div>

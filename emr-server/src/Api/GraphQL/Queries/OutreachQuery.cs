@@ -1,6 +1,7 @@
 using Api.GraphQL.Attributes;
 using Application.Common.Interfaces;
 using Domain.Entities;
+using Domain.Enums;
 using HotChocolate.Authorization;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,4 +54,24 @@ public class OutreachQuery
             .PatientOutreaches.Where(o => o.PatientOutreachId == outreachId)
             .AsNoTracking();
     }
+
+    [Authorize(Policy = "CanManageOutreach")]
+    public async Task<OutreachMetricsDto> GetOutreachMetrics([Service] IApplicationDbContext context)
+    {
+        return new OutreachMetricsDto
+        {
+            NewLeadsCount = await context.PatientOutreaches.CountAsync(o => o.Status == OutreachStatus.Lead),
+            ContactedCount = await context.PatientOutreaches.CountAsync(o => o.Status == OutreachStatus.Contacted),
+            InterestedCount = await context.PatientOutreaches.CountAsync(o => o.Status == OutreachStatus.Interested),
+            EnrolledCount = await context.PatientOutreaches.CountAsync(o => o.Status == OutreachStatus.Enrolled)
+        };
+    }
+}
+
+public class OutreachMetricsDto
+{
+    public int NewLeadsCount { get; set; }
+    public int ContactedCount { get; set; }
+    public int InterestedCount { get; set; }
+    public int EnrolledCount { get; set; }
 }

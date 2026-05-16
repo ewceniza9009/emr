@@ -249,10 +249,10 @@ export default function Dashboard() {
                     <div
                       key={`${item.type}-${item.id}`}
                       onClick={() => router.push(item.type === 'PATIENT' ? `/dashboard/patients/${item.id}` : `/dashboard/outreach/${item.id}/enroll`)}
-                      className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-teal-500/30 hover:bg-teal-500/5 transition-all cursor-pointer group text-center flex flex-col items-center gap-2 relative overflow-hidden"
+                      className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-teal-500/30 hover:bg-teal-500/5 transition-all cursor-pointer group text-center flex flex-col items-center gap-2 relative"
                     >
                       {item.visitCount && item.visitCount > 1 && (
-                        <div className="absolute -top-1 -right-1 bg-teal-500 text-[8px] font-black text-white px-1.5 py-0.5 rounded-bl-lg shadow-lg z-10">
+                        <div className="absolute top-1 right-1 bg-teal-500 text-[7px] font-black text-white px-2 py-0.5 rounded-full shadow-lg z-10 border border-white/20">
                           {item.visitCount}x
                         </div>
                       )}

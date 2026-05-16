@@ -1,7 +1,18 @@
 {
-  "version": "1.2.0",
+  "version": "1.2.1",
   "build": "20260516",
   "changelog": [
+    {
+      "v": "v1.2.1",
+      "date": "2026-05-16",
+      "items": [
+        "Implemented SmartPhrase support (via '/') in the Clinical Assessment SOAP notes for accelerated documentation.",
+        "Consolidated real-time SignalR and IoT Telemetry controls into a dedicated administrative tab.",
+        "Refactored TelemetrySimulatorService to eliminate hardcoded refresh rates and respect database-backed sync intervals.",
+        "Elevated the Outreach & Enrollment dashboard with real-time aggregated metrics and database binding.",
+        "Resolved scoping and compilation errors in core infrastructure telemetry simulation loops."
+      ]
+    },
     {
       "v": "v1.2.0",
       "date": "2026-05-16",

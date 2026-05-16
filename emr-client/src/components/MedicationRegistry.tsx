@@ -19,6 +19,9 @@ import {
 import HalcyonPortal from "./Portal";
 import MedicationDetailDrawer from "./MedicationDetailDrawer";
 import { PermissionGate } from "./PermissionGate";
+import SmartTextarea from "./SmartTextarea";
+import { useSmartPhrases } from "@/hooks/useSmartPhrases";
+
 
 const GET_PRESCRIPTIONS = gql`
   query GetPrescriptions($patientId: UUID!) {
@@ -51,6 +54,8 @@ const ADD_PRESCRIPTION = gql`
 
 export default function MedicationRegistry({ patientId }: { patientId: string }) {
   const { showToast } = useToast();
+  const { smartPhrases } = useSmartPhrases();
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState<any>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
@@ -276,6 +281,18 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
                          </div>
                       </div>
                    </div>
+
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Clinical Indications</label>
+                      <SmartTextarea 
+                        value={newMed.indications}
+                        onChange={(val) => setNewMed({...newMed, indications: val})}
+                        smartPhrases={smartPhrases}
+                        placeholder="Clinical rationale for this medication..." 
+                        className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl py-3.5 px-5 text-[var(--text-primary)] text-sm font-black focus:border-emerald-500/50 transition-all outline-none min-h-[80px]" 
+                      />
+                   </div>
+
 
                    {/* E-Signature Section */}
                    <div className="p-6 rounded-[2rem] bg-blue-500/5 border border-blue-500/10 space-y-4">
