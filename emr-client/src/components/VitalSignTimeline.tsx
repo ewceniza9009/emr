@@ -21,6 +21,7 @@ const GET_ENCOUNTERS = gql`
       type
       encounterDate
       vitalSigns {
+        vitalId
         heartRate
         bloodPressureSystolic
         bloodPressureDiastolic

@@ -12,14 +12,17 @@ public class NotificationService : INotificationService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _dbSetFactory;
     private readonly IHubContext<NotificationHub> _hubContext;
+    private readonly ICurrentUserService _currentUserService;
 
     public NotificationService(
         IDbContextFactory<ApplicationDbContext> dbSetFactory,
-        IHubContext<NotificationHub> hubContext
+        IHubContext<NotificationHub> hubContext,
+        ICurrentUserService currentUserService
     )
     {
         _dbSetFactory = dbSetFactory;
         _hubContext = hubContext;
+        _currentUserService = currentUserService;
     }
 
     public async Task SendGlobalNotificationAsync(
@@ -45,8 +48,13 @@ public class NotificationService : INotificationService
         context.Notifications.Add(notification);
         await context.SaveChangesAsync();
 
-        // Broadcast to all connected clients
-        await _hubContext.Clients.All.SendAsync("ReceiveNotification", notification);
+        // Broadcast to all connected clients if enabled
+        var tenantId = _currentUserService.TenantId;
+        var config = await context.TenantConfigurations.FirstOrDefaultAsync(t => t.TenantId == tenantId);
+        if (config == null || config.EnableSignalR)
+        {
+            await _hubContext.Clients.All.SendAsync("ReceiveNotification", notification);
+        }
     }
 
     public async Task SendUserNotificationAsync(
@@ -74,12 +82,17 @@ public class NotificationService : INotificationService
         context.Notifications.Add(notification);
         await context.SaveChangesAsync();
 
-        // Send to specific user group
-        await _hubContext
-            .Clients.Group($"User_{userId}")
-            .SendAsync("ReceiveNotification", notification);
-        // Also send by user id directly if SignalR is configured with UserIdProvider
-        await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", notification);
+        // Send to specific user group if enabled
+        var tenantId = _currentUserService.TenantId;
+        var config = await context.TenantConfigurations.FirstOrDefaultAsync(t => t.TenantId == tenantId);
+        if (config == null || config.EnableSignalR)
+        {
+            await _hubContext
+                .Clients.Group($"User_{userId}")
+                .SendAsync("ReceiveNotification", notification);
+            // Also send by user id directly if SignalR is configured with UserIdProvider
+            await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", notification);
+        }
     }
 
     public async Task<List<Notification>> GetUserNotificationsAsync(string userId, int count = 20)

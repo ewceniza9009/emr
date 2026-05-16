@@ -23,6 +23,9 @@ public class TenantConfiguration : BaseEntity, ITenantEntity
     public double EngineSafetyDistKm { get; set; } = 5.0;
 
     // Telemetry & Triage
+    public bool EnableTelemetry { get; set; } = true;
+    public bool EnableSignalR { get; set; } = true;
+    public int TelemetryDelaySeconds { get; set; } = 5;
     public int IotSyncIntervalMs { get; set; } = 5000;
     public int UrgentPainThreshold { get; set; } = 7;
     public int UrgentWellbeingThreshold { get; set; } = 7;

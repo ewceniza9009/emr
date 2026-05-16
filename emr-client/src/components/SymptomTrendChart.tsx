@@ -15,6 +15,7 @@ import {
 const GET_ESAS_HISTORY = gql`
   query GetEsasHistory($patientId: UUID!) {
     esasHistoryByPatient(patientId: $patientId) {
+      assessmentId
       pain
       tiredness
       anxiety

@@ -205,7 +205,7 @@ export default function HomePage() {
               </Dev>
               <div className="inline-flex items-center gap-3 opacity-60">
                 <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                  Halkyone OS 2.0 is Live
+                  Halkyone OS {changelogData.version} is Live
                 </span>
                 <div className="w-1 h-1 rounded-full bg-slate-600" />
                 <span className="text-[9px] md:text-[10px] font-mono text-slate-500 uppercase tracking-[0.2em]">

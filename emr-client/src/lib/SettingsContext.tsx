@@ -26,6 +26,9 @@ const GET_TENANT_CONFIG = gql`
       iotSyncIntervalMs
       urgentPainThreshold
       urgentWellbeingThreshold
+      enableTelemetry
+      enableSignalR
+      telemetryDelaySeconds
     }
   }
 `;
@@ -66,6 +69,9 @@ export interface TenantSettings {
   iotSyncIntervalMs: number;
   urgentPainThreshold: number;
   urgentWellbeingThreshold: number;
+  enableTelemetry: boolean;
+  enableSignalR: boolean;
+  telemetryDelaySeconds: number;
 }
 
 const currencySymbols: Record<string, string> = {
@@ -113,6 +119,9 @@ export const DEFAULT_TENANT: TenantSettings = {
   iotSyncIntervalMs: 5000,
   urgentPainThreshold: 7,
   urgentWellbeingThreshold: 7,
+  enableTelemetry: true,
+  enableSignalR: true,
+  telemetryDelaySeconds: 5,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -158,6 +167,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         iotSyncIntervalMs: config.iotSyncIntervalMs || 5000,
         urgentPainThreshold: config.urgentPainThreshold || 7,
         urgentWellbeingThreshold: config.urgentWellbeingThreshold || 7,
+        enableTelemetry: config.enableTelemetry ?? true,
+        enableSignalR: config.enableSignalR ?? true,
+        telemetryDelaySeconds: config.telemetryDelaySeconds || 5,
       });
     }
   }, [tenantData]);
@@ -220,6 +232,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             iotSyncIntervalMs: merged.iotSyncIntervalMs,
             urgentPainThreshold: merged.urgentPainThreshold,
             urgentWellbeingThreshold: merged.urgentWellbeingThreshold,
+            enableTelemetry: merged.enableTelemetry,
+            enableSignalR: merged.enableSignalR,
+            telemetryDelaySeconds: merged.telemetryDelaySeconds,
             isActive: true,
           },
         },

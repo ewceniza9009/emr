@@ -150,10 +150,12 @@ const GET_PATIENT_DETAILS = gql`
         status
         encounterDate
         practitioner {
+          practitionerId
           firstName
           lastName
         }
         clinicalNotes {
+          noteId
           content
           type
         }
@@ -177,7 +179,9 @@ const GET_PATIENT_APPOINTMENTS = gql`
           lastName
         }
         encounters {
+          encounterId
           practitioner {
+            practitionerId
             firstName
             lastName
           }

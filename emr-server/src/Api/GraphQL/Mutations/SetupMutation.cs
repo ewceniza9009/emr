@@ -540,7 +540,10 @@ public class SetupMutation
         double? EngineSafetyDistKm,
         int? IotSyncIntervalMs,
         int? UrgentPainThreshold,
-        int? UrgentWellbeingThreshold
+        int? UrgentWellbeingThreshold,
+        bool? EnableTelemetry,
+        bool? EnableSignalR,
+        int? TelemetryDelaySeconds
     );
 
     [Authorize(Policy = "CanManageSetup")]
@@ -585,6 +588,12 @@ public class SetupMutation
             existing.UrgentPainThreshold = input.UrgentPainThreshold.Value;
         if (input.UrgentWellbeingThreshold.HasValue)
             existing.UrgentWellbeingThreshold = input.UrgentWellbeingThreshold.Value;
+        if (input.EnableTelemetry.HasValue)
+            existing.EnableTelemetry = input.EnableTelemetry.Value;
+        if (input.EnableSignalR.HasValue)
+            existing.EnableSignalR = input.EnableSignalR.Value;
+        if (input.TelemetryDelaySeconds.HasValue)
+            existing.TelemetryDelaySeconds = input.TelemetryDelaySeconds.Value;
 
         await context.SaveChangesAsync(default);
         return true;

@@ -2,6 +2,14 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.2.0] - 2026-05-16
+- Implemented Administrative Telemetry and SignalR stream controls in the Registry Settings.
+- Hardened clinical data visibility with strict Apollo Cache normalization and ID-linked data retrieval.
+- Stabilized the Visit Summary engine with consolidated GraphQL queries and resilient error handling.
+- Optimized the NotificationService with conditional SignalR broadcast bypass for tenant configuration.
+- Purged tactical test seed data and implemented forensic cleanup for recently browsed clinical records.
+- Resolved Apollo cache normalization errors for Vitals, Symptoms, and Assessment responses.
+
 ## [1.1.0] - 2026-05-16
 - Hardened forensic audit trail with record-level context and searchable descriptions.
 - Implemented global scheduling notifications for real-time team awareness.

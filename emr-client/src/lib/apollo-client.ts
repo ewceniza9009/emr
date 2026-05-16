@@ -55,10 +55,10 @@ export const client = new ApolloClient({
         keyFields: ["appointmentId"],
       },
       ClinicalEncounter: {
-        keyFields: ["clinicalEncounterId"],
+        keyFields: ["encounterId"],
       },
       CareNavigationCase: {
-        keyFields: ["careNavigationCaseId"],
+        keyFields: ["caseId"],
       },
       HealthPlan: {
         keyFields: ["healthPlanId"],
@@ -76,7 +76,37 @@ export const client = new ApolloClient({
         keyFields: ["patientDocumentId"],
       },
       EsasAssessment: {
-        keyFields: ["esasAssessmentId"],
+        keyFields: ["assessmentId"],
+      },
+      Allergy: {
+        keyFields: ["allergyId"],
+      },
+      Diagnosis: {
+        keyFields: ["diagnosisId"],
+      },
+      VitalSign: {
+        keyFields: ["vitalId"],
+      },
+      ClinicalNote: {
+        keyFields: ["noteId"],
+      },
+      AssessmentResponse: {
+        keyFields: ["assessmentResponseId"],
+      },
+      AssessmentResponseDto: {
+        keyFields: ["assessmentResponseId"],
+      },
+      SpiritualAssessment: {
+        keyFields: ["spiritualAssessmentId"],
+      },
+      AdvanceDirective: {
+        keyFields: ["advanceDirectiveId"],
+      },
+      Questionnaire: {
+        keyFields: ["questionnaireId"],
+      },
+      Question: {
+        keyFields: ["questionId"],
       },
     },
   }),

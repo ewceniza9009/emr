@@ -40,11 +40,13 @@ import { PermissionGate } from "./PermissionGate";
 const GET_VISIT_SUMMARY = gql`
   query GetVisitSummary($patientId: UUID!, $appointmentId: UUID!) {
     appointment(id: $appointmentId) {
+      appointmentId
       scheduledStart
       scheduledEnd
       visitType
       modality
       practitioner {
+        practitionerId
         firstName
         lastName
       }
@@ -58,15 +60,13 @@ const GET_VISIT_SUMMARY = gql`
       admittedAt
       dischargedAt
       practitioner {
+        practitionerId
         firstName
         lastName
         position
       }
-      clinicalNotes {
-        type
-        content
-      }
       vitalSigns {
+        vitalId
         heartRate
         bloodPressureSystolic
         bloodPressureDiastolic
@@ -74,8 +74,15 @@ const GET_VISIT_SUMMARY = gql`
         oxygenSaturation
         recordedAt
       }
+      clinicalNotes {
+        noteId
+        type
+        content
+        createdAt
+      }
     }
     esasHistory: esasHistoryByPatient(patientId: $patientId) {
+      assessmentId
       encounterId
       pain
       tiredness
@@ -88,22 +95,30 @@ const GET_VISIT_SUMMARY = gql`
       wellbeing
       assessedAt
     }
+    advanceDirectives: advanceDirectivesByPatient(patientId: $patientId) {
+      advanceDirectiveId
+      type
+      notes
+      effectiveDate
+    }
   }
 `;
 
 const GET_ASSESSMENT_RESPONSES = gql`
-  query GetAssessmentResponses($encounterId: UUID!, $patientId: UUID!) {
+  query GetAssessmentResponses($encounterId: UUID!) {
     assessmentResponses: assessmentResponsesByEncounter(encounterId: $encounterId) {
       assessmentResponseId
       totalScore
       completedAt
       answersJson
       assessor {
+        practitionerId
         firstName
         lastName
         position
       }
       questionnaire {
+        questionnaireId
         name
         description
         questions {
@@ -124,14 +139,10 @@ const GET_ASSESSMENT_RESPONSES = gql`
       addressInCare
       religiousPreference
     }
-    advanceDirectives: advanceDirectivesByPatient(patientId: $patientId) {
-      advanceDirectiveId
-      type
-      notes
-      effectiveDate
-    }
   }
 `;
+
+
 
 interface VisitSummaryDrawerProps {
   isOpen: boolean;
@@ -143,18 +154,20 @@ interface VisitSummaryDrawerProps {
 export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appointmentId }: VisitSummaryDrawerProps) {
   const { data: session } = useSession();
   const { alert } = useCommandModal();
-  const { data, loading, error } = useQuery(GET_VISIT_SUMMARY, {
+  const { data, loading, error, refetch } = useQuery(GET_VISIT_SUMMARY, {
     variables: { patientId, appointmentId },
     skip: !isOpen || !patientId || !appointmentId
   });
 
   const encounter = data?.encounters?.[0];
-  const esas = data?.esasHistory?.find((e: any) => e.encounterId === encounter?.encounterId);
+  const esas = data?.esasHistory?.find((e: any) => e.encounterId?.toLowerCase() === encounter?.encounterId?.toLowerCase());
 
-  const { data: assessmentData, refetch: refetchAssessments } = useQuery(GET_ASSESSMENT_RESPONSES, {
-    variables: { encounterId: encounter?.encounterId, patientId },
+  const { data: assessmentData, loading: assessmentLoading, error: assessmentError, refetch: refetchAssessments } = useQuery(GET_ASSESSMENT_RESPONSES, {
+    variables: { encounterId: encounter?.encounterId },
     skip: !encounter?.encounterId
   });
+
+
 
   const [downloading, setDownloading] = useState(false);
   const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
@@ -268,6 +281,18 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                   </div>
                   <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] animate-pulse">Retrieving Encrypted Clinical Record...</p>
                 </div>
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-[var(--text-primary)] uppercase">Clinical Retrieval Error</p>
+                    <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mt-2">
+                      {error.message || "Unauthorized or network failure detected."}
+                    </p>
+                  </div>
+                </div>
               ) : encounter ? (
                 <>
                   {/* Executive Summary Header */}
@@ -340,15 +365,35 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                   </div>
 
                   {/* Dynamic Clinical Assessments */}
-                  {(assessmentData?.assessmentResponses?.length > 0 || assessmentData?.spiritualAssessments?.length > 0) && (
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-4">
-                        <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] flex items-center gap-2.5">
-                          <ClipboardList className="w-4 h-4 text-blue-400" />
-                          Clinical Assessments
-                        </h4>
-                        <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--card-border)] to-transparent" />
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                      <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] flex items-center gap-2.5">
+                        <ClipboardList className="w-4 h-4 text-blue-400" />
+                        Clinical Assessments
+                      </h4>
+                      <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--card-border)] to-transparent" />
+                    </div>
+
+                    {assessmentLoading && (
+                      <div className="p-10 text-center border border-dashed border-[var(--card-border)] rounded-[2rem] bg-[var(--input-bg)]/50 animate-pulse">
+                         <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Scanning Encounter Assessments...</p>
                       </div>
+                    )}
+
+                    {assessmentError && (
+                       <div className="p-6 rounded-[2rem] bg-rose-500/5 border border-rose-500/20 text-center">
+                          <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">Retrieval Warning</p>
+                          <p className="text-[9px] text-[var(--text-muted)] font-medium">{assessmentError.message}</p>
+                       </div>
+                    )}
+
+                    {!assessmentLoading && !assessmentError && assessmentData?.assessmentResponses?.length === 0 && assessmentData?.spiritualAssessments?.length === 0 && (
+                      <div className="p-10 text-center border border-dashed border-[var(--card-border)] rounded-[2rem] bg-[var(--input-bg)]/50">
+                         <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 italic">No formal assessments documented for this encounter.</p>
+                      </div>
+                    )}
+
+                    {assessmentData && (assessmentData.assessmentResponses?.length > 0 || assessmentData.spiritualAssessments?.length > 0) && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {assessmentData.assessmentResponses?.map((res: any) => (
                           <button
@@ -395,11 +440,11 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                           </button>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {/* Advance Directives Section */}
-                  {assessmentData?.advanceDirectives?.length > 0 && (
+                  {data?.advanceDirectives?.length > 0 && (
                     <div className="space-y-6">
                       <div className="flex items-center gap-4">
                         <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] flex items-center gap-2.5">
@@ -409,7 +454,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
                         <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--card-border)] to-transparent" />
                       </div>
                       <div className="grid grid-cols-1 gap-4">
-                        {assessmentData.advanceDirectives.map((d: any) => (
+                        {data.advanceDirectives.map((d: any) => (
                           <button
                             key={d.advanceDirectiveId}
                             onClick={() => setSelectedDirective(d)}
@@ -540,7 +585,10 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
       <DirectiveDetailModal
         isOpen={!!selectedDirective}
         onClose={() => setSelectedDirective(null)}
-        onSuccess={() => refetchAssessments()}
+        onSuccess={() => {
+          refetch();
+          refetchAssessments();
+        }}
         directive={selectedDirective}
       />
 

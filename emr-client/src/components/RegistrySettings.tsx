@@ -354,6 +354,44 @@ export default function RegistrySettings() {
                       />
                     </div>
                   </div>
+
+                  <div className="pt-6 space-y-6">
+                    <SectionLabel
+                      title="CLINICAL TELEMETRY"
+                      subtitle="IoT Sensor & IoT Sync Management"
+                      icon={<Activity className="w-3.5 h-3.5" />}
+                      color="teal"
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <ProtocolToggle
+                        title="Enable Clinical Telemetry"
+                        desc="Global IoT sensor network synchronization"
+                        checked={stagedTenant.enableTelemetry}
+                        onChange={(val: boolean) =>
+                          setStagedTenant({
+                            ...stagedTenant,
+                            enableTelemetry: val,
+                          })
+                        }
+                      />
+                      <div className="space-y-2">
+                        <label className="clinical-label px-1">TELEMETRY SYNC DELAY (SECONDS)</label>
+                        <div className="relative group">
+                          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors">
+                            <Clock className="w-3.5 h-3.5" />
+                          </div>
+                          <input
+                            type="number"
+                            value={stagedTenant.telemetryDelaySeconds}
+                            onChange={(e) => setStagedTenant({...stagedTenant, telemetryDelaySeconds: parseInt(e.target.value) || 1})}
+                            className="w-full h-11 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-10 pr-4 text-[10px] font-black uppercase tracking-tight text-[var(--text-primary)] focus:border-[var(--primary)] outline-none transition-all"
+                            min="1"
+                            max="60"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </PermissionGate>
               </div>
             )}
@@ -369,7 +407,7 @@ export default function RegistrySettings() {
                 <div className="space-y-3">
                   <ProtocolToggle
                     title="Browser Push Alerts"
-                    desc="Real-time clinical state synchronization"
+                    desc="Local workstation notification persistence"
                     checked={stagedPrefs.notificationsEnabled}
                     onChange={(val: boolean) =>
                       setStagedPrefs({
@@ -378,6 +416,20 @@ export default function RegistrySettings() {
                       })
                     }
                   />
+
+                  <PermissionGate permission="setup:manage">
+                    <ProtocolToggle
+                      title="Real-time Notification Stream (SignalR)"
+                      desc="Server-push clinical updates (Master Switch)"
+                      checked={stagedTenant.enableSignalR}
+                      onChange={(val: boolean) =>
+                        setStagedTenant({
+                          ...stagedTenant,
+                          enableSignalR: val,
+                        })
+                      }
+                    />
+                  </PermissionGate>
                 </div>
               </div>
             )}
