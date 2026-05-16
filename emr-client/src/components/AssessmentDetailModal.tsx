@@ -90,12 +90,9 @@ export default function AssessmentDetailModal({
   onClose,
   assessment,
 }: AssessmentDetailModalProps) {
-  if (!isOpen || !assessment) return null;
-
-  const answers = parseAnswers(assessment.answersJson);
-
-  // Flattened Questions from either Legacy or Modern Schema
+  // Flattened Questions from either Legacy or Modern Schema - Must be unconditional
   const questions = useMemo(() => {
+    if (!assessment) return [];
     const dbQuestions = assessment.questionnaire?.questions ?? [];
     const schemaJson = (assessment.questionnaire as any)?.schemaJson;
 
@@ -114,13 +111,17 @@ export default function AssessmentDetailModal({
             });
           }),
         );
-        return elements;
+        return elements.length > 0 ? elements : dbQuestions;
       } catch (e) {
         console.error("Schema Parse Fail in Modal", e);
       }
     }
     return dbQuestions;
-  }, [assessment.questionnaire]);
+  }, [assessment]);
+
+  if (!isOpen || !assessment) return null;
+
+  const answers = parseAnswers(assessment.answersJson);
 
   const sortedQuestions = [...questions].sort((a, b) => a.order - b.order);
   const totalScore = assessment.totalScore;
