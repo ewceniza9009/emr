@@ -33,12 +33,6 @@
 
 ---
 
-## 🏥 Strategic Vision & Mission
-
-**Halkyone Clinical OS** is an enterprise-grade, high-fidelity Electronic Medical Record (EMR) system architected for the mission-critical demands of palliative, hospice, and complex care. It transcends traditional data entry by providing a **Tactical Command Center** that synchronizes clinical documentation, geospatial logistics, and real-time patient telemetry into a unified workstation.
-
-Built for **Clinical Authority**, Halkyone empowers practitioners to execute at the bedside with sub-second latency, declarative security, and automated documentation paths.
-
 ### The Bounded Contexts
 
 The application is logically partitioned into distinct domains:
@@ -134,7 +128,7 @@ The **Operational Nerve Center** for System Administrators and Medical Directors
 
 ---
 
-## 🏗️ Enterprise Engineering & Architecture
+## 🏗️ Engineering & Architecture
 
 ### 1. Clean Architecture & CQRS
 
@@ -171,11 +165,11 @@ Halkyone implements a **Shared Database / Row-Level Isolation** model:
 - **Break-Glass Protocol**: Audited emergency access override for high-authority record viewing.
 
 > [!NOTE]
-> This follows the **"Multi-tenant app with multi-tenant databases"** pattern as defined in the [Microsoft SaaS Tenancy Guide](https://learn.microsoft.com/en-us/azure/azure-sql/database/saas-tenancy-app-design-patterns).
+> This follows the **"Multi-tenant app with a shared database"** pattern as defined in the [Microsoft SaaS Tenancy Guide](https://learn.microsoft.com/en-us/azure/azure-sql/database/saas-tenancy-app-design-patterns).
 
 ---
 
-## ⚙️ Enterprise Setup & Configuration
+## ⚙️ Setup & Configuration
 
 The **Setup Command Center** (`SetupDrawer.tsx`) provides practitioners and administrators with high-authority control over the clinical environment.
 
@@ -262,7 +256,7 @@ The `SchedulingService.cs` manages clinical deployment complexity:
 
 ---
 
-## 🧪 Enterprise Reliability & Performance (Phase III)
+## 🧪 Reliability & Performance (Phase III)
 
 The Halkyone Clinical OS has undergone rigorous hardening to transition from a high-fidelity prototype into a production-ready enterprise system.
 
