@@ -675,29 +675,42 @@ export default function PatientDetailPage() {
                 </button>
               </PermissionGate>
             </div>
-            <div className="space-y-3">
-              {patient.phones?.map((phone: any, idx: number) => (
-                <div key={idx} className="flex items-center gap-3 group">
-                  <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                    <Phone className="w-3.5 h-3.5" />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3 opacity-60">Patient Self-Registry</p>
+                {patient.phones?.map((phone: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${phone.isPrimary ? 'bg-[var(--primary)]/20 text-[var(--primary)]' : 'bg-white/5 text-slate-500'}`}>
+                        <Phone className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[11px] font-black text-[var(--text-primary)]">{phone.phoneNumber}</p>
+                          {phone.isPrimary && <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/10 uppercase tracking-tighter">Primary</span>}
+                        </div>
+                        <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">{phone.type}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-black text-[var(--text-primary)]">{phone.phoneNumber}</p>
-                    <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">{phone.type}</p>
+                ))}
+                {patient.emails?.map((email: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${email.isPrimary ? 'bg-[var(--primary)]/20 text-[var(--primary)]' : 'bg-white/5 text-slate-500'}`}>
+                        <Mail className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[11px] font-black text-[var(--text-primary)]">{email.emailAddress}</p>
+                          {email.isPrimary && <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/10 uppercase tracking-tighter">Primary</span>}
+                        </div>
+                        <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">{email.type}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {patient.emails?.map((email: any, idx: number) => (
-                <div key={idx} className="flex items-center gap-3 group">
-                  <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                    <Mail className="w-3.5 h-3.5" />
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-black text-[var(--text-primary)]">{email.emailAddress}</p>
-                    <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">{email.type}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 

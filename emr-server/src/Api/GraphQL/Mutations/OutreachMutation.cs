@@ -24,7 +24,11 @@ public class OutreachMutation
     )
     {
         var result = await mediator.Send(input);
-        await _auditService.LogActionAsync("PATIENT_ENROLLED", "Patient enrollment finalized from outreach lead.", result.ToString());
+        await _auditService.LogActionAsync(
+            "PATIENT_ENROLLED",
+            "Patient enrollment finalized from outreach lead.",
+            result.ToString()
+        );
         return result;
     }
 
@@ -35,7 +39,11 @@ public class OutreachMutation
     )
     {
         var result = await mediator.Send(input);
-        await _auditService.LogActionAsync("PATIENT_UNENROLLED", "Patient unenrolled from clinical outreach program.", input.PatientOutreachId.ToString());
+        await _auditService.LogActionAsync(
+            "PATIENT_UNENROLLED",
+            "Patient unenrolled from clinical outreach program.",
+            input.PatientOutreachId.ToString()
+        );
         return result;
     }
 
@@ -46,7 +54,11 @@ public class OutreachMutation
     )
     {
         var result = await mediator.Send(input);
-        await _auditService.LogActionAsync("OUTREACH_LEAD_CREATED", $"New outreach lead created. Source: {input.ReferralSource}", result.ToString());
+        await _auditService.LogActionAsync(
+            "OUTREACH_LEAD_CREATED",
+            $"New outreach lead created. Source: {input.ReferralSource}",
+            result.ToString()
+        );
         return result;
     }
 
@@ -57,7 +69,11 @@ public class OutreachMutation
     )
     {
         var result = await mediator.Send(input);
-        await _auditService.LogActionAsync("OUTREACH_ACTIVITY_LOGGED", $"Activity recorded for lead. Notes: {input.Notes}", input.OutreachId.ToString());
+        await _auditService.LogActionAsync(
+            "OUTREACH_ACTIVITY_LOGGED",
+            $"Activity recorded for lead. Notes: {input.Notes}",
+            input.OutreachId.ToString()
+        );
         return result;
     }
 
@@ -80,6 +96,15 @@ public class OutreachMutation
     }
 
     [Authorize(Policy = "CanManageOutreach")]
+    public async Task<bool> UpdateOutreachContact(
+        UpdateOutreachContactCommand input,
+        [Service] IMediator mediator
+    )
+    {
+        return await mediator.Send(input);
+    }
+
+    [Authorize(Policy = "CanManageOutreach")]
     public async Task<bool> UpdateOutreachLead(
         UpdateOutreachLeadCommand input,
         [Service] IMediator mediator
@@ -95,7 +120,11 @@ public class OutreachMutation
     )
     {
         var result = await mediator.Send(input);
-        await _auditService.LogActionAsync("OUTREACH_SPIRITUAL_ASSESSMENT", "Spiritual assessment logged for lead.", input.PatientId.ToString());
+        await _auditService.LogActionAsync(
+            "OUTREACH_SPIRITUAL_ASSESSMENT",
+            "Spiritual assessment logged for lead.",
+            input.PatientId.ToString()
+        );
         return result;
     }
 
@@ -106,7 +135,11 @@ public class OutreachMutation
     )
     {
         var result = await mediator.Send(input);
-        await _auditService.LogActionAsync("OUTREACH_DIRECTIVE_ADDED", "Advance directive captured during outreach.", input.PatientId.ToString());
+        await _auditService.LogActionAsync(
+            "OUTREACH_DIRECTIVE_ADDED",
+            "Advance directive captured during outreach.",
+            input.PatientId.ToString()
+        );
         return result;
     }
 }

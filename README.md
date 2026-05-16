@@ -2,6 +2,14 @@
 
 **[🚀 View Live Demo](https://emr-three-hazel.vercel.app)**
 
+### 🔑 Test Credentials
+*   **User:** `admin@palliative.emr`
+*   **Password:** `P@ssword123!`
+
+> [!NOTE]
+> The first time you log in or access the dashboard, the initial load may be slow (up to 50 seconds). This is due to the **Render Free Instance** spin-up time for the backend services. Once warmed up, the platform maintains sub-second tactical performance.
+
+
 [![Architecture: Clean](https://img.shields.io/badge/Architecture-Clean--Architecture-blue.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 [![Pattern: CQRS--MediatR](https://img.shields.io/badge/Pattern-CQRS--MediatR-blueviolet.svg)](https://github.com/jbogard/MediatR)
 [![Frontend: Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black.svg)](https://nextjs.org/)

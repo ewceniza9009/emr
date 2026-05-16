@@ -151,7 +151,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
   const encounter = data?.encounters?.[0];
   const esas = data?.esasHistory?.find((e: any) => e.encounterId === encounter?.encounterId);
 
-  const { data: assessmentData } = useQuery(GET_ASSESSMENT_RESPONSES, {
+  const { data: assessmentData, refetch: refetchAssessments } = useQuery(GET_ASSESSMENT_RESPONSES, {
     variables: { encounterId: encounter?.encounterId, patientId },
     skip: !encounter?.encounterId
   });
@@ -540,6 +540,7 @@ export default function VisitSummaryDrawer({ isOpen, onClose, patientId, appoint
       <DirectiveDetailModal
         isOpen={!!selectedDirective}
         onClose={() => setSelectedDirective(null)}
+        onSuccess={() => refetchAssessments()}
         directive={selectedDirective}
       />
 

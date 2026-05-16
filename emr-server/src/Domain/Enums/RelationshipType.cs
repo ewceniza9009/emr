@@ -11,5 +11,6 @@ public enum RelationshipType
     Family,
     Lawyer,
     LegalRepresentative,
+    Self,
     Other,
 }

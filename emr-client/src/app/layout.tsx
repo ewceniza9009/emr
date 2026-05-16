@@ -5,7 +5,10 @@ import { Providers } from "@/components/Providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
-const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+});
 
 export const metadata: Metadata = {
   title: "HALKYONE",
@@ -28,8 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{
-          __html: `
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
           (function() {
             try {
               const savedTheme = localStorage.getItem("halkyone-theme");
@@ -40,15 +44,17 @@ export default function RootLayout({
               }
             } catch (e) {}
           })()
-        ` }} />
+        `,
+          }}
+        />
       </head>
-      <body className={`${inter.variable} ${outfit.variable} ${jetbrains.variable} antialiased`}>
-        <Providers>
-          {children}
-        </Providers>
+      <body
+        suppressHydrationWarning
+        className={`${inter.variable} ${outfit.variable} ${jetbrains.variable} antialiased`}
+      >
+        <Providers>{children}</Providers>
         <div id="modal-root" />
       </body>
     </html>
   );
 }
-

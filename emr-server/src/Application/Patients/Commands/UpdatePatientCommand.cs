@@ -12,8 +12,24 @@ public record UpdatePatientCommand : IRequest<bool>
     public string? Nationality { get; init; }
     public string? BiologicalSex { get; init; }
     public string? GenderIdentity { get; init; }
-    
+
     // Communications
+    public List<PhoneDto>? Phones { get; init; }
+    public List<EmailDto>? Emails { get; init; }
     public string? PrimaryPhone { get; init; }
     public string? PrimaryEmail { get; init; }
+}
+
+public record PhoneDto
+{
+    public string PhoneNumber { get; init; } = string.Empty;
+    public string Type { get; init; } = "Mobile";
+    public bool IsPrimary { get; init; }
+}
+
+public record EmailDto
+{
+    public string EmailAddress { get; init; } = string.Empty;
+    public string Type { get; init; } = "Home";
+    public bool IsPrimary { get; init; }
 }

@@ -1,9 +1,9 @@
 export enum BiologicalSex {
-  MALE = "MALE",
-  FEMALE = "FEMALE",
-  INTERSEX = "INTERSEX",
-  OTHER = "OTHER",
-  UNKNOWN = "UNKNOWN",
+  Male = "Male",
+  Female = "Female",
+  Intersex = "Intersex",
+  Other = "Other",
+  Unknown = "Unknown",
 }
 
 export enum CareModality {
@@ -36,4 +36,16 @@ export enum TechAccessLevel {
   TabletComputer = "TabletComputer",
   HighLiteracy = "HighLiteracy",
   NeedsAssistance = "NeedsAssistance",
+}
+
+export enum OutreachStatus {
+  Lead = "Lead",
+  Contacted = "Contacted",
+  InitialAssessment = "InitialAssessment",
+  Interested = "Interested",
+  Enrolled = "Enrolled",
+  Refused = "Refused",
+  OnHold = "OnHold",
+  DoNotCall = "DoNotCall",
+  OptedOut = "OptedOut",
 }

@@ -43,6 +43,8 @@ public class PatientOutreachConfiguration : IEntityTypeConfiguration<PatientOutr
         builder.Property(p => p.Disposition).HasColumnName("disposition");
         builder.Property(p => p.CommunicationStatus).HasColumnName("communication_status");
         builder.Property(p => p.TechAccess).HasColumnName("tech_access");
+        builder.Property(p => p.BiologicalSex).HasColumnName("biological_sex");
+        builder.Property(p => p.GenderIdentity).HasColumnName("gender_identity").HasMaxLength(50);
 
         builder
             .Property(p => p.CreatedAt)

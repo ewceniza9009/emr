@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { useMutation, gql } from "@apollo/client";
 import {
   X,
   ShieldCheck,
@@ -8,12 +10,30 @@ import {
   Clock,
   Zap,
   CheckCircle2,
+  Edit3,
+  Save,
+  Trash2,
+  AlertTriangle,
+  RotateCcw
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
+
+const UPDATE_DIRECTIVE = gql`
+  mutation UpdateAdvanceDirective($command: UpdateAdvanceDirectiveCommandInput!) {
+    updateAdvanceDirective(command: $command)
+  }
+`;
+
+const REVOKE_DIRECTIVE = gql`
+  mutation RevokeAdvanceDirective($command: RevokeAdvanceDirectiveCommandInput!) {
+    revokeAdvanceDirective(command: $command)
+  }
+`;
 
 interface DirectiveDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   directive: {
     advanceDirectiveId: string;
     type: string;
@@ -22,8 +42,53 @@ interface DirectiveDetailModalProps {
   } | null;
 }
 
-export default function DirectiveDetailModal({ isOpen, onClose, directive }: DirectiveDetailModalProps) {
+export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, directive }: DirectiveDetailModalProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editNotes, setEditNotes] = useState("");
+
+  const [updateDirective, { loading: updating }] = useMutation(UPDATE_DIRECTIVE, {
+    onCompleted: () => {
+      setIsEditing(false);
+      onSuccess?.();
+    }
+  });
+
+  const [revokeDirective, { loading: revoking }] = useMutation(REVOKE_DIRECTIVE, {
+    onCompleted: () => {
+      onSuccess?.();
+      onClose();
+    }
+  });
+
   if (!isOpen || !directive) return null;
+
+  const handleStartEdit = () => {
+    setEditNotes(directive.notes || "");
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = () => {
+    updateDirective({
+      variables: {
+        command: {
+          advanceDirectiveId: directive.advanceDirectiveId,
+          notes: editNotes
+        }
+      }
+    });
+  };
+
+  const handleRevoke = () => {
+    if (confirm("CRITICAL: Revoking this legal directive will remove it from active care planning. Proceed with forensic revocation?")) {
+      revokeDirective({
+        variables: {
+          command: {
+            advanceDirectiveId: directive.advanceDirectiveId
+          }
+        }
+      });
+    }
+  };
 
   return (
     <HalcyonPortal>
@@ -65,12 +130,29 @@ export default function DirectiveDetailModal({ isOpen, onClose, directive }: Dir
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              className="p-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:border-emerald-500/40 transition-all"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {!isEditing ? (
+                <button
+                  onClick={handleStartEdit}
+                  className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-emerald-500 hover:border-emerald-500/40 transition-all"
+                >
+                  <Edit3 className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 transition-all"
+                >
+                  <RotateCcw className="w-5 h-5" />
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2.5 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Body */}
@@ -80,9 +162,19 @@ export default function DirectiveDetailModal({ isOpen, onClose, directive }: Dir
                 <FileText className="w-3.5 h-3.5 text-emerald-500" />
                 Directive Content & Clinical Instructions
               </p>
-              <div className="p-6 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-sm leading-relaxed text-[var(--text-primary)] font-medium">
-                {directive.notes || "No specific instructions or limitations were documented for this directive. This status represents the patient's verified legal preference at the time of entry."}
-              </div>
+              
+              {isEditing ? (
+                <textarea
+                  className="w-full h-40 bg-[var(--input-bg)] border border-[var(--primary)]/30 rounded-2xl p-6 text-sm leading-relaxed text-white font-medium outline-none focus:border-[var(--primary)] transition-all"
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  placeholder="Enter updated clinical instructions or limitations..."
+                />
+              ) : (
+                <div className="p-6 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] text-sm leading-relaxed text-[var(--text-primary)] font-medium">
+                  {directive.notes || "No specific instructions or limitations were documented for this directive. This status represents the patient's verified legal preference at the time of entry."}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -99,7 +191,7 @@ export default function DirectiveDetailModal({ isOpen, onClose, directive }: Dir
               </div>
             </div>
 
-            <div className="flex items-center gap-2 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10">
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/10">
               <Clock className="w-4 h-4 text-amber-500 shrink-0" />
               <p className="text-[9px] text-amber-600 font-medium">This record should be cross-referenced with physical documentation during critical clinical decisions.</p>
             </div>
@@ -107,15 +199,32 @@ export default function DirectiveDetailModal({ isOpen, onClose, directive }: Dir
 
           {/* Footer */}
           <div className="px-8 py-5 border-t border-[var(--card-border)] shrink-0 flex items-center justify-between">
-            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50 flex items-center gap-2">
-              <Zap className="w-3 h-3" />
-              Halkyone Clinical OS · Legal Archive
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="hidden sm:flex text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50 items-center gap-2">
+                <Zap className="w-3 h-3" />
+                Halkyone Clinical OS · Legal Archive
+              </p>
+              {!isEditing && (
+                <button
+                  onClick={handleRevoke}
+                  disabled={revoking}
+                  className="flex items-center gap-2 text-rose-500 text-[9px] font-black uppercase tracking-[0.2em] hover:text-rose-400 transition-all disabled:opacity-50"
+                >
+                  <AlertTriangle className="w-3 h-3" />
+                  Revoke Directive
+                </button>
+              )}
+            </div>
+            
             <button
-              onClick={onClose}
-              className="px-6 py-2 rounded-xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-emerald-500/20"
+              onClick={isEditing ? handleSaveEdit : onClose}
+              disabled={updating || revoking}
+              className={`px-8 py-2.5 rounded-xl text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg ${
+                isEditing ? "bg-[var(--primary)] shadow-[var(--primary-glow)]" : "bg-emerald-500 shadow-emerald-500/20"
+              } hover:opacity-90 active:scale-95 disabled:opacity-50`}
             >
-              Acknowledged
+              {isEditing ? (updating ? <RotateCcw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />) : null}
+              {isEditing ? "Save Instructions" : "Acknowledged"}
             </button>
           </div>
         </div>

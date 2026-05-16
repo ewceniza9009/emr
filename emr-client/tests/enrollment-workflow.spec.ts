@@ -29,7 +29,7 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
 
       const quickEnrollBtn = leadRow.getByRole('button', { name: /Launch Quick Enrollment Drawer/i });
       await quickEnrollBtn.click();
-      await expect(page.locator('text=Enrollment Workstation')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('heading', { name: 'Enrollment', exact: true })).toBeVisible({ timeout: 10000 });
 
       // Click "REVERSE ENROLLMENT" button
       const reverseBtn = page.locator('button:has-text("REVERSE ENROLLMENT")');
@@ -65,7 +65,7 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     await quickEnrollBtn.click();
 
     // Wait for the drawer to fully render
-    await expect(page.locator('text=Enrollment Workstation')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Enrollment', exact: true })).toBeVisible({ timeout: 10000 });
 
     // 4. ADMIN PHASE
     await page.getByRole('button', { name: /Next Step/i }).click();

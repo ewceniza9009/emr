@@ -100,7 +100,7 @@ export const DEFAULT_TENANT: TenantSettings = {
       : "UTC",
   language: "en",
   dateFormat: "MM/DD/YYYY",
-  organizationName: "Halkyone Clinical Center",
+  organizationName: "Halkyone Clinical",
   enableElasticsearch: false,
   enforceMfa: false,
   sessionTimeoutMinutes: 30,
@@ -240,8 +240,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const formatDate = (date: string | Date) => {
     if (!date) return "--";
     const rawTz = tenantConfig.timezone || "UTC";
-    const normalizedTz = rawTz.includes("(") ? rawTz.split("(")[0].trim() : rawTz;
-    
+    const normalizedTz = rawTz.includes("(")
+      ? rawTz.split("(")[0].trim()
+      : rawTz;
+
     try {
       return formatInTimeZone(new Date(date), normalizedTz, "MMM d, yyyy");
     } catch (e) {
