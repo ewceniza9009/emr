@@ -1,6 +1,6 @@
 {
   "version": "1.2.4",
-  "build": "20260516.3",
+  "build": "20260516.6",
   "changelog": [
     {
       "v": "v1.2.4",
@@ -10,7 +10,8 @@
         "Resolved 'No response recorded' display bug in historical assessment breakdowns.",
         "Implemented Smart Data Parser for clinical notes to improve readability of structured responses.",
         "Optimized the 'Guided Visit' navigation with polished, centered tactical action buttons.",
-        "Finalized SurveyJS Neural Engine integration with high-fidelity custom rendering fallback."
+        "Finalized SurveyJS Neural Engine integration with high-fidelity custom rendering fallback.",
+        "Enhanced Form Designer UX with clinical registry synchronization toasts and automatic redirection."
       ]
     },
     {

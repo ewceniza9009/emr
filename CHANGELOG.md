@@ -8,6 +8,7 @@ All notable changes to the Halkyone Clinical OS will be documented in this file.
 - Implemented Smart Data Parser for clinical notes to improve readability of structured responses.
 - Optimized the 'Guided Visit' navigation with polished, centered tactical action buttons.
 - Finalized SurveyJS Neural Engine integration with high-fidelity custom rendering fallback.
+- Enhanced Form Designer UX with clinical registry synchronization toasts and automatic redirection.
 
 ## [1.2.3] - 2026-05-16
 - Stabilized the Clinical Form Registry by implementing direct ID-based lookups, resolving the 'FORM REGISTRY NODE NOT FOUND' error.

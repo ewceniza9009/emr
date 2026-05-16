@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Shield, ChevronLeft, Save, Activity, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useCallback } from "react";
+import { useToast } from "@/components/ToastProvider";
 
 // SurveyJS imports need to be dynamic to avoid SSR issues
 const SurveyCreatorWidget = dynamic(
@@ -49,6 +50,8 @@ function mapToSurveyType(legacyType: string | undefined | null) {
 
 export default function FormDesignerPage() {
   const params = useParams();
+  const router = useRouter();
+  const { showToast } = useToast();
   const id = params.id as string;
   const { data, loading, error } = useQuery(GET_FORM, { variables: { id } });
   const form = data?.questionnaireById;
@@ -71,10 +74,13 @@ export default function FormDesignerPage() {
           }
         }
       });
+      showToast("Clinical Registry Synchronized", "success");
+      router.push("/admin/dashboard?tab=questionnaires");
     } catch (err) {
       console.error("Save failed", err);
+      showToast("Synchronization Failed", "error");
     }
-  }, [form, updateForm]);
+  }, [form, updateForm, showToast, router]);
 
   // Synthesis Logic: Convert legacy question rows to SurveyJS JSON if modern schema is empty
   const initialJson = useMemo(() => {
@@ -161,7 +167,7 @@ export default function FormDesignerPage() {
             onClick={async () => {
               console.log("Forcing Re-Sync for:", form?.name);
               try {
-                const res = await updateForm({
+                await updateForm({
                   variables: {
                     input: {
                       questionnaireId: form.questionnaireId,
@@ -171,10 +177,13 @@ export default function FormDesignerPage() {
                     }
                   }
                 });
-                console.log("Purge Result:", res);
-                window.location.href = window.location.href;
+                showToast("Clinical Node Re-Indexed", "success");
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1000);
               } catch (e) {
                 console.error("Re-sync error:", e);
+                showToast("Re-Indexing Failed", "error");
               }
             }}
             className="px-6 py-2 rounded-xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
