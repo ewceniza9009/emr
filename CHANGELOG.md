@@ -8,6 +8,7 @@ All notable changes to the Halkyone Clinical OS will be documented in this file.
 - Stabilized the Visit Summary engine with consolidated GraphQL queries and resilient error handling.
 - Optimized the NotificationService with conditional SignalR broadcast bypass for tenant configuration.
 - Purged tactical test seed data and implemented forensic cleanup for recently browsed clinical records.
+- Standardized Diagnosis cache normalization via query-level aliasing to resolve ICD-10 search crashes.
 - Resolved Apollo cache normalization errors for Vitals, Symptoms, and Assessment responses.
 
 ## [1.1.0] - 2026-05-16

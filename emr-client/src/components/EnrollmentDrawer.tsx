@@ -172,6 +172,7 @@ const UPDATE_OUTREACH_LEAD = gql`
 const SEARCH_DIAGNOSIS_LIBRARY = gql`
   query SearchDiagnosisLibrary($term: String!) {
     searchDiagnosisLibrary(term: $term) {
+      diagnosisId: icd10Code
       icd10Code
       description
     }
