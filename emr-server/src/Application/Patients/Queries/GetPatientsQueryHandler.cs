@@ -22,7 +22,7 @@ public class GetPatientsQueryHandler : IRequestHandler<GetPatientsQuery, PagedRe
         CancellationToken cancellationToken
     )
     {
-        var query = _context.Patients.AsNoTracking();
+        var query = _context.Patients.AsNoTracking().Where(p => p.IsActive);
 
         if (!string.IsNullOrEmpty(request.Search))
         {
