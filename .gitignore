@@ -50,3 +50,6 @@ playwright/.auth/
 # Security & Documentation Workflow
 RBAC_WORKFLOW.md
 VERSIONING_GUIDE.md
+
+# TypeScript Build Cache
+*.tsbuildinfo
