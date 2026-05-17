@@ -1,13 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronRight, CheckCircle2, Circle, HelpCircle } from "lucide-react";
-import { Model } from "survey-core";
-import { Survey } from "survey-react-ui";
-import "survey-core/survey-core.min.css";
-import { useMemo } from "react";
 import SmartTextarea from "./SmartTextarea";
-
 
 interface Question {
   questionId: string;
@@ -34,33 +29,85 @@ interface Props {
   smartPhrases?: any[];
 }
 
-
-export default function DynamicAssessment({ questionnaire, initialAnswers = {}, onComplete, onBack, onPartialUpdate, smartPhrases = [] }: Props) {
-
-  const [answers, setAnswers] = useState<Record<string, any>>(initialAnswers);
-
-  // Flattened Questions from either Legacy or Modern Schema
-  const activeQuestions = useMemo(() => {
-    if (questionnaire.schemaJson) {
-      try {
-        const schema = JSON.parse(questionnaire.schemaJson);
-        const elements: any[] = [];
-        schema.pages?.forEach((p: any) => p.elements?.forEach((e: any) => elements.push({
-          questionId: e.name,
-          text: e.title || e.name,
-          subtext: e.description,
-          type: e.type === "radiogroup" ? "MULTIPLE_CHOICE" : 
-                e.type === "boolean" ? "YES_NO" : 
-                e.type === "rating" || e.type === "slider" ? "SCALE" : "TEXT",
-          optionsJson: e.choices ? JSON.stringify(e.choices.map((c: any) => typeof c === 'string' ? c : (c.text || c.value))) : null
-        })));
-        return elements;
-      } catch (e) {
-        console.error("Schema Parse Fail", e);
-      }
+function getScaleLimits(question: Question): { min: number; max: number } {
+  const defaultLimits = { min: 0, max: 10 };
+  const textToScan = `${question.text} ${question.subtext || ""}`.toLowerCase();
+  
+  // Try to match patterns like "0-88", "(0-21)", "/88", "max: 21", "up to 88"
+  // 1. Check for range like "0-88" or "0 to 88"
+  const rangeMatch = textToScan.match(/\b(\d+)\s*(?:-|to|~)\s*(\d+)\b/);
+  if (rangeMatch) {
+    const min = parseInt(rangeMatch[1], 10);
+    const max = parseInt(rangeMatch[2], 10);
+    if (!isNaN(min) && !isNaN(max) && max > min) {
+      return { min, max };
     }
-    return questionnaire.questions;
-  }, [questionnaire]);
+  }
+
+  // 2. Check for slash pattern like "/88"
+  const slashMatch = textToScan.match(/\/\s*(\d+)\b/);
+  if (slashMatch) {
+    const max = parseInt(slashMatch[1], 10);
+    if (!isNaN(max) && max > 0) {
+      return { min: 0, max };
+    }
+  }
+
+  // 3. Check for "max 88" or "limit 88"
+  const maxMatch = textToScan.match(/\b(?:max|maximum|limit|score|to)\s*(\d+)\b/);
+  if (maxMatch) {
+    const max = parseInt(maxMatch[1], 10);
+    if (!isNaN(max) && max > 0) {
+      return { min: 0, max };
+    }
+  }
+
+  return defaultLimits;
+}
+
+function flattenQuestions(questionnaire: Questionnaire) {
+  if (questionnaire.schemaJson) {
+    try {
+      const schema = JSON.parse(questionnaire.schemaJson);
+      const elements: any[] = [];
+      schema.pages?.forEach((p: any) => p.elements?.forEach((e: any) => elements.push({
+        questionId: e.name,
+        text: e.title || e.name,
+        subtext: e.description,
+        type: e.type === "radiogroup" ? "MULTIPLE_CHOICE" : 
+              e.type === "boolean" ? "YES_NO" : 
+              e.type === "rating" || e.type === "slider" ? "SCALE" : "TEXT",
+        optionsJson: e.choices ? JSON.stringify(e.choices.map((c: any) => typeof c === 'string' ? c : (c.text || c.value))) : null
+      })));
+      return elements;
+    } catch (e) {
+      console.error("Schema Parse Fail", e);
+    }
+  }
+  return questionnaire.questions || [];
+}
+
+export default function DynamicAssessment({ 
+  questionnaire, 
+  initialAnswers = {}, 
+  onComplete, 
+  onBack, 
+  onPartialUpdate, 
+  smartPhrases = [] 
+}: Props) {
+
+  const activeQuestions = useMemo(() => flattenQuestions(questionnaire), [questionnaire]);
+
+  const [answers, setAnswers] = useState<Record<string, any>>(() => {
+    const initial: Record<string, any> = { ...initialAnswers };
+    activeQuestions.forEach(q => {
+      if (q.type === "SCALE" && initial[q.questionId] === undefined) {
+        const limits = getScaleLimits(q);
+        initial[q.questionId] = limits.min;
+      }
+    });
+    return initial;
+  });
 
   const handleAnswer = (questionId: string, value: any) => {
     const newAnswers = { ...answers, [questionId]: value };
@@ -80,11 +127,15 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
         total += val;
         hasNumeric = true;
       } else if (q.type === "MULTIPLE_CHOICE" && q.optionsJson) {
-        const options = JSON.parse(q.optionsJson);
-        const idx = options.indexOf(val);
-        if (idx !== -1) {
-          total += idx;
-          hasNumeric = true;
+        try {
+          const options = JSON.parse(q.optionsJson);
+          const idx = options.indexOf(val);
+          if (idx !== -1) {
+            total += idx;
+            hasNumeric = true;
+          }
+        } catch (e) {
+          console.error("Error parsing optionsJson inside calculateScore", e);
         }
       }
     });
@@ -100,7 +151,9 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
           <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">
             {questionnaire.name}
           </h2>
-          <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.3em]">{questionnaire.description || "Dynamic Clinical Assessment Node"}</p>
+          <p className="text-[var(--text-muted)] text-[10px] font-black uppercase tracking-[0.3em]">
+            {questionnaire.description || "Dynamic Clinical Assessment Node"}
+          </p>
         </div>
         {calculateScore() !== undefined && (
           <div className="flex flex-col items-end gap-1">
@@ -114,94 +167,104 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
 
       {/* Dynamic Question Fieldset */}
       <div className="space-y-10">
-        {activeQuestions.map((q) => (
-          <div key={q.questionId} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
-                {q.text}
-              </label>
-              {q.subtext && <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest ml-4 font-bold">{q.subtext}</p>}
-            </div>
+        {activeQuestions.map((q) => {
+          const limits = getScaleLimits(q);
+          return (
+            <div key={q.questionId} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                  {q.text}
+                </label>
+                {q.subtext && (
+                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest ml-4 font-bold">
+                    {q.subtext}
+                  </p>
+                )}
+              </div>
 
-            {/* Standard Scale Renderer */}
-            {q.type === "SCALE" && (
-              <div className="ml-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">0 - Baseline</span>
-                  <div className="px-6 py-2 rounded-xl bg-indigo-500/5 text-indigo-500 border border-indigo-500/20 font-black text-lg">
-                    {answers[q.questionId] ?? "--"}
+              {/* Standard Scale Renderer */}
+              {q.type === "SCALE" && (
+                <div className="ml-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                      {limits.min} - Baseline
+                    </span>
+                    <div className="px-6 py-2 rounded-xl bg-indigo-500/5 text-indigo-500 border border-indigo-500/20 font-black text-lg">
+                      {answers[q.questionId] ?? limits.min}
+                    </div>
+                    <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                      {limits.max} - Peak
+                    </span>
                   </div>
-                  <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">10 - Peak</span>
+                  <input
+                    type="range"
+                    min={limits.min}
+                    max={limits.max}
+                    step="1"
+                    value={answers[q.questionId] ?? limits.min}
+                    onChange={(e) => handleAnswer(q.questionId, parseInt(e.target.value))}
+                    className="w-full h-1.5 bg-[var(--divider-color)] rounded-full appearance-none cursor-pointer accent-indigo-500"
+                  />
                 </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  step="1"
-                  value={answers[q.questionId] ?? 0}
-                  onChange={(e) => handleAnswer(q.questionId, parseInt(e.target.value))}
-                  className="w-full h-1.5 bg-[var(--divider-color)] rounded-full appearance-none cursor-pointer accent-indigo-500"
+              )}
+
+              {/* High-Impact Tactical Yes/No */}
+              {q.type === "YES_NO" && (
+                <div className="ml-4 flex gap-4">
+                  {["Yes", "No"].map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => handleAnswer(q.questionId, opt)}
+                      className={`flex-1 py-3 rounded-xl border font-black text-[10px] uppercase tracking-widest transition-all ${
+                        answers[q.questionId] === opt
+                          ? "bg-indigo-500/20 border-indigo-500 text-indigo-500 shadow-2xl shadow-indigo-500/10"
+                          : "bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] hover:border-indigo-500/30 hover:bg-indigo-500/5"
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Grid-Based Multiple Choice */}
+              {q.type === "MULTIPLE_CHOICE" && q.optionsJson && (
+                <div className="ml-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {JSON.parse(q.optionsJson).map((opt: string) => (
+                    <button
+                      key={opt}
+                      onClick={() => handleAnswer(q.questionId, opt)}
+                      className={`p-3.5 rounded-xl border text-left text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${
+                        answers[q.questionId] === opt
+                          ? "bg-indigo-500/20 border-indigo-500 text-indigo-500 shadow-xl shadow-indigo-500/10"
+                          : "bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] hover:border-indigo-500/30 hover:bg-indigo-500/5"
+                      }`}
+                    >
+                      <span className="max-w-[80%]">{opt}</span>
+                      {answers[q.questionId] === opt ? (
+                        <CheckCircle2 className="w-4 h-4 text-indigo-500" />
+                      ) : (
+                        <Circle className="w-4 h-4 text-[var(--text-muted)]/20 group-hover:text-[var(--text-muted)]/40" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Clean Tactical Text Area with Smart Phrases */}
+              {q.type === "TEXT" && (
+                <SmartTextarea
+                  value={answers[q.questionId] ?? ""}
+                  onChange={(val) => handleAnswer(q.questionId, val)}
+                  smartPhrases={smartPhrases}
+                  placeholder="INPUT CLINICAL OBSERVATIONS..."
+                  className="ml-4 w-full bg-[var(--background)] border border-[var(--divider-color)] rounded-xl p-6 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/30 focus:border-indigo-500/50 outline-none transition-all min-h-[120px] uppercase tracking-tighter"
                 />
-              </div>
-            )}
-
-            {/* High-Impact Tactical Yes/No */}
-            {q.type === "YES_NO" && (
-              <div className="ml-4 flex gap-4">
-                {["Yes", "No"].map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => handleAnswer(q.questionId, opt)}
-                    className={`flex-1 py-3 rounded-xl border font-black text-[10px] uppercase tracking-widest transition-all ${
-                      answers[q.questionId] === opt
-                        ? "bg-indigo-500/20 border-indigo-500 text-indigo-500 shadow-2xl shadow-indigo-500/10"
-                        : "bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] hover:border-indigo-500/30 hover:bg-indigo-500/5"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Grid-Based Multiple Choice */}
-            {q.type === "MULTIPLE_CHOICE" && q.optionsJson && (
-              <div className="ml-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                {JSON.parse(q.optionsJson).map((opt: string) => (
-                  <button
-                    key={opt}
-                    onClick={() => handleAnswer(q.questionId, opt)}
-                    className={`p-3.5 rounded-xl border text-left text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-between group ${
-                      answers[q.questionId] === opt
-                        ? "bg-indigo-500/20 border-indigo-500 text-indigo-500 shadow-xl shadow-indigo-500/10"
-                        : "bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] hover:border-indigo-500/30 hover:bg-indigo-500/5"
-                    }`}
-                  >
-                    <span className="max-w-[80%]">{opt}</span>
-                    {answers[q.questionId] === opt ? (
-                      <CheckCircle2 className="w-4 h-4 text-indigo-500" />
-                    ) : (
-                      <Circle className="w-4 h-4 text-[var(--text-muted)]/20 group-hover:text-[var(--text-muted)]/40" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Clean Tactical Text Area with Smart Phrases */}
-            {q.type === "TEXT" && (
-              <SmartTextarea
-                value={answers[q.questionId] ?? ""}
-                onChange={(val) => handleAnswer(q.questionId, val)}
-                smartPhrases={smartPhrases}
-                placeholder="INPUT CLINICAL OBSERVATIONS..."
-                className="ml-4 w-full bg-[var(--background)] border border-[var(--divider-color)] rounded-xl p-6 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/30 focus:border-indigo-500/50 outline-none transition-all min-h-[120px] uppercase tracking-tighter"
-              />
-            )}
-
-          </div>
-        ))}
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Action Buttons */}
@@ -211,7 +274,7 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
             onClick={onBack}
             className="flex-1 py-4 rounded-2xl bg-[var(--background)] border border-[var(--divider-color)] text-[var(--text-muted)] font-black text-[11px] uppercase tracking-[0.2em] hover:text-[var(--text-primary)] hover:border-indigo-500/50 transition-all active:scale-95 shadow-sm"
           >
-            Back to Vitals
+            Exit Assessment
           </button>
           <button
             onClick={() => onComplete(answers, calculateScore())}
@@ -222,7 +285,8 @@ export default function DynamicAssessment({ questionnaire, initialAnswers = {}, 
                 : "bg-slate-700/20 text-slate-500/50 cursor-not-allowed grayscale"
             }`}
           >
-            {isComplete ? "Confirm & Save Assessment" : "Awaiting Data"} <ChevronRight className="w-5 h-5" />
+            {isComplete ? "Confirm & Save Assessment" : "Awaiting Data"}{" "}
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>

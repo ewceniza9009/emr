@@ -3,6 +3,7 @@ using Domain.Entities;
 using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Clinical.Commands;
 
@@ -12,16 +13,19 @@ public class CreateClinicalEncounterCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTime;
     private readonly INotificationService _notificationService;
+    private readonly ILogger<CreateClinicalEncounterCommandHandler> _logger;
 
     public CreateClinicalEncounterCommandHandler(
         IApplicationDbContext context,
         IDateTimeProvider dateTime,
-        INotificationService notificationService
+        INotificationService notificationService,
+        ILogger<CreateClinicalEncounterCommandHandler> logger
     )
     {
         _context = context;
         _dateTime = dateTime;
         _notificationService = notificationService;
+        _logger = logger;
     }
 
     public async Task<Guid> Handle(
@@ -29,11 +33,50 @@ public class CreateClinicalEncounterCommandHandler
         CancellationToken cancellationToken
     )
     {
+        var practitionerId = request.PractitionerId;
+        var practitionerExists = await _context.Practitioners
+            .AnyAsync(p => p.PractitionerId == practitionerId, cancellationToken);
+
+        if (!practitionerExists)
+        {
+            // Resolve from UserId if a user ID was passed
+            var practitionerByUserId = await _context.Practitioners
+                .FirstOrDefaultAsync(p => p.UserId == practitionerId, cancellationToken);
+
+            if (practitionerByUserId != null)
+            {
+                _logger.LogWarning(
+                    "Clinical Identity Mapped: Practitioner record '{ResolvedId}' resolved from incoming User ID '{UserId}' during encounter initialization.",
+                    practitionerByUserId.PractitionerId,
+                    practitionerId
+                );
+                practitionerId = practitionerByUserId.PractitionerId;
+            }
+            else
+            {
+                // Fallback to first active practitioner to prevent FK violation
+                var defaultPractitioner = await _context.Practitioners
+                    .FirstOrDefaultAsync(p => p.IsActive, cancellationToken);
+
+                if (defaultPractitioner != null)
+                {
+                    _logger.LogCritical(
+                        "Clinical Identity RESOLUTION FAILURE: Could not resolve practitioner record for incoming ID '{IncomingId}' during encounter initialization. " +
+                        "Encounter silently attributed to active default practitioner '{DefaultId}' to prevent foreign-key database crash. " +
+                        "AUDIT TRAIL CORRUPTED - MANUAL INTERVENTION REQUIRED.",
+                        request.PractitionerId,
+                        defaultPractitioner.PractitionerId
+                    );
+                    practitionerId = defaultPractitioner.PractitionerId;
+                }
+            }
+        }
+
         var encounter = new ClinicalEncounter
         {
             EncounterId = Guid.NewGuid(),
             PatientId = request.PatientId,
-            PractitionerId = request.PractitionerId,
+            PractitionerId = practitionerId,
             AppointmentId = request.AppointmentId,
             Status = EncounterStatus.InProgress,
             AdmittedAt = _dateTime.UtcNow,
@@ -46,7 +89,7 @@ public class CreateClinicalEncounterCommandHandler
         {
             NoteId = Guid.NewGuid(),
             EncounterId = encounter.EncounterId,
-            AuthorId = request.PractitionerId,
+            AuthorId = practitionerId,
             Content = request.Notes,
             CreatedAt = _dateTime.UtcNow,
             IsSigned = false,

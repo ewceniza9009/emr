@@ -89,7 +89,7 @@ export default function VitalsIoTPage() {
           variables: {
             input: {
               patientId: patientId,
-              practitionerId: session?.user?.practitionerId || (process.env.NODE_ENV === 'development' ? "c79b9090-6725-460d-8531-1554c46f6f96" : "00000000-0000-0000-0000-000000000000"),
+              practitionerId: session?.user?.practitionerId || session?.user?.id || "00000000-0000-0000-0000-000000000000",
               chiefComplaint: "Dashboard IoT Initialization",
               notes: "Initialized live telemetry link from the global IoT monitoring dashboard.",
               ppsScore: 100

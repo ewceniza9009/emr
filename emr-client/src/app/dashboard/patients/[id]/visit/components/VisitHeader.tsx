@@ -23,7 +23,7 @@ export function VisitHeader({ state }: { state: any }) {
   } = state;
 
   return (
-    <header className="h-20 border-b border-[var(--divider-color)] bg-[var(--background)]/80 backdrop-blur-3xl flex items-center justify-between px-8 z-[100] sticky top-0 transition-all duration-500 shrink-0">
+    <header className="h-20 border-b border-[var(--divider-color)] bg-[var(--background)] flex items-center justify-between px-8 z-[100] sticky top-0 transition-all duration-500 shrink-0">
       <div className="flex items-center gap-6">
         <button
           onClick={() => router.push(`/dashboard/patients/${patient?.patientId || ""}`)}

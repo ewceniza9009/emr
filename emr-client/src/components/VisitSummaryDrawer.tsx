@@ -57,6 +57,7 @@ const GET_VISIT_SUMMARY = gql`
       where: { appointmentId: { eq: $appointmentId } }
     ) {
       encounterId
+      appointmentId
       type
       status
       encounterDate
@@ -170,7 +171,9 @@ export default function VisitSummaryDrawer({
     skip: !isOpen || !patientId || !appointmentId,
   });
 
-  const encounter = data?.encounters?.[0];
+  const encounter = data?.encounters?.find(
+    (e: any) => e.appointmentId?.toLowerCase() === appointmentId?.toLowerCase()
+  ) || [...(data?.encounters || [])].sort((a, b) => new Date(b.encounterDate || b.admittedAt || 0).getTime() - new Date(a.encounterDate || a.admittedAt || 0).getTime())[0];
 
   let esas = data?.esasHistory?.find(
     (e: any) =>

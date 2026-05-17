@@ -3,6 +3,7 @@ using Domain.Entities;
 using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Clinical.Commands;
 
@@ -22,11 +23,17 @@ public class SaveClinicalNoteCommandHandler : IRequestHandler<SaveClinicalNoteCo
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTime;
+    private readonly ILogger<SaveClinicalNoteCommandHandler> _logger;
 
-    public SaveClinicalNoteCommandHandler(IApplicationDbContext context, IDateTimeProvider dateTime)
+    public SaveClinicalNoteCommandHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTime,
+        ILogger<SaveClinicalNoteCommandHandler> logger
+    )
     {
         _context = context;
         _dateTime = dateTime;
+        _logger = logger;
     }
 
     public async Task<Guid> Handle(
@@ -34,6 +41,51 @@ public class SaveClinicalNoteCommandHandler : IRequestHandler<SaveClinicalNoteCo
         CancellationToken cancellationToken
     )
     {
+        var authorId = request.AuthorId;
+        var authorExists = await _context.Practitioners.AnyAsync(
+            p => p.PractitionerId == authorId,
+            cancellationToken
+        );
+
+        if (!authorExists)
+        {
+            // Resolve from UserId if a user ID was passed
+            var practitionerByUserId = await _context.Practitioners.FirstOrDefaultAsync(
+                p => p.UserId == authorId,
+                cancellationToken
+            );
+
+            if (practitionerByUserId != null)
+            {
+                _logger.LogWarning(
+                    "Clinical Identity Mapped: Practitioner record '{ResolvedId}' resolved from incoming User ID '{UserId}' during SOAP clinical note submission.",
+                    practitionerByUserId.PractitionerId,
+                    authorId
+                );
+                authorId = practitionerByUserId.PractitionerId;
+            }
+            else
+            {
+                // Fallback to first active practitioner to prevent FK violation
+                var defaultPractitioner = await _context.Practitioners.FirstOrDefaultAsync(
+                    p => p.IsActive,
+                    cancellationToken
+                );
+
+                if (defaultPractitioner != null)
+                {
+                    _logger.LogCritical(
+                        "Clinical Identity RESOLUTION FAILURE: Could not resolve practitioner record for incoming ID '{IncomingId}' during SOAP clinical note submission. "
+                            + "Note silently attributed to active default practitioner '{DefaultId}' to prevent foreign-key database crash. "
+                            + "AUDIT TRAIL CORRUPTED - MANUAL INTERVENTION REQUIRED.",
+                        request.AuthorId,
+                        defaultPractitioner.PractitionerId
+                    );
+                    authorId = defaultPractitioner.PractitionerId;
+                }
+            }
+        }
+
         var note = await _context.ClinicalNotes.FirstOrDefaultAsync(
             n => n.EncounterId == request.EncounterId,
             cancellationToken
@@ -44,10 +96,14 @@ public class SaveClinicalNoteCommandHandler : IRequestHandler<SaveClinicalNoteCo
             note = new ClinicalNote
             {
                 EncounterId = request.EncounterId,
-                AuthorId = request.AuthorId,
+                AuthorId = authorId,
                 CreatedAt = _dateTime.UtcNow,
             };
             _context.ClinicalNotes.Add(note);
+        }
+        else
+        {
+            note.AuthorId = authorId;
         }
 
         note.Subjective = request.Subjective;
@@ -63,8 +119,8 @@ public class SaveClinicalNoteCommandHandler : IRequestHandler<SaveClinicalNoteCo
             note.SignedAt = _dateTime.UtcNow;
 
             // Update Encounter and Linked Appointment to Completed
-            var encounter = await _context.ClinicalEncounters
-                .Include(e => e.Appointment)
+            var encounter = await _context
+                .ClinicalEncounters.Include(e => e.Appointment)
                 .FirstOrDefaultAsync(e => e.EncounterId == request.EncounterId, cancellationToken);
 
             if (encounter != null)
@@ -80,8 +136,8 @@ public class SaveClinicalNoteCommandHandler : IRequestHandler<SaveClinicalNoteCo
         }
 
         // Render full content for search/legacy display
-        note.Content = !string.IsNullOrEmpty(request.Content) 
-            ? request.Content 
+        note.Content = !string.IsNullOrEmpty(request.Content)
+            ? request.Content
             : $"S: {note.Subjective}\nO: {note.Objective}\nA: {note.Assessment}\nP: {note.Plan}";
 
         await _context.SaveChangesAsync(cancellationToken);

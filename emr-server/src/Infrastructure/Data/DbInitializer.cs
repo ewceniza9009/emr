@@ -2933,12 +2933,14 @@ namespace Infrastructure.Data
                 new Questionnaire
                 {
                     Name = "ZBI",
+                    TenantId = defaultTenantId,
                     Description = "Zarit Burden Interview - Family caregiver stress.",
                     AssessmentType = AssessmentType.Zbi,
                 },
                 new Questionnaire
                 {
                     Name = "CSI",
+                    TenantId = defaultTenantId,
                     Description =
                         "Caregiver Strain Index - Physical/emotional stress identification.",
                     AssessmentType = AssessmentType.Csi,
@@ -2949,6 +2951,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = caregiverInstruments[0],
+                    TenantId = defaultTenantId,
                     Text = "Zarit Caregiver Burden Score",
                     Subtext = "Total score (0-88)",
                     Type = QuestionType.Scale,
@@ -2961,6 +2964,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = csi,
+                    TenantId = defaultTenantId,
                     Text = "Sleep is disturbed",
                     OptionsJson = "[\"Yes\", \"No\"]",
                     Type = QuestionType.MultipleChoice,
@@ -2972,6 +2976,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = csi,
+                    TenantId = defaultTenantId,
                     Text = "It is a physical strain",
                     OptionsJson = "[\"Yes\", \"No\"]",
                     Type = QuestionType.MultipleChoice,
@@ -2983,6 +2988,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = csi,
+                    TenantId = defaultTenantId,
                     Text = "It is confining",
                     OptionsJson = "[\"Yes\", \"No\"]",
                     Type = QuestionType.MultipleChoice,
@@ -2994,6 +3000,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = csi,
+                    TenantId = defaultTenantId,
                     Text = "There have been family adjustments",
                     OptionsJson = "[\"Yes\", \"No\"]",
                     Type = QuestionType.MultipleChoice,
@@ -3005,6 +3012,7 @@ namespace Infrastructure.Data
                 new Question
                 {
                     Questionnaire = csi,
+                    TenantId = defaultTenantId,
                     Text = "There have been changes in personal plans",
                     OptionsJson = "[\"Yes\", \"No\"]",
                     Type = QuestionType.MultipleChoice,

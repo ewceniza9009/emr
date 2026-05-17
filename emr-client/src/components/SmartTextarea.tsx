@@ -27,10 +27,30 @@ export default function SmartTextarea({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const filteredPhrases = smartPhrases.filter((p) =>
     p.shortcut.toLowerCase().includes(phraseFilter.toLowerCase())
   );
+
+  // Auto-scroll selected item into view during arrow key navigation
+  useEffect(() => {
+    if (!listRef.current) return;
+    const container = listRef.current;
+    const activeItem = container.children[selectedIndex] as HTMLElement;
+    if (!activeItem) return;
+
+    const containerTop = container.scrollTop;
+    const containerBottom = containerTop + container.clientHeight;
+    const elemTop = activeItem.offsetTop;
+    const elemBottom = elemTop + activeItem.offsetHeight;
+
+    if (elemTop < containerTop) {
+      container.scrollTop = elemTop;
+    } else if (elemBottom > containerBottom) {
+      container.scrollTop = elemBottom - container.clientHeight;
+    }
+  }, [selectedIndex]);
 
   useEffect(() => {
     if (selectedIndex >= filteredPhrases.length) {
@@ -137,7 +157,7 @@ export default function SmartTextarea({
             <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Smart Phrases</p>
             <span className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">ESC</span>
           </div>
-          <div className="max-h-48 overflow-y-auto custom-scrollbar">
+          <div ref={listRef} className="relative max-h-48 overflow-y-auto custom-scrollbar">
             {filteredPhrases.map((p, idx) => (
               <div
                 key={p.shortcut}

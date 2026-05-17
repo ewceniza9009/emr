@@ -293,10 +293,9 @@ export function useGuidedVisitState() {
   const prevStep = steps[currentStepIndex - 1];
 
   const handleStart = async () => {
-    const clinicianId = session?.user?.practitionerId ||
-      (process.env.NODE_ENV === 'development' ? "c79b9090-6725-460d-8531-1554c46f6f96" : null);
+    const clinicianId = session?.user?.practitionerId || session?.user?.id;
 
-    if (!clinicianId || clinicianId === "00000000-0000-0000-0000-000000000000") {
+    if (!clinicianId) {
       console.error("Clinical Identity Missing: Encounter initialization aborted.");
       await alert({
         title: "Identity Required",
@@ -370,7 +369,7 @@ export function useGuidedVisitState() {
               questionnaireId: a.questionnaireId,
               patientId,
               encounterId,
-              assessorId: session?.user?.practitionerId || session?.user?.id || (process.env.NODE_ENV === 'development' ? "c79b9090-6725-460d-8531-1554c46f6f96" : "00000000-0000-0000-0000-000000000000"),
+              assessorId: session?.user?.practitionerId || session?.user?.id || "00000000-0000-0000-0000-000000000000",
               answersJson: JSON.stringify({ skipped: true, reason: res.reason }),
               totalScore: null
             }

@@ -132,7 +132,7 @@ export function StepAssessment({ state }: { state: any }) {
                   questionnaireId: questionnaireData.questionnaireByType.questionnaireId,
                   patientId: params.id,
                   encounterId: encounterId,
-                  assessorId: session?.user?.practitionerId || session?.user?.id || (process.env.NODE_ENV === 'development' ? "c79b9090-6725-460d-8531-1554c46f6f96" : "00000000-0000-0000-0000-000000000000"),
+                  assessorId: session?.user?.practitionerId || session?.user?.id || "00000000-0000-0000-0000-000000000000",
                   answersJson: JSON.stringify(answers),
                   totalScore: score
                 }

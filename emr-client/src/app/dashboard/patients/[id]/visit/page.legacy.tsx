@@ -370,11 +370,9 @@ export default function GuidedVisitPage() {
   const [executingAssessment, setExecutingAssessment] = useState(false);
 
   const handleStart = async () => {
-    // Development Fallback: Prioritize session ID, but fallback to static Admin ID in dev environments
-    const clinicianId = session?.user?.practitionerId ||
-      (process.env.NODE_ENV === 'development' ? "c79b9090-6725-460d-8531-1554c46f6f96" : null);
+    const clinicianId = session?.user?.practitionerId || session?.user?.id;
 
-    if (!clinicianId || clinicianId === "00000000-0000-0000-0000-000000000000") {
+    if (!clinicianId) {
       console.error("Clinical Identity Missing: Encounter initialization aborted to prevent audit failure.");
       await alert({
         title: "Identity Required",
@@ -649,9 +647,9 @@ export default function GuidedVisitPage() {
                     <button
                       onClick={handleStart}
                       disabled={starting || (!session?.user?.practitionerId && process.env.NODE_ENV !== 'development')}
-                      className={`w-full max-w-sm py-6 rounded-2xl text-white font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl ${(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') || starting
+                      className={`w-full max-w-sm py-6 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl ${(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') || starting
                         ? "bg-[var(--input-bg)] text-[var(--text-muted)] cursor-not-allowed grayscale"
-                        : "premium-gradient shadow-[var(--primary-glow)] hover:scale-[1.02] active:scale-[0.98]"
+                        : "premium-gradient text-white shadow-[var(--primary-glow)] hover:scale-[1.02] active:scale-[0.98]"
                         }`}
                     >
                       {(!session?.user?.practitionerId && process.env.NODE_ENV !== 'development') ? "Identifying..." : (starting ? "Establishing..." : "Start Encounter")} <ChevronRight className="w-5 h-5" />

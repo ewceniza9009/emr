@@ -126,6 +126,26 @@ export default function ClinicalNotesPage() {
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll selected item into view during arrow key navigation
+  useEffect(() => {
+    if (!listRef.current) return;
+    const container = listRef.current;
+    const activeItem = container.children[selectedIndex] as HTMLElement;
+    if (!activeItem) return;
+
+    const containerTop = container.scrollTop;
+    const containerBottom = containerTop + container.clientHeight;
+    const elemTop = activeItem.offsetTop;
+    const elemBottom = elemTop + activeItem.offsetHeight;
+
+    if (elemTop < containerTop) {
+      container.scrollTop = elemTop;
+    } else if (elemBottom > containerBottom) {
+      container.scrollTop = elemBottom - container.clientHeight;
+    }
+  }, [selectedIndex]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -458,7 +478,7 @@ export default function ClinicalNotesPage() {
                         <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Halkyone Smart Phrases</p>
                         <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase">ESC to close</span>
                       </div>
-                      <div className="max-h-60 overflow-y-auto">
+                      <div ref={listRef} className="relative max-h-60 overflow-y-auto custom-scrollbar">
                         {smartPhrases.filter((p: any) => p.shortcut.includes(phraseFilter)).map((p: any, idx: number) => (
                           <div
                             key={p.shortcut}
