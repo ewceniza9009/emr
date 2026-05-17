@@ -113,6 +113,7 @@ public class SmartPhraseInputType : InputObjectType<SmartPhrase>
     protected override void Configure(IInputObjectTypeDescriptor<SmartPhrase> descriptor)
     {
         descriptor.Field(t => t.TenantId).Type<UuidType>();
+        descriptor.Field(t => t.Category).Type<StringType>().DefaultValue("General");
         descriptor.Field(t => t.CreatedAt).Ignore();
         descriptor.Field(t => t.CreatedBy).Ignore();
         descriptor.Field(t => t.UpdatedAt).Ignore();
@@ -147,6 +148,7 @@ public class DurableMedicalEquipmentInputType : InputObjectType<DurableMedicalEq
         descriptor.Field(t => t.IsDeleted).Ignore();
         descriptor.Field(t => t.Deliveries).Ignore();
         descriptor.Field(t => t.TelemetryLogs).Ignore();
+        descriptor.Field(t => t.LastMaintenanceDate).Ignore();
     }
 }
 

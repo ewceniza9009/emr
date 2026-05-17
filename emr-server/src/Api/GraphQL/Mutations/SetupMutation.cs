@@ -32,13 +32,9 @@ public class SetupMutation
             {
                 input.UserId = Guid.Parse(users[0].Id);
             }
-            else
+            else if (users.Count > 1)
             {
-                throw new GraphQLException(
-                    users.Count > 1
-                        ? "Ambiguous identity detected: Multiple users found with this name. Please provide an explicit UserId."
-                        : "No system identity found for this name. A user account must be created before registering a practitioner."
-                );
+                throw new GraphQLException("Ambiguous identity detected: Multiple users found with this name. Please provide an explicit UserId.");
             }
         }
 
@@ -175,6 +171,18 @@ public class SetupMutation
         [Service] IApplicationDbContext context
     )
     {
+        if (input.FacilityAddress == null)
+        {
+            input.FacilityAddress = new Address();
+        }
+        else
+        {
+            input.FacilityAddress.Street ??= string.Empty;
+            input.FacilityAddress.City ??= string.Empty;
+            input.FacilityAddress.State ??= string.Empty;
+            input.FacilityAddress.PostalCode ??= string.Empty;
+            input.FacilityAddress.Country ??= "Philippines";
+        }
         context.Facilities.Add(input);
         await context.SaveChangesAsync(default);
         return input;
@@ -189,14 +197,18 @@ public class SetupMutation
 
         existing.Name = input.Name;
         existing.Type = input.Type;
+        existing.ContactPerson = input.ContactPerson;
+        existing.ContactPhone = input.ContactPhone;
+        existing.ContactEmail = input.ContactEmail;
 
         if (input.FacilityAddress != null)
         {
-            existing.FacilityAddress.Street = input.FacilityAddress.Street;
-            existing.FacilityAddress.City = input.FacilityAddress.City;
-            existing.FacilityAddress.State = input.FacilityAddress.State;
-            existing.FacilityAddress.PostalCode = input.FacilityAddress.PostalCode;
-            existing.FacilityAddress.Country = input.FacilityAddress.Country;
+            existing.FacilityAddress ??= new Address();
+            existing.FacilityAddress.Street = input.FacilityAddress.Street ?? string.Empty;
+            existing.FacilityAddress.City = input.FacilityAddress.City ?? string.Empty;
+            existing.FacilityAddress.State = input.FacilityAddress.State ?? string.Empty;
+            existing.FacilityAddress.PostalCode = input.FacilityAddress.PostalCode ?? string.Empty;
+            existing.FacilityAddress.Country = input.FacilityAddress.Country ?? "Philippines";
             existing.FacilityAddress.Latitude = input.FacilityAddress.Latitude;
             existing.FacilityAddress.Longitude = input.FacilityAddress.Longitude;
         }
@@ -338,6 +350,10 @@ public class SetupMutation
         [Service] IApplicationDbContext context
     )
     {
+        if (input.LastMaintenanceDate == default)
+        {
+            input.LastMaintenanceDate = DateTimeOffset.UtcNow;
+        }
         context.DurableMedicalEquipment.Add(input);
         await context.SaveChangesAsync(default);
         return input;
@@ -360,13 +376,16 @@ public class SetupMutation
         return true;
     }
 
-    // --- Outreach Script ---
     [Authorize(Policy = "CanManageSetup")]
     public async Task<OutreachScript> CreateOutreachScript(
         OutreachScript input,
         [Service] IApplicationDbContext context
     )
     {
+        if (input.PostalCode == null)
+        {
+            input.PostalCode = string.Empty;
+        }
         context.OutreachScripts.Add(input);
         await context.SaveChangesAsync(default);
         return input;

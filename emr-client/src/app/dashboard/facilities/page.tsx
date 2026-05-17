@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import EditFacilityDrawer from "@/components/EditFacilityDrawer";
+import SetupDrawer from "@/components/SetupDrawer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PermissionGate } from "@/components/PermissionGate";
 
@@ -45,6 +46,7 @@ export default function FacilitiesPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedFacility, setSelectedFacility] = useState<any | null>(null);
 
   const { data, loading, error, refetch } = useQuery(GET_FACILITIES);
@@ -63,7 +65,10 @@ export default function FacilitiesPage() {
           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Oversee multi-site clinical operations and facility-specific patient volumes.</p>
         </div>
         <PermissionGate permission="setup:manage">
-          <button className="premium-button premium-gradient px-5 h-10 rounded-xl text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20">
+          <button 
+            onClick={() => setIsAddOpen(true)}
+            className="premium-button premium-gradient px-5 h-10 rounded-xl text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20"
+          >
             <Plus className="w-4 h-4" />
             Add Facility
           </button>
@@ -200,6 +205,13 @@ export default function FacilitiesPage() {
         }} 
         onSuccess={() => refetch()} 
         facility={selectedFacility} 
+      />
+
+      <SetupDrawer
+        open={isAddOpen}
+        type="facilities"
+        onClose={() => setIsAddOpen(false)}
+        onSuccess={() => refetch()}
       />
     </div>
   );

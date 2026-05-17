@@ -229,7 +229,7 @@ export default function RegistrySettings() {
                 ) : (
                   <Save className="w-3 h-3" />
                 )}
-                {isSaving ? "Syncing Protocols..." : "Commit Changes"}
+                {isSaving ? "Syncing Protocols..." : "Save"}
               </button>
             </div>
           </footer>

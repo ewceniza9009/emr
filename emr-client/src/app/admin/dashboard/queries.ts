@@ -102,54 +102,54 @@ export const GET_SETUP_DATA = gql`
 
 export const DELETE_MUTATIONS = {
   practitioners: gql`
-    mutation DeletePractitioner($id: Guid!) {
+    mutation DeletePractitioner($id: UUID!) {
       deletePractitioner(id: $id)
     }
   `,
   facilities: gql`
-    mutation DeleteFacility($id: Guid!) {
+    mutation DeleteFacility($id: UUID!) {
       deleteFacility(id: $id)
     }
   `,
   healthPlans: gql`
-    mutation DeleteHealthPlan($id: Guid!) {
+    mutation DeleteHealthPlan($id: UUID!) {
       deleteHealthPlan(id: $id)
     }
   `,
   medications: gql`
-    mutation DeleteMedication($id: Guid!) {
+    mutation DeleteMedication($id: UUID!) {
       deleteMedication(id: $id)
     }
   `,
   smartPhrases: gql`
-    mutation DeleteSmartPhrase($id: Guid!) {
+    mutation DeleteSmartPhrase($id: UUID!) {
       deleteSmartPhrase(id: $id)
     }
   `,
   questionnaires: gql`
-    mutation DeleteQuestionnaire($id: Guid!) {
+    mutation DeleteQuestionnaire($id: UUID!) {
       deleteQuestionnaire(id: $id)
     }
   `,
   equipment: gql`
-    mutation DeleteEquipment($id: Guid!) {
+    mutation DeleteEquipment($id: UUID!) {
       deleteEquipment(id: $id)
     }
   `,
   outreachScripts: gql`
-    mutation DeleteOutreachScript($id: Guid!) {
+    mutation DeleteOutreachScript($id: UUID!) {
       deleteOutreachScript(id: $id)
     }
   `,
   integrationProfiles: gql`
-    mutation DeleteIntegrationProfile($id: Guid!) {
+    mutation DeleteIntegrationProfile($id: UUID!) {
       deleteIntegrationProfile(id: $id)
     }
   `,
 };
 
 export const INVITE_PRACTITIONER = gql`
-  mutation InvitePractitioner($practitionerId: Guid!, $email: String!) {
+  mutation InvitePractitioner($practitionerId: UUID!, $email: String!) {
     invitePractitioner(practitionerId: $practitionerId, email: $email)
   }
 `;

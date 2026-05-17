@@ -159,6 +159,7 @@ export default function IdentityManagement() {
       title: "New Security Role",
       message: "Define a unique identifier for this security segment.",
       placeholder: "e.g. NURSE_LEAD",
+      inputType: "text",
     });
 
     if (name) {

@@ -22,7 +22,7 @@ export default function useSetupState({
         practitioners: {
           firstName: "",
           lastName: "",
-          position: "Nurse",
+          position: "NURSE",
           prcLicenseNumber: "",
           npiNumber: "",
           isActive: true,
@@ -47,7 +47,7 @@ export default function useSetupState({
         },
         facilities: {
           name: "",
-          type: "Hospital",
+          type: "HOSPITAL",
           facilityAddress: {
             street: "",
             city: "",
@@ -61,26 +61,27 @@ export default function useSetupState({
         medications: {
           name: "",
           strength: "",
-          defaultRoute: "Oral",
+          defaultRoute: "ORAL",
           isActive: true,
         },
         smartPhrases: {
           shortcut: "/",
           label: "",
           templateText: "",
+          category: "General",
           isActive: true,
         },
         questionnaires: {
           name: "",
-          assessmentType: "Esas",
+          assessmentType: "ESAS",
           schemaJson: "",
           isActive: true,
         },
         equipment: {
           modelName: "",
           serialNumber: "",
-          type: "VitalsMonitor",
-          status: "Available",
+          type: "OXYGEN_CONCENTRATOR",
+          status: "AVAILABLE",
           isActive: true,
         },
         outreachScripts: {
@@ -92,7 +93,7 @@ export default function useSetupState({
           isActive: true,
         },
         integrationProfiles: {
-          partner: "ElationHealth",
+          partner: "ELATION_HEALTH",
           apiKey: "",
           baseUrl: "",
           isActive: true,
@@ -150,16 +151,32 @@ export default function useSetupState({
     // Top-level tenant and audit alignment
     if (!input.tenantId) input.tenantId = contextTenantId;
 
-    // Only inject practitionerId for practitioner types
-    if (type === "practitioners") {
-      const pId = input.practitionerId || crypto.randomUUID();
-      input.practitionerId = pId;
+    // Automatically generate and inject the appropriate primary key ID if missing
+    const idKeyMap: Record<string, string> = {
+      practitioners: "practitionerId",
+      facilities: "facilityId",
+      healthPlans: "healthPlanId",
+      medications: "medicationId",
+      smartPhrases: "phraseId",
+      questionnaires: "questionnaireId",
+      equipment: "equipmentId",
+      outreachScripts: "outreachScriptId",
+      integrationProfiles: "integrationProfileId",
+    };
 
+    const idKey = idKeyMap[type];
+    const generatedId = idKey ? (input[idKey] || crypto.randomUUID()) : null;
+    if (idKey && generatedId) {
+      input[idKey] = generatedId;
+    }
+
+    // Only align child collections for practitioner types
+    if (type === "practitioners" && generatedId) {
       // Collection alignment
       if (input.addresses && Array.isArray(input.addresses)) {
         input.addresses = input.addresses.map((a: any) => ({
           ...a,
-          practitionerId: pId,
+          practitionerId: generatedId,
           entityAddressId: a.entityAddressId || crypto.randomUUID(),
           tenantId: a.tenantId || contextTenantId,
           type: (a.type || "HOME").toUpperCase(),
@@ -174,7 +191,7 @@ export default function useSetupState({
       if (input.licensures && Array.isArray(input.licensures)) {
         input.licensures = input.licensures.map((l: any) => ({
           ...l,
-          practitionerId: pId,
+          practitionerId: generatedId,
           licensureId: l.licensureId || crypto.randomUUID(),
           tenantId: l.tenantId || contextTenantId,
           isActive: l.isActive !== undefined ? l.isActive : true,
@@ -184,19 +201,42 @@ export default function useSetupState({
       if (input.serviceAreas && Array.isArray(input.serviceAreas)) {
         input.serviceAreas = input.serviceAreas.map((s: any) => ({
           ...s,
-          practitionerId: pId,
+          practitionerId: generatedId,
           serviceAreaId: s.serviceAreaId || crypto.randomUUID(),
           tenantId: s.tenantId || contextTenantId,
         }));
       }
     }
 
-    // Final safety: Ensure isActive is present for all types if it exists in the model
-    if (input.isActive === undefined || input.isActive === null) {
-      input.isActive = true;
+    // Final safety: Ensure isActive is present for types that support it
+    const typesWithActive = [
+      "practitioners",
+      "healthPlans",
+      "medications",
+      "smartPhrases",
+      "integrationProfiles",
+    ];
+    if (typesWithActive.includes(type)) {
+      if (input.isActive === undefined || input.isActive === null) {
+        input.isActive = true;
+      }
+    } else {
+      delete input.isActive;
     }
 
-    mutate({ variables: { input } });
+    let payload = { ...input };
+    if (type === "questionnaires") {
+      payload = {
+        questionnaireId: input.questionnaireId,
+        tenantId: contextTenantId,
+        name: input.name,
+        assessmentType: input.assessmentType,
+        schemaJson: input.schemaJson || null,
+        description: input.description || null,
+      } as any;
+    }
+
+    mutate({ variables: { input: payload } });
   };
 
   return {

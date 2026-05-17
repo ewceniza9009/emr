@@ -72,22 +72,22 @@ export default function GenericForm({ type, form, onChange }: GenericFormProps) 
           </label>
           <select
             className="premium-input w-full rounded-xl p-3 text-sm appearance-none cursor-pointer"
-            value={form.defaultRoute || "Oral"}
+            value={form.defaultRoute || "ORAL"}
             onChange={(e) => onChange({ ...form, defaultRoute: e.target.value })}
           >
-            <option value="Oral" className="bg-[var(--sidebar-bg)]">
+            <option value="ORAL" className="bg-[var(--sidebar-bg)]">
               Oral
             </option>
-            <option value="Sublingual" className="bg-[var(--sidebar-bg)]">
+            <option value="SUBLINGUAL" className="bg-[var(--sidebar-bg)]">
               Sublingual
             </option>
-            <option value="Transdermal" className="bg-[var(--sidebar-bg)]">
+            <option value="TRANSDERMAL" className="bg-[var(--sidebar-bg)]">
               Transdermal
             </option>
-            <option value="Subcutaneous" className="bg-[var(--sidebar-bg)]">
+            <option value="SUBCUTANEOUS" className="bg-[var(--sidebar-bg)]">
               Subcutaneous
             </option>
-            <option value="Intravenous" className="bg-[var(--sidebar-bg)]">
+            <option value="INTRAVENOUS" className="bg-[var(--sidebar-bg)]">
               Intravenous
             </option>
           </select>
@@ -161,33 +161,33 @@ export default function GenericForm({ type, form, onChange }: GenericFormProps) 
           </label>
           <select
             className="premium-input w-full rounded-xl p-3 text-sm appearance-none cursor-pointer"
-            value={form.assessmentType || "Esas"}
+            value={form.assessmentType || "ESAS"}
             onChange={(e) =>
               onChange({ ...form, assessmentType: e.target.value })
             }
           >
-            <option value="Esas" className="bg-[var(--sidebar-bg)]">
+            <option value="ESAS" className="bg-[var(--sidebar-bg)]">
               ESAS
             </option>
-            <option value="Bpi" className="bg-[var(--sidebar-bg)]">
+            <option value="BPI" className="bg-[var(--sidebar-bg)]">
               BPI
             </option>
-            <option value="Msas" className="bg-[var(--sidebar-bg)]">
+            <option value="MSAS" className="bg-[var(--sidebar-bg)]">
               MSAS
             </option>
-            <option value="Pps" className="bg-[var(--sidebar-bg)]">
+            <option value="PPS" className="bg-[var(--sidebar-bg)]">
               PPS
             </option>
-            <option value="Kps" className="bg-[var(--sidebar-bg)]">
+            <option value="KPS" className="bg-[var(--sidebar-bg)]">
               KPS
             </option>
-            <option value="Ecog" className="bg-[var(--sidebar-bg)]">
+            <option value="ECOG" className="bg-[var(--sidebar-bg)]">
               ECOG
             </option>
-            <option value="Phq9" className="bg-[var(--sidebar-bg)]">
+            <option value="PHQ9" className="bg-[var(--sidebar-bg)]">
               PHQ-9
             </option>
-            <option value="Hads" className="bg-[var(--sidebar-bg)]">
+            <option value="HADS" className="bg-[var(--sidebar-bg)]">
               HADS
             </option>
           </select>
@@ -227,23 +227,29 @@ export default function GenericForm({ type, form, onChange }: GenericFormProps) 
           </label>
           <select
             className="premium-input w-full rounded-xl p-3 text-sm appearance-none cursor-pointer"
-            value={form.type || "VitalsMonitor"}
+            value={form.type || "OXYGEN_CONCENTRATOR"}
             onChange={(e) => onChange({ ...form, type: e.target.value })}
           >
-            <option value="VitalsMonitor" className="bg-[var(--sidebar-bg)]">
-              Vitals Monitor
-            </option>
-            <option value="OxygenConcentrator" className="bg-[var(--sidebar-bg)]">
+            <option value="OXYGEN_CONCENTRATOR" className="bg-[var(--sidebar-bg)]">
               Oxygen Concentrator
             </option>
-            <option value="HospitalBed" className="bg-[var(--sidebar-bg)]">
+            <option value="OXYGEN_TANK" className="bg-[var(--sidebar-bg)]">
+              Oxygen Tank
+            </option>
+            <option value="HOSPITAL_BED" className="bg-[var(--sidebar-bg)]">
               Hospital Bed
             </option>
-            <option value="Wheelchair" className="bg-[var(--sidebar-bg)]">
+            <option value="WHEELCHAIR" className="bg-[var(--sidebar-bg)]">
               Wheelchair
             </option>
-            <option value="InfusionPump" className="bg-[var(--sidebar-bg)]">
+            <option value="INFUSION_PUMP" className="bg-[var(--sidebar-bg)]">
               Infusion Pump
+            </option>
+            <option value="SUCTION_MACHINE" className="bg-[var(--sidebar-bg)]">
+              Suction Machine
+            </option>
+            <option value="NEBULIZER" className="bg-[var(--sidebar-bg)]">
+              Nebulizer
             </option>
           </select>
         </div>
@@ -304,19 +310,19 @@ export default function GenericForm({ type, form, onChange }: GenericFormProps) 
           </label>
           <select
             className="premium-input w-full rounded-xl p-3 text-sm appearance-none cursor-pointer"
-            value={form.partner || "ElationHealth"}
+            value={form.partner || "ELATION_HEALTH"}
             onChange={(e) => onChange({ ...form, partner: e.target.value })}
           >
-            <option value="ElationHealth" className="bg-[var(--sidebar-bg)]">
+            <option value="ELATION_HEALTH" className="bg-[var(--sidebar-bg)]">
               Elation Health
             </option>
-            <option value="CareSource" className="bg-[var(--sidebar-bg)]">
+            <option value="CARE_SOURCE" className="bg-[var(--sidebar-bg)]">
               CareSource
             </option>
-            <option value="Surescripts" className="bg-[var(--sidebar-bg)]">
+            <option value="SURESCRIPTS" className="bg-[var(--sidebar-bg)]">
               Surescripts
             </option>
-            <option value="HealthGorilla" className="bg-[var(--sidebar-bg)]">
+            <option value="HEALTH_GORILLA" className="bg-[var(--sidebar-bg)]">
               Health Gorilla
             </option>
           </select>

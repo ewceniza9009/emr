@@ -26,10 +26,13 @@ export default function SetupDrawer(props: SetupDrawerProps) {
 
   if (!open) return null;
 
-  const title = type
-    .replace(/([A-Z])/g, " $1")
-    .replace(/^./, (str) => str.toUpperCase())
-    .slice(0, -1);
+  const title =
+    type === "equipment"
+      ? "Equipment"
+      : type
+          .replace(/([A-Z])/g, " $1")
+          .replace(/^./, (str) => str.toUpperCase())
+          .slice(0, -1);
   const isEdit = !!initialData;
 
   const Icon =
@@ -115,8 +118,7 @@ export default function SetupDrawer(props: SetupDrawerProps) {
                   <Activity className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
-                    <CheckCircle className="w-5 h-5" />{" "}
-                    <span>Commit Changes</span>
+                    <CheckCircle className="w-5 h-5" /> <span>Save</span>
                   </>
                 )}
               </button>

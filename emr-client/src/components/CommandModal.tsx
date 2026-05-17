@@ -17,6 +17,7 @@ interface CommandModalProps {
   isPrompt?: boolean;
   onConfirmWithValue?: (value: string) => void;
   placeholder?: string;
+  inputType?: "text" | "email" | "textarea";
 }
 
 export default function CommandModal({
@@ -31,7 +32,8 @@ export default function CommandModal({
   isAlert = false,
   isPrompt = false,
   onConfirmWithValue,
-  placeholder
+  placeholder,
+  inputType = "textarea"
 }: CommandModalProps) {
   const [mounted, setMounted] = useState(false);
   const [promptValue, setPromptValue] = useState("");
@@ -84,6 +86,49 @@ export default function CommandModal({
   const style = typeStyles[type];
   const Icon = style.icon;
 
+  // Helper to render message with beautiful copyable link if present
+  const renderMessageContent = () => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = message.split(urlRegex);
+    
+    return (
+      <div className="text-[var(--text-secondary)] text-sm leading-relaxed px-4 break-all whitespace-pre-wrap space-y-3">
+        {parts.map((part, index) => {
+          if (part.match(urlRegex)) {
+            return (
+              <div 
+                key={index} 
+                className="mt-4 p-4 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl flex flex-col gap-2 text-left relative overflow-hidden group hover:border-[var(--primary)]/30 transition-all duration-300"
+              >
+                <div className="absolute top-0 right-0 w-[120px] h-[120px] bg-gradient-to-br from-[var(--primary)]/5 to-transparent blur-md pointer-events-none" />
+                <span className="text-[9px] font-black text-[var(--primary)] tracking-widest uppercase">
+                  Secure Invitation Link
+                </span>
+                <div className="flex items-center gap-3">
+                  <input
+                    readOnly
+                    value={part}
+                    className="flex-1 bg-transparent text-xs text-[var(--text-primary)] border-none outline-none font-mono truncate"
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(part);
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-[var(--primary)] text-white hover:bg-[var(--primary)]/90 transition-all font-black text-[10px] uppercase tracking-wider shadow-sm shadow-[var(--primary)]/10 hover:scale-[1.03] active:scale-[0.97]"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            );
+          }
+          return <span key={index}>{part}</span>;
+        })}
+      </div>
+    );
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -93,40 +138,49 @@ export default function CommandModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-[var(--background)]/80 backdrop-blur-md"
+            className="absolute inset-0 bg-black/40 backdrop-blur-md"
           />
           
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="relative w-full max-w-md overflow-hidden rounded-[2.5rem] border border-[var(--card-border)] bg-[var(--card-bg)] p-8 shadow-2xl"
+            className="relative w-full max-w-md overflow-hidden rounded-[2.5rem] border border-[var(--card-border)] bg-[var(--card-bg)]/80 backdrop-blur-2xl p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]"
           >
             <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gradient-to-br from-[var(--primary)]/5 to-transparent blur-[100px] pointer-events-none" />
             
             <div className="relative z-10 flex flex-col items-center text-center space-y-6">
-              <div className={`w-20 h-20 rounded-full ${style.bg} ${style.border} border flex items-center justify-center ${style.color}`}>
-                <Icon className="w-10 h-10" />
+              <div className={`w-20 h-20 rounded-full ${style.bg} ${style.border} border flex items-center justify-center ${style.color} shadow-lg shadow-black/10`}>
+                <Icon className="w-10 h-10 animate-pulse" />
               </div>
 
-              <div className="space-y-2">
-                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-tight uppercase">
+              <div className="space-y-2 w-full">
+                <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-widest uppercase">
                   {title}
                 </h2>
-                <p className="text-[var(--text-secondary)] text-sm leading-relaxed px-4">
-                  {message}
-                </p>
+                {renderMessageContent()}
               </div>
 
               {isPrompt && (
                 <div className="w-full px-4">
-                  <textarea
-                    autoFocus
-                    value={promptValue}
-                    onChange={(e) => setPromptValue(e.target.value)}
-                    placeholder={placeholder || "Enter mandatory justification..."}
-                    className="w-full h-32 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--primary)] transition-all resize-none font-medium"
-                  />
+                  {inputType === "textarea" ? (
+                    <textarea
+                      autoFocus
+                      value={promptValue}
+                      onChange={(e) => setPromptValue(e.target.value)}
+                      placeholder={placeholder || "Enter mandatory justification..."}
+                      className="w-full h-32 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--primary)] transition-all resize-none font-medium"
+                    />
+                  ) : (
+                    <input
+                      type={inputType}
+                      autoFocus
+                      value={promptValue}
+                      onChange={(e) => setPromptValue(e.target.value)}
+                      placeholder={placeholder || "Enter value..."}
+                      className="w-full h-12 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--primary)] transition-all font-medium"
+                    />
+                  )}
                 </div>
               )}
 

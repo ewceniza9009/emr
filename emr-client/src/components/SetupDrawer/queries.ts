@@ -95,7 +95,7 @@ export const UPDATE_MUTATIONS = {
     }
   `,
   questionnaires: gql`
-    mutation UpdateQuestionnaire($input: QuestionnaireInput!) {
+    mutation UpdateQuestionnaire($input: UpdateQuestionnaireInput!) {
       updateQuestionnaire(input: $input)
     }
   `,

@@ -10,6 +10,7 @@ interface ModalOptions {
   confirmText?: string;
   cancelText?: string;
   placeholder?: string;
+  inputType?: "text" | "email" | "textarea";
 }
 
 interface CommandModalContextType {
@@ -99,6 +100,7 @@ export function CommandModalProvider({ children }: { children: React.ReactNode }
           placeholder={state.options.placeholder}
           isAlert={state.isAlert}
           isPrompt={state.isPrompt}
+          inputType={state.options.inputType}
         />
       )}
     </CommandModalContext.Provider>

@@ -70,17 +70,17 @@ export default function SetupTable({
                 ))}
                 <td className="px-5 py-2.5 text-right">
                   <PermissionGate permission="setup:manage">
-                    <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                    <div className="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-all duration-300">
                       <button
                         onClick={() => onEdit(item)}
-                        className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)] text-[var(--text-muted)] hover:text-[var(--sidebar-bg)] border border-[var(--card-border)] hover:border-[var(--primary)] transition-all shadow-xl"
+                        className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--input-bg)] hover:bg-[var(--primary)] text-[var(--text-muted)] hover:text-[var(--sidebar-bg)] border border-[var(--card-border)] hover:border-[var(--primary)] transition-all duration-200 shadow-sm hover:shadow-[0_0_12px_rgba(var(--primary-rgb),0.2)] hover:scale-105 active:scale-95"
                         title="Edit Record"
                       >
                         <Edit className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => onDelete(item)}
-                        className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--input-bg)] hover:bg-rose-600 text-[var(--text-muted)] hover:text-white border border-[var(--card-border)] hover:border-rose-500 transition-all shadow-xl"
+                        className="h-9 w-9 flex items-center justify-center rounded-xl bg-[var(--input-bg)] hover:bg-rose-600 text-[var(--text-muted)] hover:text-white border border-[var(--card-border)] hover:border-rose-500 transition-all duration-200 shadow-sm hover:shadow-[0_0_12px_rgba(244,63,94,0.2)] hover:scale-105 active:scale-95"
                         title="Delete Record"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

@@ -50,23 +50,29 @@ export default function PractitionerForm({
             </label>
             <select
               className="premium-input w-full rounded-xl p-3 text-sm appearance-none cursor-pointer"
-              value={form.position || "Nurse"}
+              value={form.position || "NURSE"}
               onChange={(e) => onChange({ ...form, position: e.target.value })}
             >
-              <option value="Nurse" className="bg-[var(--sidebar-bg)]">
+              <option value="NURSE" className="bg-[var(--sidebar-bg)]">
                 Nurse
               </option>
-              <option value="Physician" className="bg-[var(--sidebar-bg)]">
+              <option value="PHYSICIAN" className="bg-[var(--sidebar-bg)]">
                 Physician
               </option>
-              <option value="Admin" className="bg-[var(--sidebar-bg)]">
+              <option value="ADMIN" className="bg-[var(--sidebar-bg)]">
                 Admin
               </option>
-              <option value="SocialWorker" className="bg-[var(--sidebar-bg)]">
+              <option value="SOCIAL_WORKER" className="bg-[var(--sidebar-bg)]">
                 Social Worker
               </option>
-              <option value="Chaplain" className="bg-[var(--sidebar-bg)]">
+              <option value="CHAPLAIN" className="bg-[var(--sidebar-bg)]">
                 Chaplain
+              </option>
+              <option value="MEDICAL_DIRECTOR" className="bg-[var(--sidebar-bg)]">
+                Medical Director
+              </option>
+              <option value="ADMIN_COORDINATOR" className="bg-[var(--sidebar-bg)]">
+                Admin Coordinator
               </option>
             </select>
           </div>

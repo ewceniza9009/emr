@@ -88,7 +88,7 @@ export default function CareNavigationPage() {
     return {
       id: p.practitionerId,
       name: `${p.firstName} ${p.lastName}`,
-      role: p.position === 'nurse' ? 'Care Navigator' : 'Supporting Clinician',
+      role: p.position?.toUpperCase() === 'NURSE' ? 'Care Navigator' : 'Supporting Clinician',
       location: primaryAddress?.street || (activeAppt ? "Sector Active" : "Stationary"),
       status: activeAppt ? "On Site" : upcomingAppt ? "In Transit" : "Idle",
       eta: upcomingAppt ? "15m" : "--",

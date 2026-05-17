@@ -30,7 +30,7 @@ import AdminLoadingState from "./components/AdminLoadingState";
 import SetupTable from "./components/SetupTable";
 
 export default function AdminDashboardContent() {
-  const { confirm, alert } = useCommandModal();
+  const { confirm, alert, prompt } = useCommandModal();
   const { data: session, status } = useSession();
 
   const [activeTab, setActiveTab] = useState<TabType>("practitioners");
@@ -118,11 +118,12 @@ export default function AdminDashboardContent() {
     if (ok) {
       try {
         await deleteItem({ variables: { id: item[idKey] } });
-      } catch (err) {
+      } catch (err: any) {
+        console.error("Deletion failed:", err);
         await alert({
           title: "Registry Conflict",
           message:
-            "Deletion failed. This record is currently referenced by other clinical entities and cannot be removed.",
+            err.message || "Deletion failed. This record is currently referenced by other clinical entities and cannot be removed.",
           type: "danger",
         });
       }
@@ -227,9 +228,14 @@ export default function AdminDashboardContent() {
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
-                              const email = window.prompt(
-                                `Enter invitation email for ${item.firstName} ${item.lastName}:`,
-                              );
+                              const email = await prompt({
+                                title: "Invite Practitioner",
+                                message: `Enter the invitation email for ${item.firstName} ${item.lastName}:`,
+                                placeholder: "e.g. practitioner@halkyone.clinical",
+                                confirmText: "Generate Link",
+                                cancelText: "Cancel",
+                                inputType: "email",
+                              });
                               if (email) {
                                 try {
                                   const { data } = await invitePractitioner({
@@ -239,14 +245,20 @@ export default function AdminDashboardContent() {
                                     },
                                   });
                                   if (data.invitePractitioner) {
-                                    window.alert(
-                                      `Onboarding link generated: ${window.location.origin}${data.invitePractitioner}`,
-                                    );
+                                    await alert({
+                                      title: "Invitation Link Generated",
+                                      message: `Onboarding link successfully generated:\n\n${window.location.origin}${data.invitePractitioner}`,
+                                      type: "success",
+                                      confirmText: "Copy & Close",
+                                    });
                                   }
                                 } catch (err: any) {
-                                  window.alert(
-                                    `Invitation failed: ${err.message}`,
-                                  );
+                                  await alert({
+                                    title: "Invitation Failed",
+                                    message: `Could not invite practitioner: ${err.message}`,
+                                    type: "danger",
+                                    confirmText: "Acknowledge",
+                                  });
                                 }
                               }
                             }}

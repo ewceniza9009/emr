@@ -30,20 +30,23 @@ export default function FacilityForm({ form, onChange }: FacilityFormProps) {
           </label>
           <select
             className="premium-input w-full rounded-xl p-3 text-sm appearance-none cursor-pointer"
-            value={form.type || "Hospital"}
+            value={form.type || "HOSPITAL"}
             onChange={(e) => onChange({ ...form, type: e.target.value })}
           >
-            <option value="Hospital" className="bg-[var(--sidebar-bg)]">
+            <option value="HOSPITAL" className="bg-[var(--sidebar-bg)]">
               Hospital
             </option>
-            <option value="Clinic" className="bg-[var(--sidebar-bg)]">
+            <option value="CLINIC" className="bg-[var(--sidebar-bg)]">
               Clinic
             </option>
-            <option value="HomeHealth" className="bg-[var(--sidebar-bg)]">
-              Home Health
+            <option value="NURSING_HOME" className="bg-[var(--sidebar-bg)]">
+              Nursing Home
             </option>
-            <option value="Hospice" className="bg-[var(--sidebar-bg)]">
-              Hospice
+            <option value="ASSISTED_LIVING" className="bg-[var(--sidebar-bg)]">
+              Assisted Living
+            </option>
+            <option value="HOSPICE_HOUSE" className="bg-[var(--sidebar-bg)]">
+              Hospice House
             </option>
           </select>
         </div>
