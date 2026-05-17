@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Premium Custom Scrollbars - Chrome/Safari/Edge/Opera */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.15);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+/* Premium Custom Scrollbars inside Ionic's Shadow-DOM scrolling containers */
+ion-content::part(scroll) {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.15) transparent;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.15);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+/* Theme Design Tokens and Variable Overrides */
+:root {
+  /* Default: Porcelain Light Mode */
+  --ion-background-color: #f8fafc;
+  --ion-text-color: #0f172a;
+  
+  --ion-tab-bar-background: #ffffff;
+  --ion-tab-bar-border-color: #e2e8f0;
+  --ion-tab-button-color-selected: #0d9488; /* teal-600 */
+  --ion-toolbar-background: #f8fafc;
+}
+
+.dark {
+  /* Midnight Dark Mode */
+  --ion-background-color: #020408;
+  --ion-text-color: #ffffff;
+  
+  --ion-tab-bar-background: #090d16;
+  --ion-tab-bar-border-color: #1e293b;
+  --ion-tab-button-color-selected: #2dd4bf; /* teal-400 */
+  --ion-toolbar-background: #020408;
+}
+
+/* Ensure Ionic elements respect our custom properties */
+ion-content {
+  --background: var(--ion-background-color);
+  --color: var(--ion-text-color);
+}
+
+ion-tab-bar {
+  --background: var(--ion-tab-bar-background) !important;
+  --border-color: var(--ion-tab-bar-border-color) !important;
+  border-top: 1px solid var(--ion-tab-bar-border-color) !important;
+}
+
+ion-tab-button {
+  --color-selected: var(--ion-tab-button-color-selected) !important;
+}
+
+ion-toolbar {
+  --background: var(--ion-toolbar-background) !important;
+}
