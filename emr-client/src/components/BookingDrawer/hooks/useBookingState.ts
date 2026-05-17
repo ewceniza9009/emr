@@ -55,7 +55,11 @@ export function useBookingState({
   const [period, setPeriod] = useState<"AM" | "PM" | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date(prefillDate || Date.now());
-    return isNaN(d.getTime()) ? new Date() : d;
+    const valid = isNaN(d.getTime()) ? new Date() : d;
+    if (valid.getDay() === 0) {
+      valid.setDate(valid.getDate() + 1);
+    }
+    return valid;
   });
   const [viewDate, setViewDate] = useState(() => {
     return isNaN(selectedDate.getTime()) ? new Date() : new Date(selectedDate);
@@ -73,18 +77,24 @@ export function useBookingState({
   const [startMinute, setStartMinute] = useState(0);
   const { tenantConfig } = useSettings();
 
-  const clinicalConfig = useMemo(() => ({
-    AM_START: tenantConfig.amStartHour,
-    PM_START: tenantConfig.pmStartHour,
-    DAY_END: tenantConfig.dayEndHour,
-    CUTOFF_HOUR: tenantConfig.pmStartHour,
-    TIMEZONE: tenantConfig.timezone,
-    ENGINE_SAFETY_DRIVE_MINS: tenantConfig.engineSafetyDriveMins,
-    ENGINE_SAFETY_DIST_KM: tenantConfig.engineSafetyDistKm,
-    IOT_SYNC_INTERVAL_MS: tenantConfig.iotSyncIntervalMs,
-    URGENT_PAIN_THRESHOLD: tenantConfig.urgentPainThreshold,
-    URGENT_WELLBEING_THRESHOLD: tenantConfig.urgentWellbeingThreshold
-  }), [tenantConfig]);
+  const clinicalConfig = useMemo(() => {
+    const rawTz = tenantConfig.timezone || "UTC";
+    const normalizedTz = rawTz.includes("(")
+      ? rawTz.split("(")[0].trim()
+      : rawTz;
+    return {
+      AM_START: tenantConfig.amStartHour,
+      PM_START: tenantConfig.pmStartHour,
+      DAY_END: tenantConfig.dayEndHour,
+      CUTOFF_HOUR: tenantConfig.pmStartHour,
+      TIMEZONE: normalizedTz,
+      ENGINE_SAFETY_DRIVE_MINS: tenantConfig.engineSafetyDriveMins,
+      ENGINE_SAFETY_DIST_KM: tenantConfig.engineSafetyDistKm,
+      IOT_SYNC_INTERVAL_MS: tenantConfig.iotSyncIntervalMs,
+      URGENT_PAIN_THRESHOLD: tenantConfig.urgentPainThreshold,
+      URGENT_WELLBEING_THRESHOLD: tenantConfig.urgentWellbeingThreshold
+    };
+  }, [tenantConfig]);
 
   const createZonedISO = useCallback((date: Date, hours: number, minutes: number) => {
     try {
@@ -138,6 +148,9 @@ export function useBookingState({
       setStartHour(8);
       setStartMinute(0);
       const now = new Date();
+      if (now.getDay() === 0) {
+        now.setDate(now.getDate() + 1);
+      }
       setSelectedDate(now);
       setViewDate(now);
     }

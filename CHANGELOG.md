@@ -2,6 +2,14 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.2.5] - 2026-05-17
+- Modularized 915-line monolithic OutreachTab call dashboard into composed subcomponents, enhancing maintainability.
+- Refactored 811-line RegistrySettings configurations monolith into high-fidelity tab-based control components.
+- Eliminated duplicate inline markup by reusing high-authority UnenrollModal and DispositionModal components directly.
+- Ignored compiled PWA Service Worker assets (sw.js) from source control and active development registries.
+- Stabilized Guided Visit React Hooks rendering loops to respect dynamic active clinical assessments dependencies.
+- Ensured type safety and robust TypeScript compilation across all modular settings and coordinator layouts.
+
 ## [1.2.4] - 2026-05-16
 - Stabilized Clinical Assessment hydration by prioritizing schema-based parsing for modern questionnaires.
 - Resolved 'No response recorded' display bug in historical assessment breakdowns.

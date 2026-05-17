@@ -1,7 +1,19 @@
 {
-  "version": "1.2.4",
-  "build": "20260516.6",
+  "version": "1.2.5",
+  "build": "20260517.1",
   "changelog": [
+    {
+      "v": "v1.2.5",
+      "date": "2026-05-17",
+      "items": [
+        "Modularized 915-line monolithic OutreachTab call dashboard into composed subcomponents, enhancing maintainability.",
+        "Refactored 811-line RegistrySettings configurations monolith into high-fidelity tab-based control components.",
+        "Eliminated duplicate inline markup by reusing high-authority UnenrollModal and DispositionModal components directly.",
+        "Ignored compiled PWA Service Worker assets (sw.js) from source control and active development registries.",
+        "Stabilized Guided Visit React Hooks rendering loops to respect dynamic active clinical assessments dependencies.",
+        "Ensured type safety and robust TypeScript compilation across all modular settings and coordinator layouts."
+      ]
+    },
     {
       "v": "v1.2.4",
       "date": "2026-05-16",

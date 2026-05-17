@@ -37,6 +37,13 @@ node_modules/
 /emr-client/.next/
 /emr-client/out/
 /emr-client/build/
+/emr-client/public/sw.js
+/emr-client/public/sw.js.map
+/emr-client/public/workbox-*.js
+/emr-client/public/workbox-*.js.map
+/emr-client/public/fallback-*.js
+/emr-client/public/swe-worker-*.js
+
 
 # Backend (.NET / C#)
 bin/

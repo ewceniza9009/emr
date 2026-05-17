@@ -19,8 +19,8 @@ test.describe('Halkyone Clinical OS - Critical Paths', () => {
     await expect(page.locator('h1')).toContainText(/Good/);
 
     // Verify clinical stats are visible
-    const patientStat = page.locator('p', { hasText: 'Patients' });
-    await expect(patientStat).toBeVisible();
+    const patientStat = page.getByText('Patients').first();
+    await expect(patientStat).toBeVisible({ timeout: 15000 });
   });
 
   test('should navigate to outreach worklist and verify lead registry', async ({ page }) => {

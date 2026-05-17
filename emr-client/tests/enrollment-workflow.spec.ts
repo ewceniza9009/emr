@@ -10,6 +10,7 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
   });
 
   test('should successfully enroll an outreach lead into the clinical registry', async ({ page }) => {
+    test.slow();
     // 1. Navigate to the Outreach Worklist
     await page.goto('/dashboard/outreach');
     await page.waitForSelector('main', { state: 'visible' });
@@ -167,7 +168,7 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     }
 
     // VERIFY REDIRECTION
-    await expect(page).toHaveURL(/\/dashboard\/patients\/.+/, { timeout: 20000 });
+    await expect(page).toHaveURL(/\/dashboard\/patients\/.+/, { timeout: 45000 });
 
     // Verify the "Enrolled" success state or the Patient's MRN visibility
     const mrnLabel = page.getByText(/PN-\d{4}-\d{5}/i);

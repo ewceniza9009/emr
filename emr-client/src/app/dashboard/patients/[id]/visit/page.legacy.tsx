@@ -334,7 +334,7 @@ export default function GuidedVisitPage() {
     }
 
     return s;
-  }, [appointment, activeAssessments, navSearch]);
+  }, [activeAssessments, navSearch]);
 
   // Track last valid index and max step for smart navigation
   useEffect(() => {

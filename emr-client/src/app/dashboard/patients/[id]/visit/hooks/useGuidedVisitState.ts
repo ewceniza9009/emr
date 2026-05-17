@@ -265,7 +265,7 @@ export function useGuidedVisitState() {
       );
     }
     return s;
-  }, [appointment, activeAssessments, navSearch]);
+  }, [activeAssessments, navSearch]);
 
   // Track max step
   useEffect(() => {
