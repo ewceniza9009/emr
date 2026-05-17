@@ -11,8 +11,13 @@ import {
   Edit3,
   Plus,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { PermissionGate } from "@/components/PermissionGate";
 import { UsePatientDashboardStateReturn } from "../hooks/usePatientDashboardState";
+
+const LiveHeartbeat = dynamic(() => import("@/components/LiveHeartbeat"), {
+  ssr: false,
+});
 
 interface CoreIdentityCardProps {
   state: UsePatientDashboardStateReturn;
@@ -24,12 +29,29 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
     setShowEditCommunications,
     setShowAddContact,
     setEditingContact,
+    patientId,
+    telemetryEnabled,
+    handleToggleTelemetry,
+    telemetryData,
   } = state;
 
   if (!patient) return null;
 
   return (
     <div className="space-y-4 shrink-0">
+      <LiveHeartbeat
+        patientId={patientId}
+        enabled={telemetryEnabled}
+        onToggle={handleToggleTelemetry}
+        status={
+          !telemetryEnabled
+            ? "off"
+            : telemetryData.length > 0
+              ? "live"
+              : "initializing"
+        }
+      />
+
       {/* Core Identity Panel */}
       <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 premium-gradient" />

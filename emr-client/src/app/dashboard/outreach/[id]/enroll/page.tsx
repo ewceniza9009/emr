@@ -595,13 +595,13 @@ export default function OutreachDetail() {
               </div>
               <div className="space-y-2.5 pt-2 border-t border-white/5">
                 <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Selected Modality</p>
-                <select className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-xl py-3 px-3 text-[10px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={selectedModality} onChange={(e) => { setSelectedModality(e.target.value as CareModality); handleUpdateLead({ selectedModality: e.target.value }); }}>
+                <select className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-xl py-3 px-3 text-[10px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={selectedModality} onChange={(e) => { setSelectedModality(e.target.value as CareModality); handleUpdateLead({ modality: e.target.value }); }}>
                    {Object.values(CareModality).map(v => <option key={v} value={v}>{v}</option>)}
                 </select>
               </div>
             </section>
 
-            <div className="col-span-full flex justify-end pt-1"><button onClick={() => handleUpdateLead({ disposition, communicationStatus, techAccess, healthPlanId: selectedPlan, barriersToCare, selectedModality }, false)} className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-teal-500 text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-teal-600 transition-all shadow-2xl shadow-teal-500/20"><Save className="w-4 h-4" /> Save Clinical Profile</button></div>
+            <div className="col-span-full flex justify-end pt-1"><button onClick={() => handleUpdateLead({ disposition, communicationStatus, techAccess, healthPlanId: selectedPlan, barriersToCare, modality: selectedModality }, false)} className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-teal-500 text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-teal-600 transition-all shadow-2xl shadow-teal-500/20"><Save className="w-4 h-4" /> Save Clinical Profile</button></div>
           </div>
 
           {/* Activity Intel (BALANCED) */}
