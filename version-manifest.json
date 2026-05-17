@@ -1,7 +1,19 @@
 {
-  "version": "1.2.5",
-  "build": "20260517.1",
+  "version": "1.2.6",
+  "build": "20260517.2",
   "changelog": [
+    {
+      "v": "v1.2.6",
+      "date": "2026-05-17",
+      "items": [
+        "Restored real-time IoT Telemetry and SignalR LiveHeartbeat component to the patient bio snapshot profile layout.",
+        "Refactored the New Patient Referral intake drawer with a compact glassmorphic footer, dynamic glow accents, and high-fidelity button gradients.",
+        "Implemented robust client-side input validation and error highlights for First Name, Last Name, Phone, and Email.",
+        "Integrated automatic Philippine phone format masking (+63 XXX XXX XXXX) and lowercase email sanitization on intake inputs.",
+        "Removed direct 'Add New Patient' action button from the Patient Registry to enforce the outreach-led referral lifecycle.",
+        "Resolved GraphQL mutation schema conflicts by correcting parameter bindings and excluding non-input fields from the variable payload."
+      ]
+    },
     {
       "v": "v1.2.5",
       "date": "2026-05-17",

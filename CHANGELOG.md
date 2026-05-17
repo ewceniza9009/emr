@@ -2,6 +2,14 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.2.6] - 2026-05-17
+- Restored real-time IoT Telemetry and SignalR LiveHeartbeat component to the patient bio snapshot profile layout.
+- Refactored the New Patient Referral intake drawer with a compact glassmorphic footer, dynamic glow accents, and high-fidelity button gradients.
+- Implemented robust client-side input validation and error highlights for First Name, Last Name, Phone, and Email.
+- Integrated automatic Philippine phone format masking (+63 XXX XXX XXXX) and lowercase email sanitization on intake inputs.
+- Removed direct 'Add New Patient' action button from the Patient Registry to enforce the outreach-led referral lifecycle.
+- Resolved GraphQL mutation schema conflicts by correcting parameter bindings and excluding non-input fields from the variable payload.
+
 ## [1.2.5] - 2026-05-17
 - Modularized 915-line monolithic OutreachTab call dashboard into composed subcomponents, enhancing maintainability.
 - Refactored 811-line RegistrySettings configurations monolith into high-fidelity tab-based control components.

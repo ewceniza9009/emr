@@ -12,7 +12,7 @@ import { PermissionGate } from "./PermissionGate";
 
 const CREATE_OUTREACH = gql`
   mutation CreateOutreach($input: CreateOutreachCommandInput!) {
-    createOutreach(command: $input)
+    createOutreach(input: $input)
   }
 `;
 
@@ -21,6 +21,31 @@ interface Props {
   onClose: () => void;
   onSuccess: () => void;
 }
+
+const formatPhonePH = (val: string) => {
+  const clean = val.replace(/\D/g, "");
+  let raw = clean;
+  if (clean.startsWith("63")) {
+    raw = clean.slice(2);
+  }
+  raw = raw.slice(0, 10);
+  if (raw.length === 0) return "";
+  let formatted = "+63";
+  if (raw.length > 0) {
+    formatted += " " + raw.slice(0, 3);
+  }
+  if (raw.length > 3) {
+    formatted += " " + raw.slice(3, 6);
+  }
+  if (raw.length > 6) {
+    formatted += " " + raw.slice(6, 10);
+  }
+  return formatted;
+};
+
+const sanitizeEmail = (val: string) => {
+  return val.toLowerCase().replace(/[^a-z0-9@._\-+]/g, "");
+};
 
 export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
   const [form, setForm] = useState({
@@ -38,6 +63,8 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
     diagnosis: ""
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const [createOutreach, { loading }] = useMutation(CREATE_OUTREACH, {
     onCompleted: () => {
       onSuccess();
@@ -45,13 +72,52 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
     }
   });
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!form.firstName.trim()) {
+      newErrors.firstName = "First name is required";
+    } else if (/\d/.test(form.firstName)) {
+      newErrors.firstName = "First name cannot contain numbers";
+    }
+    
+    if (!form.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    } else if (/\d/.test(form.lastName)) {
+      newErrors.lastName = "Last name cannot contain numbers";
+    }
+    
+    if (!form.primaryPhone) {
+      newErrors.primaryPhone = "Primary phone number is required";
+    } else {
+      const clean = form.primaryPhone.replace(/\D/g, "");
+      // 63 prefix + 10 digits = 12 characters
+      if (clean.length < 12) {
+        newErrors.primaryPhone = "Please enter a valid 10-digit phone number";
+      }
+    }
+    
+    if (form.primaryEmail) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(form.primaryEmail)) {
+        newErrors.primaryEmail = "Please enter a valid email address";
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
+    
+    const { priority, diagnosis, ...restOfForm } = form;
     createOutreach({
       variables: {
         input: {
-          ...form,
-          notes: `[Priority: ${form.priority}] ${form.diagnosis ? `[Diagnosis: ${form.diagnosis}] ` : ''}${form.notes}`
+          ...restOfForm,
+          notes: `[Priority: ${priority}] ${diagnosis ? `[Diagnosis: ${diagnosis}] ` : ''}${form.notes}`
         }
       }
     });
@@ -152,21 +218,39 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                     <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">First Name</label>
                     <input 
                       required
-                      className="w-full bg-white/5 border border-white/5 rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
+                      className={`w-full bg-white/5 border rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none transition-all shadow-inner
+                        ${errors.firstName ? 'border-rose-500/50 focus:border-rose-500/80' : 'border-white/5 focus:border-teal-500/30'}`}
                       value={form.firstName}
-                      onChange={e => setForm({...form, firstName: e.target.value})}
+                      onChange={e => {
+                        setForm({...form, firstName: e.target.value});
+                        if (errors.firstName) setErrors({...errors, firstName: ""});
+                      }}
                       placeholder="GIVEN NAME"
                     />
+                    {errors.firstName && (
+                      <p className="text-[9px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
+                        {errors.firstName}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Last Name</label>
                     <input 
                       required
-                      className="w-full bg-white/5 border border-white/5 rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
+                      className={`w-full bg-white/5 border rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none transition-all shadow-inner
+                        ${errors.lastName ? 'border-rose-500/50 focus:border-rose-500/80' : 'border-white/5 focus:border-teal-500/30'}`}
                       value={form.lastName}
-                      onChange={e => setForm({...form, lastName: e.target.value})}
+                      onChange={e => {
+                        setForm({...form, lastName: e.target.value});
+                        if (errors.lastName) setErrors({...errors, lastName: ""});
+                      }}
                       placeholder="SURNAME"
                     />
+                    {errors.lastName && (
+                      <p className="text-[9px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
+                        {errors.lastName}
+                      </p>
+                    )}
                   </div>
               </div>
 
@@ -195,21 +279,39 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                  <div className="space-y-2">
                     <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Primary Phone</label>
                     <input 
-                      className="w-full bg-white/5 border border-white/5 rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] focus:outline-none focus:border-sky-500/30 transition-all shadow-inner"
+                      className={`w-full bg-white/5 border rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] focus:outline-none transition-all shadow-inner
+                        ${errors.primaryPhone ? 'border-rose-500/50 focus:border-rose-500/80' : 'border-white/5 focus:border-sky-500/30'}`}
                       value={form.primaryPhone}
-                      onChange={e => setForm({...form, primaryPhone: e.target.value})}
+                      onChange={e => {
+                        setForm({...form, primaryPhone: formatPhonePH(e.target.value)});
+                        if (errors.primaryPhone) setErrors({...errors, primaryPhone: ""});
+                      }}
                       placeholder="+63 XXX XXX XXXX"
                     />
+                    {errors.primaryPhone && (
+                      <p className="text-[9px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
+                        {errors.primaryPhone}
+                      </p>
+                    )}
                  </div>
                  <div className="space-y-2">
                     <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Email Address</label>
                     <input 
                       type="email"
-                      className="w-full bg-white/5 border border-white/5 rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] focus:outline-none focus:border-sky-500/30 transition-all shadow-inner"
+                      className={`w-full bg-white/5 border rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] focus:outline-none transition-all shadow-inner
+                        ${errors.primaryEmail ? 'border-rose-500/50 focus:border-rose-500/80' : 'border-white/5 focus:border-sky-500/30'}`}
                       value={form.primaryEmail}
-                      onChange={e => setForm({...form, primaryEmail: e.target.value})}
+                      onChange={e => {
+                        setForm({...form, primaryEmail: sanitizeEmail(e.target.value)});
+                        if (errors.primaryEmail) setErrors({...errors, primaryEmail: ""});
+                      }}
                       placeholder="PATIENT@EMAIL.COM"
                     />
+                    {errors.primaryEmail && (
+                      <p className="text-[9px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
+                        {errors.primaryEmail}
+                      </p>
+                    )}
                  </div>
               </div>
             </section>
@@ -234,31 +336,29 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
           </form>
 
           {/* Submission Area */}
-          <div className="p-8 bg-black/20 backdrop-blur-2xl border-t border-white/5 mt-auto flex flex-col gap-4">
+          <div className="p-5 bg-[var(--sidebar-bg)]/80 backdrop-blur-3xl border-t border-white/[0.08] mt-auto flex flex-col relative overflow-hidden shrink-0">
+            {/* Ambient Lighting & Accent Ray */}
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-teal-500/50 to-transparent" />
+            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-48 h-20 bg-teal-500/10 blur-[50px] rounded-full pointer-events-none" />
+
             <PermissionGate permission="clinical:chart">
               <button 
                 type="submit" 
                 onClick={handleSubmit}
                 disabled={loading}
-                className="group w-full py-4 rounded-2xl bg-teal-500 hover:bg-teal-400 disabled:opacity-30 disabled:cursor-not-allowed
-                          text-black font-black text-[11px] uppercase tracking-[0.3em] transition-all shadow-xl shadow-teal-500/20 flex items-center justify-center gap-3 active:scale-[0.98]"
+                className="group relative w-full py-3.5 rounded-xl overflow-hidden bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed
+                          text-slate-950 font-black text-[10px] uppercase tracking-[0.3em] transition-all duration-300 shadow-[0_8px_30px_rgba(20,184,166,0.25)] hover:shadow-[0_8px_40px_rgba(20,184,166,0.45)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] flex items-center justify-center gap-2"
               >
                 {loading ? (
-                  <Activity className="w-5 h-5 animate-spin" />
+                  <Activity className="w-4 h-4 animate-spin text-slate-950" />
                 ) : (
                   <>
-                    <CheckCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <CheckCircle className="w-4.5 h-4.5 text-slate-950 group-hover:scale-110 transition-transform duration-300" />
                     <span>Register Patient for Outreach</span>
                   </>
                 )}
               </button>
             </PermissionGate>
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-1 h-1 rounded-full bg-teal-500/50" />
-              <p className="text-[8px] font-black text-[var(--text-muted)] text-center uppercase tracking-[0.3em] opacity-60">
-                Patient privacy and clinical standards applied
-              </p>
-            </div>
           </div>
         </div>
       </div>

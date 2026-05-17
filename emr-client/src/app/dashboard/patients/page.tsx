@@ -85,15 +85,6 @@ export default function PatientsPage() {
           <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Patient Registry</h1>
           <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Master record of all patients under clinical supervision.</p>
         </div>
-        <PermissionGate permission="patients:edit">
-          <button
-            onClick={() => setIsAddOpen(true)}
-            className="premium-button premium-gradient px-5 h-10 rounded-xl text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-blue-500/20"
-          >
-            <Plus className="w-4 h-4" />
-            Add New Patient
-          </button>
-        </PermissionGate>
       </div>
 
       <AddPatientDrawer
