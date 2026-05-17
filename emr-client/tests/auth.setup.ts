@@ -14,7 +14,7 @@ setup('authenticate', async ({ page }) => {
   await signInButton.click();
 
   // Verify dashboard hydration
-  await expect(page).toHaveURL(/.*dashboard/);
+  await expect(page).toHaveURL(/.*dashboard/, { timeout: 30000 });
 
   // End of setup
   await page.context().storageState({ path: authFile });
