@@ -45,7 +45,7 @@ emr-server/src/Api/appsettings.json
 *.txt
 test-results/
 playwright-report/
-playwright/.auth/
+**/playwright/.auth/
 
 # Security & Documentation Workflow
 RBAC_WORKFLOW.md
