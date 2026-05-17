@@ -62,6 +62,7 @@ const GET_DASHBOARD_STATS = gql`
         subtitle
         priority
         actionText
+        targetId
       }
       pulse {
         time
@@ -426,7 +427,16 @@ export default function Dashboard() {
                         <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-medium">
                           {alert.subtitle}
                         </p>
-                        <button className={`w-full py-2 rounded-lg ${alert.type === 'TELEMETRY' ? 'bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500/20' : 'bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20'} text-[9px] font-bold transition-all active:scale-95`}>
+                        <button 
+                          onClick={() => {
+                            if (alert.type === 'TELEMETRY' && alert.targetId) {
+                              router.push(`/dashboard/patients/${alert.targetId}`);
+                            } else if (alert.type === 'COMPLIANCE') {
+                              router.push('/admin/dashboard?tab=practitioners');
+                            }
+                          }}
+                          className={`w-full py-2 rounded-lg ${alert.type === 'TELEMETRY' ? 'bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500/20' : 'bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20'} text-[9px] font-bold transition-all active:scale-95`}
+                        >
                           {alert.actionText}
                         </button>
                       </div>

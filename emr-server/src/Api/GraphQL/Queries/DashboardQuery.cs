@@ -64,6 +64,7 @@ public class DashboardQuery
                             ? "CRITICAL"
                             : "URGENT",
                     ActionText = "Update Credentials",
+                    TargetId = l.PractitionerId.ToString(),
                 }
             );
         }
@@ -88,6 +89,7 @@ public class DashboardQuery
                     Subtitle = $"Patient {p.LastName} has reported high symptom distress (> 7).",
                     Priority = "CRITICAL",
                     ActionText = "Execute Protocol",
+                    TargetId = p.PatientId.ToString(),
                 }
             );
         }
@@ -142,6 +144,7 @@ public class AlertDto
     public string Subtitle { get; set; } = string.Empty;
     public string Priority { get; set; } = string.Empty;
     public string ActionText { get; set; } = string.Empty;
+    public string? TargetId { get; set; }
 }
 
 public class DashboardStatsDto
