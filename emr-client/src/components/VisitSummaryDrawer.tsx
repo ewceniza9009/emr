@@ -612,30 +612,60 @@ export default function VisitSummaryDrawer({
                                     ?.toUpperCase()
                                     .includes("ESAS"),
                               )
-                              .map((res: any) => (
-                                <button
-                                  key={res.assessmentResponseId}
-                                  onClick={() => setSelectedAssessment(res)}
-                                  className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-blue-500/40 hover:bg-blue-500/5 transition-all group text-left w-full cursor-pointer"
-                                >
-                                <div className="flex items-center justify-between mb-2">
-                                  <h5 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">
-                                    {res.questionnaire?.name}
-                                  </h5>
-                                  {res.totalScore !== null && (
-                                    <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-black border border-blue-500/20">
-                                      Score: {res.totalScore}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-[9px] text-[var(--text-muted)] italic line-clamp-1 mb-3">
-                                  {res.questionnaire?.description}
-                                </p>
-                                <span className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                                  View Full Breakdown →
-                                </span>
-                                </button>
-                              ))
+                              .map((res: any) => {
+                                let isSkipped = false;
+                                let skipReason = "";
+                                try {
+                                  if (res.answersJson) {
+                                    const parsed = JSON.parse(res.answersJson);
+                                    if (parsed.skipped) {
+                                      isSkipped = true;
+                                      skipReason = parsed.reason || "Bypassed";
+                                    }
+                                  }
+                                } catch (e) {
+                                  console.error("Error parsing answersJson", e);
+                                }
+
+                                return (
+                                  <button
+                                    key={res.assessmentResponseId}
+                                    onClick={() => !isSkipped && setSelectedAssessment(res)}
+                                    className={`p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)] transition-all group text-left w-full ${
+                                      isSkipped
+                                        ? "opacity-75 cursor-default hover:bg-[var(--input-bg)]"
+                                        : "hover:border-blue-500/40 hover:bg-blue-500/5 cursor-pointer"
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between mb-2">
+                                      <h5 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">
+                                        {res.questionnaire?.name}
+                                      </h5>
+                                      {isSkipped ? (
+                                        <span className="px-2.5 py-0.5 rounded-md bg-amber-500/10 text-amber-500 text-[9px] font-black border border-amber-500/20 shadow-sm animate-pulse">
+                                          SKIPPED
+                                        </span>
+                                      ) : (
+                                        res.totalScore !== null && (
+                                          <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-black border border-blue-500/20">
+                                            Score: {res.totalScore}
+                                          </span>
+                                        )
+                                      )}
+                                    </div>
+                                    <p className="text-[9px] text-[var(--text-muted)] italic line-clamp-1 mb-3">
+                                      {isSkipped
+                                        ? `Reason: ${skipReason.replace(/_/g, " ")}`
+                                        : res.questionnaire?.description}
+                                    </p>
+                                    {!isSkipped && (
+                                      <span className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                        View Full Breakdown →
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              });
                           })()}
 
                           {assessmentData.spiritualAssessments?.map(

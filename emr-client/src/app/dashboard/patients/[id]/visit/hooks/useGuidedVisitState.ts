@@ -356,6 +356,28 @@ export function useGuidedVisitState() {
         });
       }
 
+      // 2.5. Save Skipped Assessments
+      const skippedAssessments = activeAssessments.filter(a => {
+        const res = assessmentResults[a.assessmentType];
+        return res?.skipped === true;
+      });
+
+      for (const a of skippedAssessments) {
+        const res = assessmentResults[a.assessmentType];
+        await logAssessmentResponse({
+          variables: {
+            input: {
+              questionnaireId: a.questionnaireId,
+              patientId,
+              encounterId,
+              assessorId: session?.user?.practitionerId || session?.user?.id || (process.env.NODE_ENV === 'development' ? "c79b9090-6725-460d-8531-1554c46f6f96" : "00000000-0000-0000-0000-000000000000"),
+              answersJson: JSON.stringify({ skipped: true, reason: res.reason }),
+              totalScore: null
+            }
+          }
+        });
+      }
+
       // 3. Save & Sign SOAP Note
       await saveNote({
         variables: {
