@@ -22,6 +22,7 @@ export const GET_PATIENT_DETAILS = gql`
       firstName
       lastName
       dob
+      deviceSignature
       biologicalSex
       addresses {
         isPrimary

@@ -30,10 +30,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const getAutoApiUrl = () => {
   const hostname = window.location.hostname;
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:3671';
+    return 'https://localhost:34731';
   }
   // Android emulator loopback to host localhost
-  return 'http://10.0.2.2:3671';
+  return 'https://10.0.2.2:34731';
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -72,16 +72,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const magicToken = searchParams.get('token') || searchParams.get('magicToken');
+    const deviceId = searchParams.get('deviceId') || '';
 
-    if (magicToken && magicToken.startsWith('DEMO_MAGIC')) {
-      console.log('Intercepted passwordless magic access token:', magicToken);
+    if (magicToken) {
+      console.log('Intercepted passwordless magic access token:', magicToken, 'deviceId:', deviceId);
       setIsLoading(true);
       
       // Perform passwordless authenticating bypass
       fetch(`${apiUrl}/api/auth/magic-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: magicToken }),
+        body: JSON.stringify({ token: magicToken, deviceId: deviceId }),
       })
         .then(async (res) => {
           if (!res.ok) {
@@ -142,10 +143,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const magicLogin = async (bypassToken: string) => {
     setIsLoading(true);
     try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryDeviceId = searchParams.get('deviceId');
+      
+      let localDeviceId = localStorage.getItem('halkyone-device-id');
+      if (!localDeviceId) {
+        localDeviceId = `DEV_MAC_MRN-99999`; // Sturdy default for zero-config demo ease
+        localStorage.setItem('halkyone-device-id', localDeviceId);
+      }
+      
+      const activeDeviceId = queryDeviceId || localDeviceId;
+
       const res = await fetch(`${apiUrl}/api/auth/magic-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: bypassToken }),
+        body: JSON.stringify({ token: bypassToken, deviceId: activeDeviceId }),
       });
 
       if (!res.ok) {

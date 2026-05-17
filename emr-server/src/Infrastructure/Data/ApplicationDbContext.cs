@@ -91,6 +91,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
 
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; } = null!;
     public virtual DbSet<Notification> Notifications { get; set; } = null!;
+    public virtual DbSet<MagicToken> MagicTokens { get; set; } = null!;
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

@@ -22,6 +22,7 @@ public class PatientDto
     public string? PlaceOfBirth { get; set; }
     public string? Nationality { get; set; }
     public string? Language { get; set; }
+    public string? DeviceSignature { get; set; }
 
     public ICollection<EntityAddressDto> Addresses { get; set; } = new List<EntityAddressDto>();
 

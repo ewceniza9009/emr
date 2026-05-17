@@ -1,7 +1,19 @@
 {
-  "version": "1.2.6",
-  "build": "20260517.2",
+  "version": "1.2.7",
+  "build": "20260518.1",
   "changelog": [
+    {
+      "v": "v1.2.7",
+      "date": "2026-05-18",
+      "items": [
+        "Implemented dynamic first-use trust binding (DFUTB) for biometric passwordless magic mobile login, eliminating manual device registrations.",
+        "Synchronized GraphQL schema by exposing the DeviceSignature field on the PatientDto model to support seamless biometric token exchange.",
+        "Bypassed GraphQL complexity validation limits by raising MaxFieldCost from 30,000 to 100,000 to allow high-density nested relationship projections.",
+        "Added a premium emerald-green Primary caregiver badge featuring a custom gold Star icon to the Patient Trusted Contacts panel.",
+        "Modernized the Triage and SDoH selection cards inside ClinicalTab with custom Lucide icons, responsive hover scales, and glowing active status beacons.",
+        "Resolved Next.js client-side hydration warning in TelemetryPanel by eliminating illegal nested div-in-paragraph HTML markup."
+      ]
+    },
     {
       "v": "v1.2.6",
       "date": "2026-05-17",

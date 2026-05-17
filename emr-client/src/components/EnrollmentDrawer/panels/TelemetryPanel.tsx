@@ -61,7 +61,7 @@ export default function TelemetryPanel({ state }: Props) {
               <div className="flex items-center gap-2 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] group-hover/metric:text-teal-500 transition-colors">
                 <Navigation className="w-3.5 h-3.5" /> Travel Distance
               </div>
-              <p className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">
+              <div className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">
                 {state.selectedLogistics ? (
                   <>{state.selectedLogistics.distanceInMiles.toFixed(1)}<span className="text-xs font-bold opacity-30 ml-1.5 tracking-widest uppercase">MI</span></>
                 ) : !state.careNavigatorId && !state.primaryClinicianId ? (
@@ -69,13 +69,13 @@ export default function TelemetryPanel({ state }: Props) {
                 ) : (
                   <div className="flex items-baseline gap-1.5 h-9"><span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">Calculating...</span></div>
                 )}
-              </p>
+              </div>
             </div>
             <div className="space-y-2 group/metric">
               <div className="flex items-center gap-2 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] group-hover/metric:text-teal-500 transition-colors">
                 <Timer className="w-3.5 h-3.5" /> Duration
               </div>
-              <p className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">
+              <div className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">
                 {state.selectedLogistics ? (
                   <>{state.selectedLogistics.travelTimeInMinutes}<span className="text-xs font-bold opacity-30 ml-1.5 tracking-widest uppercase">MIN</span></>
                 ) : !state.careNavigatorId && !state.primaryClinicianId ? (
@@ -83,7 +83,7 @@ export default function TelemetryPanel({ state }: Props) {
                 ) : (
                   <div className="flex items-baseline gap-1.5 h-9"><span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">Syncing...</span></div>
                 )}
-              </p>
+              </div>
             </div>
           </div>
 

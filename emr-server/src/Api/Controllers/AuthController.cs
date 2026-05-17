@@ -19,18 +19,21 @@ public class AuthController : ControllerBase
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IConfiguration _configuration;
     private readonly IApplicationDbContext _context;
+    private readonly IMagicTokenService _magicTokenService;
 
     public AuthController(
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager,
         IConfiguration configuration,
-        IApplicationDbContext context
+        IApplicationDbContext context,
+        IMagicTokenService magicTokenService
     )
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
         _context = context;
+        _magicTokenService = magicTokenService;
     }
 
     [HttpPost("login")]
@@ -143,58 +146,218 @@ public class AuthController : ControllerBase
         return Unauthorized();
     }
 
+    [HttpPost("magic-token/generate")]
+    public async Task<IActionResult> GenerateMagicToken([FromBody] GenerateMagicTokenRequest request)
+    {
+        Console.WriteLine($"[AUTH] Sleek Dynamic Magic Token generation for Patient: {request.PatientId}");
+
+        var patient = await _context.Patients
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.PatientId == request.PatientId);
+
+        if (patient == null)
+        {
+            return NotFound("Patient not found.");
+        }
+
+        // Sleek Dynamic Binding Flow:
+        // Use patient.DeviceSignature if already bound, otherwise use "DYNAMIC_BIND"
+        string activeDeviceId = string.IsNullOrEmpty(patient.DeviceSignature) 
+            ? "DYNAMIC_BIND" 
+            : patient.DeviceSignature;
+
+        // Standard mobile app base URL
+        string baseUrl = "http://localhost:3672";
+        string magicLink = await _magicTokenService.GenerateMagicLinkAsync(
+            request.PatientId,
+            request.IsCaregiver,
+            activeDeviceId,
+            baseUrl,
+            patient.TenantId
+        );
+
+        return Ok(new { link = magicLink });
+    }
+
+    [HttpPost("magic-token/reset")]
+    public async Task<IActionResult> ResetMagicTokenDevice([FromBody] ResetMagicTokenDeviceRequest request)
+    {
+        Console.WriteLine($"[AUTH] Resetting persistent DeviceSignature for Patient: {request.PatientId}");
+
+        var patient = await _context.Patients
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.PatientId == request.PatientId);
+
+        if (patient == null)
+        {
+            return NotFound("Patient not found.");
+        }
+
+        patient.DeviceSignature = null;
+        _context.Patients.Update(patient);
+        await _context.SaveChangesAsync(default);
+
+        return Ok(new { success = true });
+    }
+
     [HttpPost("magic-login")]
     public async Task<IActionResult> MagicLogin([FromBody] MagicLoginRequest request)
     {
-        Console.WriteLine($"[AUTH] Magic Login attempt with token: {request.Token}");
+        Console.WriteLine($"[AUTH] Magic Login attempt with token: {request.Token}, deviceId: {request.DeviceId}");
 
-        // Find the patient. We prioritize looking up the patient by MRN if the token contains one
-        // (e.g., "DEMO_MAGIC_MRN-99999" or just "MRN-99999"). Otherwise we find the seeded patient "Pearline" (MRN-99999).
-        string mrn = "MRN-99999";
-        if (!string.IsNullOrEmpty(request.Token))
+        Guid patientId = Guid.Empty;
+        bool isCaregiver = false;
+
+        // Support simulated demo tokens for biometrics and local mock tests
+        if (!string.IsNullOrEmpty(request.Token) && (request.Token.StartsWith("DEMO_MAGIC_") || request.Token.StartsWith("DEMO_CAREGIVER_")))
         {
+            string mrn = "MRN-99999";
             if (request.Token.StartsWith("DEMO_MAGIC_"))
             {
                 var parts = request.Token.Split('_');
                 if (parts.Length > 2) mrn = parts[2];
             }
-            else if (request.Token.StartsWith("MRN-"))
+            else if (request.Token.StartsWith("DEMO_CAREGIVER_"))
             {
-                mrn = request.Token;
+                isCaregiver = true;
+                var parts = request.Token.Split('_');
+                if (parts.Length > 2) mrn = parts[2];
+            }
+
+            var patient = await _context.Patients
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.Mrn == mrn);
+
+            if (patient == null)
+            {
+                patient = await _context.Patients
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync();
+            }
+
+            if (patient == null)
+            {
+                Console.WriteLine("[AUTH] No patients found in database for Magic Login.");
+                return NotFound("No patients found in database.");
+            }
+
+            patientId = patient.PatientId;
+        }
+        else
+        {
+            // Real secure cryptographic hardware-locked token validation
+            var (success, errorMessage, validatedPatientId, validatedIsCaregiver) = 
+                await _magicTokenService.ValidateMagicTokenAsync(request.Token, request.DeviceId ?? string.Empty);
+
+            if (!success)
+            {
+                Console.WriteLine($"[AUTH] Secure magic login failed: {errorMessage}");
+                return BadRequest(errorMessage);
+            }
+
+            patientId = validatedPatientId;
+            isCaregiver = validatedIsCaregiver;
+        }
+
+        var patientEntity = await _context.Patients
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.PatientId == patientId);
+
+        if (patientEntity == null)
+        {
+            return NotFound("Patient not found.");
+        }
+
+        var patientAccount = await _context.PatientAccounts
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(pa => pa.PatientId == patientEntity.PatientId);
+
+        if (patientAccount == null)
+        {
+            Console.WriteLine($"[AUTH] PatientAccount not found, creating one for patient: {patientEntity.PatientId}");
+            
+            // Temporary block to resolve user mapping for first patient user setup
+            var patientUserEmail = $"{patientEntity.FirstName.ToLower().Replace(" ", "")}.{patientEntity.LastName.ToLower().Replace(" ", "")}@patient.emr";
+            var existingPatientUser = await _userManager.FindByEmailAsync(patientUserEmail);
+            if (existingPatientUser == null)
+            {
+                existingPatientUser = new ApplicationUser
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    UserName = patientUserEmail,
+                    Email = patientUserEmail,
+                    FirstName = patientEntity.FirstName,
+                    LastName = patientEntity.LastName,
+                    EmailConfirmed = true,
+                    TenantId = patientEntity.TenantId
+                };
+                await _userManager.CreateAsync(existingPatientUser, "PatientPassword@123!");
+                if (!await _roleManager.RoleExistsAsync("Patient"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("Patient"));
+                }
+                await _userManager.AddToRoleAsync(existingPatientUser, "Patient");
+            }
+
+            patientAccount = new PatientAccount
+            {
+                PatientAccountId = Guid.NewGuid(),
+                TenantId = patientEntity.TenantId,
+                PatientId = patientEntity.PatientId,
+                UserId = Guid.Parse(existingPatientUser.Id),
+                IsActive = true
+            };
+            _context.PatientAccounts.Add(patientAccount);
+            await _context.SaveChangesAsync(default);
+        }
+
+        // Get or create the user for either the caregiver or the patient
+        string userEmail;
+        string firstName;
+        string lastName;
+        string role = isCaregiver ? "Caregiver" : "Patient";
+
+        // Query primary contact to personalize the caregiver user
+        var contact = await _context.PatientContacts
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(c => c.PatientId == patientEntity.PatientId && c.IsPrimaryContact);
+
+        if (isCaregiver)
+        {
+            if (contact != null && !string.IsNullOrEmpty(contact.Email))
+            {
+                userEmail = contact.Email;
+                firstName = contact.FirstName;
+                lastName = contact.LastName;
+            }
+            else
+            {
+                userEmail = $"{patientEntity.FirstName.ToLower().Replace(" ", "")}.caregiver@patient.emr";
+                firstName = patientEntity.FirstName;
+                lastName = "Caregiver";
             }
         }
-
-        var patient = await _context.Patients
-            .FirstOrDefaultAsync(p => p.Mrn == mrn);
-
-        if (patient == null)
+        else
         {
-            // Fallback: get first available patient
-            patient = await _context.Patients.FirstOrDefaultAsync();
+            userEmail = $"{patientEntity.FirstName.ToLower().Replace(" ", "")}.{patientEntity.LastName.ToLower().Replace(" ", "")}@patient.emr";
+            firstName = patientEntity.FirstName;
+            lastName = patientEntity.LastName;
         }
 
-        if (patient == null)
-        {
-            Console.WriteLine("[AUTH] No patients found in database for Magic Login.");
-            return NotFound("No patients found in database.");
-        }
-
-        // Get or create the user for this patient
-        var userEmail = $"{patient.FirstName.ToLower().Replace(" ", "")}.{patient.LastName.ToLower().Replace(" ", "")}@patient.emr";
         var user = await _userManager.FindByEmailAsync(userEmail);
 
         if (user == null)
         {
-            Console.WriteLine($"[AUTH] User not found for patient, creating new user: {userEmail}");
+            Console.WriteLine($"[AUTH] User not found for {role}, creating new user: {userEmail}");
             user = new ApplicationUser
             {
                 Id = Guid.NewGuid().ToString(),
                 UserName = userEmail,
                 Email = userEmail,
-                FirstName = patient.FirstName,
-                LastName = patient.LastName,
+                FirstName = firstName,
+                LastName = lastName,
                 EmailConfirmed = true,
-                TenantId = patient.TenantId
+                TenantId = patientEntity.TenantId
             };
 
             var createResult = await _userManager.CreateAsync(user, "PatientPassword@123!");
@@ -204,31 +367,39 @@ public class AuthController : ControllerBase
                 return StatusCode(500, "Failed to create user account.");
             }
             
-            // Add Role "Patient"
-            if (!await _roleManager.RoleExistsAsync("Patient"))
+            // Add Role
+            if (!await _roleManager.RoleExistsAsync(role))
             {
-                await _roleManager.CreateAsync(new IdentityRole("Patient"));
+                await _roleManager.CreateAsync(new IdentityRole(role));
             }
-            await _userManager.AddToRoleAsync(user, "Patient");
+            await _userManager.AddToRoleAsync(user, role);
         }
 
-        // Get or create the PatientAccount
-        var patientAccount = await _context.PatientAccounts
-            .FirstOrDefaultAsync(pa => pa.PatientId == patient.PatientId);
-
-        if (patientAccount == null)
+        // If caregiver, ensure the CaregiverLink mapping is set up in the DB
+        if (isCaregiver)
         {
-            Console.WriteLine($"[AUTH] PatientAccount not found, creating one for patient: {patient.PatientId}");
-            patientAccount = new PatientAccount
+            var caregiverLink = await _context.CaregiverLinks
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(cl => cl.PatientAccountId == patientAccount.PatientAccountId && cl.CaregiverUserId == Guid.Parse(user.Id));
+
+            if (caregiverLink == null)
             {
-                PatientAccountId = Guid.NewGuid(),
-                TenantId = patient.TenantId,
-                PatientId = patient.PatientId,
-                UserId = Guid.Parse(user.Id),
-                IsActive = true
-            };
-            _context.PatientAccounts.Add(patientAccount);
-            await _context.SaveChangesAsync(default);
+                caregiverLink = new CaregiverLink
+                {
+                    CaregiverLinkId = Guid.NewGuid(),
+                    TenantId = patientEntity.TenantId,
+                    PatientAccountId = patientAccount.PatientAccountId,
+                    CaregiverUserId = Guid.Parse(user.Id),
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Relationship = contact?.Relationship ?? Domain.Enums.RelationshipType.Other,
+                    Email = userEmail,
+                    IsPrimary = true,
+                    AccessGranted = true
+                };
+                _context.CaregiverLinks.Add(caregiverLink);
+                await _context.SaveChangesAsync(default);
+            }
         }
 
         // Generate JWT Token
@@ -237,10 +408,10 @@ public class AuthController : ControllerBase
             new Claim(ClaimTypes.Name, user.Email!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim("userId", user.Id),
-            new Claim("patientId", patient.PatientId.ToString()),
+            new Claim("patientId", patientEntity.PatientId.ToString()),
             new Claim("patientAccountId", patientAccount.PatientAccountId.ToString()),
-            new Claim("tenantId", patient.TenantId.ToString()),
-            new Claim(ClaimTypes.Role, "Patient")
+            new Claim("tenantId", patientEntity.TenantId.ToString()),
+            new Claim(ClaimTypes.Role, role)
         };
 
         var authSigningKey = new SymmetricSecurityKey(
@@ -273,7 +444,7 @@ public class AuthController : ControllerBase
                     user.Email,
                     roles = new List<string> { "Patient" },
                     permissions = new List<string> { "patient:access" },
-                    patientId = patient.PatientId,
+                    patientId = patientEntity.PatientId,
                     patientAccountId = patientAccount.PatientAccountId,
                     tenantId = user.TenantId
                 }
@@ -283,5 +454,7 @@ public class AuthController : ControllerBase
 }
 
 public record LoginRequest(string Email, string Password);
-public record MagicLoginRequest(string Token);
+public record MagicLoginRequest(string Token, string DeviceId);
+public record GenerateMagicTokenRequest(Guid PatientId, bool IsCaregiver, string? DeviceId = null);
+public record ResetMagicTokenDeviceRequest(Guid PatientId);
 

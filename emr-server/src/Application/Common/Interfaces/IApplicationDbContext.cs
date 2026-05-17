@@ -57,6 +57,7 @@ public interface IApplicationDbContext
     DbSet<TenantConfiguration> TenantConfigurations { get; }
     DbSet<OutboxMessage> OutboxMessages { get; }
     DbSet<Notification> Notifications { get; }
+    DbSet<MagicToken> MagicTokens { get; }
 
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
     Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

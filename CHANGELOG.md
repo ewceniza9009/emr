@@ -2,6 +2,14 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.2.7] - 2026-05-18
+- Implemented dynamic first-use trust binding (DFUTB) for biometric passwordless magic mobile login, eliminating manual device registrations.
+- Synchronized GraphQL schema by exposing the DeviceSignature field on the PatientDto model to support seamless biometric token exchange.
+- Bypassed GraphQL complexity validation limits by raising MaxFieldCost from 30,000 to 100,000 to allow high-density nested relationship projections.
+- Added a premium emerald-green Primary caregiver badge featuring a custom gold Star icon to the Patient Trusted Contacts panel.
+- Modernized the Triage and SDoH selection cards inside ClinicalTab with custom Lucide icons, responsive hover scales, and glowing active status beacons.
+- Resolved Next.js client-side hydration warning in TelemetryPanel by eliminating illegal nested div-in-paragraph HTML markup.
+
 ## [1.2.6] - 2026-05-17
 - Restored real-time IoT Telemetry and SignalR LiveHeartbeat component to the patient bio snapshot profile layout.
 - Refactored the New Patient Referral intake drawer with a compact glassmorphic footer, dynamic glow accents, and high-fidelity button gradients.

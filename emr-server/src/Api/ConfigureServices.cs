@@ -237,7 +237,7 @@ public static class ConfigureServices
             .AddFiltering()
             .AddSorting()
             .ModifyPagingOptions(o => o.IncludeTotalCount = true)
-            .ModifyCostOptions(o => o.MaxFieldCost = 20000)
+            .ModifyCostOptions(o => o.MaxFieldCost = 100000)
             .AddType<UploadType>()
             .AddDataLoader<PrescriptionsByPatientIdDataLoader>()
             .AddDataLoader<DiagnosesByPatientIdDataLoader>()
@@ -264,6 +264,10 @@ public static class ConfigureServices
                             "http://localhost:3671",
                             "http://localhost:3000",
                             "http://127.0.0.1:3671",
+                            "http://localhost:3672",
+                            "http://127.0.0.1:3672",
+                            "http://localhost:8100",
+                            "http://127.0.0.1:8100",
                             "https://emr-three-hazel.vercel.app",
                             "https://halkyone.vercel.app"
                         )

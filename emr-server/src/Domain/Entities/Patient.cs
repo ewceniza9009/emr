@@ -23,6 +23,7 @@ public class Patient : BaseEntity, ITenantEntity
     public string? Language { get; set; }
     public string? TriageNote { get; set; }
     public bool IsActive { get; set; } = true;
+    public string? DeviceSignature { get; set; } // Persistent hardware device signature for magic login
 
     public string FullName => $"{FirstName} {LastName}".Trim();
 
