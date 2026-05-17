@@ -1,11 +1,6 @@
-###############################################################################
-#                         HALKYONE ENTERPRISE SYSTEM                          #
-#                            MASTER .GITIGNORE                                #
-###############################################################################
+# Halkyone Clinical OS — Master .gitignore
 
-# ==========================================
 # 1. OS & System Files (Platform-Specific)
-# ==========================================
 .DS_Store
 .DS_Store?
 ._*
@@ -14,9 +9,7 @@
 ehthumbs.db
 Thumbs.db
 
-# ==========================================
 # 2. Editor & IDE Settings (Developer Local)
-# ==========================================
 .vs/
 .vscode/
 .idea/
@@ -27,9 +20,7 @@ Thumbs.db
 *.sln.docstates
 *.tsbuildinfo
 
-# ==========================================
 # 3. Environments & Secrets (CRITICAL - DO NOT COMMIT)
-# ==========================================
 .env
 .env.local
 .env.development.local
@@ -38,14 +29,10 @@ Thumbs.db
 CREDENTIALS.md
 emr-server/src/Api/appsettings.json
 
-# ==========================================
 # 4. Core Dependencies (Package Managers)
-# ==========================================
 node_modules/
 
-# ==========================================
 # 5. Build, Compiler & Runtime Outputs
-# ==========================================
 # Frontend (Next.js)
 /emr-client/.next/
 /emr-client/out/
@@ -55,22 +42,16 @@ node_modules/
 bin/
 obj/
 
-# ==========================================
 # 6. Automated Testing & QA Reports
-# ==========================================
 test-results/
 playwright-report/
 **/playwright/.auth/
 
-# ==========================================
 # 7. Logs & Clinical Runtime Artifacts
-# ==========================================
 **/logs/
 *.log
 *.txt
 
-# ==========================================
 # 8. Local Workflows & Dev Documentation
-# ==========================================
 RBAC_WORKFLOW.md
 VERSIONING_GUIDE.md
