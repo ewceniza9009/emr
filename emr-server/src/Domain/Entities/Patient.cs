@@ -48,6 +48,7 @@ public class Patient : BaseEntity, ITenantEntity
 
     public HealthPlan? HealthPlan { get; set; }
     public Facility? Facility { get; set; }
+    public PatientAccount? PatientAccount { get; set; }
     public ICollection<AdvanceDirective> AdvanceDirectives { get; set; } =
         new List<AdvanceDirective>();
     public ICollection<EsasAssessment> EsasAssessments { get; set; } = new List<EsasAssessment>();

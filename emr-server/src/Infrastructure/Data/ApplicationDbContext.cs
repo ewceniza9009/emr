@@ -45,6 +45,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public virtual DbSet<PatientContact> PatientContacts { get; set; } = null!;
     public virtual DbSet<PatientPhone> PatientPhones => Set<PatientPhone>();
     public virtual DbSet<PatientEmail> PatientEmails => Set<PatientEmail>();
+    public virtual DbSet<PatientAccount> PatientAccounts { get; set; } = null!;
+    public virtual DbSet<CaregiverLink> CaregiverLinks { get; set; } = null!;
     public virtual DbSet<Appointment> Appointments { get; set; } = null!;
     public virtual DbSet<ScheduleBlock> ScheduleBlocks { get; set; } = null!;
     public virtual DbSet<AppointmentResource> AppointmentResources { get; set; } = null!;

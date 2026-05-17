@@ -33,6 +33,8 @@ public interface IApplicationDbContext
     DbSet<PatientContact> PatientContacts { get; }
     DbSet<PatientPhone> PatientPhones { get; }
     DbSet<PatientEmail> PatientEmails { get; }
+    DbSet<PatientAccount> PatientAccounts { get; }
+    DbSet<CaregiverLink> CaregiverLinks { get; }
     DbSet<PatientOutreach> PatientOutreaches { get; }
     DbSet<HealthPlan> HealthPlans { get; }
     DbSet<OutreachScript> OutreachScripts { get; }
