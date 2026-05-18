@@ -24,6 +24,7 @@ import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { useTheme } from "@/lib/ThemeContext";
 import { PermissionGate } from "./PermissionGate";
+import manifest from "../data/changelog.json";
 
 interface Props {
   activeTab: string;
@@ -64,7 +65,10 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
           {!isCollapsed && (
             <div className="flex flex-col">
               <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALKYONE SETUP</h2>
-              <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-0.5">Admin Terminal</span>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider leading-none">Admin Terminal</span>
+                <span className="px-1 py-0.5 text-[7px] font-black bg-[var(--primary)]/10 text-[var(--primary)] rounded border border-[var(--primary)]/10 uppercase tracking-widest leading-none">v{manifest.version}</span>
+              </div>
             </div>
           )}
         </div>

@@ -29,6 +29,8 @@ import { useSession } from "next-auth/react";
 import { useMutation, gql } from "@apollo/client";
 import { useCommandModal } from "./CommandModalProvider";
 
+import manifest from "../data/changelog.json";
+
 interface NavItem {
   icon: any;
   label: string;
@@ -98,7 +100,10 @@ export function Sidebar() {
           {!isCollapsed && (
             <div className="flex flex-col">
               <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALKYONE</h2>
-              <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider mt-0.5">Clinical OS</span>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider leading-none">Clinical OS</span>
+                <span className="px-1 py-0.5 text-[7px] font-black bg-[var(--primary)]/10 text-[var(--primary)] rounded border border-[var(--primary)]/10 uppercase tracking-widest leading-none">v{manifest.version}</span>
+              </div>
             </div>
           )}
         </div>
