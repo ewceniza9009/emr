@@ -197,8 +197,8 @@ public class AuthController : ControllerBase
             ? "DYNAMIC_BIND" 
             : patient.DeviceSignature;
 
-        // Standard mobile app base URL
-        string baseUrl = "http://localhost:3672";
+        // Standard mobile app base URL from environment/settings configuration
+        string baseUrl = _configuration["MobilePortalUrl"] ?? "http://localhost:3672";
         string magicLink = await _magicTokenService.GenerateMagicLinkAsync(
             request.PatientId,
             request.IsCaregiver,
