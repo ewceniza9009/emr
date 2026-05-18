@@ -74,4 +74,78 @@ public class MobilePortalMutation
 
         return message;
     }
+
+    [UsePatientAccess]
+    public async Task<VitalSign> SaveMobileVitals(
+        Guid patientId,
+        decimal? heartRate,
+        decimal? bloodPressureSystolic,
+        decimal? bloodPressureDiastolic,
+        decimal? temperature,
+        decimal? oxygenSaturation,
+        [Service] IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        var patient = await context.Patients
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.PatientId == patientId, cancellationToken);
+
+        if (patient == null)
+        {
+            throw new ArgumentException("Patient not found.");
+        }
+
+        // Find or create an active encounter
+        var encounter = await context.ClinicalEncounters
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(e => e.PatientId == patientId && 
+                                     e.Status != Domain.Enums.EncounterStatus.Completed && 
+                                     e.Status != Domain.Enums.EncounterStatus.Cancelled && 
+                                     e.Status != Domain.Enums.EncounterStatus.Discharged, 
+                                     cancellationToken);
+
+        if (encounter == null)
+        {
+            encounter = await context.ClinicalEncounters
+                .IgnoreQueryFilters()
+                .OrderByDescending(e => e.EncounterDate)
+                .FirstOrDefaultAsync(e => e.PatientId == patientId, cancellationToken);
+        }
+
+        if (encounter == null)
+        {
+            var practitioner = await context.Practitioners.IgnoreQueryFilters().FirstOrDefaultAsync(cancellationToken);
+            encounter = new ClinicalEncounter
+            {
+                EncounterId = Guid.NewGuid(),
+                TenantId = patient.TenantId,
+                PatientId = patientId,
+                PractitionerId = practitioner?.PractitionerId ?? Guid.Empty,
+                Type = Domain.Enums.EncounterType.RoutineFollowUp,
+                Status = Domain.Enums.EncounterStatus.InProgress,
+                EncounterDate = DateTimeOffset.UtcNow,
+                ChiefComplaint = "Self-Logged Vitals from Patient App"
+            };
+            context.ClinicalEncounters.Add(encounter);
+        }
+
+        var vital = new VitalSign
+        {
+            VitalId = Guid.NewGuid(),
+            TenantId = patient.TenantId,
+            EncounterId = encounter.EncounterId,
+            HeartRate = heartRate,
+            BloodPressureSystolic = bloodPressureSystolic,
+            BloodPressureDiastolic = bloodPressureDiastolic,
+            Temperature = temperature,
+            OxygenSaturation = oxygenSaturation,
+            RecordedAt = DateTimeOffset.UtcNow
+        };
+
+        context.VitalSigns.Add(vital);
+        await context.SaveChangesAsync(cancellationToken);
+
+        return vital;
+    }
 }

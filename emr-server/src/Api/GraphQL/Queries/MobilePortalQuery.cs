@@ -51,4 +51,35 @@ public class MobilePortalQuery
             .Where(t => t.PatientId == patientId && t.IsActive)
             .ToListAsync(cancellationToken);
     }
+
+    [UsePatientAccess]
+    public async Task<IEnumerable<VitalSign>> GetMyMobileVitals(
+        Guid patientId,
+        [Service] Application.Common.Interfaces.IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        return await context.VitalSigns
+            .IgnoreQueryFilters()
+            .Include(v => v.Encounter)
+            .Where(v => v.Encounter.PatientId == patientId)
+            .OrderByDescending(v => v.RecordedAt)
+            .Take(30)
+            .ToListAsync(cancellationToken);
+    }
+
+    [UsePatientAccess]
+    public async Task<IEnumerable<ClinicalEncounter>> GetMyMobileEncounters(
+        Guid patientId,
+        [Service] Application.Common.Interfaces.IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        return await context.ClinicalEncounters
+            .IgnoreQueryFilters()
+            .Include(e => e.Practitioner)
+            .Where(e => e.PatientId == patientId)
+            .OrderByDescending(e => e.EncounterDate)
+            .ToListAsync(cancellationToken);
+    }
 }

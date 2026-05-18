@@ -29,6 +29,11 @@ export default function SmartTextarea({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
+  // Smart Phrase History tracking for instant clinical rollbacks
+  const [lastValue, setLastValue] = useState<string | null>(null);
+  const [lastCursor, setLastCursor] = useState<number | null>(null);
+  const [showUndoBanner, setShowUndoBanner] = useState(false);
+
   const filteredPhrases = smartPhrases.filter((p) =>
     p.shortcut.toLowerCase().includes(phraseFilter.toLowerCase())
   );
@@ -63,6 +68,11 @@ export default function SmartTextarea({
     const selectionStart = e.target.selectionStart;
     onChange(newValue);
 
+    // Fade out undo toast as soon as clinician resumes typing or editing
+    if (showUndoBanner) {
+      setShowUndoBanner(false);
+    }
+
     const textBeforeCursor = newValue.slice(0, selectionStart);
     const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
 
@@ -72,14 +82,23 @@ export default function SmartTextarea({
         setShowPopup(true);
         setPhraseFilter(segment.slice(1));
         
-        // Position popup roughly near cursor
+        // Position popup near cursor without overlapping the typing area
         const textarea = e.target;
         const { offsetTop, offsetLeft } = textarea;
         
-        // Simple heuristic for line height and char width
+        // Accurate line height (24px) and top padding (12px) heuristics
         const lines = textBeforeCursor.split("\n");
-        const top = Math.min(offsetTop + lines.length * 20 + 10, offsetTop + textarea.offsetHeight - 100);
-        const left = Math.min(offsetLeft + (lines[lines.length - 1].length * 8) + 10, offsetLeft + textarea.offsetWidth - 200);
+        
+        // Anchors the popup exactly 6px below the active line text baseline
+        const top = offsetTop + (lines.length * 24) + 18;
+        
+        const left = Math.max(
+          0,
+          Math.min(
+            offsetLeft + 16 + (lines[lines.length - 1].length * 8) + 4,
+            offsetLeft + textarea.offsetWidth - 260 // Keep within textarea bounds (popover is w-64)
+          )
+        );
         
         setPopupPosition({ top, left });
       } else {
@@ -90,7 +109,33 @@ export default function SmartTextarea({
     }
   };
 
+  const handleUndo = () => {
+    if (lastValue === null) return;
+    onChange(lastValue);
+    const pos = lastCursor ?? 0;
+    setLastValue(null);
+    setLastCursor(null);
+    setShowUndoBanner(false);
+
+    // Re-focus and put caret exactly where the slash '/' was
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(pos, pos);
+      }
+    }, 0);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Intercept Ctrl + Z or Cmd + Z undo key combinations specifically for smartphrase rollback
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+      if (lastValue !== null) {
+        e.preventDefault();
+        handleUndo();
+        return;
+      }
+    }
+
     if (!showPopup) return;
 
     if (e.key === "ArrowDown") {
@@ -119,6 +164,11 @@ export default function SmartTextarea({
     const lastSlashIdx = textBefore.lastIndexOf("/");
 
     if (lastSlashIdx !== -1) {
+      // Record history state prior to template expansion
+      setLastValue(value);
+      setLastCursor(cursor);
+      setShowUndoBanner(true);
+
       const newValue = value.slice(0, lastSlashIdx) + phrase.templateText + value.slice(cursor);
       onChange(newValue);
       setShowPopup(false);
@@ -177,6 +227,33 @@ export default function SmartTextarea({
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Floating Glassmorphic Undo Action Indicator */}
+      {showUndoBanner && (
+        <div className="absolute bottom-3 right-3 z-50 flex items-center gap-2 bg-[#090d16]/90 border border-emerald-500/30 rounded-xl px-3 py-1.5 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+            Template Inserted
+          </span>
+          <div className="h-3 w-[1px] bg-slate-805/40 mx-1" />
+          <button
+            type="button"
+            onClick={handleUndo}
+            className="text-[9px] font-black uppercase text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer bg-transparent border-none outline-none p-0"
+          >
+            <span>Undo</span>
+            <kbd className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded text-[8px] font-bold font-sans uppercase">
+              Ctrl+Z
+            </kbd>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowUndoBanner(false)}
+            className="text-[9px] font-bold text-slate-500 hover:text-slate-300 ml-1.5 bg-transparent border-none outline-none cursor-pointer p-0"
+          >
+            ✕
+          </button>
         </div>
       )}
     </div>
