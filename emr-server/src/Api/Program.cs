@@ -59,7 +59,11 @@ try
     builder.Services.AddSingleton(typeAdapterConfig);
     builder.Services.AddScoped<IMapper, ServiceMapper>();
 
-    builder.Services.AddSignalR();
+    builder.Services.AddSignalR()
+        .AddJsonProtocol(options =>
+        {
+            options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        });
     builder.Services.AddHostedService<TelemetrySimulatorService>();
 
     builder.Services.AddApiServices(builder.Configuration);
@@ -155,6 +159,7 @@ try
 
     app.MapHub<Infrastructure.Hubs.TelemetryHub>("/hubs/telemetry");
     app.MapHub<Infrastructure.Hubs.NotificationHub>("/hubs/notifications");
+    app.MapHub<Infrastructure.Hubs.ChatHub>("/hubs/chat");
 
     using (var scope = app.Services.CreateScope())
     {

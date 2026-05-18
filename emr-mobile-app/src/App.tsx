@@ -125,14 +125,19 @@ const AppContent: React.FC = () => {
   );
 };
 
+import { ApolloProvider } from '@apollo/client/react';
+import { client } from './apolloClient';
+
 const App: React.FC = () => (
-  <ThemeProvider>
-    <AuthProvider>
-      <IonApp>
-        <AppContent />
-      </IonApp>
-    </AuthProvider>
-  </ThemeProvider>
+  <ApolloProvider client={client}>
+    <ThemeProvider>
+      <AuthProvider>
+        <IonApp>
+          <AppContent />
+        </IonApp>
+      </AuthProvider>
+    </ThemeProvider>
+  </ApolloProvider>
 );
 
 export default App;

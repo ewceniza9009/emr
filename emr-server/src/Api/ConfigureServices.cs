@@ -191,6 +191,7 @@ public static class ConfigureServices
             .AddApolloFederation()
             .AddQueryType<Query>()
             .AddTypeExtension<PatientQuery>()
+            .AddTypeExtension<MobilePortalQuery>()
             .AddTypeExtension<AppointmentQuery>()
             .AddTypeExtension<ClinicalQuery>()
             .AddTypeExtension<NavigationQuery>()
@@ -220,6 +221,17 @@ public static class ConfigureServices
             .AddTypeExtension<PatientType>()
             .AddTypeExtension<PatientDtoType>()
             .AddTypeExtension<OutreachType>()
+            .AddType(
+                new InputObjectType<Application.Coordination.Commands.UpdateAdvanceDirectiveCommand>(
+                    d => d.Name("UpdateCoordinationAdvanceDirectiveInput")
+                )
+            )
+            .AddType(new ObjectType<Domain.Entities.CareThread>(d => { }))
+            .AddType(
+                new ObjectType<Domain.Entities.ChatMessage>(d =>
+                    d.Field(m => m.CareThread).Ignore()
+                )
+            )
             .AddMutationType<Mutation>()
             .AddTypeExtension<PatientMutation>()
             .AddTypeExtension<AppointmentMutation>()
@@ -233,6 +245,8 @@ public static class ConfigureServices
             .AddTypeExtension<IdentityMutation>()
             .AddTypeExtension<LogisticsMutation>()
             .AddTypeExtension<NotificationMutation>()
+            .AddTypeExtension<MobilePortalMutation>()
+            .AddTypeExtension<CoordinationMutation>()
             .AddProjections()
             .AddFiltering()
             .AddSorting()

@@ -25,7 +25,12 @@ public class PatientMappingConfig : IRegister
                 .Where(a => a.Status != AppointmentStatus.Cancelled)
                 .OrderByDescending(a => a.ScheduledStart)
                 .Select(a => a.Status.ToString())
-                .FirstOrDefault() ?? "No Visit");
+                .FirstOrDefault() ?? "No Visit")
+            .Map(dest => dest.PrimaryCareNavigatorName, src => src.CareNavigationCases
+                .Where(c => c.Status == CaseStatus.Open)
+                .OrderByDescending(c => c.OpenedAt)
+                .Select(c => c.Navigator.FirstName + " " + c.Navigator.LastName)
+                .FirstOrDefault() ?? "Erwin Wilson Ceniza");
 
         config
             .NewConfig<ClinicalEncounter, ClinicalEncounterDto>()

@@ -36,6 +36,37 @@ public class AuthController : ControllerBase
         _magicTokenService = magicTokenService;
     }
 
+    [HttpGet("debug-db")]
+    public async Task<IActionResult> DebugDb()
+    {
+        var threads = await _context.CareThreads
+            .IgnoreQueryFilters()
+            .Select(t => new {
+                t.CareThreadId,
+                t.TenantId,
+                t.PatientId,
+                t.Subject,
+                t.IsActive,
+                PatientName = t.Patient != null ? t.Patient.FirstName + " " + t.Patient.LastName : "Null",
+                MessageCount = t.Messages.Count
+            })
+            .ToListAsync();
+
+        var messages = await _context.ChatMessages
+            .IgnoreQueryFilters()
+            .Select(m => new {
+                m.ChatMessageId,
+                m.CareThreadId,
+                m.TenantId,
+                m.SenderRole,
+                m.Content,
+                m.Timestamp
+            })
+            .ToListAsync();
+
+        return Ok(new { threads, messages });
+    }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
@@ -281,22 +312,40 @@ public class AuthController : ControllerBase
             var existingPatientUser = await _userManager.FindByEmailAsync(patientUserEmail);
             if (existingPatientUser == null)
             {
-                existingPatientUser = new ApplicationUser
+                try
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    UserName = patientUserEmail,
-                    Email = patientUserEmail,
-                    FirstName = patientEntity.FirstName,
-                    LastName = patientEntity.LastName,
-                    EmailConfirmed = true,
-                    TenantId = patientEntity.TenantId
-                };
-                await _userManager.CreateAsync(existingPatientUser, "PatientPassword@123!");
-                if (!await _roleManager.RoleExistsAsync("Patient"))
-                {
-                    await _roleManager.CreateAsync(new IdentityRole("Patient"));
+                    existingPatientUser = new ApplicationUser
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        UserName = patientUserEmail,
+                        Email = patientUserEmail,
+                        FirstName = patientEntity.FirstName,
+                        LastName = patientEntity.LastName,
+                        EmailConfirmed = true,
+                        TenantId = patientEntity.TenantId
+                    };
+                    var result = await _userManager.CreateAsync(existingPatientUser, "PatientPassword@123!");
+                    if (result.Succeeded)
+                    {
+                        if (!await _roleManager.RoleExistsAsync("Patient"))
+                        {
+                            await _roleManager.CreateAsync(new IdentityRole("Patient"));
+                        }
+                        await _userManager.AddToRoleAsync(existingPatientUser, "Patient");
+                    }
+                    else
+                    {
+                        existingPatientUser = await _userManager.FindByEmailAsync(patientUserEmail) ?? existingPatientUser;
+                    }
                 }
-                await _userManager.AddToRoleAsync(existingPatientUser, "Patient");
+                catch
+                {
+                    existingPatientUser = await _userManager.FindByEmailAsync(patientUserEmail);
+                    if (existingPatientUser == null)
+                    {
+                        throw;
+                    }
+                }
             }
 
             patientAccount = new PatientAccount
@@ -308,7 +357,25 @@ public class AuthController : ControllerBase
                 IsActive = true
             };
             _context.PatientAccounts.Add(patientAccount);
-            await _context.SaveChangesAsync(default);
+            try
+            {
+                await _context.SaveChangesAsync(default);
+            }
+            catch (DbUpdateException)
+            {
+                // Unique constraint violation (likely due to concurrent requests)
+                // Detach the failed entity to clean up change tracker
+                var entry = ((DbContext)_context).Entry(patientAccount);
+                if (entry != null)
+                {
+                    entry.State = EntityState.Detached;
+                }
+                
+                // Fetch the one inserted by the concurrent request
+                patientAccount = await _context.PatientAccounts
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(pa => pa.PatientId == patientEntity.PatientId);
+            }
         }
 
         // Get or create the user for either the caregiver or the patient
@@ -349,30 +416,47 @@ public class AuthController : ControllerBase
         if (user == null)
         {
             Console.WriteLine($"[AUTH] User not found for {role}, creating new user: {userEmail}");
-            user = new ApplicationUser
+            try
             {
-                Id = Guid.NewGuid().ToString(),
-                UserName = userEmail,
-                Email = userEmail,
-                FirstName = firstName,
-                LastName = lastName,
-                EmailConfirmed = true,
-                TenantId = patientEntity.TenantId
-            };
+                user = new ApplicationUser
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    UserName = userEmail,
+                    Email = userEmail,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    EmailConfirmed = true,
+                    TenantId = patientEntity.TenantId
+                };
 
-            var createResult = await _userManager.CreateAsync(user, "PatientPassword@123!");
-            if (!createResult.Succeeded)
-            {
-                Console.WriteLine($"[AUTH] Failed to create user: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
-                return StatusCode(500, "Failed to create user account.");
+                var createResult = await _userManager.CreateAsync(user, "PatientPassword@123!");
+                if (createResult.Succeeded)
+                {
+                    // Add Role
+                    if (!await _roleManager.RoleExistsAsync(role))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole(role));
+                    }
+                    await _userManager.AddToRoleAsync(user, role);
+                }
+                else
+                {
+                    user = await _userManager.FindByEmailAsync(userEmail);
+                    if (user == null)
+                    {
+                        Console.WriteLine($"[AUTH] Failed to create user: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
+                        return StatusCode(500, "Failed to create user account.");
+                    }
+                }
             }
-            
-            // Add Role
-            if (!await _roleManager.RoleExistsAsync(role))
+            catch
             {
-                await _roleManager.CreateAsync(new IdentityRole(role));
+                user = await _userManager.FindByEmailAsync(userEmail);
+                if (user == null)
+                {
+                    throw;
+                }
             }
-            await _userManager.AddToRoleAsync(user, role);
         }
 
         // If caregiver, ensure the CaregiverLink mapping is set up in the DB

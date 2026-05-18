@@ -11,9 +11,11 @@ import {
   ClipboardList,
   FileText,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { PermissionGate } from "@/components/PermissionGate";
 import { UsePatientDashboardStateReturn } from "../hooks/usePatientDashboardState";
+import { CareThreadChat } from "./CareThreadChat";
 
 interface PatientHeaderProps {
   state: UsePatientDashboardStateReturn;
@@ -109,6 +111,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
             Clinical Assessment
           </Link>
         </PermissionGate>
+        <CareThreadChat patientId={patientId} />
         <PermissionGate permission="docs:view">
           <button
             onClick={handleDownloadDossier}

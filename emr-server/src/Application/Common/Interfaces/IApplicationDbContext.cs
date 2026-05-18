@@ -58,6 +58,8 @@ public interface IApplicationDbContext
     DbSet<OutboxMessage> OutboxMessages { get; }
     DbSet<Notification> Notifications { get; }
     DbSet<MagicToken> MagicTokens { get; }
+    DbSet<CareThread> CareThreads { get; }
+    DbSet<ChatMessage> ChatMessages { get; }
 
     Microsoft.EntityFrameworkCore.Infrastructure.DatabaseFacade Database { get; }
     Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

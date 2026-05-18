@@ -3,6 +3,14 @@ using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Api;
 
@@ -12,6 +20,10 @@ public class TelemetrySimulatorService : BackgroundService
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<TelemetrySimulatorService> _logger;
     private readonly Random _random = new();
+
+    private List<Guid> _cachedPatientIds = new();
+    private int _cachedSyncIntervalMs = 5000;
+    private DateTime _lastCacheTime = DateTime.MinValue;
 
     public TelemetrySimulatorService(
         IHubContext<TelemetryHub> hubContext,
@@ -32,46 +44,32 @@ public class TelemetrySimulatorService : BackgroundService
         {
             try
             {
-                using var scope = _scopeFactory.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                // Cache DB results for 30 seconds to prevent DB lock contention and connection pool exhaustion
+                if (DateTime.UtcNow - _lastCacheTime > TimeSpan.FromSeconds(30) || !_cachedPatientIds.Any())
+                {
+                    using var scope = _scopeFactory.CreateScope();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                // Get all patients to simulate data for
-                // CRITICAL: IgnoreQueryFilters() bypasses multi-tenancy filter.
-                // Background services have no HttpContext, so CurrentTenantId = Guid.Empty,
-                // which silently filters out ALL real encounters. This is safe for a simulator.
-                // Get all patients with active encounters
-                var activeEncounterPatientIds = await dbContext
-                    .ClinicalEncounters
-                    .IgnoreQueryFilters()
-                    .Where(e =>
-                        e.Status == EncounterStatus.InProgress
-                        || e.Status == EncounterStatus.Arrived
-                        || e.Status == EncounterStatus.Triaged
-                    )
-                    .Select(e => e.PatientId)
-                    .ToListAsync(stoppingToken);
+                    _cachedPatientIds = await dbContext
+                        .Patients
+                        .IgnoreQueryFilters()
+                        .Select(p => p.PatientId)
+                        .ToListAsync(stoppingToken);
 
-                // Get all patients with active appointments
-                var activeAppointmentPatientIds = await dbContext
-                    .Appointments
-                    .IgnoreQueryFilters()
-                    .Where(a => a.Status == AppointmentStatus.InProgress)
-                    .Select(a => a.PatientId)
-                    .ToListAsync(stoppingToken);
+                    var config = await dbContext.TenantConfigurations.IgnoreQueryFilters().FirstOrDefaultAsync(stoppingToken);
+                    _cachedSyncIntervalMs = config?.IotSyncIntervalMs ?? 5000;
+                    
+                    // Safe guard: minimum 500ms to avoid overloading SignalR and CPU
+                    if (_cachedSyncIntervalMs < 500)
+                    {
+                        _cachedSyncIntervalMs = 500;
+                    }
 
-                var activePatientIds = activeEncounterPatientIds
-                    .Union(activeAppointmentPatientIds)
-                    .Distinct()
-                    .ToList();
+                    _lastCacheTime = DateTime.UtcNow;
+                    _logger.LogInformation("Telemetry Simulator cached {Count} active patients. Sync Interval: {Ms}ms.", _cachedPatientIds.Count, _cachedSyncIntervalMs);
+                }
 
-                // Get global sync interval
-                var config = await dbContext.TenantConfigurations.IgnoreQueryFilters().FirstOrDefaultAsync(stoppingToken);
-                var syncIntervalMs = config?.IotSyncIntervalMs ?? 5000;
-
-                _logger.LogDebug("Telemetry Simulator using {Ms}ms interval for {Count} active patients.", syncIntervalMs, activePatientIds.Count);
-
-
-                foreach (var patientId in activePatientIds)
+                foreach (var patientId in _cachedPatientIds)
                 {
                     var vitals = new
                     {
@@ -84,8 +82,9 @@ public class TelemetrySimulatorService : BackgroundService
                         .Clients.Group(patientId.ToString())
                         .SendAsync("ReceiveVitals", vitals, stoppingToken);
                 }
-                // Use the dynamic interval from DB
-                await Task.Delay(syncIntervalMs, stoppingToken);
+
+                // Use the dynamic interval from cached config
+                await Task.Delay(_cachedSyncIntervalMs, stoppingToken);
             }
             catch (OperationCanceledException)
             {

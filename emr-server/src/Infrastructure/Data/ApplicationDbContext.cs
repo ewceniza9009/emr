@@ -58,6 +58,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public virtual DbSet<ZBenefitClaim> ZBenefitClaims { get; set; } = null!;
     public virtual DbSet<ClaimStatusLog> ClaimStatusLogs { get; set; } = null!;
     public virtual DbSet<BillingInvoice> BillingInvoices { get; set; } = null!;
+    public virtual DbSet<CareThread> CareThreads { get; set; } = null!;
+    public virtual DbSet<ChatMessage> ChatMessages { get; set; } = null!;
     public virtual DbSet<BillingInvoiceItem> BillingInvoiceItems { get; set; } = null!;
     public virtual DbSet<ClinicalEncounter> ClinicalEncounters { get; set; } = null!;
     public virtual DbSet<Diagnosis> Diagnoses { get; set; } = null!;

@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import PatientLookup from "./PatientLookup";
 import { NotificationCenter } from "./NotificationCenter";
+import { ChatInbox } from "./ChatInbox";
 
 export function TopBar() {
   const { data: session } = useSession();
@@ -63,6 +64,7 @@ export function TopBar() {
         {/* Notifications & User */}
         <div className="flex items-center gap-4">
           <ThemeToggle variant="topbar" />
+          <ChatInbox />
           <NotificationCenter />
 
 

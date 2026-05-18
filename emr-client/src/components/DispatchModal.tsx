@@ -16,7 +16,7 @@ import {
 import HalcyonPortal from "./Portal";
 
 const GET_SUGGESTIONS = gql`
-  query GetSuggestedPractitioners($patientId: Guid!) {
+  query GetSuggestedPractitioners($patientId: UUID!) {
     suggestedPractitioners(patientId: $patientId) {
       practitionerId
       fullName
@@ -29,15 +29,12 @@ const GET_SUGGESTIONS = gql`
 `;
 
 const ASSIGN_PRACTITIONER = gql`
-  mutation AssignPractitioner($patientId: Guid!, $practitionerId: Guid!) {
+  mutation AssignPractitioner($patientId: UUID!, $practitionerId: UUID!) {
     createCareNavigationCase(input: {
       patientId: $patientId
       navigatorId: $practitionerId
-      status: OPEN
       acuityLevel: MODERATE
-    }) {
-      caseId
-    }
+    })
   }
 `;
 

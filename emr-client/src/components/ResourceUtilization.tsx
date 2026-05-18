@@ -31,7 +31,7 @@ const GET_UTILIZATION = gql`
 `;
 
 const GET_WORKLOAD_DETAILS = gql`
-  query GetWorkloadDetails($practitionerId: Guid!) {
+  query GetWorkloadDetails($practitionerId: UUID!) {
     practitionerWorkloadDetails(practitionerId: $practitionerId) {
       title
       type

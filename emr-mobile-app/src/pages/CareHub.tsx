@@ -1,4 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { gql } from '@apollo/client/core';
+import { useQuery, useMutation } from '@apollo/client/react';
+import { useAuth } from '../contexts/AuthContext';
 import {
   IonContent,
   IonHeader,
@@ -10,7 +14,7 @@ import {
   IonToolbar
 } from '@ionic/react';
 import {
-  send,
+  paperPlane,
   camera,
   attach,
   shieldCheckmark,
@@ -30,32 +34,122 @@ interface Message {
   isAttachment?: boolean;
 }
 
+const GET_CHAT_THREADS = gql`
+  query GetChatThreads($patientId: UUID!) {
+    myMobileChatThreads(patientId: $patientId) {
+      careThreadId
+      subject
+      isActive
+      messages {
+        chatMessageId
+        senderRole
+        content
+        timestamp
+      }
+    }
+  }
+`;
+
+const SEND_MESSAGE = gql`
+  mutation SendMessage($patientId: UUID!, $careThreadId: UUID!, $content: String!) {
+    sendMobileChatMessage(patientId: $patientId, careThreadId: $careThreadId, content: $content) {
+      chatMessageId
+      content
+      timestamp
+    }
+  }
+`;
+
+const GET_MY_PROFILE = gql`
+  query GetMyProfile($patientId: UUID!) {
+    myMobileProfile(patientId: $patientId) {
+      primaryCareNavigatorName
+    }
+  }
+`;
+
 const CareHub: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      sender: 'navigator',
-      content: 'Hello! I am Sarah, your Care Navigator. How are you feeling today following your procedure?',
-      timestamp: '09:30 AM'
-    },
-    {
-      id: '2',
-      sender: 'patient',
-      content: 'Hi Sarah, the recovery is going pretty well. The pain has decreased since yesterday morning.',
-      timestamp: '09:32 AM'
-    },
-    {
-      id: '3',
-      sender: 'navigator',
-      content: 'That is wonderful news! Keep monitoring your daily checklist. Have you taken a look at your wound site today? If possible, please send a secure photo using the camera button so we can log it.',
-      timestamp: '09:35 AM'
-    }
-  ]);
+  const { user, apiUrl, token } = useAuth();
+  
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [showSosModal, setShowSosModal] = useState(false);
   const [sosReason, setSosReason] = useState('');
   const [navigatorTyping, setNavigatorTyping] = useState(false);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+
+  const patientId = user?.patientId || (user as any)?.PatientId;
+
+  const { data } = useQuery<any>(GET_CHAT_THREADS, {
+    variables: { patientId },
+    skip: !patientId,
+    fetchPolicy: 'cache-and-network'
+  });
+
+  const { data: profileData } = useQuery<any>(GET_MY_PROFILE, {
+    variables: { patientId },
+    skip: !patientId,
+    fetchPolicy: 'cache-and-network'
+  });
+
+  const navigatorName = profileData?.myMobileProfile?.primaryCareNavigatorName || "Sarah Jenkins";
+  const navigatorInitials = navigatorName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  useEffect(() => {
+    const threads = data?.myMobileChatThreads;
+    if (threads && threads.length > 0) {
+      const firstThread = threads[0];
+      setActiveThreadId(firstThread.careThreadId);
+      const mapped = firstThread.messages?.map((m: any) => ({
+        id: m.chatMessageId,
+        sender: m.senderRole === 'patient' ? 'patient' : 'navigator',
+        content: m.content,
+        timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      })) || [];
+      setMessages(mapped);
+    }
+  }, [data]);
+
+  const [sendMessageMutation] = useMutation(SEND_MESSAGE);
+
+  useEffect(() => {
+    if (!activeThreadId || !apiUrl || !token) return;
+
+    const connection = new HubConnectionBuilder()
+      .withUrl(`${apiUrl}/hubs/chat`, {
+        accessTokenFactory: () => token
+      })
+      .withAutomaticReconnect()
+      .configureLogging(LogLevel.Information)
+      .build();
+
+    connection.start().then(() => {
+      console.log('SignalR Connected');
+      connection.invoke('JoinCareThread', activeThreadId);
+    }).catch(err => console.error('SignalR Connection Error: ', err));
+
+    connection.on('ReceiveMessage', (message: any) => {
+      setMessages(prev => {
+        if (prev.find(m => m.id === message.chatMessageId || m.content === message.content)) return prev;
+        return [...prev, {
+          id: message.chatMessageId,
+          sender: message.senderRole === 'patient' ? 'patient' : 'navigator',
+          content: message.content,
+          timestamp: new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }];
+      });
+    });
+
+    return () => {
+      connection.stop();
+    };
+  }, [activeThreadId, apiUrl, token]);
 
   const contentRef = useRef<HTMLIonContentElement>(null);
 
@@ -71,12 +165,13 @@ const CareHub: React.FC = () => {
     scrollToBottom();
   }, [messages, navigatorTyping]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return;
 
     const trimmedText = inputText.trim();
+    const tempId = Date.now().toString();
     const newMsg: Message = {
-      id: Date.now().toString(),
+      id: tempId,
       sender: 'patient',
       content: trimmedText,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -85,41 +180,23 @@ const CareHub: React.FC = () => {
     setMessages(prev => [...prev, newMsg]);
     setInputText('');
 
-    // Trigger NLP emergency check
     const lowerText = trimmedText.toLowerCase();
     if (lowerText.includes('chest pain') || lowerText.includes('heart attack') || lowerText.includes('cannot breathe') || lowerText.includes('shortness of breath')) {
       setSosReason('Chest Pain / Dyspnea');
       setShowSosModal(true);
-      
-      // Simulate navigator alert response
-      setTimeout(() => {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            sender: 'navigator',
-            content: '⚠️ WARNING: High-Priority Emergency Protocol Activated. Our system detected distress symptoms. A clinical override has been triggered on the Care Team dashboard. An oncologist is reviewing your telemetry right now.',
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }
-        ]);
-      }, 1500);
-      return;
     }
 
-    // Simulate regular care navigator response
-    setNavigatorTyping(true);
-    setTimeout(() => {
-      setNavigatorTyping(false);
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 2).toString(),
-          sender: 'navigator',
-          content: 'Thank you for updating me. I have logged this update in your recovery timeline. Let me know if you experience any other symptoms or need a prescription refill!',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    try {
+      await sendMessageMutation({
+        variables: {
+          patientId,
+          careThreadId: activeThreadId || "00000000-0000-0000-0000-000000000000",
+          content: trimmedText
         }
-      ]);
-    }, 2500);
+      });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -129,7 +206,6 @@ const CareHub: React.FC = () => {
   };
 
   const handleWoundCamera = () => {
-    // Mock taking secure photo
     const newMsg: Message = {
       id: Date.now().toString(),
       sender: 'patient',
@@ -156,87 +232,91 @@ const CareHub: React.FC = () => {
 
   return (
     <IonPage className="bg-slate-50 dark:bg-[#020408]">
-      {/* Header - Compact Single Row */}
+      {/* Header - Generous, Accessible Layout */}
       <IonHeader className="ion-no-border">
         <IonToolbar style={{ 
-          '--min-height': '44px',
-          '--padding-top': '4px',
-          '--padding-bottom': '4px',
+          '--min-height': '64px',
+          '--padding-top': '8px',
+          '--padding-bottom': '8px',
           '--padding-start': '16px',
           '--padding-end': '16px'
         }}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-teal-600 dark:text-teal-400 font-bold text-sm">
-                  SJ
+                <div className="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-teal-600 dark:text-teal-400 font-extrabold text-base">
+                  {navigatorInitials}
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-[#020408] shadow-[0_0_6px_#10b981]" />
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-[#020408] shadow-[0_0_8px_#10b981]" />
               </div>
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-sm font-black text-slate-900 dark:text-white leading-tight">Sarah Jenkins</h2>
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/50 rounded-md text-[8px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-[15px] font-black text-slate-900 dark:text-white leading-tight">{navigatorName}</h2>
+                  <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
                     HIPAA Secure
                   </span>
                 </div>
-                <span className="text-[9px] text-slate-500 dark:text-slate-400 font-medium block">Primary Care Navigator</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-0.5">Primary Care Navigator</span>
               </div>
             </div>
 
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 transition-colors"
+              className="p-2.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 transition-colors shadow-sm"
               title={theme === 'dark' ? 'Switch to Porcelain Mode' : 'Switch to Midnight Mode'}
             >
-              <IonIcon icon={theme === 'dark' ? sunny : moonIcon} className="w-4 h-4" />
+              <IonIcon icon={theme === 'dark' ? sunny : moonIcon} className="w-4.5 h-4.5" />
             </button>
           </div>
         </IonToolbar>
       </IonHeader>
 
       <IonContent ref={contentRef} className="ion-padding">
-        <div className="flex flex-col min-h-full space-y-4 pb-4">
+        <div className="flex flex-col min-h-full space-y-4 pb-6">
           
           {/* Emergency Helper Tip */}
-          <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 dark:from-amber-950/20 dark:to-slate-900/40 border border-amber-200/60 dark:border-amber-900/40 flex gap-2.5">
-            <IonIcon icon={warning} className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 animate-pulse" />
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 dark:from-amber-950/20 dark:to-slate-900/40 border border-amber-250 dark:border-amber-900/40 flex gap-3 shadow-sm">
+            <IonIcon icon={warning} className="w-5.5 h-5.5 text-amber-600 dark:text-amber-500 flex-shrink-0 animate-pulse" />
             <div>
-              <span className="text-[9px] font-extrabold text-amber-600 dark:text-amber-500 uppercase tracking-wider block">NLP Distress Trigger Test</span>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">
-                Type <strong className="text-slate-700 dark:text-white">"chest pain"</strong> or <strong className="text-slate-700 dark:text-white">"cannot breathe"</strong> to simulate the automatic clinical dashboard triage override!
+              <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest block">NLP Distress Trigger Test</span>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
+                Type <strong className="text-slate-700 dark:text-white font-extrabold">"chest pain"</strong> or <strong className="text-slate-700 dark:text-white font-extrabold">"cannot breathe"</strong> to simulate the automatic triage override!
               </p>
             </div>
           </div>
 
           {/* Message List */}
-          <div className="flex-grow space-y-4">
+          <div className="flex-grow space-y-4 pt-1">
             {messages.map((msg) => {
               const isPatient = msg.sender === 'patient';
               return (
                 <div key={msg.id} className={`flex ${isPatient ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[82%] p-3 rounded-2xl ${
+                  <div className={`max-w-[85%] px-4 py-3 rounded-2xl ${
                     isPatient
                       ? msg.isAttachment
-                        ? 'bg-slate-100 dark:bg-gradient-to-br dark:from-teal-950/40 dark:to-slate-950 border border-slate-200 dark:border-teal-900/50 text-slate-800 dark:text-teal-300 rounded-tr-none'
-                        : 'bg-teal-600 dark:bg-gradient-to-br dark:from-teal-500 dark:to-teal-650 text-white dark:text-slate-950 font-medium rounded-tr-none shadow-[0_2px_8px_rgba(13,148,136,0.1)] dark:shadow-[0_4px_12px_rgba(20,184,166,0.15)]'
+                        ? 'bg-slate-100 dark:bg-[#0c1f24] border border-slate-200 dark:border-teal-900/50 text-slate-800 dark:text-teal-200 rounded-tr-none'
+                        : 'bg-teal-600 dark:bg-[#0b292c] border border-teal-600/10 dark:border-teal-500/20 text-white dark:text-teal-50 rounded-tr-none shadow-md'
                       : msg.content.startsWith('⚠️')
                       ? 'bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 text-rose-800 dark:text-rose-300 rounded-tl-none'
-                      : 'bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80 text-slate-800 dark:text-slate-200 rounded-tl-none shadow-[0_2px_8px_rgba(15,23,42,0.02)]'
+                      : 'bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 rounded-tl-none shadow-[0_2px_8px_rgba(15,23,42,0.02)]'
                   }`}>
                     {msg.isAttachment && (
-                      <div className="flex items-center gap-2 mb-2 p-2 rounded-lg bg-slate-200/50 dark:bg-teal-950/50 border border-slate-300 dark:border-teal-900/50">
+                      <div className="flex items-center gap-2 mb-2 p-2 rounded-lg bg-slate-200/50 dark:bg-teal-950/50 border border-slate-350 dark:border-teal-900/50">
                         <IonIcon icon={shieldCheckmark} className="w-4 h-4 text-slate-700 dark:text-teal-400" />
-                        <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-700 dark:text-teal-400">Media Shield Active</span>
+                        <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-700 dark:text-teal-400">Media Shield Active</span>
                       </div>
                     )}
-                    <p className="text-xs leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                    <div className={`flex items-center justify-end gap-1 mt-1 text-[8px] ${
-                      isPatient ? msg.isAttachment ? 'text-slate-400 dark:text-slate-500' : 'text-teal-100 dark:text-slate-500' : 'text-slate-400 dark:text-slate-500'
+                    <p className="text-[15px] leading-relaxed whitespace-pre-wrap font-semibold font-sans">{msg.content}</p>
+                    <div className={`flex items-center justify-end gap-1 mt-2 text-[10px] ${
+                      isPatient 
+                        ? msg.isAttachment 
+                          ? 'text-slate-400 dark:text-slate-500' 
+                          : 'text-teal-200 dark:text-teal-400 font-bold' 
+                        : 'text-slate-400 dark:text-slate-550 font-bold'
                     } font-mono`}>
                       <span>{msg.timestamp}</span>
-                      {isPatient && <IonIcon icon={checkmarkDone} className="w-3.5 h-3.5" />}
+                      {isPatient && <IonIcon icon={checkmarkDone} className="w-4.5 h-4.5 text-teal-200 dark:text-teal-400" />}
                     </div>
                   </div>
                 </div>
@@ -246,10 +326,10 @@ const CareHub: React.FC = () => {
             {/* Navigator Typing Indicator */}
             {navigatorTyping && (
               <div className="flex justify-start">
-                <div className="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 p-3 rounded-2xl rounded-tl-none flex items-center gap-1 shadow-[0_2px_8px_rgba(15,23,42,0.02)]">
-                  <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-550 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-550 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-550 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800/80 px-4 py-3 rounded-2xl rounded-tl-none flex items-center gap-1.5 shadow-sm">
+                  <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
               </div>
             )}
@@ -258,24 +338,24 @@ const CareHub: React.FC = () => {
         </div>
       </IonContent>
 
-      {/* Input bar */}
-      <div className="p-3 bg-slate-50 dark:bg-[#020408] border-t border-slate-200 dark:border-slate-900">
-        <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 p-1.5 rounded-2xl shadow-[0_2px_12px_rgba(15,23,42,0.03)]">
+      {/* Input bar - Safe Spacing & Large Accessible Fonts */}
+      <div className="p-3.5 bg-slate-50 dark:bg-[#020408] border-t border-slate-200 dark:border-slate-900 pb-safe">
+        <div className="flex items-center gap-2 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-md">
           <button
             onClick={handleWoundCamera}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-850 flex-shrink-0"
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-850 flex-shrink-0 flex items-center justify-center"
             title="Take Secure Photo"
             style={{ borderRadius: '9999px' }}
           >
-            <IonIcon icon={camera} className="w-5 h-5" />
+            <IonIcon icon={camera} className="w-5.5 h-5.5 text-slate-500 dark:text-slate-400" />
           </button>
           
           <button
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-850 flex-shrink-0"
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-850 flex-shrink-0 flex items-center justify-center"
             title="Attach Document"
             style={{ borderRadius: '9999px' }}
           >
-            <IonIcon icon={attach} className="w-5 h-5" />
+            <IonIcon icon={attach} className="w-5.5 h-5.5 text-slate-500 dark:text-slate-400" />
           </button>
 
           <input
@@ -284,15 +364,15 @@ const CareHub: React.FC = () => {
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your secure message..."
-            className="flex-grow bg-transparent border-0 outline-none text-xs text-slate-800 dark:text-white placeholder-slate-450 dark:placeholder-slate-500 py-1.5 px-1"
+            className="flex-grow bg-transparent border-0 outline-none text-[14px] font-semibold text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 py-2 px-1"
           />
 
           <button
             onClick={handleSendMessage}
-            className="p-2.5 bg-teal-600 dark:bg-gradient-to-r dark:from-teal-500 dark:to-emerald-500 text-white dark:text-slate-950 rounded-full active:opacity-90 flex-shrink-0 shadow-md"
+            className="w-10 h-10 bg-teal-600 dark:bg-teal-500 hover:bg-teal-500 dark:hover:bg-teal-400 text-white dark:text-[#020408] rounded-full active:opacity-90 flex-shrink-0 flex items-center justify-center shadow-md transition-all"
             style={{ borderRadius: '9999px' }}
           >
-            <IonIcon icon={send} className="w-4 h-4" />
+            <IonIcon icon={paperPlane} className="w-5 h-5" />
           </button>
         </div>
       </div>

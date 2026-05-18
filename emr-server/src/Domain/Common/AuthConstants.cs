@@ -10,6 +10,7 @@ public static class Roles
     public const string Chaplain = "Chaplain";
     public const string AdminCoordinator = "AdminCoordinator";
     public const string Practitioner = "Practitioner"; // Generic fallback
+    public const string Patient = "Patient"; // Mobile Portal User
 }
 
 public static class Permissions

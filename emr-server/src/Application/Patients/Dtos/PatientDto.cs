@@ -34,4 +34,5 @@ public class PatientDto
     public ICollection<ClinicalEncounterDto> Encounters { get; set; } = new List<ClinicalEncounterDto>();
     public ICollection<AppointmentDto> Appointments { get; set; } = new List<AppointmentDto>();
     public string? VisitStatus { get; set; }
+    public string? PrimaryCareNavigatorName { get; set; }
 }

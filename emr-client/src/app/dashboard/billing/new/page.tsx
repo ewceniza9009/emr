@@ -28,7 +28,7 @@ import { useSettings } from "@/lib/SettingsContext";
 import PatientLookup from "@/components/PatientLookup";
 
 const GET_PATIENT_CLAIMS = gql`
-  query GetPatientClaims($patientId: Guid!) {
+  query GetPatientClaims($patientId: UUID!) {
     zBenefitClaims(where: { patientId: { eq: $patientId } }, order: [{ createdAt: DESC }]) {
       items {
         claimId

@@ -57,6 +57,51 @@ namespace Infrastructure.Data
 
             if (!wipeDb && await context.Patients.IgnoreQueryFilters().AnyAsync())
             {
+                // Repair orphaned TenantId on CareThreads and ChatMessages
+                var threadsToRepair = await context.CareThreads
+                    .IgnoreQueryFilters()
+                    .Where(t => t.TenantId == Guid.Empty)
+                    .ToListAsync();
+
+                if (threadsToRepair.Any())
+                {
+                    Console.WriteLine($"[REPAIR] Found {threadsToRepair.Count} CareThreads with empty TenantId. Repairing...");
+                    foreach (var t in threadsToRepair)
+                    {
+                        var patient = await context.Patients
+                            .IgnoreQueryFilters()
+                            .FirstOrDefaultAsync(p => p.PatientId == t.PatientId);
+                        if (patient != null)
+                        {
+                            t.TenantId = patient.TenantId;
+                            context.CareThreads.Update(t);
+                        }
+                    }
+                    await context.SaveChangesAsync();
+                }
+
+                var messagesToRepair = await context.ChatMessages
+                    .IgnoreQueryFilters()
+                    .Where(m => m.TenantId == Guid.Empty)
+                    .ToListAsync();
+
+                if (messagesToRepair.Any())
+                {
+                    Console.WriteLine($"[REPAIR] Found {messagesToRepair.Count} ChatMessages with empty TenantId. Repairing...");
+                    foreach (var m in messagesToRepair)
+                    {
+                        var thread = await context.CareThreads
+                            .IgnoreQueryFilters()
+                            .FirstOrDefaultAsync(t => t.CareThreadId == m.CareThreadId);
+                        if (thread != null)
+                        {
+                            m.TenantId = thread.TenantId;
+                            context.ChatMessages.Update(m);
+                        }
+                    }
+                    await context.SaveChangesAsync();
+                }
+
                 if (seedDb)
                 {
                     await SeedDatabaseAsync(context);
@@ -187,6 +232,10 @@ namespace Infrastructure.Data
                         Permissions.Documentation.View,
                     }
                 },
+                {
+                    Roles.Patient,
+                    Array.Empty<string>() // Patients do not use dashboard permissions, only mobile access
+                }
             };
 
             foreach (var rp in rolePermissions)
