@@ -69,21 +69,6 @@ public class NavigationQuery
         CancellationToken cancellationToken
     )
     {
-        var currentTenantId = currentUserService.TenantId ?? Guid.Empty;
-        Console.WriteLine($"[INBOX_DEBUG] CurrentTenantId: {currentTenantId}");
-
-        var allThreads = await context.CareThreads
-            .IgnoreQueryFilters()
-            .Include(t => t.Messages)
-            .Include(t => t.Patient)
-            .ToListAsync(cancellationToken);
-
-        Console.WriteLine($"[INBOX_DEBUG] Found {allThreads.Count} total threads in DB (ignoring filters)");
-        foreach (var t in allThreads)
-        {
-            Console.WriteLine($"[INBOX_DEBUG] ThreadId: {t.CareThreadId}, TenantId: {t.TenantId}, IsActive: {t.IsActive}, PatientId: {t.PatientId}, PatientName: {(t.Patient != null ? t.Patient.FirstName + " " + t.Patient.LastName : "Null")}");
-        }
-
         return await context.CareThreads
             .Include(t => t.Messages)
             .Include(t => t.Patient)

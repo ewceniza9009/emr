@@ -26,7 +26,9 @@ public static class DependencyInjection
                         b.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                     }
                 );
+#if DEBUG
                 options.EnableSensitiveDataLogging();
+#endif
             },
             ServiceLifetime.Scoped
         );
