@@ -18,6 +18,10 @@ public class FacilityConfiguration : IEntityTypeConfiguration<Facility>
 
         builder.Property(f => f.Type).HasColumnName("type").HasConversion<string>();
 
+        builder.Property(f => f.Npi).HasColumnName("npi").HasMaxLength(10).HasDefaultValue("");
+        builder.Property(f => f.TaxId).HasColumnName("tax_id").HasMaxLength(20).HasDefaultValue("");
+        builder.Property(f => f.PlaceOfServiceCode).HasColumnName("place_of_service_code").HasMaxLength(2).HasDefaultValue("");
+
         builder.OwnsOne(
             f => f.FacilityAddress,
             a =>

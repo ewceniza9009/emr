@@ -21,6 +21,8 @@ public class Appointment : BaseEntity, ITenantEntity
 
     public Patient Patient { get; set; } = null!;
     public Practitioner? Practitioner { get; set; }
+    public Guid? FacilityId { get; set; }
+    public Facility? Facility { get; set; }
     public ICollection<Practitioner> SupportingClinicians { get; set; } = new List<Practitioner>();
     public List<AssessmentType> PlannedAssessments { get; set; } = new();
     public ICollection<AppointmentResource> AppointmentResources { get; set; } = new List<AppointmentResource>();

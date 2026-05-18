@@ -38,6 +38,7 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
         builder.Property(a => a.MeetingLink).HasColumnName("meeting_link").HasMaxLength(255);
 
         builder.Property(a => a.PractitionerId).HasColumnName("practitioner_id");
+        builder.Property(a => a.FacilityId).HasColumnName("facility_id");
 
         builder.Property(a => a.TravelTimeMinutes).HasColumnName("travel_time_minutes");
 
@@ -54,6 +55,12 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
             .HasOne(a => a.Practitioner)
             .WithMany()
             .HasForeignKey(a => a.PractitionerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder
+            .HasOne(a => a.Facility)
+            .WithMany()
+            .HasForeignKey(a => a.FacilityId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder

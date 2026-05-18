@@ -13,7 +13,8 @@ import {
   GET_PATIENTS,
   GET_PRACTITIONERS,
   GET_APPOINTMENT,
-  GET_GEOSPATIAL_AVAILABILITY
+  GET_GEOSPATIAL_AVAILABILITY,
+  GET_FACILITIES
 } from "../queries";
 
 interface UseBookingStateProps {
@@ -48,6 +49,7 @@ export function useBookingState({
     postalCode: ""
   });
   const [practitionerId, setPractitionerId] = useState("");
+  const [facilityId, setFacilityId] = useState("");
   const [supportingIds, setSupportingIds] = useState<string[]>([]);
   const [patientSearch, setPatientSearch] = useState("");
   const [isEditingAddress, setIsEditingAddress] = useState(false);
@@ -135,6 +137,7 @@ export function useBookingState({
       setPatientSearch("");
       setPatientAddress({ street: "", city: "", state: "", postalCode: "" });
       setPractitionerId("");
+      setFacilityId("");
       setSupportingIds([]);
       setPlannedAssessments([]);
       setPeriod(null);
@@ -189,6 +192,7 @@ export function useBookingState({
 
   const { data: patientData } = useQuery(GET_PATIENTS, { skip: !open });
   const { data: practitionerData } = useQuery(GET_PRACTITIONERS, { skip: !open });
+  const { data: facilityData } = useQuery(GET_FACILITIES, { skip: !open });
 
   const { data: appointmentData } = useQuery(GET_APPOINTMENT, {
     variables: { id: appointmentId },
@@ -206,6 +210,7 @@ export function useBookingState({
         postalCode: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || a.patient?.addresses?.[0]?.address?.postalCode || ""
       });
       setPractitionerId(a.practitionerId || "");
+      setFacilityId(a.facilityId || "");
       const rawSupporting = a.supportingClinicians?.map((s: any) => s.practitionerId) || [];
       setSupportingIds(rawSupporting);
       if (a.modality) {
@@ -449,7 +454,8 @@ export function useBookingState({
                   plannedAssessments,
                   travelTimeMinutes: baseSlot?.travelTimeInMinutes || 0,
                   distanceInMiles: baseSlot?.distanceInMiles || 0,
-                  overrideLogistics: true
+                  overrideLogistics: true,
+                  facilityId: facilityId || null
                 }
               }
             });
@@ -535,7 +541,8 @@ export function useBookingState({
           visitType,
           plannedAssessments,
           travelTimeMinutes: slot.travelTimeInMinutes,
-          distanceInMiles: slot.distanceInMiles
+          distanceInMiles: slot.distanceInMiles,
+          facilityId: facilityId || null
         }
       }
     });
@@ -588,6 +595,9 @@ export function useBookingState({
     formatForEngine,
     patientData,
     practitionerData,
+    facilityData,
+    facilityId,
+    setFacilityId,
     appointmentData,
     availabilityData,
     availabilityLoading,

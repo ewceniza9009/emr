@@ -1,7 +1,18 @@
 {
-  "version": "1.2.7",
-  "build": "20260518.1",
+  "version": "1.2.8",
+  "build": "20260518.2",
   "changelog": [
+    {
+      "v": "v1.2.8",
+      "date": "2026-05-18",
+      "items": [
+        "Implemented location-aware facility scheduling and billing architecture.",
+        "Upgraded Facility domain entity with National Provider Identifier (NPI), Tax ID, and Place of Service Code.",
+        "Added real-time facility binding during the clinical appointment scheduling workflow.",
+        "Integrated active facilities dropdown menu inside the 'Facility' visit modality booking view.",
+        "Enforced rigorous Playwright E2E automation tests confirming facility location data persistence and compatibility."
+      ]
+    },
     {
       "v": "v1.2.7",
       "date": "2026-05-18",

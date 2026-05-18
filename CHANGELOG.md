@@ -2,6 +2,13 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.2.8] - 2026-05-18
+- Implemented location-aware facility scheduling and billing architecture.
+- Upgraded Facility domain entity with National Provider Identifier (NPI), Tax ID, and Place of Service Code.
+- Added real-time facility binding during the clinical appointment scheduling workflow.
+- Integrated active facilities dropdown menu inside the 'Facility' visit modality booking view.
+- Enforced rigorous Playwright E2E automation tests confirming facility location data persistence and compatibility.
+
 ## [1.2.7] - 2026-05-18
 - Implemented dynamic first-use trust binding (DFUTB) for biometric passwordless magic mobile login, eliminating manual device registrations.
 - Synchronized GraphQL schema by exposing the DeviceSignature field on the PatientDto model to support seamless biometric token exchange.

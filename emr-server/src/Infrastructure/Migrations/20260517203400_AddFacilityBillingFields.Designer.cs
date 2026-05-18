@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260517203400_AddFacilityBillingFields")]
+    partial class AddFacilityBillingFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -174,10 +177,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("double precision")
                         .HasColumnName("distance_in_miles");
 
-                    b.Property<Guid?>("FacilityId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("facility_id");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
@@ -242,9 +241,6 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("AppointmentId")
                         .HasName("pk_appointments");
-
-                    b.HasIndex("FacilityId")
-                        .HasDatabaseName("ix_appointments_facility_id");
 
                     b.HasIndex("PatientId")
                         .HasDatabaseName("ix_appointments_patient_id");
@@ -4299,12 +4295,6 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.Appointment", b =>
                 {
-                    b.HasOne("Domain.Entities.Facility", "Facility")
-                        .WithMany()
-                        .HasForeignKey("FacilityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_appointments_facilities_facility_id");
-
                     b.HasOne("Domain.Entities.Patient", "Patient")
                         .WithMany("Appointments")
                         .HasForeignKey("PatientId")
@@ -4317,8 +4307,6 @@ namespace Infrastructure.Migrations
                         .HasForeignKey("PractitionerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_appointments_practitioners_practitioner_id");
-
-                    b.Navigation("Facility");
 
                     b.Navigation("Patient");
 

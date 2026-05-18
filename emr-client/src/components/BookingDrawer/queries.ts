@@ -74,6 +74,7 @@ export const GET_APPOINTMENT = gql`
       appointmentId
       patientId
       practitionerId
+      facilityId
       practitioner { practitionerId firstName lastName position }
       supportingClinicians { practitionerId firstName lastName position }
       scheduledStart
@@ -122,6 +123,16 @@ export const GET_GEOSPATIAL_AVAILABILITY = gql`
       travelTimeInMinutes
       shiftStart
       shiftEnd
+    }
+  }
+`;
+
+export const GET_FACILITIES = gql`
+  query GetFacilities {
+    facilities {
+      facilityId
+      name
+      type
     }
   }
 `;

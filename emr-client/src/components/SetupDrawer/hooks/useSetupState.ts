@@ -56,6 +56,9 @@ export default function useSetupState({
             country: "Philippines",
           },
           isActive: true,
+          npi: "",
+          taxId: "",
+          placeOfServiceCode: "11",
         },
         healthPlans: { name: "", code: "", isActive: true },
         medications: {

@@ -200,6 +200,9 @@ public class SetupMutation
         existing.ContactPerson = input.ContactPerson;
         existing.ContactPhone = input.ContactPhone;
         existing.ContactEmail = input.ContactEmail;
+        existing.Npi = input.Npi ?? string.Empty;
+        existing.TaxId = input.TaxId ?? string.Empty;
+        existing.PlaceOfServiceCode = input.PlaceOfServiceCode ?? string.Empty;
 
         if (input.FacilityAddress != null)
         {

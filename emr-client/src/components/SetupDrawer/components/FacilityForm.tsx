@@ -163,6 +163,61 @@ export default function FacilityForm({ form, onChange }: FacilityFormProps) {
           </div>
         </div>
       </div>
+
+      <div className="space-y-4">
+        <h3 className="text-[10px] font-bold text-[var(--primary)] uppercase tracking-[0.2em] border-b border-[var(--card-border)] pb-2">
+          Clinical RCM & Billing Operations
+        </h3>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                Organizational NPI
+              </label>
+              <input
+                className="premium-input w-full rounded-xl p-3 text-sm font-mono"
+                placeholder="10-digit NPI"
+                maxLength={10}
+                value={form.npi || ""}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "");
+                  onChange({ ...form, npi: val });
+                }}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                Federal Tax ID (EIN)
+              </label>
+              <input
+                className="premium-input w-full rounded-xl p-3 text-sm font-mono"
+                placeholder="XX-XXXXXXX"
+                value={form.taxId || ""}
+                onChange={(e) => onChange({ ...form, taxId: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+              Place of Service (POS) Code
+            </label>
+            <div className="relative">
+              <select
+                className="premium-input w-full rounded-xl p-3 text-sm appearance-none cursor-pointer"
+                value={form.placeOfServiceCode || "11"}
+                onChange={(e) => onChange({ ...form, placeOfServiceCode: e.target.value })}
+              >
+                <option value="11" className="bg-[var(--sidebar-bg)]">11 - Office (Clinic)</option>
+                <option value="21" className="bg-[var(--sidebar-bg)]">21 - Inpatient Hospital</option>
+                <option value="12" className="bg-[var(--sidebar-bg)]">12 - Home Care</option>
+                <option value="31" className="bg-[var(--sidebar-bg)]">31 - Skilled Nursing Facility</option>
+                <option value="32" className="bg-[var(--sidebar-bg)]">32 - Nursing Facility</option>
+                <option value="13" className="bg-[var(--sidebar-bg)]">13 - Assisted Living Facility</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

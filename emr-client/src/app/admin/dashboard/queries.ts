@@ -49,6 +49,9 @@ export const GET_SETUP_DATA = gql`
       contactPerson
       contactPhone
       contactEmail
+      npi
+      taxId
+      placeOfServiceCode
     }
     healthPlans {
       healthPlanId

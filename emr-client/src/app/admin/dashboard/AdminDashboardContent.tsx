@@ -39,6 +39,7 @@ export default function AdminDashboardContent() {
   const [editItem, setEditItem] = useState<any>(null);
   const searchParams = useSearchParams();
   const urlTab = searchParams.get("tab");
+  const editId = searchParams.get("editId");
 
   // Persistence & URL Hook
   useEffect(() => {
@@ -57,6 +58,23 @@ export default function AdminDashboardContent() {
   };
 
   const { data, loading, error, refetch } = useQuery(GET_SETUP_DATA);
+
+  // Auto-open Edit Drawer Hook
+  useEffect(() => {
+    if (editId && data?.[activeTab]) {
+      const itemToEdit = data[activeTab].find((item: any) => {
+        const idKey = Object.keys(item).find((k) => k.toLowerCase().includes("id"));
+        return idKey && item[idKey] === editId;
+      });
+      if (itemToEdit) {
+        setEditItem(itemToEdit);
+        setIsDrawerOpen(true);
+        // Clear editId from URL parameters silently
+        const newUrl = window.location.pathname + `?tab=${activeTab}`;
+        window.history.replaceState({ path: newUrl }, "", newUrl);
+      }
+    }
+  }, [editId, data, activeTab]);
 
   const mutation =
     (DELETE_MUTATIONS as any)[activeTab] ||

@@ -17,7 +17,8 @@ public record BookAppointmentCommand(
     double? DistanceInMiles = null,
     List<AssessmentType>? PlannedAssessments = null,
     Guid? AppointmentId = null,
-    bool OverrideLogistics = false
+    bool OverrideLogistics = false,
+    Guid? FacilityId = null
 ) : IRequest<BookAppointmentResponse>;
 
 public record BookAppointmentResponse(Appointment? Appointment, string? Error = null);
@@ -98,6 +99,7 @@ public class BookAppointmentCommandHandler(
             appointment.ScheduledEnd = endTime;
             appointment.Modality = request.Modality;
             appointment.SupportingClinicians = supporting;
+            appointment.FacilityId = request.FacilityId;
 
             if (request.PlannedAssessments != null)
                 appointment.PlannedAssessments = request.PlannedAssessments;
@@ -123,6 +125,7 @@ public class BookAppointmentCommandHandler(
                 AppointmentId = Guid.NewGuid(),
                 PatientId = request.PatientId,
                 PractitionerId = request.PractitionerId,
+                FacilityId = request.FacilityId,
                 ScheduledStart = startTime,
                 ScheduledEnd = endTime,
                 Modality = request.Modality,

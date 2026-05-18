@@ -171,6 +171,27 @@ export function ServiceLocationPanel({ state, patientId, setPatientId }: Service
                 </div>
               </div>
 
+              {state.modality === "IN_PERSON_FACILITY" && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-[var(--primary)]" />
+                    <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Select Target Facility</label>
+                  </div>
+                  <div className="relative">
+                    <select required={state.modality === "IN_PERSON_FACILITY"} value={state.facilityId} onChange={e => state.setFacilityId(e.target.value)}
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-5 py-4 text-sm font-semibold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all appearance-none cursor-pointer">
+                      <option value="" className="bg-[var(--sidebar-bg)]">-- Select active clinical facility --</option>
+                      {state.facilityData?.facilities?.map((f: any) => (
+                        <option key={f.facilityId} value={f.facilityId} className="bg-[var(--sidebar-bg)]">{f.name} ({f.type})</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none border-l border-[var(--card-border)] pl-4">
+                      <Building2 className="w-4 h-4 text-[var(--text-muted)]" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-4">
                 <div className="flex items-center gap-3 mb-2">
                   <Stethoscope className="w-4 h-4 text-[var(--primary)]" />

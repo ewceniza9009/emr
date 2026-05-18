@@ -29,6 +29,9 @@ public class Facility : BaseEntity, ITenantEntity
     public string? ContactPerson { get; set; }
     public string? ContactPhone { get; set; }
     public string? ContactEmail { get; set; }
+    public string Npi { get; set; } = string.Empty;
+    public string TaxId { get; set; } = string.Empty;
+    public string PlaceOfServiceCode { get; set; } = string.Empty;
     
     public ICollection<Patient> Residents { get; set; } = new List<Patient>();
 }
