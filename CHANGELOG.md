@@ -2,6 +2,13 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.2.9] - 2026-05-18
+- Implemented the native Ionic/React mobile application architecture serving as a 'Virtual Hospital Room' for patients.
+- Integrated a HIPAA-compliant secure real-time messaging hub between patients and care teams with SignalR and SignalR serialization safety.
+- Created UsePatientAccess security middleware for strict resource-level isolation of patient mobile API queries.
+- Hardened magic-login database user creation workflows with concurrency-safe handlers preventing dual login race conditions.
+- Optimized clinician chat inbox query performance by eliminating high-overhead debug logging database loops.
+
 ## [1.2.8] - 2026-05-18
 - Implemented location-aware facility scheduling and billing architecture.
 - Upgraded Facility domain entity with National Provider Identifier (NPI), Tax ID, and Place of Service Code.

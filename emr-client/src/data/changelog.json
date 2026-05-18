@@ -1,7 +1,18 @@
 {
-  "version": "1.2.8",
-  "build": "20260518.2",
+  "version": "1.2.9",
+  "build": "20260518.3",
   "changelog": [
+    {
+      "v": "v1.2.9",
+      "date": "2026-05-18",
+      "items": [
+        "Implemented the native Ionic/React mobile application architecture serving as a 'Virtual Hospital Room' for patients.",
+        "Integrated a HIPAA-compliant secure real-time messaging hub between patients and care teams with SignalR and SignalR serialization safety.",
+        "Created UsePatientAccess security middleware for strict resource-level isolation of patient mobile API queries.",
+        "Hardened magic-login database user creation workflows with concurrency-safe handlers preventing dual login race conditions.",
+        "Optimized clinician chat inbox query performance by eliminating high-overhead debug logging database loops."
+      ]
+    },
     {
       "v": "v1.2.8",
       "date": "2026-05-18",
