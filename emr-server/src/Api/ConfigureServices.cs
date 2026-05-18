@@ -273,18 +273,26 @@ public static class ConfigureServices
                 "PalliativeCorsPolicy",
                 builder =>
                     builder
-                        .WithOrigins(
-                            "https://carenavigator.emr.local",
-                            "http://localhost:3671",
-                            "http://localhost:3000",
-                            "http://127.0.0.1:3671",
-                            "http://localhost:3672",
-                            "http://127.0.0.1:3672",
-                            "http://localhost:8100",
-                            "http://127.0.0.1:8100",
-                            "https://emr-three-hazel.vercel.app",
-                            "https://halkyone.vercel.app"
-                        )
+                        .SetIsOriginAllowed(origin =>
+                        {
+                            if (string.IsNullOrEmpty(origin)) return false;
+                            
+                            try
+                            {
+                                var uri = new Uri(origin);
+                                var host = uri.Host;
+                                return host == "localhost" || 
+                                       host == "127.0.0.1" || 
+                                       host == "carenavigator.emr.local" ||
+                                       host.EndsWith(".vercel.app") ||
+                                       host.Contains("halkyone") ||
+                                       host.Contains("onrender");
+                            }
+                            catch
+                            {
+                                return false;
+                            }
+                        })
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials()
