@@ -26,12 +26,23 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Automatically detect host to bridge between web (localhost) and android emulator (10.0.2.2)
+// Automatically detect host to bridge between web (localhost), android emulator (10.0.2.2), and production (Vercel)
 const getAutoApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+    return envUrl;
+  }
+
   const hostname = window.location.hostname;
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     return 'https://localhost:34731';
   }
+
+  // Deployed production Vercel apps or domain endpoints should target the envUrl or standard local port
+  if (hostname.endsWith('.vercel.app') || !hostname.match(/^[0-9.]+$/)) {
+    return envUrl || 'https://localhost:34731';
+  }
+
   // Android emulator loopback to host localhost
   return 'https://10.0.2.2:34731';
 };
@@ -42,7 +53,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [apiUrl, setApiUrl] = useState<string>(() => {
-    return localStorage.getItem('halkyone-mobile-api-url') || getAutoApiUrl();
+    const cached = localStorage.getItem('halkyone-mobile-api-url');
+    const autoUrl = getAutoApiUrl();
+
+    // Self-healing: Clear cached emulator IP if the user has loaded on a deployed production domain
+    if (cached && cached.includes('10.0.2.2') && !window.location.hostname.match(/^(localhost|127\.0\.0\.1)$/)) {
+      return autoUrl;
+    }
+
+    return cached || autoUrl;
   });
 
   useEffect(() => {
