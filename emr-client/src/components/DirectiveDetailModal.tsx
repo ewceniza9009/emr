@@ -19,10 +19,11 @@ import {
 import HalcyonPortal from "./Portal";
 import SmartTextarea from "./SmartTextarea";
 import { useSmartPhrases } from "@/hooks/useSmartPhrases";
+import { useCommandModal } from "./CommandModalProvider";
 
 
 const UPDATE_DIRECTIVE = gql`
-  mutation UpdateAdvanceDirective($command: UpdateAdvanceDirectiveCommandInput!) {
+  mutation UpdateAdvanceDirective($command: UpdateCoordinationAdvanceDirectiveInput!) {
     updateAdvanceDirective(command: $command)
   }
 `;
@@ -37,19 +38,32 @@ interface DirectiveDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  patientId: string;
   directive: {
     advanceDirectiveId: string;
     type: string;
     notes?: string;
     effectiveDate: string;
   } | null;
+  allDirectives?: Array<{
+    advanceDirectiveId: string;
+    type: string;
+    notes?: string;
+    effectiveDate: string;
+    isActive: boolean;
+  }>;
 }
 
-export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, directive }: DirectiveDetailModalProps) {
+export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, patientId, directive, allDirectives }: DirectiveDetailModalProps) {
   const { smartPhrases } = useSmartPhrases();
+  const { confirm } = useCommandModal();
   const [isEditing, setIsEditing] = useState(false);
 
   const [editNotes, setEditNotes] = useState("");
+
+  const history = (allDirectives || [])
+    .filter((d) => d.type === directive?.type)
+    .sort((a, b) => new Date(b.effectiveDate).getTime() - new Date(a.effectiveDate).getTime());
 
   const [updateDirective, { loading: updating }] = useMutation(UPDATE_DIRECTIVE, {
     onCompleted: () => {
@@ -76,15 +90,26 @@ export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, direc
     updateDirective({
       variables: {
         command: {
-          advanceDirectiveId: directive.advanceDirectiveId,
-          notes: editNotes
+          patientId: patientId,
+          type: directive.type,
+          isActive: true,
+          notes: editNotes,
+          effectiveDate: new Date().toISOString()
         }
       }
     });
   };
 
-  const handleRevoke = () => {
-    if (confirm("CRITICAL: Revoking this legal directive will remove it from active care planning. Proceed with forensic revocation?")) {
+  const handleRevoke = async () => {
+    const ok = await confirm({
+      title: "CRITICAL: FORENSIC REVOCATION",
+      message: "Revoking this legal directive will remove it from active care planning. Proceed with forensic revocation?",
+      type: "danger",
+      confirmText: "Revoke Directive",
+      cancelText: "Cancel"
+    });
+
+    if (ok) {
       revokeDirective({
         variables: {
           command: {
@@ -106,7 +131,7 @@ export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, direc
 
         {/* Modal */}
         <div
-          className="relative w-full max-w-lg flex flex-col bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-[1.5rem] shadow-[0_40px_120px_rgba(0,0,0,0.6)] animate-in zoom-in-95 fade-in duration-300 overflow-hidden"
+          className="relative w-full max-w-lg max-h-[85vh] flex flex-col bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-[1.5rem] shadow-[0_40px_120px_rgba(0,0,0,0.6)] animate-in zoom-in-95 fade-in duration-300 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Accent bar */}
@@ -202,6 +227,47 @@ export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, direc
               <Clock className="w-4 h-4 text-amber-500 shrink-0" />
               <p className="text-[9px] text-amber-600 font-medium">This record should be cross-referenced with physical documentation during critical clinical decisions.</p>
             </div>
+
+            {/* Version History Timeline */}
+            {history.length > 1 && (
+              <div className="pt-6 border-t border-[var(--card-border)] space-y-4">
+                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
+                  <Clock className="w-3.5 h-3.5 text-blue-500" />
+                  Version History & Modification Trail
+                </p>
+                <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[1px] before:bg-[var(--card-border)]">
+                  {history.map((ver) => {
+                    const isVerActive = ver.isActive;
+                    return (
+                      <div key={ver.advanceDirectiveId} className="relative pl-8 space-y-1">
+                        {/* Dot indicator */}
+                        <div className={`absolute left-[9.5px] top-1.5 w-2 h-2 rounded-full border ${
+                          isVerActive 
+                            ? "bg-emerald-500 border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.6)]" 
+                            : "bg-[var(--sidebar-bg)] border-[var(--text-muted)] opacity-60"
+                        }`} />
+                        
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[9.5px] font-bold text-[var(--text-primary)]">
+                            {new Date(ver.effectiveDate).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
+                            isVerActive 
+                              ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" 
+                              : "bg-white/5 text-[var(--text-muted)] border border-white/10"
+                          }`}>
+                            {isVerActive ? "Active (Current)" : "Superseded"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[var(--text-muted)] bg-[var(--input-bg)]/40 p-3 rounded-xl border border-[var(--card-border)]/50 leading-relaxed font-medium">
+                          {ver.notes || "No clinical instructions documented."}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer */}

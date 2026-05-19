@@ -104,6 +104,7 @@ const GET_VISIT_SUMMARY = gql`
       type
       notes
       effectiveDate
+      isActive
     }
   }
 `;
@@ -715,7 +716,7 @@ export default function VisitSummaryDrawer({
                   </div>
 
                   {/* Advance Directives Section */}
-                  {data?.advanceDirectives?.length > 0 && (
+                  {data?.advanceDirectives?.some((d: any) => d.isActive) && (
                     <div className="space-y-6">
                       <div className="flex items-center gap-4">
                         <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em] flex items-center gap-2.5">
@@ -725,7 +726,7 @@ export default function VisitSummaryDrawer({
                         <div className="flex-1 h-[1px] bg-gradient-to-r from-[var(--card-border)] to-transparent" />
                       </div>
                       <div className="grid grid-cols-1 gap-4">
-                        {data.advanceDirectives.map((d: any) => (
+                        {data.advanceDirectives.filter((d: any) => d.isActive).map((d: any) => (
                           <button
                             key={d.advanceDirectiveId}
                             onClick={() => setSelectedDirective(d)}
@@ -857,7 +858,9 @@ export default function VisitSummaryDrawer({
           refetch();
           refetchAssessments();
         }}
+        patientId={patientId}
         directive={selectedDirective}
+        allDirectives={data?.advanceDirectives}
       />
 
       <SpiritualDetailModal
