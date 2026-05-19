@@ -44,6 +44,7 @@ const GET_OUTREACH_LEADS = gql`
         nextFollowUpDate
         latestActivityOutcome
         latestActivityReason
+        enrolledPatientId
       }
       totalCount
     }
@@ -281,7 +282,18 @@ export default function OutreachPage() {
                 <tr key={lead.patientOutreachId} className="group hover:bg-white/[0.01] transition-colors">
                   <td className="px-6 py-2.5">
                     <div className="flex flex-col">
-                      <p className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">{lead.firstName} {lead.lastName}</p>
+                      {lead.status === 'ENROLLED' && lead.enrolledPatientId ? (
+                        <button
+                          onClick={() => router.push(`/dashboard/patients/${lead.enrolledPatientId}`)}
+                          className="text-sm font-bold text-[var(--primary)] hover:underline text-left focus:outline-none flex items-center gap-1 group/link"
+                        >
+                          {lead.firstName} {lead.lastName}
+                        </button>
+                      ) : (
+                        <p className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">
+                          {lead.firstName} {lead.lastName}
+                        </p>
+                      )}
                       <p className="text-xs text-[var(--text-muted)] mt-0.5">{lead.referralSource || "Intake Source"}</p>
                     </div>
                   </td>

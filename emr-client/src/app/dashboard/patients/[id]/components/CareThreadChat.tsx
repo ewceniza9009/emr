@@ -1,8 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { gql, useQuery, useMutation } from '@apollo/client';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
-import { MessageSquare, X } from 'lucide-react';
+import { MessageSquare, X, Send, Check, CheckCheck, Lock, Shield, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+
+const PALLIATIVE_TEMPLATES = [
+  {
+    label: "Symptom Check",
+    text: "Hello, this is your Care Navigator. How are your symptoms and pain level today on a scale of 1 to 10?",
+  },
+  {
+    label: "Medication Remind",
+    text: "Hi, just confirming if you were able to take your scheduled medications today. Are you experiencing any side effects?",
+  },
+  {
+    label: "Comfort Level",
+    text: "Hello, checking in on your comfort. Are you experiencing any difficulty breathing, anxiety, or nausea today?",
+  },
+  {
+    label: "General Care",
+    text: "Hi, just checking in to see how you and your family are doing. Please let me know if there's anything you need.",
+  },
+];
 
 const GET_PATIENT_THREADS = gql`
   query GetPatientChatThreads($patientId: UUID!) {
@@ -41,6 +60,21 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   const isOpenRef = React.useRef(isOpen);
+
+  const templatesRef = useRef<HTMLDivElement>(null);
+
+  const scrollTemplates = (direction: 'left' | 'right') => {
+    if (templatesRef.current) {
+      const scrollAmount = direction === 'left' ? -150 : 150;
+      templatesRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const handleOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      setIsOpen(false);
+    }
+  };
 
   useEffect(() => {
     isOpenRef.current = isOpen;
@@ -184,7 +218,7 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="relative px-6 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 text-[10px] font-black uppercase tracking-widest hover:bg-indigo-500/20 transition-all flex items-center gap-2 active:scale-95"
+        className="relative px-6 py-2 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/20 transition-all flex items-center gap-2 active:scale-95"
       >
         <MessageSquare className="w-3.5 h-3.5" /> Live Chat
         {unreadCount > 0 && (
@@ -198,61 +232,163 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-xl w-full max-w-md h-[500px] flex flex-col shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
-            <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-800">
-              <h3 className="font-bold text-slate-800 dark:text-slate-100">Care Navigation Secure Chat</h3>
-              <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
-                <X className="w-5 h-5" />
+        <div 
+          onClick={handleOutsideClick}
+          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/45 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+        >
+          <div className="bg-[var(--card-bg)] rounded-2xl w-full max-w-lg h-[550px] flex flex-col shadow-2xl overflow-hidden border border-[var(--card-border)] animate-in zoom-in-95 duration-200">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b border-[var(--card-border)] bg-[var(--card-bg)] shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-[var(--primary)]" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-xs text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
+                    Care Navigation Secure Chat
+                  </h3>
+                  <span className="flex items-center gap-1 text-[8px] font-bold text-emerald-500 uppercase tracking-widest mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Secure HIPAA Link
+                  </span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsOpen(false)} 
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--card-border)] transition-all"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-slate-50 dark:bg-slate-950">
-              {messages.map((m, idx) => {
-                const isSeen = m.isSeen || String(m.chatMessageId).startsWith('temp-');
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-[var(--background)] custom-scrollbar">
+              {messages.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)] opacity-60">
+                  <MessageSquare className="w-8 h-8 mb-2 animate-bounce" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">No message history available</span>
+                </div>
+              ) : (
+                messages.map((m, idx) => {
+                  const isSelf = m.senderRole === 'navigator';
+                  const isSeen = m.isSeen || String(m.chatMessageId).startsWith('temp-');
 
-                return (
-                  <div key={m.chatMessageId || idx} className={`flex ${m.senderRole === 'navigator' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`p-3 rounded-lg max-w-[80%] text-sm ${m.senderRole === 'navigator' ? 'bg-indigo-600 text-white rounded-br-none shadow-sm' : 'bg-white dark:bg-slate-800 border dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-bl-none shadow-sm'}`}>
-                      <div className="font-semibold text-[9px] mb-1 opacity-70 uppercase tracking-widest flex justify-between items-center gap-4 select-none">
-                        <span>{m.senderRole === 'navigator' ? 'You' : 'Patient'}</span>
-                        <span className="text-[8px] font-normal lowercase opacity-80">{new Date(m.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                      </div>
-                      <div className="break-words font-medium">{m.content}</div>
-                      {m.senderRole === 'navigator' && (
-                        <div className="flex items-center justify-end gap-1 mt-1 text-[8px] opacity-75 font-semibold select-none">
-                          {isSeen ? (
-                            <span className="text-indigo-200 flex items-center gap-0.5">
-                              Seen <span className="text-[10px] leading-none font-bold">✓✓</span>
-                            </span>
-                          ) : (
-                            <span className="text-indigo-300/85 flex items-center gap-0.5">
-                              Sent <span className="text-[10px] leading-none">✓</span>
-                            </span>
+                  return (
+                    <div key={m.chatMessageId || idx} className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
+                      <div className="max-w-[75%] flex flex-col">
+                        {/* Sender Label */}
+                        <div className={`flex items-center gap-1.5 mb-1 px-1 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] ${isSelf ? 'justify-end' : 'justify-start'}`}>
+                          <span>{isSelf ? 'Care Navigator' : 'Patient'}</span>
+                          <span className="text-[var(--card-border)]">•</span>
+                          <span className="font-mono text-[8px]">
+                            {new Date(m.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          </span>
+                        </div>
+
+                        <div className={`p-3 rounded-2xl shadow-sm text-sm break-words font-medium leading-relaxed ${
+                          isSelf 
+                            ? 'bg-[var(--primary)] text-white rounded-tr-none shadow-md shadow-[var(--primary)]/10' 
+                            : 'bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-primary)] rounded-tl-none'
+                        }`}>
+                          <div>{m.content}</div>
+                          {isSelf && (
+                            <div className="flex items-center justify-end gap-1 mt-1 text-[8px] opacity-85 font-semibold select-none">
+                              {isSeen ? (
+                                <span className="text-emerald-100 flex items-center gap-0.5" title="Read by Patient">
+                                  Read <CheckCheck className="w-3.5 h-3.5" />
+                                </span>
+                              ) : (
+                                <span className="text-teal-200/80 flex items-center gap-0.5" title="Sent to Server">
+                                  Sent <Check className="w-3.5 h-3.5" />
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
 
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2">
-              <input 
-                className="flex-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                value={inputText} 
-                onChange={(e: any) => setInputText(e.target.value)} 
-                onKeyDown={(e: any) => e.key === 'Enter' && handleSend()}
-                placeholder="Type your secure message..." 
-              />
-              <button 
-                onClick={handleSend}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+            {/* Sideways Scrollable Quick Templates */}
+            <div className="flex items-center gap-1.5 px-4 py-2 border-t border-[var(--card-border)] bg-[var(--card-bg)] shrink-0 relative">
+              <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
+                <Heart className="w-3 h-3 text-rose-500 fill-rose-500/20 animate-pulse" /> Templates:
+              </span>
+
+              {/* Scroll Left */}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); scrollTemplates('left'); }}
+                className="w-5 h-5 rounded-full bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/30 text-[var(--text-muted)] hover:text-[var(--primary)] flex items-center justify-center transition-all shrink-0 active:scale-90"
               >
-                Send
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Scrollable Container */}
+              <div 
+                ref={templatesRef}
+                className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth py-1 px-0.5"
+              >
+                {PALLIATIVE_TEMPLATES.map((tmpl, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setInputText(tmpl.text);
+                    }}
+                    className="text-[9px] font-bold bg-[var(--input-bg)] hover:bg-[var(--primary)]/15 border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-full px-3 py-1 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all whitespace-nowrap active:scale-95 uppercase tracking-wider shrink-0"
+                  >
+                    {tmpl.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Scroll Right */}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); scrollTemplates('right'); }}
+                className="w-5 h-5 rounded-full bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/30 text-[var(--text-muted)] hover:text-[var(--primary)] flex items-center justify-center transition-all shrink-0 active:scale-90"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
+
+            {/* Input Footer */}
+            <div className="p-4 border-t border-[var(--card-border)] bg-[var(--card-bg)] flex flex-col gap-2.5 shrink-0">
+              <div className="flex gap-2">
+                <input 
+                  className="flex-1 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl px-4 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:bg-[var(--background)] focus:ring-2 focus:ring-[var(--primary)]/35 focus:border-[var(--primary)]/55 transition-all outline-none font-medium"
+                  value={inputText} 
+                  onChange={(e: any) => setInputText(e.target.value)} 
+                  onKeyDown={(e: any) => e.key === 'Enter' && handleSend()}
+                  placeholder="Type your secure message..." 
+                />
+                <button 
+                  onClick={handleSend}
+                  disabled={!inputText.trim()}
+                  className="bg-[var(--primary)] hover:bg-[var(--primary)]/90 active:scale-95 disabled:opacity-50 disabled:scale-100 text-white px-5 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shrink-0"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  Send
+                </button>
+              </div>
+
+              {/* HIPAA Secure Bar */}
+              <div className="flex items-center justify-between text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider px-1">
+                <span className="flex items-center gap-1">
+                  <Lock className="w-2.5 h-2.5 text-[var(--primary)]" />
+                  HIPAA Secure End-to-End Encryption
+                </span>
+                <span>Audited Channel</span>
+              </div>
+            </div>
+
           </div>
         </div>
       )}

@@ -49,6 +49,31 @@ interface CoreIdentityCardProps {
 export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
   const [copiedLink, setCopiedLink] = React.useState(false);
   const [copiedCaregiverLink, setCopiedCaregiverLink] = React.useState(false);
+  
+  // Searchable Care Navigator Combobox states
+  const [isNavigatorOpen, setIsNavigatorOpen] = React.useState(false);
+  const [navigatorSearch, setNavigatorSearch] = React.useState("");
+  const navigatorRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (navigatorRef.current && !navigatorRef.current.contains(event.target as Node)) {
+        setIsNavigatorOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsNavigatorOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   const {
     patient,
     setShowEditCommunications,
@@ -115,9 +140,8 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
         }
       />
 
-      {/* Core Identity Panel */}
-      <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 premium-gradient" />
+      <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-visible">
+        <div className="absolute top-0 left-0 w-full h-1 premium-gradient rounded-t-2xl" />
         <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
           <UserCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
           Core Identity
@@ -147,30 +171,117 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
               )}
             </p>
           </div>
-          <div className="space-y-2 border-t border-[var(--card-border)] pt-3 mt-2">
-            <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+          <div className="space-y-2 border-t border-[var(--card-border)] pt-3 mt-2" ref={navigatorRef}>
+            <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest block">
               Primary Care Navigator
             </label>
-            <select
-              value={
-                practitioners.find(
+            <div className="relative">
+              {(() => {
+                const currentNavigator = practitioners.find(
                   (p: any) =>
                     `${p.firstName} ${p.lastName}`.toLowerCase() ===
                     patient.primaryCareNavigatorName?.toLowerCase()
-                )?.practitionerId || ""
-              }
-              onChange={(e) => handleReassign(e.target.value)}
-              className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2 px-3 text-xs text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)] transition-all cursor-pointer"
-            >
-              <option value="" disabled>
-                -- Select Care Navigator --
-              </option>
-              {practitioners.map((p: any) => (
-                <option key={p.practitionerId} value={p.practitionerId}>
-                  {p.firstName} {p.lastName} ({p.position || "Navigator"})
-                </option>
-              ))}
-            </select>
+                );
+                
+                const filteredPractitioners = navigatorSearch.trim()
+                  ? practitioners.filter((p: any) =>
+                      `${p.firstName} ${p.lastName}`.toLowerCase().includes(navigatorSearch.toLowerCase()) ||
+                      (p.position || "Navigator").toLowerCase().includes(navigatorSearch.toLowerCase())
+                    )
+                  : practitioners;
+
+                return (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsNavigatorOpen(!isNavigatorOpen);
+                        setNavigatorSearch("");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          setIsNavigatorOpen(false);
+                        }
+                      }}
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-3 text-xs text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)] transition-all cursor-pointer flex items-center justify-between gap-2 text-left"
+                    >
+                      <span className="truncate">
+                        {currentNavigator 
+                          ? `${currentNavigator.firstName} ${currentNavigator.lastName} (${currentNavigator.position || "Navigator"})`
+                          : "-- Select Care Navigator --"}
+                      </span>
+                      <span className="text-[var(--text-muted)] text-[8px] shrink-0">▼</span>
+                    </button>
+
+                    {isNavigatorOpen && (
+                      <div className="absolute left-0 right-0 mt-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl shadow-2xl z-[9999] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 p-2 space-y-2 max-h-64 flex flex-col">
+                        <div className="relative shrink-0">
+                          <input
+                            type="text"
+                            autoFocus
+                            placeholder="Search by name or title..."
+                            value={navigatorSearch}
+                            onChange={(e) => setNavigatorSearch(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Escape") {
+                                setIsNavigatorOpen(false);
+                              }
+                            }}
+                            className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-lg py-2 pl-3 pr-8 text-xs text-[var(--text-primary)] font-semibold placeholder:text-slate-600 focus:outline-none focus:border-[var(--primary)]/50 transition-all"
+                          />
+                          {navigatorSearch && (
+                            <button
+                              type="button"
+                              onClick={() => setNavigatorSearch("")}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-[10px] font-bold"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto space-y-0.5 max-h-48 scrollbar-thin">
+                          {filteredPractitioners.length > 0 ? (
+                            filteredPractitioners.map((p: any) => {
+                              const isSelected = p.practitionerId === currentNavigator?.practitionerId;
+                              return (
+                                <button
+                                  key={p.practitionerId}
+                                  type="button"
+                                  onClick={() => {
+                                    handleReassign(p.practitionerId);
+                                    setIsNavigatorOpen(false);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Escape") {
+                                      setIsNavigatorOpen(false);
+                                    }
+                                  }}
+                                  className={`w-full px-3 py-2 text-left rounded-lg text-xs font-semibold transition-all flex items-center justify-between gap-2
+                                    ${isSelected 
+                                      ? "bg-[var(--primary)]/20 text-[var(--primary)] font-black border border-[var(--primary)]/10" 
+                                      : "text-[var(--text-primary)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)]"
+                                    }`}
+                                >
+                                  <span className="truncate">{p.firstName} {p.lastName}</span>
+                                  <span className="text-[9px] opacity-60 font-black uppercase shrink-0 tracking-wider">
+                                    {p.position || "Navigator"}
+                                  </span>
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <p className="text-[10px] text-slate-500 italic py-2 text-center">
+                              No matches found
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
           </div>
         </div>
       </div>

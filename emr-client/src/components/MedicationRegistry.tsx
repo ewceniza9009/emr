@@ -60,6 +60,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
   const [selectedPrescription, setSelectedPrescription] = useState<any>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [newMed, setNewMed] = useState({ name: "", strength: "", dose: "", frequency: "", route: "ORAL", indications: "", signature: "" });
+  const [showHistory, setShowHistory] = useState(false);
   
   const { data, loading, refetch } = useQuery(GET_PRESCRIPTIONS, {
     variables: { patientId },
@@ -106,88 +107,136 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
     (a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
   );
 
+  const activePrescriptions = prescriptions.filter((p: any) => p.isActive);
+  const inactivePrescriptions = prescriptions.filter((p: any) => !p.isActive);
+  const displayedPrescriptions = showHistory ? inactivePrescriptions : activePrescriptions;
+
   if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse uppercase text-[10px] font-black tracking-widest">Reconciling Pharmacopeia...</div>;
 
   return (
-    <div className="glass-morphism rounded-2xl border border-[var(--card-border)] relative">
-      <div className="px-6 py-2 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)] rounded-t-2xl">
-        <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight">
-          <Pill className="w-4 h-4 text-emerald-500" />
-          Active Medications
-        </h2>
-        <PermissionGate permission="pharmacy:order">
+    <div className="glass-morphism rounded-2xl border border-[var(--card-border)] relative overflow-hidden flex flex-col">
+      <div className="px-6 py-2 border-b border-[var(--card-border)] flex items-center justify-between bg-[var(--input-bg)] rounded-t-2xl shrink-0">
+        {showHistory ? (
           <button 
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-1 text-emerald-400 text-xs font-bold uppercase tracking-widest hover:text-emerald-300 transition-colors"
+            onClick={() => setShowHistory(false)}
+            className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight hover:text-[var(--primary)] transition-colors group/back"
           >
-            <Plus className="w-4 h-4" />
-            Add Prescription
+            <History className="w-4 h-4 text-emerald-500 group-hover/back:-translate-x-0.5 transition-transform" />
+            Medication History
           </button>
-        </PermissionGate>
+        ) : (
+          <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight">
+            <Pill className="w-4 h-4 text-emerald-500" />
+            Active Medications
+          </h2>
+        )}
+
+        {showHistory ? (
+          <button 
+            onClick={() => setShowHistory(false)}
+            className="text-emerald-400 text-xs font-bold uppercase tracking-widest hover:text-emerald-300 transition-colors"
+          >
+            Show Active
+          </button>
+        ) : (
+          <PermissionGate permission="pharmacy:order">
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-1 text-emerald-400 text-xs font-bold uppercase tracking-widest hover:text-emerald-300 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add Prescription
+            </button>
+          </PermissionGate>
+        )}
       </div>
 
-      <div className="divide-y divide-[var(--card-border)]">
-        {prescriptions.map((p: any) => (
-          <div key={p.prescriptionId} className={`px-6 py-2.5 flex items-center justify-between group hover:bg-[var(--primary-glow)] transition-colors relative ${activeMenu === p.prescriptionId ? 'z-50' : 'z-0'}`}>
-            <div className="flex items-center gap-4">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 border border-emerald-500/20">
-                <Pill className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-tight">{p.medication.name} <span className="text-[var(--text-muted)] font-bold ml-1">({p.medication.strength})</span></h3>
-                <div className="flex gap-3 mt-1">
-                   <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">{p.dose} • {p.route}</span>
-                   <span className="text-[10px] text-blue-600 uppercase font-bold tracking-wider flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> {p.frequency}
-                   </span>
+      <div className="divide-y divide-[var(--card-border)] flex-1 min-h-0">
+        {displayedPrescriptions.length === 0 ? (
+          <div className="px-6 py-10 text-center text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest bg-[var(--card-bg)]/20">
+            {showHistory ? "No archived or inactive prescriptions" : "No active prescriptions registered"}
+          </div>
+        ) : (
+          displayedPrescriptions.map((p: any) => (
+            <div key={p.prescriptionId} className={`px-6 py-2.5 flex items-center justify-between group hover:bg-[var(--primary-glow)] transition-colors relative ${activeMenu === p.prescriptionId ? 'z-50' : 'z-0'}`}>
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 border border-emerald-500/20">
+                  <Pill className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-tight">{p.medication.name} <span className="text-[var(--text-muted)] font-bold ml-1">({p.medication.strength})</span></h3>
+                  <div className="flex gap-3 mt-1">
+                     <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider">{p.dose} • {p.route}</span>
+                     <span className="text-[10px] text-blue-600 uppercase font-bold tracking-wider flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> {p.frequency}
+                     </span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="flex items-center gap-4 relative">
-               <span className={`px-2 py-1 rounded-md text-[10px] font-bold border ${p.isActive ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--card-border)]'}`}>
-                  {p.isActive ? 'Active' : 'Inactive'}
-               </span>
-               <button 
-                onClick={() => setActiveMenu(activeMenu === p.prescriptionId ? null : p.prescriptionId)}
-                className={`p-2 rounded-lg transition-colors ${activeMenu === p.prescriptionId ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
-               >
-                  <MoreVertical className="w-4 h-4" />
-               </button>
+              <div className="flex items-center gap-4 relative">
+                 <span className={`px-2 py-1 rounded-md text-[10px] font-bold border ${p.isActive ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--card-border)]'}`}>
+                    {p.isActive ? 'Active' : 'Inactive'}
+                 </span>
+                 <button 
+                  onClick={() => setActiveMenu(activeMenu === p.prescriptionId ? null : p.prescriptionId)}
+                  className={`p-2 rounded-lg transition-colors ${activeMenu === p.prescriptionId ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                 >
+                    <MoreVertical className="w-4 h-4" />
+                 </button>
 
-               {activeMenu === p.prescriptionId && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setActiveMenu(null)} />
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl shadow-2xl z-50 p-1 animate-in fade-in zoom-in-95 duration-200">
-                      <PermissionGate permission="pharmacy:view">
-                        <button 
-                          onClick={() => {
-                            setSelectedPrescription(p);
-                            setActiveMenu(null);
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black text-[var(--text-primary)] hover:bg-[var(--input-bg)] rounded-lg transition-all uppercase tracking-widest"
-                        >
-                           <FileText className="w-3.5 h-3.5 text-blue-500" />
-                           View Details
-                        </button>
-                      </PermissionGate>
-                      <PermissionGate permission="pharmacy:order">
-                        <button className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all uppercase tracking-widest">
-                           <Trash2 className="w-3.5 h-3.5" />
-                           Discontinue
-                        </button>
-                      </PermissionGate>
-                    </div>
-                  </>
-                )}
+                 {activeMenu === p.prescriptionId && (
+                    <>
+                      <div className="fixed inset-0 z-10" onClick={() => setActiveMenu(null)} />
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl shadow-2xl z-50 p-1 animate-in fade-in zoom-in-95 duration-200">
+                        <PermissionGate permission="pharmacy:view">
+                          <button 
+                            onClick={() => {
+                              setSelectedPrescription(p);
+                              setActiveMenu(null);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black text-[var(--text-primary)] hover:bg-[var(--input-bg)] rounded-lg transition-all uppercase tracking-widest"
+                          >
+                             <FileText className="w-3.5 h-3.5 text-blue-500" />
+                             View Details
+                          </button>
+                        </PermissionGate>
+                        <PermissionGate permission="pharmacy:order">
+                          <button className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-black text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all uppercase tracking-widest">
+                             <Trash2 className="w-3.5 h-3.5" />
+                             Discontinue
+                          </button>
+                        </PermissionGate>
+                      </div>
+                    </>
+                  )}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
-      <div className="px-6 py-1.5 bg-emerald-500/5 border-t border-[var(--card-border)] flex items-center gap-2 text-emerald-600/60 text-[9px] font-black uppercase tracking-widest">
-         <History className="w-3 h-3" />
-         View Medication History (12 Archive)
-      </div>
+      {showHistory ? (
+        <button
+          onClick={() => setShowHistory(false)}
+          className="w-full px-6 py-2.5 bg-[var(--input-bg)] hover:bg-[var(--card-border)] border-t border-[var(--card-border)] rounded-b-2xl flex items-center justify-center gap-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer select-none"
+        >
+          Return to Active Medications
+        </button>
+      ) : (
+        <button
+          onClick={() => setShowHistory(true)}
+          disabled={inactivePrescriptions.length === 0}
+          className="w-full px-6 py-2.5 bg-emerald-500/5 hover:bg-emerald-500/10 active:bg-emerald-500/15 disabled:opacity-40 disabled:pointer-events-none border-t border-[var(--card-border)] rounded-b-2xl flex items-center justify-between text-emerald-400 text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer select-none"
+        >
+          <span className="flex items-center gap-2">
+            <History className="w-3.5 h-3.5" />
+            View Medication History
+          </span>
+          <span className="bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 text-[8px] font-black">
+            {inactivePrescriptions.length} Archive
+          </span>
+        </button>
+      )}
 
       {/* Add Medication Modal */}
       {showAddModal && (

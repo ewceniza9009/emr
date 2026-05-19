@@ -48,6 +48,7 @@ node_modules/
 # Backend (.NET / C#)
 bin/
 obj/
+emr-server/src/Api/wwwroot/uploads/
 
 # 6. Automated Testing & QA Reports
 test-results/

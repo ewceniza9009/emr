@@ -34,6 +34,10 @@ interface Message {
   timestamp: string;
   isSeen?: boolean;
   isAttachment?: boolean;
+  fileUrl?: string;
+  fileType?: string;
+  fileName?: string;
+  fileSize?: string;
 }
 
 const GET_CHAT_THREADS = gql`
@@ -116,13 +120,36 @@ const CareHub: React.FC = () => {
     if (threads && threads.length > 0) {
       const firstThread = threads[0];
       setActiveThreadId(firstThread.careThreadId);
-      const mapped = firstThread.messages?.map((m: any) => ({
-        id: m.chatMessageId,
-        sender: m.senderRole === 'patient' ? 'patient' : 'navigator',
-        content: m.content,
-        timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isSeen: m.isSeen
-      })) || [];
+      const mapped = firstThread.messages?.map((m: any) => {
+        const isAttachment = m.content.startsWith('📸 Secure Photo') || m.content.startsWith('📎 Secure Attachment');
+        let fileUrl = undefined;
+        let fileType = undefined;
+        let fileName = undefined;
+        let fileSize = undefined;
+        
+        if (isAttachment) {
+          const urlMatch = m.content.match(/Access URL:\s*(https?:\/\/[^\s]+)/);
+          if (urlMatch) fileUrl = urlMatch[1];
+          const nameMatch = m.content.match(/"([^"]+)"/);
+          if (nameMatch) fileName = nameMatch[1];
+          fileType = m.content.startsWith('📸') ? 'image/jpeg' : 'application/octet-stream';
+          const sizeMatch = m.content.match(/\(([^)]+)\)/);
+          if (sizeMatch) fileSize = sizeMatch[1];
+        }
+
+        return {
+          id: m.chatMessageId,
+          sender: m.senderRole === 'patient' ? 'patient' : 'navigator',
+          content: m.content,
+          timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isSeen: m.isSeen,
+          isAttachment,
+          fileUrl,
+          fileType,
+          fileName,
+          fileSize
+        };
+      }) || [];
       setMessages(mapped);
     }
   }, [data]);
@@ -165,12 +192,34 @@ const CareHub: React.FC = () => {
         if (exists) return prev;
         // Filter out optimistic temporary messages with same content
         const filtered = prev.filter(m => !(m.id.startsWith('temp-') && m.content === message.content && m.sender === 'patient'));
+        
+        const isAttachment = message.content.startsWith('📸 Secure Photo') || message.content.startsWith('📎 Secure Attachment');
+        let fileUrl = undefined;
+        let fileType = undefined;
+        let fileName = undefined;
+        let fileSize = undefined;
+        
+        if (isAttachment) {
+          const urlMatch = message.content.match(/Access URL:\s*(https?:\/\/[^\s]+)/);
+          if (urlMatch) fileUrl = urlMatch[1];
+          const nameMatch = message.content.match(/"([^"]+)"/);
+          if (nameMatch) fileName = nameMatch[1];
+          fileType = message.content.startsWith('📸') ? 'image/jpeg' : 'application/octet-stream';
+          const sizeMatch = message.content.match(/\(([^)]+)\)/);
+          if (sizeMatch) fileSize = sizeMatch[1];
+        }
+
         return [...filtered, {
           id: message.chatMessageId,
           sender: message.senderRole === 'patient' ? 'patient' : 'navigator',
           content: message.content,
           timestamp: new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          isSeen: message.isSeen
+          isSeen: message.isSeen,
+          isAttachment,
+          fileUrl,
+          fileType,
+          fileName,
+          fileSize
         }];
       });
 
@@ -194,6 +243,8 @@ const CareHub: React.FC = () => {
   }, [activeThreadId, apiUrl, token]);
 
   const contentRef = useRef<HTMLIonContentElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     if (contentRef.current) {
@@ -248,33 +299,126 @@ const CareHub: React.FC = () => {
     }
   };
 
-  const handleWoundCamera = () => {
-    const newMsg: Message = {
-      id: Date.now().toString(),
-      sender: 'patient',
-      content: '📸 Secure Wound Photo uploaded successfully (AES-256 Encrypted)',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isAttachment: true
-    };
-    setMessages(prev => [...prev, newMsg]);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'camera' | 'file') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileName = file.name;
+    const fileSize = (file.size / 1024).toFixed(1) + ' KB';
+    const fileType = file.type;
+    const isImage = file.type.startsWith('image/');
     
-    setNavigatorTyping(true);
-    setTimeout(() => {
-      setNavigatorTyping(false);
-      setMessages(prev => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          sender: 'navigator',
-          content: '🔒 System: Wound photo received securely and appended to your clinical chart. Your Care Navigator has been notified for triage review.',
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    // 1. Add optimistic message showing "Encrypting & Uploading..."
+    const uploadTempId = `upload-${Date.now()}`;
+    const initialUploadMsg: Message = {
+      id: uploadTempId,
+      sender: 'patient',
+      content: `🔒 Encrypting & uploading ${type === 'camera' ? 'photo' : 'file'} "${fileName}"...`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    
+    setMessages(prev => [...prev, initialUploadMsg]);
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("title", fileName);
+    formData.append("documentType", type === 'camera' ? 'CLINICAL_RECORD' : 'OTHER');
+
+    // Perform actual API upload to EMR backend general upload endpoint
+    const uploadUrl = `${apiUrl}/api/upload/general/${patientId}`;
+    
+    fetch(uploadUrl, {
+      method: "POST",
+      body: formData,
+      headers: token ? {
+        'Authorization': `Bearer ${token}`
+      } : {}
+    })
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Upload status failed: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((data) => {
+      // Build real persisted URL pointing to EMR backend Azurite file download endpoint
+      const persistedUrl = data.url || `${apiUrl}/api/upload/document/${data.documentId}`;
+      
+      const uploadText = type === 'camera' 
+        ? `📸 Secure Photo: "${fileName}" uploaded successfully (AES-256 Encrypted)` 
+        : `📎 Secure Attachment: "${fileName}" (${fileSize}) uploaded successfully (AES-256 Encrypted)`;
+
+      // Replace optimistic loader with persistent attachment properties and real fileUrl
+      setMessages(prev => prev.map(m => m.id === uploadTempId ? {
+        ...m,
+        content: uploadText,
+        isAttachment: true,
+        fileUrl: persistedUrl,
+        fileType,
+        fileName,
+        fileSize
+      } : m));
+
+      // Trigger navigator typing response
+      setNavigatorTyping(true);
+      setTimeout(() => {
+        setNavigatorTyping(false);
+        
+        // Add clinical verification message
+        setMessages(prev => [
+          ...prev,
+          {
+            id: (Date.now() + 2).toString(),
+            sender: 'navigator',
+            content: `🔒 System: ${isImage ? 'Wound photo / Image' : 'Document'} "${fileName}" received securely and appended to your clinical chart. Your Care Navigator has been notified for triage review.`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        ]);
+      }, 1500);
+
+      // Persist the message with EMR attachment URL inside GraphQL CareThread database
+      const persistedTextWithLink = type === 'camera'
+        ? `📸 Secure Photo: "${fileName}" uploaded successfully (AES-256 Encrypted). Access URL: ${persistedUrl}`
+        : `📎 Secure Attachment: "${fileName}" (${fileSize}) uploaded successfully (AES-256 Encrypted). Access URL: ${persistedUrl}`;
+
+      sendMessageMutation({
+        variables: {
+          patientId,
+          careThreadId: activeThreadId || "00000000-0000-0000-0000-000000000000",
+          content: persistedTextWithLink
         }
-      ]);
-    }, 1200);
+      }).catch(err => console.error("Error persisting attachment message:", err));
+    })
+    .catch((err) => {
+      console.error("Persisted upload failed:", err);
+      setMessages(prev => prev.map(m => m.id === uploadTempId ? {
+        ...m,
+        content: `❌ Secure Upload Failed for "${fileName}": ${err.message || 'Server error'}`
+      } : m));
+    });
+
+    // Clear target value
+    e.target.value = '';
   };
 
   return (
     <IonPage className="bg-slate-50 dark:bg-[#020408]">
+      {/* Hidden file inputs for real workflows */}
+      <input
+        type="file"
+        ref={cameraInputRef}
+        onChange={(e) => handleFileChange(e, 'camera')}
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={(e) => handleFileChange(e, 'file')}
+        accept="image/*,application/pdf,text/*"
+        className="hidden"
+      />
       {/* Header - Extremely Compact Row */}
       <IonHeader className="ion-no-border">
         <IonToolbar style={{ 
@@ -356,6 +500,33 @@ const CareHub: React.FC = () => {
                       </div>
                     )}
                     <p className="text-[15px] leading-relaxed whitespace-pre-wrap font-semibold font-sans">{msg.content}</p>
+                    
+                    {msg.isAttachment && msg.fileUrl && (
+                      msg.fileType?.startsWith('image/') ? (
+                        <div className="mt-2 rounded-xl overflow-hidden border border-slate-200/10 max-w-full">
+                          <img src={msg.fileUrl} alt={msg.fileName || "Attachment"} className="w-full h-auto max-h-48 object-cover" />
+                        </div>
+                      ) : (
+                        <div className="mt-2 p-2.5 rounded-xl bg-slate-500/10 border border-slate-200/10 flex items-center justify-between gap-3 text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-7 h-7 rounded-lg bg-slate-200/10 border border-slate-200/20 flex items-center justify-center shrink-0">
+                              <IonIcon icon={attach} className="w-4 h-4 text-teal-400" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-bold truncate text-[11px] leading-tight text-slate-200">{msg.fileName}</p>
+                              <p className="text-[9px] opacity-75 font-mono leading-none mt-0.5 text-slate-400">{msg.fileSize}</p>
+                            </div>
+                          </div>
+                          <a 
+                            href={msg.fileUrl} 
+                            download={msg.fileName}
+                            className="text-[10px] font-bold text-teal-400 hover:underline shrink-0"
+                          >
+                            Download
+                          </a>
+                        </div>
+                      )
+                    )}
                     <div className={`flex items-center justify-end gap-1 mt-2 text-[10px] ${
                       isPatient 
                         ? msg.isAttachment 
@@ -400,8 +571,8 @@ const CareHub: React.FC = () => {
       <div className="p-3.5 bg-slate-50 dark:bg-[#020408] border-t border-slate-200 dark:border-slate-900 pb-safe">
         <div className="flex items-center gap-2 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-md">
           <button
-            onClick={handleWoundCamera}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-850 flex-shrink-0 flex items-center justify-center"
+            onClick={() => cameraInputRef.current?.click()}
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-850 flex-shrink-0 flex items-center justify-center cursor-pointer"
             title="Take Secure Photo"
             style={{ borderRadius: '9999px' }}
           >
@@ -409,7 +580,8 @@ const CareHub: React.FC = () => {
           </button>
           
           <button
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-850 flex-shrink-0 flex items-center justify-center"
+            onClick={() => fileInputRef.current?.click()}
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-850 flex-shrink-0 flex items-center justify-center cursor-pointer"
             title="Attach Document"
             style={{ borderRadius: '9999px' }}
           >

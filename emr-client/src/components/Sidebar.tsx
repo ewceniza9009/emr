@@ -85,7 +85,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`bg-[var(--sidebar-bg)] border-r border-[var(--card-border)] h-screen flex flex-col sticky top-0 transition-all duration-300 ease-in-out z-[100] ${isCollapsed ? "w-20" : "w-64"
+      className={`bg-[var(--sidebar-bg)] border-r border-[var(--card-border)] h-screen flex flex-col sticky top-0 transition-all duration-300 ease-in-out z-[50] ${isCollapsed ? "w-20" : "w-64"
         }`}
     >
       {/* Brand Section */}

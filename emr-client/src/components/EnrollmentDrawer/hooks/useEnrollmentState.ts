@@ -298,6 +298,9 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
 
   // Validation
   const validateCurrentStep = () => {
+    if (activeTab === "OUTREACH") {
+      if (!lead) { showToast("Validation Error: Outreach details are missing", "error"); return false; }
+    }
     if (activeTab === "ADMIN") {
       if (!selectedPlan) { showToast("Validation Error: Health Plan is missing", "error"); return false; }
       if (!patientDob) { showToast("Validation Error: Date of Birth is missing", "error"); return false; }
@@ -306,6 +309,12 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
     if (activeTab === "LEGAL") {
       if (!consentTreat) { showToast("Validation Error: Consent to Treat required", "error"); return false; }
       if (!consentHIPAA) { showToast("Validation Error: HIPAA Notice required", "error"); return false; }
+    }
+    if (activeTab === "CLINICAL") {
+      if (!primaryDiagnosis || primaryDiagnosis.trim().length <= 5) {
+        showToast("Validation Error: Primary Diagnosis is required", "error");
+        return false;
+      }
     }
     if (activeTab === "LOGISTICS") {
       if (!careNavigatorId) { showToast("Validation Error: Care Navigator missing", "error"); return false; }
@@ -325,7 +334,11 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
     }
   };
 
-  const handleNext = () => { const idx = TABS.indexOf(activeTab); if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1]); };
+  const handleNext = () => {
+    if (!validateCurrentStep()) return;
+    const idx = TABS.indexOf(activeTab);
+    if (idx < TABS.length - 1) setActiveTab(TABS[idx + 1]);
+  };
   const handleBack = () => { const idx = TABS.indexOf(activeTab); if (idx > 0) setActiveTab(TABS[idx - 1]); };
 
   const handleCall = (contact: any) => {
