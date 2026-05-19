@@ -103,10 +103,14 @@ const AppContent: React.FC = () => {
                   <IonIcon aria-hidden="true" icon={medkit} className="w-5 h-5" />
                   <IonLabel className="text-[10px] font-sans font-bold">Pharmacy</IonLabel>
                 </IonTabButton>
-                <IonTabButton tab="logout" onClick={logout}>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="flex flex-col items-center justify-center flex-1 h-full bg-transparent border-none text-rose-500 cursor-pointer active:opacity-75 transition-opacity"
+                >
                   <IonIcon aria-hidden="true" icon={logOutOutline} className="w-5 h-5 text-rose-500" />
-                  <IonLabel className="text-[10px] font-sans font-bold text-rose-500">Exit</IonLabel>
-                </IonTabButton>
+                  <span className="text-[10px] font-sans font-bold text-rose-500">Exit</span>
+                </button>
               </IonTabBar>
             </IonTabs>
           ) : (

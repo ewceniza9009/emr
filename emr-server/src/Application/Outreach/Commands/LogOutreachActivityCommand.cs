@@ -54,7 +54,7 @@ public class LogOutreachActivityCommandHandler : IRequestHandler<LogOutreachActi
             outreach.NextFollowUpDate = request.NextFollowUpDate;
         }
 
-        // Logic for DNC and Opt-Out
+        // Logic for DNC, Opt-Out, Connected, Recall, and Hold states
         if (request.Outcome == "DNC")
         {
             outreach.IsDoNotCall = true;
@@ -65,9 +65,13 @@ public class LogOutreachActivityCommandHandler : IRequestHandler<LogOutreachActi
             outreach.IsOptedOut = true;
             outreach.Status = OutreachStatus.OptedOut;
         }
-        else if (request.Outcome == "CONNECTED")
+        else if (request.Outcome == "CONNECTED" || request.Outcome == "CALL_BACK")
         {
             outreach.Status = OutreachStatus.Contacted;
+        }
+        else if (request.Outcome == "WRONG_NUMBER" || request.Outcome == "DISCONNECTED")
+        {
+            outreach.Status = OutreachStatus.OnHold;
         }
 
         outreach.LatestActivityOutcome = request.Outcome;

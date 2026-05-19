@@ -379,8 +379,11 @@ export default function PatientDetailPage() {
             });
           }
         });
-      } catch (err) {
-        console.error("[IoT] Connection Failure:", err);
+      } catch (err: any) {
+        const isAbort = err?.name === 'AbortError' || err?.toString()?.includes('stopped');
+        if (!isAbort) {
+          console.error("[IoT] Connection Failure:", err);
+        }
       }
     };
 

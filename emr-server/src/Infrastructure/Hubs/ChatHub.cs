@@ -21,4 +21,9 @@ public class ChatHub : Hub
     {
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"CareThread_{careThreadId}");
     }
+
+    public async Task MarkAsSeen(string careThreadId, string senderRole)
+    {
+        await Clients.Group($"CareThread_{careThreadId}").SendAsync("MessageSeen", careThreadId, senderRole);
+    }
 }

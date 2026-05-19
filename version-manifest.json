@@ -1,7 +1,22 @@
 {
-  "version": "1.2.9",
-  "build": "20260518.3",
+  "version": "1.3.0",
+  "build": "20260519.1",
   "changelog": [
+    {
+      "v": "v1.3.0",
+      "date": "2026-05-19",
+      "items": [
+        "Implemented real-time checkmark Seen receipts ('Sent ✓' and 'Seen ✓✓') inside clinician and care navigator chat panels.",
+        "Extended the C# SignalR ChatHub backend with a dynamic thread-based MarkAsSeen broadcast method.",
+        "Added live unread indicators featuring pulsating rose notification dots and bold sidebar typography to the clinician chat workspace.",
+        "Refactored frontend real-time messaging pipelines with persistent SignalR connection referencing, preventing redundant socket reconnections.",
+        "Architected the structured Advance Directives module (DNR, DNI, Comfort Care) including .NET C# database schema mappings, GraphQL batch-data-loaders, and DTOs.",
+        "Redesigned the Patient Mobile App to feature a dignity-first Comfort Care Portal (ComfortDashboard) aligned with palliative care values.",
+        "Upgraded the Mobile Pharmacy panel to categorize active comfort medications into distinct Daily Comfort Regimen and Rescue Breakthrough Therapy lists.",
+        "Injected prominent visual alert indicators and legal status badges for Advance Directives into the clinician CoreIdentityCard dashboard panel.",
+        "Enriched the DB Seed Engine with high-fidelity comfort-care records, medication rescue indications, and binding legal directives."
+      ]
+    },
     {
       "v": "v1.2.9",
       "date": "2026-05-18",

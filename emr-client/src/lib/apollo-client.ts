@@ -108,6 +108,12 @@ export const client = new ApolloClient({
       Question: {
         keyFields: ["questionId"],
       },
+      CareThread: {
+        keyFields: ["careThreadId"],
+      },
+      ChatMessage: {
+        keyFields: ["chatMessageId"],
+      },
     },
   }),
   defaultOptions: {

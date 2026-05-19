@@ -60,6 +60,12 @@ const GET_DASHBOARD_DATA = gql`
       encounters {
         encounterId
       }
+      diagnoses {
+        diagnosisId
+        icd10Code
+        description
+        isPrimary
+      }
     }
     myMobilePrescriptions(patientId: $patientId) {
       prescriptionId
@@ -68,7 +74,7 @@ const GET_DASHBOARD_DATA = gql`
       isActive
       medication {
         name
-        genericName
+        strength
       }
     }
     myMobileVitals(patientId: $patientId) {
@@ -92,7 +98,7 @@ const GET_DASHBOARD_DATA = gql`
         position
       }
     }
-    esasQuestionnaire: questionnaireByType(type: Esas) {
+    esasQuestionnaire: myMobileQuestionnaireByType(patientId: $patientId, type: ESAS) {
       questionnaireId
       name
       description
@@ -188,6 +194,48 @@ const ComfortDashboard: React.FC = () => {
   });
 
   const meds = data?.myMobilePrescriptions || [];
+
+  // Derive dynamic Care Plan details based on real diagnoses/encounters
+  const encountersCount = data?.myMobileEncounters?.length || 0;
+  const prescriptionsCount = meds.length;
+  const diagnoses = data?.myMobileProfile?.diagnoses || [];
+  
+  // Determine dynamic care plan name
+  let carePlanName = "Palliative Symptom Management";
+  if (diagnoses.length > 0) {
+    const oncologyKeywords = ["cancer", "oncology", "malignant", "tumor", "carcinoma", "lymphoma", "leukemia", "neoplasm"];
+    const hasOncology = diagnoses.some((d: any) => 
+      oncologyKeywords.some(kw => d.description?.toLowerCase().includes(kw) || d.icd10Code?.toLowerCase().includes(kw))
+    );
+    if (hasOncology) {
+      carePlanName = "Oncology Recovery & Stabilization";
+    } else {
+      // Prioritize the diagnosis designated as Primary, otherwise fallback to the first one
+      const primaryDiag = diagnoses.find((d: any) => d.isPrimary) || diagnoses[0];
+      carePlanName = `${primaryDiag.description || "Chronic"} Recovery Pathway`;
+    }
+  } else if (prescriptionsCount > 0) {
+    carePlanName = "Medication-Assisted Care Pathway";
+  }
+
+  // Calculate dynamic pathway completion percentage
+  let completionPercent = 15;
+  completionPercent += Math.min(45, encountersCount * 15);
+  completionPercent += Math.min(35, prescriptionsCount * 10);
+  if (data?.myMobileProfile?.hasAdvanceDirective) {
+    completionPercent += 10;
+  }
+  completionPercent = Math.min(98, completionPercent);
+
+  // Determine active milestone phase based on progress
+  let activePhase = 1;
+  if (completionPercent >= 80) {
+    activePhase = 4;
+  } else if (completionPercent >= 50) {
+    activePhase = 3;
+  } else if (completionPercent >= 25) {
+    activePhase = 2;
+  }
 
   const [saveVitals] = useMutation(SAVE_MOBILE_VITALS, {
     refetchQueries: [{ query: GET_DASHBOARD_DATA, variables: { patientId: user?.patientId } }]
@@ -339,7 +387,12 @@ const ComfortDashboard: React.FC = () => {
     connection.start().then(() => {
       console.log('SignalR Connected to TelemetryHub');
       connection.invoke('JoinPatientStream', user.patientId);
-    }).catch(err => console.error('SignalR Connection Error: ', err));
+    }).catch(err => {
+      const isAbort = err?.name === 'AbortError' || err?.toString()?.includes('stopped');
+      if (!isAbort) {
+        console.error('SignalR Connection Error: ', err);
+      }
+    });
 
     connection.on('ReceiveVitals', (vitals: any) => {
       console.log('Received live vitals:', vitals);
@@ -916,23 +969,33 @@ const ComfortDashboard: React.FC = () => {
               </h1>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {/* Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
-                className="w-9.5 h-9.5 flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 transition-all hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 shadow-sm"
+                style={{ borderRadius: '9999px' }}
+                className={`w-10 h-10 flex items-center justify-center border transition-all active:scale-95 shadow-sm cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-slate-900 border-slate-800 text-teal-400 hover:bg-slate-800'
+                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                }`}
                 title={theme === 'dark' ? 'Switch to Porcelain Mode' : 'Switch to Midnight Mode'}
               >
-                <IonIcon icon={theme === 'dark' ? sunny : moonIcon} className="w-4.5 h-4.5" />
+                <IonIcon icon={theme === 'dark' ? sunny : moonIcon} className="w-5 h-5" />
               </button>
 
               {/* Notification Button */}
               <button
-                className="relative w-9.5 h-9.5 flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 transition-all hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 shadow-sm"
+                style={{ borderRadius: '9999px' }}
+                className={`relative w-10 h-10 flex items-center justify-center border transition-all active:scale-95 shadow-sm cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-slate-900 border-slate-800 text-slate-500 hover:bg-slate-800'
+                    : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-100'
+                }`}
                 title="View Notifications"
               >
-                <IonIcon icon={notifications} className="w-4.5 h-4.5" />
-                <div className="absolute top-1.5 right-1.5 w-2.2 h-2.2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_6px_#10b981]" />
+                <IonIcon icon={notifications} className="w-5 h-5" />
+                <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_6px_#10b981]" />
               </button>
             </div>
           </div>
@@ -1884,13 +1947,13 @@ const ComfortDashboard: React.FC = () => {
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300">
           <div className="absolute inset-0" onClick={() => setShowProgramProgressModal(false)} />
           
-          <div className="relative overflow-hidden w-full max-w-lg rounded-[2.5rem] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0b0f19] p-6 space-y-6 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <div className="relative overflow-hidden w-full max-w-lg rounded-[2.5rem] border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-[#0b0f19] p-6 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 max-h-[90vh] flex flex-col">
             
             <div className="absolute -right-24 -top-24 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -left-24 -bottom-24 w-48 h-48 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
 
             {/* Header */}
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-2xl bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20 text-teal-600 dark:text-teal-400">
                   <IonIcon icon={trendingUp} className="w-6 h-6" />
@@ -1910,122 +1973,187 @@ const ComfortDashboard: React.FC = () => {
               </button>
             </div>
 
-            {/* Active Pathway Details Card */}
-            <div className="p-4 rounded-[1.75rem] border border-slate-100 dark:border-slate-850 bg-slate-50/50 dark:bg-[#060a13] space-y-3">
-              <div>
-                <span className="text-[8px] font-extrabold tracking-widest text-slate-450 dark:text-slate-500 uppercase">Assigned Care Plan</span>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Oncology Recovery & Stabilization</h4>
-              </div>
-              <div className="h-px bg-slate-100 dark:bg-slate-850" />
-              <div className="grid grid-cols-2 gap-4">
+            {/* Scrollable Content Wrapper */}
+            <div className="flex-1 overflow-y-auto pr-1.5 space-y-4 custom-scrollbar">
+              {/* Active Pathway Details Card */}
+              <div className="p-4 rounded-[1.75rem] border border-slate-100 dark:border-slate-850 bg-slate-50/50 dark:bg-[#060a13] space-y-3">
                 <div>
-                  <span className="text-[8px] font-extrabold tracking-widest text-slate-450 dark:text-slate-500 uppercase">Lead Coordinator</span>
-                  <p className="text-xs text-slate-800 dark:text-slate-300 font-semibold mt-0.5">{loading ? 'Loading...' : data?.myMobileProfile?.primaryCareNavigatorName || 'Sarah Jenkins'}</p>
+                  <span className="text-[8px] font-extrabold tracking-widest text-slate-455 dark:text-slate-500 uppercase">Assigned Care Plan</span>
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{carePlanName}</h4>
                 </div>
-                <div>
-                  <span className="text-[8px] font-extrabold tracking-widest text-slate-455 dark:text-slate-500 uppercase">Clinical MRN</span>
-                  <p className="text-xs text-slate-800 dark:text-slate-300 font-mono font-bold mt-0.5">{loading ? 'Loading...' : data?.myMobileProfile?.mrn || 'MRN-99999'}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Milestone Pathway Progress Grid */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
-                <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Pathway</span>
-                <p className="text-base font-extrabold text-teal-600 dark:text-teal-400 font-mono">68%</p>
-                <span className="text-[8px] font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest block">Completed</span>
-              </div>
-              <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
-                <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Prescriptions</span>
-                <p className="text-base font-extrabold text-violet-500 font-mono">{meds.length}</p>
-                <span className="text-[8px] font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest block">In Database</span>
-              </div>
-              <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
-                <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Visits</span>
-                <p className="text-base font-extrabold text-blue-500 font-mono">{data?.myMobileProfile?.encounters?.length || 0}</p>
-                <span className="text-[8px] font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest block">Encounters</span>
-              </div>
-            </div>
-
-            {/* Program Milestones Timeline */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                <IonIcon icon={statsChart} className="text-teal-500 w-4 h-4" />
-                Active Milestones Pathway
-              </h3>
-
-              <div className="relative border-l border-slate-200 dark:border-slate-800 ml-3.5 pl-5 space-y-5">
-                {/* Milestone 1 */}
-                <div className="relative">
-                  <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-emerald-500 dark:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-white dark:text-emerald-400 text-[10px] font-bold shadow-sm shadow-emerald-500/20">
-                    ✓
+                <div className="h-px bg-slate-100 dark:bg-slate-850" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-[8px] font-extrabold tracking-widest text-slate-450 dark:text-slate-500 uppercase">Lead Coordinator</span>
+                    <p className="text-xs text-slate-800 dark:text-slate-300 font-semibold mt-0.5">{loading ? 'Loading...' : data?.myMobileProfile?.primaryCareNavigatorName || 'Sarah Jenkins'}</p>
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
-                      Phase 1: Palliative Care Enrollment
-                      <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
-                    </h4>
-                    <p className="text-[11px] text-slate-550 dark:text-slate-400 mt-1 leading-relaxed">
-                      EMR patient chart initialized under MRN-99999. Care coordination assignment completed.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Milestone 2 */}
-                <div className="relative">
-                  <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-white text-[10px] font-bold shadow-md shadow-teal-500/30 animate-pulse">
-                    2
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
-                      Phase 2: Pain & Symptom Stabilization
-                      <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
-                    </h4>
-                    <p className="text-[11px] text-slate-550 dark:text-slate-400 mt-1 leading-relaxed">
-                      Daily vitals check, wound tracking, and oncology medication adherence logging are active.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Milestone 3 */}
-                <div className="relative">
-                  <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-450 dark:text-slate-650 text-[10px] font-bold">
-                    3
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-tight">
-                      Phase 3: Interim Assessment & Titration
-                    </h4>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-600 mt-1 leading-relaxed">
-                      Symptom tracking checkups and clinical review scheduled upon completing initial therapy blocks.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Milestone 4 */}
-                <div className="relative">
-                  <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-455 dark:text-slate-655 text-[10px] font-bold">
-                    4
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-tight">
-                      Phase 4: Discharge Readiness Evaluation
-                    </h4>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-600 mt-1 leading-relaxed">
-                      Final clinical assessment checkups, health graduation milestones, and coordination handoff.
-                    </p>
+                    <span className="text-[8px] font-extrabold tracking-widest text-slate-455 dark:text-slate-500 uppercase">Clinical MRN</span>
+                    <p className="text-xs text-slate-800 dark:text-slate-300 font-mono font-bold mt-0.5">{loading ? 'Loading...' : data?.myMobileProfile?.mrn || 'MRN-99999'}</p>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Bottom Progress Summary */}
-            <div className="p-4 rounded-2xl bg-teal-500/5 border border-teal-500/10 flex items-center gap-3">
-              <IonIcon icon={informationCircle} className="text-teal-600 dark:text-teal-400 w-5 h-5 flex-shrink-0" />
-              <p className="text-[10px] text-slate-550 dark:text-slate-450 leading-snug">
-                Your recovery metrics are synchronized directly with EMR. Your primary Navigator <strong>{data?.myMobileProfile?.primaryCareNavigatorName || 'Sarah Jenkins'}</strong> will contact you if any adjustments are needed.
-              </p>
+              {/* Milestone Pathway Progress Grid */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Pathway</span>
+                  <p className="text-base font-extrabold text-teal-600 dark:text-teal-400 font-mono">{completionPercent}%</p>
+                  <span className="text-[8px] font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest block">Completed</span>
+                </div>
+                <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Prescriptions</span>
+                  <p className="text-base font-extrabold text-violet-500 font-mono">{meds.length}</p>
+                  <span className="text-[8px] font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest block">In Database</span>
+                </div>
+                <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Visits</span>
+                  <p className="text-base font-extrabold text-blue-500 font-mono">{data?.myMobileProfile?.encounters?.length || 0}</p>
+                  <span className="text-[8px] font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest block">Encounters</span>
+                </div>
+              </div>
+
+              {/* Program Milestones Timeline */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <IonIcon icon={statsChart} className="text-teal-500 w-4 h-4" />
+                  Active Milestones Pathway
+                </h3>
+
+                <div className="relative border-l border-slate-200 dark:border-slate-800 ml-3.5 pl-5 space-y-4">
+                  {/* Milestone 1 */}
+                  <div className="relative">
+                    {activePhase > 1 ? (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-emerald-500 dark:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-white dark:text-emerald-400 text-[10px] font-bold shadow-sm shadow-emerald-500/20">
+                        ✓
+                      </div>
+                    ) : activePhase === 1 ? (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-white text-[10px] font-bold shadow-md shadow-teal-500/30 animate-pulse">
+                        1
+                      </div>
+                    ) : (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-600 text-[10px] font-bold">
+                        1
+                      </div>
+                    )}
+                    <div>
+                      <h4 className={`text-xs font-black uppercase tracking-tight flex items-center gap-2 ${activePhase >= 1 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
+                        Phase 1: Palliative Care Enrollment
+                        {activePhase > 1 && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
+                        )}
+                        {activePhase === 1 && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
+                        )}
+                      </h4>
+                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 1 ? 'text-slate-550 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                        EMR patient chart initialized under {data?.myMobileProfile?.mrn || 'MRN-99999'}. Care coordination assignment completed.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Milestone 2 */}
+                  <div className="relative">
+                    {activePhase > 2 ? (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-emerald-500 dark:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-white dark:text-emerald-400 text-[10px] font-bold shadow-sm shadow-emerald-500/20">
+                        ✓
+                      </div>
+                    ) : activePhase === 2 ? (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-white text-[10px] font-bold shadow-md shadow-teal-500/30 animate-pulse">
+                        2
+                      </div>
+                    ) : (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-600 text-[10px] font-bold">
+                        2
+                      </div>
+                    )}
+                    <div>
+                      <h4 className={`text-xs font-black uppercase tracking-tight flex items-center gap-2 ${activePhase >= 2 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
+                        Phase 2: Pain & Symptom Stabilization
+                        {activePhase > 2 && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
+                        )}
+                        {activePhase === 2 && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
+                        )}
+                      </h4>
+                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 2 ? 'text-slate-555 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                        Daily vitals check, wound tracking, and oncology medication adherence logging are active.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Milestone 3 */}
+                  <div className="relative">
+                    {activePhase > 3 ? (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-emerald-500 dark:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-white dark:text-emerald-400 text-[10px] font-bold shadow-sm shadow-emerald-500/20">
+                        ✓
+                      </div>
+                    ) : activePhase === 3 ? (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-white text-[10px] font-bold shadow-md shadow-teal-500/30 animate-pulse">
+                        3
+                      </div>
+                    ) : (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-450 dark:text-slate-655 text-[10px] font-bold">
+                        3
+                      </div>
+                    )}
+                    <div>
+                      <h4 className={`text-xs font-black uppercase tracking-tight flex items-center gap-2 ${activePhase >= 3 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
+                        Phase 3: Interim Assessment & Titration
+                        {activePhase > 3 && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
+                        )}
+                        {activePhase === 3 && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
+                        )}
+                      </h4>
+                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 3 ? 'text-slate-555 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                        Symptom tracking checkups and clinical review scheduled upon completing initial therapy blocks.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Milestone 4 */}
+                  <div className="relative">
+                    {activePhase > 4 ? (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-emerald-500 dark:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-white dark:text-emerald-400 text-[10px] font-bold shadow-sm shadow-emerald-500/20">
+                        ✓
+                      </div>
+                    ) : activePhase === 4 ? (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-white text-[10px] font-bold shadow-md shadow-teal-500/30 animate-pulse">
+                        4
+                      </div>
+                    ) : (
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-455 dark:text-slate-655 text-[10px] font-bold">
+                        4
+                      </div>
+                    )}
+                    <div>
+                      <h4 className={`text-xs font-black uppercase tracking-tight flex items-center gap-2 ${activePhase >= 4 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
+                        Phase 4: Discharge Readiness Evaluation
+                        {activePhase > 4 && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
+                        )}
+                        {activePhase === 4 && (
+                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
+                        )}
+                      </h4>
+                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 4 ? 'text-slate-555 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                        Final clinical assessment checkups, health graduation milestones, and coordination handoff.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Progress Summary */}
+              <div className="p-4 rounded-2xl bg-teal-500/5 border border-teal-500/10 flex items-center gap-3">
+                <IonIcon icon={informationCircle} className="text-teal-600 dark:text-teal-400 w-5 h-5 flex-shrink-0" />
+                <p className="text-[10px] text-slate-550 dark:text-slate-455 leading-snug">
+                  Your recovery metrics are synchronized directly with EMR. Your primary Navigator <strong>{data?.myMobileProfile?.primaryCareNavigatorName || 'Sarah Jenkins'}</strong> will contact you if any adjustments are needed.
+                </p>
+              </div>
             </div>
 
           </div>
@@ -2039,11 +2167,11 @@ const ComfortDashboard: React.FC = () => {
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300">
           <div className="absolute inset-0" onClick={() => setShowDirectivesModal(false)} />
           
-          <div className="relative overflow-hidden w-full max-w-md rounded-[2.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f19] p-6 space-y-6 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 max-h-[85vh] overflow-y-auto">
-            <div className="absolute -right-20 -top-20 w-40 h-40 bg-teal-500/5 rounded-full blur-2xl pointer-events-none" />
+          <div className="relative overflow-hidden w-full max-w-md rounded-[2.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f19] p-6 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 max-h-[85vh] flex flex-col">
+            <div className="absolute -right-20 -top-20 w-40 h-40 bg-teal-50/5 rounded-full blur-2xl pointer-events-none" />
             
             {/* Header */}
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20 text-teal-600 dark:text-teal-400">
                   <IonIcon icon={shieldCheckmark} className="w-5.5 h-5.5" />
@@ -2061,56 +2189,59 @@ const ComfortDashboard: React.FC = () => {
               </button>
             </div>
 
-            <p className="text-xs text-slate-550 dark:text-slate-455 leading-relaxed">
-              These are your legally binding and active Advance Directives as verified and signed in cooperation with your Halkyone primary care providers.
-            </p>
+            {/* Scrollable Content Wrapper */}
+            <div className="flex-1 overflow-y-auto pr-1.5 space-y-4 custom-scrollbar">
+              <p className="text-xs text-slate-550 dark:text-slate-455 leading-relaxed">
+                These are your legally binding and active Advance Directives as verified and signed in cooperation with your Halkyone primary care providers.
+              </p>
 
-            <div className="space-y-3.5">
-              {data?.myMobileProfile?.advanceDirectives && data.myMobileProfile.advanceDirectives.length > 0 ? (
-                data.myMobileProfile.advanceDirectives.map((d: any) => (
-                  <div 
-                    key={d.advanceDirectiveId} 
-                    className="p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 space-y-3 transition-all hover:border-teal-500/30"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                        <span className="text-xs font-black uppercase text-slate-900 dark:text-white font-sans">
-                          {d.type === 'DNR' ? 'Do Not Resuscitate (DNR)' : d.type === 'ComfortMeasuresOnly' ? 'Comfort Measures Only (CMO)' : d.type}
+              <div className="space-y-3.5">
+                {data?.myMobileProfile?.advanceDirectives && data.myMobileProfile.advanceDirectives.length > 0 ? (
+                  data.myMobileProfile.advanceDirectives.map((d: any) => (
+                    <div 
+                      key={d.advanceDirectiveId} 
+                      className="p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 space-y-3 transition-all hover:border-teal-500/30"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                          <span className="text-xs font-black uppercase text-slate-900 dark:text-white font-sans">
+                            {d.type === 'DNR' ? 'Do Not Resuscitate (DNR)' : d.type === 'ComfortMeasuresOnly' ? 'Comfort Measures Only (CMO)' : d.type}
+                          </span>
+                        </div>
+                        <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase font-mono">
+                          Active since {new Date(d.effectiveDate).toLocaleDateString()}
                         </span>
                       </div>
-                      <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase font-mono">
-                        Active since {new Date(d.effectiveDate).toLocaleDateString()}
-                      </span>
+
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed font-sans italic bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-slate-150 dark:border-slate-850">
+                        "{d.notes}"
+                      </p>
+
+                      <a 
+                        href={d.documentUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="h-10 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200/50 dark:border-slate-750 transition-colors w-full"
+                      >
+                        <IonIcon icon={cloudUpload} className="w-4.5 h-4.5 text-teal-500" />
+                        <span>View Signed Legal Document</span>
+                      </a>
                     </div>
-
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed font-sans italic bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-slate-150 dark:border-slate-850">
-                      "{d.notes}"
-                    </p>
-
-                    <a 
-                      href={d.documentUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="h-10 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200/50 dark:border-slate-750 transition-colors w-full"
-                    >
-                      <IonIcon icon={cloudUpload} className="w-4.5 h-4.5 text-teal-500" />
-                      <span>View Signed Legal Document</span>
-                    </a>
+                  ))
+                ) : (
+                  <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                    <p className="text-xs text-slate-455 dark:text-slate-555">No advance directives registered in active profile.</p>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                  <p className="text-xs text-slate-450 dark:text-slate-550">No advance directives registered in active profile.</p>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            <div className="p-3.5 rounded-2xl bg-teal-500/5 border border-teal-500/10 flex items-start gap-2.5">
-              <IonIcon icon={informationCircle} className="text-teal-600 dark:text-teal-400 w-4 h-4 flex-shrink-0 mt-0.5" />
-              <p className="text-[10px] text-slate-500 dark:text-slate-450 leading-relaxed">
-                If you need to make changes to your Goals of Care, upload a new directive, or contact Dr. Ross, please coordinate with your Primary Care Navigator.
-              </p>
+              <div className="p-3.5 rounded-2xl bg-teal-500/5 border border-teal-500/10 flex items-start gap-2.5">
+                <IonIcon icon={informationCircle} className="text-teal-600 dark:text-teal-400 w-4 h-4 flex-shrink-0 mt-0.5" />
+                <p className="text-[10px] text-slate-500 dark:text-slate-455 leading-relaxed">
+                  If you need to make changes to your Goals of Care, upload a new directive, or contact Dr. Ross, please coordinate with your Primary Care Navigator.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -2123,11 +2254,11 @@ const ComfortDashboard: React.FC = () => {
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300">
           <div className="absolute inset-0" onClick={() => setShowSupportModal(false)} />
           
-          <div className="relative overflow-hidden w-full max-w-md rounded-[2.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f19] p-6 space-y-5 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 max-h-[85vh] overflow-y-auto">
+          <div className="relative overflow-hidden w-full max-w-md rounded-[2.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f19] p-6 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 max-h-[85vh] flex flex-col">
             <div className="absolute -right-20 -top-20 w-40 h-40 bg-rose-500/5 rounded-full blur-2xl pointer-events-none" />
             
             {/* Header */}
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 text-rose-600 dark:text-rose-455">
                   <IonIcon icon={informationCircle} className="w-5.5 h-5.5" />
@@ -2145,71 +2276,74 @@ const ComfortDashboard: React.FC = () => {
               </button>
             </div>
 
-            <p className="text-xs text-slate-550 dark:text-slate-400 leading-relaxed font-semibold">
-              Palliative physical transitions can be managed peacefully at home. Use these clinical comfort guides to support your loved one during progressive symptom changes.
-            </p>
+            {/* Scrollable Content Wrapper */}
+            <div className="flex-1 overflow-y-auto pr-1.5 space-y-4 custom-scrollbar">
+              <p className="text-xs text-slate-550 dark:text-slate-400 leading-relaxed font-semibold">
+                Palliative physical transitions can be managed peacefully at home. Use these clinical comfort guides to support your loved one during progressive symptom changes.
+              </p>
 
-            {/* Guides Section */}
-            <div className="space-y-3.5">
-              
-              {/* Dyspnea */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
-                <span className="text-[9px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider block">1. Air Hunger / Dyspnea</span>
-                <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
-                  • <strong>Bedside Fan Effect:</strong> A cool breeze blowing across the cheek/face stimulates the trigeminal nerve, naturally calming breathing centers in the brain.<br />
-                  • <strong>Optimized Position:</strong> Support the patient sitting upright or leaning forward slightly, resting their forearms on a bedside table.
-                </p>
+              {/* Guides Section */}
+              <div className="space-y-3.5">
+                
+                {/* Dyspnea */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
+                  <span className="text-[9px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider block">1. Air Hunger / Dyspnea</span>
+                  <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
+                    • <strong>Bedside Fan Effect:</strong> A cool breeze blowing across the cheek/face stimulates the trigeminal nerve, naturally calming breathing centers in the brain.<br />
+                    • <strong>Optimized Position:</strong> Support the patient sitting upright or leaning forward slightly, resting their forearms on a bedside table.
+                  </p>
+                </div>
+
+                {/* Respiratory Secretions */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
+                  <span className="text-[9px] font-black uppercase text-rose-600 dark:text-rose-400 tracking-wider block">2. Congestion ("Death Rattle")</span>
+                  <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
+                    • <strong>Reassurance:</strong> This loud breathing is a natural relaxation of throat muscles. It is not painful or distressing for the patient.<br />
+                    • <strong>Bedside Action:</strong> Turn the patient gently to a side-lying position. <strong>Do not use deep suctioning</strong>, as it can cause significant airway spasms and panic.
+                  </p>
+                </div>
+
+                {/* Terminal Restlessness */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
+                  <span className="text-[9px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider block">3. Terminal Restlessness & Panic</span>
+                  <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
+                    • <strong>Calming Ambience:</strong> Dim the bedroom lighting, turn off loud television noise, and play low-volume ambient music.<br />
+                    • <strong>Touch & Tone:</strong> Speak in low, peaceful, steady whispers. Hold their hand or brush their forehead gently to provide sensory grounding.
+                  </p>
+                </div>
+
+                {/* Bereavement Support */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-rose-950/10 border border-slate-200/50 dark:border-rose-900/20 space-y-1.5">
+                  <span className="text-[9px] font-black uppercase text-pink-600 dark:text-pink-400 tracking-wider block">4. Bereavement & Caregiver Support</span>
+                  <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
+                    • <strong>Counseling Access:</strong> We provide 24/7 complimentary grief support, spiritual counseling, and local support handovers for family members.<br />
+                    • <strong>Respite Checklist:</strong> Coordinate a caregiver shift handoff utilizing the Comfort Ring tasks to maintain continuity.
+                  </p>
+                </div>
+
               </div>
 
-              {/* Respiratory Secretions */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
-                <span className="text-[9px] font-black uppercase text-rose-600 dark:text-rose-400 tracking-wider block">2. Congestion ("Death Rattle")</span>
-                <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
-                  • <strong>Reassurance:</strong> This loud breathing is a natural relaxation of throat muscles. It is not painful or distressing for the patient.<br />
-                  • <strong>Bedside Action:</strong> Turn the patient gently to a side-lying position. <strong>Do not use deep suctioning</strong>, as it can cause significant airway spasms and panic.
-                </p>
+              {/* Support Actions */}
+              <div className="flex flex-col gap-2 pt-2.5">
+                <a
+                  href="tel:18005557255"
+                  className="w-full h-11 bg-rose-600 hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400 text-white dark:text-[#020408] rounded-full flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider shadow-md shadow-rose-500/10 active:scale-95 transition-transform"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <IonIcon icon={shieldCheckmark} className="w-4.5 h-4.5" />
+                  <span>Call Palliative Support Hotline</span>
+                </a>
+
+                <IonButton
+                  expand="block"
+                  fill="outline"
+                  className="text-xs font-bold uppercase border-slate-200 dark:border-slate-800 rounded-full h-10 w-full"
+                  onClick={() => setShowSupportModal(false)}
+                  style={{ '--border-radius': '9999px', '--border-color': 'var(--ion-color-step-300)' }}
+                >
+                  Close Support Hub
+                </IonButton>
               </div>
-
-              {/* Terminal Restlessness */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
-                <span className="text-[9px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider block">3. Terminal Restlessness & Panic</span>
-                <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
-                  • <strong>Calming Ambience:</strong> Dim the bedroom lighting, turn off loud television noise, and play low-volume ambient music.<br />
-                  • <strong>Touch & Tone:</strong> Speak in low, peaceful, steady whispers. Hold their hand or brush their forehead gently to provide sensory grounding.
-                </p>
-              </div>
-
-              {/* Bereavement Support */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-rose-950/10 border border-slate-200/50 dark:border-rose-900/20 space-y-1.5">
-                <span className="text-[9px] font-black uppercase text-pink-600 dark:text-pink-400 tracking-wider block">4. Bereavement & Caregiver Support</span>
-                <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
-                  • <strong>Counseling Access:</strong> We provide 24/7 complimentary grief support, spiritual counseling, and local support handovers for family members.<br />
-                  • <strong>Respite Checklist:</strong> Coordinate a caregiver shift handoff utilizing the Comfort Ring tasks to maintain continuity.
-                </p>
-              </div>
-
-            </div>
-
-            {/* Support Actions */}
-            <div className="flex flex-col gap-2 pt-2.5">
-              <a
-                href="tel:18005557255"
-                className="w-full h-11 bg-rose-600 hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400 text-white dark:text-[#020408] rounded-full flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider shadow-md shadow-rose-500/10 active:scale-95 transition-transform"
-                style={{ textDecoration: 'none' }}
-              >
-                <IonIcon icon={shieldCheckmark} className="w-4.5 h-4.5" />
-                <span>Call Palliative Support Hotline</span>
-              </a>
-
-              <IonButton
-                expand="block"
-                fill="outline"
-                className="text-xs font-bold uppercase border-slate-200 dark:border-slate-800 rounded-full h-10 w-full"
-                onClick={() => setShowSupportModal(false)}
-                style={{ '--border-radius': '9999px', '--border-color': 'var(--ion-color-step-300)' }}
-              >
-                Close Support Hub
-              </IonButton>
             </div>
           </div>
         </div>

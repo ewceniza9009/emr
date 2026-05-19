@@ -1969,6 +1969,86 @@ namespace Infrastructure.Data
                 }
                 await context.SaveChangesAsync(default);
 
+                // Explicitly seed oncology diagnoses, encounters, and vital signs for Pearline
+                if (pearlineObj != null)
+                {
+                    // 1. Core Oncology Diagnoses
+                    if (!await context.Set<Diagnosis>().IgnoreQueryFilters().AnyAsync(d => d.PatientId == pearlineObj.PatientId))
+                    {
+                        var pearlineDiagnoses = new List<Diagnosis>
+                        {
+                            new Diagnosis
+                            {
+                                DiagnosisId = Guid.NewGuid(),
+                                PatientId = pearlineObj.PatientId,
+                                TenantId = defaultTenantId,
+                                Icd10Code = "C50.9",
+                                Description = "Malignant neoplasm of breast (Oncology)",
+                                IsPrimary = true
+                            },
+                            new Diagnosis
+                            {
+                                DiagnosisId = Guid.NewGuid(),
+                                PatientId = pearlineObj.PatientId,
+                                TenantId = defaultTenantId,
+                                Icd10Code = "C79.51",
+                                Description = "Secondary malignant neoplasm of bone",
+                                IsPrimary = false
+                            }
+                        };
+                        context.Set<Diagnosis>().AddRange(pearlineDiagnoses);
+                        await context.SaveChangesAsync(default);
+                    }
+
+                    // 2. High-Fidelity Clinical Encounters
+                    if (!await context.ClinicalEncounters.IgnoreQueryFilters().AnyAsync(e => e.PatientId == pearlineObj.PatientId))
+                    {
+                        var navigatorId = eligibleSupporters.FirstOrDefault(p => p.IsCareNavigator)?.PractitionerId 
+                            ?? practitionerIds[0];
+
+                        var pearlineEncounters = new List<ClinicalEncounter>();
+                        var nowUtc = DateTimeOffset.UtcNow;
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            var enc = new ClinicalEncounter
+                            {
+                                EncounterId = Guid.NewGuid(),
+                                TenantId = defaultTenantId,
+                                PatientId = pearlineObj.PatientId,
+                                PractitionerId = navigatorId,
+                                Type = i == 1 ? EncounterType.InitialAssessment : EncounterType.RoutineFollowUp,
+                                Status = EncounterStatus.Completed,
+                                PpsScore = 80 - (i * 5),
+                                EncounterDate = nowUtc.AddDays(-14 * (6 - i)),
+                            };
+                            pearlineEncounters.Add(enc);
+                        }
+                        context.ClinicalEncounters.AddRange(pearlineEncounters);
+                        await context.SaveChangesAsync(default);
+
+                        // 3. Vitals corresponding to these encounters
+                        var pearlineVitals = new List<VitalSign>();
+                        foreach (var enc in pearlineEncounters)
+                        {
+                            pearlineVitals.Add(new VitalSign
+                            {
+                                VitalId = Guid.NewGuid(),
+                                TenantId = defaultTenantId,
+                                EncounterId = enc.EncounterId,
+                                HeartRate = 72 + new Random().Next(-5, 10),
+                                BloodPressureSystolic = 118 + new Random().Next(-8, 12),
+                                BloodPressureDiastolic = 78 + new Random().Next(-6, 8),
+                                RespiratoryRate = 16 + new Random().Next(-2, 4),
+                                OxygenSaturation = 98 - new Random().Next(0, 3),
+                                Temperature = (decimal)(98.2 + new Random().NextDouble() * 0.8),
+                                RecordedAt = enc.EncounterDate,
+                            });
+                        }
+                        context.VitalSigns.AddRange(pearlineVitals);
+                        await context.SaveChangesAsync(default);
+                    }
+                }
+
                 if (!await context.ClinicalEncounters.IgnoreQueryFilters().AnyAsync())
                 {
                     var allEncounters = new List<ClinicalEncounter>();

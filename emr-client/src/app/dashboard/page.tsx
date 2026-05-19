@@ -164,7 +164,7 @@ export default function Dashboard() {
             <h1 className="text-sm font-bold text-white tracking-tight uppercase">
               {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">{session?.user?.name?.split(' ')[0] || "Practitioner"}</span>
             </h1>
-            <p className="max-w-xl text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+            <p className="max-w-xl text-white/50 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
               Your clinical command center is synchronized and optimized for today&apos;s caseload.
             </p>
           </div>

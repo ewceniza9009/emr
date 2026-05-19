@@ -232,6 +232,11 @@ public static class ConfigureServices
                     d.Field(m => m.CareThread).Ignore()
                 )
             )
+            .AddType(
+                new ObjectType<Domain.Entities.Question>(d =>
+                    d.Field(q => q.Questionnaire).Ignore()
+                )
+            )
             .AddMutationType<Mutation>()
             .AddTypeExtension<PatientMutation>()
             .AddTypeExtension<AppointmentMutation>()

@@ -234,41 +234,46 @@ const CareHub: React.FC = () => {
 
   return (
     <IonPage className="bg-slate-50 dark:bg-[#020408]">
-      {/* Header - Generous, Accessible Layout */}
+      {/* Header - Extremely Compact Row */}
       <IonHeader className="ion-no-border">
         <IonToolbar style={{ 
-          '--min-height': '64px',
-          '--padding-top': '8px',
-          '--padding-bottom': '8px',
+          '--min-height': '44px',
+          '--padding-top': '4px',
+          '--padding-bottom': '4px',
           '--padding-start': '16px',
           '--padding-end': '16px'
         }}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <div className="relative">
-                <div className="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-teal-600 dark:text-teal-400 font-extrabold text-base">
+                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-teal-650 dark:text-teal-400 font-black text-xs">
                   {navigatorInitials}
                 </div>
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-[#020408] shadow-[0_0_8px_#10b981]" />
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-[#020408] shadow-[0_0_8px_#10b981]" />
               </div>
               <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-[15px] font-black text-slate-900 dark:text-white leading-tight">{navigatorName}</h2>
-                  <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                    HIPAA Secure
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white leading-tight">{navigatorName}</h2>
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[8px] font-black text-emerald-650 dark:text-emerald-400 uppercase tracking-wider">
+                    HIPAA
                   </span>
                 </div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-0.5">Primary Care Navigator</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold leading-none mt-0.5">Care Navigator</span>
               </div>
             </div>
 
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 transition-colors shadow-sm"
+              style={{ borderRadius: '9999px' }}
+              className={`w-10 h-10 flex items-center justify-center border transition-all active:scale-95 shadow-sm cursor-pointer ${
+                theme === 'dark'
+                  ? 'bg-slate-900 border-slate-800 text-teal-400 hover:bg-slate-800'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+              }`}
               title={theme === 'dark' ? 'Switch to Porcelain Mode' : 'Switch to Midnight Mode'}
             >
-              <IonIcon icon={theme === 'dark' ? sunny : moonIcon} className="w-4.5 h-4.5" />
+              <IonIcon icon={theme === 'dark' ? sunny : moonIcon} className="w-5 h-5" />
             </button>
           </div>
         </IonToolbar>

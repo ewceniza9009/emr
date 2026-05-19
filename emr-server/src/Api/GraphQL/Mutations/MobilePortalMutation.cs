@@ -38,16 +38,26 @@ public class MobilePortalMutation
 
         if (careThreadId == Guid.Empty)
         {
-            var thread = new CareThread
+            var activeThread = await context.CareThreads
+                .FirstOrDefaultAsync(t => t.PatientId == patientId && t.IsActive, cancellationToken);
+
+            if (activeThread != null)
             {
-                CareThreadId = Guid.NewGuid(),
-                TenantId = tenantId,
-                PatientId = patientId,
-                Subject = "Mobile Chat",
-                IsActive = true
-            };
-            context.CareThreads.Add(thread);
-            careThreadId = thread.CareThreadId;
+                careThreadId = activeThread.CareThreadId;
+            }
+            else
+            {
+                var thread = new CareThread
+                {
+                    CareThreadId = Guid.NewGuid(),
+                    TenantId = tenantId,
+                    PatientId = patientId,
+                    Subject = "Mobile Chat",
+                    IsActive = true
+                };
+                context.CareThreads.Add(thread);
+                careThreadId = thread.CareThreadId;
+            }
         }
 
         var message = new ChatMessage

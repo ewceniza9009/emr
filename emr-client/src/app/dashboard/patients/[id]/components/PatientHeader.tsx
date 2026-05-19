@@ -31,9 +31,24 @@ export function PatientHeader({ state }: PatientHeaderProps) {
     handleDownloadDossier,
     downloadingDossier,
     setShowEmergencyDrawer,
+    session,
   } = state;
 
   if (!patient) return null;
+
+  const isAdmin = session?.user?.role === "Admin" || (session?.user as any)?.roles?.includes("Admin");
+  
+  const isPrimaryNavigator = 
+    patient?.primaryCareNavigatorName && 
+    session?.user?.name && 
+    session.user.name.toLowerCase() === patient.primaryCareNavigatorName.toLowerCase();
+    
+  const isDispatched = 
+    patient?.encounters?.some(
+      (e: any) => e.practitioner?.practitionerId === (session?.user as any)?.practitionerId
+    ) || false;
+
+  const canChat = isAdmin || isPrimaryNavigator || isDispatched;
 
   return (
     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--card-border)] pb-4 shrink-0">
@@ -111,7 +126,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
             Clinical Assessment
           </Link>
         </PermissionGate>
-        <CareThreadChat patientId={patientId} />
+        {canChat && <CareThreadChat patientId={patientId} />}
         <PermissionGate permission="docs:view">
           <button
             onClick={handleDownloadDossier}

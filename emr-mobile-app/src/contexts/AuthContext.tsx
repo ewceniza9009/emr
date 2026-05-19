@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 
 export interface AuthenticatedUser {
   id: string;
@@ -52,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const processingTokenRef = useRef<string | null>(null);
   const [apiUrl, setApiUrl] = useState<string>(() => {
     const cached = localStorage.getItem('halkyone-mobile-api-url');
     const autoUrl = getAutoApiUrl();
@@ -93,7 +94,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const magicToken = searchParams.get('token') || searchParams.get('magicToken');
     const deviceId = searchParams.get('deviceId') || '';
 
-    if (magicToken) {
+    if (magicToken && processingTokenRef.current !== magicToken) {
+      processingTokenRef.current = magicToken;
       console.log('Intercepted passwordless magic access token:', magicToken, 'deviceId:', deviceId);
       setIsLoading(true);
       
@@ -125,6 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .catch((err) => {
           console.error('Failed to authenticate magic bypass link:', err);
           alert(`Magic Login Failed: ${err.message}`);
+          processingTokenRef.current = null; // Allow retry on failure
         })
         .finally(() => {
           setIsLoading(false);

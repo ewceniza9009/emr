@@ -2,6 +2,17 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.3.0] - 2026-05-19
+- Implemented real-time checkmark Seen receipts ('Sent ✓' and 'Seen ✓✓') inside clinician and care navigator chat panels.
+- Extended the C# SignalR ChatHub backend with a dynamic thread-based MarkAsSeen broadcast method.
+- Added live unread indicators featuring pulsating rose notification dots and bold sidebar typography to the clinician chat workspace.
+- Refactored frontend real-time messaging pipelines with persistent SignalR connection referencing, preventing redundant socket reconnections.
+- Architected the structured Advance Directives module (DNR, DNI, Comfort Care) including .NET C# database schema mappings, GraphQL batch-data-loaders, and DTOs.
+- Redesigned the Patient Mobile App to feature a dignity-first Comfort Care Portal (ComfortDashboard) aligned with palliative care values.
+- Upgraded the Mobile Pharmacy panel to categorize active comfort medications into distinct Daily Comfort Regimen and Rescue Breakthrough Therapy lists.
+- Injected prominent visual alert indicators and legal status badges for Advance Directives into the clinician CoreIdentityCard dashboard panel.
+- Enriched the DB Seed Engine with high-fidelity comfort-care records, medication rescue indications, and binding legal directives.
+
 ## [1.2.9] - 2026-05-18
 - Implemented the native Ionic/React mobile application architecture serving as a 'Virtual Hospital Room' for patients.
 - Integrated a HIPAA-compliant secure real-time messaging hub between patients and care teams with SignalR and SignalR serialization safety.

@@ -8,6 +8,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.GraphQL.Queries;
@@ -95,5 +96,19 @@ public class MobilePortalQuery
             .Where(e => e.PatientId == patientId)
             .OrderByDescending(e => e.AssessedAt)
             .ToListAsync(cancellationToken);
+    }
+
+    [UsePatientAccess]
+    public async Task<Questionnaire?> GetMyMobileQuestionnaireByType(
+        Guid patientId,
+        AssessmentType type,
+        [Service] Application.Common.Interfaces.IApplicationDbContext context,
+        CancellationToken ct
+    )
+    {
+        return await context.Questionnaires
+            .IgnoreQueryFilters()
+            .Include(q => q.Questions)
+            .FirstOrDefaultAsync(q => q.AssessmentType == type, ct);
     }
 }

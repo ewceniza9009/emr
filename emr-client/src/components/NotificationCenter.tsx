@@ -63,6 +63,10 @@ export function NotificationCenter() {
   const [markAsRead] = useMutation(MARK_READ);
   const [markAllAsRead] = useMutation(MARK_ALL_READ);
 
+  // Stabilize refetch reference to prevent connection churn
+  const refetchRef = useRef(refetch);
+  useEffect(() => { refetchRef.current = refetch; }, [refetch]);
+
   useEffect(() => {
     if (!session?.user) return;
 
@@ -73,21 +77,40 @@ export function NotificationCenter() {
       .withUrl(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:34732'}/hubs/notifications`, {
         accessTokenFactory: () => token,
       })
-      .withAutomaticReconnect()
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(signalR.LogLevel.None)
       .build();
 
     connection.on("ReceiveNotification", () => {
-      if (isMounted) refetch();
+      if (isMounted) refetchRef.current();
+    });
+
+    connection.onreconnected(async () => {
+      const userId = (session.user as any)?.id;
+      if (userId && isMounted) {
+        try {
+          await connection.invoke("JoinUserGroup", userId);
+          refetchRef.current();
+        } catch (err) {
+          console.error("Failed to rejoin user group on reconnect:", err);
+        }
+      }
     });
 
     const startConnection = async () => {
       try {
         if (connection.state === signalR.HubConnectionState.Disconnected) {
           await connection.start();
+          const userId = (session.user as any)?.id;
+          if (userId && isMounted) {
+            await connection.invoke("JoinUserGroup", userId);
+          }
         }
-      } catch (err) {
-        console.error("SignalR Notification Error: ", err);
+      } catch (err: any) {
+        const isAbort = err?.name === 'AbortError' || err?.toString()?.includes('stopped');
+        if (!isAbort) {
+          console.error("SignalR Notification Error: ", err);
+        }
       }
     };
 
@@ -101,7 +124,7 @@ export function NotificationCenter() {
         });
       }
     };
-  }, [session, refetch]);
+  }, [session]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

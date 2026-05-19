@@ -177,9 +177,9 @@ export function usePatientDashboardState() {
   const [vitals, setVitals] = useState({ hr: 72, spo2: 98, temp: 98.6 });
   const [telemetryData, setTelemetryData] = useState<any[]>([]);
   const [isIotConnected, setIsIotConnected] = useState(false);
-  const [telemetryEnabled, setTelemetryEnabled] = useState(false);
+  const [telemetryEnabled, setTelemetryEnabled] = useState(true);
 
-  const telemetryEnabledRef = useRef(telemetryEnabled);
+  const telemetryEnabledRef = useRef(true);
   useEffect(() => {
     telemetryEnabledRef.current = telemetryEnabled;
   }, [telemetryEnabled]);
@@ -263,8 +263,11 @@ export function usePatientDashboardState() {
             });
           }
         });
-      } catch (err) {
-        console.error("[IoT] Connection Failure:", err);
+      } catch (err: any) {
+        const isAbort = err?.name === 'AbortError' || err?.toString()?.includes('stopped');
+        if (!isAbort) {
+          console.error("[IoT] Connection Failure:", err);
+        }
       }
     };
 
