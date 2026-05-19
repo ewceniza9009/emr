@@ -9,7 +9,7 @@
   --foreground: #f8fafc;
   --card-bg: #0a0c12;
   --card-border: rgba(255, 255, 255, 0.18);
-  /* Sharpened for definitive clinical outlines */
+  /* Softened for premium, luxury dark theme aesthetics */
   --text-primary: #ffffff;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
@@ -20,7 +20,7 @@
   --elegant-blue-glow: rgba(37, 99, 235, 0.4);
   --sidebar-bg: #020408;
   --input-bg: rgba(255, 255, 255, 0.05);
-  --divider-color: rgba(255, 255, 255, 0.1);
+  --divider-color: rgba(255, 255, 255, 0.12);
 }
 
 .light {
@@ -29,7 +29,7 @@
   --background: #ffffff;
   --foreground: #020617;
   --card-bg: #fdfdfd;
-  --card-border: rgba(15, 23, 42, 0.08);
+  --card-border: rgba(15, 23, 42, 0.16);
   --text-primary: #020617;
   --text-secondary: #1e293b;
   /* Darkened Slate-700 for absolute contrast */
@@ -42,13 +42,14 @@
   --elegant-blue-glow: rgba(37, 99, 235, 0.25);
   --sidebar-bg: #ffffff;
   --input-bg: #f8fafc;
-  --divider-color: rgba(15, 23, 42, 0.04);
+  --divider-color: rgba(15, 23, 42, 0.08);
 }
 
-* {
+*, ::before, ::after {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  border-color: var(--card-border);
 }
 
 body {
@@ -283,3 +284,5 @@ input[type='date']::-webkit-calendar-picker-indicator {
   opacity: 0;
   cursor: pointer;
 }
+
+/* Force JIT compiler rebuild for tooltip layout updates (z-index + size standard + glassmorphic pass) */

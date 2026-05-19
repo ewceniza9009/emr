@@ -380,7 +380,8 @@ export default function PatientDetailPage() {
           }
         });
       } catch (err: any) {
-        const isAbort = err?.name === 'AbortError' || err?.toString()?.includes('stopped');
+        const isAbort =
+          err?.name === "AbortError" || err?.toString()?.includes("stopped");
         if (!isAbort) {
           console.error("[IoT] Connection Failure:", err);
         }

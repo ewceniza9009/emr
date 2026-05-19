@@ -1,8 +1,15 @@
-"use client";
-
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { Calendar, Plus, Clock, User, ClipboardList, MapPin, Stethoscope } from "lucide-react";
+import {
+  Calendar,
+  Plus,
+  Clock,
+  User,
+  ClipboardList,
+  MapPin,
+  Stethoscope,
+  ArrowUpDown,
+} from "lucide-react";
 import { PermissionGate } from "@/components/PermissionGate";
 import { UsePatientDashboardStateReturn } from "../hooks/usePatientDashboardState";
 
@@ -19,9 +26,14 @@ export function VisitScheduleTab({ state }: VisitScheduleTabProps) {
     setIsSummaryOpen,
   } = state;
 
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
   const appointments = [...(apptData?.appointments?.items || [])].sort(
-    (a: any, b: any) =>
-      new Date(a.scheduledStart).getTime() - new Date(b.scheduledStart).getTime(),
+    (a: any, b: any) => {
+      const timeA = new Date(a.scheduledStart).getTime();
+      const timeB = new Date(b.scheduledStart).getTime();
+      return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
+    },
   );
 
   return (
@@ -32,21 +44,34 @@ export function VisitScheduleTab({ state }: VisitScheduleTabProps) {
             <Calendar className="w-4 h-4 text-[var(--primary)]" />
             Patient Visit Registry
           </h2>
-          <PermissionGate permission="scheduling:manage">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setDrawerOpen(true)}
-              className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] active:scale-95 transition-all"
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--card-bg)] active:scale-95 transition-all"
             >
-              <Plus className="w-4 h-4" /> Schedule Visit
+              <ArrowUpDown className="w-4 h-4 text-[var(--primary)]" />
+              <span>
+                Sort: {sortOrder === "desc" ? "Newest First" : "Oldest First"}
+              </span>
             </button>
-          </PermissionGate>
+            <PermissionGate permission="scheduling:manage">
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="flex items-center gap-2 px-6 py-2 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--primary-glow)] active:scale-95 transition-all"
+              >
+                <Plus className="w-4 h-4" /> Schedule
+              </button>
+            </PermissionGate>
+          </div>
         </div>
         <div className="space-y-4">
           {appointments.length > 0 ? (
             appointments.map((appt: any) => {
               const statusUpper = appt.status?.toUpperCase() || "";
-              const isActive = statusUpper.includes("PROGRESS") || statusUpper === "LIVE";
-              const isDone = statusUpper.includes("COMPLETE") || statusUpper === "DONE";
+              const isActive =
+                statusUpper.includes("PROGRESS") || statusUpper === "LIVE";
+              const isDone =
+                statusUpper.includes("COMPLETE") || statusUpper === "DONE";
 
               return (
                 <div
@@ -56,7 +81,9 @@ export function VisitScheduleTab({ state }: VisitScheduleTabProps) {
                   <div className="flex items-center gap-6">
                     <div
                       className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-colors ${
-                        isActive ? "bg-[var(--primary)] text-white animate-pulse" : "bg-[var(--card-border)] text-[var(--text-muted)]"
+                        isActive
+                          ? "bg-[var(--primary)] text-white animate-pulse"
+                          : "bg-[var(--card-border)] text-[var(--text-muted)]"
                       }`}
                     >
                       <Calendar className="w-6 h-6" />
@@ -64,15 +91,20 @@ export function VisitScheduleTab({ state }: VisitScheduleTabProps) {
                     <div>
                       <div className="flex items-center gap-3 mb-1 flex-wrap">
                         <h4 className="text-sm font-black uppercase">
-                          {new Date(appt.scheduledStart).toLocaleDateString("en-US", {
-                            weekday: "long",
-                            month: "long",
-                            day: "numeric",
-                          })}
+                          {new Date(appt.scheduledStart).toLocaleDateString(
+                            "en-US",
+                            {
+                              weekday: "long",
+                              month: "long",
+                              day: "numeric",
+                            },
+                          )}
                         </h4>
                         <span
                           className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
-                            isActive ? "bg-emerald-500 text-white" : "bg-[var(--card-border)] text-[var(--text-muted)]"
+                            isActive
+                              ? "bg-emerald-500 text-white"
+                              : "bg-[var(--card-border)] text-[var(--text-muted)]"
                           }`}
                         >
                           {appt.status}
@@ -81,10 +113,13 @@ export function VisitScheduleTab({ state }: VisitScheduleTabProps) {
                       <div className="flex items-center gap-4 flex-wrap">
                         <span className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                           <Clock className="w-3.5 h-3.5" />
-                          {new Date(appt.scheduledStart).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {new Date(appt.scheduledStart).toLocaleTimeString(
+                            [],
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
                         </span>
                         <span className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                           <User className="w-3.5 h-3.5" />
@@ -135,7 +170,7 @@ export function VisitScheduleTab({ state }: VisitScheduleTabProps) {
                           }`}
                         >
                           <Stethoscope className="w-4 h-4" />
-                          {isActive ? "Join Session" : "Start Visit"}
+                          {isActive ? "Join" : "Start"}
                         </Link>
                       </PermissionGate>
                     )}

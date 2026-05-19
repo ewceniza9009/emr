@@ -26,3 +26,6 @@ const nextConfig = {
 };
 
 export default withPWA(nextConfig);
+
+// Touch config to force Next.js compiler process reload and clear cache
+

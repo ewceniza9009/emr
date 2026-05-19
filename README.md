@@ -44,6 +44,37 @@
 
 ---
 
+## 📸 System Screenshot Gallery (13 High-Fidelity Views)
+
+Below is a gallery of screenshots from our clinical web application, admin portal, and patient mobile app, demonstrating the state-of-the-art visual aesthetics and features:
+
+### 💻 Clinical Web & Admin Portals
+
+| View | Module / Description | Screenshot |
+| :--- | :--- | :--- |
+| **Clinical Dashboard** | Operational statistics, live vital status notifications, and scheduling overview. | ![Clinical Dashboard](qa_report/assets/dashboard.png) |
+| **Patient Registry** | Full clinical active roster search and comprehensive patient grid. | ![Patient Registry](qa_report/assets/patients.png) |
+| **Clinical Profile** | Longitudinal patient chart showing charts, demographics, and clinical notes. | ![Clinical Profile](qa_report/assets/patient_detail.png) |
+| **Visit Schedule Registry** | Patient encounter calendar registry with interactive descending/ascending sorting by date. | ![Visit Schedule Registry](qa_report/assets/patient_detail_schedule.png) |
+| **Outreach Workspace** | referral pipelines, follow-up calls, and conversion metrics. | ![Outreach Workspace](qa_report/assets/outreach.png) |
+| **Enrollment Drawer** | Quick-enrollment slide-over layout with automatic clinical checklist. | ![Enrollment Drawer](qa_report/assets/enrollment_drawer.png) |
+| **Master Schedule** | Calendar-driven clinical encounter booking and coordinators grid. | ![Master Schedule](qa_report/assets/schedule.png) |
+| **Telemetry Vitals Hub** | Live WebSocket-driven vital streams and real-time simulator grid. | ![Telemetry Vitals Hub](qa_report/assets/telemetry.png) |
+| **Admin Security Station** | Security governance, isolation settings, and tenant controls. | ![Admin Security](qa_report/assets/security.png) |
+| **Resource Heatmap** | Real-time capacity utilization, caseload distribution heatmap, and clinician grid. | ![Resource Heatmap](qa_report/assets/utilization.png) |
+| **Workload Drill-down** | Interactive workflow telemetry drawer with compact dispatch adjustment triggers. | ![Workload Drill-down](qa_report/assets/utilization_modal.png) |
+
+### 📱 Patient Mobile App ("Virtual Hospital Room")
+
+| View | Module / Description | Screenshot |
+| :--- | :--- | :--- |
+| **Mobile Login Gate** | Secure biometric FaceID/fingerprint simulation and magic link auth. | ![Mobile Login](qa_report/assets/mobile_login.png) |
+| **Comfort Hub Dashboard** | Daily recovery ring, SOS alerts, and vital sign thresholds tracker. | ![Comfort Hub](qa_report/assets/mobile_comfort.png) |
+| **Secure Care Hub** | Real-time chat with Care Navigator and telehealth virtual waiting room. | ![Secure Care Hub](qa_report/assets/mobile_care_hub.png) |
+| **Pharmacy & eRx** | Active prescriptions visual pill index and smart local reminders. | ![Pharmacy and eRx](qa_report/assets/mobile_pharmacy.png) |
+
+---
+
 ### The Bounded Contexts
 
 The application is logically partitioned into distinct domains:
@@ -615,6 +646,25 @@ Back at the Nerve Center, billing administrators log into the `/admin` portal. T
 Simultaneously, Maria's caregiver receives a push notification on their mobile device. They open the **Halkyone Patient Mobile App**, review the pending co-pay invoice, and settle the balance securely with a single tap using Apple Pay. The PhilHealth tracker update appears live on Maria's mobile dashboard showing claim approval progress in real-time.
 
 In exactly 24 hours, Halkyone Clinical OS navigated complex geospatial logistics, handled real-time streaming telemetry, executed dynamic clinical documentation, enforced enterprise-grade security overrides, and prepped financial billing—all while integrating patient mobile interactions seamlessly and securely.
+
+---
+
+## 🛠️ Modernized UI Layouts & Sorting (May 2026 Updates)
+
+We have polished the clinical portal and administrative workstation to increase information density, visual balance, and navigation flow:
+
+### 1. High-Density Resource Heatmap Grid
+* **Visual Compaction**: Clinician cards are downsized (`p-5`, outer radius `rounded-[1.5rem]`) and grid gutters tightened to fit more practitioners above the fold on dense coordinator workspaces.
+* **Streamlined Telemetry Indicators**: Load bars, status badges, case counters, and review actions are refactored to minimize vertical scroll requirements.
+* **Balanced Header Alignment**: Height coordinates for the sidebar logo segment and the main dashboard header are aligned to a uniform `h-14` (56px) across the entire clinical and admin portals, resolving the previous border offsets.
+
+### 2. Workload Intelligence Drill-down Modal
+* **Compact Telemetry Rows**: Slashed the workflow list padding, priority badge scales, and icon boundaries, resulting in a condensed and clean forensic audit layout.
+* **Interactive Capacity Dispatch**: The *Dispatch Capacity Adjustment* action prompts coordinate nodes for confirmation before executing automated rebalancing, automatically closing the modal upon completion.
+
+### 3. Chronological Visit Registry Sorting
+* **Default Descending Ordering**: Patient appointments are automatically sorted by scheduled start date in descending order (newest encounters first).
+* **Interactive Direction Toggle**: Added a "Sort: Newest First" / "Sort: Oldest First" control button next to scheduling controls, featuring an `ArrowUpDown` indicator icon for instant chronological timeline swapping.
 
 ---
 

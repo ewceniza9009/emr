@@ -314,7 +314,7 @@ const Pharmacy: React.FC = () => {
                 med.medication?.name?.[0]
               )}
             </div>
-            <h3 className="text-sm font-black text-slate-900 dark:text-white leading-tight font-sans truncate pr-1">
+            <h3 className="text-xs font-black text-slate-900 dark:text-white leading-tight font-sans truncate pr-1">
               {med.medication?.name || 'Unknown'}
             </h3>
           </div>
@@ -435,9 +435,9 @@ const Pharmacy: React.FC = () => {
         >
           <div className="flex items-center justify-between w-full">
             <div className="space-y-0.5">
-              <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-white font-sans flex items-baseline gap-1.5">
+              <h1 className="text-[15px] font-black tracking-tight text-slate-900 dark:text-white font-sans flex items-baseline gap-1.5">
                 Pharmacy
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+                <span className="text-[9.5px] text-slate-500 dark:text-slate-400 font-normal uppercase tracking-wider">
                   Oncology Plan
                 </span>
               </h1>
@@ -555,7 +555,7 @@ const Pharmacy: React.FC = () => {
                       {compliancePercentage}% Taken
                     </span>
                   </div>
-                  <h3 className={`text-sm font-black ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>
+                  <h3 className={`text-xs font-black ${theme === 'dark' ? 'text-slate-200' : 'text-slate-800'}`}>
                     {compliancePercentage === 100 ? "🌟 Perfect Adherence Today!" : "Dose Intake Record"}
                   </h3>
                   <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
@@ -596,7 +596,7 @@ const Pharmacy: React.FC = () => {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 px-1">
                       <div className="w-1.5 h-3.5 bg-teal-500 rounded-full" />
-                      <h2 className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider">
+                      <h2 className="text-xs font-black text-slate-800 dark:text-slate-200 tracking-tight">
                         Daily Comfort Regimen
                       </h2>
                       <span className="text-[10px] font-mono text-slate-400 font-bold">({baselineMeds.length})</span>
@@ -613,7 +613,7 @@ const Pharmacy: React.FC = () => {
                   <div className="space-y-3 pt-2">
                     <div className="flex items-center gap-2 px-1">
                       <div className="w-1.5 h-3.5 bg-rose-500 rounded-full animate-pulse" />
-                      <h2 className="text-xs font-black uppercase text-slate-850 dark:text-rose-455 tracking-wider flex items-center gap-1.5">
+                      <h2 className="text-xs font-black text-slate-800 dark:text-rose-400 tracking-tight flex items-center gap-1.5">
                         Rescue Breakthrough Therapy
                       </h2>
                       <span className="text-[10px] font-mono text-slate-400 font-bold">({breakthroughMeds.length})</span>

@@ -216,20 +216,30 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
 
   return (
     <>
-      <button 
-        onClick={() => setIsOpen(true)}
-        className="relative px-6 py-2 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/20 transition-all flex items-center gap-2 active:scale-95"
-      >
-        <MessageSquare className="w-3.5 h-3.5" /> Live Chat
-        {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500 items-center justify-center text-[8px] font-black text-white leading-none">
-              {unreadCount}
+      <div className="group relative flex items-center justify-center hover:z-[60]">
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="relative w-10 h-10 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] hover:bg-[var(--primary)]/20 transition-all flex items-center justify-center p-0 active:scale-95"
+        >
+          <MessageSquare className="w-5 h-5 shrink-0" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500 items-center justify-center text-[8px] font-black text-white leading-none">
+                {unreadCount}
+              </span>
             </span>
-          </span>
-        )}
-      </button>
+          )}
+        </button>
+
+        {/* Premium Tooltip */}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-center">
+          <div className="w-1.5 h-1.5 bg-slate-950 border-l border-t border-slate-800/80 rotate-45 -mb-1 shrink-0 z-10" />
+          <div className="bg-slate-950 border border-slate-800/80 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
+            Secure Care Chat
+          </div>
+        </div>
+      </div>
 
       {isOpen && (
         <div 

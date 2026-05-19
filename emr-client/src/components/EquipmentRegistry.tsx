@@ -8,7 +8,7 @@ import {
   Settings,
   Activity,
   AlertCircle,
-  Plus
+  Plus,
 } from "lucide-react";
 
 import EquipmentManagementDrawer from "./EquipmentManagementDrawer";
@@ -48,18 +48,25 @@ const UPDATE_DEPLOYMENT_STATUS = gql`
   }
 `;
 
-export default function EquipmentRegistry({ patientId }: { patientId: string }) {
+export default function EquipmentRegistry({
+  patientId,
+}: {
+  patientId: string;
+}) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { data, loading, refetch } = useQuery(GET_EQUIPMENT, {
     variables: { patientId },
   });
 
   const [updateStatus] = useMutation(UPDATE_DEPLOYMENT_STATUS, {
-    onCompleted: () => refetch()
+    onCompleted: () => refetch(),
   });
 
-  const handleStatusUpdate = async (deliveryId: string, currentStatus: string) => {
-    const statuses = ['PENDING', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED'];
+  const handleStatusUpdate = async (
+    deliveryId: string,
+    currentStatus: string,
+  ) => {
+    const statuses = ["PENDING", "OUT_FOR_DELIVERY", "DELIVERED", "FAILED"];
     const currentIndex = statuses.indexOf(currentStatus);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
 
@@ -67,9 +74,9 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
       variables: {
         input: {
           deliveryId,
-          newStatus: nextStatus
-        }
-      }
+          newStatus: nextStatus,
+        },
+      },
     });
   };
 
@@ -78,17 +85,24 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
       variables: {
         input: {
           deliveryId,
-          newStatus: 'RETURNED'
-        }
-      }
+          newStatus: "RETURNED",
+        },
+      },
     });
   };
 
   const deliveries = data?.equipmentDeliveriesByPatient || [];
   const primaryAddress = data?.patientById?.addresses?.[0]?.address;
-  const defaultAddressStr = primaryAddress ? `${primaryAddress.street}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}` : "";
+  const defaultAddressStr = primaryAddress
+    ? `${primaryAddress.street}, ${primaryAddress.city}, ${primaryAddress.state} ${primaryAddress.postalCode}`
+    : "";
 
-  if (loading) return <div className="p-8 text-[var(--text-muted)] animate-pulse uppercase text-[10px] font-black tracking-widest">Inventory Scan in Progress...</div>;
+  if (loading)
+    return (
+      <div className="p-8 text-[var(--text-muted)] animate-pulse uppercase text-[10px] font-black tracking-widest">
+        Inventory Scan in Progress...
+      </div>
+    );
 
   return (
     <div className="glass-morphism rounded-3xl overflow-hidden border border-[var(--card-border)]">
@@ -118,47 +132,67 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
         onSuccess={refetch}
       />
 
-
       <div className="p-8">
         {deliveries.length === 0 ? (
           <div className="py-12 text-center">
             <Package className="w-12 h-12 mx-auto mb-4 text-[var(--text-muted)] opacity-20" />
-            <p className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">No Active Equipment Deployments</p>
+            <p className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">
+              No Active Equipment Deployments
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {deliveries.map((d: any) => (
-              <div key={d.deliveryId} className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/30 transition-all group relative overflow-hidden flex flex-col gap-3">
+              <div
+                key={d.deliveryId}
+                className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-[var(--primary)]/30 transition-all group relative overflow-hidden flex flex-col gap-3"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${d.status === 'DELIVERED' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                        d.status === 'FAILED' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' :
-                          'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                      }`}>
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center border shrink-0 ${
+                        d.status === "DELIVERED"
+                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                          : d.status === "FAILED"
+                            ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                            : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                      }`}
+                    >
                       <Package className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-tight truncate leading-tight">{d.equipment?.modelName}</h3>
-                      <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest leading-none mt-0.5">{d.equipment?.type?.replace(/_/g, ' ')}</p>
+                      <h3 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-tight truncate leading-tight">
+                        {d.equipment?.modelName}
+                      </h3>
+                      <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest leading-none mt-0.5">
+                        {d.equipment?.type?.replace(/_/g, " ")}
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end shrink-0">
-                    <span className={`px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest border ${d.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30' :
-                        d.status === 'FAILED' ? 'bg-rose-500/20 text-rose-500 border-rose-500/30' :
-                          'bg-amber-500/20 text-amber-500 border-amber-500/30'
-                      }`}>
-                      {d.status?.replace(/_/g, ' ')}
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest border ${
+                        d.status === "DELIVERED"
+                          ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/30"
+                          : d.status === "FAILED"
+                            ? "bg-rose-500/20 text-rose-500 border-rose-500/30"
+                            : "bg-amber-500/20 text-amber-500 border-amber-500/30"
+                      }`}
+                    >
+                      {d.status?.replace(/_/g, " ")}
                     </span>
                     <PermissionGate permission="logistics:manage">
                       <button
-                        onClick={() => handleStatusUpdate(d.deliveryId, d.status)}
+                        onClick={() =>
+                          handleStatusUpdate(d.deliveryId, d.status)
+                        }
                         className="text-[6px] font-black uppercase tracking-tighter text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors flex items-center gap-1 mt-1"
                       >
                         <Activity className="w-2 h-2" />
                         Update
                       </button>
                     </PermissionGate>
-                    {d.status === 'DELIVERED' && (
+                    {d.status === "DELIVERED" && (
                       <PermissionGate permission="logistics:manage">
                         <button
                           onClick={() => handleReturnAsset(d.deliveryId)}
@@ -174,12 +208,22 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
 
                 <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[var(--card-bg)]/50 rounded-xl border border-[var(--card-border)]/50">
                   <div className="flex flex-col">
-                    <span className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">Serial</span>
-                    <span className="text-[9px] font-mono font-bold text-[var(--text-primary)]">{d.equipment?.serialNumber}</span>
+                    <span className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                      Serial
+                    </span>
+                    <span className="text-[9px] font-mono font-bold text-[var(--text-primary)]">
+                      {d.equipment?.serialNumber}
+                    </span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">Deployed</span>
-                    <span className="text-[9px] font-bold text-[var(--text-primary)]">{d.deliveredAt ? new Date(d.deliveredAt).toLocaleDateString() : 'PENDING'}</span>
+                    <span className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                      Deployed
+                    </span>
+                    <span className="text-[9px] font-bold text-[var(--text-primary)]">
+                      {d.deliveredAt
+                        ? new Date(d.deliveredAt).toLocaleDateString()
+                        : "PENDING"}
+                    </span>
                   </div>
                 </div>
 
@@ -195,5 +239,3 @@ export default function EquipmentRegistry({ patientId }: { patientId: string }) 
     </div>
   );
 }
-
-

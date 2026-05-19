@@ -491,7 +491,7 @@ export default function AdminDashboardContent() {
       case "settings":
         return <RegistrySettings />;
       case "utilization":
-        return <ResourceUtilization />;
+        return <ResourceUtilization searchQuery={searchQuery} />;
     }
   };
 
@@ -501,7 +501,7 @@ export default function AdminDashboardContent() {
       <AdminSidebar activeTab={activeTab} setActiveTab={handleTabChange} />
 
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        <header className="h-16 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)]/30 backdrop-blur-2xl flex items-center justify-between px-10 shrink-0 z-10">
+        <header className="h-14 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)]/30 backdrop-blur-2xl flex items-center justify-between px-10 shrink-0 z-10">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3 text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.2em] bg-white/[0.03] px-4 py-2 rounded-xl border border-white/5 shadow-inner">
               <Shield className="w-3.5 h-3.5 text-[var(--primary)]" />
@@ -523,7 +523,9 @@ export default function AdminDashboardContent() {
         <main
           className={`flex-1 ${
             activeTab === "audit" ? "overflow-hidden" : "overflow-y-auto"
-          } p-5 space-y-4 scroll-smooth flex flex-col`}
+          } px-5 pb-5 ${
+            activeTab === "utilization" ? "pt-0" : "pt-5"
+          } space-y-4 scroll-smooth flex flex-col`}
         >
           {activeTab !== "settings" &&
             activeTab !== "utilization" &&
@@ -563,7 +565,7 @@ export default function AdminDashboardContent() {
             )}
 
           {activeTab === "utilization" && (
-            <div className="flex items-center justify-between border-b border-[var(--card-border)] pb-3">
+            <div className="sticky top-0 z-20 bg-[var(--background)] -mx-5 px-5 pt-5 pb-3 border-b border-[var(--card-border)] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
               <div>
                 <h1 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">
                   Workforce Intelligence
@@ -571,6 +573,16 @@ export default function AdminDashboardContent() {
                 <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">
                   Global capacity and clinician load distribution
                 </p>
+              </div>
+              <div className="relative w-full sm:w-56 group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Search clinicians..."
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-1.5 pl-9 pr-3 text-[11px] font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/40 focus:bg-[var(--card-bg)] transition-all placeholder:text-[var(--text-muted)]/50"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
               </div>
             </div>
           )}
@@ -601,8 +613,8 @@ export default function AdminDashboardContent() {
 
           <div
             className={`flex-1 flex flex-col ${
-              activeTab === "settings" || activeTab === "integrationProfiles"
-                ? ""
+              activeTab === "settings" || activeTab === "integrationProfiles" || activeTab === "utilization"
+                ? "!mt-0"
                 : "bg-[var(--card-bg)]/40 border border-[var(--card-border)] rounded-3xl overflow-hidden shadow-2xl backdrop-blur-3xl"
             } animate-in fade-in slide-in-from-bottom-4 duration-1000`}
           >

@@ -12,6 +12,7 @@ import {
   FileText,
   Loader2,
   MessageSquare,
+  AlertTriangle,
 } from "lucide-react";
 import { PermissionGate } from "@/components/PermissionGate";
 import { UsePatientDashboardStateReturn } from "../hooks/usePatientDashboardState";
@@ -51,7 +52,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
   const canChat = isAdmin || isPrimaryNavigator || isDispatched;
 
   return (
-    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--card-border)] pb-4 shrink-0">
+    <div className="relative z-[60] flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--card-border)] pb-4 shrink-0">
       <div className="flex items-center gap-4">
         <Link
           href="/dashboard/patients"
@@ -109,49 +110,86 @@ export function PatientHeader({ state }: PatientHeaderProps) {
           </span>
         </div>
         <PermissionGate permission="billing:manage">
-          <button
-            onClick={() => setShowBenefitClaim(true)}
-            className="px-6 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500/20 transition-all flex items-center gap-2 active:scale-95"
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            Tag Z-Benefit
-          </button>
+          <div className="group relative flex items-center justify-center hover:z-[60]">
+            <button
+              onClick={() => setShowBenefitClaim(true)}
+              className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 transition-all flex items-center justify-center p-0 active:scale-95"
+            >
+              <ShieldCheck className="w-5 h-5 shrink-0" />
+            </button>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-center">
+              <div className="w-1.5 h-1.5 bg-slate-950 border-l border-t border-slate-800/80 rotate-45 -mb-1 shrink-0 z-10" />
+              <div className="bg-slate-950 border border-slate-800/80 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
+                Tag Z-Benefit Plan
+              </div>
+            </div>
+          </div>
         </PermissionGate>
         <PermissionGate permission="clinical:assessments">
-          <Link
-            href={`/dashboard/patients/${patientId}/assessment/new`}
-            className="px-6 py-2 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all flex items-center gap-2 active:scale-95"
-          >
-            <ClipboardList className="w-3.5 h-3.5" />
-            Clinical Assessment
-          </Link>
+          <div className="group relative flex items-center justify-center hover:z-[60]">
+            <Link
+              href={`/dashboard/patients/${patientId}/assessment/new`}
+              className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-500 hover:bg-blue-500/20 transition-all flex items-center justify-center p-0 active:scale-95"
+            >
+              <ClipboardList className="w-5 h-5 shrink-0" />
+            </Link>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-center">
+              <div className="w-1.5 h-1.5 bg-slate-950 border-l border-t border-slate-800/80 rotate-45 -mb-1 shrink-0 z-10" />
+              <div className="bg-slate-950 border border-slate-800/80 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
+                Start Clinical Assessment
+              </div>
+            </div>
+          </div>
         </PermissionGate>
         {canChat && <CareThreadChat patientId={patientId} />}
         <PermissionGate permission="docs:view">
-          <button
-            onClick={handleDownloadDossier}
-            disabled={downloadingDossier}
-            className="px-6 py-2 rounded-xl bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-700 transition-all flex items-center gap-2 disabled:opacity-50 active:scale-95"
-          >
-            {downloadingDossier ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <FileText className="w-3.5 h-3.5" />
-            )}
-            Clinical Dossier
-          </button>
+          <div className="group relative flex items-center justify-center hover:z-[60]">
+            <button
+              onClick={handleDownloadDossier}
+              disabled={downloadingDossier}
+              className="w-10 h-10 rounded-xl bg-slate-500/10 border border-slate-500/20 text-slate-400 hover:bg-slate-500/20 transition-all flex items-center justify-center p-0 disabled:opacity-50 active:scale-95"
+            >
+              {downloadingDossier ? (
+                <Loader2 className="w-5 h-5 animate-spin shrink-0" />
+              ) : (
+                <FileText className="w-5 h-5 shrink-0" />
+              )}
+            </button>
+            <div className="absolute top-full right-0 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-end">
+              <div className="w-1.5 h-1.5 bg-slate-950 border-l border-t border-slate-800/80 rotate-45 -mb-1 shrink-0 z-10 mr-[17px]" />
+              <div className="bg-slate-950 border border-slate-800/80 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
+                {downloadingDossier ? "Generating Dossier..." : "Download Clinical Dossier"}
+              </div>
+            </div>
+          </div>
         </PermissionGate>
         <PermissionGate permission="clinical:order">
-          <button
-            onClick={() => setShowEmergencyDrawer(true)}
-            className={`px-6 py-2 rounded-xl text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 ${
-              isEmergency
-                ? "bg-red-600 shadow-red-600/30 animate-pulse ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950"
-                : "bg-[var(--primary)] shadow-[var(--primary-glow)] hover:opacity-90"
-            }`}
-          >
-            {isEmergency ? "Protocol Active" : "Emergency Action"}
-          </button>
+          <div className="group relative flex items-center justify-center hover:z-[60]">
+            <button
+              onClick={() => setShowEmergencyDrawer(true)}
+              className={`w-10 h-10 rounded-xl transition-all flex items-center justify-center p-0 active:scale-95 ${
+                isEmergency
+                  ? "bg-red-600 border border-transparent text-white shadow-lg shadow-red-600/30 animate-pulse ring-2 ring-red-500 ring-offset-2 ring-offset-slate-950"
+                  : "bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500/20"
+              }`}
+            >
+              <AlertTriangle className="w-5 h-5 shrink-0" />
+            </button>
+            <div className="absolute top-full right-0 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-end">
+              <div className={`w-1.5 h-1.5 border-l border-t rotate-45 -mb-1 shrink-0 z-10 mr-[17px] ${
+                isEmergency 
+                  ? "bg-red-950 border-red-800/80" 
+                  : "bg-slate-950 border-slate-800/80"
+              }`} />
+              <div className={`border text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap ${
+                isEmergency 
+                  ? "bg-red-950 border-red-800/80 text-red-400" 
+                  : "bg-slate-950 border-slate-800/80"
+              }`}>
+                {isEmergency ? "Emergency Protocol Active" : "Trigger Emergency Action"}
+              </div>
+            </div>
+          </div>
         </PermissionGate>
       </div>
     </div>
