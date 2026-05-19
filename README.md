@@ -29,12 +29,15 @@
 [![Clinical: 100%--Verified](https://img.shields.io/badge/Clinical-100%25--Verified-success.svg)](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml)
 
 [![Halkyone CI/CD](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml/badge.svg)](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml)
+[![Mobile: Ionic React](https://img.shields.io/badge/Mobile-Ionic%20React%208-blue.svg)](https://ionicframework.com/)
+[![Native: Capacitor](https://img.shields.io/badge/Native-Capacitor-lightgrey.svg)](https://capacitorjs.com/)
+[![Push Notifications: FCM](https://img.shields.io/badge/Notifications-FCM-yellow.svg)](https://firebase.google.com/docs/cloud-messaging)
 
 ---
 
 ## 📊 Clinical QA & Reliability Report
 
-[**📊 View Full CI/CD (Continuous Integration & Deployment) History**](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/26083206434/artifacts/7077657883)
+[**📊 View Full CI/CD History**](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/26083206434/artifacts/7077657883)
 
 > [!IMPORTANT]
 > The link above represents a **100% successful verification** of all clinical modules: Enrollment, Scheduling, Booking, and Real-time Telemetry.
@@ -51,6 +54,8 @@ The application is logically partitioned into distinct domains:
 - **Logistics & Scheduling:** Multi-stage booking, geospatial clinician dispatch, equipment tracking, and care coordination.
 - **Outreach:** Lead management, patient enrollment, and contact logs.
 - **Telemetry & IoT:** Real-time vital sign streaming, live patient heartbeats, and device connectivity.
+- **Mobile Portal & Patient Experience:** Telehealth video consults, Active Medication lists/pill reminders, Google Pay/Apple Pay billing, Insurance card scanning OCR, Google Fit/Apple HealthKit telemetry, and "Visit Radar" real-time transit tracking.
+- **Secure Messaging Hub:** Real-time patient-practitioner threads with push notification support and emergency NLP overrides.
 - **Infrastructure & Security:** Multi-tenant isolation, forensic audit trails, and system-wide security governance.
 
 ---
@@ -59,18 +64,29 @@ The application is logically partitioned into distinct domains:
 
 ```mermaid
 flowchart TD
-    subgraph ClientLayer ["Frontend Ecosystem (Next.js 14)"]
-        MainPortal["Clinical Main Portal (/dashboard)"]
-        AdminPortal["System Admin Portal (/admin)"]
-        Apollo["Apollo Client (GQL)"]
-        SignalR_C["SignalR Client"]
-        PWA["PWA Service Worker / Offline Cache"]
+    subgraph ClientLayer ["Frontend Ecosystems"]
+        subgraph WebPortals ["Next.js Web Applications"]
+            MainPortal["Clinical Main Portal (/dashboard)"]
+            AdminPortal["System Admin Portal (/admin)"]
+            Apollo["Apollo Client (GQL)"]
+            SignalR_C["SignalR Client"]
+            PWA["PWA Service Worker / Offline Cache"]
+        end
+
+        subgraph MobilePortal ["Ionic Mobile App (emr-mobile-app)"]
+            IonicReact["Ionic 8 + React 18 + Capacitor"]
+            ApolloMobile["Apollo Client (GQL)"]
+            SignalR_M["SignalR Client (Foreground)"]
+            SQLiteMobile["SQLite Offline Cache"]
+            HealthKit["Apple HealthKit / Google Fit"]
+        end
     end
 
     subgraph ApiLayer ["API Gateway (.NET 9)"]
         GQL["HotChocolate GraphQL Server"]
         Hubs["SignalR Telemetry Hubs"]
-        Security["[UseClinicalAccess] Middleware"]
+        Security["[UseClinicalAccess] & [UsePatientAccess] Middleware"]
+        FCM["Firebase Cloud Messaging (FCM)"]
         Sim["Telemetry Simulator Service"]
     end
 
@@ -107,13 +123,23 @@ flowchart TD
     Search --> Elastic
     QuestPDF --> Blob
     MainPortal --> PWA
+
+    %% Mobile App Connections
+    IonicReact --> ApolloMobile
+    IonicReact <--> SignalR_M
+    IonicReact --> SQLiteMobile
+    IonicReact --> HealthKit
+    ApolloMobile --> GQL
+    SignalR_M <--> Hubs
+    FCM -- Push Notifications --> IonicReact
+    Services --> FCM
 ```
 
 ---
 
-## 🏛️ System Divisions: The Dual-Portal Architecture
+## 🏛️ System Divisions: The Triple-Portal Architecture
 
-Halkyone is split into two specialized frontend ecosystems, each optimized for specific operational roles:
+Halkyone is split into three specialized frontend ecosystems, each optimized for specific operational roles:
 
 ### 1. Clinical Main Portal (`/dashboard`)
 
@@ -124,6 +150,7 @@ Designed for **Clinical Execution**, this portal is the primary workstation for 
 - **Enrollment Wizard:** High-density patient onboarding and demographic management.
 - **Tactical Scheduling:** Multi-stage booking and regional deployment views.
 - **Identity HUD:** High-density demographic visualization with real-time data synchronization.
+- **Unified Messaging Inbox:** Direct patient triage and messaging panel integrated with active clinical context/vitals.
 
 ### 2. System Admin Portal (`/admin`)
 
@@ -133,6 +160,17 @@ The **Operational Nerve Center** for System Administrators and Medical Directors
 - **Master Registry Management:** Centralized control over Facilities, Health Plans, and Medications.
 - **Security & Audit Vault:** Real-time visibility into system-wide `SecurityAuditLogs` and "Break-Glass" emergency access tracking.
 - **Workforce Governance:** Global management of practitioner licensures, service areas, and shift rotations.
+
+### 3. Patient Mobile Portal (`emr-mobile-app` / "Virtual Hospital Room")
+
+A native iOS/Android patient engagement application built using Ionic Framework, React, and Capacitor, allowing patients direct access to their care pathway.
+
+- **Telehealth & Virtual Care Hub:** WebRTC 1-on-1 video consultations and SignalR-driven virtual waiting room.
+- **Medication & Pharmacy (eRx):** Live active prescriptions, pill reminders, and one-tap refills routing to Care Navigators.
+- **Revenue Cycle Management (RCM):** Apple/Google Pay co-pay settlement, camera OCR insurance card scanner, and PhilHealth Z-Benefit tracker.
+- **IoT & Wearables Sync:** Passive step/resting heart rate sync via Apple HealthKit and Google Fit.
+- **Secure Messaging & SOS:** Photo uploads (wound triage) bypass the camera roll, with emergency NLP warning systems.
+- **Visit Radar Logistics:** Leaflet-based live mapping tracking the clinician's transit vector, with privacy masking at 500m.
 
 ---
 
@@ -169,11 +207,18 @@ Halkyone implements a **Shared Database / Row-Level Isolation** model:
 
 - **Unified Schema**: All tenants (hospitals/clinics) share a single database, maximizing cost-efficiency and simplifying migrations.
 - **Row-Level Security**: Every clinical entity is anchored to a `TenantId`. Data isolation is enforced at the repository level via EF Core Global Query Filters, ensuring a practitioner from Tenant A can never view data from Tenant B.
-- **`[UseClinicalAccess]` Attribute**: Centralized GQL middleware for identity resolution and deep-inspection security.
+- **`[UseClinicalAccess]` & `[UsePatientAccess]` Attributes**: Centralized GQL middleware for identity resolution and deep-inspection security, resolving both clinical staff and patient mobile sessions.
 - **Break-Glass Protocol**: Audited emergency access override for high-authority record viewing.
 
 > [!NOTE]
 > This follows the **"Multi-tenant app with a shared database"** pattern as defined in the [Microsoft SaaS Tenancy Guide](https://learn.microsoft.com/en-us/azure/azure-sql/database/saas-tenancy-app-design-patterns).
+
+### 5. Mobile Native Integration & Push Infrastructure
+
+The patient mobile client leverages Capacitor for physical hardware access while maintaining clean server interaction:
+- **Biometric Authentication**: Secure fingerprint/face login using local device credentials through `@capacitor-community/biometric`.
+- **Hybrid Real-Time Delivery**: Combines foreground WebSocket SignalR connections with background Firebase Cloud Messaging (FCM) notifications to wake the device when inactive (e.g., clinician `InTransit`).
+- **Offline Tolerance**: Local SQLite caching of SurveyJS assessments, allowing patients to complete intake reports and ESAS forms offline and sync when connection is restored.
 
 ---
 
@@ -218,6 +263,12 @@ Practitioners can architect and deploy custom clinical instruments:
 - **Smart Phrase Engine:** Shortcut-driven templates (`/soap`, `/death`, `/meds`) to eliminate charting friction.
 - **Outreach Call Scripts:** Standardized protocols for Enrollment, Bereavement, and Assessment coordination.
 
+### 4. Mobile Patient Workstation & "My Recovery"
+
+- **The Daily Care Ring:** Interactive progress visualization indicating medication and survey compliance.
+- **Native-Styled SurveyJS:** Custom wrapper using Ionic components (`IonContent`) for seamless rendering of ESAS-R and PHQ-9 forms.
+- **Biometric Security:** Integration with device FaceID/TouchID protecting patient health information locally.
+
 ---
 
 ## 🗺️ Geospatial Logistics & Scheduling
@@ -235,6 +286,7 @@ The `SchedulingService.cs` manages clinical deployment complexity:
 - **Regional Clustering:** Grouping of patients/practitioners into sectors (e.g., Cebu City, Mandaue).
 - **Travel Time Estimation:** Precision-clamped (15-45 mins) drive-time calculations utilizing the Haversine formula.
 - **Sonar Signals:** Real-time SignalR tracking of clinician "vectors" across the map.
+- **Visit Radar Integration:** Real-time Leaflet map showing the clinician approaching the patient's home via SignalR coordinates, masking at 500 meters for security.
 
 ---
 
@@ -244,6 +296,8 @@ The `SchedulingService.cs` manages clinical deployment complexity:
 
 - **Z-Benefit Claim Engine:** Integrated support for Philhealth Z-Benefit claims and status tracking.
 - **Invoice Command Center:** Professional invoice generation and financial reconciliation.
+- **Mobile Native Payments:** Apple Pay and Google Pay integration for instant co-pay settlements on the patient mobile app.
+- **OCR Insurance Scanner:** Native camera-based OCR scanning to automatically extract policy numbers and link to care records.
 
 ### 2. Core Operational Services
 
@@ -284,23 +338,94 @@ The Halkyone Clinical OS has undergone rigorous hardening to transition from a h
 - **Playwright Integration:** Established a robust End-to-End testing framework to automate mission-critical clinical validation.
 - **Clinical Smoke Tests:** Automated verification of the "Critical Enrollment Path" and "Dashboard Metrics," ensuring that infrastructure updates do not degrade core clinical workflows.
 
+## 💾 Domain & Schema Extensions (.NET 9 EF Core)
+
+To support the Triple-Portal Architecture and the Patient Mobile Portal, the existing PostgreSQL database schema and `.NET 9 Domain` are extended with the following entities:
+
+### 📱 Mobile Tokens & Secure Chat Schema
+```csharp
+// Domain/Entities/MobileDeviceToken.cs
+public class MobileDeviceToken : BaseEntity, ITenantEntity {
+    public Guid DeviceTokenId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
+    public Guid PatientId { get; set; }
+    public string FcmToken { get; set; } = string.Empty;
+    public string Platform { get; set; } = string.Empty; // "ios" or "android"
+}
+
+// Domain/Entities/CareThread.cs
+public class CareThread : BaseEntity, ITenantEntity {
+    public Guid CareThreadId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
+    public Guid PatientId { get; set; }
+    public Guid PractitionerId { get; set; } // The Care Navigator
+    public ICollection<ChatMessage> Messages { get; set; } = new List<ChatMessage>();
+}
+
+// Domain/Entities/ChatMessage.cs
+public class ChatMessage : BaseEntity, ITenantEntity {
+    public Guid ChatMessageId { get; set; } = Guid.NewGuid();
+    public Guid TenantId { get; set; }
+    public Guid CareThreadId { get; set; }
+    public Guid SenderId { get; set; }
+    public string SenderRole { get; set; } = string.Empty; // "Patient" or "Practitioner"
+    public string Content { get; set; } = string.Empty;
+    public string? AttachmentUrl { get; set; } 
+    public bool IsRead { get; set; } = false;
+}
+```
+
+## 📋 Mobile Epic Issue Registry & Sprint Tasks
+
+To track the progress of transitioning the Halkyone Clinical OS into the **Triple-Portal Architecture**, we utilize the following Epic registry:
+
+### Phase 1: Native Mobile Foundation & Auth
+- **[#2] Initialize Ionic React workspace (`emr-mobile-app`) with Tailwind CSS** *(COMPLETED)*
+- **[#3]** Implement `PatientAccount` & `CaregiverLink` DB entities (Entity Framework Core)
+- **[#4]** Configure `@capacitor/core`, `@capacitor/ios`, and `@capacitor/android`
+- **[#5]** Build biometric login workflow via `@capacitor-community/biometric`
+- **[#6]** Expose `[UsePatientAccess]` GraphQL authorization middleware in `.NET 9`
+
+### Phase 2: Secure Care-Team Messaging Engine
+- **[#7]** Add `CareThread` and `ChatMessage` models to PostgreSQL
+- **[#8]** Implement SignalR `ChatHub` for real-time bi-directional message broadcast
+- **[#9]** Build Unified Messaging Inbox UI for Care Navigators in the Next.js `/dashboard`
+- **[#10]** Add NLP Emergency Override (intercepting "chest pain" texts for alerts)
+- **[#11]** Implement native camera wound-triage photo uploads via Capacitor to Azurite
+
+### Phase 3: Telehealth & Medication Management
+- **[#12]** Integrate native WebRTC for secure 1-on-1 virtual visits with Virtual Waiting Room
+- **[#13]** Render the patient's active prescriptions (eRx) with visual pill identifiers
+- **[#14]** Build Smart Pill Reminders via Capacitor Local Notifications
+
+### Phase 4: Dynamic Assessments & Logistics (Visit Radar)
+- **[#15]** Embed SurveyJS React components into `IonContent` for ESAS-R/PHQ-9 trackers
+- **[#16]** Implement local offline draft caching via Capacitor SQLite
+- **[#17]** Build the "Visit Radar" Leaflet map, subscribing to SignalR transit vectors
+- **[#18]** Configure Firebase Cloud Messaging (FCM) to wake up the app when clinician is `InTransit`
+
+### Phase 5: RCM Billing & Wearable Telemetry
+- **[#19]** Add Apple Pay / Google Pay integrations for copay settlements
+- **[#20]** Implement native camera OCR for Insurance Card scanning
+- **[#21]** Bridge Apple HealthKit / Google Fit for passive steps & resting HR sync
+
 ## 🛠️ The Tactical Toolchain
 
 ### 🛠️ Core Technologies Used
 
-- **Frontend**: Next.js 14 (App Router), React, Tailwind CSS, Framer Motion
-- **Backend**: .NET 9, C#, ASP.NET Core Web API
+- **Web Portals**: Next.js 14 (App Router), React, Tailwind CSS, Framer Motion
+- **Mobile Client**: Ionic Framework v8, React 18, Capacitor (iOS & Android native bridge), SQLite
+- **Backend API**: .NET 9, C#, ASP.NET Core Web API (HotChocolate GraphQL, SignalR)
 - **Database**: PostgreSQL with Entity Framework Core
-- **Real-time**: SignalR for Patient Telemetry & Live Heartbeat
-- **Search**: Elasticsearch for Global Clinical Search
-- **API Strategy**: GraphQL (HotChocolate) & REST (Standard API)
+- **Search & Forensics**: Elasticsearch for Global Clinical Search and Audit Logs
+- **Real-time**: SignalR for Patient Telemetry, Chat Messaging, & Live clinician vectors
 
 ### 📦 Key Integrated Packages
 
 - **Backend Infrastructure (.NET 9)**:
-  - `HotChocolate`: Enterprise-grade GraphQL Engine with Apollo Federation support.
-  - `SignalR`: Real-time WebSocket synchronization for **Live Patient Telemetry** and system heartbeats.
-  - `Azurite`: Local emulation for Azure Blob Storage, ensuring seamless **Clinical Document Persistence**.
+  - `HotChocolate`: Enterprise-grade GraphQL Engine with custom access middlewares (`[UseClinicalAccess]`, `[UsePatientAccess]`).
+  - `SignalR`: Real-time WebSocket synchronization for **Live Patient Telemetry**, **Chat Messaging**, and system heartbeats.
+  - `Azurite`: Local emulation for Azure Blob Storage, ensuring seamless **Clinical Document Persistence** and Chat Media attachments.
   - `MediatR`: CQRS architecture for decoupled, scalable clinical command processing.
   - `QuestPDF`: Declarative PDF engine for generating high-fidelity **Clinical Encounter Summaries**.
   - `Bogus`: Tactical data generator for high-entropy clinical seeding in dev/CI environments.
@@ -312,14 +437,19 @@ The Halkyone Clinical OS has undergone rigorous hardening to transition from a h
   - `Recharts`: Real-time operational data visualization for clinical decision support.
   - `Leaflet`: Geospatial intelligence for care navigation and practitioner logistics.
   - `SignalR Client`: Edge-side synchronization for real-time heartbeat monitoring.
+- **Mobile Client Integration**:
+  - `@capacitor/core`, `@capacitor/ios`, `@capacitor/android`: Native wrapper for iOS and Android deployment.
+  - `@capacitor-community/biometric`: Local biometric authentication (FaceID/TouchID).
+  - `SQLite (Capacitor plugin)`: Secure local storage for SurveyJS offline assessment drafts.
 
 | Category           | **Technologies / Tools Used**                                                           |
 | :----------------- | :-------------------------------------------------------------------------------------- |
 | **Backend Core**   | .NET 9, HotChocolate GraphQL, EF Core (PostgreSQL), MediatR, SignalR, Elasticsearch.    |
 | **Frontend**       | Next.js 14 (App Router), Apollo Client, Tailwind CSS, SurveyJS, Lucide React, next-pwa. |
+| **Mobile App**      | Ionic v8, React 18, Capacitor, SQLite, Firebase Cloud Messaging (FCM), Google/Apple Pay. |
 | **Infrastructure** | Azurite/Azure Blob Storage, QuestPDF, Bogus (Data Seeding), Docker.                     |
 | **Testing & QA**   | Playwright E2E, Vitest (Unit), GitHub Actions.                                          |
-| **Security**       | JWT Claims, [UseClinicalAccess] Attribute, SecurityAuditService.                        |
+| **Security**       | JWT Claims, Biometric Auth, [UseClinicalAccess] & [UsePatientAccess] Middleware.        |
 
 ---
 
@@ -370,10 +500,15 @@ The full clinical lifecycle is validated on every push:
 │   ├── src/app/dashboard/ # Clinical Main Portal Ecosystem
 │   ├── src/components/  # High-density UI (SurveyJS, Booking, HUDs, Drawers)
 │   └── src/lib/         # GQL Fragments & Apollo Infrastructure
+├── emr-mobile-app/      # Ionic/Capacitor Patient Mobile App
+│   ├── android/         # Android Native Project Config
+│   ├── ios/             # iOS Native Project Config
+│   ├── src/components/  # Mobile Components (Visit Radar, Daily Care Ring)
+│   └── src/pages/       # Mobile Pages (Telehealth, Messaging, Pharmacy, Billing)
 ├── emr-server/          # .NET 9 Multi-Tenant Backend
-│   ├── src/Domain/      # Entities (Patient, Encounter, Telemetry, Questionnaire)
-│   ├── src/Application/ # MediatR CQRS (Commands & Queries)
-│   ├── src/Infrastructure/ # Concrete Services (Pdf, Scheduling, Storage, Audit)
+│   ├── src/Domain/      # Entities (Patient, Encounter, Telemetry, Mobile Schema)
+│   ├── src/Application/ # MediatR Micro-flows (Commands & Queries)
+│   ├── src/Infrastructure/ # Concrete Services (Pdf, Scheduling, Storage, FCM, Audit)
 │   └── src/Api/         # GraphQL Resolvers, SignalR Hubs, TelemetrySimulator
 └── Database/            # SQL Schema & Tactical Seeding Logic
 ```
@@ -437,11 +572,17 @@ David, a Senior Care Navigator for the Visayas Health Network, logs into the Hal
 
 Halkyone operates on a strict **Row-Level Isolation** architecture. When David’s dashboard queries the PostgreSQL database via Entity Framework Core, Global Query Filters automatically append his specific `TenantId`. David only sees the thousands of patients belonging to his specific healthcare network. The data of other hospital chains using the system is cryptographically and structurally invisible to him, ensuring absolute zero-trust tenant segregation.
 
-### 🚨 08:15 AM | Geospatial Dispatch
+### 🚨 08:15 AM | The Mobile SOS & Geospatial Dispatch
 
-An alert flashes on David’s Triage HUD: Maria, a 68-year-old hospice patient in Sector 4, reports a sudden, severe spike in breakthrough pain.
+Maria, a 68-year-old hospice patient in Sector 4, experiences a sudden, severe spike in breakthrough pain. She opens the **Halkyone Patient Mobile App** using local biometric FaceID auth. Rather than calling a busy hotline, she navigates to the **Secure Messaging Hub** and types: *"chest pain and severe breathing difficulty"*.
 
-David doesn't need to manually cross-reference spreadsheets or call available nurses. He opens the **Tactical Scheduling** module. The .NET 9 `SchedulingService` engine leaps into action, executing geospatial vector calculations using the Haversine formula. It evaluates the Sonar Signals of all field clinicians, clamps the drive-time estimates, and identifies Dr. Elena—a palliative specialist currently just 15 minutes away from Maria's coordinates. With two clicks, David deploys the encounter command.
+The backend's NLP processing engine intercepts this message. Recognizing critical distress triggers, it immediately bypasses standard queues to broadcast a high-priority SignalR alert directly to David's Triage HUD. Maria also uses the secure mobile camera to take a photo of her swollen leg, transmitting it as an encrypted upload to the Azurite server (bypassing her personal camera roll for HIPAA compliance).
+
+David sees the SOS override on the `/dashboard`, views Maria's uploaded leg photo, and clicks the **Tactical Scheduling** module. The .NET 9 `SchedulingService` engine leaps into action, executing geospatial vector calculations using the Haversine formula. It evaluates the Sonar Signals of all field clinicians, clamps the drive-time estimates, and identifies Dr. Elena—a palliative specialist currently just 15 minutes away from Maria's coordinates. With two clicks, David deploys the encounter command.
+
+### 🚗 08:30 AM | Visit Radar & Real-Time Tracking
+
+Maria’s phone vibrates with a **Firebase Cloud Messaging (FCM)** background push notification: *"Dr. Elena is on her way to your location."* Maria opens the app and navigates to the **Visit Radar** logistics screen. On a Leaflet-rendered map, she watches Dr. Elena's vehicle approach in real-time using SignalR coordinate updates. To protect Dr. Elena’s personal safety and privacy, the system automatically masks her precise location once she is within 500 meters of Maria's home.
 
 ### 🩺 09:00 AM | The Zero-Latency Bedside Encounter
 
@@ -465,13 +606,15 @@ The on-call Night Director, Dr. Aris, receives the urgent escalation. However, D
 
 Dr. Aris clicks the **"Break-Glass" Emergency Override**. He types his override justification: _"Acute Respiratory Distress - Cross Coverage."_ The custom `[UseClinicalAccess]` deep-inspection middleware catches the request. It validates the emergency parameters and temporarily rewrites his authorization claims, instantly granting him high-authority viewing rights. Simultaneously, the **Security Audit Service** locks down an immutable forensic log of the override event. Dr. Aris saves Maria's life, and the hospital's compliance officers have a mathematically verifiable audit trail for HIPAA adherence.
 
-### 💰 08:00 AM (Next Day) | Revenue Cycle Closure
+### 💰 08:00 AM (Next Day) | Revenue Cycle & Mobile Settlement
 
 Dr. Aris successfully guided the night nurse through a medication adjustment. Maria is stabilized and resting comfortably.
 
-Back at the Nerve Center, billing administrators log into the `/admin` portal. The previous day's encounters—Elena's dynamic assessment and Dr. Aris's emergency intervention—are already waiting in the **Revenue Cycle Management** module. Halkyone has automatically verified the multi-state practitioner licensures and queued the encounter data into the **Z-Benefit Claim Engine** for Philhealth processing.
+Back at the Nerve Center, billing administrators log into the `/admin` portal. The previous day's encounters—Elena's dynamic assessment, the secure messaging triage, and Dr. Aris's emergency intervention—are already waiting in the **Revenue Cycle Management** module. Halkyone has automatically verified the multi-state practitioner licensures and queued the encounter data into the **Z-Benefit Claim Engine** for Philhealth processing.
 
-In exactly 24 hours, Halkyone Clinical OS navigated complex geospatial logistics, handled real-time streaming telemetry, executed dynamic clinical documentation, enforced enterprise-grade security overrides, and prepped financial billing—all without a single system stutter, latency delay, or data leak.
+Simultaneously, Maria's caregiver receives a push notification on their mobile device. They open the **Halkyone Patient Mobile App**, review the pending co-pay invoice, and settle the balance securely with a single tap using Apple Pay. The PhilHealth tracker update appears live on Maria's mobile dashboard showing claim approval progress in real-time.
+
+In exactly 24 hours, Halkyone Clinical OS navigated complex geospatial logistics, handled real-time streaming telemetry, executed dynamic clinical documentation, enforced enterprise-grade security overrides, and prepped financial billing—all while integrating patient mobile interactions seamlessly and securely.
 
 ---
 
