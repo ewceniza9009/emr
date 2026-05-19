@@ -14,6 +14,7 @@ const GET_PATIENT_THREADS = gql`
         content
         senderRole
         timestamp
+        isSeen
       }
     }
   }
@@ -26,6 +27,7 @@ const SEND_NAVIGATOR_MESSAGE = gql`
       content
       senderRole
       timestamp
+      isSeen
     }
   }
 `;
@@ -57,32 +59,22 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
     const threads = data?.patientChatThreads;
     if (threads && threads.length > 0) {
       setActiveThreadId(threads[0].careThreadId);
-      setMessages(threads[0].messages || []);
+      const msgs = threads[0].messages || [];
+      setMessages(msgs);
+      if (!isOpenRef.current) {
+        const unread = msgs.filter((m: any) => m.senderRole !== 'navigator' && !m.isSeen).length;
+        setUnreadCount(unread);
+      }
     }
   }, [data]);
 
   const [sendMessageMutation] = useMutation(SEND_NAVIGATOR_MESSAGE);
-  const [seenMessages, setSeenMessages] = useState<Record<string, boolean>>({});
   const connectionRef = useRef<any>(null);
 
-  // Simulate real-time read receipt transitions for navigator's latest message
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastMsg = messages[messages.length - 1];
-      if (lastMsg.senderRole === 'navigator' && !seenMessages[lastMsg.chatMessageId]) {
-        const timer = setTimeout(() => {
-          setSeenMessages(prev => ({ ...prev, [lastMsg.chatMessageId]: true }));
-        }, 2500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [messages, seenMessages]);
+  const token = (session?.user as any)?.token;
 
   useEffect(() => {
-    if (!activeThreadId) return;
-    
-    const token = (session?.user as any)?.token;
-    if (!token) return;
+    if (!activeThreadId || !token) return;
 
     let isMounted = true;
 
@@ -147,7 +139,7 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
       isMounted = false;
       connection.stop().catch(() => {});
     };
-  }, [activeThreadId, session]);
+  }, [activeThreadId, token]);
 
   // Notify patient when clinician modal transitions to open
   useEffect(() => {
@@ -168,7 +160,8 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
       chatMessageId: `temp-${Date.now()}`,
       content: sentText,
       senderRole: 'navigator',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      isSeen: false
     };
     setMessages(prev => [...prev, tempMsg]);
 
@@ -216,8 +209,7 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
             
             <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-slate-50 dark:bg-slate-950">
               {messages.map((m, idx) => {
-                const isLastMessage = idx === messages.length - 1;
-                const isSeen = !isLastMessage || m.senderRole !== 'navigator' || String(m.chatMessageId).startsWith('temp-') || seenMessages[m.chatMessageId];
+                const isSeen = m.isSeen || String(m.chatMessageId).startsWith('temp-');
 
                 return (
                   <div key={m.chatMessageId || idx} className={`flex ${m.senderRole === 'navigator' ? 'justify-end' : 'justify-start'}`}>
@@ -234,7 +226,7 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
                               Seen <span className="text-[10px] leading-none font-bold">✓✓</span>
                             </span>
                           ) : (
-                            <span className="text-indigo-300/85 flex items-center gap-0.5 animate-pulse">
+                            <span className="text-indigo-300/85 flex items-center gap-0.5">
                               Sent <span className="text-[10px] leading-none">✓</span>
                             </span>
                           )}

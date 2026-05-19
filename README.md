@@ -3,12 +3,12 @@
 **[🚀 View Live Demo](https://emr-three-hazel.vercel.app)**
 
 ### 🔑 Test Credentials
-*   **User:** `admin@palliative.emr`
-*   **Password:** `P@ssword123!`
+
+- **User:** `admin@palliative.emr`
+- **Password:** `P@ssword123!`
 
 > [!NOTE]
 > The first time you log in or access the dashboard, the initial load may be slow (up to 50 seconds). This is due to the **Render Free Instance** spin-up time for the backend services. Once warmed up, the platform maintains sub-second tactical performance.
-
 
 [![Architecture: Clean](https://img.shields.io/badge/Architecture-Clean--Architecture-blue.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 [![Pattern: CQRS--MediatR](https://img.shields.io/badge/Pattern-CQRS--MediatR-blueviolet.svg)](https://github.com/jbogard/MediatR)
@@ -34,7 +34,7 @@
 
 ## 📊 Clinical QA & Reliability Report
 
-[**📊 View Full CI/CD (Continuous Integration & Deployment) History**](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/25899185774/artifacts/7009812326)
+[**📊 View Full CI/CD (Continuous Integration & Deployment) History**](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/26083206434/artifacts/7077657883)
 
 > [!IMPORTANT]
 > The link above represents a **100% successful verification** of all clinical modules: Enrollment, Scheduling, Booking, and Real-time Telemetry.
@@ -328,6 +328,7 @@ The Halkyone Clinical OS has undergone rigorous hardening to transition from a h
 Halkyone maintains a **100% Reliability Target** via automated mission-critical audits.
 
 ### 🛡️ Playwright E2E Verification
+
 The full clinical lifecycle is validated on every push:
 
 - **✓ Patient Enrollment**: Multi-phase workflow (Admin, Legal, Clinical, Logistics) converting leads to MRN-verified patients.
@@ -338,6 +339,7 @@ The full clinical lifecycle is validated on every push:
 - **✓ Telemetry Hub**: Verification of the clinical grid scanner and real-time monitoring interface.
 
 ### 🧪 Unit & Integration Testing
+
 - **Clinical Logistics**: Precision-clamped travel time, geospatial distancing, and shift boundary validation in `SchedulingService`.
 - **Command Integrity**: Atomic verification of `BookAppointment` and `FinalizeEnrollment` state transitions and MRN generation.
 - **Infrastructure Stability**: EF Core multi-tenant isolation, migration integrity, and notification service orchestration.
@@ -470,33 +472,6 @@ Dr. Aris successfully guided the night nurse through a medication adjustment. Ma
 Back at the Nerve Center, billing administrators log into the `/admin` portal. The previous day's encounters—Elena's dynamic assessment and Dr. Aris's emergency intervention—are already waiting in the **Revenue Cycle Management** module. Halkyone has automatically verified the multi-state practitioner licensures and queued the encounter data into the **Z-Benefit Claim Engine** for Philhealth processing.
 
 In exactly 24 hours, Halkyone Clinical OS navigated complex geospatial logistics, handled real-time streaming telemetry, executed dynamic clinical documentation, enforced enterprise-grade security overrides, and prepped financial billing—all without a single system stutter, latency delay, or data leak.
-
----
-
-## 🚀 Recent Architectural Stabilizations (May 2026)
-
-The following high-fidelity enhancements have been integrated to ensure Halkyone remains the most stable and visually professional Clinical OS on the market:
-
-### 1. Unified Telemetry Handshake
-
-- **State Synchronization:** Fully synchronized the `LiveHeartbeat` telemetry link with backend state machines. The system now performs a real-time handshake between the frontend toggle and the patient's active `ClinicalEncounter` or `Appointment` status.
-- **Smarter Simulation Logic:** The `TelemetrySimulatorService` has been upgraded to be "Context Aware," automatically broadcasting telemetry for patients who are either in an active Encounter (`InProgress`, `Triaged`) or have an active Appointment (`InProgress`).
-
-### 2. Full-Spectrum Theme Hardening (Light & Dark)
-
-- **Visual Artifact Elimination:** Scrubbed the entire platform of hardcoded dark-mode styles. Core components like the `EmergencyActionDrawer`, `DocumentVault`, and `CommandModal` now utilize dynamic CSS variables (`var(--card-bg)`, `var(--text-primary)`) for perfect legibility in high-glare clinical environments.
-- **Tactical Scheduling Contrast:** Fixed contrast discrepancies in the `SchedulingCalendar`. Appointment blocks and "Support Team" labels now dynamically adjust their backgrounds and text colors to maintain 100% legibility in Light Mode.
-- **Modal & Sidebar Refinement:** Standardized all system dialogs and navigation elements to use theme-aware backdrops and dividers, removing "ghostly" artifacts and ensuring a premium, unified aesthetic.
-
-### 3. Automated Clinical Workflow
-
-- **Zero-Touch Initialization:** Implemented auto-detection logic in the Patient Dashboard. If a practitioner opens a chart for a patient already in an active clinical session, the telemetry stream initializes automatically, reducing cognitive load and manual clicks.
-
-### 5. High-Authority Registry & Registry Reliability
-
-- **Unenrollment Audit Protocol:** Implemented a mandatory reason capture modal for registry reversals (unenrollments). Reasons are persisted to the Outreach Activity audit log, ensuring forensic accountability for all lead status changes.
-- **Transactional Outbox for Search:** Integrated the Outbox Pattern to decouple Elasticsearch indexing from the main clinical transaction. This guarantees that search discovery never misses a heartbeat, even during external service outages.
-- **GraphQL N+1 Hardening:** Fully optimized the clinical data pipeline using HotChocolate DataLoaders. Complex patient summaries (Meds, Allergies, History) are now fetched in single, efficient SQL batches, reducing API latency by up to 80% for high-density views.
 
 ---
 

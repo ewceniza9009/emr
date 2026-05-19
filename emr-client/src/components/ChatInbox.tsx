@@ -21,6 +21,7 @@ const GET_INBOX_THREADS = gql`
         content
         senderRole
         timestamp
+        isSeen
       }
     }
   }
@@ -33,6 +34,7 @@ const SEND_NAVIGATOR_MESSAGE = gql`
       content
       senderRole
       timestamp
+      isSeen
     }
   }
 `;
@@ -82,25 +84,12 @@ export function ChatInbox() {
   }, [activeThreadId, activeThread?.messages]);
 
   const [sendMessageMutation] = useMutation(SEND_NAVIGATOR_MESSAGE);
-  const [seenMessages, setSeenMessages] = useState<Record<string, boolean>>({});
   const connectionRef = useRef<any>(null);
-
-  // Simulate real-time read receipt transitions for navigator's latest message
-  useEffect(() => {
-    if (activeMessages.length > 0) {
-      const lastMsg = activeMessages[activeMessages.length - 1];
-      if (lastMsg.senderRole === 'navigator' && !seenMessages[lastMsg.chatMessageId]) {
-        const timer = setTimeout(() => {
-          setSeenMessages(prev => ({ ...prev, [lastMsg.chatMessageId]: true }));
-        }, 2500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [activeMessages, seenMessages]);
 
   const activeThreadIdRef = useRef<string | null>(activeThreadId);
   const rawThreadsRef = useRef<any[]>(rawThreads);
   const joinedThreadsRef = useRef<Set<string>>(new Set());
+  const isOpenRef = useRef<boolean>(isOpen);
 
   useEffect(() => {
     activeThreadIdRef.current = activeThreadId;
@@ -109,6 +98,10 @@ export function ChatInbox() {
   useEffect(() => {
     rawThreadsRef.current = rawThreads;
   }, [rawThreads]);
+
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
 
   // Helper: join all known thread groups on a live connection
   const joinAllThreadGroups = (connection: any) => {
@@ -122,7 +115,7 @@ export function ChatInbox() {
           }
         });
     });
-    if (activeThreadIdRef.current) {
+    if (activeThreadIdRef.current && isOpenRef.current) {
       connection.invoke('MarkAsSeen', activeThreadIdRef.current, 'navigator')
         .catch((err: any) => {
           if (err?.name !== 'AbortError' && !err?.toString()?.includes('stopped')) {
@@ -132,23 +125,17 @@ export function ChatInbox() {
     }
   };
 
-  // Connect to SignalR socket globally on mount to enable background unread notifications
-  // Stable token ref to avoid connection churn from session object reference changes
-  const tokenRef = useRef<string | null>(null);
-  useEffect(() => {
-    tokenRef.current = (session?.user as any)?.token || null;
-  }, [session]);
+  // Connect to SignalR socket globally on mount to enable background unread notifications stably using primitive token dependency
+  const token = (session?.user as any)?.token;
 
   useEffect(() => {
-    if (sessionStatus !== 'authenticated') return;
-    const token = tokenRef.current;
-    if (!token) return;
+    if (sessionStatus !== 'authenticated' || !token) return;
 
     let isMounted = true;
 
     const connection = new HubConnectionBuilder()
       .withUrl(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:34732'}/hubs/chat`, {
-        accessTokenFactory: () => tokenRef.current || token
+        accessTokenFactory: () => token
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(LogLevel.Warning)
@@ -174,6 +161,9 @@ export function ChatInbox() {
           const filtered = prev.filter(m => !(String(m.chatMessageId).startsWith('temp-') && m.content === message.content && m.senderRole === message.senderRole));
           return [...filtered, message];
         });
+        if (message.senderRole !== 'navigator' && isOpenRef.current) {
+          connection.invoke('MarkAsSeen', message.careThreadId, 'navigator').catch(() => {});
+        }
       }
       refetch();
     });
@@ -184,6 +174,7 @@ export function ChatInbox() {
         // Patient viewed navigator messages -> mark all navigator messages in active view as seen!
         setActiveMessages(prev => prev.map(m => m.senderRole === 'navigator' ? { ...m, isSeen: true } : m));
       }
+      refetch();
     });
 
     connection.start().then(() => {
@@ -202,7 +193,7 @@ export function ChatInbox() {
       connection.stop().catch(() => {});
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionStatus]);
+  }, [sessionStatus, token]);
 
   // Dynamically join new threads as they load or get created
   useEffect(() => {
@@ -222,17 +213,20 @@ export function ChatInbox() {
     }
   }, [rawThreads]);
 
-  // Invoke MarkAsSeen to notify patient's mobile app in real-time when activeThreadId changes or new message is selected
+  // Invoke MarkAsSeen to notify patient's mobile app in real-time when activeThreadId changes or new message is selected (only if open)
   useEffect(() => {
-    if (activeThreadId && connectionRef.current && connectionRef.current.state === 'Connected') {
+    if (isOpen && activeThreadId && connectionRef.current && connectionRef.current.state === 'Connected') {
       connectionRef.current.invoke('MarkAsSeen', activeThreadId, 'navigator')
+        .then(() => {
+          refetch();
+        })
         .catch((err: any) => {
           if (err?.name !== 'AbortError' && !err?.toString()?.includes('stopped')) {
             console.error("Error invoking seen receipt:", err);
           }
         });
     }
-  }, [activeThreadId, activeMessages.length]);
+  }, [isOpen, activeThreadId, activeMessages.length]);
 
   const handleSend = async () => {
     if (!inputText.trim() || !activeThread) return;
@@ -265,16 +259,13 @@ export function ChatInbox() {
     }
   };
 
-  // Calculate unread threads (threads where the last message is from the patient/caregiver)
-  const unreadThreads = rawThreads.filter((t: any) => {
+  // Calculate total unread messages count across all threads
+  const unreadCount = rawThreads.reduce((acc: number, t: any) => {
     const messages = t.messages || [];
-    if (messages.length === 0) return false;
-    const lastMessage = messages[messages.length - 1];
-    return lastMessage.senderRole !== 'navigator';
-  });
+    return acc + messages.filter((m: any) => m.senderRole !== 'navigator' && !m.isSeen).length;
+  }, 0);
 
-  const hasUnread = unreadThreads.length > 0;
-  const unreadCount = unreadThreads.length;
+  const hasUnread = unreadCount > 0;
 
   return (
     <>
@@ -310,12 +301,7 @@ export function ChatInbox() {
                   <div className="p-4 text-xs text-slate-550 text-center mt-4">No active chats</div>
                 ) : (
                   threads.map((t: any) => {
-                    const isThreadUnread = (() => {
-                      const messages = t.messages || [];
-                      if (messages.length === 0) return false;
-                      const lastMessage = messages[messages.length - 1];
-                      return lastMessage.senderRole !== 'navigator';
-                    })();
+                    const isThreadUnread = (t.messages || []).some((m: any) => m.senderRole !== 'navigator' && !m.isSeen);
 
                     return (
                       <button 
@@ -360,7 +346,7 @@ export function ChatInbox() {
                 ) : (
                   <div className="text-sm font-medium text-slate-500">Select a chat</div>
                 )}
-                <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
+                <button onClick={() => { setIsOpen(false); setActiveThreadId(null); }} className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -377,7 +363,20 @@ export function ChatInbox() {
                       <div className="font-semibold text-[9px] mb-1 opacity-70 uppercase tracking-widest">
                         {m.senderRole === 'navigator' ? 'You' : 'Patient'}
                       </div>
-                      {m.content}
+                      <div className="break-words font-medium">{m.content}</div>
+                      {m.senderRole === 'navigator' && (
+                        <div className="flex items-center justify-end gap-1 mt-1 text-[8px] opacity-75 font-semibold select-none">
+                          {m.isSeen ? (
+                            <span className="text-indigo-200 flex items-center gap-0.5">
+                              Seen <span className="text-[10px] leading-none font-bold">✓✓</span>
+                            </span>
+                          ) : (
+                            <span className="text-indigo-300/85 flex items-center gap-0.5">
+                              Sent <span className="text-[10px] leading-none">✓</span>
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

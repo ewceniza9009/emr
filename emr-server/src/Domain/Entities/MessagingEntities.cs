@@ -26,6 +26,7 @@ public class ChatMessage : BaseEntity, ITenantEntity
     public string Content { get; set; } = string.Empty;
     public DateTimeOffset Timestamp { get; set; } = DateTimeOffset.UtcNow;
     public bool IsAttachment { get; set; } = false;
+    public bool IsSeen { get; set; } = false;
 
     public CareThread CareThread { get; set; } = null!;
 }

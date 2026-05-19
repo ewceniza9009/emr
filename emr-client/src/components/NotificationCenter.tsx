@@ -49,7 +49,7 @@ interface Notification {
 }
 
 export function NotificationCenter() {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -67,11 +67,14 @@ export function NotificationCenter() {
   const refetchRef = useRef(refetch);
   useEffect(() => { refetchRef.current = refetch; }, [refetch]);
 
+  // Connect to SignalR notification hub stably using primitive string dependencies
+  const token = (session?.user as any)?.token;
+  const userId = (session?.user as any)?.id;
+
   useEffect(() => {
-    if (!session?.user) return;
+    if (sessionStatus !== 'authenticated' || !token || !userId) return;
 
     let isMounted = true;
-    const token = (session.user as any).token;
 
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:34732'}/hubs/notifications`, {
@@ -85,15 +88,20 @@ export function NotificationCenter() {
       if (isMounted) refetchRef.current();
     });
 
-    connection.onreconnected(async () => {
-      const userId = (session.user as any)?.id;
+    const joinGroup = async (conn: signalR.HubConnection) => {
       if (userId && isMounted) {
         try {
-          await connection.invoke("JoinUserGroup", userId);
-          refetchRef.current();
+          await conn.invoke("JoinUserGroup", userId);
         } catch (err) {
-          console.error("Failed to rejoin user group on reconnect:", err);
+          console.error("Failed to join user group:", err);
         }
+      }
+    };
+
+    connection.onreconnected(async () => {
+      if (isMounted) {
+        await joinGroup(connection);
+        refetchRef.current();
       }
     });
 
@@ -101,9 +109,8 @@ export function NotificationCenter() {
       try {
         if (connection.state === signalR.HubConnectionState.Disconnected) {
           await connection.start();
-          const userId = (session.user as any)?.id;
-          if (userId && isMounted) {
-            await connection.invoke("JoinUserGroup", userId);
+          if (isMounted) {
+            await joinGroup(connection);
           }
         }
       } catch (err: any) {
@@ -118,13 +125,10 @@ export function NotificationCenter() {
 
     return () => {
       isMounted = false;
-      if (connection.state !== signalR.HubConnectionState.Disconnected) {
-        connection.stop().catch(() => {
-          // Gracefully handle AbortError during negotiation/unmount
-        });
-      }
+      connection.stop().catch(() => {});
     };
-  }, [session]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionStatus, token, userId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

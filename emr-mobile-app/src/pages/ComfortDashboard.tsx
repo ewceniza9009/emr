@@ -376,25 +376,37 @@ const ComfortDashboard: React.FC = () => {
   useEffect(() => {
     if (!user?.patientId || !apiUrl) return;
 
+    let isMounted = true;
+
     const connection = new HubConnectionBuilder()
       .withUrl(`${apiUrl}/hubs/telemetry`, {
         accessTokenFactory: () => localStorage.getItem('halkyone-mobile-token') || ''
       })
-      .withAutomaticReconnect()
-      .configureLogging(LogLevel.Information)
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+      .configureLogging(LogLevel.Warning)
       .build();
 
+    // Re-join the telemetry stream after a network reconnect
+    connection.onreconnected(() => {
+      if (isMounted && user.patientId) {
+        connection.invoke('JoinPatientStream', user.patientId).catch(() => {});
+      }
+    });
+
     connection.start().then(() => {
-      console.log('SignalR Connected to TelemetryHub');
-      connection.invoke('JoinPatientStream', user.patientId);
+      if (isMounted) {
+        console.log('SignalR Connected to TelemetryHub');
+        connection.invoke('JoinPatientStream', user.patientId).catch(() => {});
+      }
     }).catch(err => {
       const isAbort = err?.name === 'AbortError' || err?.toString()?.includes('stopped');
-      if (!isAbort) {
+      if (!isAbort && isMounted) {
         console.error('SignalR Connection Error: ', err);
       }
     });
 
     connection.on('ReceiveVitals', (vitals: any) => {
+      if (!isMounted) return;
       console.log('Received live vitals:', vitals);
       setLiveVitals({
         heartRate: vitals.heartRate || vitals.HeartRate || 72,
@@ -404,7 +416,8 @@ const ComfortDashboard: React.FC = () => {
     });
 
     return () => {
-      connection.stop();
+      isMounted = false;
+      connection.stop().catch(() => {});
     };
   }, [user?.patientId, apiUrl]);
 

@@ -20,6 +20,7 @@ import {
   shieldCheckmark,
   warning,
   heart,
+  checkmark,
   checkmarkDone,
   sunny,
   moon as moonIcon
@@ -31,6 +32,7 @@ interface Message {
   sender: 'patient' | 'navigator';
   content: string;
   timestamp: string;
+  isSeen?: boolean;
   isAttachment?: boolean;
 }
 
@@ -45,17 +47,23 @@ const GET_CHAT_THREADS = gql`
         senderRole
         content
         timestamp
+        isSeen
       }
     }
   }
 `;
 
 const SEND_MESSAGE = gql`
+  query GetChatThreadsDummy { careThreads { careThreadId } }
+`;
+
+const SEND_MESSAGE_MUTATION = gql`
   mutation SendMessage($patientId: UUID!, $careThreadId: UUID!, $content: String!) {
     sendMobileChatMessage(patientId: $patientId, careThreadId: $careThreadId, content: $content) {
       chatMessageId
       content
       timestamp
+      isSeen
     }
   }
 `;
@@ -112,44 +120,76 @@ const CareHub: React.FC = () => {
         id: m.chatMessageId,
         sender: m.senderRole === 'patient' ? 'patient' : 'navigator',
         content: m.content,
-        timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isSeen: m.isSeen
       })) || [];
       setMessages(mapped);
     }
   }, [data]);
 
-  const [sendMessageMutation] = useMutation(SEND_MESSAGE);
+  const [sendMessageMutation] = useMutation(SEND_MESSAGE_MUTATION);
 
   useEffect(() => {
     if (!activeThreadId || !apiUrl || !token) return;
+
+    let isMounted = true;
 
     const connection = new HubConnectionBuilder()
       .withUrl(`${apiUrl}/hubs/chat`, {
         accessTokenFactory: () => token
       })
-      .withAutomaticReconnect()
-      .configureLogging(LogLevel.Information)
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+      .configureLogging(LogLevel.Warning)
       .build();
 
+    // Re-join the thread group and mark seen after a network reconnect
+    connection.onreconnected(() => {
+      if (isMounted && activeThreadId) {
+        connection.invoke('JoinCareThread', activeThreadId).catch(() => {});
+        connection.invoke('MarkAsSeen', activeThreadId, 'patient').catch(() => {});
+      }
+    });
+
     connection.start().then(() => {
-      console.log('SignalR Connected');
-      connection.invoke('JoinCareThread', activeThreadId);
+      if (isMounted) {
+        console.log('SignalR Connected');
+        connection.invoke('JoinCareThread', activeThreadId).catch(() => {});
+        connection.invoke('MarkAsSeen', activeThreadId, 'patient').catch(() => {});
+      }
     }).catch(err => console.error('SignalR Connection Error: ', err));
 
     connection.on('ReceiveMessage', (message: any) => {
+      if (!isMounted) return;
       setMessages(prev => {
-        if (prev.find(m => m.id === message.chatMessageId || m.content === message.content)) return prev;
-        return [...prev, {
+        const exists = prev.some(m => m.id === message.chatMessageId);
+        if (exists) return prev;
+        // Filter out optimistic temporary messages with same content
+        const filtered = prev.filter(m => !(m.id.startsWith('temp-') && m.content === message.content && m.sender === 'patient'));
+        return [...filtered, {
           id: message.chatMessageId,
           sender: message.senderRole === 'patient' ? 'patient' : 'navigator',
           content: message.content,
-          timestamp: new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          timestamp: new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          isSeen: message.isSeen
         }];
       });
+
+      if (message.senderRole !== 'patient') {
+        connection.invoke('MarkAsSeen', activeThreadId, 'patient').catch(() => {});
+      }
+    });
+
+    connection.on('MessageSeen', (careThreadId: string, senderRole: string) => {
+      if (!isMounted) return;
+      if (careThreadId === activeThreadId && senderRole === 'navigator') {
+        // Navigator read patient messages -> mark patient's messages as seen!
+        setMessages(prev => prev.map(m => m.sender === 'patient' ? { ...m, isSeen: true } : m));
+      }
     });
 
     return () => {
-      connection.stop();
+      isMounted = false;
+      connection.stop().catch(() => {});
     };
   }, [activeThreadId, apiUrl, token]);
 
@@ -171,12 +211,13 @@ const CareHub: React.FC = () => {
     if (!inputText.trim()) return;
 
     const trimmedText = inputText.trim();
-    const tempId = Date.now().toString();
+    const tempId = `temp-${Date.now()}`;
     const newMsg: Message = {
       id: tempId,
       sender: 'patient',
       content: trimmedText,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isSeen: false
     };
 
     setMessages(prev => [...prev, newMsg]);
@@ -323,7 +364,17 @@ const CareHub: React.FC = () => {
                         : 'text-slate-400 dark:text-slate-550 font-bold'
                     } font-mono`}>
                       <span>{msg.timestamp}</span>
-                      {isPatient && <IonIcon icon={checkmarkDone} className="w-4.5 h-4.5 text-teal-200 dark:text-teal-400" />}
+                      {isPatient && (
+                        <span className="flex items-center gap-0.5 ml-1 select-none">
+                          <span className="text-[9px] font-bold uppercase tracking-wider opacity-85">
+                            {msg.isSeen ? 'Seen' : 'Sent'}
+                          </span>
+                          <IonIcon 
+                            icon={msg.isSeen ? checkmarkDone : checkmark} 
+                            className={`w-3.5 h-3.5 ${msg.isSeen ? 'text-teal-200 dark:text-teal-400' : 'text-teal-350/60'}`} 
+                          />
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
