@@ -7,8 +7,7 @@
 - **User:** `admin@palliative.emr`
 - **Password:** `P@ssword123!`
 
-> [!NOTE]
-> The first time you log in or access the dashboard, the initial load may be slow (up to 50 seconds). This is due to the **Render Free Instance** spin-up time for the backend services. Once warmed up, the platform maintains sub-second tactical performance.
+> The first time you log in or access the dashboard, the initial load may be slow (up to 50 seconds). This is due to the **Render Free Instance** spin-up time for the backend services. Once warmed up, the platform maintains sub-second operational performance.
 
 [![Architecture: Clean](https://img.shields.io/badge/Architecture-Clean--Architecture-blue.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 [![Pattern: CQRS--MediatR](https://img.shields.io/badge/Pattern-CQRS--MediatR-blueviolet.svg)](https://github.com/jbogard/MediatR)
@@ -179,7 +178,7 @@ Designed for **Clinical Execution**, this portal is the primary workstation for 
 - **Guided Visit Workstation:** Streamlined encounter documentation and registry.
 - **Clinical HUDs:** Real-time patient telemetry (`LiveHeartbeat`) and vital sign monitoring.
 - **Enrollment Wizard:** High-density patient onboarding and demographic management.
-- **Tactical Scheduling:** Multi-stage booking and regional deployment views.
+- **Scheduling & Logistics:** Multi-stage booking and regional deployment views.
 - **Identity HUD:** High-density demographic visualization with real-time data synchronization.
 - **Unified Messaging Inbox:** Direct patient triage and messaging panel integrated with active clinical context/vitals.
 
@@ -311,7 +310,7 @@ The `SchedulingService.cs` manages clinical deployment complexity:
 
 - **Slot Resolution:** Timezone-resilient logic for available window identification.
 - **Geospatial Assignment:** Automatic practitioner suggestions based on regional sectors.
-- **Capacity Management:** Enforces tactical duration constraints (15-60 mins).
+- **Capacity Management:** Enforces operational duration constraints (15-60 mins).
 
 ### 2. Geospatial Intelligence
 
@@ -341,16 +340,16 @@ The `SchedulingService.cs` manages clinical deployment complexity:
 
 ---
 
-## ✏️ Halkyone Theme Hardening (Phase II)
+## 🎨 Theme System & UI Hardening
 
 - **Administrative Parity:** Extended full theme-aware support to the entire /admin ecosystem. Residual "Black Artifacts" in components like SecurityAuditVault, IdentityManagement, and IntegrationsSync have been eliminated, ensuring 100% legibility in high-density light-mode environments.
-- **Forensic Legibility:** Standardized all forensic table headers and status tags with clinical theme variables. High-authority administrative data now retains its professional "Tactical Command" aesthetic while adapting seamlessly to workstation lighting conditions.
+- **Forensic Legibility:** Standardized all forensic table headers and status tags with clinical theme variables. High-authority administrative data now retains its professional "Clinical Command" aesthetic while adapting seamlessly to workstation lighting conditions.
 - **Dynamic Designer Synchronization:** Refactored the SurveyCreatorWidget and FormDesignerPage to ensure that the SurveyJS authoring environment respects the global theme context, providing a consistent and strain-free experience for clinical instrument architects.
 - **Global UI Variable Consolidation:** Finalized the codebase-wide transition from hardcoded white-alpha and slate-950 values to dynamic CSS variables, ensuring future-proof aesthetic consistency across all current and future clinical modules.
 
 ---
 
-## 🧪 Reliability & Performance (Phase III)
+## ⚡ Reliability & Performance Optimization
 
 The Halkyone Clinical OS has undergone rigorous hardening to transition from a high-fidelity prototype into a production-ready enterprise system.
 
@@ -447,7 +446,7 @@ To track the progress of transitioning the Halkyone Clinical OS into the **Tripl
 - **[#20]** Implement native camera OCR for Insurance Card scanning
 - **[#21]** Bridge Apple HealthKit / Google Fit for passive steps & resting HR sync
 
-## 🛠️ The Tactical Toolchain
+## 🛠️ The System Toolchain
 
 ### 🛠️ Core Technologies Used
 
@@ -466,7 +465,7 @@ To track the progress of transitioning the Halkyone Clinical OS into the **Tripl
   - `Azurite`: Local emulation for Azure Blob Storage, ensuring seamless **Clinical Document Persistence** and Chat Media attachments.
   - `MediatR`: CQRS architecture for decoupled, scalable clinical command processing.
   - `QuestPDF`: Declarative PDF engine for generating high-fidelity **Clinical Encounter Summaries**.
-  - `Bogus`: Tactical data generator for high-entropy clinical seeding in dev/CI environments.
+  - `Bogus`: Mock data generator for high-entropy clinical seeding in dev/CI environments.
   - `OpenTelemetry`: Distributed tracing and observability for mission-critical monitoring.
 - **Frontend Clinical Engine (Next.js 14)**:
   - `SurveyJS`: Professional-grade engine for complex **Clinical Assessments** and Intake workflows.
@@ -523,7 +522,7 @@ The full clinical lifecycle is validated on every push:
 | :---------------- | :--------------------------------------------------------------- | :------------------------------------------------------- |
 | **Multi-Tenancy** | Row-level isolation via Global Query Filters and JWT resolution. | Secure data segregation for hospital networks.           |
 | **Security**      | `[UseClinicalAccess]` attribute for deep-inspection validation.  | "Break-Glass" emergency access and role protection.      |
-| **Scheduling**    | Timezone-resilient slot logic in `SchedulingService.cs`.         | Tactical booking of in-person and telehealth encounters. |
+| **Scheduling**    | Timezone-resilient slot logic in `SchedulingService.cs`.         | Operational booking of in-person and telehealth encounters. |
 | **Telemetry**     | `TelemetrySimulator` background worker via SignalR blips.        | Real-time monitoring of patient HR, SpO2, and acuity.    |
 | **Geospatial**    | Haversine distance calculations and sector clustering.           | Intelligent clinician routing and sector tracking.       |
 
@@ -533,7 +532,7 @@ The full clinical lifecycle is validated on every push:
 
 ```text
 .
-├── emr-client/          # Next.js Tactical Frontend
+├── emr-client/          # Next.js Clinical Frontend
 │   ├── src/app/admin/   # System Admin Portal Ecosystem
 │   ├── src/app/dashboard/ # Clinical Main Portal Ecosystem
 │   ├── src/components/  # High-density UI (SurveyJS, Booking, HUDs, Drawers)
@@ -548,7 +547,7 @@ The full clinical lifecycle is validated on every push:
 │   ├── src/Application/ # MediatR Micro-flows (Commands & Queries)
 │   ├── src/Infrastructure/ # Concrete Services (Pdf, Scheduling, Storage, FCM, Audit)
 │   └── src/Api/         # GraphQL Resolvers, SignalR Hubs, TelemetrySimulator
-└── Database/            # SQL Schema & Tactical Seeding Logic
+└── Database/            # SQL Schema & Core Seeding Logic
 ```
 
 ---
@@ -569,7 +568,7 @@ Maria, a 68-year-old hospice patient in Sector 4, experiences a sudden, severe s
 
 The backend's NLP processing engine intercepts this message. Recognizing critical distress triggers, it immediately bypasses standard queues to broadcast a high-priority SignalR alert directly to David's Triage HUD. Maria also uses the secure mobile camera to take a photo of her swollen leg, transmitting it as an encrypted upload to the Azurite server (bypassing her personal camera roll for HIPAA compliance).
 
-David sees the SOS override on the `/dashboard`, views Maria's uploaded leg photo, and clicks the **Tactical Scheduling** module. The .NET 9 `SchedulingService` engine leaps into action, executing geospatial vector calculations using the Haversine formula. It evaluates the Sonar Signals of all field clinicians, clamps the drive-time estimates, and identifies Dr. Elena—a palliative specialist currently just 15 minutes away from Maria's coordinates. With two clicks, David deploys the encounter command.
+David sees the SOS override on the `/dashboard`, views Maria's uploaded leg photo, and clicks the **Scheduling & Logistics** module. The .NET 9 `SchedulingService` engine leaps into action, executing geospatial vector calculations using the Haversine formula. It evaluates the Sonar Signals of all field clinicians, clamps the drive-time estimates, and identifies Dr. Elena—a palliative specialist currently just 15 minutes away from Maria's coordinates. With two clicks, David deploys the encounter command.
 
 ### 🚗 08:30 AM | Visit Radar & Real-Time Tracking
 
