@@ -67,7 +67,7 @@ Below is a gallery of screenshots from our clinical web application, admin porta
 
 | View                      | Module / Description                                                    | Screenshot                                                |
 | :------------------------ | :---------------------------------------------------------------------- | :-------------------------------------------------------- |
-| **Mobile Login Gate**     | Secure biometric FaceID/fingerprint simulation and magic link auth.     | ![Mobile Login](qa_report/assets/mobile_login.png)        |
+| **Mobile Login Gate**     | Secure token string link authentication.                                | ![Mobile Login](qa_report/assets/mobile_login.png)        |
 | **Comfort Hub Dashboard** | Daily recovery ring, SOS alerts, and vital sign thresholds tracker.     | ![Comfort Hub](qa_report/assets/mobile_comfort.png)       |
 | **Secure Care Hub**       | Real-time chat with Care Navigator and telehealth virtual waiting room. | ![Secure Care Hub](qa_report/assets/mobile_care_hub.png)  |
 | **Pharmacy & eRx**        | Active prescriptions visual pill index and smart local reminders.       | ![Pharmacy and eRx](qa_report/assets/mobile_pharmacy.png) |
@@ -247,7 +247,7 @@ Halkyone implements a **Shared Database / Row-Level Isolation** model:
 
 The patient mobile client leverages Capacitor for physical hardware access while maintaining clean server interaction:
 
-- **Biometric Authentication**: Secure fingerprint/face login using local device credentials through `@capacitor-community/biometric`.
+- **Token String Link Authentication**: Secured login utilizing single-use token links to authorize patient sessions.
 - **Hybrid Real-Time Delivery**: Combines foreground WebSocket SignalR connections with background Firebase Cloud Messaging (FCM) notifications to wake the device when inactive (e.g., clinician `InTransit`).
 - **Offline Tolerance**: Local SQLite caching of SurveyJS assessments, allowing patients to complete intake reports and ESAS forms offline and sync when connection is restored.
 
@@ -298,7 +298,7 @@ Practitioners can architect and deploy custom clinical instruments:
 
 - **The Daily Care Ring:** Interactive progress visualization indicating medication and survey compliance.
 - **Native-Styled SurveyJS:** Custom wrapper using Ionic components (`IonContent`) for seamless rendering of ESAS-R and PHQ-9 forms.
-- **Biometric Security:** Integration with device FaceID/TouchID protecting patient health information locally.
+- **Secure Token Link Auth:** Protecting patient sessions locally through secure token-based authentication links.
 
 ---
 
@@ -416,7 +416,7 @@ To track the progress of transitioning the Halkyone Clinical OS into the **Tripl
 - **[#2] Initialize Ionic React workspace (`emr-mobile-app`) with Tailwind CSS** _(COMPLETED)_
 - **[#3]** Implement `PatientAccount` & `CaregiverLink` DB entities (Entity Framework Core)
 - **[#4]** Configure `@capacitor/core`, `@capacitor/ios`, and `@capacitor/android`
-- **[#5]** Build biometric login workflow via `@capacitor-community/biometric`
+- **[#5]** Build token string link authentication workflow
 - **[#6]** Expose `[UsePatientAccess]` GraphQL authorization middleware in `.NET 9`
 
 ### Phase 2: Secure Care-Team Messaging Engine
@@ -476,7 +476,7 @@ To track the progress of transitioning the Halkyone Clinical OS into the **Tripl
   - `SignalR Client`: Edge-side synchronization for real-time heartbeat monitoring.
 - **Mobile Client Integration**:
   - `@capacitor/core`, `@capacitor/ios`, `@capacitor/android`: Native wrapper for iOS and Android deployment.
-  - `@capacitor-community/biometric`: Local biometric authentication (FaceID/TouchID).
+  - `Token Authentication Link`: Secured login utilizing single-use token links.
   - `SQLite (Capacitor plugin)`: Secure local storage for SurveyJS offline assessment drafts.
 
 | Category           | **Technologies / Tools Used**                                                            |
@@ -486,7 +486,7 @@ To track the progress of transitioning the Halkyone Clinical OS into the **Tripl
 | **Mobile App**     | Ionic v8, React 18, Capacitor, SQLite, Firebase Cloud Messaging (FCM), Google/Apple Pay. |
 | **Infrastructure** | Azurite/Azure Blob Storage, QuestPDF, Bogus (Data Seeding), Docker.                      |
 | **Testing & QA**   | Playwright E2E, Vitest (Unit), GitHub Actions.                                           |
-| **Security**       | JWT Claims, Biometric Auth, [UseClinicalAccess] & [UsePatientAccess] Middleware.         |
+| **Security**       | JWT Claims, Token Link Auth, [UseClinicalAccess] & [UsePatientAccess] Middleware.         |
 
 ---
 
@@ -564,7 +564,7 @@ Halkyone operates on a strict **Row-Level Isolation** architecture. When Davidâ€
 
 ### ðŸš¨ 08:15 AM | The Mobile SOS & Geospatial Dispatch
 
-Maria, a 68-year-old hospice patient in Sector 4, experiences a sudden, severe spike in breakthrough pain. She opens the **Halkyone Patient Mobile App** using local biometric FaceID auth. Rather than calling a busy hotline, she navigates to the **Secure Messaging Hub** and types: _"chest pain and severe breathing difficulty"_.
+Maria, a 68-year-old hospice patient in Sector 4, experiences a sudden, severe spike in breakthrough pain. She opens the **Halkyone Patient Mobile App** using her secure token authentication link. Rather than calling a busy hotline, she navigates to the **Secure Messaging Hub** and types: _"chest pain and severe breathing difficulty"_.
 
 The backend's NLP processing engine intercepts this message. Recognizing critical distress triggers, it immediately bypasses standard queues to broadcast a high-priority SignalR alert directly to David's Triage HUD. Maria also uses the secure mobile camera to take a photo of her swollen leg, transmitting it as an encrypted upload to the Azurite server (bypassing her personal camera roll for HIPAA compliance).
 

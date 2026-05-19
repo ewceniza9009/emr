@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { IonContent, IonPage, IonIcon, IonSpinner } from "@ionic/react";
 import {
-  fingerPrint,
   shieldCheckmark,
   link as linkIcon,
   copy as copyIcon,
@@ -22,9 +21,9 @@ const Login: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [tempApiUrl, setTempApiUrl] = useState(apiUrl);
 
-  const [isBiometricScanning, setIsBiometricScanning] = useState(false);
-  const [scanStep, setScanStep] = useState<
-    "idle" | "scanning" | "success" | "failed"
+  const [isTokenVerifying, setIsTokenVerifying] = useState(false);
+  const [verifyStep, setVerifyStep] = useState<
+    "idle" | "verifying" | "success" | "failed"
   >("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -67,30 +66,30 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleBiometricSimulation = () => {
-    if (isBiometricScanning) return;
+  const handleTokenLinkSimulation = () => {
+    if (isTokenVerifying) return;
 
-    setIsBiometricScanning(true);
-    setScanStep("scanning");
+    setIsTokenVerifying(true);
+    setVerifyStep("verifying");
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    // Simulate highly premium scanning sequences
+    // Simulate highly premium verification sequences
     setTimeout(() => {
       // Step 2: Verification Success
-      setScanStep("success");
+      setVerifyStep("success");
 
       setTimeout(async () => {
         try {
           // Log in as the seeded patient (Pearline Bauch, MRN-99999)
           await magicLogin("DEMO_MAGIC_MRN-99999");
-          setIsBiometricScanning(false);
-          setScanStep("idle");
+          setIsTokenVerifying(false);
+          setVerifyStep("idle");
         } catch (err: any) {
-          setScanStep("failed");
-          setIsBiometricScanning(false);
+          setVerifyStep("failed");
+          setIsTokenVerifying(false);
           setErrorMessage(
-            "Biometrics matched but API authentication failed. Make sure dotnet server is running!",
+            "Token verified but API authentication failed. Make sure dotnet server is running!",
           );
         }
       }, 1000);
@@ -172,14 +171,14 @@ const Login: React.FC = () => {
               </div>
             )}
 
-            {/* Mock Biometrics Scan Overlay */}
-            {isBiometricScanning ? (
+            {/* Mock Token Link Verification Overlay */}
+            {isTokenVerifying ? (
               <div className="flex flex-col items-center justify-center py-8 space-y-6 animate-fadeIn">
                 <div className="relative w-28 h-28 flex items-center justify-center">
                   {/* Outer Pulsing Rings */}
                   <div
                     className={`absolute inset-0 rounded-full border-2 ${
-                      scanStep === "success"
+                      verifyStep === "success"
                         ? "border-emerald-500/30"
                         : "border-teal-500/30"
                     } animate-ping`}
@@ -190,16 +189,16 @@ const Login: React.FC = () => {
                     className={`w-24 h-24 rounded-full bg-slate-950 border border-slate-850 flex items-center justify-center shadow-inner relative overflow-hidden`}
                   >
                     {/* Laser Sweep Effect */}
-                    {scanStep === "scanning" && (
+                    {verifyStep === "verifying" && (
                       <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-teal-400 to-transparent shadow-[0_0_10px_#14b8a6] animate-scan-sweep pointer-events-none" />
                     )}
 
                     <IonIcon
                       icon={
-                        scanStep === "success" ? shieldCheckmark : fingerPrint
+                        verifyStep === "success" ? shieldCheckmark : linkIcon
                       }
                       className={`w-12 h-12 transition-all duration-300 ${
-                        scanStep === "success"
+                        verifyStep === "success"
                           ? "text-emerald-400 scale-110"
                           : "text-teal-400 animate-pulse"
                       }`}
@@ -209,35 +208,34 @@ const Login: React.FC = () => {
 
                 <div className="text-center space-y-1.5">
                   <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                    {scanStep === "scanning"
-                      ? "Verifying Identity..."
-                      : "Biometrics Matched!"}
+                    {verifyStep === "verifying"
+                      ? "Verifying Secure Token..."
+                      : "Token Verified!"}
                   </h3>
                   <p className="text-[10px] text-slate-500 max-w-[200px] leading-normal">
-                    {scanStep === "scanning"
-                      ? "Scanning fingertip / analyzing facial structure mapping..."
-                      : "Retrieving digital health keys & connecting EMR room..."}
+                    {verifyStep === "verifying"
+                      ? "Checking cryptographic signature & token status..."
+                      : "Authorizing session and opening virtual hospital room..."}
                   </p>
                 </div>
               </div>
             ) : (
               /* Idle Forms / Options */
               <div className="space-y-6">
-                {/* Touch/Face Simulator Card */}
+                {/* Token Link Simulator Card */}
                 <button
-                  onClick={handleBiometricSimulation}
+                  onClick={handleTokenLinkSimulation}
                   className="w-full rounded-[24px] p-6 bg-gradient-to-br from-[#090d16] to-[#03050a] border border-[#1e293b] hover:border-teal-500/50 hover:bg-slate-950/80 active:scale-[0.98] flex flex-col items-center justify-center space-y-2 group cursor-pointer transition-all duration-200"
                 >
                   <div className="p-3.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 group-hover:bg-teal-500/20 group-hover:scale-105 transition-all shadow-[0_0_12px_rgba(20,184,166,0.05)]">
-                    <IonIcon icon={fingerPrint} className="w-8 h-8" />
+                    <IonIcon icon={linkIcon} className="w-8 h-8" />
                   </div>
                   <div className="text-center">
                     <span className="text-[11px] font-black uppercase text-teal-400 tracking-wider">
-                      Simulate Secure Biometrics
+                      Simulate Token Link Verification
                     </span>
                     <p className="text-[9px] text-slate-500 max-w-[200px] leading-normal mx-auto mt-0.5">
-                      Mock passwordless Fingerprint/Face entry for instant local
-                      evaluation
+                      Verify secure token link authentication for instant local evaluation
                     </p>
                   </div>
                 </button>
