@@ -17,6 +17,9 @@ public class PatientMappingConfig : IRegister
             .Map(dest => dest.IsPoa, src => src.HasPowerOfAttorney);
 
         config
+            .NewConfig<AdvanceDirective, AdvanceDirectiveDto>();
+
+        config
             .NewConfig<Patient, PatientDto>()
             .Map(dest => dest.Contacts, src => src.Contacts)
             .Map(dest => dest.Documents, src => src.PatientDocuments)
@@ -30,7 +33,9 @@ public class PatientMappingConfig : IRegister
                 .Where(c => c.Status == CaseStatus.Open)
                 .OrderByDescending(c => c.OpenedAt)
                 .Select(c => c.Navigator.FirstName + " " + c.Navigator.LastName)
-                .FirstOrDefault() ?? "Erwin Wilson Ceniza");
+                .FirstOrDefault() ?? "Erwin Wilson Ceniza")
+            .Map(dest => dest.HasAdvanceDirective, src => src.HasAdvanceDirective)
+            .Map(dest => dest.AdvanceDirectives, src => src.AdvanceDirectives);
 
         config
             .NewConfig<ClinicalEncounter, ClinicalEncounterDto>()

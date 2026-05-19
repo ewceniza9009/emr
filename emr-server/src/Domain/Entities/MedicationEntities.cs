@@ -39,6 +39,12 @@ public class Prescription : BaseEntity, ITenantEntity
     public DateTimeOffset? EndDate { get; set; }
     public bool IsActive { get; set; } = true;
     
+    public bool IsBreakthroughPRN => 
+        (!string.IsNullOrEmpty(Frequency) && Frequency.Contains("PRN", StringComparison.OrdinalIgnoreCase)) || 
+        (!string.IsNullOrEmpty(Indications) && (Indications.Contains("breakthrough", StringComparison.OrdinalIgnoreCase) || 
+                                                 Indications.Contains("as needed", StringComparison.OrdinalIgnoreCase) ||
+                                                 Indications.Contains("PRN", StringComparison.OrdinalIgnoreCase)));
+    
     // E-Signature
     public string? SignatureHash { get; set; }
     public DateTimeOffset? SignedAt { get; set; }

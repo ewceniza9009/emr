@@ -1166,6 +1166,7 @@ namespace Infrastructure.Data
                     ConsentToTreat = true,
                     ConsentHIPAA = true,
                     PreferredContactMethod = "PHONE",
+                    HasAdvanceDirective = true,
                 };
                 context.Patients.Add(pearline);
                 patients.Add(pearline);
@@ -1588,6 +1589,36 @@ namespace Infrastructure.Data
                     .Generate(10);
                 context.Set<AdvanceDirective>().AddRange(advanceDirectives);
 
+                // Explicitly seed comfort-care advance directives for Pearline Bauch
+                var pearlineObj = patients.FirstOrDefault(p => p.Mrn == "MRN-99999");
+                if (pearlineObj != null)
+                {
+                    var pearlineDnr = new AdvanceDirective
+                    {
+                        AdvanceDirectiveId = Guid.NewGuid(),
+                        TenantId = defaultTenantId,
+                        PatientId = pearlineObj.PatientId,
+                        Type = DirectiveType.DNR,
+                        DocumentUrl = "/documents/dnr_pearline_bauch.pdf",
+                        EffectiveDate = DateTimeOffset.UtcNow.AddMonths(-6),
+                        IsActive = true,
+                        Notes = "Do Not Resuscitate (DNR) signed by patient and Dr. Sarah Ross. Bedside rescue protocols enabled."
+                    };
+                    var pearlineComfort = new AdvanceDirective
+                    {
+                        AdvanceDirectiveId = Guid.NewGuid(),
+                        TenantId = defaultTenantId,
+                        PatientId = pearlineObj.PatientId,
+                        Type = DirectiveType.ComfortMeasuresOnly,
+                        DocumentUrl = "/documents/living_will_pearline.pdf",
+                        EffectiveDate = DateTimeOffset.UtcNow.AddMonths(-6),
+                        IsActive = true,
+                        Notes = "Comfort measures only. Avoid intubation (DNI) or aggressive resuscitation."
+                    };
+                    context.Set<AdvanceDirective>().Add(pearlineDnr);
+                    context.Set<AdvanceDirective>().Add(pearlineComfort);
+                }
+
                 var diagnosesList = new Faker<Diagnosis>()
                     .RuleFor(x => x.DiagnosisId, f => Guid.NewGuid())
                     .RuleFor(x => x.TenantId, f => defaultTenantId)
@@ -1824,23 +1855,117 @@ namespace Infrastructure.Data
                         .Generate(new Random().Next(1, 4));
                     context.Set<Diagnosis>().AddRange(pDiagnoses);
 
-                    var pPrescriptions = new Faker<Prescription>()
-                        .RuleFor(pr => pr.PatientId, p.PatientId)
-                        .RuleFor(pr => pr.TenantId, defaultTenantId)
-                        .RuleFor(pr => pr.MedicationId, f => f.PickRandom(meds).MedicationId)
-                        .RuleFor(pr => pr.PrescribedById, f => f.PickRandom(practitionerIds))
-                        .RuleFor(
-                            pr => pr.Dose,
-                            f => f.PickRandom(new[] { "5mg", "10mg", "20mg", "1 tab" })
-                        )
-                        .RuleFor(
-                            pr => pr.Frequency,
-                            f => f.PickRandom(new[] { "QD", "BID", "TID", "Q4H PRN" })
-                        )
-                        .RuleFor(pr => pr.StartDate, f => f.Date.PastOffset(1).ToUniversalTime())
-                        .RuleFor(pr => pr.IsActive, true)
-                        .Generate(new Random().Next(2, 6));
-                    context.Set<Prescription>().AddRange(pPrescriptions);
+                    if (p.PatientId == pearline.PatientId)
+                    {
+                        var morphine = meds.FirstOrDefault(m => m.Name.Contains("Morphine"));
+                        var lorazepam = meds.FirstOrDefault(m => m.Name.Contains("Lorazepam"));
+                        var fentanyl = meds.FirstOrDefault(m => m.Name.Contains("Fentanyl"));
+                        var ondansetron = meds.FirstOrDefault(m => m.Name.Contains("Ondansetron"));
+                        var gabapentin = meds.FirstOrDefault(m => m.Name.Contains("Gabapentin"));
+
+                        var customPrescriptions = new List<Prescription>();
+                        if (morphine != null)
+                        {
+                            customPrescriptions.Add(new Prescription
+                            {
+                                PrescriptionId = Guid.NewGuid(),
+                                PatientId = p.PatientId,
+                                TenantId = defaultTenantId,
+                                MedicationId = morphine.MedicationId,
+                                PrescribedById = practitionerIds[0],
+                                Dose = "0.5mL (10mg)",
+                                Frequency = "Q4H PRN",
+                                Indications = "For breakthrough pain or dyspnea crisis",
+                                StartDate = DateTimeOffset.UtcNow.AddMonths(-3),
+                                IsActive = true
+                            });
+                        }
+                        if (lorazepam != null)
+                        {
+                            customPrescriptions.Add(new Prescription
+                            {
+                                PrescriptionId = Guid.NewGuid(),
+                                PatientId = p.PatientId,
+                                TenantId = defaultTenantId,
+                                MedicationId = lorazepam.MedicationId,
+                                PrescribedById = practitionerIds[0],
+                                Dose = "0.5mg",
+                                Frequency = "Q6H PRN",
+                                Indications = "For severe anxiety or agitation",
+                                StartDate = DateTimeOffset.UtcNow.AddMonths(-3),
+                                IsActive = true
+                            });
+                        }
+                        if (fentanyl != null)
+                        {
+                            customPrescriptions.Add(new Prescription
+                            {
+                                PrescriptionId = Guid.NewGuid(),
+                                PatientId = p.PatientId,
+                                TenantId = defaultTenantId,
+                                MedicationId = fentanyl.MedicationId,
+                                PrescribedById = practitionerIds[0],
+                                Dose = "25mcg/hr",
+                                Frequency = "Q72H Continuous",
+                                Indications = "Baseline pain control",
+                                StartDate = DateTimeOffset.UtcNow.AddMonths(-3),
+                                IsActive = true
+                            });
+                        }
+                        if (ondansetron != null)
+                        {
+                            customPrescriptions.Add(new Prescription
+                            {
+                                PrescriptionId = Guid.NewGuid(),
+                                PatientId = p.PatientId,
+                                TenantId = defaultTenantId,
+                                MedicationId = ondansetron.MedicationId,
+                                PrescribedById = practitionerIds[0],
+                                Dose = "4mg",
+                                Frequency = "Q6H PRN",
+                                Indications = "For breakthrough nausea or vomiting",
+                                StartDate = DateTimeOffset.UtcNow.AddMonths(-3),
+                                IsActive = true
+                            });
+                        }
+                        if (gabapentin != null)
+                        {
+                            customPrescriptions.Add(new Prescription
+                            {
+                                PrescriptionId = Guid.NewGuid(),
+                                PatientId = p.PatientId,
+                                TenantId = defaultTenantId,
+                                MedicationId = gabapentin.MedicationId,
+                                PrescribedById = practitionerIds[0],
+                                Dose = "300mg",
+                                Frequency = "TID",
+                                Indications = "For chronic neuropathic pain",
+                                StartDate = DateTimeOffset.UtcNow.AddMonths(-3),
+                                IsActive = true
+                            });
+                        }
+                        context.Set<Prescription>().AddRange(customPrescriptions);
+                    }
+                    else
+                    {
+                        var pPrescriptions = new Faker<Prescription>()
+                            .RuleFor(pr => pr.PatientId, p.PatientId)
+                            .RuleFor(pr => pr.TenantId, defaultTenantId)
+                            .RuleFor(pr => pr.MedicationId, f => f.PickRandom(meds).MedicationId)
+                            .RuleFor(pr => pr.PrescribedById, f => f.PickRandom(practitionerIds))
+                            .RuleFor(
+                                pr => pr.Dose,
+                                f => f.PickRandom(new[] { "5mg", "10mg", "20mg", "1 tab" })
+                            )
+                            .RuleFor(
+                                pr => pr.Frequency,
+                                f => f.PickRandom(new[] { "QD", "BID", "TID", "Q4H PRN" })
+                            )
+                            .RuleFor(pr => pr.StartDate, f => f.Date.PastOffset(1).ToUniversalTime())
+                            .RuleFor(pr => pr.IsActive, true)
+                            .Generate(new Random().Next(2, 6));
+                        context.Set<Prescription>().AddRange(pPrescriptions);
+                    }
                 }
                 await context.SaveChangesAsync(default);
 

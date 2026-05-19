@@ -9,7 +9,9 @@ import {
   IonPage,
   IonIcon,
   IonToolbar,
-  IonRippleEffect
+  IonRippleEffect,
+  IonButton,
+  IonModal
 } from '@ionic/react';
 import {
   pulse,
@@ -46,6 +48,15 @@ const GET_DASHBOARD_DATA = gql`
       lastName
       mrn
       primaryCareNavigatorName
+      hasAdvanceDirective
+      advanceDirectives {
+        advanceDirectiveId
+        type
+        documentUrl
+        effectiveDate
+        isActive
+        notes
+      }
       encounters {
         encounterId
       }
@@ -81,6 +92,19 @@ const GET_DASHBOARD_DATA = gql`
         position
       }
     }
+    esasQuestionnaire: questionnaireByType(type: Esas) {
+      questionnaireId
+      name
+      description
+      questions {
+        questionId
+        text
+        subtext
+        type
+        order
+        optionsJson
+      }
+    }
   }
 `;
 
@@ -108,21 +132,54 @@ const SAVE_MOBILE_VITALS = gql`
   }
 `;
 
-const PHQ9_QUESTIONS = [
-  "Little interest or pleasure in doing things",
-  "Feeling down, depressed, or hopeless",
-  "Trouble falling or staying asleep, or sleeping too much",
-  "Feeling tired or having little energy",
-  "Poor appetite or overeating",
-  "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
-  "Trouble concentrating on things, such as reading the newspaper or watching television",
-  "Moving or speaking so slowly that other people could have noticed? Or the opposite — being so fidgety or restless that you have been moving around a lot more than usual",
-  "Thoughts that you would be better off dead or of hurting yourself in some way"
+const SAVE_ESAS_ASSESSMENT = gql`
+  mutation SaveEsasAssessment(
+    $patientId: UUID!
+    $pain: Int!
+    $tiredness: Int!
+    $drowsiness: Int!
+    $nausea: Int!
+    $lackOfAppetite: Int!
+    $shortnessOfBreath: Int!
+    $depression: Int!
+    $anxiety: Int!
+    $wellbeing: Int!
+  ) {
+    saveEsasAssessment(
+      patientId: $patientId
+      pain: $pain
+      tiredness: $tiredness
+      drowsiness: $drowsiness
+      nausea: $nausea
+      lackOfAppetite: $lackOfAppetite
+      shortnessOfBreath: $shortnessOfBreath
+      depression: $depression
+      anxiety: $anxiety
+      wellbeing: $wellbeing
+    ) {
+      assessmentId
+      pain
+      wellbeing
+      assessedAt
+    }
+  }
+`;
+
+const ESAS_SYMPTOMS = [
+  { key: 'pain', label: 'Pain Intensity', desc: 'Active physical pain or discomfort level', minLabel: 'No Pain (0)', maxLabel: 'Worst Possible Pain (10)' },
+  { key: 'tiredness', label: 'Tiredness (Fatigue)', desc: 'General weakness or physical fatigue', minLabel: 'No Fatigue (0)', maxLabel: 'Worst Possible Fatigue (10)' },
+  { key: 'drowsiness', label: 'Drowsiness', desc: 'Feeling sleepy, foggy, or hard to stay awake', minLabel: 'Fully Alert (0)', maxLabel: 'Worst Possible Drowsiness (10)' },
+  { key: 'nausea', label: 'Nausea', desc: 'Stomach distress, sickness, or vomiting urge', minLabel: 'No Nausea (0)', maxLabel: 'Worst Possible Nausea (10)' },
+  { key: 'lackOfAppetite', label: 'Lack of Appetite', desc: 'Difficulty eating or enjoying meals', minLabel: 'Excellent Appetite (0)', maxLabel: 'Worst Possible Lack of Appetite (10)' },
+  { key: 'shortnessOfBreath', label: 'Shortness of Breath', desc: 'Breathing difficulty or air hunger', minLabel: 'Normal Breathing (0)', maxLabel: 'Severe Dyspnea Crisis (10)' },
+  { key: 'depression', label: 'Depression', desc: 'Feeling sad, down, or hopeless', minLabel: 'No Depression (0)', maxLabel: 'Worst Possible Depression (10)' },
+  { key: 'anxiety', label: 'Anxiety', desc: 'Feeling anxious, nervous, or on edge', minLabel: 'No Anxiety (0)', maxLabel: 'Worst Possible Anxiety (10)' },
+  { key: 'wellbeing', label: 'Overall Wellbeing', desc: 'Your general sense of comfort and quality of life', minLabel: 'Best Wellbeing (0)', maxLabel: 'Worst Possible Wellbeing (10)' }
 ];
 
-const RecoveryDashboard: React.FC = () => {
+const ComfortDashboard: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const { user, apiUrl } = useAuth();
+  const { user, apiUrl, token } = useAuth();
   
   const { data, loading, error } = useQuery<any>(GET_DASHBOARD_DATA, {
     variables: { patientId: user?.patientId },
@@ -175,6 +232,8 @@ const RecoveryDashboard: React.FC = () => {
   const [showWoundModal, setShowWoundModal] = useState(false);
   const [showPhqModal, setShowPhqModal] = useState(false);
   const [showBpModal, setShowBpModal] = useState(false);
+  const [showDirectivesModal, setShowDirectivesModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false);
   
   // New premium modal & feature states
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
@@ -201,10 +260,69 @@ const RecoveryDashboard: React.FC = () => {
   // Photo upload progress
   const [uploadProgress, setUploadProgress] = useState(0);
   
-  // PHQ-9 quiz states
-  const [phqAnswers, setPhqAnswers] = useState<number[]>(Array(9).fill(-1));
-  const [phqStep, setPhqStep] = useState(0);
-  const [phqScore, setPhqScore] = useState<number | null>(null);
+  // ESAS-R comfort assessment states
+  const [esasAnswers, setEsasAnswers] = useState<number[]>([]);
+  const [esasStep, setEsasStep] = useState(0);
+  const [esasScore, setEsasScore] = useState<number | null>(null);
+  const [esasAverage, setEsasAverage] = useState<number | null>(null);
+
+  // Load ESAS symptoms dynamically from backend questionnaire or fallback to static list
+  const dynamicSymptoms = data?.esasQuestionnaire?.questions
+    ? [...data.esasQuestionnaire.questions]
+        .sort((a: any, b: any) => a.order - b.order)
+        .map((q: any) => {
+          const key = q.text.toLowerCase().replace(/\s+/g, '');
+          let desc = q.subtext || `Rate your level of ${q.text.toLowerCase()}`;
+          let minLabel = '0 (None)';
+          let maxLabel = '10 (Worst)';
+          if (q.text.toLowerCase().includes('wellbeing') || q.text.toLowerCase().includes('well-being')) {
+            minLabel = 'Best Wellbeing (0)';
+            maxLabel = 'Worst Possible (10)';
+          } else if (q.text.toLowerCase().includes('appetite')) {
+            minLabel = 'Excellent (0)';
+            maxLabel = 'Worst Possible (10)';
+          } else if (q.text.toLowerCase().includes('drowsiness')) {
+            minLabel = 'Fully Alert (0)';
+            maxLabel = 'Worst Possible (10)';
+          } else if (q.text.toLowerCase().includes('pain')) {
+            minLabel = 'No Pain (0)';
+            maxLabel = 'Worst Possible (10)';
+          } else if (q.text.toLowerCase().includes('tiredness') || q.text.toLowerCase().includes('fatigue')) {
+            minLabel = 'No Fatigue (0)';
+            maxLabel = 'Worst Possible (10)';
+          } else if (q.text.toLowerCase().includes('nausea')) {
+            minLabel = 'No Nausea (0)';
+            maxLabel = 'Worst Possible (10)';
+          } else if (q.text.toLowerCase().includes('breath') || q.text.toLowerCase().includes('dyspnea') || q.text.toLowerCase().includes('shortness')) {
+            minLabel = 'Normal (0)';
+            maxLabel = 'Worst Possible (10)';
+          } else if (q.text.toLowerCase().includes('depression')) {
+            minLabel = 'No Depression (0)';
+            maxLabel = 'Worst Possible (10)';
+          } else if (q.text.toLowerCase().includes('anxiety')) {
+            minLabel = 'No Anxiety (0)';
+            maxLabel = 'Worst Possible (10)';
+          }
+          return {
+            key,
+            label: q.text,
+            desc,
+            minLabel,
+            maxLabel
+          };
+        })
+    : ESAS_SYMPTOMS;
+
+  useEffect(() => {
+    if (esasAnswers.length === 0 && dynamicSymptoms.length > 0) {
+      setEsasAnswers(Array(dynamicSymptoms.length).fill(0));
+    }
+  }, [dynamicSymptoms, esasAnswers.length]);
+
+  // ESAS Mutation Hook
+  const [saveEsas] = useMutation(SAVE_ESAS_ASSESSMENT, {
+    refetchQueries: [{ query: GET_DASHBOARD_DATA, variables: { patientId: user?.patientId } }]
+  });
 
   // Live Wearables integration
   useEffect(() => {
@@ -249,8 +367,11 @@ const RecoveryDashboard: React.FC = () => {
     const savedBp = localStorage.getItem(`halkyone-bp-value-${dateStr}`);
     if (savedBp) setBpValue(savedBp);
     
-    const savedPhq = localStorage.getItem(`halkyone-phq-score-${dateStr}`);
-    if (savedPhq) setPhqScore(parseInt(savedPhq));
+    const savedEsas = localStorage.getItem(`halkyone-esas-avg-${dateStr}`);
+    if (savedEsas) {
+      setEsasAverage(parseFloat(savedEsas));
+      setEsasScore(Math.round(parseFloat(savedEsas) * 9));
+    }
 
     const meds = data?.myMobilePrescriptions || [];
     const activeMeds = meds.filter((m: any) => m.isActive);
@@ -286,9 +407,9 @@ const RecoveryDashboard: React.FC = () => {
       },
       { 
         id: 'phq', 
-        title: savedPhq ? `Complete PHQ-9 Assessment (Scored: ${savedPhq})` : 'Complete PHQ-9 Assessment', 
+        title: savedEsas ? `Complete Comfort Check-in (Avg ESAS-R: ${savedEsas}/10)` : 'Complete Palliative Comfort Check-in', 
         time: '10:00 AM', 
-        done: !!savedPhq, 
+        done: !!savedEsas, 
         type: 'phq' 
       },
       { 
@@ -316,7 +437,7 @@ const RecoveryDashboard: React.FC = () => {
     }
   }, [data]);
 
-  // Telehealth Call duration & transcriptions simulation
+  // Telehealth Call duration & transcription status
   useEffect(() => {
     let timer: any;
     if (callActive) {
@@ -325,14 +446,9 @@ const RecoveryDashboard: React.FC = () => {
       timer = setInterval(() => {
         setCallDuration(prev => {
           const next = prev + 1;
-          
-          // Simulation of doctor active check-in conversation
-          if (next === 2) setLiveTranscription("Dr. Ross: Hello! I see your vital signs are streaming in nicely. How are you feeling today?");
-          else if (next === 7) setLiveTranscription("Dr. Ross: Your heart rate of 72 BPM and SpO2 of 98% look absolutely pristine!");
-          else if (next === 13) setLiveTranscription("Dr. Ross: I also reviewed your wound check-in image. The margins are closing beautifully and healing well.");
-          else if (next === 19) setLiveTranscription("Dr. Ross: Continue checking off your oncology care plan items today. We are monitoring your logs 24/7.");
-          else if (next === 25) setLiveTranscription("Dr. Ross: I will sync up with you again tomorrow morning. Have a peaceful rest and stay connected!");
-          
+          if (next === 2) {
+            setLiveTranscription("WebRTC Voice Channel: Connected. Real-time transcription active.");
+          }
           return next;
         });
       }, 1000);
@@ -372,8 +488,10 @@ const RecoveryDashboard: React.FC = () => {
         setBpValue(null);
       } else if (task.type === 'phq') {
         const dateStr = new Date().toISOString().split('T')[0];
-        localStorage.removeItem(`halkyone-phq-score-${dateStr}`);
-        setPhqScore(null);
+        localStorage.removeItem(`halkyone-esas-score-${dateStr}`);
+        localStorage.removeItem(`halkyone-esas-avg-${dateStr}`);
+        setEsasScore(null);
+        setEsasAverage(null);
       }
       
       const newTitle = task.type === 'wound' 
@@ -381,7 +499,7 @@ const RecoveryDashboard: React.FC = () => {
         : task.type === 'bp' 
           ? 'Record morning blood pressure' 
           : task.type === 'phq' 
-            ? 'Complete PHQ-9 Assessment' 
+            ? 'Complete Palliative Comfort Check-in' 
             : task.title;
 
       setTasks(prevTasks => {
@@ -396,9 +514,10 @@ const RecoveryDashboard: React.FC = () => {
     if (task.type === 'wound') {
       setShowWoundModal(true);
     } else if (task.type === 'phq') {
-      setPhqAnswers(Array(9).fill(-1));
-      setPhqStep(0);
-      setPhqScore(null);
+      setEsasAnswers(Array(9).fill(0));
+      setEsasStep(0);
+      setEsasScore(null);
+      setEsasAverage(null);
       setShowPhqModal(true);
     } else if (task.type === 'bp') {
       setSystolic('118');
@@ -492,36 +611,76 @@ const RecoveryDashboard: React.FC = () => {
     return pathStr;
   };
 
-  const handlePhqAnswer = (val: number) => {
-    const updated = [...phqAnswers];
-    updated[phqStep] = val;
-    setPhqAnswers(updated);
-    
-    if (phqStep < 8) {
-      setTimeout(() => {
-        setPhqStep(prev => prev + 1);
-      }, 200);
+  const handleEsasStepNext = () => {
+    if (esasStep < dynamicSymptoms.length - 1) {
+      setEsasStep(prev => prev + 1);
     } else {
-      const total = updated.reduce((sum, current) => sum + current, 0);
-      setPhqScore(total);
+      const total = esasAnswers.reduce((sum, val) => sum + val, 0);
+      const avg = parseFloat((total / dynamicSymptoms.length).toFixed(1));
+      setEsasScore(total);
+      setEsasAverage(avg);
       const dateStr = new Date().toISOString().split('T')[0];
-      localStorage.setItem(`halkyone-phq-score-${dateStr}`, total.toString());
+      localStorage.setItem(`halkyone-esas-score-${dateStr}`, total.toString());
+      localStorage.setItem(`halkyone-esas-avg-${dateStr}`, avg.toString());
     }
   };
 
-  const getPhqSeverity = (score: number) => {
-    if (score <= 4) return "Minimal Severity";
-    if (score <= 9) return "Mild Severity";
-    if (score <= 14) return "Moderate Severity";
-    if (score <= 19) return "Moderately Severe";
-    return "Severe Depression";
+  const getEsasSeverity = (avg: number) => {
+    if (avg <= 1.0) return "Normal Comfort Status";
+    if (avg <= 3.0) return "Mild Palliative Distress";
+    if (avg <= 6.0) return "Moderate Palliative Distress";
+    if (avg <= 8.0) return "Severe Symptom Burden";
+    return "Clinical Distress Crisis";
   };
 
-  const submitPhqAssessment = () => {
+  const submitEsasAssessment = async () => {
+    const getScoreByText = (text: string) => {
+      const idx = dynamicSymptoms.findIndex((s: any) => s.label.toLowerCase().includes(text.toLowerCase()));
+      return idx !== -1 ? esasAnswers[idx] : 0;
+    };
+
+    const pain = getScoreByText('pain');
+    const tiredness = getScoreByText('tiredness') || getScoreByText('fatigue');
+    const drowsiness = getScoreByText('drowsiness');
+    const nausea = getScoreByText('nausea');
+    const lackOfAppetite = getScoreByText('appetite');
+    const shortnessOfBreath = getScoreByText('breath') || getScoreByText('dyspnea');
+    const depression = getScoreByText('depression');
+    const anxiety = getScoreByText('anxiety');
+    const wellbeing = getScoreByText('wellbeing') || getScoreByText('well-being');
+
+    try {
+      if (user?.patientId) {
+        await saveEsas({
+          variables: {
+            patientId: user.patientId,
+            pain,
+            tiredness,
+            drowsiness,
+            nausea,
+            lackOfAppetite,
+            shortnessOfBreath,
+            depression,
+            anxiety,
+            wellbeing
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Failed to save ESAS assessment directly to PostgreSQL database:", err);
+    }
+
+    const total = esasAnswers.reduce((sum, val) => sum + val, 0);
+    const avg = parseFloat((total / dynamicSymptoms.length).toFixed(1));
+    setEsasScore(total);
+    setEsasAverage(avg);
+
     const dateStr = new Date().toISOString().split('T')[0];
-    const score = phqScore || 0;
+    localStorage.setItem(`halkyone-esas-score-${dateStr}`, total.toString());
+    localStorage.setItem(`halkyone-esas-avg-${dateStr}`, avg.toString());
+
     setTasks(prevTasks => {
-      const updated = prevTasks.map(t => t.id === 'phq' ? { ...t, done: true, title: `Complete PHQ-9 Assessment (Scored: ${score})` } : t);
+      const updated = prevTasks.map(t => t.id === 'phq' ? { ...t, done: true, title: `Complete Comfort Check-in (Avg ESAS-R: ${avg}/10)` } : t);
       localStorage.setItem(`halkyone-care-ring-${dateStr}`, JSON.stringify(updated));
       return updated;
     });
@@ -538,7 +697,7 @@ const RecoveryDashboard: React.FC = () => {
         if (prev >= 100) {
           clearInterval(interval);
           const reader = new FileReader();
-          reader.onloadend = () => {
+          reader.onloadend = async () => {
             const base64data = reader.result as string;
             setWoundPhoto(base64data);
             const dateStr = new Date().toISOString().split('T')[0];
@@ -550,6 +709,28 @@ const RecoveryDashboard: React.FC = () => {
               return updated;
             });
             
+            // Connect to clinician portal Document Vault / coordination tab in PostgreSQL
+            try {
+              const formData = new FormData();
+              formData.append("file", file);
+              formData.append("title", `Wound Photo - ${new Date().toLocaleDateString()}`);
+              formData.append("documentType", "CLINICAL_RECORD");
+
+              const response = await fetch(`${apiUrl}/api/upload/general/${user?.patientId}`, {
+                method: "POST",
+                body: formData,
+                headers: token ? { "Authorization": `Bearer ${token}` } : undefined
+              });
+
+              if (response.ok) {
+                console.log("[ComfortDashboard] Wound photo registered in patient clinical Document Vault!");
+              } else {
+                console.error("[ComfortDashboard] Backend upload failed:", response.statusText);
+              }
+            } catch (err) {
+              console.error("[ComfortDashboard] Error uploading photo to C# server:", err);
+            }
+
             setUploadProgress(0);
             setShowWoundModal(false);
           };
@@ -728,9 +909,9 @@ const RecoveryDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <h1 className="text-lg font-black tracking-tight text-slate-900 dark:text-white font-sans flex items-baseline gap-1.5">
-                {loading ? 'Loading...' : data?.myMobileProfile?.firstName ? `Hi, ${data.myMobileProfile.firstName}` : 'Recovery'}
+                {loading ? 'Loading...' : data?.myMobileProfile?.firstName ? `Hi, ${data.myMobileProfile.firstName}` : 'Comfort'}
                 <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
-                  {data?.myMobileProfile?.lastName ? data.myMobileProfile.lastName : 'Room'}
+                  {data?.myMobileProfile?.lastName ? data.myMobileProfile.lastName : 'Hub'}
                 </span>
               </h1>
             </div>
@@ -876,6 +1057,64 @@ const RecoveryDashboard: React.FC = () => {
                   </div>
                   <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold">68% Phase 2</span>
                 </div>
+              </div>
+              <IonIcon icon={chevronForward} className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </div>
+
+          {/* Goals of Care Vault Card */}
+          <div 
+            onClick={() => setShowDirectivesModal(true)}
+            className="ion-activatable relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b0f19] dark:bg-gradient-to-br dark:from-slate-900/80 dark:to-[#0b0f19]/80 p-4 shadow-[0_4px_20px_rgba(15,23,42,0.03)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] cursor-pointer hover:border-teal-500/50 dark:hover:border-teal-500/30 transition-all active:scale-[0.99] group"
+          >
+            <IonRippleEffect />
+            <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl pointer-events-none" />
+            
+            <div className="flex items-center gap-3.5">
+              <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-650 dark:text-indigo-400 group-hover:scale-105 transition-transform">
+                <IonIcon icon={shieldCheckmark} className="w-5 h-5" />
+              </div>
+              <div className="flex-grow space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[8px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase">Goals of Care Vault</span>
+                  <div className="px-1.5 py-0.2 bg-emerald-500/10 border border-emerald-500/20 rounded text-[7px] font-mono font-bold text-emerald-650 uppercase tracking-widest">
+                    Verified
+                  </div>
+                </div>
+                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">Active Advance Directives</h3>
+                <p className="text-[10px] text-slate-550 dark:text-slate-450 leading-none">
+                  {data?.myMobileProfile?.hasAdvanceDirective 
+                    ? `🛡️ DNR & Comfort Measures Active` 
+                    : 'Log and verify clinical directives'}
+                </p>
+              </div>
+              <IonIcon icon={chevronForward} className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </div>
+
+          {/* Anticipatory Guidance & Caregiver Support Card */}
+          <div 
+            onClick={() => setShowSupportModal(true)}
+            className="ion-activatable relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b0f19] dark:bg-gradient-to-br dark:from-slate-900/80 dark:to-[#0b0f19]/80 p-4 shadow-[0_4px_20px_rgba(15,23,42,0.03)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] cursor-pointer hover:border-teal-500/50 dark:hover:border-teal-500/30 transition-all active:scale-[0.99] group"
+          >
+            <IonRippleEffect />
+            <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-rose-500/5 rounded-full blur-xl pointer-events-none" />
+            
+            <div className="flex items-center gap-3.5">
+              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 text-rose-650 dark:text-rose-400 group-hover:scale-105 transition-transform">
+                <IonIcon icon={informationCircle} className="w-5 h-5" />
+              </div>
+              <div className="flex-grow space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[8px] font-black tracking-widest text-rose-600 dark:text-rose-400 uppercase">Caregiver Resources</span>
+                  <div className="px-1.5 py-0.2 bg-rose-500/10 border border-rose-500/20 rounded text-[7px] font-mono font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest animate-pulse">
+                    New Support Guides
+                  </div>
+                </div>
+                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">Anticipatory Guidance</h3>
+                <p className="text-[10px] text-slate-550 dark:text-slate-450 leading-none">
+                  Calming symptom care, respite, & bereavement guides
+                </p>
               </div>
               <IonIcon icon={chevronForward} className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
             </div>
@@ -1117,111 +1356,123 @@ const RecoveryDashboard: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* 🧠 PHQ-9 CLINICAL SELF-ASSESSMENT MODAL */}
+      {/* 🧠 ESAS-R PALLIATIVE COMFORT ASSESSMENT MODAL */}
       {/* ========================================================================= */}
       {showPhqModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center p-4.5 border-b border-slate-100 dark:border-slate-800/80">
+          <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 rounded-[2rem] w-full max-w-md flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30">
               <div>
-                <span className="text-[8px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Assessment Screen</span>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">PHQ-9 Depression Severity</h3>
+                <span className="text-[8px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Comfort Check-in</span>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Edmonton Symptom Assessment (ESAS-R)</h3>
               </div>
               <button 
                 onClick={() => setShowPhqModal(false)} 
-                className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                className="p-1.5 rounded-full hover:bg-slate-200/50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
               >
                 <IonIcon icon={close} className="w-5 h-5" />
               </button>
             </div>
-
-            <div className="p-5 flex-1 min-h-[360px] flex flex-col justify-between">
-              {phqScore === null ? (
+            <div className="p-5 flex-1 max-h-[65vh] overflow-y-auto space-y-4 scrollbar-thin">
+              {esasScore === null ? (
                 <div className="space-y-4">
-                  {/* Progress bar */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                      <span>Question {phqStep + 1} of 9</span>
-                      <span>{Math.round(((phqStep + 1) / 9) * 100)}% Complete</span>
-                    </div>
-                    <div className="w-full h-1 bg-slate-100 dark:bg-slate-850 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-teal-500 to-violet-500 transition-all duration-300"
-                        style={{ width: `${((phqStep + 1) / 9) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-relaxed font-sans pt-2">
-                    Over the last 2 weeks, how often have you been bothered by: <br />
-                    <span className="text-[13px] font-black text-slate-900 dark:text-white block mt-2">
-                      "{PHQ9_QUESTIONS[phqStep]}"
-                    </span>
+                  <p className="text-xs text-slate-550 dark:text-slate-400 leading-snug">
+                    Please adjust the sliders below to rate your current comfort level. 0 represents no symptom (or excellent wellbeing/appetite) and 10 represents worst possible.
                   </p>
 
-                  <div className="space-y-2 pt-2">
-                    {[
-                      { val: 0, label: "Not at all" },
-                      { val: 1, label: "Several days" },
-                      { val: 2, label: "More than half the days" },
-                      { val: 3, label: "Nearly every day" }
-                    ].map((opt) => (
-                      <button
-                        key={opt.val}
-                        onClick={() => handlePhqAnswer(opt.val)}
-                        className={`w-full text-left p-3 rounded-xl border text-xs font-semibold transition-all duration-200 flex items-center justify-between ${
-                          phqAnswers[phqStep] === opt.val
-                            ? "bg-teal-50/50 dark:bg-teal-950/20 border-teal-500 text-teal-850 dark:text-teal-300"
-                            : "bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-900/60"
-                        }`}
+                  <div className="space-y-3.5">
+                    {dynamicSymptoms.map((symptom: any, index: number) => (
+                      <div 
+                        key={symptom.key || index}
+                        className="p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 space-y-2.5 transition-all hover:border-teal-500/30"
                       >
-                        <span>{opt.label}</span>
-                        <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                          phqAnswers[phqStep] === opt.val ? "border-teal-500 bg-teal-500 text-white" : "border-slate-350 dark:border-slate-750"
-                        }`}>
-                          {phqAnswers[phqStep] === opt.val && <div className="w-1 h-1 bg-white rounded-full" />}
+                        <div className="flex justify-between items-center">
+                          <div className="space-y-0.5">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white">
+                              {symptom.label}
+                            </span>
+                            <span className="block text-[10px] text-slate-550 dark:text-slate-400">
+                              {symptom.desc}
+                            </span>
+                          </div>
+                          
+                          {/* Numerical severity indicator */}
+                          <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center font-mono font-black text-xs shadow-inner">
+                            {esasAnswers[index] !== undefined ? esasAnswers[index] : 0}
+                          </div>
                         </div>
-                      </button>
+
+                        {/* Visual slider control */}
+                        <div className="space-y-1.5 px-0.5">
+                          <input
+                            type="range"
+                            min="0"
+                            max="10"
+                            step="1"
+                            value={esasAnswers[index] !== undefined ? esasAnswers[index] : 0}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value);
+                              const updated = [...esasAnswers];
+                              updated[index] = val;
+                              setEsasAnswers(updated);
+                            }}
+                            className="w-full accent-teal-500 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer"
+                          />
+                          <div className="flex justify-between text-[8px] font-mono font-bold text-slate-450">
+                            <span>{symptom.minLabel}</span>
+                            <span>{symptom.maxLabel}</span>
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
+
+                  {/* Real-time Dynamic Average Score Panel */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 to-indigo-500/10 border border-teal-500/20 flex items-center justify-between mt-5">
+                    <div className="space-y-0.5">
+                      <span className="text-[9px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider">Live Calibration</span>
+                      <h4 className="text-xs font-bold text-slate-850 dark:text-white">Current Average Severity</h4>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-base font-black text-slate-900 dark:text-white font-mono">
+                        {(esasAnswers.length > 0 ? (esasAnswers.reduce((sum, val) => sum + val, 0) / esasAnswers.length) : 0).toFixed(1)}
+                      </span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold"> / 10</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={submitEsasAssessment}
+                    className="w-full h-11 mt-5 flex items-center justify-center bg-teal-600 dark:bg-gradient-to-r dark:from-teal-500 dark:to-emerald-500 hover:bg-teal-500 dark:hover:from-teal-400 dark:hover:to-emerald-400 text-white dark:text-slate-950 rounded-full text-xs font-black tracking-wide uppercase transition-all shadow-lg active:scale-[0.98]"
+                    style={{ borderRadius: '9999px' }}
+                  >
+                    Submit Comfort Check-in
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-5 text-center py-6 flex-grow flex flex-col justify-center">
-                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center mx-auto text-2xl font-black">
-                    {phqScore}
+                  <div className="w-20 h-20 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto text-2xl font-black font-mono">
+                    {esasAverage}
                   </div>
                   <div className="space-y-1">
                     <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
-                      Assessment Score: {phqScore}
+                      Average Comfort Score: {esasAverage} / 10
                     </h4>
-                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-violet-500/10 border border-violet-500/20 text-violet-500 dark:text-violet-400">
-                      Severity: {getPhqSeverity(phqScore)}
+                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-violet-500/10 border border-violet-500/20 text-violet-500 dark:text-violet-455">
+                      Status: {getEsasSeverity(esasAverage || 0)}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-555 dark:text-slate-450 max-w-xs mx-auto leading-relaxed">
-                    Your response has been parsed and securely transmitted to your primary care navigator. It is logged in your clinical record for continuous symptom monitoring.
+                    Your Edmonton Symptom log has been stored in PostgreSQL database. Your palliative Navigator Sarah Jenkins has been updated for real-time symptom calibration.
                   </p>
 
                   <button
-                    onClick={submitPhqAssessment}
+                    onClick={submitEsasAssessment}
                     className="w-full h-11 flex items-center justify-center bg-teal-600 dark:bg-gradient-to-r dark:from-teal-500 dark:to-emerald-500 hover:bg-teal-500 dark:hover:from-teal-400 dark:hover:to-emerald-400 text-white dark:text-slate-950 rounded-full text-xs font-black tracking-wide uppercase transition-all shadow-lg"
                     style={{ borderRadius: '9999px' }}
                   >
                     Submit & Close Check-in
                   </button>
-                </div>
-              )}
-
-              {phqScore === null && (
-                <div className="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-6">
-                  <button
-                    disabled={phqStep === 0}
-                    onClick={() => setPhqStep(prev => prev - 1)}
-                    className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50 disabled:opacity-40 transition-colors"
-                  >
-                    Back
-                  </button>
-                  <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase">Self-Screening</span>
                 </div>
               )}
             </div>
@@ -1619,20 +1870,9 @@ const RecoveryDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Simulation Toggle controls */}
-              <div className="flex gap-2.5">
-                <button
-                  onClick={() => setIsTransitSimulating(!isTransitSimulating)}
-                  className="flex-grow h-10 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-                >
-                  {isTransitSimulating ? 'Pause Transit Sim' : 'Resume Transit Sim'}
-                </button>
-                <button
-                  onClick={() => setRadarTransitProgress(15)}
-                  className="px-4 h-10 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-750 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-                >
-                  Reset
-                </button>
+              {/* Telematics Status Banner */}
+              <div className="w-full h-11 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-[10px] text-slate-500 font-mono uppercase tracking-wider">
+                📡 Connected to Halkyone Fleet Telematics Hub
               </div>
             </div>
           </div>
@@ -1792,8 +2032,191 @@ const RecoveryDashboard: React.FC = () => {
         </div>
       )}
 
+      {/* ========================================================================= */}
+      {/* 📜 GOALS OF CARE / ADVANCED CARE PLANNING VAULT MODAL */}
+      {/* ========================================================================= */}
+      {showDirectivesModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="absolute inset-0" onClick={() => setShowDirectivesModal(false)} />
+          
+          <div className="relative overflow-hidden w-full max-w-md rounded-[2.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f19] p-6 space-y-6 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 max-h-[85vh] overflow-y-auto">
+            <div className="absolute -right-20 -top-20 w-40 h-40 bg-teal-500/5 rounded-full blur-2xl pointer-events-none" />
+            
+            {/* Header */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20 text-teal-600 dark:text-teal-400">
+                  <IonIcon icon={shieldCheckmark} className="w-5.5 h-5.5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Goals of Care Vault</h3>
+                  <span className="text-[8px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-widest mt-0.5 block">Advanced Care Planning (ACP)</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowDirectivesModal(false)} 
+                className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+              >
+                <IonIcon icon={close} className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-550 dark:text-slate-455 leading-relaxed">
+              These are your legally binding and active Advance Directives as verified and signed in cooperation with your Halkyone primary care providers.
+            </p>
+
+            <div className="space-y-3.5">
+              {data?.myMobileProfile?.advanceDirectives && data.myMobileProfile.advanceDirectives.length > 0 ? (
+                data.myMobileProfile.advanceDirectives.map((d: any) => (
+                  <div 
+                    key={d.advanceDirectiveId} 
+                    className="p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30 space-y-3 transition-all hover:border-teal-500/30"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                        <span className="text-xs font-black uppercase text-slate-900 dark:text-white font-sans">
+                          {d.type === 'DNR' ? 'Do Not Resuscitate (DNR)' : d.type === 'ComfortMeasuresOnly' ? 'Comfort Measures Only (CMO)' : d.type}
+                        </span>
+                      </div>
+                      <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase font-mono">
+                        Active since {new Date(d.effectiveDate).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed font-sans italic bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-slate-150 dark:border-slate-850">
+                      "{d.notes}"
+                    </p>
+
+                    <a 
+                      href={d.documentUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="h-10 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200/50 dark:border-slate-750 transition-colors w-full"
+                    >
+                      <IonIcon icon={cloudUpload} className="w-4.5 h-4.5 text-teal-500" />
+                      <span>View Signed Legal Document</span>
+                    </a>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <p className="text-xs text-slate-450 dark:text-slate-550">No advance directives registered in active profile.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-teal-500/5 border border-teal-500/10 flex items-start gap-2.5">
+              <IonIcon icon={informationCircle} className="text-teal-600 dark:text-teal-400 w-4 h-4 flex-shrink-0 mt-0.5" />
+              <p className="text-[10px] text-slate-500 dark:text-slate-450 leading-relaxed">
+                If you need to make changes to your Goals of Care, upload a new directive, or contact Dr. Ross, please coordinate with your Primary Care Navigator.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 🌸 ANTICIPATORY GUIDANCE & CARE-SUPPORT HUB MODAL */}
+      {/* ========================================================================= */}
+      {showSupportModal && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="absolute inset-0" onClick={() => setShowSupportModal(false)} />
+          
+          <div className="relative overflow-hidden w-full max-w-md rounded-[2.5rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0b0f19] p-6 space-y-5 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 max-h-[85vh] overflow-y-auto">
+            <div className="absolute -right-20 -top-20 w-40 h-40 bg-rose-500/5 rounded-full blur-2xl pointer-events-none" />
+            
+            {/* Header */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 text-rose-600 dark:text-rose-455">
+                  <IonIcon icon={informationCircle} className="w-5.5 h-5.5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Anticipatory Comfort Care</h3>
+                  <span className="text-[8px] font-black uppercase text-rose-600 dark:text-rose-400 tracking-widest mt-0.5 block">Caregiver & Family Support Hub</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowSupportModal(false)} 
+                className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+              >
+                <IonIcon icon={close} className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-550 dark:text-slate-400 leading-relaxed font-semibold">
+              Palliative physical transitions can be managed peacefully at home. Use these clinical comfort guides to support your loved one during progressive symptom changes.
+            </p>
+
+            {/* Guides Section */}
+            <div className="space-y-3.5">
+              
+              {/* Dyspnea */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
+                <span className="text-[9px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider block">1. Air Hunger / Dyspnea</span>
+                <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
+                  • <strong>Bedside Fan Effect:</strong> A cool breeze blowing across the cheek/face stimulates the trigeminal nerve, naturally calming breathing centers in the brain.<br />
+                  • <strong>Optimized Position:</strong> Support the patient sitting upright or leaning forward slightly, resting their forearms on a bedside table.
+                </p>
+              </div>
+
+              {/* Respiratory Secretions */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
+                <span className="text-[9px] font-black uppercase text-rose-600 dark:text-rose-400 tracking-wider block">2. Congestion ("Death Rattle")</span>
+                <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
+                  • <strong>Reassurance:</strong> This loud breathing is a natural relaxation of throat muscles. It is not painful or distressing for the patient.<br />
+                  • <strong>Bedside Action:</strong> Turn the patient gently to a side-lying position. <strong>Do not use deep suctioning</strong>, as it can cause significant airway spasms and panic.
+                </p>
+              </div>
+
+              {/* Terminal Restlessness */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
+                <span className="text-[9px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider block">3. Terminal Restlessness & Panic</span>
+                <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
+                  • <strong>Calming Ambience:</strong> Dim the bedroom lighting, turn off loud television noise, and play low-volume ambient music.<br />
+                  • <strong>Touch & Tone:</strong> Speak in low, peaceful, steady whispers. Hold their hand or brush their forehead gently to provide sensory grounding.
+                </p>
+              </div>
+
+              {/* Bereavement Support */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-rose-950/10 border border-slate-200/50 dark:border-rose-900/20 space-y-1.5">
+                <span className="text-[9px] font-black uppercase text-pink-600 dark:text-pink-400 tracking-wider block">4. Bereavement & Caregiver Support</span>
+                <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
+                  • <strong>Counseling Access:</strong> We provide 24/7 complimentary grief support, spiritual counseling, and local support handovers for family members.<br />
+                  • <strong>Respite Checklist:</strong> Coordinate a caregiver shift handoff utilizing the Comfort Ring tasks to maintain continuity.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Support Actions */}
+            <div className="flex flex-col gap-2 pt-2.5">
+              <a
+                href="tel:18005557255"
+                className="w-full h-11 bg-rose-600 hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400 text-white dark:text-[#020408] rounded-full flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider shadow-md shadow-rose-500/10 active:scale-95 transition-transform"
+                style={{ textDecoration: 'none' }}
+              >
+                <IonIcon icon={shieldCheckmark} className="w-4.5 h-4.5" />
+                <span>Call Palliative Support Hotline</span>
+              </a>
+
+              <IonButton
+                expand="block"
+                fill="outline"
+                className="text-xs font-bold uppercase border-slate-200 dark:border-slate-800 rounded-full h-10 w-full"
+                onClick={() => setShowSupportModal(false)}
+                style={{ '--border-radius': '9999px', '--border-color': 'var(--ion-color-step-300)' }}
+              >
+                Close Support Hub
+              </IonButton>
+            </div>
+          </div>
+        </div>
+      )}
+
     </IonPage>
   );
 };
 
-export default RecoveryDashboard;
+export default ComfortDashboard;

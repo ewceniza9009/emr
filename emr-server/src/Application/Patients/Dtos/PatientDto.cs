@@ -35,4 +35,7 @@ public class PatientDto
     public ICollection<AppointmentDto> Appointments { get; set; } = new List<AppointmentDto>();
     public string? VisitStatus { get; set; }
     public string? PrimaryCareNavigatorName { get; set; }
+    
+    public bool HasAdvanceDirective { get; set; }
+    public ICollection<AdvanceDirectiveDto> AdvanceDirectives { get; set; } = new List<AdvanceDirectiveDto>();
 }

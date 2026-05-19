@@ -82,4 +82,18 @@ public class MobilePortalQuery
             .OrderByDescending(e => e.EncounterDate)
             .ToListAsync(cancellationToken);
     }
+
+    [UsePatientAccess]
+    public async Task<IEnumerable<EsasAssessment>> GetMyMobileEsasHistory(
+        Guid patientId,
+        [Service] Application.Common.Interfaces.IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        return await context.EsasAssessments
+            .IgnoreQueryFilters()
+            .Where(e => e.PatientId == patientId)
+            .OrderByDescending(e => e.AssessedAt)
+            .ToListAsync(cancellationToken);
+    }
 }

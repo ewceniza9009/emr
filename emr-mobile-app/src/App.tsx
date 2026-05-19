@@ -11,8 +11,8 @@ import {
   IonSpinner
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { pulse, chatbubbleEllipses, medkit, logOutOutline } from 'ionicons/icons';
-import RecoveryDashboard from './pages/RecoveryDashboard';
+import { heart, chatbubbleEllipses, medkit, logOutOutline } from 'ionicons/icons';
+import ComfortDashboard from './pages/ComfortDashboard';
 import CareHub from './pages/CareHub';
 import Pharmacy from './pages/Pharmacy';
 import Login from './pages/Login';
@@ -69,15 +69,15 @@ const AppContent: React.FC = () => {
     <IonReactRouter>
       <IonRouterOutlet>
         <Route exact path="/login">
-          {isAuthenticated ? <Redirect to="/app/recovery" /> : <Login />}
+          {isAuthenticated ? <Redirect to="/app/comfort" /> : <Login />}
         </Route>
 
         <Route path="/app">
           {isAuthenticated ? (
             <IonTabs>
               <IonRouterOutlet>
-                <Route exact path="/app/recovery">
-                  <RecoveryDashboard />
+                <Route exact path="/app/comfort">
+                  <ComfortDashboard />
                 </Route>
                 <Route exact path="/app/care-hub">
                   <CareHub />
@@ -86,14 +86,14 @@ const AppContent: React.FC = () => {
                   <Pharmacy />
                 </Route>
                 <Route exact path="/app">
-                  <Redirect to="/app/recovery" />
+                  <Redirect to="/app/comfort" />
                 </Route>
               </IonRouterOutlet>
 
               <IonTabBar slot="bottom">
-                <IonTabButton tab="recovery" href="/app/recovery">
-                  <IonIcon aria-hidden="true" icon={pulse} className="w-5 h-5" />
-                  <IonLabel className="text-[10px] font-sans font-bold">Recovery</IonLabel>
+                <IonTabButton tab="comfort" href="/app/comfort">
+                  <IonIcon aria-hidden="true" icon={heart} className="w-5 h-5" />
+                  <IonLabel className="text-[10px] font-sans font-bold">Comfort Hub</IonLabel>
                 </IonTabButton>
                 <IonTabButton tab="care-hub" href="/app/care-hub">
                   <IonIcon aria-hidden="true" icon={chatbubbleEllipses} className="w-5 h-5" />
@@ -115,11 +115,11 @@ const AppContent: React.FC = () => {
         </Route>
 
         <Route exact path="/">
-          <Redirect to="/app/recovery" />
+          <Redirect to="/app/comfort" />
         </Route>
         
         {/* Catch-all fallback */}
-        <Route render={() => <Redirect to={isAuthenticated ? "/app/recovery" : "/login"} />} />
+        <Route render={() => <Redirect to={isAuthenticated ? "/app/comfort" : "/login"} />} />
       </IonRouterOutlet>
     </IonReactRouter>
   );

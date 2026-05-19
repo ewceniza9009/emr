@@ -24,6 +24,7 @@ public class PrescriptionsByPatientIdDataLoader : BatchDataLoader<Guid, IEnumera
     {
         using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var prescriptions = await context.Prescriptions
+            .IgnoreQueryFilters()
             .Include(p => p.Medication)
             .Where(p => keys.Contains(p.PatientId))
             .AsNoTracking()
@@ -64,6 +65,7 @@ public class DiagnosesByPatientIdDataLoader : BatchDataLoader<Guid, IEnumerable<
     {
         using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var diagnoses = await context.Diagnoses
+            .IgnoreQueryFilters()
             .Where(d => keys.Contains(d.PatientId))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -102,6 +104,7 @@ public class AllergiesByPatientIdDataLoader : BatchDataLoader<Guid, IEnumerable<
     {
         using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var allergies = await context.Allergies
+            .IgnoreQueryFilters()
             .Where(a => keys.Contains(a.PatientId))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -140,6 +143,7 @@ public class DocumentsByPatientIdDataLoader : BatchDataLoader<Guid, IEnumerable<
     {
         using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
         var docs = await context.PatientDocuments
+            .IgnoreQueryFilters()
             .Where(d => keys.Contains(d.PatientId))
             .AsNoTracking()
             .ToListAsync(cancellationToken);

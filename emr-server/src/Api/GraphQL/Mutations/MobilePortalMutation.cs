@@ -148,4 +148,52 @@ public class MobilePortalMutation
 
         return vital;
     }
+
+    [UsePatientAccess]
+    public async Task<EsasAssessment> SaveEsasAssessment(
+        Guid patientId,
+        int pain,
+        int tiredness,
+        int drowsiness,
+        int nausea,
+        int lackOfAppetite,
+        int shortnessOfBreath,
+        int depression,
+        int anxiety,
+        int wellbeing,
+        [Service] IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        var patient = await context.Patients
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.PatientId == patientId, cancellationToken);
+
+        if (patient == null)
+        {
+            throw new ArgumentException("Patient not found.");
+        }
+
+        var assessment = new EsasAssessment
+        {
+            AssessmentId = Guid.NewGuid(),
+            TenantId = patient.TenantId,
+            PatientId = patientId,
+            Pain = pain,
+            Tiredness = tiredness,
+            Drowsiness = drowsiness,
+            Nausea = nausea,
+            LackOfAppetite = lackOfAppetite,
+            ShortnessOfBreath = shortnessOfBreath,
+            Depression = depression,
+            Anxiety = anxiety,
+            Wellbeing = wellbeing,
+            AssessedAt = DateTimeOffset.UtcNow
+        };
+
+        context.EsasAssessments.Add(assessment);
+        await context.SaveChangesAsync(cancellationToken);
+
+        return assessment;
+    }
 }

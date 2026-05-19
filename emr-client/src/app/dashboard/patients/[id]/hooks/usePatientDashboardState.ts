@@ -21,6 +21,7 @@ export const GET_PATIENT_DETAILS = gql`
       mrn
       firstName
       lastName
+      primaryCareNavigatorName
       dob
       deviceSignature
       biologicalSex

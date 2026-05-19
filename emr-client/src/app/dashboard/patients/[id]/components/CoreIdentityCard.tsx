@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useQuery, useMutation, gql } from "@apollo/client";
 import {
   UserCircle,
   Phone,
@@ -24,6 +25,23 @@ const LiveHeartbeat = dynamic(() => import("@/components/LiveHeartbeat"), {
   ssr: false,
 });
 
+const GET_PRACTITIONERS = gql`
+  query GetPractitioners {
+    practitioners {
+      practitionerId
+      firstName
+      lastName
+      position
+    }
+  }
+`;
+
+const REASSIGN_NAVIGATOR = gql`
+  mutation ReassignCareNavigator($patientId: UUID!, $newNavigatorId: UUID!) {
+    reassignCareNavigator(patientId: $patientId, newNavigatorId: $newNavigatorId)
+  }
+`;
+
 interface CoreIdentityCardProps {
   state: UsePatientDashboardStateReturn;
 }
@@ -42,7 +60,45 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
     telemetryData,
   } = state;
 
+  const { data: practitionersData } = useQuery(GET_PRACTITIONERS);
+  const [reassignNavigator] = useMutation(REASSIGN_NAVIGATOR);
+
   if (!patient) return null;
+
+  const practitioners = practitionersData?.practitioners || [];
+
+  const handleReassign = async (newNavigatorId: string) => {
+    if (!newNavigatorId) return;
+    try {
+      const ok = await state.confirm({
+        title: "Reassign Navigator",
+        message: "Are you sure you want to reassign this patient's primary Care Navigator?",
+        confirmText: "Reassign",
+        type: "warning",
+      });
+      if (!ok) return;
+
+      await reassignNavigator({
+        variables: {
+          patientId,
+          newNavigatorId,
+        },
+      });
+      await state.refetch();
+      state.alert({
+        title: "Navigator Reassigned",
+        message: "The primary Care Navigator has been successfully updated.",
+        type: "success",
+      });
+    } catch (err: any) {
+      console.error(err);
+      state.alert({
+        title: "Reassignment Failed",
+        message: err.message || "Failed to update Care Navigator.",
+        type: "danger",
+      });
+    }
+  };
 
   return (
     <div className="space-y-4 shrink-0">
@@ -90,6 +146,31 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                 </>
               )}
             </p>
+          </div>
+          <div className="space-y-2 border-t border-[var(--card-border)] pt-3 mt-2">
+            <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+              Primary Care Navigator
+            </label>
+            <select
+              value={
+                practitioners.find(
+                  (p: any) =>
+                    `${p.firstName} ${p.lastName}`.toLowerCase() ===
+                    patient.primaryCareNavigatorName?.toLowerCase()
+                )?.practitionerId || ""
+              }
+              onChange={(e) => handleReassign(e.target.value)}
+              className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2 px-3 text-xs text-[var(--text-primary)] font-bold focus:outline-none focus:border-[var(--primary)] transition-all cursor-pointer"
+            >
+              <option value="" disabled>
+                -- Select Care Navigator --
+              </option>
+              {practitioners.map((p: any) => (
+                <option key={p.practitionerId} value={p.practitionerId}>
+                  {p.firstName} {p.lastName} ({p.position || "Navigator"})
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>

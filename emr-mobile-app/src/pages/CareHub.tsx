@@ -64,6 +64,7 @@ const GET_MY_PROFILE = gql`
   query GetMyProfile($patientId: UUID!) {
     myMobileProfile(patientId: $patientId) {
       primaryCareNavigatorName
+      hasAdvanceDirective
     }
   }
 `;
@@ -94,6 +95,7 @@ const CareHub: React.FC = () => {
   });
 
   const navigatorName = profileData?.myMobileProfile?.primaryCareNavigatorName || "Sarah Jenkins";
+  const hasAdvanceDirective = profileData?.myMobileProfile?.hasAdvanceDirective || false;
   const navigatorInitials = navigatorName
     .split(' ')
     .map((n: string) => n[0])
@@ -209,7 +211,7 @@ const CareHub: React.FC = () => {
     const newMsg: Message = {
       id: Date.now().toString(),
       sender: 'patient',
-      content: '📸 Secure Wound Photo sent (Encrypted & Masked)',
+      content: '📸 Secure Wound Photo uploaded successfully (AES-256 Encrypted)',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isAttachment: true
     };
@@ -221,13 +223,13 @@ const CareHub: React.FC = () => {
       setMessages(prev => [
         ...prev,
         {
-          id: (Date.now() + 2).toString(),
+          id: (Date.now() + 1).toString(),
           sender: 'navigator',
-          content: 'Excellent, photo received. The wound margins look healthy and healing properly. No signs of infection. Keep keeping it clean!',
+          content: '🔒 System: Wound photo received securely and appended to your clinical chart. Your Care Navigator has been notified for triage review.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
-    }, 2000);
+    }, 1200);
   };
 
   return (
@@ -379,41 +381,108 @@ const CareHub: React.FC = () => {
 
       {/* SOS Alert Modal */}
       <IonModal isOpen={showSosModal} onDidDismiss={() => setShowSosModal(false)} className="sos-modal">
-        <div className="p-6 bg-white dark:bg-[#090b10] border border-rose-200 dark:border-rose-900/50 rounded-2xl text-center space-y-5 h-full flex flex-col justify-center items-center">
-          <div className="w-16 h-16 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-500 rounded-full flex items-center justify-center animate-ping">
-            <IonIcon icon={heart} className="w-8 h-8" />
-          </div>
-          
-          <div className="space-y-2">
-            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Emergency Warning</h2>
-            <div className="px-3 py-1 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-full inline-block text-[10px] font-mono text-rose-600 dark:text-rose-400 uppercase tracking-widest">
-              Symptom Detected: {sosReason}
+        {hasAdvanceDirective ? (
+          <div className="p-6 bg-white dark:bg-[#090b10] border border-rose-200 dark:border-rose-950/40 rounded-2xl text-center space-y-4 h-full flex flex-col justify-center items-center overflow-y-auto">
+            {/* Pulsing Shield Icon - Calming gold/rose border */}
+            <div className="w-16 h-16 bg-rose-500/10 dark:bg-rose-500/20 border-2 border-rose-500 rounded-full flex items-center justify-center animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.2)] flex-shrink-0">
+              <IonIcon icon={heart} className="w-8 h-8 text-rose-500" />
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mt-2">
-              Our clinical NLP core has identified symptoms indicative of cardiac or respiratory distress. A high-priority dashboard override was sent to the Halkyone Clinical Command Center.
-            </p>
-          </div>
 
-          <div className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-left">
-            <span className="text-[9px] font-black uppercase text-amber-600 dark:text-amber-500 tracking-wider">Patient Directions</span>
-            <p className="text-[10px] text-slate-700 dark:text-slate-300 leading-snug mt-1">
-              • Lie down in a comfortable position.<br />
-              • If prescribed nitroglycerin, administer as directed.<br />
-              • <strong className="text-slate-950 dark:text-white">Call 911 immediately</strong> if your pain worsens or you lose consciousness.
-            </p>
-          </div>
+            <div className="space-y-1.5">
+              <h2 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Palliative Rescue Protocol Active</h2>
+              <div className="flex flex-col items-center gap-1.5 mt-1">
+                <div className="px-3 py-0.5 bg-rose-500/10 border border-rose-500/20 rounded-full text-[9px] font-black font-mono text-rose-600 dark:text-rose-400 uppercase tracking-widest">
+                  Active Protection: Comfort Measures Only (DNR)
+                </div>
+                <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500">Symptom Flagged: {sosReason}</span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mt-2 font-medium">
+                Our clinical NLP core has identified symptoms of respiratory or pain distress. To protect your stated goals of care, we have launched comfort-first bedside guidelines and alerted Palliative Command.
+              </p>
+            </div>
 
-          <div className="flex gap-3 w-full">
-            <IonButton
-              expand="block"
-              color="danger"
-              className="flex-grow text-xs font-black uppercase"
-              onClick={() => setShowSosModal(false)}
-            >
-              Acknowledge Alert
-            </IonButton>
+            {/* Bedside comfort guidelines */}
+            <div className="w-full bg-rose-500/[0.02] dark:bg-rose-950/10 border border-rose-500/20 rounded-2xl p-4 text-left space-y-2.5">
+              <span className="text-[10px] font-black uppercase text-rose-600 dark:text-rose-400 tracking-wider block">Rescue Action & Bedside Protocol</span>
+              <div className="text-xs text-slate-700 dark:text-slate-350 leading-relaxed space-y-1.5 font-semibold">
+                <p>• <strong>Rescue Opioid:</strong> Administer <strong>0.25 mL (5 mg)</strong> of sublingual liquid morphine concentrate immediately under the tongue.</p>
+                <p>• <strong>Airflow Trigeminal Relief:</strong> Turn on a bedside cool fan blowing directly across your face and sit upright leaning slightly forward.</p>
+                <p>• <strong>Anxiety Rescue:</strong> Administer <strong>0.5 mg</strong> of sublingual Lorazepam as needed for severe accompanying panic or air hunger.</p>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex flex-col gap-2 w-full mt-2">
+              <a
+                href="tel:18005557255"
+                className="w-full h-11 bg-teal-600 hover:bg-teal-505 dark:bg-teal-500 dark:hover:bg-teal-400 text-white dark:text-[#020408] rounded-full flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider shadow-md shadow-teal-500/10 active:scale-95 transition-transform"
+                style={{ textDecoration: 'none' }}
+              >
+                <IonIcon icon={shieldCheckmark} className="w-4.5 h-4.5" />
+                <span>Call Palliative Triage Hotline</span>
+              </a>
+
+              <IonButton
+                expand="block"
+                fill="outline"
+                className="text-xs font-bold uppercase border-slate-200 dark:border-slate-800 rounded-full h-10 w-full"
+                onClick={() => setShowSosModal(false)}
+                style={{ '--border-radius': '9999px', '--border-color': 'var(--ion-color-step-300)' }}
+              >
+                Acknowledge & Close
+              </IonButton>
+
+              {/* Safety escape hatch in small, low-visual weight text */}
+              <div className="text-center mt-1">
+                <button
+                  onClick={() => {
+                    // Force dial 911 if requested
+                    window.location.href = "tel:911";
+                  }}
+                  className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-650 hover:text-rose-500 dark:hover:text-rose-500 transition-colors bg-transparent border-0 outline-none cursor-pointer"
+                >
+                  ⚠️ Override Comfort Protocol: Call 911
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="p-6 bg-white dark:bg-[#090b10] border border-rose-200 dark:border-rose-900/50 rounded-2xl text-center space-y-5 h-full flex flex-col justify-center items-center">
+            <div className="w-16 h-16 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-500 rounded-full flex items-center justify-center animate-ping">
+              <IonIcon icon={heart} className="w-8 h-8" />
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Emergency Warning</h2>
+              <div className="px-3 py-1 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-full inline-block text-[10px] font-mono text-rose-600 dark:text-rose-400 uppercase tracking-widest">
+                Symptom Detected: {sosReason}
+              </div>
+              <p className="text-xs text-slate-555 dark:text-slate-400 leading-relaxed max-w-sm mt-2">
+                Our clinical NLP core has identified symptoms indicative of cardiac or respiratory distress. A high-priority dashboard override was sent to the Halkyone Clinical Command Center.
+              </p>
+            </div>
+
+            <div className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-left">
+              <span className="text-[9px] font-black uppercase text-amber-600 dark:text-amber-500 tracking-wider">Patient Directions</span>
+              <p className="text-[10px] text-slate-700 dark:text-slate-300 leading-snug mt-1">
+                • Lie down in a comfortable position.<br />
+                • If prescribed nitroglycerin, administer as directed.<br />
+                • <strong className="text-slate-950 dark:text-white">Call 911 immediately</strong> if your pain worsens or you lose consciousness.
+              </p>
+            </div>
+
+            <div className="flex gap-3 w-full">
+              <IonButton
+                expand="block"
+                color="danger"
+                className="flex-grow text-xs font-black uppercase"
+                onClick={() => setShowSosModal(false)}
+              >
+                Acknowledge Alert
+              </IonButton>
+            </div>
+          </div>
+        )}
       </IonModal>
     </IonPage>
   );

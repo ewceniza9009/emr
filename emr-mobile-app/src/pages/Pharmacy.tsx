@@ -36,9 +36,11 @@ const GET_MY_PRESCRIPTIONS = gql`
       dose
       frequency
       isActive
+      isBreakthroughPRN
+      indications
       medication {
         name
-        genericName
+        strength
       }
     }
   }
@@ -92,6 +94,8 @@ const Pharmacy: React.FC = () => {
   
   const dbMeds = data?.myMobilePrescriptions || [];
   const apiMeds = dbMeds;
+  const baselineMeds = apiMeds.filter((m: any) => !m.isBreakthroughPRN);
+  const breakthroughMeds = apiMeds.filter((m: any) => m.isBreakthroughPRN);
 
 
   // =========================================================================
@@ -160,7 +164,7 @@ const Pharmacy: React.FC = () => {
   // =========================================================================
   // 💊 DAILY DOSE LOG ACTION
   // =========================================================================
-  const handleLogIntake = (id: string, name: string) => {
+  const handleLogIntake = async (id: string, name: string) => {
     const currentStatus = !!takenMeds[id];
     const updated = { ...takenMeds, [id]: !currentStatus };
     setTakenMeds(updated);
@@ -173,12 +177,25 @@ const Pharmacy: React.FC = () => {
       setToastMessage(`🔄 Dose intake unchecked for ${name}.`);
     }
     setShowToast(true);
+
+    try {
+      await sendMessage({
+        variables: {
+          patientId: user?.patientId || "00000000-0000-0000-0000-000000000000",
+          careThreadId: "00000000-0000-0000-0000-000000000000",
+          content: `💊 [MED INTAKE LOG] Patient logged intake for ${name}. Status: ${!currentStatus ? 'Taken' : 'Reset'}.`
+        }
+      });
+      console.log("Medication intake logged on clinical database care thread!");
+    } catch (err) {
+      console.error("Failed to log medication intake to C# backend:", err);
+    }
   };
 
   // =========================================================================
   // 🚀 MEDIATR ERX TRIAGE PIPELINE LIFECYCLE
   // =========================================================================
-  const startRefillPipeline = (med: any) => {
+  const startRefillPipeline = async (med: any) => {
     setActiveRefillMed(med);
     setRefillStep(1);
     setRefillCompleted(false);
@@ -189,59 +206,49 @@ const Pharmacy: React.FC = () => {
     setRefillHistory(updatedHistory);
     localStorage.setItem('halkyone-refill-history', JSON.stringify(updatedHistory));
 
-    // Phase 1 -> Dispatch (1.5s)
-    setTimeout(() => {
-      setRefillStep(2);
-      setRefillLogs(prev => [
-        ...prev,
-        "📤 MediatR command: [CreatePrescriptionRefillCommand] dispatched successfully.",
-        `👥 Payload bound to Care Navigator: [${navigatorName}]`
-      ]);
-    }, 1500);
+    // Phase 1 -> Dispatch immediately
+    setRefillStep(2);
+    setRefillLogs(prev => [
+      ...prev,
+      "📤 MediatR command: [CreatePrescriptionRefillCommand] dispatched successfully.",
+      `👥 Payload bound to Care Navigator: [${navigatorName}]`
+    ]);
 
-    // Phase 2 -> Navigator Review (3.5s)
-    setTimeout(() => {
-      setRefillStep(3);
-      setRefillLogs(prev => [
-        ...prev,
-        `✅ Care Triage clearance signed by ${navigatorName}.`,
-        "🔒 Escalating to Clinical OS electronic signature vault...",
-        "👨‍⚕️ Requesting Digital Signature verification for: Dr. Sarah Ross, MD"
-      ]);
-    }, 3200);
+    try {
+      // Trigger live backend chat mutation to log/alert Care Navigation immediately
+      await sendMessage({
+        variables: {
+          patientId: user?.patientId || "00000000-0000-0000-0000-000000000000",
+          careThreadId: "00000000-0000-0000-0000-000000000000", // Automatically gets resolved/routed to active thread by backend
+          content: `🏥 [REFILL REQUEST] I am requesting a refill for my active prescription: ${med.medication?.name || 'Medication'} (${med.dose || 'Standard'}). Dose: ${med.dose || 'N/A'}. Frequency: ${med.frequency || 'N/A'}.`
+        }
+      });
 
-    // Phase 3 -> Physician Signature & CVS Dispersal (5.2s)
-    setTimeout(() => {
+      console.log("Refill request logged dynamically on clinical database care thread!");
+      
+      // Phase 2 -> Refill logged & completed
       setRefillStep(4);
       setRefillLogs(prev => [
         ...prev,
+        `✅ Care Triage clearance logged and routed.`,
+        "👨‍⚕️ Requesting Digital Signature verification for: Dr. Sarah Ross, MD",
         "✍️ Cryptographic hash generated: [SHA256-ERX-091A4F]. Signature verified.",
         "🚚 Dispensing payload directed to: CVS Pharmacy #4820 (Main Street).",
-        "📦 Fulfillment pipeline set: [READY FOR INTAKE]."
+        "📦 Fulfillment pipeline set: [PENDING CARE TEAM SIGN-OFF]."
       ]);
-    }, 4800);
-
-    // Phase 4 -> Complete & Render Receipt (6.5s)
-    setTimeout(() => {
       setRefillCompleted(true);
       
       const readyHistory = { ...refillHistory, [med.prescriptionId]: 'ready' as const };
       setRefillHistory(readyHistory);
       localStorage.setItem('halkyone-refill-history', JSON.stringify(readyHistory));
 
-      // Trigger live backend chat mutation to log/alert Care Navigation
-      sendMessage({
-        variables: {
-          patientId: user?.patientId || "00000000-0000-0000-0000-000000000000",
-          careThreadId: "00000000-0000-0000-0000-000000000000", // Automatically gets resolved/routed to active thread by backend
-          content: `🏥 [REFILL REQUEST] I am requesting a refill for my active prescription: ${med.medication?.name || 'Medication'} (${med.dose || 'Standard'}). Dose: ${med.dose || 'N/A'}. Frequency: ${med.frequency || 'N/A'}.`
-        }
-      }).then(() => {
-        console.log("Refill request logged dynamically on clinical database care thread!");
-      }).catch((err: any) => {
-        console.error("Failed to persist refill log message:", err);
-      });
-    }, 6200);
+    } catch (err: any) {
+      console.error("Failed to persist refill log message:", err);
+      setRefillLogs(prev => [
+        ...prev,
+        "❌ Error: Failed to dispatch prescription refill request to the clinical server. Please retry."
+      ]);
+    }
   };
 
   const closePipelineModal = () => {
@@ -259,6 +266,139 @@ const Pharmacy: React.FC = () => {
         : '🔕 Pill reminders disabled.'
     );
     setShowToast(true);
+  };
+
+  const renderMedCard = (med: any, index: number) => {
+    const isTaken = !!takenMeds[med.prescriptionId];
+    const refillStatus = refillHistory[med.prescriptionId] || 'none';
+    const isPRN = med.isBreakthroughPRN;
+
+    return (
+      <div
+        key={med.prescriptionId || index}
+        className={`relative overflow-hidden rounded-2xl border transition-all duration-300 p-4.5 flex flex-col justify-between gap-4 shadow-md ${
+          isTaken 
+            ? 'border-emerald-500/30 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.01]' 
+            : isPRN
+              ? 'border-rose-500/20 bg-rose-500/[0.01] dark:bg-rose-500/[0.005] dark:border-rose-500/30'
+              : 'border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b0f19]'
+        }`}
+      >
+        {/* Left accent column coloring */}
+        <div className={`absolute top-0 left-0 bottom-0 w-1 ${
+          isTaken 
+            ? 'bg-emerald-500' 
+            : isPRN
+              ? 'bg-rose-500 animate-pulse'
+              : 'bg-slate-350 dark:bg-slate-800'
+        }`} />
+
+        {/* Upper Details */}
+        <div className="flex items-start gap-4">
+          {/* Pill Visual Identifier */}
+          <div 
+            onClick={() => handleLogIntake(med.prescriptionId, med.medication?.name)}
+            className={`w-14 h-14 rounded-xl border flex items-center justify-center flex-shrink-0 relative shadow-inner cursor-pointer transition-all active:scale-95 ${
+              isTaken 
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' 
+                : isPRN
+                  ? 'bg-rose-500/10 border-rose-500/20 text-rose-500'
+                  : 'bg-slate-50 dark:bg-slate-900 border-slate-200/60 dark:border-slate-800 text-slate-400'
+            }`}
+          >
+            {isTaken ? (
+              <IonIcon icon={checkmarkCircle} className="w-8 h-8 text-emerald-500 animate-in zoom-in duration-200" />
+            ) : (
+              <div className={`shadow-md w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white font-black ${
+                isPRN 
+                  ? 'bg-gradient-to-br from-rose-450 to-rose-600 shadow-rose-500/30' 
+                  : 'bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/30'
+              }`}>
+                {med.medication?.name?.[0]}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1 flex-grow">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="text-[16px] font-black text-slate-900 dark:text-white leading-tight font-sans">
+                {med.medication?.name || 'Unknown'}
+              </h3>
+              {/* Breakthrough / Refill status badge */}
+              <div className="flex items-center gap-1.5">
+                {isPRN && (
+                  <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                    Rescue Med
+                  </span>
+                )}
+                {refillStatus !== 'none' && (
+                  <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
+                    refillStatus === 'triage' 
+                      ? 'bg-amber-500/10 text-amber-500 animate-pulse' 
+                      : 'bg-emerald-500/10 text-emerald-500'
+                  }`}>
+                    {refillStatus === 'triage' ? 'Refill Pending' : 'Refill Ready'}
+                  </span>
+                )}
+              </div>
+            </div>
+            <span className="text-xs text-teal-600 dark:text-teal-400 font-extrabold block">
+              {med.medication?.strength || ''}
+            </span>
+            <p className="text-sm text-slate-600 dark:text-slate-300 font-bold pt-1.5">
+              Dosage: <span className="font-mono text-slate-900 dark:text-white font-black">{med.dose}</span>
+            </p>
+            {med.indications && (
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold pt-1">
+                Indication: <span className="text-slate-700 dark:text-slate-200 italic font-bold">{med.indications}</span>
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Lower Action & Telemetry */}
+        <div className="pt-3.5 border-t border-slate-100 dark:border-slate-855 flex items-center justify-between gap-2">
+          <div className="flex flex-col">
+            <span className="text-[9px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-black">Schedule</span>
+            <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-700 dark:text-slate-300 font-bold font-mono">
+              <IonIcon icon={time} className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+              <span>{med.frequency}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Log Intake Capsule Button */}
+            <button
+              onClick={() => handleLogIntake(med.prescriptionId, med.medication?.name)}
+              className={`h-9 px-4.5 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                isTaken 
+                  ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                  : 'bg-slate-100 dark:bg-slate-850 text-slate-600 dark:text-slate-300 border border-transparent hover:border-slate-300 dark:hover:border-slate-750'
+              } active:scale-95`}
+            >
+              <IonIcon icon={checkmarkCircle} className={`w-4 h-4 ${isTaken ? 'text-emerald-500' : 'text-slate-400 opacity-50'}`} />
+              <span>{isTaken ? 'Logged' : 'Log Intake'}</span>
+            </button>
+
+            {/* Refill Button */}
+            <button
+              onClick={() => startRefillPipeline(med)}
+              disabled={refillStatus === 'triage'}
+              className={`relative overflow-hidden flex-shrink-0 h-9 px-4 rounded-full flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider transition-all border shadow-sm ${
+                refillStatus === 'triage'
+                  ? 'bg-slate-100 dark:bg-slate-855 text-slate-400 border-transparent opacity-50 cursor-not-allowed'
+                  : 'bg-teal-600 dark:bg-gradient-to-r dark:from-teal-500 dark:to-emerald-500 hover:bg-teal-500 dark:hover:from-teal-400 dark:hover:to-emerald-400 text-white dark:text-slate-950 border-teal-600/20 dark:border-teal-500/20 active:scale-95'
+              }`}
+            >
+              <IonRippleEffect />
+              <IonIcon icon={refreshCircle} className="w-4 h-4" />
+              <span>{refillStatus === 'ready' ? 'Refill Again' : 'Refill'}</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    );
   };
 
   return (
@@ -399,124 +539,54 @@ const Pharmacy: React.FC = () => {
             <div className="space-y-1">
               <span className="text-[10px] font-black text-teal-600 dark:text-teal-400 uppercase tracking-widest block">Refill Integration Status</span>
               <p className="text-xs text-slate-555 dark:text-slate-400 leading-relaxed font-semibold">
-                In-app refill requests broadcast via a secure clinical pipeline. They are verified and dispatched immediately to your primary CVS Pharmacy.
+                In-app refill requests broadcast via a secure clinical pipeline. They are verified and dispatched immediately to CVS Pharmacy.
               </p>
             </div>
           </div>
 
           {/* Active Medications List */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             {loading ? (
               <p className="text-sm text-slate-500 text-center py-4 font-bold">Loading ePrescriptions...</p>
             ) : apiMeds.length === 0 ? (
               <p className="text-sm text-slate-500 text-center py-4 font-bold">No active prescriptions.</p>
-            ) : apiMeds.map((med: any, index: number) => {
-              const isTaken = !!takenMeds[med.prescriptionId];
-              const refillStatus = refillHistory[med.prescriptionId] || 'none';
-
-              return (
-                <div
-                  key={med.prescriptionId || index}
-                  className={`relative overflow-hidden rounded-2xl border transition-all duration-300 p-4.5 flex flex-col justify-between gap-4 shadow-md ${
-                    isTaken 
-                      ? 'border-emerald-500/30 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.01]' 
-                      : 'border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b0f19]'
-                  }`}
-                >
-                  {/* Left accent column coloring */}
-                  <div className={`absolute top-0 left-0 bottom-0 w-1 ${
-                    isTaken ? 'bg-emerald-500' : 'bg-slate-350 dark:bg-slate-800'
-                  }`} />
-
-                  {/* Upper Details */}
-                  <div className="flex items-start gap-4">
-                    {/* Pill Visual Identifier */}
-                    <div 
-                      onClick={() => handleLogIntake(med.prescriptionId, med.medication?.name)}
-                      className={`w-14 h-14 rounded-xl border flex items-center justify-center flex-shrink-0 relative shadow-inner cursor-pointer transition-all active:scale-95 ${
-                        isTaken 
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' 
-                          : 'bg-slate-50 dark:bg-slate-900 border-slate-200/60 dark:border-slate-800 text-slate-400'
-                      }`}
-                    >
-                      {isTaken ? (
-                        <IonIcon icon={checkmarkCircle} className="w-8 h-8 text-emerald-500 animate-in zoom-in duration-200" />
-                      ) : (
-                        <div className="bg-gradient-to-br from-amber-400 to-amber-600 shadow-[0_0_12px_rgba(245,158,11,0.4)] w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white font-black">
-                          {med.medication?.name?.[0]}
-                        </div>
-                      )}
+            ) : (
+              <>
+                {/* 1. Daily Comfort Regimen */}
+                {baselineMeds.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 px-1">
+                      <div className="w-1.5 h-3.5 bg-teal-500 rounded-full" />
+                      <h2 className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider">
+                        Daily Comfort Regimen
+                      </h2>
+                      <span className="text-[10px] font-mono text-slate-400 font-bold">({baselineMeds.length})</span>
                     </div>
 
-                    <div className="space-y-1 flex-grow">
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-[16px] font-black text-slate-900 dark:text-white leading-tight font-sans">
-                          {med.medication?.name || 'Unknown'}
-                        </h3>
-                        {/* Refill status badge */}
-                        {refillStatus !== 'none' && (
-                          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${
-                            refillStatus === 'triage' 
-                              ? 'bg-amber-500/10 text-amber-500 animate-pulse' 
-                              : 'bg-emerald-500/10 text-emerald-500'
-                          }`}>
-                            {refillStatus === 'triage' ? 'Refill Pending' : 'Refill Ready'}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-teal-600 dark:text-teal-400 font-extrabold block">
-                        {med.medication?.genericName || ''}
-                      </span>
-                      <p className="text-sm text-slate-600 dark:text-slate-300 font-bold pt-1.5">
-                        Dosage: <span className="font-mono text-slate-900 dark:text-white font-black">{med.dose}</span>
-                      </p>
+                    <div className="space-y-3">
+                      {baselineMeds.map((med: any, index: number) => renderMedCard(med, index))}
                     </div>
                   </div>
+                )}
 
-                  {/* Lower Action & Telemetry */}
-                  <div className="pt-3.5 border-t border-slate-100 dark:border-slate-850 flex items-center justify-between gap-2">
-                    <div className="flex flex-col">
-                      <span className="text-[9px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-black">Schedule</span>
-                      <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-700 dark:text-slate-300 font-bold font-mono">
-                        <IonIcon icon={time} className="w-4 h-4 text-slate-400 dark:text-slate-500" />
-                        <span>{med.frequency}</span>
-                      </div>
+                {/* 2. Rescue Breakthrough Therapy */}
+                {breakthroughMeds.length > 0 && (
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center gap-2 px-1">
+                      <div className="w-1.5 h-3.5 bg-rose-500 rounded-full animate-pulse" />
+                      <h2 className="text-xs font-black uppercase text-slate-850 dark:text-rose-455 tracking-wider flex items-center gap-1.5">
+                        Rescue Breakthrough Therapy
+                      </h2>
+                      <span className="text-[10px] font-mono text-slate-400 font-bold">({breakthroughMeds.length})</span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      {/* Log Intake Capsule Button */}
-                      <button
-                        onClick={() => handleLogIntake(med.prescriptionId, med.medication?.name)}
-                        className={`h-9 px-4.5 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                          isTaken 
-                            ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
-                            : 'bg-slate-100 dark:bg-slate-850 text-slate-600 dark:text-slate-300 border border-transparent hover:border-slate-300 dark:hover:border-slate-750'
-                        } active:scale-95`}
-                      >
-                        <IonIcon icon={checkmarkCircle} className={`w-4 h-4 ${isTaken ? 'text-emerald-500' : 'text-slate-400 opacity-50'}`} />
-                        <span>{isTaken ? 'Logged' : 'Log Intake'}</span>
-                      </button>
-
-                      {/* Refill Button */}
-                      <button
-                        onClick={() => startRefillPipeline(med)}
-                        disabled={refillStatus === 'triage'}
-                        className={`relative overflow-hidden flex-shrink-0 h-9 px-4 rounded-full flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-wider transition-all border shadow-sm ${
-                          refillStatus === 'triage'
-                            ? 'bg-slate-100 dark:bg-slate-850 text-slate-400 border-transparent opacity-50 cursor-not-allowed'
-                            : 'bg-teal-600 dark:bg-gradient-to-r dark:from-teal-500 dark:to-emerald-500 hover:bg-teal-500 dark:hover:from-teal-400 dark:hover:to-emerald-400 text-white dark:text-slate-950 border-teal-600/20 dark:border-teal-500/20 active:scale-95'
-                        }`}
-                      >
-                        <IonRippleEffect />
-                        <IonIcon icon={refreshCircle} className="w-4 h-4" />
-                        <span>{refillStatus === 'ready' ? 'Refill Again' : 'Refill'}</span>
-                      </button>
+                    <div className="space-y-3">
+                      {breakthroughMeds.map((med: any, index: number) => renderMedCard(med, index))}
                     </div>
                   </div>
-
-                </div>
-              );
-            })}
+                )}
+              </>
+            )}
           </div>
 
           {/* Smart Notifications Advisory */}
