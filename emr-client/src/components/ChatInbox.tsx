@@ -110,7 +110,7 @@ export function ChatInbox() {
     }
   }, [error]);
 
-  const rawThreads = data?.myInboxThreads || [];
+  const rawThreads = useMemo(() => data?.myInboxThreads || [], [data?.myInboxThreads]);
 
   // Deduplicate active threads by patientId for the sidebar list
   const threads = useMemo(() => {
@@ -353,7 +353,7 @@ export function ChatInbox() {
           }
         });
     }
-  }, [isOpen, activeThreadId, activeMessages.length]);
+  }, [isOpen, activeThreadId, activeMessages.length, refetch]);
 
   const handleSend = async () => {
     if (!inputText.trim() || !activeThread) return;

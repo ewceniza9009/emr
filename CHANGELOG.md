@@ -2,6 +2,14 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.3.1] - 2026-05-19
+- Implemented caret-tracking Smart Phrase popover overlays that follow the typing cursor inside narrative and SOAP textareas.
+- Restructured NoteEditor layouts to lock clinical headers and metadata at the top, allowing only content textareas to scroll.
+- Redesigned the Clinical Notes panel to remove all container box shadows, establishing a flat, high-density professional dashboard.
+- Widened and optimized NoteSidebar and ClinicalContextPanel layout margins to utilize available horizontal space efficiently.
+- Upgraded selected note sidebar list items with a solid primary color left-border accent and background highlight tint.
+- Enhanced Clinical Context vitals snapshot resolution to scan all patient encounters for recorded vitals instead of only the first index.
+
 ## [1.3.0] - 2026-05-19
 - Implemented real-time checkmark Seen receipts ('Sent ✓' and 'Seen ✓✓') inside clinician and care navigator chat panels.
 - Extended the C# SignalR ChatHub backend with a dynamic thread-based MarkAsSeen broadcast method.
@@ -37,7 +45,7 @@ All notable changes to the Halkyone Clinical OS will be documented in this file.
 
 ## [1.2.6] - 2026-05-17
 - Restored real-time IoT Telemetry and SignalR LiveHeartbeat component to the patient bio snapshot profile layout.
-- Refactored the New Patient Referral intake drawer with a compact glassmorphic footer, dynamic glow accents, and high-fidelity button gradients.
+- Refactored the New Patient Referral intake drawer with a glassmorphic footer, dynamic glow accents, and high-fidelity button gradients.
 - Implemented robust client-side input validation and error highlights for First Name, Last Name, Phone, and Email.
 - Integrated automatic Philippine phone format masking (+63 XXX XXX XXXX) and lowercase email sanitization on intake inputs.
 - Removed direct 'Add New Patient' action button from the Patient Registry to enforce the outreach-led referral lifecycle.
