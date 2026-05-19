@@ -50,28 +50,28 @@ Below is a gallery of screenshots from our clinical web application, admin porta
 
 ### 💻 Clinical Web & Admin Portals
 
-| View | Module / Description | Screenshot |
-| :--- | :--- | :--- |
-| **Clinical Dashboard** | Operational statistics, live vital status notifications, and scheduling overview. | ![Clinical Dashboard](qa_report/assets/dashboard.png) |
-| **Patient Registry** | Full clinical active roster search and comprehensive patient grid. | ![Patient Registry](qa_report/assets/patients.png) |
-| **Clinical Profile** | Longitudinal patient chart showing charts, demographics, and clinical notes. | ![Clinical Profile](qa_report/assets/patient_detail.png) |
+| View                        | Module / Description                                                                       | Screenshot                                                               |
+| :-------------------------- | :----------------------------------------------------------------------------------------- | :----------------------------------------------------------------------- |
+| **Clinical Dashboard**      | Operational statistics, live vital status notifications, and scheduling overview.          | ![Clinical Dashboard](qa_report/assets/dashboard.png)                    |
+| **Patient Registry**        | Full clinical active roster search and comprehensive patient grid.                         | ![Patient Registry](qa_report/assets/patients.png)                       |
+| **Clinical Profile**        | Longitudinal patient chart showing charts, demographics, and clinical notes.               | ![Clinical Profile](qa_report/assets/patient_detail.png)                 |
 | **Visit Schedule Registry** | Patient encounter calendar registry with interactive descending/ascending sorting by date. | ![Visit Schedule Registry](qa_report/assets/patient_detail_schedule.png) |
-| **Outreach Workspace** | referral pipelines, follow-up calls, and conversion metrics. | ![Outreach Workspace](qa_report/assets/outreach.png) |
-| **Enrollment Drawer** | Quick-enrollment slide-over layout with automatic clinical checklist. | ![Enrollment Drawer](qa_report/assets/enrollment_drawer.png) |
-| **Master Schedule** | Calendar-driven clinical encounter booking and coordinators grid. | ![Master Schedule](qa_report/assets/schedule.png) |
-| **Telemetry Vitals Hub** | Live WebSocket-driven vital streams and real-time simulator grid. | ![Telemetry Vitals Hub](qa_report/assets/telemetry.png) |
-| **Admin Security Station** | Security governance, isolation settings, and tenant controls. | ![Admin Security](qa_report/assets/security.png) |
-| **Resource Heatmap** | Real-time capacity utilization, caseload distribution heatmap, and clinician grid. | ![Resource Heatmap](qa_report/assets/utilization.png) |
-| **Workload Drill-down** | Interactive workflow telemetry drawer with compact dispatch adjustment triggers. | ![Workload Drill-down](qa_report/assets/utilization_modal.png) |
+| **Outreach Workspace**      | referral pipelines, follow-up calls, and conversion metrics.                               | ![Outreach Workspace](qa_report/assets/outreach.png)                     |
+| **Enrollment Drawer**       | Quick-enrollment slide-over layout with automatic clinical checklist.                      | ![Enrollment Drawer](qa_report/assets/enrollment_drawer.png)             |
+| **Master Schedule**         | Calendar-driven clinical encounter booking and coordinators grid.                          | ![Master Schedule](qa_report/assets/schedule.png)                        |
+| **Telemetry Vitals Hub**    | Live WebSocket-driven vital streams and real-time simulator grid.                          | ![Telemetry Vitals Hub](qa_report/assets/telemetry.png)                  |
+| **Admin Security Station**  | Security governance, isolation settings, and tenant controls.                              | ![Admin Security](qa_report/assets/security.png)                         |
+| **Resource Heatmap**        | Real-time capacity utilization, caseload distribution heatmap, and clinician grid.         | ![Resource Heatmap](qa_report/assets/utilization.png)                    |
+| **Workload Drill-down**     | Interactive workflow telemetry drawer with compact dispatch adjustment triggers.           | ![Workload Drill-down](qa_report/assets/utilization_modal.png)           |
 
 ### 📱 Patient Mobile App ("Virtual Hospital Room")
 
-| View | Module / Description | Screenshot |
-| :--- | :--- | :--- |
-| **Mobile Login Gate** | Secure biometric FaceID/fingerprint simulation and magic link auth. | ![Mobile Login](qa_report/assets/mobile_login.png) |
-| **Comfort Hub Dashboard** | Daily recovery ring, SOS alerts, and vital sign thresholds tracker. | ![Comfort Hub](qa_report/assets/mobile_comfort.png) |
-| **Secure Care Hub** | Real-time chat with Care Navigator and telehealth virtual waiting room. | ![Secure Care Hub](qa_report/assets/mobile_care_hub.png) |
-| **Pharmacy & eRx** | Active prescriptions visual pill index and smart local reminders. | ![Pharmacy and eRx](qa_report/assets/mobile_pharmacy.png) |
+| View                      | Module / Description                                                    | Screenshot                                                |
+| :------------------------ | :---------------------------------------------------------------------- | :-------------------------------------------------------- |
+| **Mobile Login Gate**     | Secure biometric FaceID/fingerprint simulation and magic link auth.     | ![Mobile Login](qa_report/assets/mobile_login.png)        |
+| **Comfort Hub Dashboard** | Daily recovery ring, SOS alerts, and vital sign thresholds tracker.     | ![Comfort Hub](qa_report/assets/mobile_comfort.png)       |
+| **Secure Care Hub**       | Real-time chat with Care Navigator and telehealth virtual waiting room. | ![Secure Care Hub](qa_report/assets/mobile_care_hub.png)  |
+| **Pharmacy & eRx**        | Active prescriptions visual pill index and smart local reminders.       | ![Pharmacy and eRx](qa_report/assets/mobile_pharmacy.png) |
 
 ---
 
@@ -247,6 +247,7 @@ Halkyone implements a **Shared Database / Row-Level Isolation** model:
 ### 5. Mobile Native Integration & Push Infrastructure
 
 The patient mobile client leverages Capacitor for physical hardware access while maintaining clean server interaction:
+
 - **Biometric Authentication**: Secure fingerprint/face login using local device credentials through `@capacitor-community/biometric`.
 - **Hybrid Real-Time Delivery**: Combines foreground WebSocket SignalR connections with background Firebase Cloud Messaging (FCM) notifications to wake the device when inactive (e.g., clinician `InTransit`).
 - **Offline Tolerance**: Local SQLite caching of SurveyJS assessments, allowing patients to complete intake reports and ESAS forms offline and sync when connection is restored.
@@ -374,6 +375,7 @@ The Halkyone Clinical OS has undergone rigorous hardening to transition from a h
 To support the Triple-Portal Architecture and the Patient Mobile Portal, the existing PostgreSQL database schema and `.NET 9 Domain` are extended with the following entities:
 
 ### 📱 Mobile Tokens & Secure Chat Schema
+
 ```csharp
 // Domain/Entities/MobileDeviceToken.cs
 public class MobileDeviceToken : BaseEntity, ITenantEntity {
@@ -401,7 +403,7 @@ public class ChatMessage : BaseEntity, ITenantEntity {
     public Guid SenderId { get; set; }
     public string SenderRole { get; set; } = string.Empty; // "Patient" or "Practitioner"
     public string Content { get; set; } = string.Empty;
-    public string? AttachmentUrl { get; set; } 
+    public string? AttachmentUrl { get; set; }
     public bool IsRead { get; set; } = false;
 }
 ```
@@ -411,13 +413,15 @@ public class ChatMessage : BaseEntity, ITenantEntity {
 To track the progress of transitioning the Halkyone Clinical OS into the **Triple-Portal Architecture**, we utilize the following Epic registry:
 
 ### Phase 1: Native Mobile Foundation & Auth
-- **[#2] Initialize Ionic React workspace (`emr-mobile-app`) with Tailwind CSS** *(COMPLETED)*
+
+- **[#2] Initialize Ionic React workspace (`emr-mobile-app`) with Tailwind CSS** _(COMPLETED)_
 - **[#3]** Implement `PatientAccount` & `CaregiverLink` DB entities (Entity Framework Core)
 - **[#4]** Configure `@capacitor/core`, `@capacitor/ios`, and `@capacitor/android`
 - **[#5]** Build biometric login workflow via `@capacitor-community/biometric`
 - **[#6]** Expose `[UsePatientAccess]` GraphQL authorization middleware in `.NET 9`
 
 ### Phase 2: Secure Care-Team Messaging Engine
+
 - **[#7]** Add `CareThread` and `ChatMessage` models to PostgreSQL
 - **[#8]** Implement SignalR `ChatHub` for real-time bi-directional message broadcast
 - **[#9]** Build Unified Messaging Inbox UI for Care Navigators in the Next.js `/dashboard`
@@ -425,17 +429,20 @@ To track the progress of transitioning the Halkyone Clinical OS into the **Tripl
 - **[#11]** Implement native camera wound-triage photo uploads via Capacitor to Azurite
 
 ### Phase 3: Telehealth & Medication Management
+
 - **[#12]** Integrate native WebRTC for secure 1-on-1 virtual visits with Virtual Waiting Room
 - **[#13]** Render the patient's active prescriptions (eRx) with visual pill identifiers
 - **[#14]** Build Smart Pill Reminders via Capacitor Local Notifications
 
 ### Phase 4: Dynamic Assessments & Logistics (Visit Radar)
+
 - **[#15]** Embed SurveyJS React components into `IonContent` for ESAS-R/PHQ-9 trackers
 - **[#16]** Implement local offline draft caching via Capacitor SQLite
 - **[#17]** Build the "Visit Radar" Leaflet map, subscribing to SignalR transit vectors
 - **[#18]** Configure Firebase Cloud Messaging (FCM) to wake up the app when clinician is `InTransit`
 
 ### Phase 5: RCM Billing & Wearable Telemetry
+
 - **[#19]** Add Apple Pay / Google Pay integrations for copay settlements
 - **[#20]** Implement native camera OCR for Insurance Card scanning
 - **[#21]** Bridge Apple HealthKit / Google Fit for passive steps & resting HR sync
@@ -473,14 +480,14 @@ To track the progress of transitioning the Halkyone Clinical OS into the **Tripl
   - `@capacitor-community/biometric`: Local biometric authentication (FaceID/TouchID).
   - `SQLite (Capacitor plugin)`: Secure local storage for SurveyJS offline assessment drafts.
 
-| Category           | **Technologies / Tools Used**                                                           |
-| :----------------- | :-------------------------------------------------------------------------------------- |
-| **Backend Core**   | .NET 9, HotChocolate GraphQL, EF Core (PostgreSQL), MediatR, SignalR, Elasticsearch.    |
-| **Frontend**       | Next.js 14 (App Router), Apollo Client, Tailwind CSS, SurveyJS, Lucide React, next-pwa. |
-| **Mobile App**      | Ionic v8, React 18, Capacitor, SQLite, Firebase Cloud Messaging (FCM), Google/Apple Pay. |
-| **Infrastructure** | Azurite/Azure Blob Storage, QuestPDF, Bogus (Data Seeding), Docker.                     |
-| **Testing & QA**   | Playwright E2E, Vitest (Unit), GitHub Actions.                                          |
-| **Security**       | JWT Claims, Biometric Auth, [UseClinicalAccess] & [UsePatientAccess] Middleware.        |
+| Category           | **Technologies / Tools Used**                                                            |
+| :----------------- | :--------------------------------------------------------------------------------------- |
+| **Backend Core**   | .NET 9, HotChocolate GraphQL, EF Core (PostgreSQL), MediatR, SignalR, Elasticsearch.     |
+| **Frontend**       | Next.js 14 (App Router), Apollo Client, Tailwind CSS, SurveyJS, Lucide React, next-pwa.  |
+| **Mobile App**     | Ionic v8, React 18, Capacitor, SQLite, Firebase Cloud Messaging (FCM), Google/Apple Pay. |
+| **Infrastructure** | Azurite/Azure Blob Storage, QuestPDF, Bogus (Data Seeding), Docker.                      |
+| **Testing & QA**   | Playwright E2E, Vitest (Unit), GitHub Actions.                                           |
+| **Security**       | JWT Claims, Biometric Auth, [UseClinicalAccess] & [UsePatientAccess] Middleware.         |
 
 ---
 
@@ -546,53 +553,6 @@ The full clinical lifecycle is validated on every push:
 
 ---
 
-## 🖼️ Production Workstation Gallery
-
-The following are high-fidelity, real-time captures of the Halkyone Clinical OS in its production-verified state. These HUDs demonstrate the platform's ability to handle multi-tenant security, live telemetry, and complex clinical logistics.
-
-### 1. Clinical Command Center (Dashboard)
-
-The primary HUD for practitioners, featuring real-time **Clinical Alerts** (telemetry distress & compliance risks) and an **Operational Pulse** engagement monitor.
-![Dashboard](qa_report/assets/dashboard.png)
-
-### 2. Workload Intelligence & Forensic Audit
-
-A high-authority diagnostic view for Medical Directors to perform deep-dive audits into practitioner utilization, active sessions, and historical visit telemetry.
-![Utilization](qa_report/assets/utilization.png)
-
-### 3. Security Activation Heatmap
-
-The administrative nerve center for platform hardening. Administrators can toggle **MFA Enforcement**, **Strict Onboarding**, and **Session Timeouts** with real-time persistence.
-![Security](qa_report/assets/security.png)
-
-### 4. Clinical Enrollment Lifecycle
-
-A verified, multi-stage wizard for patient onboarding, synchronizing demographics, insurance eligibility, and clinical priority in a single workflow.
-![Enrollment](qa_report/assets/enrollment_drawer.png)
-
-### 5. Master Scheduling & Logistics
-
-A geospatial command center for multi-stage booking, clinician deployment, and regional service area management.
-![Schedule](qa_report/assets/schedule.png)
-
-### 6. Patient Registry & Master Roster
-
-The unified registry for the entire patient population, providing sub-second search latency and high-density demographic visibility.
-![Patients](qa_report/assets/patients.png)
-![Patients](qa_report/assets/patient_detail.png)
-
-### 7. Clinical Outreach & CRM
-
-The conversion engine for the Halkyone OS, managing the transition of outreach leads into fully verified clinical patients.
-![Outreach](qa_report/assets/outreach.png)
-
-### 8. Real-time Telemetry & IoT Monitor
-
-A live SignalR node monitoring system for tracking IoT connectivity across the clinical grid.
-![Telemetry](qa_report/assets/telemetry.png)
-
----
-
 ## 🏥 A Day in the Life: Halkyone in Action
 
 To truly understand the efficacy, scalability, and industry-level architecture of Halkyone Clinical OS, we must observe it under the extreme pressures of a live clinical environment. This is a look at how Halkyone’s architectural choices solve real-world medical challenges.
@@ -605,7 +565,7 @@ Halkyone operates on a strict **Row-Level Isolation** architecture. When David�
 
 ### 🚨 08:15 AM | The Mobile SOS & Geospatial Dispatch
 
-Maria, a 68-year-old hospice patient in Sector 4, experiences a sudden, severe spike in breakthrough pain. She opens the **Halkyone Patient Mobile App** using local biometric FaceID auth. Rather than calling a busy hotline, she navigates to the **Secure Messaging Hub** and types: *"chest pain and severe breathing difficulty"*.
+Maria, a 68-year-old hospice patient in Sector 4, experiences a sudden, severe spike in breakthrough pain. She opens the **Halkyone Patient Mobile App** using local biometric FaceID auth. Rather than calling a busy hotline, she navigates to the **Secure Messaging Hub** and types: _"chest pain and severe breathing difficulty"_.
 
 The backend's NLP processing engine intercepts this message. Recognizing critical distress triggers, it immediately bypasses standard queues to broadcast a high-priority SignalR alert directly to David's Triage HUD. Maria also uses the secure mobile camera to take a photo of her swollen leg, transmitting it as an encrypted upload to the Azurite server (bypassing her personal camera roll for HIPAA compliance).
 
@@ -613,7 +573,7 @@ David sees the SOS override on the `/dashboard`, views Maria's uploaded leg phot
 
 ### 🚗 08:30 AM | Visit Radar & Real-Time Tracking
 
-Maria’s phone vibrates with a **Firebase Cloud Messaging (FCM)** background push notification: *"Dr. Elena is on her way to your location."* Maria opens the app and navigates to the **Visit Radar** logistics screen. On a Leaflet-rendered map, she watches Dr. Elena's vehicle approach in real-time using SignalR coordinate updates. To protect Dr. Elena’s personal safety and privacy, the system automatically masks her precise location once she is within 500 meters of Maria's home.
+Maria’s phone vibrates with a **Firebase Cloud Messaging (FCM)** background push notification: _"Dr. Elena is on her way to your location."_ Maria opens the app and navigates to the **Visit Radar** logistics screen. On a Leaflet-rendered map, she watches Dr. Elena's vehicle approach in real-time using SignalR coordinate updates. To protect Dr. Elena’s personal safety and privacy, the system automatically masks her precise location once she is within 500 meters of Maria's home.
 
 ### 🩺 09:00 AM | The Zero-Latency Bedside Encounter
 
@@ -654,17 +614,20 @@ In exactly 24 hours, Halkyone Clinical OS navigated complex geospatial logistics
 We have polished the clinical portal and administrative workstation to increase information density, visual balance, and navigation flow:
 
 ### 1. High-Density Resource Heatmap Grid
-* **Visual Compaction**: Clinician cards are downsized (`p-5`, outer radius `rounded-[1.5rem]`) and grid gutters tightened to fit more practitioners above the fold on dense coordinator workspaces.
-* **Streamlined Telemetry Indicators**: Load bars, status badges, case counters, and review actions are refactored to minimize vertical scroll requirements.
-* **Balanced Header Alignment**: Height coordinates for the sidebar logo segment and the main dashboard header are aligned to a uniform `h-14` (56px) across the entire clinical and admin portals, resolving the previous border offsets.
+
+- **Visual Compaction**: Clinician cards are downsized (`p-5`, outer radius `rounded-[1.5rem]`) and grid gutters tightened to fit more practitioners above the fold on dense coordinator workspaces.
+- **Streamlined Telemetry Indicators**: Load bars, status badges, case counters, and review actions are refactored to minimize vertical scroll requirements.
+- **Balanced Header Alignment**: Height coordinates for the sidebar logo segment and the main dashboard header are aligned to a uniform `h-14` (56px) across the entire clinical and admin portals, resolving the previous border offsets.
 
 ### 2. Workload Intelligence Drill-down Modal
-* **Compact Telemetry Rows**: Slashed the workflow list padding, priority badge scales, and icon boundaries, resulting in a condensed and clean forensic audit layout.
-* **Interactive Capacity Dispatch**: The *Dispatch Capacity Adjustment* action prompts coordinate nodes for confirmation before executing automated rebalancing, automatically closing the modal upon completion.
+
+- **Compact Telemetry Rows**: Slashed the workflow list padding, priority badge scales, and icon boundaries, resulting in a condensed and clean forensic audit layout.
+- **Interactive Capacity Dispatch**: The _Dispatch Capacity Adjustment_ action prompts coordinate nodes for confirmation before executing automated rebalancing, automatically closing the modal upon completion.
 
 ### 3. Chronological Visit Registry Sorting
-* **Default Descending Ordering**: Patient appointments are automatically sorted by scheduled start date in descending order (newest encounters first).
-* **Interactive Direction Toggle**: Added a "Sort: Newest First" / "Sort: Oldest First" control button next to scheduling controls, featuring an `ArrowUpDown` indicator icon for instant chronological timeline swapping.
+
+- **Default Descending Ordering**: Patient appointments are automatically sorted by scheduled start date in descending order (newest encounters first).
+- **Interactive Direction Toggle**: Added a "Sort: Newest First" / "Sort: Oldest First" control button next to scheduling controls, featuring an `ArrowUpDown` indicator icon for instant chronological timeline swapping.
 
 ---
 
