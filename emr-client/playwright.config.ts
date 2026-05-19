@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env.local') });
  */
 export default defineConfig({
   testDir: './tests',
+  testIgnore: process.env.CI ? ['**/screenshot-generator.spec.ts', '**/new-screenshots.spec.ts'] : [],
   /* Run tests in files in parallel */
   fullyParallel: false,
   /* Prevent accidental test.only in CI */
