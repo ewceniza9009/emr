@@ -178,7 +178,7 @@ public class MobilePortalMutation
 
         if (encounter == null)
         {
-            var practitioner = await context.Practitioners.IgnoreQueryFilters().FirstOrDefaultAsync(cancellationToken);
+            var practitioner = await context.Practitioners.IgnoreQueryFilters().OrderBy(p => p.PractitionerId).FirstOrDefaultAsync(cancellationToken);
             encounter = new ClinicalEncounter
             {
                 EncounterId = Guid.NewGuid(),

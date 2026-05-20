@@ -56,7 +56,7 @@ public class TelemetrySimulatorService : BackgroundService
                         .Select(p => p.PatientId)
                         .ToListAsync(stoppingToken);
 
-                    var config = await dbContext.TenantConfigurations.IgnoreQueryFilters().FirstOrDefaultAsync(stoppingToken);
+                    var config = await dbContext.TenantConfigurations.IgnoreQueryFilters().OrderBy(c => c.TenantConfigurationId).FirstOrDefaultAsync(stoppingToken);
                     _cachedSyncIntervalMs = config?.IotSyncIntervalMs ?? 5000;
                     
                     // Safe guard: minimum 500ms to avoid overloading SignalR and CPU

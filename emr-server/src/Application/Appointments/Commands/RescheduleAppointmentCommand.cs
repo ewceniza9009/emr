@@ -111,7 +111,7 @@ public class RescheduleAppointmentCommandHandler(
         CancellationToken cancellationToken
     )
     {
-        var settings = await context.TenantConfigurations.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+        var settings = await context.TenantConfigurations.AsNoTracking().OrderBy(c => c.TenantConfigurationId).FirstOrDefaultAsync(cancellationToken);
         TimeZoneInfo tzi;
         try
         {
