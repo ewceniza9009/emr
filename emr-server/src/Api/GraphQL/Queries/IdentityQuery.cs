@@ -92,7 +92,7 @@ public class IdentityQuery
         [Service] IApplicationDbContext context
     )
     {
-        return context.SecurityAuditLogs.AsNoTracking().ProjectToType<SecurityAuditLogDto>();
+        return context.SecurityAuditLogs.AsNoTracking().OrderByDescending(x => x.CreatedAt).ProjectToType<SecurityAuditLogDto>();
     }
 }
 

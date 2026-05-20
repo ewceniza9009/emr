@@ -287,7 +287,7 @@ export default function Dashboard() {
                   <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Recent Activity Log</h2>
                 </div>
                 <button
-                  onClick={() => router.push("/dashboard/patients")}
+                  onClick={() => router.push("/dashboard/triage")}
                   className="text-[10px] font-bold text-[var(--primary)] hover:opacity-80 flex items-center gap-1 group"
                 >
                   View All <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />

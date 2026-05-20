@@ -12,6 +12,8 @@ import {
   Activity,
   Layers,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   MoreVertical,
   Building2,
   Users,
@@ -81,6 +83,7 @@ export default function CareNavigationPage() {
   const [activeHud, setActiveHud] = useState("nav");
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
   const [selectedFacilityId, setSelectedFacilityId] = useState<string | null>(null);
+  const [isStatsExpanded, setIsStatsExpanded] = useState(true);
  
   if (loading) return (
     <div className="flex h-[calc(100vh-100px)] gap-4 overflow-hidden p-1 animate-in fade-in duration-700">
@@ -166,6 +169,7 @@ export default function CareNavigationPage() {
           selectedFacilityId={selectedFacilityId}
           onProviderSelect={handleProviderSelect} 
           onFacilitySelect={handleFacilitySelect}
+          activeHud={activeHud}
         />
 
         {/* Tactical HUD Overlay */}
@@ -199,27 +203,41 @@ export default function CareNavigationPage() {
         </div>
 
         {/* Overlay Stats */}
-        <div className="absolute top-10 left-10 space-y-4">
-          <div className="bg-[var(--sidebar-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-[2rem] p-6 shadow-2xl">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-xl flex items-center justify-center">
-                <Navigation2 className="w-5 h-5 text-[var(--primary)]" />
+        <div className="absolute top-6 left-6 z-[1000] pointer-events-none">
+          <div className="bg-[var(--sidebar-bg)]/90 backdrop-blur-xl border border-[var(--card-border)] rounded-[2rem] p-5 shadow-2xl min-w-[240px] transition-all duration-300 pointer-events-auto">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-[var(--primary)]/10 rounded-xl flex items-center justify-center shrink-0">
+                  <Navigation2 className="w-4 h-4 text-[var(--primary)]" />
+                </div>
+                <div>
+                  <h2 className="text-xs font-black uppercase tracking-tighter">Clinical Dispatch</h2>
+                  <p className="text-[9px] font-black text-emerald-500 tracking-wider uppercase flex items-center gap-1.5 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Active Ops
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-sm font-black uppercase tracking-tighter">Clinical Dispatch</h2>
-                <p className="text-[10px] font-black text-[var(--primary)] tracking-widest uppercase">Live Sector Logistics</p>
-              </div>
+              <button 
+                onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                className="p-1.5 hover:bg-white/10 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
+              >
+                {isStatsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
             </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Navigators</p>
-                <p className="text-2xl font-black">{providers.length}</p>
+            
+            {isStatsExpanded && (
+              <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-[var(--card-border)]/50 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div>
+                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Navigators</p>
+                  <p className="text-xl font-black mt-0.5">{providers.length}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Facilities</p>
+                  <p className="text-xl font-black text-amber-500 mt-0.5">{facilities.length}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Facilities</p>
-                <p className="text-2xl font-black text-amber-500">{facilities.length}</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

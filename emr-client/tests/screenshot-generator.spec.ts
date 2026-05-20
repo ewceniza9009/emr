@@ -114,6 +114,24 @@ test.describe('Halkyone Screenshot Generator', () => {
     await page.waitForTimeout(4000);
     await page.screenshot({ path: path.join(assetsDir, 'utilization.png') });
 
+    // 11b. Capture Care Navigation Page
+    console.log('Capturing care navigation...');
+    await page.goto('http://127.0.0.1:3671/dashboard/navigation');
+    await page.waitForTimeout(4000);
+    await page.screenshot({ path: path.join(assetsDir, 'navigation.png') });
+
+    // 11c. Capture Clinical Notes Page
+    console.log('Capturing clinical notes...');
+    await page.goto('http://127.0.0.1:3671/dashboard/notes');
+    await page.waitForTimeout(4000);
+    await page.screenshot({ path: path.join(assetsDir, 'notes.png') });
+
+    // 11d. Capture Billing Page
+    console.log('Capturing billing...');
+    await page.goto('http://127.0.0.1:3671/dashboard/billing');
+    await page.waitForTimeout(4000);
+    await page.screenshot({ path: path.join(assetsDir, 'billing.png') });
+
     // 12. Switch to Mobile Viewport
     console.log('Switching to mobile viewport for mobile app...');
     await page.setViewportSize({ width: 375, height: 812 });

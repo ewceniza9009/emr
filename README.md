@@ -43,7 +43,7 @@
 
 ---
 
-## 📸 System Screenshot Gallery (13 High-Fidelity Views)
+## 📸 System Screenshot Gallery (16 High-Fidelity Views)
 
 Below is a gallery of screenshots from our clinical web application, admin portal, and patient mobile app, demonstrating the state-of-the-art visual aesthetics and features:
 
@@ -58,6 +58,9 @@ Below is a gallery of screenshots from our clinical web application, admin porta
 | **Outreach Workspace**      | referral pipelines, follow-up calls, and conversion metrics.                               | ![Outreach Workspace](qa_report/assets/outreach.png)                     |
 | **Enrollment Drawer**       | Quick-enrollment slide-over layout with automatic clinical checklist.                      | ![Enrollment Drawer](qa_report/assets/enrollment_drawer.png)             |
 | **Master Schedule**         | Calendar-driven clinical encounter booking and coordinators grid.                          | ![Master Schedule](qa_report/assets/schedule.png)                        |
+| **Care Navigation Map**     | Live interactive geospatial navigator locations, facility pins, satellite view overlay, and activity routing paths. | ![Care Navigation Map](qa_report/assets/navigation.png)                  |
+| **Clinical Notes Manager**  | SOAP note workstation with Smart Phrase shortcuts and QuestPDF encounter summary generator. | ![Clinical Notes Manager](qa_report/assets/notes.png)                    |
+| **Billing Command Center**  | Revenue cycle dashboard, Z-Benefit claim tracking, and co-pay invoice generation interface. | ![Billing Command Center](qa_report/assets/billing.png)                  |
 | **Telemetry Vitals Hub**    | Live WebSocket-driven vital streams and real-time simulator grid.                          | ![Telemetry Vitals Hub](qa_report/assets/telemetry.png)                  |
 | **Admin Security Station**  | Security governance, isolation settings, and tenant controls.                              | ![Admin Security](qa_report/assets/security.png)                         |
 | **Resource Heatmap**        | Real-time capacity utilization, caseload distribution heatmap, and clinician grid.         | ![Resource Heatmap](qa_report/assets/utilization.png)                    |
