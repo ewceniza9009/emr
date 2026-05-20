@@ -104,8 +104,9 @@ jobs:
           
           # Run Playwright (Executing all clinical and booking workflows in a single idempotent pass)
           echo "Executing Full Clinical Suite..."
-          (cd emr-client && npx playwright test --project=chromium --workers=1)
+          (cd emr-client && npx playwright test --project=chromium --workers=1 --grep-invert "Screenshot Generator")
         env:
+          CI: "true"
           ASPNETCORE_ENVIRONMENT: Production
           ConnectionStrings__DefaultConnection: "Host=127.0.0.1;Database=emr;Username=postgres;Password=postgres"
           NEXT_PUBLIC_API_URL: http://127.0.0.1:34732

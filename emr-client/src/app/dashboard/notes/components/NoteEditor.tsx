@@ -52,6 +52,26 @@ export function NoteEditor({ state }: NoteEditorProps) {
 
   const isFinalized = selectedNote?.status === "FINISHED";
 
+  const listRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!listRef.current) return;
+    const container = listRef.current;
+    const activeItem = container.children[selectedIndex] as HTMLElement;
+    if (!activeItem) return;
+
+    const containerTop = container.scrollTop;
+    const containerBottom = containerTop + container.clientHeight;
+    const elemTop = activeItem.offsetTop;
+    const elemBottom = elemTop + activeItem.offsetHeight;
+
+    if (elemTop < containerTop) {
+      container.scrollTop = elemTop;
+    } else if (elemBottom > containerBottom) {
+      container.scrollTop = elemBottom - container.clientHeight;
+    }
+  }, [selectedIndex]);
+
   const renderPopup = () => (
     <div
       style={{ top: `${popupPosition.top}px`, left: `${popupPosition.left}px` }}
@@ -65,7 +85,7 @@ export function NoteEditor({ state }: NoteEditorProps) {
           ESC to close
         </span>
       </div>
-      <div className="relative max-h-60 overflow-y-auto custom-scrollbar">
+      <div ref={listRef} className="relative max-h-60 overflow-y-auto custom-scrollbar">
         {smartPhrases
           .filter((p: any) => p.shortcut.toLowerCase().includes(phraseFilter))
           .map((p: any, idx: number) => (

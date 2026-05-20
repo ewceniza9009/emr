@@ -99,10 +99,12 @@ export function useNotesState() {
   const planRef = useRef<HTMLTextAreaElement>(null);
 
   const appointmentsData = data?.appointments?.items || [];
-  const appointments = appointmentsData.filter((n: any) =>
-    `${n.patient?.firstName} ${n.patient?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    n.patient?.mrn?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const appointments = appointmentsData
+    .filter((n: any) =>
+      `${n.patient?.firstName} ${n.patient?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      n.patient?.mrn?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a: any, b: any) => new Date(b.scheduledStart).getTime() - new Date(a.scheduledStart).getTime());
 
   const smartPhrases = data?.smartPhrases || [];
   const [lastSaved, setLastSaved] = useState<Date | null>(null);

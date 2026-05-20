@@ -67,10 +67,14 @@ public class SchedulingServiceTests
             .Returns(new List<ScheduleBlock>().BuildMockDbSet().Object);
         _mockContext
             .Setup(c => c.TenantConfigurations)
-            .Returns(new List<TenantConfiguration> 
-            { 
-                new TenantConfiguration { Timezone = "Asia/Manila" } 
-            }.BuildMockDbSet().Object);
+            .Returns(
+                new List<TenantConfiguration>
+                {
+                    new TenantConfiguration { Timezone = "Asia/Manila" },
+                }
+                    .BuildMockDbSet()
+                    .Object
+            );
         _mockContext
             .Setup(c => c.EntityAddresses)
             .Returns(new List<EntityAddress>().BuildMockDbSet().Object);
@@ -153,7 +157,7 @@ public class SchedulingServiceTests
                 ScheduledEnd = new DateTimeOffset(2026, 5, 4, 11, 30, 0, TimeSpan.FromHours(8)),
                 Status = AppointmentStatus.Scheduled,
                 IsDeleted = false,
-                SupportingClinicians = new List<Practitioner>()
+                SupportingClinicians = new List<Practitioner>(),
             },
         }.BuildMockDbSet();
 
@@ -869,11 +873,11 @@ public class SchedulingServiceTests
                         Address = new Address
                         {
                             Latitude = null, // Null coordinates!
-                            Longitude = null
-                        }
-                    }
-                }
-            }
+                            Longitude = null,
+                        },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
         var practitioners = new List<Practitioner>
@@ -889,11 +893,11 @@ public class SchedulingServiceTests
                         Address = new Address
                         {
                             Latitude = null, // Null coordinates!
-                            Longitude = null
-                        }
-                    }
-                }
-            }
+                            Longitude = null,
+                        },
+                    },
+                },
+            },
         }.BuildMockDbSet();
 
         var appointments = new List<Appointment>
@@ -906,7 +910,7 @@ public class SchedulingServiceTests
                 ScheduledEnd = new DateTimeOffset(targetDate.AddHours(10), TimeSpan.FromHours(8)),
                 PatientId = patientId,
                 Modality = AppointmentModality.InPersonHomeVisit,
-            }
+            },
         }.BuildMockDbSet();
 
         var shifts = new List<ProviderShift>
@@ -917,8 +921,8 @@ public class SchedulingServiceTests
                 DayOfWeek = DayOfWeek.Monday,
                 StartTime = TimeSpan.FromHours(8),
                 EndTime = TimeSpan.FromHours(17),
-                IsActive = true
-            }
+                IsActive = true,
+            },
         }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);

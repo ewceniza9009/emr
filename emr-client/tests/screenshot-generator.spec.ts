@@ -85,17 +85,21 @@ test.describe('Halkyone Screenshot Generator', () => {
     // 9. Capture Telemetry hub
     console.log('Capturing telemetry...');
     await page.goto('http://127.0.0.1:3671/dashboard/telemetry');
-    await page.waitForSelector('button[title="Initialize Telemetry Link"]', { timeout: 15000 });
+    await page.waitForSelector('button[title="Initialize Telemetry Link"], button[title="Disconnect Telemetry"]', { timeout: 15000 });
     
-    // Initialize telemetry links on the first two cards
+    // Initialize telemetry links on the first two cards if they aren't already enabled
     const powerButtons = page.locator('button[title="Initialize Telemetry Link"]');
-    if (await powerButtons.count() > 0) {
-      console.log('Enabling first telemetry stream...');
+    const count = await powerButtons.count();
+    if (count > 0) {
+      console.log(`Found ${count} disabled streams. Enabling first telemetry stream...`);
       await powerButtons.nth(0).click();
       await page.waitForTimeout(2000); // Wait for graphql mutation and SignalR handshake
-      if (await powerButtons.count() > 1) {
+      
+      // Re-evaluate since DOM might have changed titles
+      const powerButtons2 = page.locator('button[title="Initialize Telemetry Link"]');
+      if (await powerButtons2.count() > 0) {
         console.log('Enabling second telemetry stream...');
-        await powerButtons.nth(1).click();
+        await powerButtons2.nth(0).click();
         await page.waitForTimeout(2000);
       }
     }
@@ -110,8 +114,22 @@ test.describe('Halkyone Screenshot Generator', () => {
 
     // 11. Capture Admin Audit Log
     console.log('Capturing admin audit / utilization...');
+    page.on('response', async (response) => {
+      if (response.url().includes('/graphql')) {
+        try {
+          const json = await response.json();
+          if (json.errors) {
+            console.log('GRAPHQL RESPONSE ERROR:', JSON.stringify(json.errors, null, 2));
+          }
+        } catch {}
+      }
+    });
     await page.goto('http://127.0.0.1:3671/admin/audit');
     await page.waitForTimeout(4000);
+    const errorEl = page.locator('p.text-rose-400\\/80, p.text-rose-400');
+    if (await errorEl.count() > 0) {
+      console.log('GRAPHQL ERROR ON AUDIT PAGE:', await errorEl.first().innerText());
+    }
     await page.screenshot({ path: path.join(assetsDir, 'utilization.png') });
 
     // 11b. Capture Care Navigation Page

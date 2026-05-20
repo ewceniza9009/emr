@@ -24,7 +24,7 @@ public class BillingQuery
     [UseSorting]
     public IQueryable<ZBenefitClaimDto> GetZBenefitClaims([Service] IApplicationDbContext context)
     {
-        return context.ZBenefitClaims.AsNoTracking().OrderByDescending(x => x.CreatedAt).ProjectToType<ZBenefitClaimDto>();
+        return context.ZBenefitClaims.AsNoTracking().ProjectToType<ZBenefitClaimDto>();
     }
 
     [Authorize(Policy = "CanManageBilling")]
@@ -41,7 +41,7 @@ public class BillingQuery
         if (id.HasValue)
             query = query.Where(x => x.InvoiceId == id.Value);
 
-        return query.OrderByDescending(x => x.CreatedAt).ProjectToType<BillingInvoiceDto>();
+        return query.ProjectToType<BillingInvoiceDto>();
     }
 
     [Authorize(Policy = "CanManageBilling")]
