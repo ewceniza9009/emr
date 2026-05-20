@@ -8,6 +8,7 @@ import HalcyonPortal from "./Portal";
 import { useToast } from "./ToastProvider";
 import SmartTextarea from "./SmartTextarea";
 import { useSmartPhrases } from "@/hooks/useSmartPhrases";
+import CustomDatePicker from "./CustomDatePicker";
 
 
 const ADD_DIAGNOSIS = gql`
@@ -119,16 +120,10 @@ export default function AddDiagnosisDrawer({ isOpen, onClose, patientId, onSucce
                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                          <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Diagnosed At</label>
-                         <div className="relative group">
-                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500" />
-                            <input 
-                              type="date"
-                              className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all uppercase"
-                              value={form.diagnosedAt}
-                              onChange={e => setForm({...form, diagnosedAt: e.target.value})}
-                              required
-                            />
-                         </div>
+                          <CustomDatePicker
+                            value={form.diagnosedAt}
+                            onChange={val => setForm({...form, diagnosedAt: val})}
+                          />
                       </div>
                       <div className="flex flex-col justify-end">
                          <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-blue-500/5 transition-all border border-transparent hover:border-blue-500/10">

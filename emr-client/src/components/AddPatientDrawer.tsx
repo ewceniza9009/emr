@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
 import { PermissionGate } from "./PermissionGate";
+import CustomDatePicker from "./CustomDatePicker";
 
 const GET_METADATA = gql`
   query GetMetadata {
@@ -178,16 +179,10 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Date of Birth</label>
-                  <div className="relative group">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
-                    <input
-                      required
-                      type="date"
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
-                      value={form.dob}
-                      onChange={e => setForm({ ...form, dob: e.target.value })}
-                    />
-                  </div>
+                  <CustomDatePicker
+                    value={form.dob}
+                    onChange={val => setForm({ ...form, dob: val })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Biological Sex</label>

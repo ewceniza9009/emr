@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { X, ClipboardCheck, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import HalcyonPortal from "../../Portal";
 import { PermissionGate } from "../../PermissionGate";
 import { EnrollmentState } from "../hooks/useEnrollmentState";
 import { motion, AnimatePresence } from "framer-motion";
@@ -96,9 +97,10 @@ export default function DispositionModal({ state }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-[99999999] flex items-center justify-center p-4">
+    <HalcyonPortal>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh', zIndex: 99999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', margin: 0 }}>
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-md"
+        style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', margin: 0, zIndex: 0 }}
         onClick={() => state.setShowDispositionModal(false)}
       />
       <div className="relative w-full max-w-md bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200">
@@ -169,21 +171,21 @@ export default function DispositionModal({ state }: Props) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-[#0e1620]/95 backdrop-blur-md border border-[#202e3f] rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.5)] select-none"
+                  className="absolute bottom-full mb-2 left-0 right-0 z-50 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] select-none"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <button
                       onClick={handlePrevMonth}
-                      className="p-1 rounded-lg hover:bg-white/5 text-[var(--primary)] hover:text-white transition-colors"
+                      className="p-1 rounded-lg hover:bg-[var(--text-primary)]/5 text-[var(--primary)] hover:text-[var(--text-primary)] transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <span className="text-[11px] font-black uppercase text-[var(--text-primary)] tracking-wider">
-                      {months[currentMonth]} {currentYear}
+                      {months[currentMonth].toUpperCase()} {currentYear}
                     </span>
                     <button
                       onClick={handleNextMonth}
-                      className="p-1 rounded-lg hover:bg-white/5 text-[var(--primary)] hover:text-white transition-colors"
+                      className="p-1 rounded-lg hover:bg-[var(--text-primary)]/5 text-[var(--primary)] hover:text-[var(--text-primary)] transition-colors"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -192,7 +194,7 @@ export default function DispositionModal({ state }: Props) {
                   <div className="grid grid-cols-7 gap-1 text-center mb-1">
                     {daysOfWeek.map((day) => (
                       <span key={day} className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">
-                        {day}
+                        {day.toUpperCase()}
                       </span>
                     ))}
                   </div>
@@ -210,10 +212,10 @@ export default function DispositionModal({ state }: Props) {
                           onClick={(e) => handleDaySelect(day, e)}
                           className={`h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all mx-auto ${
                             isSelected
-                              ? "bg-[var(--primary)] text-black font-black"
+                              ? "border border-[var(--primary)] text-[var(--primary)] bg-[var(--primary)]/10 font-black"
                               : isToday
-                              ? "border border-[var(--primary)]/40 text-[var(--primary)] hover:bg-white/5"
-                              : "text-[var(--text-primary)] hover:bg-white/5"
+                              ? "border border-[var(--primary)]/40 text-[var(--primary)] hover:bg-[var(--text-primary)]/5"
+                              : "text-[var(--text-primary)] hover:bg-[var(--text-primary)]/5"
                           }`}
                         >
                           {day.getDate()}
@@ -231,19 +233,20 @@ export default function DispositionModal({ state }: Props) {
               onClick={() => state.setShowDispositionModal(false)}
               className="flex-1 h-12 rounded-xl bg-white/5 text-[var(--text-muted)] text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
             >
-              Abort
+              ABORT
             </button>
             <PermissionGate permission="outreach:manage">
               <button
                 onClick={state.confirmLogActivity}
                 className="flex-[2] h-12 rounded-xl bg-[var(--primary)] text-black text-[10px] font-black uppercase tracking-widest hover:shadow-[0_0_25px_rgba(var(--primary-rgb),0.4)] transition-all active:scale-95"
               >
-                Commit Disposition
+                COMMIT DISPOSITION
               </button>
             </PermissionGate>
           </div>
         </div>
       </div>
     </div>
+    </HalcyonPortal>
   );
 }
