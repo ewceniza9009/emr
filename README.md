@@ -37,16 +37,16 @@
 
 ## 📊 Clinical QA & Reliability Report
 
-[**📊 View Full CI/CD History**](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/26083206434/artifacts/7077657883)
+[**📊 View Full CI/CD History**](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/26083206434/artifacts/7077657883) | [**📦 Download Local QA Report**](./qa_report.zip)
 
 > [!IMPORTANT]
-> The link above represents a **100% successful verification** of all clinical modules: Enrollment, Scheduling, Booking, and Real-time Telemetry.
+> The links above represent a **100% successful verification** of all clinical modules: Enrollment, Scheduling, Booking, and Real-time Telemetry.
 
 ---
 
 ## 📸 System Screenshot Gallery (20 High-Fidelity Views)
 
-Below is a gallery of screenshots from our clinical web application, admin portal, and patient mobile app, demonstrating the state-of-the-art visual aesthetics and features:
+Below is a gallery of screenshots from my clinical web application, admin portal, and patient mobile app, demonstrating the state-of-the-art visual aesthetics and features:
 
 ### 💻 Clinical Web & Admin Portals
 
@@ -415,7 +415,7 @@ public class ChatMessage : BaseEntity, ITenantEntity {
 
 ## 📋 Mobile Issue Registry & Sprint Tasks
 
-To track the progress of transitioning the Halkyone Clinical OS into the **Triple-Portal Architecture**, we utilize the following Epic registry:
+To track the progress of transitioning the Halkyone Clinical OS into the **Triple-Portal Architecture**, I utilize the following Epic registry:
 
 ### Phase 1: Native Mobile Foundation & Auth
 
@@ -441,16 +441,16 @@ To track the progress of transitioning the Halkyone Clinical OS into the **Tripl
 
 ### Phase 4: Dynamic Assessments & Logistics (Visit Radar)
 
-- **[#15]** Embed SurveyJS React components into `IonContent` for ESAS-R/PHQ-9 trackers _(CHANGED)_
-- **[#16]** Implement local offline draft caching via Capacitor SQLite _(TBD)_
-- **[#17]** Build the "Visit Radar" Leaflet map, subscribing to SignalR transit vectors _(TECH DEBT)_
-- **[#18]** Configure Firebase Cloud Messaging (FCM) to wake up the app when clinician is `InTransit` _(TECH DEBT FOR NOW)_
+- **[#15]** Embed SurveyJS React components into `IonContent` for ESAS-R/PHQ-9 trackers _(REVISED)_
+- **[#16]** Implement local offline draft caching via Capacitor SQLite _(PLANNED)_
+- **[#17]** Build the "Visit Radar" Leaflet map, subscribing to SignalR transit vectors _(DEFERRED - TECH DEBT)_
+- **[#18]** Configure Firebase Cloud Messaging (FCM) to wake up the app when clinician is `InTransit` _(DEFERRED - TECH DEBT)_
 
 ### Phase 5: RCM Billing & Wearable Telemetry
 
-- **[#19]** Add Apple Pay / Google Pay integrations for copay settlements _(NOT GOING TO PURSUE FOR NOW)_
-- **[#20]** Implement native camera OCR for Insurance Card scanning _(NOT GOING TO PURSUE FOR NOW)_
-- **[#21]** Bridge Apple HealthKit / Google Fit for passive steps & resting HR sync _(NOT GOING TO PURSUE FOR NOW)_
+- **[#19]** Add Apple Pay / Google Pay integrations for copay settlements _(POSTPONED)_
+- **[#20]** Implement native camera OCR for Insurance Card scanning _(POSTPONED)_
+- **[#21]** Bridge Apple HealthKit / Google Fit for passive steps & resting HR sync _(POSTPONED)_
 
 ## 🛠️ The System Toolchain
 
@@ -560,7 +560,7 @@ The full clinical lifecycle is validated on every push:
 
 ## 🏥 A Day in the Life: Halkyone in Action
 
-To truly understand the efficacy, scalability, and industry-level architecture of Halkyone Clinical OS, we must observe it under the extreme pressures of a live clinical environment. This is a look at how Halkyone’s architectural choices solve real-world medical challenges.
+To truly understand the efficacy, scalability, and industry-level architecture of Halkyone Clinical OS, one must observe it under the extreme pressures of a live clinical environment. This is a look at how Halkyone's architectural choices solve real-world medical challenges.
 
 ### 📍 07:30 AM | The Operational Briefing (Mandaue City Command Center)
 
@@ -616,7 +616,7 @@ In exactly 24 hours, Halkyone Clinical OS navigated complex geospatial logistics
 
 ## 🛠️ Modernized UI Layouts & Sorting (May 2026 Updates)
 
-We have polished the clinical portal and administrative workstation to increase information density, visual balance, and navigation flow:
+I have polished the clinical portal and administrative workstation to increase information density, visual balance, and navigation flow:
 
 ### 1. High-Density Resource Heatmap Grid
 

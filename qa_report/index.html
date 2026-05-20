@@ -6,29 +6,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinical QA Report | Halkyone Clinical OS</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Outfit:wght@400;500;700;800&display=swap');
+
         :root {
-            --primary: #0ea5e9;
-            --primary-glow: rgba(14, 165, 233, 0.15);
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --card-border: rgba(255, 255, 255, 0.1);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --success: #10b981;
+            /* Refined Clinical Teal - Professional Spec */
+            --background: #020408;
+            --foreground: #f8fafc;
+            --card-bg: #0a0c12;
+            --card-border: rgba(255, 255, 255, 0.18);
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --primary: #14b8a6;
+            --primary-rgb: 20, 184, 166;
+            --primary-glow: rgba(20, 184, 166, 0.12);
+            --elegant-blue: #2563eb;
+            --elegant-blue-glow: rgba(37, 99, 235, 0.4);
+            --success: #14b8a6;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', -apple-system, sans-serif;
+            border-color: var(--card-border);
         }
 
         body {
-            background-color: var(--bg);
-            color: var(--text-primary);
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             padding: 2rem;
             line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            letter-spacing: -0.04em;
+            font-weight: 800;
+            color: var(--text-primary);
         }
 
         .container {
@@ -43,16 +60,14 @@
             margin-bottom: 3rem;
             padding: 2rem;
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
             border-radius: 2rem;
             border: 1px solid var(--card-border);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
         }
 
         .header-left h1 {
             font-size: 1.5rem;
-            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: -0.025em;
             margin-bottom: 0.5rem;
         }
 
@@ -61,14 +76,14 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.5rem 1rem;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            color: var(--success);
+            background: rgba(var(--primary-rgb), 0.1);
+            border: 1px solid rgba(var(--primary-rgb), 0.2);
+            color: var(--primary);
             border-radius: 99px;
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.15em;
         }
 
         .grid {
@@ -79,16 +94,18 @@
 
         .test-card {
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border-radius: 2rem;
+            border-radius: 1.5rem;
             border: 1px solid var(--card-border);
             overflow: hidden;
-            transition: transform 0.3s ease, border-color 0.3s ease;
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .test-card:hover {
             transform: translateY(-5px);
             border-color: var(--primary);
+            background: rgba(var(--primary-rgb), 0.02);
+            box-shadow: 0 4px 20px var(--primary-glow);
         }
 
         .test-header {
@@ -100,8 +117,10 @@
         }
 
         .test-title {
-            font-weight: 700;
+            font-family: 'Outfit', 'Inter', sans-serif;
+            font-weight: 800;
             font-size: 1.1rem;
+            letter-spacing: -0.04em;
         }
 
         .screenshot-container {
@@ -138,8 +157,9 @@
         }
 
         .step-icon {
-            color: var(--success);
+            color: var(--primary);
             flex-shrink: 0;
+            font-weight: bold;
         }
 
         .summary-stats {
@@ -150,42 +170,41 @@
         }
 
         .stat-item h3 {
-            font-size: 2rem;
-            font-weight: 800;
+            font-size: 2.5rem;
             color: var(--primary);
+            text-shadow: 0 4px 20px var(--primary-glow);
         }
 
         .stat-item p {
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
             color: var(--text-secondary);
-            letter-spacing: 0.1em;
+            letter-spacing: 0.15em;
+            margin-top: 0.25rem;
         }
 
         .pulse {
             width: 8px;
             height: 8px;
-            background: var(--success);
+            background: var(--primary);
             border-radius: 50%;
-            box-shadow: 0 0 10px var(--success);
-            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px var(--primary);
+            animation: halkyone-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
 
-        @keyframes pulse {
+        @keyframes halkyone-pulse {
             0% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-            }
-
-            70% {
                 transform: scale(1);
-                box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+                box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
             }
-
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 20px 10px rgba(var(--primary-rgb), 0.1);
+            }
             100% {
-                transform: scale(0.95);
-                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
             }
         }
     </style>
@@ -207,7 +226,7 @@
             <div style="text-align: right;">
                 <p
                     style="font-size: 0.75rem; font-weight: 800; color: var(--primary); letter-spacing: 0.1em; margin-bottom: 0.5rem;">
-                    CERTIFIED BY EWC QA TEAM</p>
+                    CERTIFIED BY QA TEAM</p>
                 <p style="color: var(--text-secondary); font-size: 0.75rem;">May 11, 2026 · 08:15 AM</p>
             </div>
         </header>
