@@ -1,6 +1,7 @@
 # Halkyone Clinical OS
 
 **[🚀 View Live Demo](https://emr-three-hazel.vercel.app)**
+**[🚀 View Video Demo](https://youtu.be/bzJQIrhxXFo?si=2i3eWplmQYyDSdNK)**
 
 ### 🔑 Test Credentials
 
