@@ -150,7 +150,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
         <div className="group relative flex items-center justify-center hover:z-[60]">
           <button
             onClick={() => setShowTelehealth(true)}
-            className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 hover:text-white transition-all flex items-center justify-center p-0 active:scale-95 animate-pulse"
+            className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-600 dark:hover:text-indigo-300 transition-all flex items-center justify-center p-0 active:scale-95 animate-pulse"
           >
             <Video className="w-5 h-5 shrink-0" />
           </button>

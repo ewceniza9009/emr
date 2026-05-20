@@ -23,6 +23,8 @@ import {
 import Link from "next/link";
 import { PermissionGate } from "../PermissionGate";
 import HalcyonPortal from "../Portal";
+import { formatEnum } from "@/lib/utils";
+
 import { ReassignmentBookingDrawerProps } from "./types";
 import useReassignmentState from "./hooks/useReassignmentState";
 import ProviderCard from "./components/ProviderCard";
@@ -136,7 +138,7 @@ export default function ReassignmentBookingDrawer(
                 {appointment?.status && (
                   <div className="px-2.5 py-1 rounded-md border border-[var(--card-border)] bg-[var(--input-bg)] shadow-sm">
                     <span className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-widest">
-                      {appointment.status.replace(/([A-Z])/g, " $1").trim()}
+                      {formatEnum(appointment.status)}
                     </span>
                   </div>
                 )}

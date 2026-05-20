@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import NextTopLoader from "nextjs-toploader";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -52,9 +53,21 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${inter.variable} ${outfit.variable} ${jetbrains.variable} antialiased`}
       >
+        <NextTopLoader
+          color="#14b8a6"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={3}
+          crawl={true}
+          showSpinner={false}
+          easing="ease"
+          speed={200}
+          shadow="0 0 10px #14b8a6, 0 0 5px #14b8a6"
+        />
         <Providers>{children}</Providers>
         <div id="modal-root" />
       </body>
     </html>
   );
 }
+

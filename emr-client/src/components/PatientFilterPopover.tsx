@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Filter, Check, X, Users, Shield, UserCircle, ChevronDown } from "lucide-react";
+import { formatEnum } from "@/lib/utils";
+
 
 interface PatientFilterPopoverProps {
   onFilterChange: (filters: PatientFilters) => void;
@@ -150,7 +152,7 @@ const PatientFilterPopover: React.FC<PatientFilterPopoverProps> = ({ onFilterCha
                         : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-emerald-500/20"
                       }`}
                   >
-                    <span className="text-[9px] font-black uppercase tracking-tight">{status.replace(/([A-Z])/g, ' $1').trim()}</span>
+                    <span className="text-[9px] font-black uppercase tracking-tight">{formatEnum(status)}</span>
                     {stagedFilters.visitStatuses.includes(status) && <Check className="w-2.5 h-2.5" />}
                   </button>
                 ))}

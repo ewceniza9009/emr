@@ -2,6 +2,11 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.3.3] - 2026-05-20
+- Integrated nextjs-toploader into Next.js workspace to track route compilation and layout hydration progress dynamically.
+- Configured NextTopLoader with corporate brand teal identity (#14b8a6) to match clinical design guidelines.
+- Purged redundant loading.tsx layout boundary to prevent browser hydration mismatches during compilation pauses.
+
 ## [1.3.2] - 2026-05-20
 - Implemented NLP triage keywords auto-escalation in the Mobile Portal, automatically upgrading case acuity to Critical.
 - Built an interactive clinical vitals trend chart using Recharts, dynamically displaying historical vitals telemetry.

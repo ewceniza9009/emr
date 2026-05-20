@@ -3,6 +3,7 @@ import { gql, useQuery, useMutation } from '@apollo/client';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { MessageSquare, X, Send, Check, CheckCheck, Lock, Shield, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import HalcyonPortal from '@/components/Portal';
 
 const PALLIATIVE_TEMPLATES = [
   {
@@ -242,11 +243,12 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
       </div>
 
       {isOpen && (
-        <div 
-          onClick={handleOutsideClick}
-          className="fixed inset-0 z-[150] flex items-center justify-center bg-black/45 backdrop-blur-sm p-4 animate-in fade-in duration-200"
-        >
-          <div className="bg-[var(--card-bg)] rounded-2xl w-full max-w-lg h-[550px] flex flex-col shadow-2xl overflow-hidden border border-[var(--card-border)] animate-in zoom-in-95 duration-200">
+        <HalcyonPortal>
+          <div 
+            onClick={handleOutsideClick}
+            className="fixed inset-0 z-[150] flex items-center justify-center bg-black/45 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          >
+            <div className="bg-[var(--card-bg)] rounded-2xl w-full max-w-lg h-[550px] flex flex-col shadow-2xl overflow-hidden border border-[var(--card-border)] animate-in zoom-in-95 duration-200">
             
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-[var(--card-border)] bg-[var(--card-bg)] shrink-0">
@@ -401,6 +403,7 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
 
           </div>
         </div>
+      </HalcyonPortal>
       )}
     </>
   );

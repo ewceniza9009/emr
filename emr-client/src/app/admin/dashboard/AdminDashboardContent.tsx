@@ -23,6 +23,8 @@ import { redirect, useSearchParams } from "next/navigation";
 import { useCommandModal } from "@/components/CommandModalProvider";
 import RegistrySettings from "@/components/RegistrySettings";
 import IntegrationsSync from "@/components/IntegrationsSync";
+import { formatEnum } from "@/lib/utils";
+
 
 import { TabType } from "./types";
 import { GET_SETUP_DATA, DELETE_MUTATIONS, INVITE_PRACTITIONER } from "./queries";
@@ -299,7 +301,7 @@ export default function AdminDashboardContent() {
             {...tableProps}
             columns={[
               { key: "name", label: "Facility Name" },
-              { key: "type", label: "Type" },
+              { key: "type", label: "Type", render: (item: any) => formatEnum(item.type) },
             ]}
           />
         );
@@ -409,7 +411,7 @@ export default function AdminDashboardContent() {
             columns={[
               { key: "modelName", label: "Model" },
               { key: "serialNumber", label: "Serial #" },
-              { key: "type", label: "Type" },
+              { key: "type", label: "Type", render: (item: any) => formatEnum(item.type) },
               {
                 key: "status",
                 label: "Status",

@@ -86,7 +86,7 @@ export default function TriageDashboard() {
           <Skeleton className="h-16 w-36 rounded-2xl shadow-lg shadow-white/5" />
         </div>
       </div>
-  
+
       {/* Main Grid Skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
@@ -206,7 +206,7 @@ export default function TriageDashboard() {
                 Priority Patient Queue
               </h2>
               <div className="flex gap-2">
-                <TriageFilterPopover 
+                <TriageFilterPopover
                   onFilterChange={setFilters}
                   currentFilters={filters}
                 />
@@ -250,8 +250,8 @@ export default function TriageDashboard() {
                             {p.triageNote || (p.isAlert ? "Patient reporting breakthrough pain. Requires symptom review." : "Clinical status remains stable based on last encounter.")}
                           </p>
                           <div className="flex items-center gap-2 opacity-40">
-                             <History className="w-2.5 h-2.5" />
-                             <span className="text-[9px] font-bold uppercase tracking-widest">{p.triageNote ? "Triage Note Active" : "Last Note: 2h ago"}</span>
+                            <History className="w-2.5 h-2.5" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest">{p.triageNote ? "Triage Note Active" : "Last Note: 2h ago"}</span>
                           </div>
                         </div>
                       </td>
@@ -264,7 +264,7 @@ export default function TriageDashboard() {
                       <td className="px-8 py-5 text-right">
                         <div className="flex items-center justify-end gap-3">
                           <PermissionGate permission="clinical:assessments">
-                            <button 
+                            <button
                               onClick={(e) => { e.stopPropagation(); handleTriageNote(p.patientId, `${p.firstName} ${p.lastName}`); }}
                               className="p-2.5 rounded-xl bg-amber-500/5 text-amber-500 hover:bg-amber-500 hover:text-black transition-all border border-amber-500/10 shadow-sm"
                               title="Add Triage Note"
@@ -273,7 +273,7 @@ export default function TriageDashboard() {
                             </button>
                           </PermissionGate>
                           <PermissionGate permission="clinical:chart">
-                            <button 
+                            <button
                               onClick={(e) => { e.stopPropagation(); handleLogDnr(p.patientId); }}
                               className="p-2.5 rounded-xl bg-blue-500/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/10 shadow-sm"
                               title="Update Advance Directive"

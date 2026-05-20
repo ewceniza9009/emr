@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import dynamic from "next/dynamic";
+import { formatEnum } from "@/lib/utils";
+
  
 const InteractiveMap = dynamic(() => import("@/components/Map"), { 
   ssr: false,
@@ -131,7 +133,7 @@ export default function CareNavigationPage() {
       return {
         id: f.facilityId,
         name: f.name,
-        type: f.type?.replace(/([A-Z])/g, ' $1').trim() || "GENERAL",
+        type: formatEnum(f.type) || "GENERAL",
         street: address?.street || "Address Unknown",
         city: address?.city || "Unknown City",
         lat: address?.latitude,
