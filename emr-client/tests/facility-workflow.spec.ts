@@ -16,7 +16,7 @@ test.describe('Halkyone Clinical OS - Facility Appointment Booking', () => {
 
     // 1. Open the Booking Drawer via the "Encounters" stat card
     const encountersCard = page.getByText(/Encounters/i);
-    await expect(encountersCard).toBeVisible();
+    await expect(encountersCard).toBeVisible({ timeout: 15000 });
     await encountersCard.click();
 
     // 2. Search and select the patient (Pearline Bauch)

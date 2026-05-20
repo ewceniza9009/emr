@@ -83,7 +83,7 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     await expect(planSelect).not.toHaveValue("");
 
     // MANDATORY VALIDATION: Fill DOB and Biological Sex
-    await page.fill('label:has-text("Date of Birth") + input', '1985-05-20');
+    await page.fill('label:has-text("Date of Birth") + div input', '1985-05-20');
     const sexSelect = page.locator('label:has-text("Biological Sex") + select').first();
     await sexSelect.selectOption('MALE');
     await page.waitForTimeout(500);

@@ -124,30 +124,64 @@ export default function CustomDatePicker({
     return value;
   };
 
+  const [inputValue, setInputValue] = useState(getDisplayValue());
+
+  useEffect(() => {
+    setInputValue(getDisplayValue());
+  }, [value]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    
+    if (val.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      onChange(val);
+    } else if (val.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+      const parts = val.split("/");
+      onChange(`${parts[2]}-${parts[0]}-${parts[1]}`);
+    }
+  };
+
+  const [dropdownPosition, setDropdownPosition] = useState<"top" | "bottom">("bottom");
+
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      // Calendar popover is roughly 300px tall
+      if (spaceBelow < 320 && spaceAbove > spaceBelow) {
+        setDropdownPosition("top");
+      } else {
+        setDropdownPosition("bottom");
+      }
+    }
+  }, [isOpen]);
+
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      <div
-        className={`relative ${disabled ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}
-        onClick={() => setIsOpen((prev) => !prev)}
-      >
+      <div className={`relative ${disabled ? "opacity-50 pointer-events-none" : ""}`}>
         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--primary)] opacity-40 pointer-events-none" />
-        <div className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-11 pr-4 py-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus-within:border-[var(--primary)]/50 cursor-pointer flex items-center min-h-[40px] shadow-inner select-none transition-all">
-          {getDisplayValue() ? (
-            <span className="text-[var(--text-primary)]">{getDisplayValue()}</span>
-          ) : (
-            <span className="text-[var(--text-muted)] opacity-50">{placeholder}</span>
-          )}
-        </div>
+        <input
+          type="text"
+          className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-11 pr-4 py-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-50 min-h-[40px] shadow-inner"
+          value={inputValue}
+          placeholder={placeholder}
+          onClick={() => setIsOpen(true)}
+          onChange={handleInputChange}
+          onBlur={() => setInputValue(getDisplayValue())}
+          disabled={disabled}
+        />
       </div>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+            initial={{ opacity: 0, y: dropdownPosition === "top" ? 8 : -8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
+            exit={{ opacity: 0, y: dropdownPosition === "top" ? 8 : -8, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className="absolute bottom-full mb-2 left-0 right-0 md:w-80 md:right-auto z-[999] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.6)] select-none"
+            className={`absolute ${dropdownPosition === "top" ? "bottom-full mb-2" : "top-full mt-2"} left-0 right-0 md:w-80 md:right-auto z-[999] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.6)] select-none`}
           >
             <div className="flex items-center justify-between mb-4">
               <button
