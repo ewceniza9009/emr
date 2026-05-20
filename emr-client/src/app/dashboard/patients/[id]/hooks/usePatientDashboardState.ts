@@ -103,6 +103,7 @@ export const GET_PATIENT_APPOINTMENTS = gql`
         modality
         visitType
         practitioner {
+          practitionerId
           firstName
           lastName
         }

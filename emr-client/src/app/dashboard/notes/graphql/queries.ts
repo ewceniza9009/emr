@@ -14,6 +14,7 @@ export const GET_NOTES_DATA = gql`
           mrn
         }
         practitioner {
+          practitionerId
           firstName
           lastName
         }

@@ -51,9 +51,11 @@ export const BOOK_APPOINTMENT = gql`
     bookAppointment(input: $input) {
       appointmentId
       practitioner {
+        practitionerId
         fullName
       }
       supportingClinicians {
+        practitionerId
         fullName
       }
     }

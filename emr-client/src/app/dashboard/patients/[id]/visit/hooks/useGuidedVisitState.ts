@@ -59,6 +59,7 @@ export const GET_APPOINTMENT_DETAILS = gql`
       visitType
       modality
       practitioner {
+        practitionerId
         firstName
         lastName
       }

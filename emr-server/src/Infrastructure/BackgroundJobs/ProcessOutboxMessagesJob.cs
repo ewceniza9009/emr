@@ -31,13 +31,25 @@ public class ProcessOutboxMessagesJob : BackgroundService
             try
             {
                 await ProcessMessagesAsync(stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Clean shutdown requested, exit loop
+                break;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while processing outbox messages.");
+                try
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
             }
-
-            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
         }
     }
 
