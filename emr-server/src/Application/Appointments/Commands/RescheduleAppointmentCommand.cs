@@ -80,13 +80,13 @@ public class RescheduleAppointmentCommandHandler(
         // Update logistics for the appointment that follows the new position
         if (appointment.PractitionerId.HasValue)
         {
-            await UpdateNextAppointmentStats(appointment.PractitionerId.Value, appointment.ScheduledStart, cancellationToken);
+            await UpdateNextAppointmentStats(appointment.PractitionerId.Value, appointment.ScheduledStart, appointment.AppointmentId, cancellationToken);
         }
 
         // Update logistics for the appointment that used to follow this one in its old position
         if (oldStart != appointment.ScheduledStart && practitionerId.HasValue)
         {
-            await UpdateNextAppointmentStats(practitionerId.Value, oldStart, cancellationToken);
+            await UpdateNextAppointmentStats(practitionerId.Value, oldStart, appointment.AppointmentId, cancellationToken);
         }
 
         // Send Notification
@@ -104,10 +104,35 @@ public class RescheduleAppointmentCommandHandler(
         return new RescheduleAppointmentResponse(appointment);
     }
 
-    private async Task UpdateNextAppointmentStats(Guid practitionerId, DateTimeOffset afterTime, CancellationToken cancellationToken)
+    private async Task UpdateNextAppointmentStats(
+        Guid practitionerId, 
+        DateTimeOffset afterTime, 
+        Guid excludeAppointmentId, 
+        CancellationToken cancellationToken
+    )
     {
+        var settings = await context.TenantConfigurations.AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+        TimeZoneInfo tzi;
+        try
+        {
+            tzi = TimeZoneInfo.FindSystemTimeZoneById(settings?.Timezone ?? TimeZoneInfo.Local.Id);
+        }
+        catch
+        {
+            tzi = TimeZoneInfo.Local;
+        }
+
+        var localTime = TimeZoneInfo.ConvertTime(afterTime, tzi);
+        var offset = localTime.Offset;
+        var localDate = localTime.Date;
+        var startOfDay = new DateTimeOffset(localDate, offset);
+        var endOfDay = startOfDay.AddDays(1);
+
         var nextAppt = await context.Appointments
-            .Where(a => a.PractitionerId == practitionerId && a.ScheduledStart > afterTime && a.ScheduledStart < afterTime.Date.AddDays(1))
+            .Where(a => a.PractitionerId == practitionerId 
+                     && a.ScheduledStart > afterTime 
+                     && a.ScheduledStart < endOfDay 
+                     && a.AppointmentId != excludeAppointmentId)
             .OrderBy(a => a.ScheduledStart)
             .FirstOrDefaultAsync(cancellationToken);
 

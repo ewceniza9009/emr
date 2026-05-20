@@ -848,4 +848,85 @@ public class SchedulingServiceTests
         isValid.Should().BeFalse();
         reason.Should().Contain("Logistics Violation");
     }
+
+    [Fact]
+    public async Task ValidateLogisticsAsync_ShouldNotCrash_WhenCoordinatesAreNull()
+    {
+        var practitionerId = Guid.NewGuid();
+        var patientId = Guid.NewGuid();
+        var targetDate = new DateTime(2026, 5, 4);
+
+        var patients = new List<Patient>
+        {
+            new Patient
+            {
+                PatientId = patientId,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address
+                        {
+                            Latitude = null, // Null coordinates!
+                            Longitude = null
+                        }
+                    }
+                }
+            }
+        }.BuildMockDbSet();
+
+        var practitioners = new List<Practitioner>
+        {
+            new Practitioner
+            {
+                PractitionerId = practitionerId,
+                Addresses = new List<EntityAddress>
+                {
+                    new EntityAddress
+                    {
+                        IsPrimary = true,
+                        Address = new Address
+                        {
+                            Latitude = null, // Null coordinates!
+                            Longitude = null
+                        }
+                    }
+                }
+            }
+        }.BuildMockDbSet();
+
+        var appointments = new List<Appointment>
+        {
+            new Appointment
+            {
+                AppointmentId = Guid.NewGuid(),
+                PractitionerId = practitionerId,
+                ScheduledStart = new DateTimeOffset(targetDate.AddHours(9), TimeSpan.FromHours(8)),
+                ScheduledEnd = new DateTimeOffset(targetDate.AddHours(10), TimeSpan.FromHours(8)),
+                PatientId = patientId,
+                Modality = AppointmentModality.InPersonHomeVisit,
+            }
+        }.BuildMockDbSet();
+
+        var shifts = new List<ProviderShift>
+        {
+            new ProviderShift
+            {
+                PractitionerId = practitionerId,
+                DayOfWeek = DayOfWeek.Monday,
+                StartTime = TimeSpan.FromHours(8),
+                EndTime = TimeSpan.FromHours(17),
+                IsActive = true
+            }
+        }.BuildMockDbSet();
+
+        _mockContext.Setup(c => c.Patients).Returns(patients.Object);
+        _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
+        _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
+        _mockContext.Setup(c => c.ProviderShifts).Returns(shifts.Object);
+
+        var act = () => _service.ValidateLogisticsAsync(appointments.Object.First());
+        await act.Should().NotThrowAsync();
+    }
 }

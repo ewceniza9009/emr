@@ -175,7 +175,7 @@ try
 
             _logger.LogInformation("Warming up database query paths...");
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            _ = await dbContext.Patients.Take(1).AnyAsync();
+            _ = await dbContext.Patients.AnyAsync();
             _logger.LogInformation("Database query paths warmed up successfully.");
         }
         catch (Exception ex)

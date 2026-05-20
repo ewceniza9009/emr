@@ -152,8 +152,8 @@ public class ClinicalQuery
                 PatientCount = f.Residents.Count(),
                 CrisisCount = f.Residents.Count(p => p.EsasAssessments
                     .OrderByDescending(e => e.AssessedAt)
-                    .Take(1)
-                    .Any(e => e.Pain > 7 || e.Wellbeing > 7))
+                    .Select(e => (bool?)(e.Pain > 7 || e.Wellbeing > 7))
+                    .FirstOrDefault() == true)
             })
             .OrderByDescending(f => f.CrisisCount)
             .ThenByDescending(f => f.PatientCount)

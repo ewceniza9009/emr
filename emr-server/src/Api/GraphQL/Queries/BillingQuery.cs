@@ -49,7 +49,7 @@ public class BillingQuery
     {
         // Consolidated into a single database round-trip using subqueries
         return await context
-                .BillingInvoices.Take(1)
+                .BillingInvoices.OrderBy(x => x.InvoiceId)
                 .Select(_ => new BillingSummaryDto
                 {
                     TotalReceivables = context

@@ -41,6 +41,23 @@ public class TravelService : ITravelService
             return true;
 
         var settings = await context.TenantConfigurations.FirstOrDefaultAsync(ct);
+
+        TimeZoneInfo tzi;
+        try
+        {
+            tzi = TimeZoneInfo.FindSystemTimeZoneById(settings?.Timezone ?? TimeZoneInfo.Local.Id);
+        }
+        catch
+        {
+            tzi = TimeZoneInfo.Local;
+        }
+
+        var apptInTz = TimeZoneInfo.ConvertTime(appt.ScheduledStart, tzi);
+        var offset = apptInTz.Offset;
+        var apptDate = apptInTz.Date;
+        var startOfDay = new DateTimeOffset(apptDate, offset);
+        var endOfDay = startOfDay.AddDays(1);
+
         var safetyBuffer = settings?.EngineSafetyDriveMins ?? FALLBACK_IN_PERSON_BUFFER;
         var buffer = appt.Modality == AppointmentModality.InPersonHomeVisit || appt.Modality == AppointmentModality.InPersonFacility 
             ? safetyBuffer 
@@ -52,7 +69,8 @@ public class TravelService : ITravelService
                 .ThenInclude(p => p.Addresses)
                     .ThenInclude(a => a.Address)
             .Where(a => a.PractitionerId == practitionerId && 
-                       a.ScheduledStart.Date == appt.ScheduledStart.Date &&
+                       a.ScheduledStart >= startOfDay && 
+                       a.ScheduledStart < endOfDay &&
                        a.AppointmentId != appointmentId &&
                        a.Status != AppointmentStatus.Cancelled &&
                        !a.IsDeleted)

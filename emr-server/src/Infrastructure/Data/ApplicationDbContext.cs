@@ -267,12 +267,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         // --- GLOBAL TEMPORAL HARDENING: Npgsql/PostgreSQL UTC Enforcement ---
         var dateTimeOffsetConverter = new ValueConverter<DateTimeOffset, DateTimeOffset>(
             v => v.ToUniversalTime(),
-            v => v
+            v => v.ToUniversalTime()
         );
 
         var nullableDateTimeOffsetConverter = new ValueConverter<DateTimeOffset?, DateTimeOffset?>(
             v => v.HasValue ? v.Value.ToUniversalTime() : v,
-            v => v
+            v => v.HasValue ? v.Value.ToUniversalTime() : v
         );
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())

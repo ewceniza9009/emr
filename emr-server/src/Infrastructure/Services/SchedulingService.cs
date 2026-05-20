@@ -13,7 +13,7 @@ public class SchedulingService : ISchedulingService
     private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
     private readonly ITravelService _travelService;
     private readonly ILogger<SchedulingService> _logger;
-    private readonly SemaphoreSlim _semaphore = new(10);
+    private static readonly SemaphoreSlim _semaphore = new(10);
 
     private const int FALLBACK_IN_PERSON_BUFFER = 5;
     private const int TELEHEALTH_BUFFER_MINS = 3;
@@ -118,7 +118,7 @@ public class SchedulingService : ISchedulingService
                 0,
                 0,
                 offset
-            ).ToUniversalTime();
+            );
             var endOfToday = startOfToday.AddDays(1);
 
             var existingAppointments = await context
@@ -126,6 +126,10 @@ public class SchedulingService : ISchedulingService
                 .Include(a => a.SupportingClinicians)
                 .Where(a => a.ScheduledEnd > startOfToday && a.ScheduledStart < endOfToday)
                 .Where(a => a.Status != AppointmentStatus.Cancelled && !a.IsDeleted)
+                .Where(a =>
+                    (a.PractitionerId.HasValue && practitionerIds.Contains(a.PractitionerId.Value))
+                    || a.SupportingClinicians.Any(sc => practitionerIds.Contains(sc.PractitionerId))
+                )
                 .ToListAsync(cancellationToken);
 
             var scheduleBlocks = await context
@@ -135,6 +139,7 @@ public class SchedulingService : ISchedulingService
                     && b.StartTime < endOfToday
                     && b.Status == ScheduleBlockStatus.Blocked
                     && !b.IsDeleted
+                    && practitionerIds.Contains(b.PractitionerId)
                 )
                 .ToListAsync(cancellationToken);
 
@@ -241,9 +246,14 @@ public class SchedulingService : ISchedulingService
                         .OrderBy(a => a.ScheduledStart)
                         .ToList();
 
+                    var staffBlocks = scheduleBlocks
+                        .Where(b => b.PractitionerId == staff.PractitionerId)
+                        .ToList();
+
                     int iterations = 0;
+                    var loopStart = targetStart > effectiveStart ? targetStart : effectiveStart;
                     for (
-                        var time = targetStart;
+                        var time = loopStart;
                         time.Add(duration) <= effectiveEnd && iterations < 1000;
                         time = time.AddMinutes(5), iterations++
                     )
@@ -251,18 +261,23 @@ public class SchedulingService : ISchedulingService
                         if (iterations % 10 == 0)
                             cancellationToken.ThrowIfCancellationRequested();
 
-                        bool hasConflict =
-                            staffAppts.Any(a =>
-                                time < a.ScheduledEnd && time.Add(duration) > a.ScheduledStart
-                            )
-                            || scheduleBlocks.Any(b =>
-                                b.PractitionerId == staff.PractitionerId
-                                && time < b.EndTime
-                                && time.Add(duration) > b.StartTime
-                            );
-
-                        if (hasConflict)
+                        var conflictingAppt = staffAppts.FirstOrDefault(a =>
+                            time < a.ScheduledEnd && time.Add(duration) > a.ScheduledStart
+                        );
+                        if (conflictingAppt != null)
+                        {
+                            time = GeoUtils.CeilToNearestMinutes(conflictingAppt.ScheduledEnd, 5).AddMinutes(-5);
                             continue;
+                        }
+
+                        var conflictingBlock = staffBlocks.FirstOrDefault(b =>
+                            time < b.EndTime && time.Add(duration) > b.StartTime
+                        );
+                        if (conflictingBlock != null)
+                        {
+                            time = GeoUtils.CeilToNearestMinutes(conflictingBlock.EndTime, 5).AddMinutes(-5);
+                            continue;
+                        }
 
                         var prevAppts = staffAppts
                             .Where(a => a.ScheduledEnd <= time)
@@ -326,7 +341,10 @@ public class SchedulingService : ISchedulingService
                         earliestArrival = GeoUtils.CeilToNearestMinutes(earliestArrival, 5);
 
                         if (time < earliestArrival)
+                        {
+                            time = earliestArrival.AddMinutes(-5);
                             continue;
+                        }
 
                         var next = staffAppts.FirstOrDefault(a =>
                             a.ScheduledStart >= time.Add(duration)
@@ -512,6 +530,8 @@ public class SchedulingService : ISchedulingService
                     && a.ScheduledStart < appt.ScheduledStart
                     && a.ScheduledStart >= startOfDay
                     && a.AppointmentId != appt.AppointmentId
+                    && a.Status != AppointmentStatus.Cancelled
+                    && !a.IsDeleted
                 )
                 .OrderByDescending(a => a.ScheduledStart)
                 .ToListAsync(cancellationToken);
@@ -586,10 +606,21 @@ public class SchedulingService : ISchedulingService
             if (appt == null)
                 return (false, "Appointment not found");
 
-            var startOfDay = new DateTimeOffset(
-                appt.ScheduledStart.Date,
-                appt.ScheduledStart.Offset
-            );
+            TimeZoneInfo tzi;
+            try
+            {
+                tzi = TimeZoneInfo.FindSystemTimeZoneById(settings?.Timezone ?? TimeZoneInfo.Local.Id);
+            }
+            catch
+            {
+                tzi = TimeZoneInfo.Local;
+            }
+
+            var targetInTz = TimeZoneInfo.ConvertTime(appt.ScheduledStart, tzi);
+            var offset = targetInTz.Offset;
+            var targetDate = targetInTz.Date;
+
+            var startOfDay = new DateTimeOffset(targetDate, offset);
             var endOfDay = startOfDay.AddDays(1);
 
             var dayAppts = await context
@@ -795,7 +826,7 @@ public class SchedulingService : ISchedulingService
                 .ProviderShifts.AsNoTracking()
                 .Where(s =>
                     s.PractitionerId == appt.PractitionerId
-                    && s.DayOfWeek == appt.ScheduledStart.DayOfWeek
+                    && s.DayOfWeek == targetDate.DayOfWeek
                     && s.IsActive
                 )
                 .FirstOrDefaultAsync(cancellationToken);
@@ -803,12 +834,16 @@ public class SchedulingService : ISchedulingService
             if (shift != null)
             {
                 var shiftEnd = new DateTimeOffset(
-                    appt.ScheduledStart.Date.Add(shift.EndTime),
-                    appt.ScheduledStart.Offset
+                    targetDate.Add(shift.EndTime),
+                    offset
                 );
                 double returnDistance = 0;
 
-                if (isTargetInPerson && practitionerHomeAddr != null && patientAddr != null)
+                if (isTargetInPerson 
+                    && practitionerHomeAddr?.Latitude != null 
+                    && practitionerHomeAddr?.Longitude != null 
+                    && patientAddr?.Latitude != null 
+                    && patientAddr?.Longitude != null)
                 {
                     returnDistance = GeoUtils.CalculateDistance(
                         patientAddr.Latitude.Value,
@@ -871,8 +906,24 @@ public class SchedulingService : ISchedulingService
                 .Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)
                 ?.Address;
 
-            var targetDate = appointment.ScheduledStart.Date;
-            var offset = appointment.ScheduledStart.Offset;
+            var settings = await context
+                .TenantConfigurations.AsNoTracking()
+                .FirstOrDefaultAsync(cancellationToken);
+            TimeZoneInfo tzi;
+            try
+            {
+                tzi = TimeZoneInfo.FindSystemTimeZoneById(settings?.Timezone ?? TimeZoneInfo.Local.Id);
+            }
+            catch
+            {
+                tzi = TimeZoneInfo.Local;
+            }
+
+            var targetInTz = TimeZoneInfo.ConvertTime(appointment.ScheduledStart, tzi);
+            var offset = targetInTz.Offset;
+            var targetDate = targetInTz.Date;
+            var dayOfWeek = targetDate.DayOfWeek;
+
             var startOfDay = new DateTimeOffset(
                 targetDate.Year,
                 targetDate.Month,
@@ -881,9 +932,8 @@ public class SchedulingService : ISchedulingService
                 0,
                 0,
                 offset
-            ).ToUniversalTime();
+            );
             var endOfDay = startOfDay.AddDays(1);
-            var dayOfWeek = targetDate.DayOfWeek;
 
             var practitionersWithShifts = await context
                 .ProviderShifts.AsNoTracking()
@@ -966,16 +1016,20 @@ public class SchedulingService : ISchedulingService
             var available = new List<Application.Appointments.Dtos.ReassignmentProviderDto>();
             bool isTargetInPerson = IsInPerson(appointment.Modality);
 
-            foreach (var p in candidates)
+            var validationTasks = candidates.Select(async p => new
             {
-                if (
-                    await _travelService.ValidateTravelBufferAsync(
-                        p.PractitionerId,
-                        appointmentId,
-                        cancellationToken
-                    )
+                Practitioner = p,
+                IsValid = await _travelService.ValidateTravelBufferAsync(
+                    p.PractitionerId,
+                    appointmentId,
+                    cancellationToken
                 )
-                {
+            });
+            var validationResults = await Task.WhenAll(validationTasks);
+
+            foreach (var result in validationResults.Where(r => r.IsValid))
+            {
+                var p = result.Practitioner;
                     double? distance = null;
                     double? driveTime = null;
 
@@ -1047,7 +1101,6 @@ public class SchedulingService : ISchedulingService
                             Position = p.Position.ToString(),
                         }
                     );
-                }
             }
 
             return available;

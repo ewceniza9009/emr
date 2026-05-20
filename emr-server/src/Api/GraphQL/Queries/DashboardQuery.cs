@@ -10,7 +10,7 @@ public class DashboardQuery
     [Authorize(Policy = "CanViewPatients")]
     public async Task<DashboardStatsDto> GetDashboardStats([Service] IApplicationDbContext context)
     {
-        var tenantId = context.TenantConfigurations.Select(t => t.TenantId).FirstOrDefault();
+        var tenantId = await context.TenantConfigurations.Select(t => t.TenantId).OrderBy(id => id).FirstOrDefaultAsync();
 
         // 1. Active Patients
         var patientCount = await context.Patients.CountAsync();
@@ -30,8 +30,8 @@ public class DashboardQuery
         var criticalAlerts = await context
             .Patients.Where(p =>
                 p.EsasAssessments.OrderByDescending(e => e.AssessedAt)
-                    .Take(1)
-                    .Any(e => e.Pain > 7 || e.Wellbeing > 7)
+                    .Select(e => (bool?)(e.Pain > 7 || e.Wellbeing > 7))
+                    .FirstOrDefault() == true
             )
             .CountAsync();
 
@@ -72,8 +72,8 @@ public class DashboardQuery
         var criticalPatients = await context
             .Patients.Where(p =>
                 p.EsasAssessments.OrderByDescending(e => e.AssessedAt)
-                    .Take(1)
-                    .Any(e => e.Pain > 7 || e.Wellbeing > 7)
+                    .Select(e => (bool?)(e.Pain > 7 || e.Wellbeing > 7))
+                    .FirstOrDefault() == true
             )
             .OrderByDescending(p => p.CreatedAt)
             .Take(2)
