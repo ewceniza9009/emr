@@ -54,6 +54,27 @@ export function useRecentlyBrowsed() {
     });
   }, []);
 
-  return { recentItems, addItem };
+  const removeItem = useCallback((id: string) => {
+    setRecentItems((prev) => {
+      const updated = prev.filter((p) => p.id !== id);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.warn("[useRecentlyBrowsed] could not save to localStorage:", e);
+      }
+      return updated;
+    });
+  }, []);
+
+  const clearAll = useCallback(() => {
+    setRecentItems([]);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.warn("[useRecentlyBrowsed] could not clear localStorage:", e);
+    }
+  }, []);
+
+  return { recentItems, addItem, removeItem, clearAll };
 }
 

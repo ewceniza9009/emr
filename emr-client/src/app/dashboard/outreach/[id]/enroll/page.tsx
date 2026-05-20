@@ -165,7 +165,7 @@ export default function OutreachDetail() {
   const [selectedPlan, setSelectedPlan] = useState("");
   const [selectedModality, setSelectedModality] = useState<CareModality>(CareModality.HomeCare);
 
-  const { addItem } = useRecentlyBrowsed();
+  const { addItem, removeItem } = useRecentlyBrowsed();
   const [activeCall, setActiveCall] = useState<any>(null);
   const { showToast } = useToast();
 
@@ -345,7 +345,15 @@ export default function OutreachDetail() {
     if (lead) addItem({ id: lead.patientOutreachId, firstName: lead.firstName, lastName: lead.lastName, subtitle: lead.referralSource, type: 'OUTREACH' });
   }, [lead, addItem]);
 
+  useEffect(() => {
+    if (!leadLoading && !leadError && !lead && params.id) {
+      removeItem(params.id as string);
+    }
+  }, [leadLoading, leadError, lead, params.id, removeItem]);
+
   if (leadLoading) return <div className="min-h-screen flex items-center justify-center bg-[var(--background)]"><HeartPulse className="w-10 h-10 text-teal-500 animate-pulse" /></div>;
+
+  if (!lead && !leadLoading) return <div className="p-10 text-[var(--text-primary)] font-black uppercase tracking-widest">Outreach record not found in registry.</div>;
 
   const selfContacts = lead.otherContacts?.filter((c: any) => c.relationship?.toLowerCase() === 'self') || [];
   const relativeContacts = lead.otherContacts?.filter((c: any) => c.relationship?.toLowerCase() !== 'self') || [];

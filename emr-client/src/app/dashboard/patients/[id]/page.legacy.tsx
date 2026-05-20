@@ -246,7 +246,7 @@ export default function PatientDetailPage() {
   const { data: session } = useSession();
   const { confirm, alert } = useCommandModal();
   const params = useParams();
-  const { addItem } = useRecentlyBrowsed();
+  const { addItem, removeItem } = useRecentlyBrowsed();
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== "undefined") {
       return (
@@ -456,6 +456,12 @@ export default function PatientDetailPage() {
     apptData,
     addItem,
   ]);
+
+  useEffect(() => {
+    if (!loading && !error && !patient && params.id) {
+      removeItem(params.id as string);
+    }
+  }, [loading, error, patient, params.id, removeItem]);
 
   const { data: summaryData } = useQuery(GET_CLINICAL_SUMMARY, {
     variables: { patientId: params.id },
