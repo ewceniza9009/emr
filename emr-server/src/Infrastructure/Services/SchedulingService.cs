@@ -50,6 +50,7 @@ public class SchedulingService : ISchedulingService
             using var context = await _dbFactory.CreateDbContextAsync(cancellationToken);
             var settings = await context
                 .TenantConfigurations.AsNoTracking()
+                .OrderBy(c => c.TenantConfigurationId)
                 .FirstOrDefaultAsync(cancellationToken);
 
             var amStart = settings?.AmStartHour ?? 8;
@@ -483,6 +484,7 @@ public class SchedulingService : ISchedulingService
             using var context = await _dbFactory.CreateDbContextAsync(cancellationToken);
             var settings = await context
                 .TenantConfigurations.AsNoTracking()
+                .OrderBy(c => c.TenantConfigurationId)
                 .FirstOrDefaultAsync(cancellationToken);
             var safetyBuffer = settings?.EngineSafetyDriveMins ?? FALLBACK_IN_PERSON_BUFFER;
 
@@ -597,6 +599,7 @@ public class SchedulingService : ISchedulingService
             using var context = await _dbFactory.CreateDbContextAsync(cancellationToken);
             var settings = await context
                 .TenantConfigurations.AsNoTracking()
+                .OrderBy(c => c.TenantConfigurationId)
                 .FirstOrDefaultAsync(cancellationToken);
             var safetyBuffer = settings?.EngineSafetyDriveMins ?? FALLBACK_IN_PERSON_BUFFER;
 
@@ -908,6 +911,7 @@ public class SchedulingService : ISchedulingService
 
             var settings = await context
                 .TenantConfigurations.AsNoTracking()
+                .OrderBy(c => c.TenantConfigurationId)
                 .FirstOrDefaultAsync(cancellationToken);
             TimeZoneInfo tzi;
             try

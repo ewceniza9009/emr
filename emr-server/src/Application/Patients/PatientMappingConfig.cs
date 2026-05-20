@@ -60,7 +60,8 @@ public class PatientMappingConfig : IRegister
                 .FirstOrDefault() ?? "None")
             .Map(dest => dest.IsAlert, src => src.EsasAssessments
                 .OrderByDescending(e => e.AssessedAt)
-                .Any(e => e.Pain > 7 || e.Wellbeing > 7)
+                .Select(e => (bool?)(e.Pain > 7 || e.Wellbeing > 7))
+                .FirstOrDefault() == true
                 || src.CareNavigationCases.Any(c => c.AcuityLevel == AcuityLevel.Critical && c.Status == CaseStatus.Open));
     }
 }

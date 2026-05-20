@@ -164,6 +164,7 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         {
             var navigator = await _context
                 .Practitioners.Where(p => p.IsCareNavigator && p.IsActive)
+                .OrderBy(p => p.PractitionerId)
                 .FirstOrDefaultAsync(cancellationToken);
             navigatorId = navigator?.PractitionerId;
         }

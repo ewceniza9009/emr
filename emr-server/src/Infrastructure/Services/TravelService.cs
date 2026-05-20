@@ -40,7 +40,9 @@ public class TravelService : ITravelService
         if (patientAddr == null || !patientAddr.Latitude.HasValue || !patientAddr.Longitude.HasValue)
             return true;
 
-        var settings = await context.TenantConfigurations.FirstOrDefaultAsync(ct);
+        var settings = await context.TenantConfigurations
+            .OrderBy(c => c.TenantConfigurationId)
+            .FirstOrDefaultAsync(ct);
 
         TimeZoneInfo tzi;
         try

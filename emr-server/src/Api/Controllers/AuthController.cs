@@ -263,6 +263,7 @@ public class AuthController : ControllerBase
             {
                 patient = await _context.Patients
                     .IgnoreQueryFilters()
+                    .OrderBy(p => p.PatientId)
                     .FirstOrDefaultAsync();
             }
 

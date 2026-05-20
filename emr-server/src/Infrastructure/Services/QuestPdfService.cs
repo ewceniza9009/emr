@@ -651,6 +651,7 @@ public class QuestPdfService : IPdfService
         var esas = await _context.EsasAssessments
             .IgnoreQueryFilters()
             .Where(e => e.Encounter != null && e.Encounter.AppointmentId == appointmentId)
+            .OrderByDescending(e => e.AssessedAt)
             .FirstOrDefaultAsync();
 
         var invoice =
@@ -658,13 +659,16 @@ public class QuestPdfService : IPdfService
                 ? await _context
                     .BillingInvoices.IgnoreQueryFilters()
                     .Include(i => i.Items)
-                    .FirstOrDefaultAsync(i => i.EncounterId == encounter.EncounterId)
+                    .Where(i => i.EncounterId == encounter.EncounterId)
+                    .OrderBy(i => i.InvoiceId)
+                    .FirstOrDefaultAsync()
                 : null;
 
         var spiritual = encounter != null 
             ? await _context.SpiritualAssessments
                 .IgnoreQueryFilters()
                 .Where(s => s.EncounterId == encounter.EncounterId)
+                .OrderBy(s => s.SpiritualAssessmentId)
                 .FirstOrDefaultAsync()
             : null;
 
