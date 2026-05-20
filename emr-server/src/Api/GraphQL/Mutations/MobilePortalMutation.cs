@@ -22,6 +22,8 @@ public class MobilePortalMutation
         string content,
         [Service] IApplicationDbContext context,
         [Service] IHubContext<ChatHub> hubContext,
+        [Service] INotificationService notificationService,
+        [Service] ISecurityAuditService auditService,
         CancellationToken cancellationToken
     )
     {
@@ -71,6 +73,57 @@ public class MobilePortalMutation
         };
 
         context.ChatMessages.Add(message);
+
+        // NLP Distress Triage Intercept logic
+        var lowerContent = content.ToLower();
+        bool isEmergency = lowerContent.Contains("chest pain") 
+            || lowerContent.Contains("cannot breathe") 
+            || lowerContent.Contains("difficulty breathing")
+            || lowerContent.Contains("heart attack")
+            || lowerContent.Contains("severe dyspnea")
+            || lowerContent.Contains("suffocating")
+            || lowerContent.Contains("choking")
+            || lowerContent.Contains("suicidal");
+
+        if (isEmergency)
+        {
+            var activeCase = await context.CareNavigationCases
+                .FirstOrDefaultAsync(c => c.PatientId == patientId && c.Status == Domain.Enums.CaseStatus.Open, cancellationToken);
+
+            if (activeCase != null)
+            {
+                activeCase.AcuityLevel = Domain.Enums.AcuityLevel.Critical;
+                
+                if (activeCase.NavigatorId != Guid.Empty)
+                {
+                    await notificationService.SendUserNotificationAsync(
+                        activeCase.NavigatorId.ToString(),
+                        $"CRITICAL TRIAGE ALERT: {patient.FirstName} {patient.LastName}",
+                        $"Emergency keyword detected in secure chat: \"{content}\". Patient acuity auto-escalated to Critical.",
+                        Domain.Enums.NotificationPriority.Critical,
+                        "Clinical",
+                        $"/dashboard/patients/{patientId}"
+                    );
+                }
+            }
+            else
+            {
+                await notificationService.SendGlobalNotificationAsync(
+                    $"CRITICAL TRIAGE ALERT: {patient.FirstName} {patient.LastName}",
+                    $"Emergency keyword detected in secure chat: \"{content}\". Patient has no active care navigator assigned.",
+                    Domain.Enums.NotificationPriority.Critical,
+                    "Clinical",
+                    $"/dashboard/patients/{patientId}"
+                );
+            }
+
+            await auditService.LogActionAsync(
+                "PATIENT_ACUITY_AUTO_ESCALATED",
+                $"Clinical auto-triage triggered by chat message: \"{content}\"",
+                patientId.ToString()
+            );
+        }
+
         await context.SaveChangesAsync(cancellationToken);
 
         await hubContext.Clients.Group($"CareThread_{careThreadId}").SendAsync("ReceiveMessage", new {

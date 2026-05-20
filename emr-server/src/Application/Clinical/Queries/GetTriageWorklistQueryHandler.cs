@@ -41,8 +41,9 @@ public class GetTriageWorklistQueryHandler
         if (request.IsAlert.HasValue)
         {
             query = query.Where(p =>
-                p.EsasAssessments.OrderByDescending(e => e.AssessedAt)
-                    .Any(e => e.Pain > 7 || e.Wellbeing > 7) == request.IsAlert.Value
+                (p.EsasAssessments.OrderByDescending(e => e.AssessedAt)
+                    .Any(e => e.Pain > 7 || e.Wellbeing > 7)
+                 || p.CareNavigationCases.Any(c => c.AcuityLevel == Domain.Enums.AcuityLevel.Critical && c.Status == Domain.Enums.CaseStatus.Open)) == request.IsAlert.Value
             );
         }
 

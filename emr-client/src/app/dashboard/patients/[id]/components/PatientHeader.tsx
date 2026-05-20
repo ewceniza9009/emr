@@ -13,16 +13,21 @@ import {
   Loader2,
   MessageSquare,
   AlertTriangle,
+  Video,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { PermissionGate } from "@/components/PermissionGate";
 import { UsePatientDashboardStateReturn } from "../hooks/usePatientDashboardState";
 import { CareThreadChat } from "./CareThreadChat";
+
+const TelehealthModal = dynamic(() => import("@/components/TelehealthModal"));
 
 interface PatientHeaderProps {
   state: UsePatientDashboardStateReturn;
 }
 
 export function PatientHeader({ state }: PatientHeaderProps) {
+  const [showTelehealth, setShowTelehealth] = React.useState(false);
   const {
     patientId,
     patient,
@@ -142,6 +147,20 @@ export function PatientHeader({ state }: PatientHeaderProps) {
           </div>
         </PermissionGate>
         {canChat && <CareThreadChat patientId={patientId} />}
+        <div className="group relative flex items-center justify-center hover:z-[60]">
+          <button
+            onClick={() => setShowTelehealth(true)}
+            className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 hover:text-white transition-all flex items-center justify-center p-0 active:scale-95 animate-pulse"
+          >
+            <Video className="w-5 h-5 shrink-0" />
+          </button>
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-center">
+            <div className="w-1.5 h-1.5 bg-slate-950 border-l border-t border-slate-800/80 rotate-45 -mb-1 shrink-0 z-10" />
+            <div className="bg-slate-950 border border-slate-800/80 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
+              Launch Telehealth Visit
+            </div>
+          </div>
+        </div>
         <PermissionGate permission="docs:view">
           <div className="group relative flex items-center justify-center hover:z-[60]">
             <button
@@ -192,6 +211,12 @@ export function PatientHeader({ state }: PatientHeaderProps) {
           </div>
         </PermissionGate>
       </div>
+
+      <TelehealthModal
+        isOpen={showTelehealth}
+        onClose={() => setShowTelehealth(false)}
+        patientName={`${patient.firstName} ${patient.lastName}`}
+      />
     </div>
   );
 }

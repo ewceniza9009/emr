@@ -14,7 +14,8 @@ import {
   Save,
   Trash2,
   AlertTriangle,
-  RotateCcw
+  RotateCcw,
+  Printer
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
 import SmartTextarea from "./SmartTextarea";
@@ -79,6 +80,101 @@ export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, patie
     }
   });
 
+  const handlePrintProtocol = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const directiveNotes = directive?.notes || "No specific instructions documented.";
+    const effectiveDateStr = directive ? new Date(directive.effectiveDate).toLocaleDateString(undefined, { dateStyle: "long" }) : "";
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Comfort Measures DNR Protocol - ${patientId}</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1e293b; padding: 40px; line-height: 1.5; }
+            .header { border-bottom: 3px double #cbd5e1; padding-bottom: 20px; margin-bottom: 30px; text-align: center; }
+            .header h1 { font-size: 24px; font-weight: 900; color: #b91c1c; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+            .header p { font-size: 10px; font-weight: bold; color: #64748b; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 2px; }
+            .section-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #475569; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 25px; margin-bottom: 15px; }
+            .grid { display: grid; grid-template-cols: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+            .card { border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; background-color: #f8fafc; }
+            .card-label { font-size: 9px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 3px; }
+            .card-value { font-size: 12px; font-weight: bold; color: #0f172a; }
+            .notes { border: 1px solid #fecaca; background-color: #fef2f2; padding: 15px; border-radius: 8px; font-size: 13px; font-weight: 600; line-height: 1.6; color: #991b1b; }
+            .clinical-guide { margin-top: 20px; font-size: 12px; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px; }
+            .guide-item { margin-bottom: 10px; }
+            .guide-item strong { color: #b91c1c; }
+            .signatures { display: grid; grid-template-cols: 1fr 1fr; gap: 40px; margin-top: 50px; }
+            .sig-line { border-top: 1px solid #475569; margin-top: 40px; font-size: 10px; text-transform: uppercase; font-weight: bold; color: #64748b; text-align: center; }
+            .footer { text-align: center; font-size: 9px; font-weight: bold; color: #94a3b8; margin-top: 60px; text-transform: uppercase; letter-spacing: 2px; border-top: 1px solid #f1f5f9; padding-top: 15px; }
+          </style>
+        </head>
+        <body onload="window.print();">
+          <div class="header">
+            <h1>Comfort Measures DNR Protocol</h1>
+            <p>Halkyone Clinical Command Center &middot; Forensic Care Registry</p>
+          </div>
+
+          <div class="section-title">Patient Identification</div>
+          <div class="grid">
+            <div class="card">
+              <div class="card-label">Patient Unique Identifier</div>
+              <div class="card-value">${patientId}</div>
+            </div>
+            <div class="card">
+              <div class="card-label">Directive Status</div>
+              <div class="card-value" style="color: #10b981;">VERIFIED LEGAL DIRECTIVE (ACTIVE)</div>
+            </div>
+            <div class="card">
+              <div class="card-label">Directive Type</div>
+              <div class="card-value">${directive?.type.replace(/_/g, ' ')}</div>
+            </div>
+            <div class="card">
+              <div class="card-label">Effective Date</div>
+              <div class="card-value">${effectiveDateStr}</div>
+            </div>
+          </div>
+
+          <div class="section-title">Legal & Clinical Limitations</div>
+          <div class="notes">
+            ${directiveNotes}
+          </div>
+
+          <div class="section-title">Emergency Bedside Symptom Protocol</div>
+          <div class="clinical-guide">
+            <div class="guide-item">
+              &bull; <strong>DNR Order:</strong> In the event of cardiac or respiratory arrest, DO NOT attempt cardiopulmonary resuscitation (CPR), endotracheal intubation, mechanical ventilation, or cardiac defibrillation.
+            </div>
+            <div class="guide-item">
+              &bull; <strong>Pain & Dyspnea:</strong> Administer <strong>0.25 mL (5 mg)</strong> sublingual liquid morphine concentrate every 1-2 hours as needed for breakthrough pain or severe air hunger (respiratory rate > 25/min).
+            </div>
+            <div class="guide-item">
+              &bull; <strong>Agitation & Panic:</strong> Administer <strong>0.5 mg</strong> sublingual Lorazepam as needed for accompanying panic, severe air hunger, or clinical distress.
+            </div>
+            <div class="guide-item">
+              &bull; <strong>Distress Triggers:</strong> Sit patient upright, lean slightly forward, and run a cool fan blowing directly across their face to stimulate trigeminal receptors.
+            </div>
+          </div>
+
+          <div class="signatures">
+            <div>
+              <div class="sig-line">Attending Practitioner Signature & Date</div>
+            </div>
+            <div>
+              <div class="sig-line">Medical Director / Registrar Signature & Date</div>
+            </div>
+          </div>
+
+          <div class="footer">
+            CONFIDENTIAL PHI &middot; STRICTLY AUDITED REGISTRY SYSTEM &middot; SECURE SYSTEM REFERENCE ID: AD-${directive?.advanceDirectiveId.slice(0,8).toUpperCase()}
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   if (!isOpen || !directive) return null;
 
   const handleStartEdit = () => {
@@ -124,7 +220,7 @@ export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, patie
     <HalcyonPortal>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 !m-0 !p-0 z-[99999999] flex items-center justify-center p-6 overflow-hidden"
+        className="fixed inset-0 !m-0 z-[99999999] flex items-center justify-center p-6 overflow-hidden"
         onClick={onClose}
       >
         <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-200" />
@@ -278,14 +374,23 @@ export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, patie
                 Halkyone Clinical OS · Legal Archive
               </p>
               {!isEditing && (
-                <button
-                  onClick={handleRevoke}
-                  disabled={revoking}
-                  className="flex items-center gap-2 text-rose-500 text-[9px] font-black uppercase tracking-[0.2em] hover:text-rose-400 transition-all disabled:opacity-50"
-                >
-                  <AlertTriangle className="w-3 h-3" />
-                  Revoke Directive
-                </button>
+                <>
+                  <button
+                    onClick={handleRevoke}
+                    disabled={revoking}
+                    className="flex items-center gap-2 text-rose-500 text-[9px] font-black uppercase tracking-[0.2em] hover:text-rose-400 transition-all disabled:opacity-50"
+                  >
+                    <AlertTriangle className="w-3 h-3" />
+                    Revoke Directive
+                  </button>
+                  <button
+                    onClick={handlePrintProtocol}
+                    className="flex items-center gap-2 text-blue-400 text-[9px] font-black uppercase tracking-[0.2em] hover:text-blue-350 transition-all"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    Print Bedside Protocol
+                  </button>
+                </>
               )}
             </div>
             

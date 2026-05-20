@@ -19,6 +19,7 @@ Thumbs.db
 *.userosscache
 *.sln.docstates
 *.tsbuildinfo
+*.csproj.lscache
 
 # 3. Environments & Secrets (CRITICAL - DO NOT COMMIT)
 .env

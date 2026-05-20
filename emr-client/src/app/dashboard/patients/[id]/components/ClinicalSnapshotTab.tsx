@@ -13,6 +13,12 @@ const SymptomTrendChart = dynamic(
     loading: () => <Skeleton className="h-64 w-full" />,
   },
 );
+const VitalsTrendChart = dynamic(
+  () => import("@/components/VitalsTrendChart"),
+  {
+    loading: () => <Skeleton className="h-64 w-full" />,
+  },
+);
 const MedicationRegistry = dynamic(
   () => import("@/components/MedicationRegistry"),
   {
@@ -79,12 +85,22 @@ export function ClinicalSnapshotTab({ state }: ClinicalSnapshotTabProps) {
       <ProblemList patientId={patientId} />
       <VitalSignTimeline patientId={patientId} />
 
-      <div className="bg-[var(--card-bg)] rounded-2xl p-6 border border-[var(--card-border)] shadow-xl">
-        <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight mb-4">
-          <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
-          Symptom Trajectory
-        </h2>
-        <SymptomTrendChart patientId={patientId} />
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className="bg-[var(--card-bg)] rounded-2xl p-6 border border-[var(--card-border)] shadow-xl">
+          <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight mb-4">
+            <TrendingUp className="w-4 h-4 text-[var(--primary)]" />
+            Symptom Trajectory (ESAS)
+          </h2>
+          <SymptomTrendChart patientId={patientId} />
+        </div>
+
+        <div className="bg-[var(--card-bg)] rounded-2xl p-6 border border-[var(--card-border)] shadow-xl">
+          <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2 uppercase tracking-tight mb-4">
+            <Activity className="w-4 h-4 text-emerald-500" />
+            Vital Signs Telemetry Trends
+          </h2>
+          <VitalsTrendChart patientId={patientId} />
+        </div>
       </div>
     </div>
   );
