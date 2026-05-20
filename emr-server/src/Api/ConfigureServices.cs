@@ -186,6 +186,7 @@ public static class ConfigureServices
     {
         services
             .AddGraphQLServer()
+            .InitializeOnStartup()
             .AddType(new ObjectType<ZBenefitClaim>(d => d.Name("ZBenefitClaimEntity")))
             .AddAuthorization()
             .AddApolloFederation()

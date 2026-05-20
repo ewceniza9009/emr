@@ -9,6 +9,49 @@ interface SmartPhrase {
   templateText: string;
 }
 
+// Helper function to get caret coordinates inside textarea
+function getCaretCoordinates(element: HTMLTextAreaElement, position: number) {
+  const div = document.createElement("div");
+  const style = window.getComputedStyle(element);
+  
+  const properties = [
+    "direction", "boxSizing", "width", "height", "overflowX", "overflowY",
+    "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth",
+    "borderStyle", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft",
+    "fontStyle", "fontVariant", "fontWeight", "fontStretch", "fontSize",
+    "lineHeight", "fontFamily", "textAlign", "textTransform", "textIndent",
+    "textDecoration", "letterSpacing", "wordSpacing"
+  ];
+
+  properties.forEach(prop => {
+    (div.style as any)[prop] = (style as any)[prop];
+  });
+
+  div.style.position = "absolute";
+  div.style.visibility = "hidden";
+  div.style.whiteSpace = "pre-wrap";
+  div.style.wordWrap = "break-word";
+  
+  const borderLeft = parseFloat(style.borderLeftWidth || "0");
+  const borderTop = parseFloat(style.borderTopWidth || "0");
+  
+  div.style.width = `${element.clientWidth}px`;
+
+  div.textContent = element.value.substring(0, position);
+
+  const span = document.createElement("span");
+  span.textContent = element.value.substring(position, position + 1) || ".";
+  div.appendChild(span);
+
+  document.body.appendChild(div);
+  
+  const top = span.offsetTop + borderTop - element.scrollTop;
+  const left = span.offsetLeft + borderLeft - element.scrollLeft;
+
+  document.body.removeChild(div);
+  return { top, left };
+}
+
 interface SmartTextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange'> {
   value: string;
   onChange: (value: string) => void;
@@ -82,30 +125,34 @@ export default function SmartTextarea({
         setShowPopup(true);
         setPhraseFilter(segment.slice(1));
         
-        // Position popup near cursor without overlapping the typing area
         const textarea = e.target;
-        const { offsetTop, offsetLeft } = textarea;
-        
-        // Accurate line height (24px) and top padding (12px) heuristics
-        const lines = textBeforeCursor.split("\n");
-        
-        // Anchors the popup exactly 6px below the active line text baseline
-        const top = offsetTop + (lines.length * 24) + 18;
-        
-        const left = Math.max(
-          0,
-          Math.min(
-            offsetLeft + 16 + (lines[lines.length - 1].length * 8) + 4,
-            offsetLeft + textarea.offsetWidth - 260 // Keep within textarea bounds (popover is w-64)
-          )
-        );
-        
-        setPopupPosition({ top, left });
+        const coords = getCaretCoordinates(textarea, selectionStart);
+        setPopupPosition({
+          top: coords.top + 24,
+          left: Math.min(coords.left, textarea.clientWidth - 270)
+        });
       } else {
         setShowPopup(false);
       }
     } else {
       setShowPopup(false);
+    }
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    if (!showPopup) return;
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const selectionStart = textarea.selectionStart;
+      const textBeforeCursor = textarea.value.slice(0, selectionStart);
+      const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
+      if (lastSlashIdx !== -1) {
+        const coords = getCaretCoordinates(textarea, selectionStart);
+        setPopupPosition({
+          top: coords.top + 24,
+          left: Math.min(coords.left, textarea.clientWidth - 270)
+        });
+      }
     }
   };
 
@@ -189,6 +236,7 @@ export default function SmartTextarea({
         value={value}
         onChange={handleTextChange}
         onKeyDown={handleKeyDown}
+        onScroll={handleScroll}
         className={className}
         {...props}
       />

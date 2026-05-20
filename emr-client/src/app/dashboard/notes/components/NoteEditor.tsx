@@ -43,6 +43,10 @@ export function NoteEditor({ state }: NoteEditorProps) {
     popupPosition,
     selectPhrase,
     smartPhrases,
+    showUndoBanner,
+    setShowUndoBanner,
+    handleUndo,
+    handleScroll,
     refs,
   } = state;
 
@@ -88,6 +92,32 @@ export function NoteEditor({ state }: NoteEditorProps) {
             </div>
           ))}
       </div>
+    </div>
+  );
+
+  const renderUndoBanner = () => (
+    <div className="absolute bottom-3 right-3 z-50 flex items-center gap-2 bg-[#090d16]/90 border border-emerald-500/30 rounded-xl px-3 py-1.5 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200">
+      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+        Template Inserted
+      </span>
+      <div className="h-3 w-[1px] bg-slate-800/40 mx-1" />
+      <button
+        type="button"
+        onClick={handleUndo}
+        className="text-[9px] font-black uppercase text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer bg-transparent border-none outline-none p-0"
+      >
+        <span>Undo</span>
+        <kbd className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded text-[8px] font-bold font-sans uppercase">
+          Ctrl+Z
+        </kbd>
+      </button>
+      <button
+        type="button"
+        onClick={() => setShowUndoBanner(false)}
+        className="text-[9px] font-bold text-slate-500 hover:text-slate-300 ml-1.5 bg-transparent border-none outline-none cursor-pointer p-0"
+      >
+        ✕
+      </button>
     </div>
   );
 
@@ -238,12 +268,16 @@ export function NoteEditor({ state }: NoteEditorProps) {
                   onChange={handleTextChange}
                   onKeyDown={handleKeyDown}
                   onFocus={() => setActiveField("narrative")}
+                  onScroll={handleScroll}
                   placeholder={`Begin typing clinical narrative for ${selectedNote.patient?.firstName}... use / for smart phrases.`}
                   className="w-full h-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-[2rem] p-8 text-xs leading-relaxed text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--primary)]/50 focus:shadow-[0_0_20px_var(--primary-glow)] transition-all resize-none overflow-y-auto custom-scrollbar"
                 />
                 {showSmartPhrases &&
                   activeField === "narrative" &&
                   renderPopup()}
+                {showUndoBanner &&
+                  activeField === "narrative" &&
+                  renderUndoBanner()}
               </div>
             </div>
           ) : (
@@ -265,12 +299,16 @@ export function NoteEditor({ state }: NoteEditorProps) {
                     onChange={handleTextChange}
                     onKeyDown={handleKeyDown}
                     onFocus={() => setActiveField("subjective")}
+                    onScroll={handleScroll}
                     placeholder="Describe patient complaints, pain timeline, history..."
                     className="w-full min-h-[110px] bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 text-xs leading-relaxed outline-none focus:border-[var(--primary)]/40 transition-all resize-none"
                   />
                   {showSmartPhrases &&
                     activeField === "subjective" &&
                     renderPopup()}
+                  {showUndoBanner &&
+                    activeField === "subjective" &&
+                    renderUndoBanner()}
                 </div>
               </div>
 
@@ -290,12 +328,16 @@ export function NoteEditor({ state }: NoteEditorProps) {
                     onChange={handleTextChange}
                     onKeyDown={handleKeyDown}
                     onFocus={() => setActiveField("objective")}
+                    onScroll={handleScroll}
                     placeholder="Enter vital signs, physical examination records, lab values..."
                     className="w-full min-h-[110px] bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 text-xs leading-relaxed outline-none focus:border-[var(--primary)]/40 transition-all resize-none"
                   />
                   {showSmartPhrases &&
                     activeField === "objective" &&
                     renderPopup()}
+                  {showUndoBanner &&
+                    activeField === "objective" &&
+                    renderUndoBanner()}
                 </div>
               </div>
 
@@ -315,12 +357,16 @@ export function NoteEditor({ state }: NoteEditorProps) {
                     onChange={handleTextChange}
                     onKeyDown={handleKeyDown}
                     onFocus={() => setActiveField("assessment")}
+                    onScroll={handleScroll}
                     placeholder="State primary and secondary diagnoses, progression evaluation..."
                     className="w-full min-h-[110px] bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 text-xs leading-relaxed outline-none focus:border-[var(--primary)]/40 transition-all resize-none"
                   />
                   {showSmartPhrases &&
                     activeField === "assessment" &&
                     renderPopup()}
+                  {showUndoBanner &&
+                    activeField === "assessment" &&
+                    renderUndoBanner()}
                 </div>
               </div>
 
@@ -340,10 +386,12 @@ export function NoteEditor({ state }: NoteEditorProps) {
                     onChange={handleTextChange}
                     onKeyDown={handleKeyDown}
                     onFocus={() => setActiveField("plan")}
+                    onScroll={handleScroll}
                     placeholder="Formulate medical prescription, orders, referrals, next visits..."
                     className="w-full min-h-[110px] bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 text-xs leading-relaxed outline-none focus:border-[var(--primary)]/40 transition-all resize-none"
                   />
                   {showSmartPhrases && activeField === "plan" && renderPopup()}
+                  {showUndoBanner && activeField === "plan" && renderUndoBanner()}
                 </div>
               </div>
             </div>

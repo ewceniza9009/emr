@@ -2,6 +2,17 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.3.2] - 2026-05-20
+- Implemented NLP triage keywords auto-escalation in the Mobile Portal, automatically upgrading case acuity to Critical.
+- Built an interactive clinical vitals trend chart using Recharts, dynamically displaying historical vitals telemetry.
+- Integrated a bedside palliative care protocol generator inside the advance directives workspace with print-optimized styling.
+- Created a secure telehealth WebRTC simulation room with real-time telemetry broadcasting and peer chat controls.
+- Fixed Tailwind CSS padding conflict warnings in DirectiveDetailModal and TelehealthModal layout classes.
+- Resolved C# compiler safety rules (CS9103) mismatch by standardizing backend project LangVersion to latest.
+- Optimized backend cold-start initialization by pre-compiling HotChocolate GraphQL schemas and pre-warming EF Core query paths.
+- Added a high-fidelity animated skeleton loader page to Next.js dashboard routes to maximize perceived performance during page transitions.
+- Standardized Smart Phrase behavior across all clinical text inputs with a glassmorphic floating banner and keyboard-driven Ctrl+Z rollbacks.
+
 ## [1.3.1] - 2026-05-19
 - Implemented caret-tracking Smart Phrase popover overlays that follow the typing cursor inside narrative and SOAP textareas.
 - Restructured NoteEditor layouts to lock clinical headers and metadata at the top, allowing only content textareas to scroll.

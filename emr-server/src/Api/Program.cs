@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -171,6 +172,11 @@ try
                 bool.Parse(builder.Configuration["EMR_WIPE_DB"] ?? "false"),
                 bool.Parse(builder.Configuration["EMR_SEED_DB"] ?? "true"));
             _logger.LogInformation("Database initialization completed successfully.");
+
+            _logger.LogInformation("Warming up database query paths...");
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            _ = await dbContext.Patients.Take(1).AnyAsync();
+            _logger.LogInformation("Database query paths warmed up successfully.");
         }
         catch (Exception ex)
         {

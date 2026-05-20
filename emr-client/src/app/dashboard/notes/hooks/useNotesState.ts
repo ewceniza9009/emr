@@ -36,21 +36,21 @@ function getCaretCoordinates(element: HTMLTextAreaElement, position: number) {
   div.style.whiteSpace = "pre-wrap";
   div.style.wordWrap = "break-word";
   
-  const paddingLeft = parseFloat(style.paddingLeft || "0");
   const borderLeft = parseFloat(style.borderLeftWidth || "0");
+  const borderTop = parseFloat(style.borderTopWidth || "0");
   
   div.style.width = `${element.clientWidth}px`;
 
   div.textContent = element.value.substring(0, position);
 
   const span = document.createElement("span");
-  span.textContent = element.value.substring(position) || ".";
+  span.textContent = element.value.substring(position, position + 1) || ".";
   div.appendChild(span);
 
   document.body.appendChild(div);
   
-  const top = span.offsetTop + borderLeft - element.scrollTop;
-  const left = span.offsetLeft + paddingLeft;
+  const top = span.offsetTop + borderTop - element.scrollTop;
+  const left = span.offsetLeft + borderLeft - element.scrollLeft;
 
   document.body.removeChild(div);
   return { top, left };
@@ -78,6 +78,9 @@ export function useNotesState() {
   const [showSmartPhrases, setShowSmartPhrases] = useState(false);
   const [phraseFilter, setPhraseFilter] = useState("");
   const [cursorPosition, setCursorPosition] = useState(0);
+  const [lastValue, setLastValue] = useState<string | null>(null);
+  const [lastCursor, setLastCursor] = useState<number | null>(null);
+  const [showUndoBanner, setShowUndoBanner] = useState(false);
   const [noteCache, setNoteCache] = useState<Record<string, string>>({});
   const [encounterCache, setEncounterCache] = useState<Record<string, string>>({});
   const [isSyncing, setIsSyncing] = useState(false);
@@ -250,11 +253,32 @@ export function useNotesState() {
     }
   };
 
+  const handleUndo = () => {
+    if (lastValue === null) return;
+    setActiveValue(lastValue);
+    const pos = lastCursor ?? 0;
+    setLastValue(null);
+    setLastCursor(null);
+    setShowUndoBanner(false);
+
+    setTimeout(() => {
+      const activeRef = getActiveRef();
+      if (activeRef.current) {
+        activeRef.current.focus();
+        activeRef.current.setSelectionRange(pos, pos);
+      }
+    }, 0);
+  };
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     const selectionStart = e.target.selectionStart;
     
     setActiveValue(value);
+
+    if (showUndoBanner) {
+      setShowUndoBanner(false);
+    }
 
     const textBeforeCursor = value.slice(0, selectionStart);
     const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
@@ -268,7 +292,7 @@ export function useNotesState() {
 
         const activeRef = getActiveRef();
         if (activeRef.current) {
-          const coords = getCaretCoordinates(activeRef.current, lastSlashIdx);
+          const coords = getCaretCoordinates(activeRef.current, selectionStart);
           setPopupPosition({
             top: coords.top + 24,
             left: Math.min(coords.left, activeRef.current.clientWidth - 330)
@@ -282,7 +306,32 @@ export function useNotesState() {
     }
   };
 
+  const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    if (!showSmartPhrases) return;
+    const activeRef = getActiveRef();
+    if (activeRef.current && activeRef.current === e.currentTarget) {
+      const selectionStart = activeRef.current.selectionStart;
+      const textBeforeCursor = activeRef.current.value.slice(0, selectionStart);
+      const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
+      if (lastSlashIdx !== -1) {
+        const coords = getCaretCoordinates(activeRef.current, selectionStart);
+        setPopupPosition({
+          top: coords.top + 24,
+          left: Math.min(coords.left, activeRef.current.clientWidth - 330)
+        });
+      }
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+      if (lastValue !== null) {
+        e.preventDefault();
+        handleUndo();
+        return;
+      }
+    }
+
     if (!showSmartPhrases) return;
 
     const filtered = smartPhrases.filter((p: any) => p.shortcut.toLowerCase().includes(phraseFilter));
@@ -314,6 +363,10 @@ export function useNotesState() {
     const lastSlashIdx = textBeforeCursor.lastIndexOf("/");
 
     if (lastSlashIdx !== -1) {
+      setLastValue(value);
+      setLastCursor(cursor);
+      setShowUndoBanner(true);
+
       const newText = value.slice(0, lastSlashIdx) + phrase + value.slice(cursor);
       setActiveValue(newText);
 
@@ -503,6 +556,10 @@ export function useNotesState() {
     selectedIndex,
     setSelectedIndex,
     popupPosition,
+    showUndoBanner,
+    setShowUndoBanner,
+    handleUndo,
+    handleScroll,
 
     // Refs
     refs: {
