@@ -64,7 +64,7 @@ export default function TelemetryPanel({ state }: Props) {
               <div className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">
                 {state.selectedLogistics ? (
                   <>{state.selectedLogistics.distanceInMiles.toFixed(1)}<span className="text-xs font-bold opacity-30 ml-1.5 tracking-widest uppercase">MI</span></>
-                ) : !state.careNavigatorId && !state.primaryClinicianId ? (
+                ) : !state.careNavigatorId && state.supportingClinicianIds.length === 0 ? (
                   <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 flex items-center gap-1.5 h-9"><Users className="w-3.5 h-3.5" /> Select Team</span>
                 ) : (
                   <div className="flex items-baseline gap-1.5 h-9"><span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">Calculating...</span></div>
@@ -78,7 +78,7 @@ export default function TelemetryPanel({ state }: Props) {
               <div className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">
                 {state.selectedLogistics ? (
                   <>{state.selectedLogistics.travelTimeInMinutes}<span className="text-xs font-bold opacity-30 ml-1.5 tracking-widest uppercase">MIN</span></>
-                ) : !state.careNavigatorId && !state.primaryClinicianId ? (
+                ) : !state.careNavigatorId && state.supportingClinicianIds.length === 0 ? (
                   <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-40 flex items-center gap-1.5 h-9"><Clock className="w-3.5 h-3.5" /> Awaiting Choice</span>
                 ) : (
                   <div className="flex items-baseline gap-1.5 h-9"><span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">Syncing...</span></div>

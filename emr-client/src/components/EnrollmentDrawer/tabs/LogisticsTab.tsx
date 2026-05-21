@@ -131,9 +131,10 @@ export default function LogisticsTab({ state }: Props) {
                                     return (
                                       <button
                                         key={p.practitionerId}
-                                        onClick={() =>
-                                          state.setCareNavigatorId(p.practitionerId)
-                                        }
+                                        onClick={() => {
+                                          state.setCareNavigatorId(p.practitionerId);
+                                          state.setSupportingClinicianIds(prev => prev.filter((id: string) => id !== p.practitionerId));
+                                        }}
                                         className={`p-3 rounded-xl border text-left transition-all group relative overflow-hidden ${isSelected ? "bg-teal-500/10 border-teal-500 shadow-sm" : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-teal-500/30"}`}
                                       >
                                         <div className="flex justify-between items-start gap-2">
@@ -178,10 +179,10 @@ export default function LogisticsTab({ state }: Props) {
                             </div>
                           </div>
 
-                          {/* Primary Lead Selection */}
+                          {/* Supporting Clinicians Selection */}
                           <div>
                             <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 px-1">
-                              Primary Clinician Lead
+                              Supporting Clinicians Assignment
                             </p>
                             <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto scrollbar-hide">
                               {state.availabilityLoading &&
@@ -207,15 +208,20 @@ export default function LogisticsTab({ state }: Props) {
                                       p.practitionerId,
                                     );
                                     const isSelected =
-                                      state.primaryClinicianId === p.practitionerId;
+                                      state.supportingClinicianIds.includes(p.practitionerId);
                                     return (
                                       <button
                                         key={p.practitionerId}
-                                        onClick={() =>
-                                          state.setPrimaryClinicianId(
-                                            p.practitionerId,
-                                          )
-                                        }
+                                        onClick={() => {
+                                          if (isSelected) {
+                                            state.setSupportingClinicianIds(prev => prev.filter((id: string) => id !== p.practitionerId));
+                                          } else {
+                                            state.setSupportingClinicianIds(prev => [...prev, p.practitionerId]);
+                                            if (state.careNavigatorId === p.practitionerId) {
+                                              state.setCareNavigatorId("");
+                                            }
+                                          }
+                                        }}
                                         className={`p-3 rounded-xl border text-left transition-all group relative overflow-hidden ${isSelected ? "bg-[var(--primary)]/10 border-[var(--primary)] shadow-sm" : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-[var(--primary)]/30"}`}
                                       >
                                         <div className="flex justify-between items-start gap-2">

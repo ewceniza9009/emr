@@ -23,7 +23,7 @@ public record FinalizeEnrollmentCommand : IRequest<Guid>
     public string? Language { get; init; }
     public string? CivilStatus { get; init; }
     public DateTime? OrientationDate { get; init; }
-    public Guid? PrimaryClinicianId { get; init; }
+    public IEnumerable<Guid> SupportingClinicianIds { get; init; } = Array.Empty<Guid>();
     public Guid? CareNavigatorId { get; init; }
     public Guid? FacilityId { get; init; }
 
@@ -156,7 +156,6 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         patient.HasAdvanceDirective = request.HasAdvanceDirective;
 
         _context.Patients.Add(patient);
-        await _context.SaveChangesAsync(cancellationToken);
 
         // 3. Open Care Navigation Case
         var navigatorId = request.CareNavigatorId;
@@ -185,7 +184,7 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
             var task = new NavigationTask
             {
                 CaseId = careCase.CaseId,
-                AssignedToId = request.PrimaryClinicianId ?? navigatorId.Value,
+                AssignedToId = navigatorId.Value,
                 Description = "Initial Comprehensive Clinical Assessment & Care Plan",
                 DueDate = request.OrientationDate ?? _dateTimeProvider.UtcNow.AddDays(2),
                 Status = NavigationTaskStatus.Pending,
@@ -194,7 +193,7 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         }
 
         // 4. Create Clinical Appointment (Booking) - Optional
-        var appointmentPractitionerId = navigatorId ?? request.PrimaryClinicianId;
+        var appointmentPractitionerId = navigatorId;
         if (
             request.ScheduleIntakeNow
             && request.OrientationDate.HasValue
@@ -232,6 +231,7 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
             {
                 AppointmentId = Guid.NewGuid(),
                 PatientId = patient.PatientId,
+                Patient = patient,
                 PractitionerId = appointmentPractitionerId.Value,
                 ScheduledStart = scheduledStart,
                 ScheduledEnd = scheduledEnd,
@@ -248,6 +248,10 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                 isValidLogistics = isValid;
             }
 
+            double distance = 0;
+            double travelTime = 0;
+            bool statsCalculated = false;
+
             if (hasConflict || !isValidLogistics)
             {
                 _logger.LogInformation(
@@ -258,7 +262,7 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                     scheduledStart,
                     duration,
                     appointmentModality,
-                    patient.PatientId,
+                    outreach.PatientOutreachId,
                     null,
                     cancellationToken
                 );
@@ -272,6 +276,9 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                 {
                     scheduledStart = autoSlot.StartTime.UtcDateTime;
                     scheduledEnd = autoSlot.EndTime.UtcDateTime;
+                    distance = autoSlot.DistanceInMiles;
+                    travelTime = autoSlot.TravelTimeInMinutes;
+                    statsCalculated = true;
                     _logger.LogInformation("Auto-adjusted to {NewTime}", scheduledStart);
                 }
                 else
@@ -293,6 +300,7 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                 AppointmentId = Guid.NewGuid(),
                 TenantId = patient.TenantId,
                 PatientId = patient.PatientId,
+                Patient = patient,
                 PractitionerId = appointmentPractitionerId.Value,
                 ScheduledStart = scheduledStart,
                 ScheduledEnd = scheduledEnd,
@@ -302,16 +310,15 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                 CreatedAt = _dateTimeProvider.UtcNow,
             };
 
-            if (
-                request.PrimaryClinicianId.HasValue
-                && request.PrimaryClinicianId != appointmentPractitionerId
-            )
+            if (request.SupportingClinicianIds != null && request.SupportingClinicianIds.Any())
             {
-                var clinician = await _context.Practitioners.FindAsync(
-                    new object[] { request.PrimaryClinicianId.Value },
-                    cancellationToken
-                );
-                if (clinician != null)
+                var clinicians = await _context
+                    .Practitioners.Where(p =>
+                        request.SupportingClinicianIds.Contains(p.PractitionerId)
+                        && p.PractitionerId != appointmentPractitionerId.Value
+                    )
+                    .ToListAsync(cancellationToken);
+                foreach (var clinician in clinicians)
                 {
                     appointment.SupportingClinicians.Add(clinician);
                 }
@@ -319,10 +326,16 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
 
             _context.Appointments.Add(appointment);
 
-            var (distance, travelTime) = await _schedulingService.RecalculateAppointmentStatsAsync(
-                appointment,
-                cancellationToken
-            );
+            if (!statsCalculated)
+            {
+                var (recalculatedDistance, recalculatedTravelTime) =
+                    await _schedulingService.RecalculateAppointmentStatsAsync(
+                        appointment,
+                        cancellationToken
+                    );
+                distance = recalculatedDistance;
+                travelTime = recalculatedTravelTime;
+            }
 
             appointment.DistanceInMiles = distance;
             appointment.TravelTimeMinutes = travelTime;
@@ -388,33 +401,49 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         await _context.SaveChangesAsync(cancellationToken);
 
         // Notify Care Team
+        var notificationTasks = new List<Task>();
+
         if (navigatorId.HasValue)
         {
-            await _notificationService.SendUserNotificationAsync(
-                navigatorId.Value.ToString(),
-                "New Patient Assigned",
-                $"You have been assigned as the Care Navigator for {patient.FirstName} {patient.LastName} (MRN: {mrn}).",
-                NotificationPriority.High
+            notificationTasks.Add(
+                _notificationService.SendUserNotificationAsync(
+                    navigatorId.Value.ToString(),
+                    "New Patient Assigned",
+                    $"You have been assigned as the Care Navigator for {patient.FirstName} {patient.LastName} (MRN: {mrn}).",
+                    NotificationPriority.High
+                )
             );
         }
 
-        if (request.PrimaryClinicianId.HasValue && request.PrimaryClinicianId != navigatorId)
+        if (request.SupportingClinicianIds != null)
         {
-            await _notificationService.SendUserNotificationAsync(
-                request.PrimaryClinicianId.Value.ToString(),
-                "New Patient Onboarding",
-                $"Patient {patient.FirstName} {patient.LastName} (MRN: {mrn}) has been enrolled and assigned to you.",
-                NotificationPriority.High
-            );
+            foreach (var clinicianId in request.SupportingClinicianIds)
+            {
+                if (clinicianId != navigatorId)
+                {
+                    notificationTasks.Add(
+                        _notificationService.SendUserNotificationAsync(
+                            clinicianId.ToString(),
+                            "New Patient Onboarding",
+                            $"Patient {patient.FirstName} {patient.LastName} (MRN: {mrn}) has been enrolled and assigned to you.",
+                            NotificationPriority.High
+                        )
+                    );
+                }
+            }
         }
 
-        await _notificationService.SendGlobalNotificationAsync(
-            "Patient Enrolled",
-            $"New patient {patient.FirstName} {patient.LastName} has been successfully enrolled with MRN: {mrn}.",
-            NotificationPriority.Normal,
-            "Enrollment",
-            $"/dashboard/patients/{patient.PatientId}"
+        notificationTasks.Add(
+            _notificationService.SendGlobalNotificationAsync(
+                "Patient Enrolled",
+                $"New patient {patient.FirstName} {patient.LastName} has been successfully enrolled with MRN: {mrn}.",
+                NotificationPriority.Normal,
+                "Enrollment",
+                $"/dashboard/patients/{patient.PatientId}"
+            )
         );
+
+        await Task.WhenAll(notificationTasks);
 
         _logger.LogInformation(
             "Successfully enrolled patient and opened care case. MRN: {MRN}, Patient ID: {PatientId}",

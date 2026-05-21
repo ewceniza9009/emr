@@ -54,9 +54,25 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
   const [period, setPeriod] = useState<"AM" | "PM" | null>("AM");
   const [duration, setDuration] = useState(45);
   const [visitType, setVisitType] = useState("INITIAL_HOSPICE_INTAKE");
-  const [primaryClinicianId, setPrimaryClinicianId] = useState("");
+  const [supportingClinicianIds, setSupportingClinicianIds] = useState<string[]>([]);
   const [careNavigatorId, setCareNavigatorId] = useState("");
   const [staffSearch, setStaffSearch] = useState("");
+
+  // Debounced Scheduling State to prevent excessive geospatial lookups
+  const [debouncedDate, setDebouncedDate] = useState(selectedDate);
+  const [debouncedPeriod, setDebouncedPeriod] = useState(period);
+  const [debouncedDuration, setDebouncedDuration] = useState(duration);
+  const [debouncedModality, setDebouncedModality] = useState(modality);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedDate(selectedDate);
+      setDebouncedPeriod(period);
+      setDebouncedDuration(duration);
+      setDebouncedModality(modality);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [selectedDate, period, duration, modality]);
 
   // Insurance State
   const [memberId, setMemberId] = useState("");
@@ -195,14 +211,14 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
       variables: {
         patientId: outreachId,
         targetStart: createZonedISO(
-          selectedDate,
-          period === "AM" ? tenantConfig.amStartHour : tenantConfig.pmStartHour, 0,
+          debouncedDate,
+          debouncedPeriod === "AM" ? tenantConfig.amStartHour : tenantConfig.pmStartHour, 0,
         ),
-        durationMinutes: duration,
-        modality: modality === CareModality.HomeCare ? "IN_PERSON_HOME_VISIT"
-          : modality === CareModality.InPatientHospice ? "IN_PERSON_FACILITY"
-          : modality === CareModality.VirtualCare ? "TELEHEALTH_VIDEO"
-          : modality === CareModality.HybridCare ? "TELEHEALTH_AUDIO_ONLY"
+        durationMinutes: debouncedDuration,
+        modality: debouncedModality === CareModality.HomeCare ? "IN_PERSON_HOME_VISIT"
+          : debouncedModality === CareModality.InPatientHospice ? "IN_PERSON_FACILITY"
+          : debouncedModality === CareModality.VirtualCare ? "TELEHEALTH_VIDEO"
+          : debouncedModality === CareModality.HybridCare ? "TELEHEALTH_AUDIO_ONLY"
           : "IN_PERSON_HOME_VISIT",
       },
       skip: !outreachId || !open || activeTab !== "LOGISTICS",
@@ -217,10 +233,9 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
   }, [availabilityData]);
 
   const selectedLogistics = useMemo(() => {
-    const targetId = primaryClinicianId || careNavigatorId;
-    if (!targetId) return null;
-    return availability.get(targetId);
-  }, [primaryClinicianId, careNavigatorId, availability]);
+    if (!careNavigatorId) return null;
+    return availability.get(careNavigatorId);
+  }, [careNavigatorId, availability]);
 
   useEffect(() => {
     if (open && outreachId) {
@@ -236,7 +251,7 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
       setPeriod("AM");
       setDuration(45);
       setVisitType("INITIAL_HOSPICE_INTAKE");
-      setPrimaryClinicianId("");
+      setSupportingClinicianIds([]);
       setCareNavigatorId("");
       setStaffSearch("");
       setMemberId("");
@@ -480,7 +495,7 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
             patientOutreachId: outreachId, modality: modality || "HomeCare", healthPlanId: selectedPlan,
             disposition: disposition || "Cooperative", communicationStatus: communicationStatus || "Verbal",
             techAccess: techAccess || "None", orientationDate: orientationIso,
-            primaryClinicianId: primaryClinicianId || null, careNavigatorId: careNavigatorId || null,
+            supportingClinicianIds: supportingClinicianIds || [], careNavigatorId: careNavigatorId || null,
             dateOfBirth: patientDob && isValidDate(new Date(patientDob)) ? new Date(patientDob).toISOString() : null,
             biologicalSex: patientSex, genderIdentity: genderIdentity || null,
             language: patientLanguage || "English", civilStatus: civilStatus || null,
@@ -523,7 +538,7 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
     // Scheduling
     selectedDate, setSelectedDate, viewDate, setViewDate, period, setPeriod,
     duration, setDuration, visitType, setVisitType,
-    primaryClinicianId, setPrimaryClinicianId, careNavigatorId, setCareNavigatorId,
+    supportingClinicianIds, setSupportingClinicianIds, careNavigatorId, setCareNavigatorId,
     staffSearch, setStaffSearch,
 
     // Insurance

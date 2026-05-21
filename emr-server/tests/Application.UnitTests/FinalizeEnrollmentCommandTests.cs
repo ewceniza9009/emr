@@ -41,7 +41,9 @@ public class FinalizeEnrollmentCommandTests
 
         _mockDateTimeProvider.Setup(d => d.UtcNow).Returns(DateTimeOffset.UtcNow);
         _mockSchedulingService
-            .Setup(s => s.ValidateLogisticsAsync(It.IsAny<Appointment>(), It.IsAny<CancellationToken>()))
+            .Setup(s =>
+                s.ValidateLogisticsAsync(It.IsAny<Appointment>(), It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync((true, (string?)null));
     }
 
@@ -70,7 +72,7 @@ public class FinalizeEnrollmentCommandTests
             ConsentHIPAA = true,
             HasPoa = true,
             HasAdvanceDirective = false,
-            PreferredContactMethod = "PHONE"
+            PreferredContactMethod = "PHONE",
         };
 
         var mrn = "MRN12345";
@@ -81,7 +83,7 @@ public class FinalizeEnrollmentCommandTests
         var outreaches = new List<PatientOutreach> { outreach }.BuildMockDbSet();
         var patients = new List<Patient>();
         var mockPatients = patients.BuildMockDbSet();
-        
+
         var practitioners = new List<Practitioner>().BuildMockDbSet();
         var careCases = new List<CareNavigationCase>().BuildMockDbSet();
         var navTasks = new List<NavigationTask>().BuildMockDbSet();
@@ -94,7 +96,8 @@ public class FinalizeEnrollmentCommandTests
 
         // Capture the added patient
         Patient? capturedPatient = null;
-        _mockContext.Setup(c => c.Patients.Add(It.IsAny<Patient>()))
+        _mockContext
+            .Setup(c => c.Patients.Add(It.IsAny<Patient>()))
             .Callback<Patient>(p => capturedPatient = p);
 
         // Act
@@ -112,7 +115,7 @@ public class FinalizeEnrollmentCommandTests
         capturedPatient!.HasAdvanceDirective.Should().BeFalse();
         capturedPatient!.PreferredContactMethod.Should().Be("PHONE");
 
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once());
     }
 
     [Fact]
@@ -152,7 +155,7 @@ public class FinalizeEnrollmentCommandTests
             ScheduleIntakeNow = true,
             OrientationDate = DateTime.UtcNow.AddDays(1),
             DurationMinutes = 60,
-            CareNavigatorId = careNavigatorId
+            CareNavigatorId = careNavigatorId,
         };
 
         var mrn = "MRN12345";
@@ -175,7 +178,8 @@ public class FinalizeEnrollmentCommandTests
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
 
         Appointment? capturedAppointment = null;
-        _mockContext.Setup(c => c.Appointments.Add(It.IsAny<Appointment>()))
+        _mockContext
+            .Setup(c => c.Appointments.Add(It.IsAny<Appointment>()))
             .Callback<Appointment>(a => capturedAppointment = a);
 
         // Act
@@ -200,7 +204,26 @@ public class FinalizeEnrollmentCommandTests
             Status = OutreachStatus.Lead,
         };
 
-        var primaryClinicianId = Guid.NewGuid();
+        var navigatorId = Guid.NewGuid();
+        var navigator = new Practitioner
+        {
+            PractitionerId = navigatorId,
+            IsCareNavigator = true,
+            IsActive = true,
+            FirstName = "Jane",
+            LastName = "Smith",
+        };
+
+        var supportingClinicianId = Guid.NewGuid();
+        var supportingClinician = new Practitioner
+        {
+            PractitionerId = supportingClinicianId,
+            IsSupportingClinician = true,
+            IsActive = true,
+            FirstName = "Bob",
+            LastName = "Jones",
+        };
+
         var command = new FinalizeEnrollmentCommand
         {
             PatientOutreachId = outreachId,
@@ -209,7 +232,7 @@ public class FinalizeEnrollmentCommandTests
             ScheduleIntakeNow = true,
             OrientationDate = DateTime.UtcNow.AddDays(1),
             DurationMinutes = 60,
-            PrimaryClinicianId = primaryClinicianId
+            SupportingClinicianIds = new[] { supportingClinicianId },
         };
 
         var mrn = "MRN12345";
@@ -219,7 +242,8 @@ public class FinalizeEnrollmentCommandTests
 
         var outreaches = new List<PatientOutreach> { outreach }.BuildMockDbSet();
         var mockPatients = new List<Patient>().BuildMockDbSet();
-        var practitioners = new List<Practitioner>().BuildMockDbSet();
+        var practitionersList = new List<Practitioner> { navigator, supportingClinician };
+        var practitioners = practitionersList.BuildMockDbSet();
         var careCases = new List<CareNavigationCase>().BuildMockDbSet();
         var navTasks = new List<NavigationTask>().BuildMockDbSet();
         var appointments = new List<Appointment>().BuildMockDbSet();
@@ -232,7 +256,8 @@ public class FinalizeEnrollmentCommandTests
         _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
 
         Appointment? capturedAppointment = null;
-        _mockContext.Setup(c => c.Appointments.Add(It.IsAny<Appointment>()))
+        _mockContext
+            .Setup(c => c.Appointments.Add(It.IsAny<Appointment>()))
             .Callback<Appointment>(a => capturedAppointment = a);
 
         // Act
@@ -240,7 +265,10 @@ public class FinalizeEnrollmentCommandTests
 
         // Assert
         capturedAppointment.Should().NotBeNull();
-        capturedAppointment!.PractitionerId.Should().Be(primaryClinicianId);
+        capturedAppointment!.PractitionerId.Should().Be(navigatorId);
+        capturedAppointment
+            .SupportingClinicians.Should()
+            .ContainSingle(c => c.PractitionerId == supportingClinicianId);
         capturedAppointment.VisitType.Should().Be(VisitType.InitialHospiceIntake);
     }
 }
