@@ -414,9 +414,15 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
   };
 
   const handleUpdateLead = async (fields: any) => {
-    try { await updateLead({ variables: { input: { patientOutreachId: outreachId, ...fields } } }); }
+    try {
+      await updateLead({
+        variables: { input: { patientOutreachId: outreachId, ...fields } },
+        refetchQueries: [{ query: GET_LEAD_DETAILS, variables: { id: outreachId } }],
+      });
+    }
     catch (e) { console.error(e); }
   };
+
 
   const handleAddContact = async () => {
     if (!newContact.firstName || !newContact.phoneNumber) return;

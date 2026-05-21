@@ -91,10 +91,15 @@ export default function TelemetryPanel({ state }: Props) {
           <div className="bg-[var(--input-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-inner">
             <h3 className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 flex items-center gap-2"><MapPin className="w-3 h-3" /> Location Details</h3>
             <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tight leading-relaxed">
-              {state.lead?.mailingAddress?.street}<br />
-              <span className="opacity-60">{state.lead?.mailingAddress?.city}, {state.lead?.mailingAddress?.state} {state.lead?.mailingAddress?.postalCode}</span>
+              {state.address.street || "NO STREET SPECIFIED"}<br />
+              <span className="opacity-60">
+                {state.address.city}
+                {state.address.city && state.address.state ? ", " : ""}
+                {state.address.state} {state.address.postalCode}
+              </span>
             </p>
           </div>
+
 
           {/* SCHEDULING STRATEGY TOGGLE */}
           <div className="space-y-4">
