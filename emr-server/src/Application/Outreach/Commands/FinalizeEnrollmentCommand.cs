@@ -90,6 +90,39 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
         // 1. Generate MRN
         var mrn = await _mrnGenerator.GenerateMrnAsync(cancellationToken);
 
+        // Validate Health Plan
+        var plan = await _context.HealthPlans.FirstOrDefaultAsync(
+            hp => hp.HealthPlanId == request.HealthPlanId,
+            cancellationToken
+        );
+        if (plan == null)
+        {
+            throw new Application.Common.Exceptions.ValidationException(
+                new List<FluentValidation.Results.ValidationFailure>
+                {
+                    new("HealthPlanId", "The selected Health Plan does not exist.")
+                }
+            );
+        }
+        if (plan.TenantId != outreach.TenantId)
+        {
+            throw new Application.Common.Exceptions.ValidationException(
+                new List<FluentValidation.Results.ValidationFailure>
+                {
+                    new("HealthPlanId", "The selected Health Plan belongs to another organization.")
+                }
+            );
+        }
+        if (!plan.IsActive)
+        {
+            throw new Application.Common.Exceptions.ValidationException(
+                new List<FluentValidation.Results.ValidationFailure>
+                {
+                    new("HealthPlanId", "The selected Health Plan is currently inactive.")
+                }
+            );
+        }
+
         // 2. Create Patient Record
         var patient = Patient.CreateFromOutreach(
             outreach,

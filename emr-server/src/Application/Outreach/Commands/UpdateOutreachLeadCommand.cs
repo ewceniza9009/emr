@@ -103,7 +103,40 @@ public class UpdateOutreachLeadCommandHandler : IRequestHandler<UpdateOutreachLe
             );
 
         if (request.HealthPlanId != null)
+        {
+            var plan = await _context.HealthPlans.FirstOrDefaultAsync(
+                hp => hp.HealthPlanId == request.HealthPlanId.Value,
+                cancellationToken
+            );
+            if (plan == null)
+            {
+                throw new Application.Common.Exceptions.ValidationException(
+                    new List<FluentValidation.Results.ValidationFailure>
+                    {
+                        new("HealthPlanId", "The selected Health Plan does not exist.")
+                    }
+                );
+            }
+            if (plan.TenantId != outreach.TenantId)
+            {
+                throw new Application.Common.Exceptions.ValidationException(
+                    new List<FluentValidation.Results.ValidationFailure>
+                    {
+                        new("HealthPlanId", "The selected Health Plan belongs to another organization.")
+                    }
+                );
+            }
+            if (!plan.IsActive)
+            {
+                throw new Application.Common.Exceptions.ValidationException(
+                    new List<FluentValidation.Results.ValidationFailure>
+                    {
+                        new("HealthPlanId", "The selected Health Plan is currently inactive.")
+                    }
+                );
+            }
             outreach.HealthPlanId = request.HealthPlanId.Value;
+        }
 
         if (request.Disposition != null)
             outreach.Disposition = Enum.Parse<EnrollmentDisposition>(

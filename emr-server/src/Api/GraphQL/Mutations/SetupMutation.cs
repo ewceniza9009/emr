@@ -482,6 +482,14 @@ public class SetupMutation
         var item = await context.HealthPlans.FindAsync(id);
         if (item == null)
             return false;
+
+        var hasPatients = await context.Patients.AnyAsync(p => p.HealthPlanId == id);
+        var hasOutreach = await context.PatientOutreaches.AnyAsync(o => o.HealthPlanId == id);
+        if (hasPatients || hasOutreach)
+        {
+            throw new GraphQLException("Cannot delete this Health Plan because it is currently linked to active patients or outreach records. Deactivate it instead.");
+        }
+
         context.HealthPlans.Remove(item);
         await context.SaveChangesAsync(default);
         return true;
