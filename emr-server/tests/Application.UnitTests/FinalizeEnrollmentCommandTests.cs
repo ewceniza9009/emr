@@ -52,19 +52,22 @@ public class FinalizeEnrollmentCommandTests
     {
         // Arrange
         var outreachId = Guid.NewGuid();
+        var tenantId = Guid.NewGuid();
         var outreach = new PatientOutreach
         {
             PatientOutreachId = outreachId,
             FirstName = "John",
             LastName = "Doe",
             Status = OutreachStatus.Lead,
+            TenantId = tenantId,
         };
 
+        var healthPlanId = Guid.NewGuid();
         var command = new FinalizeEnrollmentCommand
         {
             PatientOutreachId = outreachId,
             Modality = "HomeCare",
-            HealthPlanId = Guid.NewGuid(),
+            HealthPlanId = healthPlanId,
             Disposition = "Cooperative",
             CommunicationStatus = "Verbal",
             TechAccess = "HighLiteracy",
@@ -84,12 +87,21 @@ public class FinalizeEnrollmentCommandTests
         var patients = new List<Patient>();
         var mockPatients = patients.BuildMockDbSet();
 
+        var healthPlan = new HealthPlan
+        {
+            HealthPlanId = healthPlanId,
+            IsActive = true,
+            TenantId = tenantId,
+        };
+        var healthPlans = new List<HealthPlan> { healthPlan }.BuildMockDbSet();
+
         var practitioners = new List<Practitioner>().BuildMockDbSet();
         var careCases = new List<CareNavigationCase>().BuildMockDbSet();
         var navTasks = new List<NavigationTask>().BuildMockDbSet();
 
         _mockContext.Setup(c => c.PatientOutreaches).Returns(outreaches.Object);
         _mockContext.Setup(c => c.Patients).Returns(mockPatients.Object);
+        _mockContext.Setup(c => c.HealthPlans).Returns(healthPlans.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.CareNavigationCases).Returns(careCases.Object);
         _mockContext.Setup(c => c.NavigationTasks).Returns(navTasks.Object);
@@ -138,18 +150,22 @@ public class FinalizeEnrollmentCommandTests
     {
         // Arrange
         var outreachId = Guid.NewGuid();
+        var tenantId = Guid.NewGuid();
         var outreach = new PatientOutreach
         {
             PatientOutreachId = outreachId,
             FirstName = "John",
             LastName = "Doe",
             Status = OutreachStatus.Lead,
+            TenantId = tenantId,
         };
 
         var careNavigatorId = Guid.NewGuid();
+        var healthPlanId = Guid.NewGuid();
         var command = new FinalizeEnrollmentCommand
         {
             PatientOutreachId = outreachId,
+            HealthPlanId = healthPlanId,
             ConsentToTreat = true,
             ConsentHIPAA = true,
             ScheduleIntakeNow = true,
@@ -165,6 +181,15 @@ public class FinalizeEnrollmentCommandTests
 
         var outreaches = new List<PatientOutreach> { outreach }.BuildMockDbSet();
         var mockPatients = new List<Patient>().BuildMockDbSet();
+
+        var healthPlan = new HealthPlan
+        {
+            HealthPlanId = healthPlanId,
+            IsActive = true,
+            TenantId = tenantId,
+        };
+        var healthPlans = new List<HealthPlan> { healthPlan }.BuildMockDbSet();
+
         var practitioners = new List<Practitioner>().BuildMockDbSet();
         var careCases = new List<CareNavigationCase>().BuildMockDbSet();
         var navTasks = new List<NavigationTask>().BuildMockDbSet();
@@ -172,6 +197,7 @@ public class FinalizeEnrollmentCommandTests
 
         _mockContext.Setup(c => c.PatientOutreaches).Returns(outreaches.Object);
         _mockContext.Setup(c => c.Patients).Returns(mockPatients.Object);
+        _mockContext.Setup(c => c.HealthPlans).Returns(healthPlans.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.CareNavigationCases).Returns(careCases.Object);
         _mockContext.Setup(c => c.NavigationTasks).Returns(navTasks.Object);
@@ -196,12 +222,14 @@ public class FinalizeEnrollmentCommandTests
     {
         // Arrange
         var outreachId = Guid.NewGuid();
+        var tenantId = Guid.NewGuid();
         var outreach = new PatientOutreach
         {
             PatientOutreachId = outreachId,
             FirstName = "John",
             LastName = "Doe",
             Status = OutreachStatus.Lead,
+            TenantId = tenantId,
         };
 
         var navigatorId = Guid.NewGuid();
@@ -224,9 +252,11 @@ public class FinalizeEnrollmentCommandTests
             LastName = "Jones",
         };
 
+        var healthPlanId = Guid.NewGuid();
         var command = new FinalizeEnrollmentCommand
         {
             PatientOutreachId = outreachId,
+            HealthPlanId = healthPlanId,
             ConsentToTreat = true,
             ConsentHIPAA = true,
             ScheduleIntakeNow = true,
@@ -242,6 +272,15 @@ public class FinalizeEnrollmentCommandTests
 
         var outreaches = new List<PatientOutreach> { outreach }.BuildMockDbSet();
         var mockPatients = new List<Patient>().BuildMockDbSet();
+
+        var healthPlan = new HealthPlan
+        {
+            HealthPlanId = healthPlanId,
+            IsActive = true,
+            TenantId = tenantId,
+        };
+        var healthPlans = new List<HealthPlan> { healthPlan }.BuildMockDbSet();
+
         var practitionersList = new List<Practitioner> { navigator, supportingClinician };
         var practitioners = practitionersList.BuildMockDbSet();
         var careCases = new List<CareNavigationCase>().BuildMockDbSet();
@@ -250,6 +289,7 @@ public class FinalizeEnrollmentCommandTests
 
         _mockContext.Setup(c => c.PatientOutreaches).Returns(outreaches.Object);
         _mockContext.Setup(c => c.Patients).Returns(mockPatients.Object);
+        _mockContext.Setup(c => c.HealthPlans).Returns(healthPlans.Object);
         _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
         _mockContext.Setup(c => c.CareNavigationCases).Returns(careCases.Object);
         _mockContext.Setup(c => c.NavigationTasks).Returns(navTasks.Object);
