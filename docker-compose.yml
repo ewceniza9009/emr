@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,9 +26,9 @@ services:
     command: azurite --blobHost 0.0.0.0 --skipApiVersionCheck
     restart: always
     ports:
-      - "10000:10000"
-      - "10001:10001"
-      - "10002:10002"
+      - "10010:10000"
+      - "10011:10001"
+      - "10012:10002"
     volumes:
       - azurite_data:/data
     healthcheck:
@@ -46,7 +46,7 @@ services:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
-      - "9200:9200"
+      - "9201:9200"
     volumes:
       - es_data:/usr/share/elasticsearch/data
     healthcheck:
@@ -66,7 +66,7 @@ services:
     container_name: emr-api
     restart: always
     ports:
-      - "34732:10000"
+      - "34832:10000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Include Error Detail=true
@@ -79,6 +79,57 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
+    extra_hosts:
+      - "localhost:host-gateway"
+    networks:
+      - emr-network
+
+  client:
+    profiles:
+      - full
+    build:
+      context: ./emr-client
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:34832
+        - NEXT_PUBLIC_GRAPHQL_URL=http://localhost:34832/graphql
+        - NEXT_PUBLIC_GRAPHQL_WS_URL=ws://localhost:34832/graphql
+        - NEXT_PUBLIC_SIGNALR_ENDPOINT=http://localhost:34832/hubs/telemetry
+    container_name: emr-client
+    restart: always
+    ports:
+      - "3681:3671"
+    depends_on:
+      api:
+        condition: service_started
+    extra_hosts:
+      - "localhost:host-gateway"
+    env_file:
+      - path: ./emr-client/.env.local
+        required: false
+    environment:
+      - NEXTAUTH_URL=http://localhost:3681
+    networks:
+      - emr-network
+
+  mobile:
+    profiles:
+      - full
+    build:
+      context: ./emr-mobile-app
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:34832
+        - VITE_GRAPHQL_URL=http://localhost:34832/graphql
+    container_name: emr-mobile-app
+    restart: always
+    ports:
+      - "3682:3672"
+    depends_on:
+      api:
+        condition: service_started
+    extra_hosts:
+      - "localhost:host-gateway"
     networks:
       - emr-network
 
@@ -90,5 +141,6 @@ volumes:
 networks:
   emr-network:
     driver: bridge
+
 
 
