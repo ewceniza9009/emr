@@ -23,16 +23,29 @@ import GenericForm from "./components/GenericForm";
 export default function SetupDrawer(props: SetupDrawerProps) {
   const { open, type, initialData, onClose } = props;
   const state = useSetupState(props);
+  const errorRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (state.validationError || state.error) {
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      errorRef.current?.focus();
+    }
+  }, [state.validationError, state.error]);
 
   if (!open) return null;
 
-  const title =
-    type === "equipment"
-      ? "Equipment"
-      : type
-          .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (str) => str.toUpperCase())
-          .slice(0, -1);
+  const singularNames: Record<string, string> = {
+    practitioners: "Practitioner",
+    facilities: "Facility",
+    healthPlans: "Health Plan",
+    medications: "Medication",
+    smartPhrases: "Smart Phrase",
+    questionnaires: "Questionnaire",
+    equipment: "Equipment",
+    outreachScripts: "Outreach Script",
+    integrationProfiles: "Integration Profile",
+  };
+  const title = singularNames[type] || "Setup Item";
   const isEdit = !!initialData;
 
   const Icon =
@@ -99,9 +112,13 @@ export default function SetupDrawer(props: SetupDrawerProps) {
               />
             )}
 
-            {state.error && (
-              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs animate-in fade-in duration-300">
-                {state.error.message}
+            {(state.validationError || state.error) && (
+              <div
+                ref={errorRef}
+                tabIndex={-1}
+                className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs animate-in fade-in duration-300 focus:outline-none focus:ring-1 focus:ring-rose-500/30"
+              >
+                {state.validationError || state.error?.message}
               </div>
             )}
           </form>

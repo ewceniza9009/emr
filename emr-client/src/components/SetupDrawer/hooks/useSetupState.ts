@@ -12,6 +12,11 @@ export default function useSetupState({
   tenantId,
 }: SetupDrawerProps) {
   const [form, setForm] = useState<any>({});
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setValidationError(null);
+  }, [type, open, form]);
 
   useEffect(() => {
     if (initialData) {
@@ -38,6 +43,7 @@ export default function useSetupState({
                 city: "",
                 state: "",
                 postalCode: "",
+                region: "",
                 country: "Philippines",
               },
               isPrimary: true,
@@ -53,6 +59,7 @@ export default function useSetupState({
             city: "",
             state: "",
             postalCode: "",
+            region: "",
             country: "Philippines",
           },
           isActive: true,
@@ -137,6 +144,148 @@ export default function useSetupState({
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+
+    // Validate required fields
+    if (type === "practitioners") {
+      if (!form.firstName?.trim()) {
+        setValidationError("First Name is required.");
+        return;
+      }
+      if (!form.lastName?.trim()) {
+        setValidationError("Last Name is required.");
+        return;
+      }
+      const addr = form.addresses?.[0]?.address;
+      if (
+        !addr ||
+        !addr.street?.trim() ||
+        !addr.city?.trim() ||
+        !addr.state?.trim() ||
+        !addr.postalCode?.trim() ||
+        !addr.region?.trim()
+      ) {
+        setValidationError(
+          "Base Operations Address: Street, City, Province, Zip, and Region are all required."
+        );
+        return;
+      }
+      if (form.licensures && Array.isArray(form.licensures)) {
+        for (let i = 0; i < form.licensures.length; i++) {
+          const lic = form.licensures[i];
+          if (!lic.licenseNumber?.trim()) {
+            setValidationError(`Licensure #${i + 1}: License number is required.`);
+            return;
+          }
+          if (!lic.state?.trim()) {
+            setValidationError(`Licensure #${i + 1}: Jurisdiction is required.`);
+            return;
+          }
+          if (!lic.expiryDate) {
+            setValidationError(`Licensure #${i + 1}: Expiry date is required.`);
+            return;
+          }
+        }
+      }
+    } else if (type === "facilities") {
+      if (!form.name?.trim()) {
+        setValidationError("Facility Name is required.");
+        return;
+      }
+      const addr = form.facilityAddress;
+      if (
+        !addr ||
+        !addr.street?.trim() ||
+        !addr.city?.trim() ||
+        !addr.state?.trim() ||
+        !addr.postalCode?.trim() ||
+        !addr.region?.trim()
+      ) {
+        setValidationError(
+          "Physical Location: Street, City, State, Zip, and Region are all required."
+        );
+        return;
+      }
+      if (!form.npi?.trim()) {
+        setValidationError("Organizational NPI is required.");
+        return;
+      }
+      if (form.npi.trim().length !== 10) {
+        setValidationError("Organizational NPI must be exactly 10 digits.");
+        return;
+      }
+      if (!form.taxId?.trim()) {
+        setValidationError("Federal Tax ID (EIN) is required.");
+        return;
+      }
+      if (!form.placeOfServiceCode?.trim()) {
+        setValidationError("Place of Service (POS) Code is required.");
+        return;
+      }
+    } else if (type === "healthPlans") {
+      if (!form.name?.trim()) {
+        setValidationError("Health Plan Name is required.");
+        return;
+      }
+    } else if (type === "medications") {
+      if (!form.name?.trim()) {
+        setValidationError("Medication Name is required.");
+        return;
+      }
+      if (!form.strength?.trim()) {
+        setValidationError("Strength is required.");
+        return;
+      }
+    } else if (type === "smartPhrases") {
+      if (!form.shortcut?.trim()) {
+        setValidationError("Shortcut is required.");
+        return;
+      }
+      if (!form.shortcut.startsWith("/")) {
+        setValidationError("Shortcut must start with a slash (/).");
+        return;
+      }
+      if (!form.label?.trim()) {
+        setValidationError("Label is required.");
+        return;
+      }
+      if (!form.templateText?.trim()) {
+        setValidationError("Template text is required.");
+        return;
+      }
+    } else if (type === "questionnaires") {
+      if (!form.name?.trim()) {
+        setValidationError("Questionnaire Name is required.");
+        return;
+      }
+    } else if (type === "equipment") {
+      if (!form.modelName?.trim()) {
+        setValidationError("Model Name is required.");
+        return;
+      }
+      if (!form.serialNumber?.trim()) {
+        setValidationError("Serial Number is required.");
+        return;
+      }
+    } else if (type === "outreachScripts") {
+      if (!form.scriptTitle?.trim()) {
+        setValidationError("Script Title is required.");
+        return;
+      }
+      if (!form.content?.trim()) {
+        setValidationError("Script content is required.");
+        return;
+      }
+    } else if (type === "integrationProfiles") {
+      if (!form.apiKey?.trim()) {
+        setValidationError("API Key is required.");
+        return;
+      }
+      if (!form.baseUrl?.trim()) {
+        setValidationError("Base URL is required.");
+        return;
+      }
+    }
+
     const input = cleanTypenames(form);
     const contextTenantId =
       tenantId || input.tenantId || "a0a0a0a0-a0a0-a0a0-a0a0-a0a0a0a0a0a0";
@@ -247,6 +396,7 @@ export default function useSetupState({
     setForm,
     loading,
     error,
+    validationError,
     handleSubmit,
   };
 }

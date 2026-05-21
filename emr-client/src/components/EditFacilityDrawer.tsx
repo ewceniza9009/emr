@@ -12,9 +12,17 @@ import {
   MapPin,
   CheckCircle,
   Activity,
+  Navigation,
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
 import { PermissionGate } from "./PermissionGate";
+import dynamic from "next/dynamic";
+import { AddressData } from "@/components/EnrollmentDrawer/components/AddressMapModal";
+
+const AddressMapModal = dynamic(
+  () => import("@/components/EnrollmentDrawer/components/AddressMapModal"),
+  { ssr: false }
+);
 
 const UPDATE_FACILITY = gql`
   mutation UpdateFacility($input: FacilityInput!) {
@@ -44,7 +52,18 @@ export default function EditFacilityDrawer({
     contactEmail: "",
     city: "",
     street: "",
+    state: "",
+    postalCode: "",
+    region: "",
+    country: "Philippines",
+    latitude: null as number | null,
+    longitude: null as number | null,
+    npi: "",
+    taxId: "",
+    placeOfServiceCode: "11",
   });
+
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
 
   useEffect(() => {
     if (facility) {
@@ -57,6 +76,15 @@ export default function EditFacilityDrawer({
         contactEmail: facility.contactEmail || "",
         city: facility.facilityAddress?.city || "",
         street: facility.facilityAddress?.street || "",
+        state: facility.facilityAddress?.state || "",
+        postalCode: facility.facilityAddress?.postalCode || "",
+        region: facility.facilityAddress?.region || "",
+        country: facility.facilityAddress?.country || "Philippines",
+        latitude: facility.facilityAddress?.latitude || null,
+        longitude: facility.facilityAddress?.longitude || null,
+        npi: facility.npi || "",
+        taxId: facility.taxId || "",
+        placeOfServiceCode: facility.placeOfServiceCode || "11",
       });
     }
   }, [facility]);
@@ -71,6 +99,32 @@ export default function EditFacilityDrawer({
     },
   );
 
+  const currentAddressData: AddressData = {
+    street: form.street,
+    city: form.city,
+    state: form.state,
+    postalCode: form.postalCode,
+    region: form.region,
+    country: form.country,
+    latitude: form.latitude,
+    longitude: form.longitude,
+  };
+
+  const handleSaveAddress = (address: AddressData) => {
+    setForm((prev) => ({
+      ...prev,
+      street: address.street || "",
+      city: address.city || "",
+      state: address.state || "",
+      postalCode: address.postalCode || "",
+      region: address.region || "",
+      country: address.country || "Philippines",
+      latitude: address.latitude,
+      longitude: address.longitude,
+    }));
+    setIsEditingAddress(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateFacility({
@@ -82,12 +136,18 @@ export default function EditFacilityDrawer({
           contactPerson: form.contactPerson,
           contactPhone: form.contactPhone,
           contactEmail: form.contactEmail,
+          npi: form.npi,
+          taxId: form.taxId,
+          placeOfServiceCode: form.placeOfServiceCode,
           facilityAddress: {
             street: form.street || "",
             city: form.city || "",
-            state: "",
-            postalCode: "",
-            country: "Philippines",
+            state: form.state || "",
+            postalCode: form.postalCode || "",
+            region: form.region || "",
+            country: form.country || "Philippines",
+            latitude: form.latitude,
+            longitude: form.longitude,
           },
         },
       },
@@ -131,7 +191,7 @@ export default function EditFacilityDrawer({
           </div>
 
           {mutationError && (
-            <div className="mx-10 mt-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex gap-4 animate-in fade-in">
+            <div className="mx-8 mt-6 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 flex gap-4 animate-in fade-in">
               <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
                 <X className="w-5 h-5 text-red-400" />
               </div>
@@ -148,9 +208,9 @@ export default function EditFacilityDrawer({
 
           <form
             onSubmit={handleSubmit}
-            className="flex-1 overflow-y-auto p-10 space-y-10 scrollbar-hide"
+            className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide"
           >
-            <section className="space-y-6">
+            <section className="space-y-4">
               <div className="flex items-center gap-4">
                 <Building2 className="w-4 h-4 text-[var(--primary)]" />
                 <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">
@@ -165,7 +225,7 @@ export default function EditFacilityDrawer({
                 </label>
                 <input
                   required
-                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
@@ -176,7 +236,7 @@ export default function EditFacilityDrawer({
                   Classification Type
                 </label>
                 <select
-                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm cursor-pointer"
                   value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value })}
                 >
@@ -189,7 +249,7 @@ export default function EditFacilityDrawer({
               </div>
             </section>
 
-            <section className="space-y-6">
+            <section className="space-y-4">
               <div className="flex items-center gap-4">
                 <User className="w-4 h-4 text-blue-400" />
                 <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">
@@ -203,7 +263,7 @@ export default function EditFacilityDrawer({
                   Coordinator Name
                 </label>
                 <input
-                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
                   value={form.contactPerson}
                   onChange={(e) =>
                     setForm({ ...form, contactPerson: e.target.value })
@@ -217,7 +277,7 @@ export default function EditFacilityDrawer({
                     Phone Line
                   </label>
                   <input
-                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
                     value={form.contactPhone}
                     onChange={(e) =>
                       setForm({ ...form, contactPhone: e.target.value })
@@ -230,7 +290,7 @@ export default function EditFacilityDrawer({
                   </label>
                   <input
                     type="email"
-                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
                     value={form.contactEmail}
                     onChange={(e) =>
                       setForm({ ...form, contactEmail: e.target.value })
@@ -240,11 +300,11 @@ export default function EditFacilityDrawer({
               </div>
             </section>
 
-            <section className="space-y-6 pb-10">
+            <section className="space-y-4">
               <div className="flex items-center gap-4">
-                <MapPin className="w-4 h-4 text-emerald-400" />
+                <Activity className="w-4 h-4 text-purple-400" />
                 <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">
-                  Geospatial Placement
+                  Clinical RCM & Billing
                 </h3>
                 <div className="flex-1 h-px bg-[var(--card-border)]" />
               </div>
@@ -252,31 +312,124 @@ export default function EditFacilityDrawer({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                    City Hub
+                    Organizational NPI
                   </label>
                   <input
-                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
-                    value={form.city}
-                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
+                    placeholder="10-DIGIT NPI"
+                    maxLength={10}
+                    value={form.npi}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setForm({ ...form, npi: val });
+                    }}
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                    Street/Sector
+                    Federal Tax ID (EIN)
                   </label>
                   <input
-                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
-                    value={form.street}
-                    onChange={(e) =>
-                      setForm({ ...form, street: e.target.value })
-                    }
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm"
+                    placeholder="XX-XXXXXXX"
+                    value={form.taxId}
+                    onChange={(e) => setForm({ ...form, taxId: e.target.value })}
                   />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                  Place of Service (POS) Code
+                </label>
+                <select
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest shadow-sm cursor-pointer"
+                  value={form.placeOfServiceCode}
+                  onChange={(e) =>
+                    setForm({ ...form, placeOfServiceCode: e.target.value })
+                  }
+                >
+                  <option value="11">11 - Office (Clinic)</option>
+                  <option value="21">21 - Inpatient Hospital</option>
+                  <option value="12">12 - Home Care</option>
+                  <option value="31">31 - Skilled Nursing Facility</option>
+                  <option value="32">32 - Nursing Facility</option>
+                  <option value="13">13 - Assisted Living Facility</option>
+                </select>
+              </div>
+            </section>
+
+            <section className="space-y-4 pb-10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <MapPin className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-xs font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">
+                    Geospatial Placement
+                  </h3>
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={() => setIsEditingAddress(true)}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest transition-all"
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  Pin on Map
+                </button>
+              </div>
+
+              {form.latitude && form.longitude && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono w-fit animate-in fade-in duration-300">
+                  <Navigation className="w-3 h-3 rotate-45 text-emerald-400" />
+                  <span>{form.latitude.toFixed(6)}, {form.longitude.toFixed(6)}</span>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Street Address</label>
+                  <input 
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-inner uppercase tracking-widest"
+                    value={form.street}
+                    onChange={e => setForm({...form, street: e.target.value})}
+                    placeholder="STREET/SECTOR"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">City Hub</label>
+                    <input 
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-inner uppercase tracking-widest"
+                      value={form.city}
+                      onChange={e => setForm({...form, city: e.target.value})}
+                      placeholder="CITY"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">State</label>
+                    <input 
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-inner uppercase tracking-widest"
+                      value={form.state}
+                      onChange={e => setForm({...form, state: e.target.value})}
+                      placeholder="STATE/PROVINCE"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Zip Code</label>
+                    <input 
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-inner uppercase tracking-widest"
+                      value={form.postalCode}
+                      onChange={e => setForm({...form, postalCode: e.target.value})}
+                      placeholder="ZIP CODE"
+                    />
+                  </div>
                 </div>
               </div>
             </section>
           </form>
 
-          <div className="p-8 bg-[var(--sidebar-bg)] border-t border-[var(--card-border)] mt-auto">
+          <div className="p-8 bg-[var(--sidebar-bg)] border-t border-[var(--card-border)] mt-auto shrink-0">
             <PermissionGate permission="setup:manage">
               <button
                 type="submit"
@@ -297,6 +450,12 @@ export default function EditFacilityDrawer({
           </div>
         </div>
       </div>
+      <AddressMapModal
+        isOpen={isEditingAddress}
+        onClose={() => setIsEditingAddress(false)}
+        address={currentAddressData}
+        onSave={handleSaveAddress}
+      />
     </HalcyonPortal>
   );
 }

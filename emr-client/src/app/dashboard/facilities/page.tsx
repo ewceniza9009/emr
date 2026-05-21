@@ -34,18 +34,18 @@ const GET_FACILITIES = gql`
       contactPerson
       contactPhone
       contactEmail
+      npi
+      taxId
+      placeOfServiceCode
       facilityAddress {
         city
         street
-      }
-      residents {
-        patientId
-        mrn
-        firstName
-        lastName
-        dob
-        biologicalSex
-        visitStatus
+        state
+        postalCode
+        region
+        country
+        latitude
+        longitude
       }
     }
   }
@@ -67,9 +67,6 @@ export default function FacilitiesPage() {
     f.facilityAddress?.city?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeResidentsFacility = residentsFacility
-    ? facilities.find((fac: any) => fac.facilityId === residentsFacility.facilityId) || residentsFacility
-    : null;
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -162,9 +159,9 @@ export default function FacilitiesPage() {
               <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] shadow-inner group-hover:bg-[var(--primary)]/5 transition-colors">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-blue-400" />
-                  <span className="text-xs font-semibold text-[var(--text-secondary)]">Active Residents</span>
+                  <span className="text-xs font-semibold text-[var(--text-secondary)]">Registered Residents</span>
                 </div>
-                <span className="text-sm font-bold text-[var(--text-primary)]">{f.residents?.length || 0}</span>
+                <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">View →</span>
               </div>
 
               <div className="space-y-1.5 px-1">
@@ -235,7 +232,7 @@ export default function FacilitiesPage() {
       <FacilityResidentsDrawer
         open={!!residentsFacility}
         onClose={() => setResidentsFacility(null)}
-        facility={activeResidentsFacility}
+        facility={residentsFacility}
       />
     </div>
   );

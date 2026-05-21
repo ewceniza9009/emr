@@ -9,6 +9,13 @@ import {
 } from "lucide-react";
 import HalcyonPortal from "./Portal";
 import { PermissionGate } from "./PermissionGate";
+import dynamic from "next/dynamic";
+import { AddressData } from "@/components/EnrollmentDrawer/components/AddressMapModal";
+
+const AddressMapModal = dynamic(
+  () => import("@/components/EnrollmentDrawer/components/AddressMapModal"),
+  { ssr: false }
+);
 
 const CREATE_OUTREACH = gql`
   mutation CreateOutreach($input: CreateOutreachCommandInput!) {
@@ -63,6 +70,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
     diagnosis: ""
   });
 
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [createOutreach, { loading }] = useMutation(CREATE_OUTREACH, {
@@ -71,6 +79,28 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
       onClose();
     }
   });
+
+  const currentAddressData: AddressData = {
+    street: form.street,
+    city: form.city,
+    state: form.state,
+    postalCode: form.postalCode,
+    region: "",
+    country: "Philippines",
+    latitude: null,
+    longitude: null
+  };
+
+  const handleSaveAddress = (address: AddressData) => {
+    setForm(prev => ({
+      ...prev,
+      street: address.street,
+      city: address.city,
+      state: address.state,
+      postalCode: address.postalCode
+    }));
+    setIsEditingAddress(false);
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -144,8 +174,6 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                 <h2 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none">New Patient Referral</h2>
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-[9px] font-black text-teal-500/50 uppercase tracking-[0.2em]">Intake & Outreach Management</span>
-                  <div className="w-1 h-1 rounded-full bg-teal-500/30" />
-                  <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Health Standards v2.4</span>
                 </div>
               </div>
             </div>
@@ -154,9 +182,9 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
             {/* Section: Referral Details */}
-            <section className="space-y-5">
+            <section className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-6 h-6 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
                   <Activity className="w-3.5 h-3.5 text-rose-500" />
@@ -186,7 +214,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                     <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Referral Channel</label>
                     <div className="relative">
                       <select 
-                        className="w-full bg-white/5 border border-white/5 rounded-xl py-3 px-4 text-xs font-black text-[var(--text-primary)] outline-none focus:border-teal-500/30 transition-all appearance-none cursor-pointer"
+                        className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] outline-none focus:border-teal-500/30 transition-all appearance-none cursor-pointer"
                         value={form.referralSource}
                         onChange={e => setForm({...form, referralSource: e.target.value})}
                       >
@@ -204,7 +232,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
             </section>
 
             {/* Section: Patient Identity */}
-            <section className="space-y-5">
+            <section className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-6 h-6 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
                   <Shield className="w-3.5 h-3.5 text-teal-500" />
@@ -218,7 +246,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                     <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">First Name</label>
                     <input 
                       required
-                      className={`w-full bg-white/5 border rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none transition-all shadow-inner
+                      className={`w-full bg-white/5 border rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none transition-all shadow-inner
                         ${errors.firstName ? 'border-rose-500/50 focus:border-rose-500/80' : 'border-white/5 focus:border-teal-500/30'}`}
                       value={form.firstName}
                       onChange={e => {
@@ -237,7 +265,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                     <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Last Name</label>
                     <input 
                       required
-                      className={`w-full bg-white/5 border rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none transition-all shadow-inner
+                      className={`w-full bg-white/5 border rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none transition-all shadow-inner
                         ${errors.lastName ? 'border-rose-500/50 focus:border-rose-500/80' : 'border-white/5 focus:border-teal-500/30'}`}
                       value={form.lastName}
                       onChange={e => {
@@ -257,7 +285,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
               <div className="space-y-2">
                 <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Primary Diagnosis / Reason</label>
                 <input 
-                  className="w-full bg-white/5 border border-white/5 rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
+                  className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
                   value={form.diagnosis}
                   onChange={e => setForm({...form, diagnosis: e.target.value})}
                   placeholder="E.G. ADVANCED HEART FAILURE, STROKE FOLLOW-UP"
@@ -266,7 +294,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
             </section>
 
             {/* Section: Contact Information */}
-            <section className="space-y-5">
+            <section className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-6 h-6 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
                   <Phone className="w-3.5 h-3.5 text-sky-500" />
@@ -279,7 +307,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                  <div className="space-y-2">
                     <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Primary Phone</label>
                     <input 
-                      className={`w-full bg-white/5 border rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] focus:outline-none transition-all shadow-inner
+                      className={`w-full bg-white/5 border rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none transition-all shadow-inner
                         ${errors.primaryPhone ? 'border-rose-500/50 focus:border-rose-500/80' : 'border-white/5 focus:border-sky-500/30'}`}
                       value={form.primaryPhone}
                       onChange={e => {
@@ -298,7 +326,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                     <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Email Address</label>
                     <input 
                       type="email"
-                      className={`w-full bg-white/5 border rounded-xl py-3.5 px-5 text-sm font-black text-[var(--text-primary)] focus:outline-none transition-all shadow-inner
+                      className={`w-full bg-white/5 border rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none transition-all shadow-inner
                         ${errors.primaryEmail ? 'border-rose-500/50 focus:border-rose-500/80' : 'border-white/5 focus:border-sky-500/30'}`}
                       value={form.primaryEmail}
                       onChange={e => {
@@ -316,8 +344,71 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
               </div>
             </section>
 
+            {/* Section: Service Address */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+                    <MapPin className="w-3.5 h-3.5 text-teal-500" />
+                  </div>
+                  <h3 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.3em]">Service Address</h3>
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={() => setIsEditingAddress(true)}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 text-teal-400 text-[9px] font-black uppercase tracking-widest transition-all"
+                >
+                  <MapPin className="w-3 h-3" />
+                  Pin on Map
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Street Address</label>
+                  <input 
+                    className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
+                    value={form.street}
+                    onChange={e => setForm({...form, street: e.target.value})}
+                    placeholder="HOUSE NO., STREET NAME, BARANGAY/SUBDIVISION"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">City</label>
+                    <input 
+                      className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
+                      value={form.city}
+                      onChange={e => setForm({...form, city: e.target.value})}
+                      placeholder="CITY"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">State</label>
+                    <input 
+                      className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
+                      value={form.state}
+                      onChange={e => setForm({...form, state: e.target.value})}
+                      placeholder="STATE/PROVINCE"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Zip Code</label>
+                    <input 
+                      className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
+                      value={form.postalCode}
+                      onChange={e => setForm({...form, postalCode: e.target.value})}
+                      placeholder="ZIP CODE"
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* Section: Clinical Observations */}
-            <section className="space-y-5 pb-10">
+            <section className="space-y-4 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-6 h-6 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
                   <ClipboardList className="w-3.5 h-3.5 text-amber-500" />
@@ -327,7 +418,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
               </div>
 
               <textarea 
-                className="w-full bg-white/5 border border-white/5 rounded-2xl p-5 text-xs font-medium text-[var(--text-primary)] placeholder:text-white/10 h-32 focus:outline-none focus:border-amber-500/30 transition-all resize-none scrollbar-hide shadow-inner"
+                className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-xs font-medium text-[var(--text-primary)] placeholder:text-white/10 h-24 focus:outline-none focus:border-amber-500/30 transition-all resize-none scrollbar-hide shadow-inner"
                 value={form.notes}
                 onChange={e => setForm({...form, notes: e.target.value})}
                 placeholder="Append clinical observations, home environment risks, or specific instructions..."
@@ -362,6 +453,12 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
           </div>
         </div>
       </div>
+      <AddressMapModal
+        isOpen={isEditingAddress}
+        onClose={() => setIsEditingAddress(false)}
+        address={currentAddressData}
+        onSave={handleSaveAddress}
+      />
     </HalcyonPortal>
   );
 }

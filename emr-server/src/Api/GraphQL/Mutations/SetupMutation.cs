@@ -100,6 +100,18 @@ public class SetupMutation
                 if (existingAddr != null)
                 {
                     db.Entry(existingAddr).CurrentValues.SetValues(addr);
+                    if (addr.Address != null)
+                    {
+                        existingAddr.Address ??= new Address();
+                        existingAddr.Address.Street = addr.Address.Street ?? string.Empty;
+                        existingAddr.Address.City = addr.Address.City ?? string.Empty;
+                        existingAddr.Address.State = addr.Address.State ?? string.Empty;
+                        existingAddr.Address.PostalCode = addr.Address.PostalCode ?? string.Empty;
+                        existingAddr.Address.Region = addr.Address.Region ?? string.Empty;
+                        existingAddr.Address.Country = addr.Address.Country ?? "Philippines";
+                        existingAddr.Address.Latitude = addr.Address.Latitude;
+                        existingAddr.Address.Longitude = addr.Address.Longitude;
+                    }
                 }
                 else
                 {
@@ -181,6 +193,7 @@ public class SetupMutation
             input.FacilityAddress.City ??= string.Empty;
             input.FacilityAddress.State ??= string.Empty;
             input.FacilityAddress.PostalCode ??= string.Empty;
+            input.FacilityAddress.Region ??= string.Empty;
             input.FacilityAddress.Country ??= "Philippines";
         }
         context.Facilities.Add(input);
@@ -211,6 +224,7 @@ public class SetupMutation
             existing.FacilityAddress.City = input.FacilityAddress.City ?? string.Empty;
             existing.FacilityAddress.State = input.FacilityAddress.State ?? string.Empty;
             existing.FacilityAddress.PostalCode = input.FacilityAddress.PostalCode ?? string.Empty;
+            existing.FacilityAddress.Region = input.FacilityAddress.Region ?? string.Empty;
             existing.FacilityAddress.Country = input.FacilityAddress.Country ?? "Philippines";
             existing.FacilityAddress.Latitude = input.FacilityAddress.Latitude;
             existing.FacilityAddress.Longitude = input.FacilityAddress.Longitude;

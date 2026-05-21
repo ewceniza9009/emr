@@ -20,7 +20,10 @@ export const GET_SETUP_DATA = gql`
           city
           state
           postalCode
+          region
           country
+          latitude
+          longitude
         }
       }
       licensures {
@@ -28,6 +31,7 @@ export const GET_SETUP_DATA = gql`
         licenseNumber
         state
         expiryDate
+        isActive
       }
       serviceAreas {
         serviceAreaId
@@ -44,7 +48,10 @@ export const GET_SETUP_DATA = gql`
         city
         state
         postalCode
+        region
         country
+        latitude
+        longitude
       }
       contactPerson
       contactPhone

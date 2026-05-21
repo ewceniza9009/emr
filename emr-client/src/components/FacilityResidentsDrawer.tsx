@@ -1,10 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { X, Search, Users, User, Calendar, ExternalLink } from "lucide-react";
+import { useQuery, gql } from "@apollo/client";
+import { X, Search, Users, User, Calendar, ExternalLink, Activity } from "lucide-react";
 import Link from "next/link";
 import HalcyonPortal from "./Portal";
 import { formatEnum, formatClinicalDate } from "@/lib/utils";
+
+const GET_FACILITY_RESIDENTS = gql`
+  query GetFacilityResidents($facilityId: UUID!) {
+    facilities(where: { facilityId: { eq: $facilityId } }) {
+      facilityId
+      name
+      residents {
+        patientId
+        mrn
+        firstName
+        lastName
+        dob
+        biologicalSex
+        visitStatus
+      }
+    }
+  }
+`;
 
 interface Props {
   open: boolean;
@@ -15,9 +34,16 @@ interface Props {
 export default function FacilityResidentsDrawer({ open, onClose, facility }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
 
+  const { data, loading } = useQuery(GET_FACILITY_RESIDENTS, {
+    variables: { facilityId: facility?.facilityId },
+    skip: !open || !facility?.facilityId,
+    fetchPolicy: "network-only",
+  });
+
   if (!open || !facility) return null;
 
-  const residents = facility.residents || [];
+  const facilityData = data?.facilities?.[0];
+  const residents = facilityData?.residents || [];
 
   // Filter residents by name or MRN
   const filteredResidents = residents.filter((r: any) => {
@@ -133,7 +159,20 @@ export default function FacilityResidentsDrawer({ open, onClose, facility }: Pro
 
           {/* Residents List */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
-            {filteredResidents.length === 0 ? (
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="p-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center gap-3 animate-pulse">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--input-bg)] shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-[var(--input-bg)] rounded w-2/3" />
+                      <div className="h-2 bg-[var(--input-bg)] rounded w-1/3" />
+                    </div>
+                    <Activity className="w-4 h-4 text-[var(--text-muted)] animate-spin opacity-30" />
+                  </div>
+                ))}
+              </div>
+            ) : filteredResidents.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
                 <div className="w-16 h-16 rounded-3xl bg-[var(--primary)]/5 border border-[var(--card-border)] flex items-center justify-center">
                   <User className="w-8 h-8 text-[var(--text-muted)] opacity-40" />
