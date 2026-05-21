@@ -14,7 +14,8 @@ import {
   GET_PRACTITIONERS,
   GET_APPOINTMENT,
   GET_GEOSPATIAL_AVAILABILITY,
-  GET_FACILITIES
+  GET_FACILITIES,
+  UPDATE_PATIENT
 } from "../queries";
 
 interface UseBookingStateProps {
@@ -46,7 +47,11 @@ export function useBookingState({
     street: "",
     city: "",
     state: "",
-    postalCode: ""
+    postalCode: "",
+    region: "",
+    country: "Philippines",
+    latitude: null as number | null,
+    longitude: null as number | null
   });
   const [practitionerId, setPractitionerId] = useState("");
   const [facilityId, setFacilityId] = useState("");
@@ -135,7 +140,7 @@ export function useBookingState({
     if (open && !appointmentId && !prefillDate && !propPatientId) {
       setPatientId("");
       setPatientSearch("");
-      setPatientAddress({ street: "", city: "", state: "", postalCode: "" });
+      setPatientAddress({ street: "", city: "", state: "", postalCode: "", region: "", country: "Philippines", latitude: null, longitude: null });
       setPractitionerId("");
       setFacilityId("");
       setSupportingIds([]);
@@ -207,7 +212,11 @@ export function useBookingState({
         street: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.street || a.patient?.addresses?.[0]?.address?.street || "",
         city: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.city || a.patient?.addresses?.[0]?.address?.city || "",
         state: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.state || a.patient?.addresses?.[0]?.address?.state || "",
-        postalCode: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || a.patient?.addresses?.[0]?.address?.postalCode || ""
+        postalCode: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || a.patient?.addresses?.[0]?.address?.postalCode || "",
+        region: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.region || a.patient?.addresses?.[0]?.address?.region || "",
+        country: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.country || a.patient?.addresses?.[0]?.address?.country || "Philippines",
+        latitude: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.latitude ?? a.patient?.addresses?.[0]?.address?.latitude ?? null,
+        longitude: a.patient?.addresses?.find((x: any) => x.isPrimary)?.address?.longitude ?? a.patient?.addresses?.[0]?.address?.longitude ?? null
       });
       setPractitionerId(a.practitionerId || "");
       setFacilityId(a.facilityId || "");
@@ -262,11 +271,14 @@ export function useBookingState({
         const best = [...availabilityData.availableProviders]
           .filter(p => p.role === "CareNavigator")
           .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
-        if (best) setPractitionerId(best.practitionerId);
-        else {
+        if (best) {
+          setPractitionerId(best.practitionerId);
+        } else {
           const fallback = [...availabilityData.availableProviders]
             .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
-          if (fallback) setPractitionerId(fallback.practitionerId);
+          if (fallback) {
+            setPractitionerId(fallback.practitionerId);
+          }
         }
       }
     }
@@ -487,6 +499,34 @@ export function useBookingState({
     onError: (err) => showToast(err.message, "error"),
   });
 
+  const [updatePatientAddress] = useMutation(UPDATE_PATIENT);
+
+  const handleSaveAddress = async (addr: typeof patientAddress) => {
+    if (!patientId) return;
+    try {
+      await updatePatientAddress({
+        variables: {
+          command: {
+            patientId,
+            street: addr.street || null,
+            city: addr.city || null,
+            state: addr.state || null,
+            postalCode: addr.postalCode || null,
+            region: addr.region || null,
+            country: addr.country || null,
+            latitude: addr.latitude,
+            longitude: addr.longitude,
+          },
+        },
+      });
+      setPatientAddress(addr);
+      setIsEditingAddress(false);
+      showToast("Address updated", "success");
+    } catch (e: any) {
+      showToast(e.message || "Failed to update address", "error");
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!practitionerId) return;
@@ -608,7 +648,8 @@ export function useBookingState({
     bookingLoading,
     blockLoading,
     handleSubmit,
-    deleteAppt
+    deleteAppt,
+    handleSaveAddress
   };
 }
 export type UseBookingStateReturn = ReturnType<typeof useBookingState>;

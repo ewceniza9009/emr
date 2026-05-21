@@ -175,7 +175,7 @@ export function EncounterSummaryPanel({ state, appointmentId, isLocked, bookingL
               <Shield className="w-5 h-5 text-amber-500" />
             </div>
             <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest leading-relaxed">
-              Encounter Lock Active: Time and modification controls are restricted for {status?.toUpperCase().includes("PROGRESS") || status?.toUpperCase().includes("LIVE") ? "active" : "finalized"} visits.
+              Encounter Lock Active: Time and modification controls are restricted for {state.appointmentData?.appointment?.status?.toUpperCase().includes("PROGRESS") || state.appointmentData?.appointment?.status?.toUpperCase().includes("LIVE") ? "active" : "finalized"} visits.
             </p>
           </div>
         )}

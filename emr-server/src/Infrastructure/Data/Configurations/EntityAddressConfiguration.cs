@@ -26,6 +26,7 @@ public class EntityAddressConfiguration : IEntityTypeConfiguration<EntityAddress
                 addr.Property(p => p.City).HasColumnName("city");
                 addr.Property(p => p.State).HasColumnName("state");
                 addr.Property(p => p.PostalCode).HasColumnName("postal_code");
+                addr.Property(p => p.Region).HasColumnName("region");
                 addr.Property(p => p.Country).HasColumnName("country");
                 addr.Property(p => p.Latitude).HasColumnName("latitude");
                 addr.Property(p => p.Longitude).HasColumnName("longitude");

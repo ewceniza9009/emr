@@ -191,58 +191,141 @@ public class FinalizeEnrollmentCommandHandler : IRequestHandler<FinalizeEnrollme
                 Status = NavigationTaskStatus.Pending,
             };
             _context.NavigationTasks.Add(task);
+        }
 
-            // 4. Create Clinical Appointment (Booking) - Optional
-            if (
-                request.ScheduleIntakeNow
-                && request.OrientationDate.HasValue
-                && request.PrimaryClinicianId.HasValue
-            )
+        // 4. Create Clinical Appointment (Booking) - Optional
+        var appointmentPractitionerId = navigatorId ?? request.PrimaryClinicianId;
+        if (
+            request.ScheduleIntakeNow
+            && request.OrientationDate.HasValue
+            && appointmentPractitionerId.HasValue
+        )
+        {
+            var scheduledStart =
+                request.OrientationDate.Value.Kind == DateTimeKind.Utc
+                    ? request.OrientationDate.Value
+                    : DateTime.SpecifyKind(request.OrientationDate.Value, DateTimeKind.Utc);
+            var duration = TimeSpan.FromMinutes(
+                request.DurationMinutes > 0 ? request.DurationMinutes : 60
+            );
+            var scheduledEnd = scheduledStart.Add(duration);
+            var appointmentModality = (request.Modality ?? "HomeCare") switch
             {
-                var appointment = new Appointment
-                {
-                    AppointmentId = Guid.NewGuid(),
-                    TenantId = patient.TenantId,
-                    PatientId = patient.PatientId,
-                    PractitionerId = request.PrimaryClinicianId.Value,
-                    ScheduledStart = request.OrientationDate.Value,
-                    ScheduledEnd = request.OrientationDate.Value.AddMinutes(request.DurationMinutes > 0 ? request.DurationMinutes : 60),
-                    Status = AppointmentStatus.Scheduled,
-                    VisitType = VisitType.InitialHospiceIntake,
-                    Modality = (request.Modality ?? "HomeCare") switch
-                    {
-                        "HomeCare" => AppointmentModality.InPersonHomeVisit,
-                        "InPatientHospice" => AppointmentModality.InPersonFacility,
-                        "OutpatientClinic" => AppointmentModality.InPersonFacility,
-                        "VirtualCare" => AppointmentModality.TelehealthVideo,
-                        "HybridCare" => AppointmentModality.TelehealthAudioOnly,
-                        _ => AppointmentModality.InPersonHomeVisit,
-                    },
-                    CreatedAt = _dateTimeProvider.UtcNow,
-                };
-                _context.Appointments.Add(appointment);
+                "HomeCare" => AppointmentModality.InPersonHomeVisit,
+                "InPatientHospice" => AppointmentModality.InPersonFacility,
+                "OutpatientClinic" => AppointmentModality.InPersonFacility,
+                "VirtualCare" => AppointmentModality.TelehealthVideo,
+                "HybridCare" => AppointmentModality.TelehealthAudioOnly,
+                _ => AppointmentModality.InPersonHomeVisit,
+            };
 
-                // 4-A. Hydrate Geospatial Telemetry (Distance & Drive Time)
-                try
-                {
-                    var (distance, travelTime) =
-                        await _schedulingService.RecalculateAppointmentStatsAsync(
-                            appointment,
-                            cancellationToken
-                        );
+            // --- AUTO-ADJUST LOGIC ---
+            var hasConflict = await _context.Appointments.AnyAsync(
+                a =>
+                    a.PractitionerId == appointmentPractitionerId.Value
+                    && scheduledStart < a.ScheduledEnd
+                    && scheduledEnd > a.ScheduledStart,
+                cancellationToken
+            );
 
-                    appointment.DistanceInMiles = distance;
-                    appointment.TravelTimeMinutes = travelTime;
+            var tempAppointment = new Appointment
+            {
+                AppointmentId = Guid.NewGuid(),
+                PatientId = patient.PatientId,
+                PractitionerId = appointmentPractitionerId.Value,
+                ScheduledStart = scheduledStart,
+                ScheduledEnd = scheduledEnd,
+                Modality = appointmentModality,
+            };
+
+            bool isValidLogistics = false;
+            if (!hasConflict)
+            {
+                var (isValid, _) = await _schedulingService.ValidateLogisticsAsync(
+                    tempAppointment,
+                    cancellationToken
+                );
+                isValidLogistics = isValid;
+            }
+
+            if (hasConflict || !isValidLogistics)
+            {
+                _logger.LogInformation(
+                    "Intake time {Time} has conflict or invalid logistics. Auto-adjusting...",
+                    scheduledStart
+                );
+                var availableSlots = await _schedulingService.GetAvailableProvidersAsync(
+                    scheduledStart,
+                    duration,
+                    appointmentModality,
+                    patient.PatientId,
+                    null,
+                    cancellationToken
+                );
+
+                var autoSlot = availableSlots
+                    .Where(s => s.PractitionerId == appointmentPractitionerId.Value)
+                    .OrderBy(s => Math.Abs((s.StartTime - scheduledStart).Ticks))
+                    .FirstOrDefault();
+
+                if (autoSlot != null)
+                {
+                    scheduledStart = autoSlot.StartTime.UtcDateTime;
+                    scheduledEnd = autoSlot.EndTime.UtcDateTime;
+                    _logger.LogInformation("Auto-adjusted to {NewTime}", scheduledStart);
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logger.LogWarning(
-                        ex,
-                        "Failed to recalculate geospatial stats for appointment {AppointmentId}. Proceeding with enrollment.",
-                        appointment.AppointmentId
+                    throw new Application.Common.Exceptions.ValidationException(
+                        new List<FluentValidation.Results.ValidationFailure>
+                        {
+                            new(
+                                "OrientationDate",
+                                "Unable to auto-adjust schedule: No available slots for this practitioner on this day."
+                            ),
+                        }
                     );
                 }
             }
+
+            var appointment = new Appointment
+            {
+                AppointmentId = Guid.NewGuid(),
+                TenantId = patient.TenantId,
+                PatientId = patient.PatientId,
+                PractitionerId = appointmentPractitionerId.Value,
+                ScheduledStart = scheduledStart,
+                ScheduledEnd = scheduledEnd,
+                Status = AppointmentStatus.Scheduled,
+                VisitType = VisitType.InitialHospiceIntake,
+                Modality = appointmentModality,
+                CreatedAt = _dateTimeProvider.UtcNow,
+            };
+
+            if (
+                request.PrimaryClinicianId.HasValue
+                && request.PrimaryClinicianId != appointmentPractitionerId
+            )
+            {
+                var clinician = await _context.Practitioners.FindAsync(
+                    new object[] { request.PrimaryClinicianId.Value },
+                    cancellationToken
+                );
+                if (clinician != null)
+                {
+                    appointment.SupportingClinicians.Add(clinician);
+                }
+            }
+
+            _context.Appointments.Add(appointment);
+
+            var (distance, travelTime) = await _schedulingService.RecalculateAppointmentStatsAsync(
+                appointment,
+                cancellationToken
+            );
+
+            appointment.DistanceInMiles = distance;
+            appointment.TravelTimeMinutes = travelTime;
         }
 
         // 5. Update Outreach Lead

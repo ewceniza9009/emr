@@ -20,6 +20,11 @@ import {
 } from "lucide-react";
 import { PermissionGate } from "../../PermissionGate";
 import CustomDatePicker from "../../CustomDatePicker";
+import dynamic from "next/dynamic";
+
+const AddressMapModal = dynamic(() => import("../components/AddressMapModal"), {
+  ssr: false,
+});
 
 interface Props {
   state: EnrollmentState;
@@ -144,106 +149,58 @@ export default function AdminTab({ state }: Props) {
           </h3>
         </div>
         <div className="bg-[var(--input-bg)] rounded-2xl p-5 border border-[var(--card-border)] space-y-5 shadow-inner relative group/address">
-          {!state.isEditingAddress ? (
-            <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-wider">
-                    {state.address.street || "NO STREET SPECIFIED"}
+          <div className="space-y-4">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1 flex-1 min-w-0">
+                <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-wider truncate">
+                  {state.address.street || "NO STREET SPECIFIED"}
+                </p>
+                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                  {state.address.city}
+                  {state.address.city && state.address.state ? ", " : ""}
+                  {state.address.state} {state.address.postalCode}
+                </p>
+                {(state.address.latitude != null ||
+                  state.address.country) && (
+                  <p className="text-[8px] font-bold text-[var(--text-muted)]/60 uppercase tracking-widest mt-1">
+                    {state.address.country}
+                    {state.address.latitude != null &&
+                      ` • ${state.address.latitude.toFixed(4)}, ${state.address.longitude?.toFixed(4)}`}
                   </p>
-                  <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
-                    {state.address.city}, {state.address.state}{" "}
-                    {state.address.postalCode}
-                  </p>
-                </div>
-                <button
-                  onClick={() => state.setIsEditingAddress(true)}
-                  className="p-2 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--primary)] opacity-0 group-hover/address:opacity-100 transition-all"
-                >
-                  <Edit3 className="w-3 h-3" />
-                </button>
+                )}
               </div>
               <button
+                onClick={() => state.setIsEditingAddress(true)}
+                className="p-2 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--primary)] opacity-0 group-hover/address:opacity-100 transition-all shrink-0"
+              >
+                <Edit3 className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
                 onClick={state.handleVerifyAddress}
-                className="w-full h-10 bg-transparent border border-[var(--primary)]/30 text-[var(--primary)] font-black text-[9px] uppercase tracking-[0.2em] rounded-xl hover:bg-[var(--primary)]/5 transition-all"
+                className="flex-1 h-10 bg-transparent border border-[var(--primary)]/30 text-[var(--primary)] font-black text-[9px] uppercase tracking-[0.2em] rounded-xl hover:bg-[var(--primary)]/5 transition-all"
               >
                 {state.isVerifyingAddress
                   ? "SCRUBBING GEODATA..."
                   : "Verify & Standardize Address"}
               </button>
+              <button
+                onClick={() => state.setIsEditingAddress(true)}
+                className="h-10 px-4 bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--primary)] font-black text-[9px] uppercase tracking-[0.2em] rounded-xl hover:bg-[var(--primary)]/5 transition-all flex items-center gap-1.5"
+              >
+                <MapPin className="w-3 h-3" />
+                Map
+              </button>
             </div>
-          ) : (
-            <div className="space-y-5 animate-in fade-in duration-300">
-              <div className="space-y-1.5">
-                <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
-                  Street Address
-                </label>
-                <input
-                  type="text"
-                  value={state.address.street}
-                  onChange={(e) =>
-                    state.setAddress({
-                      ...state.address,
-                      street: e.target.value,
-                    })
-                  }
-                  className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2.5 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
-                  placeholder="Street..."
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
-                    City / Region
-                  </label>
-                  <input
-                    type="text"
-                    value={state.address.city}
-                    onChange={(e) =>
-                      state.setAddress({
-                        ...state.address,
-                        city: e.target.value,
-                      })
-                    }
-                    className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
-                    placeholder="City..."
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
-                    Postal Code
-                  </label>
-                  <input
-                    type="text"
-                    value={state.address.postalCode}
-                    onChange={(e) =>
-                      state.setAddress({
-                        ...state.address,
-                        postalCode: e.target.value,
-                      })
-                    }
-                    className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] premium-input rounded-xl px-4 py-2 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
-                    placeholder="Zip..."
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => state.setIsEditingAddress(false)}
-                  className="flex-1 h-9 bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] font-bold text-[9px] uppercase tracking-widest rounded-xl"
-                >
-                  Discard
-                </button>
-                <button
-                  onClick={() => state.setIsEditingAddress(false)}
-                  className="flex-1 h-9 bg-teal-500 text-black font-bold text-[9px] uppercase tracking-widest rounded-xl"
-                >
-                  Commit Change
-                </button>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
+        <AddressMapModal
+          isOpen={state.isEditingAddress}
+          onClose={() => state.setIsEditingAddress(false)}
+          address={state.address}
+          onSave={state.handleSaveAddress}
+        />
       </section>
 
       {/* Insurance Vault */}

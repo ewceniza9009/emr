@@ -30,6 +30,7 @@ public class FacilityConfiguration : IEntityTypeConfiguration<Facility>
                 a.Property(p => p.City).HasColumnName("facility_address_city");
                 a.Property(p => p.State).HasColumnName("facility_address_state");
                 a.Property(p => p.PostalCode).HasColumnName("facility_address_postal_code");
+                a.Property(p => p.Region).HasColumnName("facility_address_region");
                 a.Property(p => p.Country).HasColumnName("facility_address_country");
                 a.Property(p => p.Latitude).HasColumnName("facility_address_latitude");
                 a.Property(p => p.Longitude).HasColumnName("facility_address_longitude");

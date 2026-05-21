@@ -25,7 +25,8 @@ import {
   ShieldAlert,
   Boxes,
   Microscope,
-  Settings
+  Settings,
+  Trash2
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
@@ -123,7 +124,7 @@ export default function Dashboard() {
   const { data, loading, error, refetch } = useQuery(GET_DASHBOARD_STATS, {
     fetchPolicy: "cache-and-network"
   });
-  const { recentItems } = useRecentlyBrowsed();
+  const { recentItems, clearAll } = useRecentlyBrowsed();
   const [greeting, setGreeting] = useState("Good morning");
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
@@ -239,9 +240,18 @@ export default function Dashboard() {
           {/* Recently Browsed - Enhanced */}
           {recentItems.length > 0 && (
             <motion.div variants={itemVariants} className="glass-morphism rounded-[2rem] p-4 border border-[var(--card-border)]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-1 h-4 bg-teal-500 rounded-full" />
-                <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Recently Browsed</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-4 bg-teal-500 rounded-full" />
+                  <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Recently Browsed</h2>
+                </div>
+                <button
+                  onClick={clearAll}
+                  className="text-[10px] font-bold text-teal-400/80 hover:text-teal-400 transition-colors flex items-center gap-1 group active:scale-95"
+                >
+                  <Trash2 className="w-3 h-3 transition-transform group-hover:scale-110" />
+                  Clear
+                </button>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-10 gap-3">
                 {recentItems.map((item) => {

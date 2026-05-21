@@ -2,6 +2,12 @@ import React from "react";
 import { Search, MapPin, Navigation, Check, Edit3, Info, Home, Building2, Video, Phone, AlertCircle, Zap, Shield, Target, Users, Clock, Activity, Stethoscope } from "lucide-react";
 import { UseBookingStateReturn } from "../hooks/useBookingState";
 import { format } from "date-fns";
+import dynamic from "next/dynamic";
+
+const AddressMapModal = dynamic(
+  () => import("@/components/EnrollmentDrawer/components/AddressMapModal"),
+  { ssr: false },
+);
 
 interface ServiceLocationPanelProps {
   state: UseBookingStateReturn;
@@ -37,7 +43,11 @@ export function ServiceLocationPanel({ state, patientId, setPatientId }: Service
                     street: p.addresses?.find((x: any) => x.isPrimary)?.address?.street || p.addresses?.[0]?.address?.street || "",
                     city: p.addresses?.find((x: any) => x.isPrimary)?.address?.city || p.addresses?.[0]?.address?.city || "",
                     state: p.addresses?.find((x: any) => x.isPrimary)?.address?.state || p.addresses?.[0]?.address?.state || "",
-                    postalCode: p.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || p.addresses?.[0]?.address?.postalCode || ""
+                    postalCode: p.addresses?.find((x: any) => x.isPrimary)?.address?.postalCode || p.addresses?.[0]?.address?.postalCode || "",
+                    region: p.addresses?.find((x: any) => x.isPrimary)?.address?.region || p.addresses?.[0]?.address?.region || "",
+                    country: p.addresses?.find((x: any) => x.isPrimary)?.address?.country || p.addresses?.[0]?.address?.country || "Philippines",
+                    latitude: p.addresses?.find((x: any) => x.isPrimary)?.address?.latitude ?? p.addresses?.[0]?.address?.latitude ?? null,
+                    longitude: p.addresses?.find((x: any) => x.isPrimary)?.address?.longitude ?? p.addresses?.[0]?.address?.longitude ?? null
                   });
                   state.setShowPatientResults(false);
                   state.setIsEditingAddress(false);
@@ -60,83 +70,92 @@ export function ServiceLocationPanel({ state, patientId, setPatientId }: Service
               <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Service Location</span>
             </div>
             {!state.isBlockMode ? (
-              <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 relative group/addr space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Patient Primary Address</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm transition-all group/travel">
-                      <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center">
-                        <Navigation className="w-3 h-3 text-indigo-500 fill-indigo-500/20" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest leading-none">
-                          {(() => {
-                            const activePractitioner = state.practitionerId
-                              ? state.displayCns.find((p: any) => p.practitionerId?.toLowerCase() === state.practitionerId.toLowerCase()) || state.displayScs.find((p: any) => p.practitionerId?.toLowerCase() === state.practitionerId.toLowerCase())
-                              : null;
-                            return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : "0m";
-                          })()} Transit
-                        </span>
-                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter mt-0.5">Clinical Vector</span>
-                      </div>
+              <>
+                <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl p-4 relative group/addr space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Patient Primary Address</span>
                     </div>
-                    <button type="button" onClick={() => state.setIsEditingAddress(!state.isEditingAddress)}
-                      className={`p-2.5 rounded-xl border transition-all ${state.isEditingAddress ? "bg-[var(--primary)] text-white border-transparent" : "bg-white/5 hover:bg-white/10 border-white/10 text-[var(--text-muted)]"}`}>
-                      {state.isEditingAddress ? <Check className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm transition-all group/travel">
+                        <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                          <Navigation className="w-3 h-3 text-indigo-500 fill-indigo-500/20" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest leading-none">
+                            {(() => {
+                              const activePractitioner = state.practitionerId
+                                ? state.displayCns.find((p: any) => p.practitionerId?.toLowerCase() === state.practitionerId.toLowerCase()) || state.displayScs.find((p: any) => p.practitionerId?.toLowerCase() === state.practitionerId.toLowerCase())
+                                : null;
+                              return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : "0m";
+                            })()} Transit
+                          </span>
+                          <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter mt-0.5">Clinical Vector</span>
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => state.setIsEditingAddress(!state.isEditingAddress)}
+                        className={`p-2.5 rounded-xl border transition-all ${state.isEditingAddress ? "bg-[var(--primary)] text-white border-transparent" : "bg-white/5 hover:bg-white/10 border-white/10 text-[var(--text-muted)]"}`}>
+                        {state.isEditingAddress ? <Check className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
+
+                  {state.isEditingAddress ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-teal-400 uppercase tracking-widest">
+                        <MapPin className="w-3 h-3" />
+                        Click below to pin the location on the map
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => state.setIsEditingAddress(true)}
+                        className="w-full py-3 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[10px] font-black uppercase tracking-widest hover:bg-teal-500/20 transition-all flex items-center justify-center gap-2"
+                      >
+                        <MapPin className="w-3.5 h-3.5" />
+                        Open Map to Pin Location
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
+                        <p className="text-sm font-semibold text-[var(--text-primary)]">{state.patientAddress.street || "No address recorded"}</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
+                          <p className="text-[13px] font-medium text-[var(--text-secondary)]">{state.patientAddress.city || "--"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">State</label>
+                          <p className="text-[13px] font-medium text-[var(--text-secondary)]">{state.patientAddress.state || "--"}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zip Code</label>
+                          <p className="text-[13px] font-medium text-[var(--text-secondary)]">{state.patientAddress.postalCode || "--"}</p>
+                        </div>
+                      </div>
+                      {(state.patientAddress.region || state.patientAddress.country) && (
+                        <p className="text-[9px] font-bold text-[var(--text-muted)]/50 uppercase tracking-widest">
+                          {state.patientAddress.region}{state.patientAddress.region && state.patientAddress.country ? " • " : ""}{state.patientAddress.country}
+                        </p>
+                      )}
+                      {state.patientAddress.latitude != null && (
+                        <p className="text-[8px] font-mono text-[var(--text-muted)]/30 tracking-wider">
+                          {state.patientAddress.latitude.toFixed(4)}, {state.patientAddress.longitude?.toFixed(4)}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                {state.isEditingAddress ? (
-                  <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-top-1 duration-300">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
-                      <input autoFocus value={state.patientAddress.street} onChange={e => state.setPatientAddress({ ...state.patientAddress, street: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
-                        <input value={state.patientAddress.city} onChange={e => state.setPatientAddress({ ...state.patientAddress, city: e.target.value })}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">State</label>
-                        <input value={state.patientAddress.state} onChange={e => state.setPatientAddress({ ...state.patientAddress, state: e.target.value })}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zip Code</label>
-                        <input value={state.patientAddress.postalCode} onChange={e => state.setPatientAddress({ ...state.patientAddress, postalCode: e.target.value })}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all" />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Street Address</label>
-                      <p className="text-sm font-semibold text-[var(--text-primary)]">{state.patientAddress.street || "No address recorded"}</p>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City</label>
-                        <p className="text-[13px] font-medium text-[var(--text-secondary)]">{state.patientAddress.city || "--"}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">State</label>
-                        <p className="text-[13px] font-medium text-[var(--text-secondary)]">{state.patientAddress.state || "--"}</p>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zip Code</label>
-                        <p className="text-[13px] font-medium text-[var(--text-secondary)]">{state.patientAddress.postalCode || "--"}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+                <AddressMapModal
+                  isOpen={state.isEditingAddress}
+                  onClose={() => state.setIsEditingAddress(false)}
+                  address={state.patientAddress}
+                  onSave={state.handleSaveAddress}
+                />
+              </>
             ) : (
               <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-3">
                 <Info className="w-4 h-4 text-amber-500" />

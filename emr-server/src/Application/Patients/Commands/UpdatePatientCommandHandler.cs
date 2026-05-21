@@ -23,6 +23,7 @@ public class UpdatePatientCommandHandler : IRequestHandler<UpdatePatientCommand,
         var patient = await _context
             .Patients.Include(p => p.Phones)
             .Include(p => p.Emails)
+            .Include(p => p.Addresses)
             .FirstOrDefaultAsync(p => p.PatientId == request.PatientId, cancellationToken);
 
         if (patient == null)
@@ -110,6 +111,45 @@ public class UpdatePatientCommandHandler : IRequestHandler<UpdatePatientCommand,
                         IsPrimary = true,
                     }
                 );
+        }
+
+        // Update Primary Address
+        var hasAddressUpdate = request.Street != null || request.City != null ||
+                               request.State != null || request.PostalCode != null ||
+                               request.Region != null || request.Country != null ||
+                               request.Latitude != null || request.Longitude != null;
+
+        if (hasAddressUpdate)
+        {
+            var primaryAddress = patient.Addresses.FirstOrDefault(a => a.IsPrimary);
+
+            if (primaryAddress == null)
+            {
+                primaryAddress = new EntityAddress
+                {
+                    PatientId = patient.PatientId,
+                    IsPrimary = true,
+                    Type = AddressType.Home,
+                };
+                patient.Addresses.Add(primaryAddress);
+            }
+
+            if (request.Street != null)
+                primaryAddress.Address.Street = request.Street;
+            if (request.City != null)
+                primaryAddress.Address.City = request.City;
+            if (request.State != null)
+                primaryAddress.Address.State = request.State;
+            if (request.PostalCode != null)
+                primaryAddress.Address.PostalCode = request.PostalCode;
+            if (request.Region != null)
+                primaryAddress.Address.Region = request.Region;
+            if (request.Country != null)
+                primaryAddress.Address.Country = request.Country;
+            if (request.Latitude != null)
+                primaryAddress.Address.Latitude = request.Latitude;
+            if (request.Longitude != null)
+                primaryAddress.Address.Longitude = request.Longitude;
         }
 
         await _context.SaveChangesAsync(cancellationToken);

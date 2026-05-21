@@ -40,6 +40,9 @@ public class FinalizeEnrollmentCommandTests
         );
 
         _mockDateTimeProvider.Setup(d => d.UtcNow).Returns(DateTimeOffset.UtcNow);
+        _mockSchedulingService
+            .Setup(s => s.ValidateLogisticsAsync(It.IsAny<Appointment>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((true, (string?)null));
     }
 
     [Fact]
@@ -125,5 +128,119 @@ public class FinalizeEnrollmentCommandTests
 
         // Assert
         await act.Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateAppointment_WhenScheduleIntakeNowIsTrue_AndCareNavigatorIsAssigned()
+    {
+        // Arrange
+        var outreachId = Guid.NewGuid();
+        var outreach = new PatientOutreach
+        {
+            PatientOutreachId = outreachId,
+            FirstName = "John",
+            LastName = "Doe",
+            Status = OutreachStatus.Lead,
+        };
+
+        var careNavigatorId = Guid.NewGuid();
+        var command = new FinalizeEnrollmentCommand
+        {
+            PatientOutreachId = outreachId,
+            ConsentToTreat = true,
+            ConsentHIPAA = true,
+            ScheduleIntakeNow = true,
+            OrientationDate = DateTime.UtcNow.AddDays(1),
+            DurationMinutes = 60,
+            CareNavigatorId = careNavigatorId
+        };
+
+        var mrn = "MRN12345";
+        _mockMrnGenerator
+            .Setup(g => g.GenerateMrnAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mrn);
+
+        var outreaches = new List<PatientOutreach> { outreach }.BuildMockDbSet();
+        var mockPatients = new List<Patient>().BuildMockDbSet();
+        var practitioners = new List<Practitioner>().BuildMockDbSet();
+        var careCases = new List<CareNavigationCase>().BuildMockDbSet();
+        var navTasks = new List<NavigationTask>().BuildMockDbSet();
+        var appointments = new List<Appointment>().BuildMockDbSet();
+
+        _mockContext.Setup(c => c.PatientOutreaches).Returns(outreaches.Object);
+        _mockContext.Setup(c => c.Patients).Returns(mockPatients.Object);
+        _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
+        _mockContext.Setup(c => c.CareNavigationCases).Returns(careCases.Object);
+        _mockContext.Setup(c => c.NavigationTasks).Returns(navTasks.Object);
+        _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
+
+        Appointment? capturedAppointment = null;
+        _mockContext.Setup(c => c.Appointments.Add(It.IsAny<Appointment>()))
+            .Callback<Appointment>(a => capturedAppointment = a);
+
+        // Act
+        await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        capturedAppointment.Should().NotBeNull();
+        capturedAppointment!.PractitionerId.Should().Be(careNavigatorId);
+        capturedAppointment.VisitType.Should().Be(VisitType.InitialHospiceIntake);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateAppointment_WhenScheduleIntakeNowIsTrue_AndNoCareNavigatorIsAssigned()
+    {
+        // Arrange
+        var outreachId = Guid.NewGuid();
+        var outreach = new PatientOutreach
+        {
+            PatientOutreachId = outreachId,
+            FirstName = "John",
+            LastName = "Doe",
+            Status = OutreachStatus.Lead,
+        };
+
+        var primaryClinicianId = Guid.NewGuid();
+        var command = new FinalizeEnrollmentCommand
+        {
+            PatientOutreachId = outreachId,
+            ConsentToTreat = true,
+            ConsentHIPAA = true,
+            ScheduleIntakeNow = true,
+            OrientationDate = DateTime.UtcNow.AddDays(1),
+            DurationMinutes = 60,
+            PrimaryClinicianId = primaryClinicianId
+        };
+
+        var mrn = "MRN12345";
+        _mockMrnGenerator
+            .Setup(g => g.GenerateMrnAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mrn);
+
+        var outreaches = new List<PatientOutreach> { outreach }.BuildMockDbSet();
+        var mockPatients = new List<Patient>().BuildMockDbSet();
+        var practitioners = new List<Practitioner>().BuildMockDbSet();
+        var careCases = new List<CareNavigationCase>().BuildMockDbSet();
+        var navTasks = new List<NavigationTask>().BuildMockDbSet();
+        var appointments = new List<Appointment>().BuildMockDbSet();
+
+        _mockContext.Setup(c => c.PatientOutreaches).Returns(outreaches.Object);
+        _mockContext.Setup(c => c.Patients).Returns(mockPatients.Object);
+        _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
+        _mockContext.Setup(c => c.CareNavigationCases).Returns(careCases.Object);
+        _mockContext.Setup(c => c.NavigationTasks).Returns(navTasks.Object);
+        _mockContext.Setup(c => c.Appointments).Returns(appointments.Object);
+
+        Appointment? capturedAppointment = null;
+        _mockContext.Setup(c => c.Appointments.Add(It.IsAny<Appointment>()))
+            .Callback<Appointment>(a => capturedAppointment = a);
+
+        // Act
+        await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        capturedAppointment.Should().NotBeNull();
+        capturedAppointment!.PractitionerId.Should().Be(primaryClinicianId);
+        capturedAppointment.VisitType.Should().Be(VisitType.InitialHospiceIntake);
     }
 }

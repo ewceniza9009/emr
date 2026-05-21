@@ -21,6 +21,10 @@ public record UpdateOutreachLeadCommand : IRequest<bool>
     public string? City { get; init; }
     public string? State { get; init; }
     public string? PostalCode { get; init; }
+    public string? Region { get; init; }
+    public string? Country { get; init; }
+    public double? Latitude { get; init; }
+    public double? Longitude { get; init; }
 
     public string? Modality { get; init; }
     public Guid? HealthPlanId { get; init; }
@@ -83,6 +87,14 @@ public class UpdateOutreachLeadCommandHandler : IRequestHandler<UpdateOutreachLe
             outreach.MailingAddress.State = request.State;
         if (request.PostalCode != null)
             outreach.MailingAddress.PostalCode = request.PostalCode;
+        if (request.Region != null)
+            outreach.MailingAddress.Region = request.Region;
+        if (request.Country != null)
+            outreach.MailingAddress.Country = request.Country;
+        if (request.Latitude != null)
+            outreach.MailingAddress.Latitude = request.Latitude;
+        if (request.Longitude != null)
+            outreach.MailingAddress.Longitude = request.Longitude;
 
         if (request.Modality != null)
             outreach.SelectedModality = Enum.Parse<CareModality>(

@@ -25,6 +25,11 @@ const LiveHeartbeat = dynamic(() => import("@/components/LiveHeartbeat"), {
   ssr: false,
 });
 
+const AddressMapModal = dynamic(
+  () => import("@/components/EnrollmentDrawer/components/AddressMapModal"),
+  { ssr: false },
+);
+
 const GET_PRACTITIONERS = gql`
   query GetPractitioners {
     practitioners {
@@ -83,6 +88,9 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
     telemetryEnabled,
     handleToggleTelemetry,
     telemetryData,
+    showEditAddress,
+    setShowEditAddress,
+    handleSaveAddress,
   } = state;
 
   const { data: practitionersData } = useQuery(GET_PRACTITIONERS);
@@ -155,21 +163,45 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
               {patient.dob ? new Date(patient.dob).toLocaleDateString() : "--"}
             </p>
           </div>
-          <div className="space-y-0.5">
-            <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
-              Clinical Address
-            </p>
-            <p className="text-xs font-black text-[var(--text-primary)] leading-tight">
-              {patient.addresses?.[0]?.address?.street || "No address listed"}
-              {patient.addresses?.[0]?.address?.city && (
-                <>
-                  <br />
-                  {patient.addresses[0].address.city}
-                  {patient.addresses[0].address.state ? `, ${patient.addresses[0].address.state}` : ""}
-                  {patient.addresses[0].address.postalCode ? ` ${patient.addresses[0].address.postalCode}` : ""}
-                </>
+          <div className="space-y-0.5 group/addr">
+            <div className="flex items-center justify-between">
+              <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                Clinical Address
+              </p>
+              <PermissionGate permission="patients:edit">
+                <button
+                  onClick={() => setShowEditAddress(true)}
+                  className="p-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/10 transition-all opacity-0 group-hover/addr:opacity-100"
+                >
+                  <Edit3 className="w-3 h-3" />
+                </button>
+              </PermissionGate>
+            </div>
+            <div>
+              <p className="text-xs font-black text-[var(--text-primary)] leading-tight">
+                {patient.addresses?.[0]?.address?.street || "No address listed"}
+                {patient.addresses?.[0]?.address?.city && (
+                  <>
+                    <br />
+                    {patient.addresses[0].address.city}
+                    {patient.addresses[0].address.state ? `, ${patient.addresses[0].address.state}` : ""}
+                    {patient.addresses[0].address.postalCode ? ` ${patient.addresses[0].address.postalCode}` : ""}
+                  </>
+                )}
+              </p>
+              {(patient.addresses?.[0]?.address?.region || patient.addresses?.[0]?.address?.country) && (
+                <p className="text-[9px] font-bold text-[var(--text-muted)]/60 uppercase tracking-widest mt-1">
+                  {patient.addresses[0].address.region}
+                  {patient.addresses[0].address.region && patient.addresses[0].address.country ? " • " : ""}
+                  {patient.addresses[0].address.country}
+                </p>
               )}
-            </p>
+              {patient.addresses?.[0]?.address?.latitude != null && (
+                <p className="text-[8px] font-bold text-[var(--text-muted)]/40 tracking-wider mt-0.5 font-mono">
+                  {patient.addresses[0].address.latitude.toFixed(4)}, {patient.addresses[0].address.longitude?.toFixed(4)}
+                </p>
+              )}
+            </div>
           </div>
           <div className="space-y-2 border-t border-[var(--card-border)] pt-3 mt-2" ref={navigatorRef}>
             <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest block">
@@ -618,6 +650,22 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
           )}
         </div>
       </div>
+
+      <AddressMapModal
+        isOpen={showEditAddress}
+        onClose={() => setShowEditAddress(false)}
+        address={{
+          street: patient.addresses?.[0]?.address?.street || "",
+          city: patient.addresses?.[0]?.address?.city || "",
+          state: patient.addresses?.[0]?.address?.state || "",
+          postalCode: patient.addresses?.[0]?.address?.postalCode || "",
+          region: patient.addresses?.[0]?.address?.region || "",
+          country: patient.addresses?.[0]?.address?.country || "Philippines",
+          latitude: patient.addresses?.[0]?.address?.latitude ?? null,
+          longitude: patient.addresses?.[0]?.address?.longitude ?? null,
+        }}
+        onSave={handleSaveAddress}
+      />
     </div>
   );
 }

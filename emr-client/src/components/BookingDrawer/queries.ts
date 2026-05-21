@@ -1,5 +1,11 @@
 import { gql } from "@apollo/client";
 
+export const UPDATE_PATIENT = gql`
+  mutation UpdatePatientDemographics($command: UpdatePatientCommandInput!) {
+    updatePatientDemographics(command: $command)
+  }
+`;
+
 export const BOOK_APPOINTMENT = gql`
   mutation BookAppointment($input: BookAppointmentInput!) {
     bookAppointment(input: $input) {
@@ -47,6 +53,10 @@ export const GET_PATIENTS = gql`
             city
             state
             postalCode
+            region
+            country
+            latitude
+            longitude
           }
         }
       }
@@ -94,6 +104,10 @@ export const GET_APPOINTMENT = gql`
             city
             state
             postalCode
+            region
+            country
+            latitude
+            longitude
           }
         }
       }

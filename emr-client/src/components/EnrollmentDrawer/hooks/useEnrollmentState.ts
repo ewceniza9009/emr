@@ -76,7 +76,7 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
   const [acuity, setAcuity] = useState("MODERATE");
 
   // Address Controlled State
-  const [address, setAddress] = useState({ street: "", city: "", state: "", postalCode: "" });
+  const [address, setAddress] = useState({ street: "", city: "", state: "", postalCode: "", region: "", country: "Philippines", latitude: null as number | null, longitude: null as number | null });
 
   // Assessment State
   const [disposition, setDisposition] = useState<EnrollmentDisposition>(EnrollmentDisposition.Cooperative);
@@ -159,7 +159,7 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
 
   useEffect(() => {
     if (lead) {
-      if (lead.mailingAddress) setAddress({ street: lead.mailingAddress.street || "", city: lead.mailingAddress.city || "", state: lead.mailingAddress.state || "", postalCode: lead.mailingAddress.postalCode || "" });
+      if (lead.mailingAddress) setAddress({ street: lead.mailingAddress.street || "", city: lead.mailingAddress.city || "", state: lead.mailingAddress.state || "", postalCode: lead.mailingAddress.postalCode || "", region: lead.mailingAddress.region || "", country: lead.mailingAddress.country || "Philippines", latitude: lead.mailingAddress.latitude ?? null, longitude: lead.mailingAddress.longitude ?? null });
       if (lead.dateOfBirth) setPatientDob(lead.dateOfBirth.split("T")[0]);
       if (lead.biologicalSex) setPatientSex(lead.biologicalSex as BiologicalSex);
       if (lead.genderIdentity) setGenderIdentity(lead.genderIdentity);
@@ -250,7 +250,7 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
       setSdohHousing("STABLE");
       setSdohSupport("ADEQUATE");
       setAcuity("MODERATE");
-      setAddress({ street: "", city: "", state: "", postalCode: "" });
+      setAddress({ street: "", city: "", state: "", postalCode: "", region: "", country: "Philippines", latitude: null, longitude: null });
       setDisposition(EnrollmentDisposition.Cooperative);
       setTechAccess(TechAccessLevel.SmartphoneOnly);
       setCognitive("Autonomous");
@@ -318,7 +318,6 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
     }
     if (activeTab === "LOGISTICS") {
       if (!careNavigatorId) { showToast("Validation Error: Care Navigator missing", "error"); return false; }
-      if (!primaryClinicianId) { showToast("Validation Error: Primary Clinician missing", "error"); return false; }
     }
     return true;
   };
@@ -329,7 +328,7 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
       case "ADMIN": return !!selectedPlan && !!patientDob && !!patientSex && patientSex !== BiologicalSex.Unknown;
       case "LEGAL": return consentTreat && consentHIPAA;
       case "CLINICAL": return !!primaryDiagnosis && primaryDiagnosis.length > 5 && acuity !== "";
-      case "LOGISTICS": return !!careNavigatorId && !!primaryClinicianId;
+      case "LOGISTICS": return !!careNavigatorId;
       default: return false;
     }
   };
@@ -377,6 +376,27 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
   };
 
   const handleVerifyAddress = () => { setIsVerifyingAddress(true); setTimeout(() => { setIsVerifyingAddress(false); }, 1200); };
+
+  const handleSaveAddress = async (addr: typeof address) => {
+    try {
+      await handleUpdateLead({
+        street: addr.street || null,
+        city: addr.city || null,
+        state: addr.state || null,
+        postalCode: addr.postalCode || null,
+        region: addr.region || null,
+        country: addr.country || null,
+        latitude: addr.latitude,
+        longitude: addr.longitude,
+      });
+      setAddress(addr);
+      setIsEditingAddress(false);
+      showToast("Address saved", "success");
+    } catch (e) {
+      console.error(e);
+      showToast("Failed to save address", "error");
+    }
+  };
 
   const handleUpdateLead = async (fields: any) => {
     try { await updateLead({ variables: { input: { patientOutreachId: outreachId, ...fields } } }); }
@@ -559,7 +579,7 @@ export function useEnrollmentState(outreachId: string | null, open: boolean) {
     // Handlers
     checkStepCompleteness, validateCurrentStep,
     handleNext, handleBack, handleCall, handleLogActivity, confirmLogActivity,
-    handleEditContact, handleVerifyAddress, handleUpdateLead,
+    handleEditContact, handleVerifyAddress, handleUpdateLead, handleSaveAddress,
     handleAddContact, handleUpdateContact, handleUpdateLeadPhone,
     startEditingContact, handleRemoveContact,
     handleUnenroll, confirmUnenroll, handleFinalize, verifyInsurance,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -114,7 +114,7 @@ export default function CustomDatePicker({
     return days;
   };
 
-  const getDisplayValue = () => {
+  const getDisplayValue = useCallback(() => {
     if (!value) return "";
     const parts = value.split("-");
     if (parts.length === 3) {
@@ -122,13 +122,13 @@ export default function CustomDatePicker({
       return `${m}/${d}/${y}`;
     }
     return value;
-  };
+  }, [value]);
 
   const [inputValue, setInputValue] = useState(getDisplayValue());
 
   useEffect(() => {
     setInputValue(getDisplayValue());
-  }, [value]);
+  }, [getDisplayValue]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;

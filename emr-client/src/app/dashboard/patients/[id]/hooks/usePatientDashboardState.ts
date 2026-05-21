@@ -14,6 +14,12 @@ export const CREATE_ENCOUNTER = gql`
   }
 `;
 
+export const UPDATE_PATIENT = gql`
+  mutation UpdatePatientDemographics($command: UpdatePatientCommandInput!) {
+    updatePatientDemographics(command: $command)
+  }
+`;
+
 export const GET_PATIENT_DETAILS = gql`
   query GetPatientDetails($id: UUID!) {
     patientById(patientId: $id) {
@@ -32,6 +38,10 @@ export const GET_PATIENT_DETAILS = gql`
           city
           state
           postalCode
+          region
+          country
+          latitude
+          longitude
         }
       }
       phones {
@@ -162,6 +172,7 @@ export function usePatientDashboardState() {
   const [showAddContact, setShowAddContact] = useState(false);
   const [showEditDemographics, setShowEditDemographics] = useState(false);
   const [showEditCommunications, setShowEditCommunications] = useState(false);
+  const [showEditAddress, setShowEditAddress] = useState(false);
   const [editingContact, setEditingContact] = useState<any>(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | undefined>();
   const [summaryAppointmentId, setSummaryAppointmentId] = useState<string | null>(null);
@@ -187,6 +198,7 @@ export function usePatientDashboardState() {
 
   const [createEncounter] = useMutation(CREATE_ENCOUNTER);
   const [deleteContact] = useMutation(DELETE_CONTACT);
+  const [updatePatient] = useMutation(UPDATE_PATIENT);
 
   const handleToggleTelemetry = async () => {
     const newState = !telemetryEnabled;
@@ -372,6 +384,48 @@ export function usePatientDashboardState() {
     }
   };
 
+  const handleSaveAddress = async (addr: {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    region: string;
+    country: string;
+    latitude: number | null;
+    longitude: number | null;
+  }) => {
+    try {
+      await updatePatient({
+        variables: {
+          command: {
+            patientId: params.id as string,
+            street: addr.street || null,
+            city: addr.city || null,
+            state: addr.state || null,
+            postalCode: addr.postalCode || null,
+            region: addr.region || null,
+            country: addr.country || null,
+            latitude: addr.latitude,
+            longitude: addr.longitude,
+          },
+        },
+      });
+      await refetch();
+      setShowEditAddress(false);
+      alert({
+        title: "Address Updated",
+        message: "Patient address has been saved successfully.",
+        type: "success",
+      });
+    } catch (e: any) {
+      alert({
+        title: "Update Failed",
+        message: e.message || "Failed to update patient address.",
+        type: "danger",
+      });
+    }
+  };
+
   const handleDownloadDossier = async () => {
     if (!params.id) return;
     setDownloadingDossier(true);
@@ -430,6 +484,8 @@ export function usePatientDashboardState() {
     setShowEditDemographics,
     showEditCommunications,
     setShowEditCommunications,
+    showEditAddress,
+    setShowEditAddress,
     editingContact,
     setEditingContact,
     selectedAppointmentId,
@@ -465,6 +521,7 @@ export function usePatientDashboardState() {
     refetchAppts,
     summaryData,
     handleDeleteContact,
+    handleSaveAddress,
     handleDownloadDossier,
   };
 }

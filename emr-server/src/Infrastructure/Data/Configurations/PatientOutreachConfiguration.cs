@@ -30,6 +30,7 @@ public class PatientOutreachConfiguration : IEntityTypeConfiguration<PatientOutr
                 a.Property(p => p.City).HasColumnName("mailing_address_city");
                 a.Property(p => p.State).HasColumnName("mailing_address_state");
                 a.Property(p => p.PostalCode).HasColumnName("mailing_address_postal_code");
+                a.Property(p => p.Region).HasColumnName("mailing_address_region");
                 a.Property(p => p.Country).HasColumnName("mailing_address_country");
                 a.Property(p => p.Latitude).HasColumnName("mailing_address_latitude");
                 a.Property(p => p.Longitude).HasColumnName("mailing_address_longitude");

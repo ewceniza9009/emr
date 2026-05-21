@@ -21,6 +21,10 @@ export const GET_LEAD_DETAILS = gql`
         city
         state
         postalCode
+        region
+        country
+        latitude
+        longitude
       }
       dateOfBirth
       biologicalSex

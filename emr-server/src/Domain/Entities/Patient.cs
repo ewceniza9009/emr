@@ -88,6 +88,8 @@ public class Patient : BaseEntity, ITenantEntity
                         State = outreach.MailingAddress.State,
                         PostalCode = outreach.MailingAddress.PostalCode,
                         Country = outreach.MailingAddress.Country,
+                        Latitude = outreach.MailingAddress.Latitude,
+                        Longitude = outreach.MailingAddress.Longitude
                     },
                     Type = AddressType.Home,
                     IsPrimary = true,

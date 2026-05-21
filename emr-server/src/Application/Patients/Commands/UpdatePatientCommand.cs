@@ -18,6 +18,16 @@ public record UpdatePatientCommand : IRequest<bool>
     public List<EmailDto>? Emails { get; init; }
     public string? PrimaryPhone { get; init; }
     public string? PrimaryEmail { get; init; }
+
+    // Primary Address
+    public string? Street { get; init; }
+    public string? City { get; init; }
+    public string? State { get; init; }
+    public string? PostalCode { get; init; }
+    public string? Region { get; init; }
+    public string? Country { get; init; }
+    public double? Latitude { get; init; }
+    public double? Longitude { get; init; }
 }
 
 public record PhoneDto

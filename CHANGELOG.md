@@ -2,6 +2,15 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.3.4] - 2026-05-21
+- Implemented interactive Leaflet maps with double-click snap and draggable markers in AddressMapModal for clinical address pinpointing.
+- Integrated Nominatim OpenStreetMap reverse geocoding API to automatically resolve selected map coordinates into structured address fields.
+- Added C# DB migrations and updated Address entity schema to support geographic Region mappings across patient and facility addresses.
+- Built dynamic patient address mutation (UpdatePatientCommand) allowing clinical staff to update demographics directly from the Core Identity panel.
+- Enhanced FinalizeEnrollmentCommand scheduling workflow to automatically scan, detect conflicts, and auto-adjust intake bookings to the nearest available slot.
+- Fixed CSS class scoping error in CoreIdentityCard where the address edit button group-hover trigger was placed on a sibling instead of the parent container.
+- Resolved a React runtime crash in EncounterSummaryPanel caused by an undefined status variable reference.
+
 ## [1.3.3] - 2026-05-20
 - Integrated nextjs-toploader into Next.js workspace to track route compilation and layout hydration progress dynamically.
 - Configured NextTopLoader with corporate brand teal identity (#14b8a6) to match clinical design guidelines.
