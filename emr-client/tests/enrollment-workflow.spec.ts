@@ -138,6 +138,11 @@ test.describe('Halkyone Clinical OS - Patient Enrollment Workflow', () => {
     await expect(leadCard).toBeVisible({ timeout: 10000 });
     await leadCard.click();
 
+    // Select "Later" scheduling strategy to bypass weekend scheduling issues
+    const laterBtn = page.getByRole('button', { name: 'Later' });
+    await expect(laterBtn).toBeVisible({ timeout: 10000 });
+    await laterBtn.click();
+
     // Verify selection visibility (wait for React state to sync)
     await page.waitForTimeout(500);
 
