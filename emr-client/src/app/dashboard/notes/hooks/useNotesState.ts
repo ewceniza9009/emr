@@ -432,7 +432,7 @@ export function useNotesState() {
   const handleDownload = async () => {
     if (!selectedId) return;
     try {
-      window.open(`http://localhost:5242/api/clinical/export/encounter/${selectedId}`, '_blank');
+      window.open(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:34732'}/api/clinical/export/encounter/${selectedId}`, '_blank');
     } catch (err) {
       showToast("FAILED TO GENERATE PDF", "error");
     }

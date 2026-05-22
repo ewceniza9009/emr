@@ -16,11 +16,7 @@ class LocalNotificationServiceImpl {
           title,
           body,
           id: new Date().getTime(),
-          schedule: { at: new Date(Date.now() + delayMs) },
-          sound: undefined,
-          attachments: null,
-          actionTypeId: '',
-          extra: null
+          schedule: { at: new Date(Date.now() + delayMs) }
         }
       ]
     });

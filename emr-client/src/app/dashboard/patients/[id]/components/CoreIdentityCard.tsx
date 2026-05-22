@@ -619,7 +619,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                   {contact.email && (
                     <a
                       href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(contact.email)}&su=${encodeURIComponent("Halkyone Clinical OS - Caregiver Mobile Portal Access")}&body=${encodeURIComponent(
-                        `Hello ${contact.firstName},\n\nYou have been granted secure Caregiver Access to ${patient.firstName} ${patient.lastName}'s digital clinical room.\n\nPlease use the following link to instantly log in on your mobile device:\n\nhttp://localhost:3672/login?token=DEMO_CAREGIVER_${patient.mrn}`
+                        `Hello ${contact.firstName},\n\nYou have been granted secure Caregiver Access to ${patient.firstName} ${patient.lastName}'s digital clinical room.\n\nPlease use the following link to instantly log in on your mobile device:\n\n${window.location.origin}/login?token=DEMO_CAREGIVER_${patient.mrn}`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"

@@ -75,7 +75,6 @@ export default function TriageDashboard() {
     variables: {
       search: debouncedSearch || undefined,
       isAlert: filters.isAlert,
-      isAlert: filters.isAlert,
       directiveTypes: filters.directiveTypes
     },
     pollInterval: 3000,
@@ -88,7 +87,7 @@ export default function TriageDashboard() {
 
   useEffect(() => {
     const connection = new HubConnectionBuilder()
-      .withUrl("http://localhost:5245/hubs/telemetry")
+      .withUrl(process.env.NEXT_PUBLIC_SIGNALR_ENDPOINT || "http://localhost:34732/hubs/telemetry")
       .configureLogging(LogLevel.Information)
       .withAutomaticReconnect()
       .build();
