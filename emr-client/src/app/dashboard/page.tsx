@@ -38,6 +38,7 @@ import { useState, useEffect } from "react";
 import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
 import BookingDrawer from "@/components/BookingDrawer";
 import AddPatientDrawer from "@/components/AddPatientDrawer";
+import { ShiftReportModal } from "@/components/ShiftReportModal";
 import { PermissionGate } from "@/components/PermissionGate";
 import {
   AreaChart,
@@ -128,6 +129,8 @@ export default function Dashboard() {
   const [greeting, setGreeting] = useState("Good morning");
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportAsAdmin, setReportAsAdmin] = useState(false);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -152,6 +155,7 @@ export default function Dashboard() {
     >
       <BookingDrawer open={isBookingOpen} onClose={() => setIsBookingOpen(false)} onBooked={() => { }} />
       <AddPatientDrawer open={isAddPatientOpen} onClose={() => setIsAddPatientOpen(false)} onSuccess={() => { }} />
+      <ShiftReportModal open={isReportOpen} onClose={() => setIsReportOpen(false)} isAdminView={reportAsAdmin} />
       {/* Premium Hero Header - Compact */}
       <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2rem] bg-slate-900 border border-white/10 p-6 sm:p-8 shadow-xl">
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-teal-500/20 to-blue-600/20 blur-[100px] pointer-events-none" />
@@ -172,7 +176,7 @@ export default function Dashboard() {
           <div className="flex flex-wrap gap-2">
             <PermissionGate permission="scheduling:manage">
               <button
-                onClick={() => router.push("/dashboard/schedule?action=new")}
+                onClick={() => setIsBookingOpen(true)}
                 className="px-5 h-10 rounded-xl bg-white text-slate-900 text-xs font-bold hover:bg-teal-50 transition-all flex items-center gap-2 shadow-xl active:scale-95"
               >
                 <Plus className="w-4 h-4" />
@@ -181,7 +185,11 @@ export default function Dashboard() {
             </PermissionGate>
             <PermissionGate permission="analytics:view">
               <button
-                onClick={() => showToast("Preparing clinical report...", "info")}
+                onClick={() => {
+                  const isAdmin = session?.user?.roles?.includes('Admin') || false;
+                  setReportAsAdmin(isAdmin);
+                  setIsReportOpen(true);
+                }}
                 className="px-5 h-10 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold hover:bg-white/10 transition-all flex items-center gap-2 backdrop-blur-md active:scale-95"
               >
                 <BarChart3 className="w-4 h-4 text-teal-400" />

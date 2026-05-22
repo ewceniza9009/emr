@@ -1,7 +1,16 @@
 {
-  "version": "1.3.6",
-  "build": "20260522.2",
+  "version": "1.3.7",
+  "build": "20260522.3",
   "changelog": [
+    {
+      "v": "v1.3.7",
+      "date": "2026-05-22",
+      "items": [
+        "Implemented Shift Report modal for practitioners and admins with dynamic database views.",
+        "Added date filtering capabilities for historical clinical shift reports.",
+        "Integrated simulated RVU calculations and SDOH tracking metrics into clinical reports."
+      ]
+    },
     {
       "v": "v1.3.6",
       "date": "2026-05-22",

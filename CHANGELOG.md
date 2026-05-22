@@ -2,6 +2,11 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.3.7] - 2026-05-22
+- Implemented Shift Report modal for practitioners and admins with dynamic database views.
+- Added date filtering capabilities for historical clinical shift reports.
+- Integrated simulated RVU calculations and SDOH tracking metrics into clinical reports.
+
 ## [1.3.6] - 2026-05-22
 - Fixed clinical alert case creation mapping in mobile patient chat (SendMobileChatMessageCommand).
 - Resolved PostgreSQL DbUpdateException by dynamically assigning a default Practitioner during CareNavigationCase initialization.
