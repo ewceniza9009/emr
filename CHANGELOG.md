@@ -2,6 +2,11 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.3.5] - 2026-05-22
+- Implemented a robust NegEx-inspired clinical negation parser using compiled regular expressions to process emergency secure chat overrides.
+- Refactored secure patient chat messaging from GraphQL mutations into a MediatR command and handler following the CQRS pattern.
+- Added a comprehensive set of unit tests validating prefix/postfix negation scopes and mixed clinical warning scenarios in secure messaging.
+
 ## [1.3.4] - 2026-05-21
 - Implemented interactive Leaflet maps with double-click snap and draggable markers in AddressMapModal for clinical address pinpointing.
 - Integrated Nominatim OpenStreetMap reverse geocoding API to automatically resolve selected map coordinates into structured address fields.

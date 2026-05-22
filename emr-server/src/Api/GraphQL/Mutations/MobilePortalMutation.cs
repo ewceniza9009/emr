@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Application.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using MediatR;
+using Application.Patients.Commands;
 
 namespace Api.GraphQL.Mutations;
 
@@ -20,113 +22,15 @@ public class MobilePortalMutation
         Guid patientId,
         Guid careThreadId,
         string content,
-        [Service] IApplicationDbContext context,
+        [Service] IMediator mediator,
         [Service] IHubContext<ChatHub> hubContext,
-        [Service] INotificationService notificationService,
-        [Service] ISecurityAuditService auditService,
         CancellationToken cancellationToken
     )
     {
-        var patient = await context.Patients
-            .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(p => p.PatientId == patientId, cancellationToken);
+        var command = new SendMobileChatMessageCommand(patientId, careThreadId, content);
+        var message = await mediator.Send(command, cancellationToken);
 
-        if (patient == null)
-        {
-            throw new ArgumentException("Patient not found.");
-        }
-
-        var tenantId = patient.TenantId;
-
-        if (careThreadId == Guid.Empty)
-        {
-            var activeThread = await context.CareThreads
-                .FirstOrDefaultAsync(t => t.PatientId == patientId && t.IsActive, cancellationToken);
-
-            if (activeThread != null)
-            {
-                careThreadId = activeThread.CareThreadId;
-            }
-            else
-            {
-                var thread = new CareThread
-                {
-                    CareThreadId = Guid.NewGuid(),
-                    TenantId = tenantId,
-                    PatientId = patientId,
-                    Subject = "Mobile Chat",
-                    IsActive = true
-                };
-                context.CareThreads.Add(thread);
-                careThreadId = thread.CareThreadId;
-            }
-        }
-
-        var message = new ChatMessage
-        {
-            CareThreadId = careThreadId,
-            TenantId = tenantId,
-            SenderRole = "patient",
-            Content = content,
-            Timestamp = DateTimeOffset.UtcNow,
-            IsAttachment = false
-        };
-
-        context.ChatMessages.Add(message);
-
-        // NLP Distress Triage Intercept logic
-        var lowerContent = content.ToLower();
-        bool isEmergency = lowerContent.Contains("chest pain") 
-            || lowerContent.Contains("cannot breathe") 
-            || lowerContent.Contains("difficulty breathing")
-            || lowerContent.Contains("heart attack")
-            || lowerContent.Contains("severe dyspnea")
-            || lowerContent.Contains("suffocating")
-            || lowerContent.Contains("choking")
-            || lowerContent.Contains("suicidal");
-
-        if (isEmergency)
-        {
-            var activeCase = await context.CareNavigationCases
-                .FirstOrDefaultAsync(c => c.PatientId == patientId && c.Status == Domain.Enums.CaseStatus.Open, cancellationToken);
-
-            if (activeCase != null)
-            {
-                activeCase.AcuityLevel = Domain.Enums.AcuityLevel.Critical;
-                
-                if (activeCase.NavigatorId != Guid.Empty)
-                {
-                    await notificationService.SendUserNotificationAsync(
-                        activeCase.NavigatorId.ToString(),
-                        $"CRITICAL TRIAGE ALERT: {patient.FirstName} {patient.LastName}",
-                        $"Emergency keyword detected in secure chat: \"{content}\". Patient acuity auto-escalated to Critical.",
-                        Domain.Enums.NotificationPriority.Critical,
-                        "Clinical",
-                        $"/dashboard/patients/{patientId}"
-                    );
-                }
-            }
-            else
-            {
-                await notificationService.SendGlobalNotificationAsync(
-                    $"CRITICAL TRIAGE ALERT: {patient.FirstName} {patient.LastName}",
-                    $"Emergency keyword detected in secure chat: \"{content}\". Patient has no active care navigator assigned.",
-                    Domain.Enums.NotificationPriority.Critical,
-                    "Clinical",
-                    $"/dashboard/patients/{patientId}"
-                );
-            }
-
-            await auditService.LogActionAsync(
-                "PATIENT_ACUITY_AUTO_ESCALATED",
-                $"Clinical auto-triage triggered by chat message: \"{content}\"",
-                patientId.ToString()
-            );
-        }
-
-        await context.SaveChangesAsync(cancellationToken);
-
-        await hubContext.Clients.Group($"CareThread_{careThreadId}").SendAsync("ReceiveMessage", new {
+        await hubContext.Clients.Group($"CareThread_{message.CareThreadId}").SendAsync("ReceiveMessage", new {
             chatMessageId = message.ChatMessageId,
             careThreadId = message.CareThreadId,
             senderRole = message.SenderRole,
