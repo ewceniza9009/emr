@@ -29,13 +29,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Automatically detect host to bridge between web (localhost), android emulator (10.0.2.2), and production (Vercel)
 const getAutoApiUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
-    return envUrl;
-  }
-
   const hostname = window.location.hostname;
+
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'https://localhost:34731';
+    return envUrl || 'https://localhost:34731';
   }
 
   // Deployed production Vercel apps or domain endpoints should target the envUrl or standard local port
@@ -44,7 +41,15 @@ const getAutoApiUrl = () => {
   }
 
   // Android emulator loopback to host localhost
-  return 'https://10.0.2.2:34731';
+  if (envUrl && (envUrl.includes('localhost') || envUrl.includes('127.0.0.1'))) {
+    const match = envUrl.match(/:(\d+)/);
+    if (match) {
+      const scheme = envUrl.startsWith('https') ? 'https' : 'http';
+      return `${scheme}://10.0.2.2:${match[1]}`;
+    }
+  }
+
+  return envUrl || 'https://10.0.2.2:34731';
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -59,6 +64,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Self-healing: Clear cached emulator IP if the user has loaded on a deployed production domain
     if (cached && cached.includes('10.0.2.2') && !window.location.hostname.match(/^(localhost|127\.0\.0\.1)$/)) {
+      return autoUrl;
+    }
+
+    // Self-healing: Clear cached url if it is the old fallback port but we have a configured autoUrl
+    if (cached === 'https://localhost:34731' && autoUrl !== 'https://localhost:34731') {
       return autoUrl;
     }
 
