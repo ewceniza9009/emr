@@ -154,6 +154,7 @@ export function ShiftReportModal({
                     <CustomDatePicker 
                       value={selectedDate}
                       onChange={(val) => setSelectedDate(val)}
+                      align="right"
                     />
                   </div>
                   <div className="h-6 w-[1px] bg-[var(--card-border)] hidden sm:block" />

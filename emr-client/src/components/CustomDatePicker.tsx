@@ -11,6 +11,7 @@ interface Props {
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  align?: "left" | "right";
 }
 
 export default function CustomDatePicker({
@@ -20,6 +21,7 @@ export default function CustomDatePicker({
   required,
   disabled,
   className = "",
+  align = "left",
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -161,10 +163,10 @@ export default function CustomDatePicker({
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       <div className={`relative ${disabled ? "opacity-50 pointer-events-none" : ""}`}>
-        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--primary)] opacity-40 pointer-events-none" />
+        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--primary)] opacity-40 pointer-events-none" />
         <input
           type="text"
-          className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-11 pr-4 py-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-50 min-h-[40px] shadow-inner"
+          className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl pl-9 pr-2 py-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50 transition-all placeholder:text-[var(--text-muted)] placeholder:opacity-50 min-h-[40px] shadow-inner"
           value={inputValue}
           placeholder={placeholder}
           onClick={() => setIsOpen(true)}
@@ -181,7 +183,9 @@ export default function CustomDatePicker({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: dropdownPosition === "top" ? 8 : -8, scale: 0.96 }}
             transition={{ duration: 0.15 }}
-            className={`absolute ${dropdownPosition === "top" ? "bottom-full mb-2" : "top-full mt-2"} left-0 right-0 md:w-80 md:right-auto z-[999] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.6)] select-none`}
+            className={`absolute ${dropdownPosition === "top" ? "bottom-full mb-2" : "top-full mt-2"} ${
+              align === "right" ? "right-0" : "left-0"
+            } w-[280px] sm:w-80 z-[999] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.6)] select-none`}
           >
             <div className="flex items-center justify-between mb-4">
               <button

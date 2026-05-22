@@ -35,7 +35,7 @@ export default function DrawerHeader({ state, lead, onClose }: Props) {
 
       {/* Progress Stepper Navigation */}
       <div className="flex-1 flex justify-center px-4">
-        <div className="flex bg-[var(--input-bg)]/50 rounded-xl p-1 border border-[var(--card-border)] backdrop-blur-sm shadow-inner gap-1">
+        <div className="flex bg-slate-200/50 dark:bg-neutral-900/60 backdrop-blur-md rounded-full p-1 border border-slate-300/40 dark:border-neutral-800/40 shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] gap-0.5">
           {(["OUTREACH", "ADMIN", "LEGAL", "CLINICAL", "LOGISTICS"] as TabType[]).map((tab, idx) => {
             const isActive = state.activeTab === tab;
             const isComplete = state.checkStepCompleteness(tab);
@@ -46,25 +46,23 @@ export default function DrawerHeader({ state, lead, onClose }: Props) {
                 key={tab}
                 onClick={() => !isLocked && state.setActiveTab(tab)}
                 disabled={isLocked}
-                className={`relative px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-[0.15em] transition-all flex items-center gap-2 group/tab
-                ${isActive ? "bg-[var(--primary)] text-black shadow-[0_0_15px_rgba(var(--primary-rgb),0.25)]" : isLocked ? "opacity-30 cursor-not-allowed grayscale" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5"}`}
+                className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.16em] transition-all duration-300 flex items-center gap-2 group/tab border border-transparent
+                ${isActive 
+                  ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
+                  : isLocked 
+                    ? "opacity-35 cursor-not-allowed text-slate-400 dark:text-neutral-600" 
+                    : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}
               >
-                <span
-                  className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center text-[7px] transition-all
-                ${isActive ? "border-black/20 bg-black/5" : isComplete ? "bg-teal-500/20 border-teal-500/40 text-teal-500" : isLocked ? "border-[var(--card-border)]/30 opacity-50" : "border-[var(--card-border)]"}`}
-                >
-                  {isComplete && !isActive ? (
-                    <Check className="w-2 h-2" />
-                  ) : isLocked ? (
-                    <FolderLock className="w-2 h-2" />
-                  ) : (
-                    `0${idx + 1}`
-                  )}
-                </span>
-                {tab}
-                {isActive && (
-                  <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-0.75 h-0.75 rounded-full bg-black/40" />
+                {isComplete && !isActive ? (
+                  <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400 stroke-[3]" />
+                ) : isLocked ? (
+                  <FolderLock className="w-3 h-3 text-slate-400 dark:text-neutral-600" />
+                ) : (
+                  <span className={`text-[8.5px] font-black ${isActive ? "text-[var(--primary)]" : "text-slate-400 dark:text-neutral-500"}`}>
+                    0{idx + 1}
+                  </span>
                 )}
+                <span>{tab}</span>
               </button>
             );
           })}

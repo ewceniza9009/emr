@@ -224,41 +224,56 @@ export default function PatientDetailPage() {
 
         {/* Center/Right Column: High-Density Clinical Tabs */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="flex items-center gap-1 p-1 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl w-fit flex-wrap">
+          <div className="flex items-center gap-0.5 p-1 bg-slate-200/50 dark:bg-neutral-900/60 backdrop-blur-md rounded-full border border-slate-300/40 dark:border-neutral-800/40 shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] w-fit flex-wrap">
             <button
               onClick={() => setActiveTab("snapshot")}
-              className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95
-                           ${activeTab === "snapshot" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+              className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
+                           ${activeTab === "snapshot" 
+                             ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
+                             : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}
             >
-              <Activity className="w-3.5 h-3.5" /> Clinical Snapshot
+              <Activity className={`w-3.5 h-3.5 transition-colors ${activeTab === "snapshot" ? "text-[var(--primary)]" : "text-slate-400 dark:text-neutral-500 group-hover/tab:text-slate-700 dark:group-hover/tab:text-neutral-300"}`} />
+              <span>Clinical Snapshot</span>
             </button>
             <button
               onClick={() => setActiveTab("history")}
-              className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95
-                           ${activeTab === "history" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+              className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
+                           ${activeTab === "history" 
+                             ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
+                             : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}
             >
-              <History className="w-3.5 h-3.5" /> Historical Activity
+              <History className={`w-3.5 h-3.5 transition-colors ${activeTab === "history" ? "text-[var(--primary)]" : "text-slate-400 dark:text-neutral-500 group-hover/tab:text-slate-700 dark:group-hover/tab:text-neutral-300"}`} />
+              <span>Historical Activity</span>
             </button>
             <button
               onClick={() => setActiveTab("activity")}
-              className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95
-                           ${activeTab === "activity" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+              className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
+                           ${activeTab === "activity" 
+                             ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
+                             : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}
             >
-              <Calendar className="w-3.5 h-3.5" /> Visit Schedule
+              <Calendar className={`w-3.5 h-3.5 transition-colors ${activeTab === "activity" ? "text-[var(--primary)]" : "text-slate-400 dark:text-neutral-500 group-hover/tab:text-slate-700 dark:group-hover/tab:text-neutral-300"}`} />
+              <span>Visit Schedule</span>
             </button>
             <button
               onClick={() => setActiveTab("logistics")}
-              className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95
-                           ${activeTab === "logistics" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+              className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
+                           ${activeTab === "logistics" 
+                             ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
+                             : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}
             >
-              <Truck className="w-3.5 h-3.5" /> Logistics & Fleet
+              <Truck className={`w-3.5 h-3.5 transition-colors ${activeTab === "logistics" ? "text-[var(--primary)]" : "text-slate-400 dark:text-neutral-500 group-hover/tab:text-slate-700 dark:group-hover/tab:text-neutral-300"}`} />
+              <span>Logistics & Fleet</span>
             </button>
             <button
               onClick={() => setActiveTab("coordination")}
-              className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95
-                           ${activeTab === "coordination" ? "bg-[var(--primary)] text-white shadow-lg" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+              className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
+                           ${activeTab === "coordination" 
+                             ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
+                             : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}
             >
-              <CheckCircle2 className="w-3.5 h-3.5" /> Coordination & Records
+              <CheckCircle2 className={`w-3.5 h-3.5 transition-colors ${activeTab === "coordination" ? "text-[var(--primary)]" : "text-slate-400 dark:text-neutral-500 group-hover/tab:text-slate-700 dark:group-hover/tab:text-neutral-300"}`} />
+              <span>Coordination & Records</span>
             </button>
           </div>
 
