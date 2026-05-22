@@ -773,6 +773,7 @@ const CareHub: React.FC = () => {
         isOpen={showSosModal}
         onDidDismiss={() => setShowSosModal(false)}
         className="sos-modal"
+        style={{ "--border-radius": "24px" }}
       >
         {hasAdvanceDirective ? (
           <div className="p-6 bg-white dark:bg-[#090b10] border border-rose-200 dark:border-rose-950/40 rounded-2xl text-center space-y-4 h-full flex flex-col justify-center items-center overflow-y-auto">

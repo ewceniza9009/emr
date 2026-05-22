@@ -265,11 +265,13 @@ public class SendMobileChatMessageCommandTests
         var careThreads = new List<CareThread>().BuildMockDbSet();
         var chatMessages = new List<ChatMessage>().BuildMockDbSet();
         var careCases = new List<CareNavigationCase>().BuildMockDbSet();
+        var practitioners = new List<Practitioner> { new Practitioner { PractitionerId = Guid.NewGuid(), TenantId = tenantId } }.BuildMockDbSet();
 
         _mockContext.Setup(c => c.Patients).Returns(patients.Object);
         _mockContext.Setup(c => c.CareThreads).Returns(careThreads.Object);
         _mockContext.Setup(c => c.ChatMessages).Returns(chatMessages.Object);
         _mockContext.Setup(c => c.CareNavigationCases).Returns(careCases.Object);
+        _mockContext.Setup(c => c.Practitioners).Returns(practitioners.Object);
 
         // Act
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -279,7 +281,7 @@ public class SendMobileChatMessageCommandTests
 
         _mockNotificationService.Verify(n => n.SendGlobalNotificationAsync(
             "CRITICAL TRIAGE ALERT: John Doe",
-            $"Emergency keyword detected in secure chat: \"{messageContent}\". Patient has no active care navigator assigned.",
+            $"Emergency keyword detected in secure chat: \"{messageContent}\". New care case created.",
             NotificationPriority.Critical,
             "Clinical",
             $"/dashboard/patients/{patientId}"

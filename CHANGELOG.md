@@ -2,6 +2,12 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.3.6] - 2026-05-22
+- Fixed clinical alert case creation mapping in mobile patient chat (SendMobileChatMessageCommand).
+- Resolved PostgreSQL DbUpdateException by dynamically assigning a default Practitioner during CareNavigationCase initialization.
+- Fixed UI layout duplication bug in Triage Grid headers to optimize screen real estate.
+- Configured 'Claimed' Triage Note action to correctly suppress global Priority Alerts.
+
 ## [1.3.5] - 2026-05-22
 - Implemented a robust NegEx-inspired clinical negation parser using compiled regular expressions to process emergency secure chat overrides.
 - Refactored secure patient chat messaging from GraphQL mutations into a MediatR command and handler following the CQRS pattern.

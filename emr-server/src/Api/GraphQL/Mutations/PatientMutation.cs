@@ -132,4 +132,24 @@ public class PatientMutation
         );
         return result;
     }
+
+    [Authorize(Policy = "CanEditPatients")]
+    [UseClinicalAccess(argumentName: "PatientId")]
+    public async Task<bool> UpdateTriageNote(
+        UpdateTriageNoteCommandInput input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken
+    )
+    {
+        var command = new UpdateTriageNoteCommand(input.PatientId, input.TriageNote);
+        var result = await mediator.Send(command, cancellationToken);
+        await _auditService.LogActionAsync(
+            "PATIENT_TRIAGE_NOTE_UPDATED",
+            "Triage note updated.",
+            input.PatientId.ToString()
+        );
+        return result;
+    }
 }
+
+public record UpdateTriageNoteCommandInput(Guid PatientId, string? TriageNote);

@@ -7,8 +7,8 @@ import HalcyonPortal from "./Portal";
 import { PermissionGate } from "./PermissionGate";
 
 const SAVE_TRIAGE_NOTE = gql`
-  mutation SaveTriageNote($input: SaveClinicalNoteCommandInput!) {
-    saveClinicalNote(input: $input)
+  mutation UpdateTriageNote($input: UpdateTriageNoteCommandInput!) {
+    updateTriageNote(input: $input)
   }
 `;
 
@@ -40,8 +40,7 @@ export default function TriageNoteDrawer({ isOpen, onClose, patientId, patientNa
       variables: {
         input: {
           patientId,
-          content: `[Triage: ${urgency}] ${content}`,
-          type: "Triage"
+          triageNote: `[Triage: ${urgency}] ${content}`
         }
       }
     });

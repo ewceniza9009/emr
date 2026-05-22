@@ -11,6 +11,8 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
+using Hangfire;
+using Hangfire.Storage.SQLite;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -68,6 +70,15 @@ try
     builder.Services.AddHostedService<TelemetrySimulatorService>();
 
     builder.Services.AddApiServices(builder.Configuration);
+
+    // Background Jobs with Hangfire
+    builder.Services.AddHangfire(configuration => configuration
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UseSQLiteStorage("Data Source=hangfire.db;"));
+
+    builder.Services.AddHangfireServer();
 
     // Enterprise Observability
     builder
@@ -137,6 +148,14 @@ try
 
     app.UseCors("PalliativeCorsPolicy");
     app.UseRouting();
+
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = new[] { new Hangfire.Dashboard.LocalRequestsOnlyAuthorizationFilter() }
+    });
+
+    RecurringJob.AddOrUpdate("daily-report", () => Console.WriteLine("Generated Daily Clinical Report"), Cron.Daily());
+    RecurringJob.AddOrUpdate("sms-reminders", () => Console.WriteLine("Sent SMS Reminders to patients"), Cron.Hourly());
 
     app.UseAuthentication();
     app.UseAuthorization();

@@ -28,6 +28,7 @@ import {
   storefront
 } from 'ionicons/icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { LocalNotificationService } from '../services/LocalNotificationService';
 
 const GET_MY_PRESCRIPTIONS = gql`
   query GetMyPrescriptions($patientId: UUID!) {
@@ -258,13 +259,21 @@ const Pharmacy: React.FC = () => {
     setRefillCompleted(false);
   };
 
-  const toggleReminders = () => {
-    setRemindersEnabled(!remindersEnabled);
-    setToastMessage(
-      !remindersEnabled
-        ? '🔔 Smart Pill Reminders activated. Local push notifications enabled.'
-        : '🔕 Pill reminders disabled.'
-    );
+  const toggleReminders = async () => {
+    const newStatus = !remindersEnabled;
+    setRemindersEnabled(newStatus);
+    
+    if (newStatus) {
+      setToastMessage('🔔 Smart Pill Reminders activated. Local push notifications enabled.');
+      await LocalNotificationService.schedulePillReminder(
+        "Medication Reminder",
+        "Time for your scheduled care dose. Please log your intake."
+      );
+    } else {
+      setToastMessage('🔕 Pill reminders disabled.');
+      await LocalNotificationService.cancelAll();
+    }
+    
     setShowToast(true);
   };
 

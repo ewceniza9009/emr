@@ -11,6 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
+    <PackageReference Include="Hangfire.Core" Version="1.8.23" />
+    <PackageReference Include="Hangfire.Storage.SQLite" Version="0.4.3" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="14.3.1" />
     <PackageReference Include="HotChocolate.ApolloFederation" Version="14.3.1" />
     <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="14.3.1" />

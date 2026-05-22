@@ -123,6 +123,8 @@ public class SendMobileChatMessageCommandHandler
 
         if (isEmergency)
         {
+            patient.TriageNote = null; // Clear previous triage notes if any
+
             var activeCase = await _context.CareNavigationCases.FirstOrDefaultAsync(
                 c => c.PatientId == request.PatientId && c.Status == CaseStatus.Open,
                 cancellationToken
@@ -146,9 +148,28 @@ public class SendMobileChatMessageCommandHandler
             }
             else
             {
+                var defaultNavigator = await _context.Practitioners
+                    .FirstOrDefaultAsync(p => p.TenantId == patient.TenantId, cancellationToken);
+                    
+                if (defaultNavigator != null)
+                {
+                    // Create a new care navigation case
+                    activeCase = new CareNavigationCase
+                    {
+                        CaseId = Guid.NewGuid(),
+                        TenantId = patient.TenantId,
+                        PatientId = patient.PatientId,
+                        NavigatorId = defaultNavigator.PractitionerId,
+                        Status = CaseStatus.Open,
+                        AcuityLevel = AcuityLevel.Critical,
+                        OpenedAt = DateTimeOffset.UtcNow
+                    };
+                    _context.CareNavigationCases.Add(activeCase);
+                }
+
                 await _notificationService.SendGlobalNotificationAsync(
                     $"CRITICAL TRIAGE ALERT: {patient.FirstName} {patient.LastName}",
-                    $"Emergency keyword detected in secure chat: \"{request.Content}\". Patient has no active care navigator assigned.",
+                    $"Emergency keyword detected in secure chat: \"{request.Content}\". New care case created.",
                     NotificationPriority.Critical,
                     "Clinical",
                     $"/dashboard/patients/{request.PatientId}"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, gql } from "@apollo/client";
 import {
   AlertTriangle,
@@ -12,12 +12,15 @@ import {
   ChevronRight,
   TrendingUp,
   History,
-  ClipboardList
+  ClipboardList,
+  CheckCircle2
 } from "lucide-react";
+import { useMutation } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 
 import UploadDocumentDrawer from "@/components/UploadDocumentDrawer";
 import TriageNoteDrawer from "@/components/TriageNoteDrawer";
@@ -50,6 +53,12 @@ const GET_TRIAGE_DASHBOARD_DATA = gql`
   }
 `;
 
+const SAVE_TRIAGE_NOTE = gql`
+  mutation UpdateTriageNote($input: UpdateTriageNoteCommandInput!) {
+    updateTriageNote(input: $input)
+  }
+`;
+
 export default function TriageDashboard() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -66,12 +75,36 @@ export default function TriageDashboard() {
     variables: {
       search: debouncedSearch || undefined,
       isAlert: filters.isAlert,
+      isAlert: filters.isAlert,
       directiveTypes: filters.directiveTypes
     },
+    pollInterval: 3000,
     notifyOnNetworkStatusChange: true
   });
 
+  const [claimTriage, { loading: isClaiming }] = useMutation(SAVE_TRIAGE_NOTE);
+
   const isInitialLoading = networkStatus === 1; // Initial load only
+
+  useEffect(() => {
+    const connection = new HubConnectionBuilder()
+      .withUrl("http://localhost:5245/hubs/telemetry")
+      .configureLogging(LogLevel.Information)
+      .withAutomaticReconnect()
+      .build();
+
+    connection.start().then(() => {
+      console.log("Connected to TelemetryHub for triage alerts");
+      connection.on("ReceiveAlert", (patientId, alertMessage) => {
+        console.log("Received alert, refetching triage list", patientId, alertMessage);
+        refetch();
+      });
+    }).catch(err => console.error("Error connecting to TelemetryHub:", err));
+
+    return () => {
+      connection.stop();
+    };
+  }, [refetch]);
 
   if (isInitialLoading) return (
     <div className="space-y-4 animate-in fade-in duration-700">
@@ -136,6 +169,23 @@ export default function TriageDashboard() {
     setSelectedPatientId(patientId);
     setSelectedPatientName(name);
     setIsTriageNoteOpen(true);
+  };
+
+  const handleClaim = async (patientId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await claimTriage({
+        variables: {
+          input: {
+            patientId,
+            triageNote: "[Triage: Critical] Triage Claimed. Acknowledged by Navigator."
+          }
+        }
+      });
+      refetch();
+    } catch (err) {
+      console.error("Failed to claim triage:", err);
+    }
   };
 
   const alertCount = triageItems.filter((i: any) => i.isAlert).length;
@@ -216,11 +266,11 @@ export default function TriageDashboard() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-[var(--input-bg)] text-[var(--text-muted)] text-[10px] uppercase font-bold tracking-widest border-b border-[var(--card-border)]">
-                    <th className="px-8 py-4">Patient Identity</th>
-                    <th className="px-8 py-4 text-center">Symptom Burden</th>
-                    <th className="px-8 py-4">Clinical Narrative</th>
-                    <th className="px-8 py-4 text-center">Advance Directive</th>
-                    <th className="px-8 py-4 text-right">Care Actions</th>
+                    <th className="px-4 py-4">Patient Identity</th>
+                    <th className="px-4 py-4 text-center">Symptom Burden</th>
+                    <th className="px-4 py-4">Clinical Narrative</th>
+                    <th className="px-4 py-4 text-center">Advance Directive</th>
+                    <th className="px-4 py-4 text-right">Care Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--card-border)]">
@@ -229,44 +279,54 @@ export default function TriageDashboard() {
                       key={p.patientId}
                       className="group hover:bg-[var(--primary-glow)] transition-colors cursor-pointer active:scale-[0.995]"
                     >
-                      <td className="px-8 py-5" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
-                        <div className="flex items-center gap-4">
-                          <div className={`w-2.5 h-2.5 rounded-full ${p.isAlert ? 'bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.4)]' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]'}`} />
+                      <td className="px-4 py-3" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-2 h-2 rounded-full ${p.isAlert ? 'bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.4)]' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]'}`} />
                           <div>
-                            <p className="text-sm font-bold text-[var(--text-primary)] tracking-tight group-hover:text-[var(--primary)] transition-colors">{p.firstName} {p.lastName}</p>
+                            <p className="text-xs font-bold text-[var(--text-primary)] tracking-tight group-hover:text-[var(--primary)] transition-colors">{p.firstName} {p.lastName}</p>
                             <p className="text-[10px] text-[var(--text-muted)] font-mono opacity-60">MRN: {p.mrn}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-5 text-center" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
-                        <div className={`inline-flex items-center justify-center px-4 py-1.5 rounded-xl text-[11px] font-black tracking-tight border shadow-sm
+                      <td className="px-4 py-3 text-center" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
+                        <div className={`inline-flex items-center justify-center px-3 py-1 rounded-xl text-[10px] font-black tracking-tight border shadow-sm
                           ${p.latestPainScore > 7 ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}`}>
-                          Pain Score: {p.latestPainScore}/10
+                          Pain: {p.latestPainScore}/10
                         </div>
                       </td>
-                      <td className="px-8 py-5" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
-                        <div className="max-w-[200px] space-y-1">
-                          <p className="text-[10px] text-[var(--text-primary)] font-medium line-clamp-2 italic opacity-80">
+                      <td className="px-4 py-3" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
+                        <div className="max-w-[180px] space-y-1">
+                          <p className="text-[10px] text-[var(--text-primary)] font-medium line-clamp-1 italic opacity-80">
                             {p.triageNote || (p.isAlert ? "Patient reporting breakthrough pain. Requires symptom review." : "Clinical status remains stable based on last encounter.")}
                           </p>
-                          <div className="flex items-center gap-2 opacity-40">
-                            <History className="w-2.5 h-2.5" />
-                            <span className="text-[9px] font-bold uppercase tracking-widest">{p.triageNote ? "Triage Note Active" : "Last Note: 2h ago"}</span>
+                          <div className="flex items-center gap-1.5 opacity-40">
+                            <History className="w-2 h-2" />
+                            <span className="text-[8px] font-bold uppercase tracking-widest">{p.triageNote ? "Triage Note Active" : "Last Note: 2h ago"}</span>
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-5 text-center" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
-                        <span className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border shadow-sm
+                      <td className="px-4 py-3 text-center" onClick={() => router.push(`/dashboard/patients/${p.patientId}`)}>
+                        <span className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.15em] border shadow-sm
                           ${p.advanceDirectiveType !== 'None' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : 'bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--card-border)] opacity-40'}`}>
                           {p.advanceDirectiveType}
                         </span>
                       </td>
-                      <td className="px-8 py-5 text-right">
-                        <div className="flex items-center justify-end gap-3">
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {p.isAlert && (
+                            <button
+                              onClick={(e) => handleClaim(p.patientId, e)}
+                              disabled={isClaiming}
+                              className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 shadow-sm"
+                              title="Claim Alert"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                            </button>
+                          )}
                           <PermissionGate permission="clinical:assessments">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleTriageNote(p.patientId, `${p.firstName} ${p.lastName}`); }}
-                              className="p-2.5 rounded-xl bg-amber-500/5 text-amber-500 hover:bg-amber-500 hover:text-black transition-all border border-amber-500/10 shadow-sm"
+                              className="p-1.5 rounded-lg bg-amber-500/5 text-amber-500 hover:bg-amber-500 hover:text-black transition-all border border-amber-500/10 shadow-sm"
                               title="Add Triage Note"
                             >
                               <ClipboardList className="w-4 h-4" />
@@ -275,7 +335,7 @@ export default function TriageDashboard() {
                           <PermissionGate permission="clinical:chart">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleLogDnr(p.patientId); }}
-                              className="p-2.5 rounded-xl bg-blue-500/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/10 shadow-sm"
+                              className="p-1.5 rounded-lg bg-blue-500/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/10 shadow-sm"
                               title="Update Advance Directive"
                             >
                               <ShieldAlert className="w-4 h-4" />
@@ -284,7 +344,7 @@ export default function TriageDashboard() {
                           <PermissionGate permission="clinical:order">
                             <Link
                               href={`/dashboard/patients/${p.patientId}/visit`}
-                              className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
+                              className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
                               title="Start Clinical Encounter"
                             >
                               <Stethoscope className="w-4 h-4" />
@@ -292,7 +352,7 @@ export default function TriageDashboard() {
                           </PermissionGate>
                           <Link
                             href={`/dashboard/patients/${p.patientId}`}
-                            className="p-2.5 rounded-xl bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 transition-all border border-white/5 shadow-sm"
+                            className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 transition-all border border-white/5 shadow-sm"
                             title="View Patient Record"
                           >
                             <ChevronRight className="w-4 h-4" />

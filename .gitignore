@@ -79,3 +79,7 @@ DOCKER_CHEATSHEETS.md
 UNTRACKED_MDS/
 scripts/docker-full.ps1
 scripts/docker-update.ps1
+
+# 9. Local Databases
+Data Source=hangfire.db*
+hangfire.db*

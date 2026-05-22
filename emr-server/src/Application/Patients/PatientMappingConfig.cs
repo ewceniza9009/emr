@@ -58,10 +58,13 @@ public class PatientMappingConfig : IRegister
                 .OrderByDescending(ad => ad.CreatedAt)
                 .Select(ad => ad.Type.ToString())
                 .FirstOrDefault() ?? "None")
-            .Map(dest => dest.IsAlert, src => src.EsasAssessments
-                .OrderByDescending(e => e.AssessedAt)
-                .Select(e => (bool?)(e.Pain > 7 || e.Wellbeing > 7))
-                .FirstOrDefault() == true
-                || src.CareNavigationCases.Any(c => c.AcuityLevel == AcuityLevel.Critical && c.Status == CaseStatus.Open));
+            .Map(dest => dest.IsAlert, src => 
+                (src.TriageNote == null || !src.TriageNote.Contains("Claimed")) && 
+                (src.EsasAssessments
+                    .OrderByDescending(e => e.AssessedAt)
+                    .Select(e => (bool?)(e.Pain > 7 || e.Wellbeing > 7))
+                    .FirstOrDefault() == true
+                 || src.CareNavigationCases.Any(c => c.AcuityLevel == AcuityLevel.Critical && c.Status == CaseStatus.Open))
+            );
     }
 }
