@@ -15,16 +15,16 @@ export default function Footer() {
           </span>
         </div>
         <div className="flex gap-8 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-          <Link href="#" className="hover:text-white transition-colors">
+          <Link href="/docs" className="hover:text-white transition-colors">
             Documentation
           </Link>
-          <Link href="#" className="hover:text-white transition-colors">
+          <Link href="/api-docs" className="hover:text-white transition-colors">
             API
           </Link>
-          <Link href="#" className="hover:text-white transition-colors">
+          <Link href="/status" className="hover:text-white transition-colors">
             Status
           </Link>
-          <Link href="#" className="hover:text-white transition-colors">
+          <Link href="/security" className="hover:text-white transition-colors">
             Security
           </Link>
         </div>

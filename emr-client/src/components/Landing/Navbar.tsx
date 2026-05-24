@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Menu, X, ShieldCheck, History, ChevronRight } from "lucide-react";
+import { Menu, X, ShieldCheck, History, ChevronRight, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface NavbarProps {
@@ -11,6 +11,7 @@ interface NavbarProps {
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (open: boolean) => void;
   setIsChangelogOpen: (open: boolean) => void;
+  isSubPage?: boolean;
 }
 
 export default function Navbar({
@@ -19,6 +20,7 @@ export default function Navbar({
   isMobileMenuOpen,
   setIsMobileMenuOpen,
   setIsChangelogOpen,
+  isSubPage = false,
 }: NavbarProps) {
   const authLink = isAuthenticated ? "/dashboard" : "/login";
   const authLabelNavbar = isAuthenticated ? "Dashboard" : "Launch App";
@@ -33,15 +35,14 @@ export default function Navbar({
     <>
       <nav
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${
-          isScrolled
-            ? "bg-[#020408]/80 backdrop-blur-2xl border-b border-white/5 py-4"
+          isSubPage || isScrolled
+            ? "bg-[#020408]/95 backdrop-blur-2xl border-b border-white/5 py-4"
             : "bg-transparent py-6"
         }`}
       >
         <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex items-center justify-between">
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <Link
+            href="/"
             className="flex items-center gap-4 group cursor-pointer"
           >
             <div className="relative flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-b from-teal-500/20 to-transparent border border-teal-500/20 shadow-[0_0_30px_rgba(20,184,166,0.15)] group-hover:shadow-[0_0_40px_rgba(20,184,166,0.3)] transition-all duration-500">
@@ -56,27 +57,39 @@ export default function Navbar({
                 Clinical OS
               </span>
             </div>
-          </motion.div>
+          </Link>
 
-          <div className="hidden md:flex items-center gap-10 p-2 px-6 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-md">
-            {navLinks.map((item) => (
+          {/* DESKTOP MENU */}
+          <div className="hidden md:flex items-center gap-10">
+            {isSubPage ? (
               <Link
-                key={item.id}
-                href={`#${item.id}`}
-                className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors py-2 relative group"
+                href="/"
+                className="flex items-center gap-2 p-2.5 px-6 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-md text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-all hover:bg-white/[0.05]"
               >
-                {item.label}
-                <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-px bg-teal-500 group-hover:w-full transition-all duration-300 opacity-0 group-hover:opacity-100" />
+                <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
               </Link>
-            ))}
-            <div className="w-px h-4 bg-white/10" />
-            <button
-              onClick={() => setIsChangelogOpen(true)}
-              className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors flex items-center gap-2 group"
-            >
-              <History className="w-3 h-3 group-hover:rotate-180 transition-transform duration-500" />{" "}
-              Changelog
-            </button>
+            ) : (
+              <div className="flex items-center gap-10 p-2 px-6 rounded-full bg-white/[0.02] border border-white/5 backdrop-blur-md">
+                {navLinks.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={`#${item.id}`}
+                    className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors py-2 relative group"
+                  >
+                    {item.label}
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-px bg-teal-500 group-hover:w-full transition-all duration-300 opacity-0 group-hover:opacity-100" />
+                  </Link>
+                ))}
+                <div className="w-px h-4 bg-white/10" />
+                <button
+                  onClick={() => setIsChangelogOpen(true)}
+                  className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors flex items-center gap-2 group"
+                >
+                  <History className="w-3 h-3 group-hover:rotate-180 transition-transform duration-500" />{" "}
+                  Changelog
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-4">
@@ -116,26 +129,38 @@ export default function Navbar({
             className="fixed inset-0 z-50 pt-28 pb-8 px-6 bg-[#020408]/90 border-b border-white/10 md:hidden flex flex-col"
           >
             <div className="flex flex-col gap-8">
-              {navLinks.map((item) => (
+              {isSubPage ? (
                 <Link
-                  key={item.id}
-                  href={`#${item.id}`}
+                  href="/"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-xl font-bold uppercase tracking-[0.1em] text-white"
+                  className="text-xl font-bold uppercase tracking-[0.1em] text-white flex items-center gap-3"
                 >
-                  {item.label}
+                  <ArrowLeft className="w-5 h-5 text-teal-500" /> Back to Home
                 </Link>
-              ))}
-              <hr className="border-white/5" />
-              <button
-                onClick={() => {
-                  setIsChangelogOpen(true);
-                  setIsMobileMenuOpen(false);
-                }}
-                className="text-xl font-bold uppercase tracking-[0.1em] text-white flex items-center gap-3 text-left"
-              >
-                Changelog <History className="w-5 h-5 text-teal-500" />
-              </button>
+              ) : (
+                <>
+                  {navLinks.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`#${item.id}`}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-xl font-bold uppercase tracking-[0.1em] text-white"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                  <hr className="border-white/5" />
+                  <button
+                    onClick={() => {
+                      setIsChangelogOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="text-xl font-bold uppercase tracking-[0.1em] text-white flex items-center gap-3 text-left"
+                  >
+                    Changelog <History className="w-5 h-5 text-teal-500" />
+                  </button>
+                </>
+              )}
             </div>
             <Link
               href={authLink}

@@ -261,28 +261,35 @@ export function useBookingState({
   });
 
   useEffect(() => {
-    if (availabilityData?.availableProviders?.length > 0 && !practitionerId) {
+    if (!practitionerId) {
       const userPracId = (session?.user as any)?.practitionerId;
-      const me = availabilityData.availableProviders.find((p: any) => p.practitionerId?.toLowerCase() === userPracId?.toLowerCase());
 
-      if (me) {
-        setPractitionerId(me.practitionerId);
-      } else {
-        const best = [...availabilityData.availableProviders]
-          .filter(p => p.role === "CareNavigator")
-          .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
-        if (best) {
-          setPractitionerId(best.practitionerId);
+      if (availabilityData?.availableProviders?.length > 0) {
+        const me = availabilityData.availableProviders.find((p: any) => p.practitionerId?.toLowerCase() === userPracId?.toLowerCase());
+
+        if (me) {
+          setPractitionerId(me.practitionerId);
         } else {
-          const fallback = [...availabilityData.availableProviders]
+          const best = [...availabilityData.availableProviders]
+            .filter(p => p.role === "CareNavigator")
             .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
-          if (fallback) {
-            setPractitionerId(fallback.practitionerId);
+          if (best) {
+            setPractitionerId(best.practitionerId);
+          } else {
+            const fallback = [...availabilityData.availableProviders]
+              .sort((a, b) => a.travelTimeInMinutes - b.travelTimeInMinutes)[0];
+            if (fallback) {
+              setPractitionerId(fallback.practitionerId);
+            } else if (userPracId) {
+              setPractitionerId(userPracId);
+            }
           }
         }
+      } else if (!availabilityLoading && userPracId) {
+        setPractitionerId(userPracId);
       }
     }
-  }, [availabilityData, practitionerId, session]);
+  }, [availabilityData, practitionerId, session, availabilityLoading]);
 
   const practitionerSlots = useMemo(() => {
     const map = new Map<string, any[]>();

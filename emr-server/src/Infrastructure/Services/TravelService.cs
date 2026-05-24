@@ -22,6 +22,10 @@ public class TravelService : ITravelService
     private const int FALLBACK_IN_PERSON_BUFFER = 5;
     private const int TELEHEALTH_BUFFER_MINS = 3;
 
+    private DateTimeOffset _lastOsrmFailure = DateTimeOffset.MinValue;
+    private readonly TimeSpan CircuitBreakerDuration = TimeSpan.FromMinutes(2);
+    private bool? _enableOsrmCached;
+
     public TravelService(
         IDbContextFactory<ApplicationDbContext> dbFactory,
         IHttpClientFactory httpClientFactory,
@@ -44,20 +48,56 @@ public class TravelService : ITravelService
         var fallbackDistance = GeoUtils.CalculateDistance(startLat, startLon, endLat, endLon);
         var fallbackDuration = GeoUtils.EstimateTravelTimeMinutes(fallbackDistance);
 
+        if (!_enableOsrmCached.HasValue)
+        {
+            try
+            {
+                using var context = await _dbFactory.CreateDbContextAsync(ct);
+                var settings = await context.TenantConfigurations
+                    .AsNoTracking()
+                    .OrderBy(c => c.TenantConfigurationId)
+                    .FirstOrDefaultAsync(ct);
+                _enableOsrmCached = settings?.EnableOsrmTravel ?? false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, ">>> Failed to load TenantConfiguration. Defaulting EnableOsrmTravel to false.");
+                _enableOsrmCached = false;
+            }
+        }
+
+        if (!_enableOsrmCached.Value)
+        {
+            _logger.LogDebug(">>> OSRM ROUTE CALCULATION DISABLED: Falling back to Haversine.");
+            return (fallbackDistance, fallbackDuration);
+        }
+
+        // Circuit breaker: if OSRM failed recently within this scoped request, bypass to prevent sequential query cancellation
+        if (DateTimeOffset.UtcNow - _lastOsrmFailure < CircuitBreakerDuration)
+        {
+            _logger.LogDebug(">>> OSRM CIRCUIT BREAKER ACTIVE: Skipping OSRM call, immediately falling back to Haversine.");
+            return (fallbackDistance, fallbackDuration);
+        }
+
         try
         {
             var client = _httpClientFactory.CreateClient("OSRM");
             var url = $"route/v1/driving/{startLon.ToString(System.Globalization.CultureInfo.InvariantCulture)},{startLat.ToString(System.Globalization.CultureInfo.InvariantCulture)};{endLon.ToString(System.Globalization.CultureInfo.InvariantCulture)},{endLat.ToString(System.Globalization.CultureInfo.InvariantCulture)}?overview=false";
 
+            // Enforce a strict short timeout for the OSRM HTTP call (e.g. 500ms) to prevent blocking the query thread
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromMilliseconds(500));
+
             _logger.LogInformation(">>> OSRM ROUTE CALL: Querying route from ({Lat1},{Lon1}) to ({Lat2},{Lon2})", startLat, startLon, endLat, endLon);
-            var response = await client.GetAsync(url, ct);
+            var response = await client.GetAsync(url, cts.Token);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning(">>> OSRM ROUTE FAILED (HTTP Status {Status}): Falling back to Haversine.", response.StatusCode);
+                _lastOsrmFailure = DateTimeOffset.UtcNow; // Trigger circuit breaker
                 return (fallbackDistance, fallbackDuration);
             }
 
-            var content = await response.Content.ReadAsStringAsync(ct);
+            var content = await response.Content.ReadAsStringAsync(cts.Token);
             using var document = JsonDocument.Parse(content);
             var root = document.RootElement;
             if (root.TryGetProperty("code", out var codeProp) && codeProp.GetString() == "Ok" &&
@@ -84,11 +124,13 @@ public class TravelService : ITravelService
             }
             
             _logger.LogWarning(">>> OSRM ROUTE PARSE FAILURE: 'routes' element missing or empty. Falling back to Haversine.");
+            _lastOsrmFailure = DateTimeOffset.UtcNow; // Trigger circuit breaker
             return (fallbackDistance, fallbackDuration);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, ">>> OSRM ROUTE EXCEPTION: Falling back to Haversine. Error: {Message}", ex.Message);
+            _lastOsrmFailure = DateTimeOffset.UtcNow; // Trigger circuit breaker
             return (fallbackDistance, fallbackDuration);
         }
     }

@@ -102,7 +102,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const magicToken = searchParams.get('token') || searchParams.get('magicToken');
-    const deviceId = searchParams.get('deviceId') || '';
+    const queryDeviceId = searchParams.get('deviceId');
+    let localDeviceId = typeof window !== 'undefined' ? localStorage.getItem('halkyone-device-id') : null;
+    if (!localDeviceId && typeof window !== 'undefined') {
+      localDeviceId = `DEV_MAC_MRN-99999`; // Sturdy default for zero-config demo ease
+      localStorage.setItem('halkyone-device-id', localDeviceId);
+    }
+    const deviceId = queryDeviceId || localDeviceId || '';
 
     if (magicToken && processingTokenRef.current !== magicToken) {
       processingTokenRef.current = magicToken;

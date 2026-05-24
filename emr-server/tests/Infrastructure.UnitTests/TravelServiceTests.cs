@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -11,6 +12,7 @@ using Infrastructure.Data;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MockQueryable.Moq;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -22,12 +24,41 @@ public class TravelServiceTests
     private readonly Mock<IDbContextFactory<ApplicationDbContext>> _mockDbFactory;
     private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
     private readonly Mock<ILogger<TravelService>> _mockLogger;
+    private readonly Mock<ICurrentUserService> _mockCurrentUserService;
+    private readonly Mock<ISearchService> _mockSearchService;
+    private readonly Mock<ApplicationDbContext> _mockContext;
 
     public TravelServiceTests()
     {
         _mockDbFactory = new Mock<IDbContextFactory<ApplicationDbContext>>();
         _mockHttpClientFactory = new Mock<IHttpClientFactory>();
         _mockLogger = new Mock<ILogger<TravelService>>();
+        _mockCurrentUserService = new Mock<ICurrentUserService>();
+        _mockSearchService = new Mock<ISearchService>();
+
+        _mockContext = new Mock<ApplicationDbContext>(
+            new DbContextOptions<ApplicationDbContext>(),
+            _mockCurrentUserService.Object,
+            _mockSearchService.Object
+        );
+
+        _mockDbFactory
+            .Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_mockContext.Object);
+        _mockDbFactory
+            .Setup(f => f.CreateDbContext())
+            .Returns(_mockContext.Object);
+
+        _mockContext
+            .Setup(c => c.TenantConfigurations)
+            .Returns(
+                new List<TenantConfiguration>
+                {
+                    new TenantConfiguration { EnableOsrmTravel = true }
+                }
+                    .BuildMockDbSet()
+                    .Object
+            );
     }
 
     [Fact]

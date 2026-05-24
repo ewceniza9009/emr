@@ -33,6 +33,7 @@ public class TenantConfiguration : BaseEntity, ITenantEntity
     // Operational Flags
     public bool IsActive { get; set; } = true;
     public bool EnableElasticsearch { get; set; } = false;
+    public bool EnableOsrmTravel { get; set; } = false;
 
     // Security & Compliance
     public bool EnforceMfa { get; set; } = false;

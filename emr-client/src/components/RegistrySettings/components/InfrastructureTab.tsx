@@ -49,6 +49,18 @@ export default function InfrastructureTab({
             }
           />
 
+          <ProtocolToggle
+            title="OSRM Driving Route Logistics"
+            desc="Use OSRM routing engine for precise travel distance and duration estimates (disable to use Haversine fallback and bypass public APIs)"
+            checked={stagedTenant.enableOsrmTravel}
+            onChange={(val: boolean) =>
+              setStagedTenant({
+                ...stagedTenant,
+                enableOsrmTravel: val,
+              })
+            }
+          />
+
           <div className="p-6 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-between group">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 transition-transform">

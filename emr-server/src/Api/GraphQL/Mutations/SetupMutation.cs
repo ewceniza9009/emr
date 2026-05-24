@@ -589,7 +589,8 @@ public class SetupMutation
         int? UrgentWellbeingThreshold,
         bool? EnableTelemetry,
         bool? EnableSignalR,
-        int? TelemetryDelaySeconds
+        int? TelemetryDelaySeconds,
+        bool? EnableOsrmTravel
     );
 
     [Authorize(Policy = "CanManageSetup")]
@@ -640,6 +641,8 @@ public class SetupMutation
             existing.EnableSignalR = input.EnableSignalR.Value;
         if (input.TelemetryDelaySeconds.HasValue)
             existing.TelemetryDelaySeconds = input.TelemetryDelaySeconds.Value;
+        if (input.EnableOsrmTravel.HasValue)
+            existing.EnableOsrmTravel = input.EnableOsrmTravel.Value;
 
         await context.SaveChangesAsync(default);
         return true;

@@ -11,7 +11,7 @@ test.describe('Halkyone Clinical OS - Appointment Booking', () => {
 
   test('should create a new booking for Pearline Bauch', async ({ page }) => {
     // Navigate to the Main Dashboard (Verified context for New Encounter)
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('main', { state: 'visible' });
 
     // 1. Open the Booking Drawer via the "Encounters" stat card

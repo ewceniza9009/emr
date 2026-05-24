@@ -29,6 +29,7 @@ const GET_TENANT_CONFIG = gql`
       enableTelemetry
       enableSignalR
       telemetryDelaySeconds
+      enableOsrmTravel
     }
   }
 `;
@@ -72,6 +73,7 @@ export interface TenantSettings {
   enableTelemetry: boolean;
   enableSignalR: boolean;
   telemetryDelaySeconds: number;
+  enableOsrmTravel: boolean;
 }
 
 const currencySymbols: Record<string, string> = {
@@ -122,6 +124,7 @@ export const DEFAULT_TENANT: TenantSettings = {
   enableTelemetry: true,
   enableSignalR: true,
   telemetryDelaySeconds: 5,
+  enableOsrmTravel: false,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -170,6 +173,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         enableTelemetry: config.enableTelemetry ?? true,
         enableSignalR: config.enableSignalR ?? true,
         telemetryDelaySeconds: config.telemetryDelaySeconds || 5,
+        enableOsrmTravel: config.enableOsrmTravel ?? false,
       });
     }
   }, [tenantData]);
@@ -235,6 +239,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
             enableTelemetry: merged.enableTelemetry,
             enableSignalR: merged.enableSignalR,
             telemetryDelaySeconds: merged.telemetryDelaySeconds,
+            enableOsrmTravel: merged.enableOsrmTravel,
             isActive: true,
           },
         },
