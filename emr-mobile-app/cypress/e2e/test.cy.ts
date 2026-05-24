@@ -1,6 +1,7 @@
-describe('My First Test', () => {
-  it('Visits the app root url', () => {
+describe('Halkyone EMR Mobile App', () => {
+  it('Should load login page', () => {
     cy.visit('/')
-    cy.contains('ion-content', 'Tab 1 page')
+    cy.contains('Halkyone Clinical OS')
+    cy.contains('Virtual Hospital Room Portal')
   })
 })
