@@ -150,6 +150,9 @@ flowchart TD
     IonicReact --> SQLiteMobile
     ApolloMobile --> GQL
     SignalR_M <--> Hubs
+
+    classDef partial stroke-dasharray: 6 4,opacity:0.7
+    class Sim,PWA partial
 ```
 
 ---
