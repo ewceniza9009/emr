@@ -1,6 +1,6 @@
 # Halkyone Clinical OS
 
-**[🚀 View Live Vercel App Demo](https://emr-three-hazel.vercel.app)** | 
+**[🚀 View Live Vercel App Demo](https://emr-three-hazel.vercel.app)** |
 **[📺 View Video Demo](https://youtu.be/bzJQIrhxXFo?si=2i3eWplmQYyDSdNK)**
 
 ### 🔑 Test Credentials
@@ -10,28 +10,13 @@
 
 > The first time you log in or access the dashboard, the initial load may be slow (up to 50 seconds). This is due to the **Render Free Instance** spin-up time for the backend services. Once warmed up, the platform maintains sub-second operational performance.
 
-[![Architecture: Clean](https://img.shields.io/badge/Architecture-Clean--Architecture-blue.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-[![Pattern: CQRS--MediatR](https://img.shields.io/badge/Pattern-CQRS--MediatR-blueviolet.svg)](https://github.com/jbogard/MediatR)
-[![Frontend: Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black.svg)](https://nextjs.org/)
-[![Backend: .NET 9](https://img.shields.io/badge/Backend-.NET%209-512bd4.svg)](https://dotnet.microsoft.com/)
-[![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791.svg)](https://www.postgresql.org/)
-[![Storage: Azurite](https://img.shields.io/badge/Storage-Azurite--Cloud-blue.svg)](https://github.com/Azure/Azurite)
-
-[![Identity: NextAuth.js](https://img.shields.io/badge/Identity-NextAuth.js-000000.svg)](https://next-auth.js.org/)
-[![Security: JWT--Claims](https://img.shields.io/badge/Security-JWT--Claims-red.svg)](#)
-[![Multi-Tenancy: Enterprise](https://img.shields.io/badge/Multi--Tenancy-Enterprise--Grade-green.svg)](https://learn.microsoft.com/en-us/azure/azure-sql/database/saas-tenancy-app-design-patterns)
-[![Telemetry: SignalR](https://img.shields.io/badge/Telemetry-SignalR--Live-orange.svg)](https://dotnet.microsoft.com/apps/aspnet/signalr)
-[![GraphQL: HotChocolate](https://img.shields.io/badge/GraphQL-HotChocolate--14-9b59b6.svg)](https://chillicream.com/docs/hotchocolate)
-
-[![Assessments: SurveyJS](https://img.shields.io/badge/Assessments-SurveyJS-brightgreen.svg)](https://surveyjs.io/)
-[![Reports: QuestPDF](https://img.shields.io/badge/Reports-QuestPDF--2026-blueviolet.svg)](https://www.questpdf.com/)
-[![Testing: Playwright](https://img.shields.io/badge/Testing-Playwright--E2E-45ba4b.svg)](https://playwright.dev/)
-[![Clinical: 100%--Verified](https://img.shields.io/badge/Clinical-100%25--Verified-success.svg)](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml)
-
-[![Halkyone CI/CD](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml/badge.svg)](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml)
-[![Mobile: Ionic React](https://img.shields.io/badge/Mobile-Ionic%20React%208-blue.svg)](https://ionicframework.com/)
-[![Native: Capacitor](https://img.shields.io/badge/Native-Capacitor-lightgrey.svg)](https://capacitorjs.com/)
-[![Push Notifications: FCM](https://img.shields.io/badge/Notifications-FCM-yellow.svg)](https://firebase.google.com/docs/cloud-messaging)
+| Category | Technologies |
+|----------|-------------|
+| **Architecture & Patterns** | [![Architecture: Clean](https://img.shields.io/badge/Architecture-Clean--Architecture-blue.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) [![Pattern: CQRS--MediatR](https://img.shields.io/badge/Pattern-CQRS--MediatR-blueviolet.svg)](https://github.com/jbogard/MediatR) [![Multi-Tenancy: Row-Level](https://img.shields.io/badge/Multi--Tenancy-Row--Level--Isolation-green.svg)](https://learn.microsoft.com/en-us/azure/azure-sql/database/saas-tenancy-app-design-patterns) |
+| **Frontend** | [![Frontend: Next.js](https://img.shields.io/badge/Frontend-Next.js%2014-black.svg)](https://nextjs.org/) [![Mobile: Ionic React](https://img.shields.io/badge/Mobile-Ionic%20React%208-blue.svg)](https://ionicframework.com/) [![Native: Capacitor](https://img.shields.io/badge/Native-Capacitor-lightgrey.svg)](https://capacitorjs.com/) [![SQLite: Local Persistence](https://img.shields.io/badge/SQLite-Local--Persistence-003B57.svg)](https://www.sqlite.org/) |
+| **Backend** | [![Backend: .NET 9](https://img.shields.io/badge/Backend-.NET%209-512bd4.svg)](https://dotnet.microsoft.com/) [![GraphQL: HotChocolate](https://img.shields.io/badge/GraphQL-HotChocolate--14-9b59b6.svg)](https://chillicream.com/docs/hotchocolate) [![Telemetry: SignalR](https://img.shields.io/badge/Telemetry-SignalR--Live-orange.svg)](https://dotnet.microsoft.com/apps/aspnet/signalr) [![Jobs: Hangfire](https://img.shields.io/badge/Jobs-Hangfire-7a2d8e.svg)](https://www.hangfire.io/) [![Identity: NextAuth.js](https://img.shields.io/badge/Identity-NextAuth.js-000000.svg)](https://next-auth.js.org/) [![Security: JWT--Claims](https://img.shields.io/badge/Security-JWT--Claims-red.svg)](#) |
+| **Infrastructure** | [![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791.svg)](https://www.postgresql.org/) [![Storage: Azurite](https://img.shields.io/badge/Storage-Azurite--Cloud-blue.svg)](https://github.com/Azure/Azurite) |
+| **Quality & Tooling** | [![Testing: Playwright](https://img.shields.io/badge/Testing-Playwright--E2E-45ba4b.svg)](https://playwright.dev/) [![Unit: xUnit](https://img.shields.io/badge/Unit-xUnit-512bd4.svg)](https://xunit.net/) [![Assessments: SurveyJS](https://img.shields.io/badge/Assessments-SurveyJS-brightgreen.svg)](https://surveyjs.io/) [![Reports: QuestPDF](https://img.shields.io/badge/Reports-QuestPDF--2026-blueviolet.svg)](https://www.questpdf.com/) [![Clinical: 100%--Verified](https://img.shields.io/badge/Clinical-100%25--Verified-success.svg)](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml) [![Halkyone CI/CD](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml/badge.svg)](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml) |
 
 ---
 
@@ -114,7 +99,6 @@ flowchart TD
             ApolloMobile["Apollo Client (GQL)"]
             SignalR_M["SignalR Client (Foreground)"]
             SQLiteMobile["SQLite Offline Cache"]
-            HealthKit["Apple HealthKit / Google Fit"]
         end
     end
 
@@ -122,7 +106,6 @@ flowchart TD
         GQL["HotChocolate GraphQL Server"]
         Hubs["SignalR Telemetry Hubs"]
         Security["[UseClinicalAccess] & [UsePatientAccess] Middleware"]
-        FCM["Firebase Cloud Messaging (FCM)"]
         Sim["Telemetry Simulator Service"]
     end
 
@@ -167,8 +150,6 @@ flowchart TD
     IonicReact --> HealthKit
     ApolloMobile --> GQL
     SignalR_M <--> Hubs
-    FCM -- Push Notifications --> IonicReact
-    Services --> FCM
 ```
 
 ---
@@ -254,7 +235,8 @@ Halkyone implements a **Shared Database / Row-Level Isolation** model:
 The patient mobile client leverages Capacitor for physical hardware access while maintaining clean server interaction:
 
 - **Token String Link Authentication**: Secured login utilizing single-use token links to authorize patient sessions.
-- **Hybrid Real-Time Delivery**: Combines foreground WebSocket SignalR connections with background Firebase Cloud Messaging (FCM) notifications to wake the device when inactive (e.g., clinician `InTransit`).
+- **Real-Time Delivery**: Foreground WebSocket SignalR connections for live updates (e.g., chat, clinician transit vectors).
+- **Local Push Notifications**: Capacitor Local Notifications for scheduled in-app alerts (e.g., pill reminders).
 - **Offline Tolerance**: Local SQLite caching of SurveyJS assessments, allowing patients to complete intake reports and ESAS forms offline and sync when connection is restored.
 
 ---
@@ -485,14 +467,14 @@ To track the progress of transitioning the Halkyone Clinical OS into the **Tripl
   - `Token Authentication Link`: Secured login utilizing single-use token links.
   - `SQLite (Capacitor plugin)`: Secure local storage for SurveyJS offline assessment drafts.
 
-| Category           | **Technologies / Tools Used**                                                            |
-| :----------------- | :--------------------------------------------------------------------------------------- |
-| **Backend Core**   | .NET 9, HotChocolate GraphQL, EF Core (PostgreSQL), MediatR, SignalR, Elasticsearch.     |
-| **Frontend**       | Next.js 14 (App Router), Apollo Client, Tailwind CSS, SurveyJS, Lucide React, next-pwa.  |
-| **Mobile App**     | Ionic v8, React 18, Capacitor, SQLite, Firebase Cloud Messaging (FCM), Google/Apple Pay. |
-| **Infrastructure** | Azurite/Azure Blob Storage, QuestPDF, Bogus (Data Seeding), Docker.                      |
-| **Testing & QA**   | Playwright E2E, Vitest (Unit), GitHub Actions.                                           |
-| **Security**       | JWT Claims, Token Link Auth, [UseClinicalAccess] & [UsePatientAccess] Middleware.        |
+| Category           | **Technologies / Tools Used**                                                           |
+| :----------------- | :-------------------------------------------------------------------------------------- |
+| **Backend Core**   | .NET 9, HotChocolate GraphQL, EF Core (PostgreSQL), MediatR, SignalR, Elasticsearch.    |
+| **Frontend**       | Next.js 14 (App Router), Apollo Client, Tailwind CSS, SurveyJS, Lucide React, next-pwa. |
+| **Mobile App**     | Ionic v8, React 18, Capacitor, SQLite.                                                  |
+| **Infrastructure** | Azurite/Azure Blob Storage, QuestPDF, Bogus (Data Seeding), Docker.                     |
+| **Testing & QA**   | Playwright E2E, Vitest (Unit), GitHub Actions.                                          |
+| **Security**       | JWT Claims, Token Link Auth, [UseClinicalAccess] & [UsePatientAccess] Middleware.       |
 
 ---
 
@@ -578,7 +560,7 @@ David sees the SOS override on the `/dashboard`, views Maria's uploaded leg phot
 
 ### 🚗 08:30 AM | Visit Radar & Real-Time Tracking
 
-Maria’s phone vibrates with a **Firebase Cloud Messaging (FCM)** background push notification: _"Dr. Elena is on her way to your location."_ Maria opens the app and navigates to the **Visit Radar** logistics screen. On a Leaflet-rendered map, she watches Dr. Elena's vehicle approach in real-time using SignalR coordinate updates. To protect Dr. Elena’s personal safety and privacy, the system automatically masks her precise location once she is within 500 meters of Maria's home.
+Maria’s phone vibrates with a local push notification: _"Dr. Elena is on her way to your location."_ Maria opens the app and navigates to the **Visit Radar** logistics screen. On a Leaflet-rendered map, she watches Dr. Elena's vehicle approach in real-time using SignalR coordinate updates. To protect Dr. Elena’s personal safety and privacy, the system automatically masks her precise location once she is within 500 meters of Maria's home.
 
 ### 🩺 09:00 AM | The Zero-Latency Bedside Encounter
 
