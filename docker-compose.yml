@@ -72,6 +72,7 @@ services:
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Include Error Detail=true
       - ConnectionStrings__AzureStorage=${AZURE_STORAGE_CONNECTION_STRING}
       - Elasticsearch__Url=http://elasticsearch:9200
+      - MobilePortalUrl=http://localhost:3682
     depends_on:
       postgres:
         condition: service_healthy
