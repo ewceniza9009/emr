@@ -215,19 +215,35 @@ select option {
   opacity: 0.5;
 }
 
-/* Scrollbars - Subtle */
+/* Scrollbars - Subtle & Theme-matching */
+html {
+  background-color: var(--background);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) var(--background);
+}
+
+.light, .light html, html.light {
+  scrollbar-color: rgba(0, 0, 0, 0.15) var(--background);
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  border: 2px solid var(--background);
+}
+
+.light ::-webkit-scrollbar-thumb,
+.light::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -268,6 +284,11 @@ select option {
   100% {
     transform: translateX(100%);
   }
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--primary-rgb), 0.2) transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

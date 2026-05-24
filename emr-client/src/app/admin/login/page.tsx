@@ -66,18 +66,18 @@ export default function AdminLoginPage() {
           <div className="w-16 h-16 rounded-[2rem] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40 mb-6 group cursor-pointer active:scale-95 transition-all">
             <Shield className="w-8 h-8 text-white group-hover:rotate-12 transition-transform" />
           </div>
-          <h1 className="text-3xl font-black text-white uppercase tracking-tighter mb-2">Setup Portal</h1>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Administrative Access Only</p>
+          <h1 className="text-3xl font-black text-[var(--text-primary)] uppercase tracking-tighter mb-2">Setup Portal</h1>
+          <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">Administrative Access Only</p>
         </div>
 
-        <div className="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] p-10 shadow-2xl space-y-8">
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+        <div className="bg-[var(--card-bg)] backdrop-blur-3xl border border-[var(--card-border)] rounded-[2.5rem] p-10 shadow-2xl space-y-8">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)]">
             <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
               <Terminal className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Security Protocol</p>
-              <p className="text-xs font-bold text-white uppercase tracking-tight">RSA-4096 · TLS 1.3</p>
+              <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Security Protocol</p>
+              <p className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-tight">RSA-4096 · TLS 1.3</p>
             </div>
           </div>
 
@@ -90,13 +90,13 @@ export default function AdminLoginPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Admin Identifier</label>
+              <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Admin Identifier</label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-indigo-400 transition-colors" />
                 <input
                   {...register("email")}
                   type="email"
-                  className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:outline-none focus:border-indigo-500/50 focus:bg-slate-950 transition-all placeholder:text-slate-700"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-indigo-500/50 focus:bg-[var(--background)] transition-all placeholder:text-[var(--text-muted)]/50"
                   placeholder="sysadmin@halkyone.clinical"
                 />
               </div>
@@ -104,13 +104,13 @@ export default function AdminLoginPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Security Key</label>
+              <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Security Key</label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-indigo-400 transition-colors" />
                 <input
                   {...register("password")}
                   type="password"
-                  className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:outline-none focus:border-indigo-500/50 focus:bg-slate-950 transition-all placeholder:text-slate-700"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-indigo-500/50 focus:bg-[var(--background)] transition-all placeholder:text-[var(--text-muted)]/50"
                   placeholder="••••••••"
                 />
               </div>
@@ -135,12 +135,12 @@ export default function AdminLoginPage() {
         </div>
 
         <div className="mt-12 flex flex-col items-center gap-6">
-          <div className="flex items-center justify-center gap-8 opacity-40">
+          <div className="flex items-center justify-center gap-8 text-[var(--text-muted)] opacity-60">
             <div className="flex items-center gap-2">
               <Database className="w-3 h-3" />
               <span className="text-[8px] font-black uppercase tracking-[0.2em]">Live Registry</span>
             </div>
-            <div className="w-1 h-1 rounded-full bg-slate-800" />
+            <div className="w-1 h-1 rounded-full bg-[var(--card-border)]" />
             <div className="flex items-center gap-2">
               <Zap className="w-3 h-3" />
               <span className="text-[8px] font-black uppercase tracking-[0.2em]">Encrypted Link</span>
@@ -149,7 +149,7 @@ export default function AdminLoginPage() {
 
           <button
             onClick={() => window.location.href = "/login"}
-            className="text-[10px] font-black text-slate-700 hover:text-indigo-500 uppercase tracking-widest transition-colors"
+            className="text-[10px] font-black text-[var(--text-muted)] hover:text-indigo-500 uppercase tracking-widest transition-colors"
           >
             Switch to Clinical Portal
           </button>
