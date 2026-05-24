@@ -55,11 +55,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[var(--background)] text-slate-200 selection:bg-teal-500/30 selection:text-white relative overflow-hidden">
+    <div className="min-h-screen flex bg-[var(--background)] text-[var(--text-secondary)] selection:bg-teal-500/30 selection:text-white relative overflow-hidden">
       {/* LEFT SIDE: FORM */}
-      <div className="w-full lg:w-[45%] flex flex-col p-8 lg:p-24 relative z-20 bg-[var(--background)] shadow-[20px_0_50px_rgba(0,0,0,0.5)]">
+      <div className="w-full lg:w-[45%] flex flex-col p-8 lg:p-24 relative z-20 bg-[var(--background)] shadow-[20px_0_50px_rgba(0,0,0,0.15)] dark:shadow-[20px_0_50px_rgba(0,0,0,0.5)] border-r border-[var(--divider-color)]">
         <div className="mb-auto">
-          <button onClick={() => router.push("/")} className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-xs font-bold mb-12">
+          <button onClick={() => router.push("/")} className="flex items-center gap-2 text-slate-500 hover:text-[var(--text-primary)] transition-colors text-xs font-bold mb-12">
             <ArrowLeft className="w-4 h-4" />
             Back to Home
           </button>
@@ -69,14 +69,14 @@ export default function LoginPage() {
               <Activity className="w-6 h-6 text-white" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-black text-white tracking-tight leading-none uppercase">HALKYONE</h1>
+              <h1 className="text-2xl font-black text-[var(--text-primary)] tracking-tight leading-none uppercase">HALKYONE</h1>
               <span className="text-[10px] font-bold text-teal-400 uppercase tracking-[0.2em] mt-1">Clinical OS</span>
             </div>
           </div>
 
           <div className="space-y-2 mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h2 className="text-4xl font-bold text-white tracking-tight">Welcome back</h2>
-            <p className="text-slate-400 text-sm font-medium">Enter your credentials to access your clinical workspace.</p>
+            <h2 className="text-4xl font-bold text-[var(--text-primary)] tracking-tight">Welcome back</h2>
+            <p className="text-[var(--text-muted)] text-sm font-medium">Enter your credentials to access your clinical workspace.</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-sm animate-in fade-in slide-in-from-bottom-8 duration-700 delay-150">
@@ -88,13 +88,13 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email address</label>
+              <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Email address</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[var(--primary)] transition-colors z-10" />
                 <input
                   {...register("email")}
                   type="email"
-                  className="w-full bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-transparent focus:bg-white/[0.05] transition-all placeholder:text-slate-600 hover:border-white/20 shadow-inner"
+                  className="w-full bg-[var(--input-bg)] border border-slate-300 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-transparent focus:bg-[var(--input-bg)] transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 hover:border-slate-400 dark:hover:border-white/20 shadow-inner"
                   placeholder="name@halkyone.clinical"
                 />
               </div>
@@ -103,7 +103,7 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between px-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Password</label>
+                <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Password</label>
                 <button type="button" className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest hover:text-emerald-400 transition-colors">Forgot?</button>
               </div>
               <div className="relative group">
@@ -111,7 +111,7 @@ export default function LoginPage() {
                 <input
                   {...register("password")}
                   type="password"
-                  className="w-full bg-white/[0.02] backdrop-blur-md border border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-transparent focus:bg-white/[0.05] transition-all placeholder:text-slate-600 hover:border-white/20 shadow-inner"
+                  className="w-full bg-[var(--input-bg)] border border-slate-300 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-transparent focus:bg-[var(--input-bg)] transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 hover:border-slate-400 dark:hover:border-white/20 shadow-inner"
                   placeholder="••••••••"
                 />
               </div>
@@ -157,7 +157,7 @@ export default function LoginPage() {
       </div>
 
       {/* RIGHT SIDE: HERO CONTENT */}
-      <div className="hidden lg:flex flex-1 relative bg-[var(--background)] items-center justify-center overflow-hidden">
+      <div className="hidden lg:flex flex-1 relative bg-[#020408] items-center justify-center overflow-hidden">
         {/* Animated Mesh Background */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay" />
@@ -169,11 +169,11 @@ export default function LoginPage() {
         {/* Floating UI Widget - Live Sync */}
         {/* Floating UI Widget - Pinned to absolute top right */}
         <div className="absolute top-12 right-12 z-20 animate-in slide-in-from-right duration-1000 delay-300 group">
-          <div className="bg-[var(--card-bg)]/80 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col gap-4 w-72 transform group-hover:-translate-y-2 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.6)] transition-all duration-500 relative overflow-hidden">
+          <div className="bg-[#0a0c12]/80 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col gap-4 w-72 transform group-hover:-translate-y-2 group-hover:shadow-[0_30px_60px_rgba(0,0,0,0.6)] transition-all duration-500 relative overflow-hidden">
              <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent pointer-events-none" />
              
             <div className="flex items-center gap-4 relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-[var(--card-bg)] border border-white/10 flex items-center justify-center shadow-inner relative overflow-hidden">
+              <div className="w-12 h-12 rounded-2xl bg-[#0a0c12] border border-white/10 flex items-center justify-center shadow-inner relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-transparent" />
                 <TrendingUp className="w-5 h-5 text-emerald-400 relative z-10" />
               </div>
@@ -198,7 +198,7 @@ export default function LoginPage() {
             </blockquote>
 
             <div className="flex items-center gap-5 pt-4">
-              <div className="w-14 h-14 rounded-full bg-[var(--card-bg)] border border-white/10 flex items-center justify-center text-sm font-black text-white shadow-xl relative overflow-hidden">
+              <div className="w-14 h-14 rounded-full bg-[#0a0c12] border border-white/10 flex items-center justify-center text-sm font-black text-white shadow-xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-transparent" />
                 SC
               </div>
@@ -211,7 +211,7 @@ export default function LoginPage() {
         </div>
 
         {/* Decorative Glass Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--background)]/50 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#020408]/50 to-transparent pointer-events-none" />
       </div>
     </div>
 
