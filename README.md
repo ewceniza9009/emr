@@ -124,6 +124,7 @@ flowchart TD
         QuestPDF["QuestPDF (Document Engine)"]
         Scheduler["Intelligent Scheduling Service"]
         Audit["Security Audit Service"]
+        Jobs["Hangfire Background Jobs"]
     end
 
     MainPortal --> Apollo
@@ -147,7 +148,6 @@ flowchart TD
     IonicReact --> ApolloMobile
     IonicReact <--> SignalR_M
     IonicReact --> SQLiteMobile
-    IonicReact --> HealthKit
     ApolloMobile --> GQL
     SignalR_M <--> Hubs
 ```
