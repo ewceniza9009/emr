@@ -185,10 +185,10 @@ The **Operational Nerve Center** for System Administrators and Medical Directors
 
 A native iOS/Android patient engagement application built using Ionic Framework, React, and Capacitor, allowing patients direct access to their care pathway.
 
-- **Telehealth & Virtual Care Hub:** WebRTC 1-on-1 video consultations and SignalR-driven virtual waiting room.
+- **Telehealth & Virtual Care Hub:** WebRTC 1-on-1 video call simulation and SignalR-driven virtual waiting room.
 - **Medication & Pharmacy (eRx):** Live active prescriptions, pill reminders, and one-tap refills routing to Care Navigators.
-- **Revenue Cycle Management (RCM):** Apple/Google Pay co-pay settlement, camera OCR insurance card scanner, and PhilHealth Z-Benefit tracker.
-- **IoT & Wearables Sync:** Passive step/resting heart rate sync via Apple HealthKit and Google Fit.
+- **Revenue Cycle Management (RCM):** Mobile payment settlement, insurance card scanning, and benefits claim tracking.
+- **IoT & Wearables Sync:** Passive step and resting heart rate telemetry simulation.
 - **Secure Messaging & SOS:** Photo uploads (wound triage) bypass the camera roll, with emergency NLP warning systems.
 - **Visit Radar Logistics:** Leaflet-based live mapping tracking the clinician's transit vector, with privacy masking at 500m.
 
