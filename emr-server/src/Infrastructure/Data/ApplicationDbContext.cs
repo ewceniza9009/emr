@@ -295,6 +295,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         where T : class, ITenantEntity
     {
         modelBuilder.Entity<T>().HasQueryFilter(e => e.TenantId == CurrentTenantId);
+        modelBuilder.Entity<T>().HasIndex(e => e.TenantId);
     }
 }
 

@@ -8,4 +8,6 @@ public class OutboxMessage
     public DateTimeOffset CreatedOnUtc { get; set; }
     public DateTimeOffset? ProcessedOnUtc { get; set; }
     public string? Error { get; set; }
+    public int RetryCount { get; set; } = 0;
+    public DateTimeOffset? NextAttemptUtc { get; set; }
 }
