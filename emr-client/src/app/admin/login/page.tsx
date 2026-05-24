@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#020617] text-slate-300 font-sans selection:bg-indigo-500 selection:text-white p-6">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] text-[var(--text-muted)] font-sans selection:bg-indigo-500 selection:text-white p-6">
       {/* Background Decor */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-20">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/20 rounded-full blur-[120px]" />

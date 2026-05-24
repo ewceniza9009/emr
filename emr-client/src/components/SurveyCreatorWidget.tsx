@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo } from "react";
 import { SurveyCreator, SurveyCreatorComponent } from "survey-creator-react";
@@ -64,7 +64,7 @@ export default function SurveyCreatorWidget({ initialJson, onSave }: Props) {
   }, [creator, onSave]);
 
   return (
-    <div className="absolute inset-0 survey-designer-container bg-[#020617]">
+    <div className="absolute inset-0 survey-designer-container bg-[var(--background)]">
       <SurveyCreatorComponent creator={creator} />
     </div>
   );

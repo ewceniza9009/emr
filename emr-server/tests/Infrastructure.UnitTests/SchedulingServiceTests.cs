@@ -1,3 +1,4 @@
+using Application.Common.Utils;
 using Domain.Entities;
 using Domain.Enums;
 using FluentAssertions;
@@ -32,6 +33,20 @@ public class SchedulingServiceTests
         _mockUserService = new Mock<Application.Common.Interfaces.ICurrentUserService>();
         _mockSearchService = new Mock<Application.Common.Interfaces.ISearchService>();
         _mockTravelService = new Mock<Application.Common.Interfaces.ITravelService>();
+        _mockTravelService
+            .Setup(t => t.GetDistanceAndDurationAsync(
+                It.IsAny<double>(),
+                It.IsAny<double>(),
+                It.IsAny<double>(),
+                It.IsAny<double>(),
+                It.IsAny<CancellationToken>()
+            ))
+            .ReturnsAsync((double lat1, double lon1, double lat2, double lon2, CancellationToken ct) =>
+            {
+                var dist = GeoUtils.CalculateDistance(lat1, lon1, lat2, lon2);
+                var dur = GeoUtils.EstimateTravelTimeMinutes(dist);
+                return (dist, dur);
+            });
 
         _mockContext = new Mock<ApplicationDbContext>(
             new DbContextOptions<ApplicationDbContext>(),

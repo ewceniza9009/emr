@@ -398,7 +398,7 @@ function EditInvoiceDrawer({ invoice, isOpen, onClose, onUpdate, isUpdating }: a
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-end no-print">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose} />
-      <div className="relative w-full max-w-md h-full bg-[#0a0a0b] border-l border-white/5 shadow-2xl p-8 animate-slide-in-right">
+      <div className="relative w-full max-w-md h-full bg-[var(--card-bg)] border-l border-white/5 shadow-2xl p-8 animate-slide-in-right">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-xl font-bold uppercase tracking-tight text-white">Amend Invoice</h2>

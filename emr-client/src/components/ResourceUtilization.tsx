@@ -95,13 +95,59 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
 
   if (loading)
     return (
-      <div className="p-20 text-center animate-pulse space-y-4">
-        <div className="w-16 h-16 bg-[var(--primary)]/10 rounded-full flex items-center justify-center mx-auto border border-[var(--primary)]/20 text-[var(--primary)]">
-          <Activity className="w-8 h-8 animate-spin" />
+      <div className="pt-4 pb-8 space-y-6 relative animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-6 w-64 bg-[var(--input-bg)] rounded-xl" />
+            <div className="h-2.5 w-48 bg-[var(--input-bg)] rounded" />
+          </div>
+          <div className="flex items-center gap-6">
+            <div className="h-3 w-16 bg-[var(--input-bg)] rounded" />
+            <div className="h-3 w-16 bg-[var(--input-bg)] rounded" />
+            <div className="h-3 w-16 bg-[var(--input-bg)] rounded" />
+          </div>
         </div>
-        <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">
-          Calibrating Workforce Load Metrics...
-        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-[var(--card-bg)]/80 border border-[var(--card-border)] rounded-[1.5rem] p-5 space-y-5"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-[var(--input-bg)]" />
+                <div className="space-y-2 flex-1">
+                  <div className="h-4 w-28 bg-[var(--input-bg)] rounded" />
+                  <div className="h-2 w-16 bg-[var(--input-bg)] rounded" />
+                </div>
+              </div>
+
+              {/* Load Bar Skeleton */}
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <div className="h-2 w-24 bg-[var(--input-bg)] rounded" />
+                  <div className="h-2 w-8 bg-[var(--input-bg)] rounded" />
+                </div>
+                <div className="h-2.5 w-full bg-[var(--input-bg)] rounded-full" />
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-[var(--input-bg)]/40 p-2 py-3 rounded-xl border border-[var(--card-border)]/30 space-y-2">
+                  <div className="h-1.5 w-12 bg-[var(--input-bg)] rounded mx-auto" />
+                  <div className="h-5 w-8 bg-[var(--input-bg)] rounded mx-auto" />
+                </div>
+                <div className="bg-[var(--input-bg)]/40 p-2 py-3 rounded-xl border border-[var(--card-border)]/30 space-y-2">
+                  <div className="h-1.5 w-12 bg-[var(--input-bg)] rounded mx-auto" />
+                  <div className="h-5 w-8 bg-[var(--input-bg)] rounded mx-auto" />
+                </div>
+              </div>
+
+              {/* Button Skeleton */}
+              <div className="h-10 w-full bg-[var(--input-bg)] rounded-xl" />
+            </div>
+          ))}
+        </div>
       </div>
     );
 

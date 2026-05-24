@@ -251,6 +251,76 @@ public class SchedulingService : ISchedulingService
                         .Where(b => b.PractitionerId == staff.PractitionerId)
                         .ToList();
 
+                    // Pre-calculate travel coordinates cache to optimize tightness of the slot generator loop
+                    var travelCache = new Dictionary<string, (double distance, double driveTime)>();
+                    if (targetIsInPerson)
+                    {
+                        practitionerAddressLookup.TryGetValue(staff.PractitionerId, out var homeAddr);
+                        
+                        // 1. Home -> Target
+                        if (homeAddr?.Latitude != null && homeAddr?.Longitude != null && targetAddr?.Latitude != null && targetAddr?.Longitude != null)
+                        {
+                            var (d, t) = await _travelService.GetDistanceAndDurationAsync(
+                                homeAddr.Latitude.Value,
+                                homeAddr.Longitude.Value,
+                                targetAddr.Latitude.Value,
+                                targetAddr.Longitude.Value,
+                                cancellationToken
+                            );
+                            travelCache["home_to_target"] = (d, t);
+                        }
+                        else
+                        {
+                            travelCache["home_to_target"] = (0.0, 2.0);
+                        }
+
+                        // 2. Target -> Home
+                        if (homeAddr?.Latitude != null && homeAddr?.Longitude != null && targetAddr?.Latitude != null && targetAddr?.Longitude != null)
+                        {
+                            var (d, t) = await _travelService.GetDistanceAndDurationAsync(
+                                targetAddr.Latitude.Value,
+                                targetAddr.Longitude.Value,
+                                homeAddr.Latitude.Value,
+                                homeAddr.Longitude.Value,
+                                cancellationToken
+                            );
+                            travelCache["target_to_home"] = (d, t);
+                        }
+                        else
+                        {
+                            travelCache["target_to_home"] = (0.0, 2.0);
+                        }
+
+                        // 3. Appt -> Target & Target -> Appt
+                        foreach (var appt in staffAppts)
+                        {
+                            if (IsInPerson(appt.Modality))
+                            {
+                                patientAddressLookup.TryGetValue(appt.PatientId, out var apptAddr);
+                                if (apptAddr?.Latitude != null && apptAddr?.Longitude != null && targetAddr?.Latitude != null && targetAddr?.Longitude != null)
+                                {
+                                    var (d1, t1) = await _travelService.GetDistanceAndDurationAsync(
+                                        apptAddr.Latitude.Value,
+                                        apptAddr.Longitude.Value,
+                                        targetAddr.Latitude.Value,
+                                        targetAddr.Longitude.Value,
+                                        cancellationToken
+                                    );
+                                    travelCache[$"from_{appt.AppointmentId}"] = (d1, t1);
+
+                                    var (d2, t2) = await _travelService.GetDistanceAndDurationAsync(
+                                        targetAddr.Latitude.Value,
+                                        targetAddr.Longitude.Value,
+                                        apptAddr.Latitude.Value,
+                                        apptAddr.Longitude.Value,
+                                        cancellationToken
+                                    );
+                                    travelCache[$"to_{appt.AppointmentId}"] = (d2, t2);
+                                }
+                            }
+                        }
+                    }
+
                     int iterations = 0;
                     var loopStart = targetStart > effectiveStart ? targetStart : effectiveStart;
                     for (
@@ -286,7 +356,6 @@ public class SchedulingService : ISchedulingService
                             .ToList();
                         var prev = prevAppts.FirstOrDefault();
 
-                        Address? startAddr = null;
                         double distance = 0;
                         double driveTime = 0;
                         double buffer = targetIsInPerson ? safetyBuffer : TELEHEALTH_BUFFER_MINS;
@@ -298,33 +367,23 @@ public class SchedulingService : ISchedulingService
                             );
                             if (lastInPerson != null)
                             {
-                                patientAddressLookup.TryGetValue(
-                                    lastInPerson.PatientId,
-                                    out startAddr
-                                );
+                                if (travelCache.TryGetValue($"from_{lastInPerson.AppointmentId}", out var cachedVal))
+                                {
+                                    distance = cachedVal.distance;
+                                    driveTime = cachedVal.driveTime;
+                                }
                             }
                             else
                             {
-                                practitionerAddressLookup.TryGetValue(
-                                    staff.PractitionerId,
-                                    out startAddr
-                                );
-                            }
-
-                            if (
-                                startAddr?.Latitude != null
-                                && startAddr?.Longitude != null
-                                && targetAddr?.Latitude != null
-                                && targetAddr?.Longitude != null
-                            )
-                            {
-                                distance = GeoUtils.CalculateDistance(
-                                    startAddr.Latitude.Value,
-                                    startAddr.Longitude.Value,
-                                    targetAddr.Latitude.Value,
-                                    targetAddr.Longitude.Value
-                                );
-                                driveTime = GeoUtils.EstimateTravelTimeMinutes(distance);
+                                if (travelCache.TryGetValue("home_to_target", out var cachedVal))
+                                {
+                                    distance = cachedVal.distance;
+                                    driveTime = cachedVal.driveTime;
+                                }
+                                else
+                                {
+                                    driveTime = 2.0;
+                                }
                             }
                         }
 
@@ -360,7 +419,17 @@ public class SchedulingService : ISchedulingService
                                 patientAddressLookup.TryGetValue(next.PatientId, out var nextAddr);
 
                                 Address? originAddr = targetAddr;
-                                if (!targetIsInPerson)
+                                double? cachedDriveToNext = null;
+
+                                if (targetIsInPerson)
+                                {
+                                    if (travelCache.TryGetValue($"to_{next.AppointmentId}", out var cachedVal))
+                                    {
+                                        driveToNext = cachedVal.driveTime;
+                                        cachedDriveToNext = driveToNext;
+                                    }
+                                }
+                                else
                                 {
                                     var lastInPerson = prevAppts.FirstOrDefault(a =>
                                         IsInPerson(a.Modality)
@@ -381,20 +450,23 @@ public class SchedulingService : ISchedulingService
                                     }
                                 }
 
-                                if (
-                                    originAddr?.Latitude != null
-                                    && originAddr?.Longitude != null
-                                    && nextAddr?.Latitude != null
-                                    && nextAddr?.Longitude != null
-                                )
+                                if (cachedDriveToNext == null)
                                 {
-                                    var distToNext = GeoUtils.CalculateDistance(
-                                        originAddr.Latitude.Value,
-                                        originAddr.Longitude.Value,
-                                        nextAddr.Latitude.Value,
-                                        nextAddr.Longitude.Value
-                                    );
-                                    driveToNext = GeoUtils.EstimateTravelTimeMinutes(distToNext);
+                                    if (
+                                        originAddr?.Latitude != null
+                                        && originAddr?.Longitude != null
+                                        && nextAddr?.Latitude != null
+                                        && nextAddr?.Longitude != null
+                                    )
+                                    {
+                                        var distToNext = GeoUtils.CalculateDistance(
+                                            originAddr.Latitude.Value,
+                                            originAddr.Longitude.Value,
+                                            nextAddr.Latitude.Value,
+                                            nextAddr.Longitude.Value
+                                        );
+                                        driveToNext = GeoUtils.EstimateTravelTimeMinutes(distToNext);
+                                    }
                                 }
                             }
 
@@ -413,31 +485,20 @@ public class SchedulingService : ISchedulingService
                         }
 
                         var appointmentEnd = time.Add(duration);
-                        double returnDistance = 0;
-                        practitionerAddressLookup.TryGetValue(
-                            staff.PractitionerId,
-                            out var staffHomeAddr
-                        );
+                        double returnTravelTime = 0;
 
-                        if (
-                            targetIsInPerson
-                            && staffHomeAddr?.Latitude != null
-                            && staffHomeAddr?.Longitude != null
-                            && targetAddr?.Latitude != null
-                            && targetAddr?.Longitude != null
-                        )
+                        if (targetIsInPerson)
                         {
-                            returnDistance = GeoUtils.CalculateDistance(
-                                targetAddr.Latitude.Value,
-                                targetAddr.Longitude.Value,
-                                staffHomeAddr.Latitude.Value,
-                                staffHomeAddr.Longitude.Value
-                            );
+                            if (travelCache.TryGetValue("target_to_home", out var cachedVal))
+                            {
+                                returnTravelTime = cachedVal.driveTime;
+                            }
+                            else
+                            {
+                                returnTravelTime = 2.0;
+                            }
                         }
 
-                        double returnTravelTime = targetIsInPerson
-                            ? GeoUtils.EstimateTravelTimeMinutes(returnDistance)
-                            : 0;
                         double effectiveReturnTime = targetIsInPerson
                             ? Math.Max(returnTravelTime, 2)
                             : 0;
@@ -571,13 +632,13 @@ public class SchedulingService : ISchedulingService
             if (startLat == null || startLon == null)
                 return (0, 0);
 
-            double distance = GeoUtils.CalculateDistance(
+            var (distance, driveTime) = await _travelService.GetDistanceAndDurationAsync(
                 startLat.Value,
                 startLon.Value,
                 patientAddr.Latitude.Value,
-                patientAddr.Longitude.Value
+                patientAddr.Longitude.Value,
+                cancellationToken
             );
-            double driveTime = GeoUtils.EstimateTravelTimeMinutes(distance);
             double effectiveDriveTime = Math.Max(driveTime, 2);
 
             return (Math.Round(distance, 2), Math.Round(effectiveDriveTime, 0));
@@ -693,13 +754,14 @@ public class SchedulingService : ISchedulingService
                         && patientAddr?.Longitude.HasValue == true
                     )
                     {
-                        var dist = GeoUtils.CalculateDistance(
+                        var (dist, t) = await _travelService.GetDistanceAndDurationAsync(
                             prevAddr.Latitude.Value,
                             prevAddr.Longitude.Value,
                             patientAddr.Latitude.Value,
-                            patientAddr.Longitude.Value
+                            patientAddr.Longitude.Value,
+                            cancellationToken
                         );
-                        driveTime = GeoUtils.EstimateTravelTimeMinutes(dist);
+                        driveTime = t;
                     }
                     else if (lastInPerson == null)
                     {
@@ -712,13 +774,14 @@ public class SchedulingService : ISchedulingService
                             && patientAddr?.Longitude.HasValue == true
                         )
                         {
-                            var dist = GeoUtils.CalculateDistance(
+                            var (dist, t) = await _travelService.GetDistanceAndDurationAsync(
                                 homeAddr.Latitude.Value,
                                 homeAddr.Longitude.Value,
                                 patientAddr.Latitude.Value,
-                                patientAddr.Longitude.Value
+                                patientAddr.Longitude.Value,
+                                cancellationToken
                             );
-                            driveTime = GeoUtils.EstimateTravelTimeMinutes(dist);
+                            driveTime = t;
                         }
                     }
                 }
@@ -764,13 +827,14 @@ public class SchedulingService : ISchedulingService
                             && patientAddr?.Longitude.HasValue == true
                         )
                         {
-                            var dist = GeoUtils.CalculateDistance(
+                            var (dist, t) = await _travelService.GetDistanceAndDurationAsync(
                                 patientAddr.Latitude.Value,
                                 patientAddr.Longitude.Value,
                                 nextAddr.Latitude.Value,
-                                nextAddr.Longitude.Value
+                                nextAddr.Longitude.Value,
+                                cancellationToken
                             );
-                            driveToNext = GeoUtils.EstimateTravelTimeMinutes(dist);
+                            driveToNext = t;
                         }
                     }
                     else
@@ -796,13 +860,14 @@ public class SchedulingService : ISchedulingService
                             && nextAddr?.Longitude.HasValue == true
                         )
                         {
-                            var dist = GeoUtils.CalculateDistance(
+                            var (dist, t) = await _travelService.GetDistanceAndDurationAsync(
                                 originAddr.Latitude.Value,
                                 originAddr.Longitude.Value,
                                 nextAddr.Latitude.Value,
-                                nextAddr.Longitude.Value
+                                nextAddr.Longitude.Value,
+                                cancellationToken
                             );
-                            driveToNext = GeoUtils.EstimateTravelTimeMinutes(dist);
+                            driveToNext = t;
                         }
                     }
                 }
@@ -840,7 +905,7 @@ public class SchedulingService : ISchedulingService
                     targetDate.Add(shift.EndTime),
                     offset
                 );
-                double returnDistance = 0;
+                double returnTravelTime = 0;
 
                 if (isTargetInPerson 
                     && practitionerHomeAddr?.Latitude != null 
@@ -848,17 +913,16 @@ public class SchedulingService : ISchedulingService
                     && patientAddr?.Latitude != null 
                     && patientAddr?.Longitude != null)
                 {
-                    returnDistance = GeoUtils.CalculateDistance(
+                    var (dist, t) = await _travelService.GetDistanceAndDurationAsync(
                         patientAddr.Latitude.Value,
                         patientAddr.Longitude.Value,
                         practitionerHomeAddr.Latitude.Value,
-                        practitionerHomeAddr.Longitude.Value
+                        practitionerHomeAddr.Longitude.Value,
+                        cancellationToken
                     );
+                    returnTravelTime = t;
                 }
 
-                double returnTravelTime = isTargetInPerson
-                    ? GeoUtils.EstimateTravelTimeMinutes(returnDistance)
-                    : 0;
                 double effectiveReturnTime = isTargetInPerson ? Math.Max(returnTravelTime, 2) : 0;
 
                 var finalReturnTime = appt.ScheduledEnd.AddMinutes(effectiveReturnTime);
@@ -1059,13 +1123,15 @@ public class SchedulingService : ISchedulingService
                                 && prevAddr?.Longitude.HasValue == true
                             )
                             {
-                                distance = GeoUtils.CalculateDistance(
+                                var (d, t) = await _travelService.GetDistanceAndDurationAsync(
                                     prevAddr.Latitude.Value,
                                     prevAddr.Longitude.Value,
                                     patientAddr.Latitude.Value,
-                                    patientAddr.Longitude.Value
+                                    patientAddr.Longitude.Value,
+                                    cancellationToken
                                 );
-                                driveTime = GeoUtils.EstimateTravelTimeMinutes(distance.Value);
+                                distance = d;
+                                driveTime = t;
                             }
                         }
                         else
@@ -1082,13 +1148,15 @@ public class SchedulingService : ISchedulingService
                                 && patientAddr?.Longitude.HasValue == true
                             )
                             {
-                                distance = GeoUtils.CalculateDistance(
+                                var (d, t) = await _travelService.GetDistanceAndDurationAsync(
                                     practAddr.Latitude.Value,
                                     practAddr.Longitude.Value,
                                     patientAddr.Latitude.Value,
-                                    patientAddr.Longitude.Value
+                                    patientAddr.Longitude.Value,
+                                    cancellationToken
                                 );
-                                driveTime = GeoUtils.EstimateTravelTimeMinutes(distance.Value);
+                                distance = d;
+                                driveTime = t;
                             }
                         }
                     }

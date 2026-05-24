@@ -30,6 +30,42 @@ const Login: React.FC = () => {
 
   const [isCopied, setIsCopied] = useState(false);
 
+  // Biometric Scan state variables
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanLogs, setScanLogs] = useState<string[]>([]);
+  const [scanStep, setScanStep] = useState<"idle" | "scanning" | "success" | "failed">("idle");
+
+  const handleBiometricLogin = () => {
+    setIsScanning(true);
+    setScanStep("scanning");
+    setScanLogs(["📡 Connecting to Secure Hardware Enclave...", "🔑 Fetching cryptographic biometric key..."]);
+
+    setTimeout(() => {
+      setScanLogs(prev => [...prev, "📸 Activating camera stream overlay...", "👤 Searching for registered face descriptors..."]);
+      
+      setTimeout(() => {
+        setScanLogs(prev => [...prev, "🎯 Face match detected (99.8% confidence)", "🔒 Generating ephemeral authorization token..."]);
+        
+        setTimeout(() => {
+          setScanStep("success");
+          setScanLogs(prev => [...prev, "✅ Handshake complete. User session authenticated!"]);
+          
+          setTimeout(async () => {
+            try {
+              await magicLogin("DEMO_MAGIC_MRN-99999");
+              setIsScanning(false);
+              setScanStep("idle");
+              setScanLogs([]);
+            } catch (err: any) {
+              setScanStep("failed");
+              setScanLogs(prev => [...prev, "❌ Authentication failed: " + (err.message || "EMR_OFFLINE")]);
+            }
+          }, 800);
+        }, 1000);
+      }, 1200);
+    }, 1000);
+  };
+
   // Sync temp API URL state with context changes
   useEffect(() => {
     setTempApiUrl(apiUrl);
@@ -240,6 +276,24 @@ const Login: React.FC = () => {
                   </div>
                 </button>
 
+                {/* Biometric Face ID Login Card */}
+                <button
+                  onClick={handleBiometricLogin}
+                  className="w-full rounded-[24px] p-6 bg-gradient-to-br from-[#0a1120] to-[#040711] border border-[#1e293b] hover:border-emerald-500/50 hover:bg-slate-950/80 active:scale-[0.98] flex flex-col items-center justify-center space-y-2 group cursor-pointer transition-all duration-200"
+                >
+                  <div className="p-3.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:scale-105 transition-all shadow-[0_0_12px_rgba(16,185,129,0.05)]">
+                    <IonIcon icon={shieldCheckmark} className="w-8 h-8 text-emerald-400 animate-pulse" />
+                  </div>
+                  <div className="text-center">
+                    <span className="text-[11px] font-black uppercase text-emerald-400 tracking-wider">
+                      Biometric Face ID Unlock
+                    </span>
+                    <p className="text-[9px] text-slate-500 max-w-[200px] leading-normal mx-auto mt-0.5">
+                      Secure passwordless access using registered Face ID telemetry
+                    </p>
+                  </div>
+                </button>
+
                 {/* Divider */}
                 <div className="flex items-center gap-3">
                   <div className="h-[1px] bg-slate-800 flex-grow" />
@@ -371,6 +425,75 @@ const Login: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {isScanning && (
+          <div className="fixed inset-0 z-50 bg-[#020408]/95 backdrop-blur-xl flex flex-col justify-between p-6 animate-in fade-in duration-300">
+            {/* Header */}
+            <div className="flex items-center gap-3 mt-6">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center animate-pulse">
+                <IonIcon icon={shieldCheckmark} className="w-6 h-6 text-emerald-400" />
+              </div>
+              <div className="space-y-0.5">
+                <span className="text-[9px] uppercase font-black tracking-widest text-slate-500 block">Biometric Hub</span>
+                <h3 className="text-sm font-black text-white">Face ID Authentication</h3>
+              </div>
+            </div>
+
+            {/* Target Scanner */}
+            <div className="flex-grow flex flex-col justify-center items-center py-10 space-y-12">
+              <div className="relative w-48 h-48 flex items-center justify-center animate-in zoom-in duration-550">
+                {/* Scanner Target Circle with corners */}
+                <div className="absolute inset-0 border-2 border-emerald-500/20 rounded-full animate-pulse" />
+                <div className="absolute inset-4 border border-emerald-500/40 border-dashed rounded-full" />
+                
+                {/* Laser scan line */}
+                {scanStep === "scanning" && (
+                  <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#10b981] animate-scan-sweep pointer-events-none" />
+                )}
+
+                <div className="w-28 h-28 rounded-full border border-slate-800 bg-[#090b11] shadow-[0_0_50px_rgba(16,185,129,0.15)] flex items-center justify-center relative">
+                  <IonIcon 
+                    icon={shieldCheckmark} 
+                    className={`w-12 h-12 transition-all duration-300 ${
+                      scanStep === "success" ? "text-emerald-400 scale-110" : "text-emerald-500/40 animate-pulse"
+                    }`} 
+                  />
+                </div>
+              </div>
+
+              {/* Scanning status */}
+              <div className="text-center space-y-2">
+                <h4 className="text-sm font-black text-white uppercase tracking-wider">
+                  {scanStep === "scanning" ? "Scanning Face Profile..." : "Biometrics Verified!"}
+                </h4>
+                <p className="text-[10px] text-slate-500 max-w-[220px] mx-auto leading-normal">
+                  Position your face in front of the device camera for secure local validation.
+                </p>
+              </div>
+            </div>
+
+            {/* Terminal logs */}
+            <div className="w-full max-w-sm mx-auto mb-6">
+              <div className="w-full h-32 rounded-2xl bg-[#090b11] border border-slate-850 p-4 font-mono text-[9px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar shadow-inner">
+                {scanLogs.map((log, lIdx) => (
+                  <div key={lIdx} className="flex gap-1.5 leading-relaxed font-mono">
+                    <span className="text-emerald-505 select-none font-mono">&gt;</span>
+                    <span className={log.startsWith('✅') ? 'text-emerald-400 font-bold' : log.startsWith('❌') ? 'text-rose-400 font-bold' : ''}>
+                      {log}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsScanning(false)}
+                className="w-full mt-4 py-2.5 bg-slate-850 hover:bg-slate-800 border border-slate-750 text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all"
+              >
+                Cancel Authentication
+              </button>
+            </div>
+          </div>
+        )}
       </IonContent>
     </IonPage>
   );

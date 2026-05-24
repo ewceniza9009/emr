@@ -24,6 +24,7 @@ import {
   checkmarkDone,
   sunny,
   moon as moonIcon,
+  alertCircle
 } from "ionicons/icons";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -96,6 +97,27 @@ const GET_MY_PROFILE = gql`
 const CareHub: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, apiUrl, token } = useAuth();
+
+  // Connection monitoring state
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [offlineChatQueue, setOfflineChatQueue] = useState<any[]>(() => {
+    if (typeof localStorage === 'undefined') return [];
+    const saved = localStorage.getItem('halkyone-offline-chat-messages');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
@@ -179,6 +201,25 @@ const CareHub: React.FC = () => {
   }, [data]);
 
   const [sendMessageMutation] = useMutation(SEND_MESSAGE_MUTATION);
+
+  // Sync offline queued chat messages when online
+  useEffect(() => {
+    if (isOnline && offlineChatQueue.length > 0) {
+      const syncChatMessages = async () => {
+        console.log(`Syncing ${offlineChatQueue.length} offline chat messages...`);
+        for (const msg of offlineChatQueue) {
+          try {
+            await sendMessageMutation({ variables: msg });
+          } catch (e) {
+            console.error("Failed to sync offline chat message", e);
+          }
+        }
+        setOfflineChatQueue([]);
+        localStorage.removeItem('halkyone-offline-chat-messages');
+      };
+      syncChatMessages();
+    }
+  }, [isOnline, offlineChatQueue, sendMessageMutation]);
 
   useEffect(() => {
     if (!activeThreadId || !apiUrl || !token) return;
@@ -344,17 +385,29 @@ const CareHub: React.FC = () => {
       setShowSosModal(true);
     }
 
-    try {
-      await sendMessageMutation({
-        variables: {
-          patientId,
-          careThreadId:
-            activeThreadId || "00000000-0000-0000-0000-000000000000",
-          content: trimmedText,
-        },
-      });
-    } catch (e) {
-      console.error(e);
+    const msgPayload = {
+      patientId,
+      careThreadId:
+        activeThreadId || "00000000-0000-0000-0000-000000000000",
+      content: trimmedText,
+    };
+
+    if (!isOnline) {
+      const updatedQueue = [...offlineChatQueue, msgPayload];
+      setOfflineChatQueue(updatedQueue);
+      localStorage.setItem('halkyone-offline-chat-messages', JSON.stringify(updatedQueue));
+      console.log("Offline: Chat message logged to queue.");
+    } else {
+      try {
+        await sendMessageMutation({
+          variables: msgPayload,
+        });
+      } catch (e) {
+        console.error("Failed to send chat message directly:", e);
+        const updatedQueue = [...offlineChatQueue, msgPayload];
+        setOfflineChatQueue(updatedQueue);
+        localStorage.setItem('halkyone-offline-chat-messages', JSON.stringify(updatedQueue));
+      }
     }
   };
 
@@ -575,6 +628,19 @@ const CareHub: React.FC = () => {
       </IonHeader>
 
       <IonContent ref={contentRef} className="ion-padding">
+        {!isOnline && (
+          <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-550 dark:text-amber-400 text-[11px] leading-relaxed flex items-center justify-between gap-2 animate-pulse">
+            <div className="flex items-center gap-2">
+              <IonIcon icon={alertCircle} className="w-4 h-4 flex-shrink-0" />
+              <span className="font-extrabold uppercase tracking-wider">Connection Offline (Cached Mode Active)</span>
+            </div>
+            {offlineChatQueue.length > 0 && (
+              <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                {offlineChatQueue.length} Sync Queue
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex flex-col min-h-full space-y-4 pb-6">
           {/* Emergency Helper Tip */}
           <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 dark:from-amber-950/20 dark:to-slate-900/40 border border-amber-250 dark:border-amber-900/40 flex gap-3 shadow-sm">

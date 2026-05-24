@@ -6,20 +6,91 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services;
 
 public class TravelService : ITravelService
 {
     private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<TravelService> _logger;
     private const int FALLBACK_IN_PERSON_BUFFER = 5;
     private const int TELEHEALTH_BUFFER_MINS = 3;
 
-    public TravelService(IDbContextFactory<ApplicationDbContext> dbFactory)
+    public TravelService(
+        IDbContextFactory<ApplicationDbContext> dbFactory,
+        IHttpClientFactory httpClientFactory,
+        ILogger<TravelService> logger
+    )
     {
         _dbFactory = dbFactory;
+        _httpClientFactory = httpClientFactory;
+        _logger = logger;
+    }
+
+    public async Task<(double distanceInMiles, double durationInMinutes)> GetDistanceAndDurationAsync(
+        double startLat,
+        double startLon,
+        double endLat,
+        double endLon,
+        CancellationToken ct = default
+    )
+    {
+        var fallbackDistance = GeoUtils.CalculateDistance(startLat, startLon, endLat, endLon);
+        var fallbackDuration = GeoUtils.EstimateTravelTimeMinutes(fallbackDistance);
+
+        try
+        {
+            var client = _httpClientFactory.CreateClient("OSRM");
+            var url = $"route/v1/driving/{startLon.ToString(System.Globalization.CultureInfo.InvariantCulture)},{startLat.ToString(System.Globalization.CultureInfo.InvariantCulture)};{endLon.ToString(System.Globalization.CultureInfo.InvariantCulture)},{endLat.ToString(System.Globalization.CultureInfo.InvariantCulture)}?overview=false";
+
+            _logger.LogInformation(">>> OSRM ROUTE CALL: Querying route from ({Lat1},{Lon1}) to ({Lat2},{Lon2})", startLat, startLon, endLat, endLon);
+            var response = await client.GetAsync(url, ct);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning(">>> OSRM ROUTE FAILED (HTTP Status {Status}): Falling back to Haversine.", response.StatusCode);
+                return (fallbackDistance, fallbackDuration);
+            }
+
+            var content = await response.Content.ReadAsStringAsync(ct);
+            using var document = JsonDocument.Parse(content);
+            var root = document.RootElement;
+            if (root.TryGetProperty("code", out var codeProp) && codeProp.GetString() == "Ok" &&
+                root.TryGetProperty("routes", out var routesProp) && routesProp.GetArrayLength() > 0)
+            {
+                var firstRoute = routesProp[0];
+                double distanceInMeters = 0;
+                if (firstRoute.TryGetProperty("distance", out var distProp))
+                {
+                    distanceInMeters = distProp.GetDouble();
+                }
+                
+                double durationInSeconds = 0;
+                if (firstRoute.TryGetProperty("duration", out var durProp))
+                {
+                    durationInSeconds = durProp.GetDouble();
+                }
+
+                double distanceInMiles = distanceInMeters * 0.000621371;
+                double durationInMinutes = durationInSeconds / 60.0;
+
+                _logger.LogInformation(">>> OSRM ROUTE SUCCESS: Distance = {Distance:F2} mi, Duration = {Duration:F1} min", distanceInMiles, durationInMinutes);
+                return (distanceInMiles, durationInMinutes);
+            }
+            
+            _logger.LogWarning(">>> OSRM ROUTE PARSE FAILURE: 'routes' element missing or empty. Falling back to Haversine.");
+            return (fallbackDistance, fallbackDuration);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, ">>> OSRM ROUTE EXCEPTION: Falling back to Haversine. Error: {Message}", ex.Message);
+            return (fallbackDistance, fallbackDuration);
+        }
     }
 
     public async Task<bool> ValidateTravelBufferAsync(Guid practitionerId, Guid appointmentId, CancellationToken ct)
@@ -85,8 +156,13 @@ public class TravelService : ITravelService
             var prevAddr = prev.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
             if (prevAddr?.Latitude.HasValue == true && prevAddr?.Longitude.HasValue == true)
             {
-                var dist = GeoUtils.CalculateDistance(prevAddr.Latitude.Value, prevAddr.Longitude.Value, patientAddr.Latitude.Value, patientAddr.Longitude.Value);
-                var driveTime = GeoUtils.EstimateTravelTimeMinutes(dist);
+                var (dist, driveTime) = await GetDistanceAndDurationAsync(
+                    prevAddr.Latitude.Value,
+                    prevAddr.Longitude.Value,
+                    patientAddr.Latitude.Value,
+                    patientAddr.Longitude.Value,
+                    ct
+                );
                 var effectiveDriveTime = Math.Max(driveTime, 2);
                 if (appt.ScheduledStart < prev.ScheduledEnd.AddMinutes(buffer + effectiveDriveTime))
                     return false;
@@ -99,8 +175,13 @@ public class TravelService : ITravelService
             var nextAddr = next.Patient?.Addresses.FirstOrDefault(a => a.IsPrimary)?.Address;
             if (nextAddr?.Latitude.HasValue == true && nextAddr?.Longitude.HasValue == true)
             {
-                var dist = GeoUtils.CalculateDistance(patientAddr.Latitude.Value, patientAddr.Longitude.Value, nextAddr.Latitude.Value, nextAddr.Longitude.Value);
-                var driveTime = GeoUtils.EstimateTravelTimeMinutes(dist);
+                var (dist, driveTime) = await GetDistanceAndDurationAsync(
+                    patientAddr.Latitude.Value,
+                    patientAddr.Longitude.Value,
+                    nextAddr.Latitude.Value,
+                    nextAddr.Longitude.Value,
+                    ct
+                );
                 var effectiveDriveTime = Math.Max(driveTime, 2);
                 var nextIsInPerson = next.Modality == AppointmentModality.InPersonHomeVisit || next.Modality == AppointmentModality.InPersonFacility;
                 var nextBuffer = nextIsInPerson ? safetyBuffer : TELEHEALTH_BUFFER_MINS;

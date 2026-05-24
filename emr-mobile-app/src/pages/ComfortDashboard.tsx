@@ -186,6 +186,32 @@ const ESAS_SYMPTOMS = [
 const ComfortDashboard: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, apiUrl, token } = useAuth();
+
+  // Connection monitoring state
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [offlineVitalsQueue, setOfflineVitalsQueue] = useState<any[]>(() => {
+    if (typeof localStorage === 'undefined') return [];
+    const saved = localStorage.getItem('halkyone-offline-vitals');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [offlineEsasQueue, setOfflineEsasQueue] = useState<any[]>(() => {
+    if (typeof localStorage === 'undefined') return [];
+    const saved = localStorage.getItem('halkyone-offline-esas');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
   
   const { data, loading, error } = useQuery<any>(GET_DASHBOARD_DATA, {
     variables: { patientId: user?.patientId },
@@ -371,6 +397,42 @@ const ComfortDashboard: React.FC = () => {
   const [saveEsas] = useMutation(SAVE_ESAS_ASSESSMENT, {
     refetchQueries: [{ query: GET_DASHBOARD_DATA, variables: { patientId: user?.patientId } }]
   });
+
+  // Auto-sync offline queue when online returns
+  useEffect(() => {
+    if (isOnline) {
+      const syncOfflineQueue = async () => {
+        // Sync vitals
+        if (offlineVitalsQueue.length > 0) {
+          console.log(`Syncing ${offlineVitalsQueue.length} vitals reports...`);
+          for (const item of offlineVitalsQueue) {
+            try {
+              await saveVitals({ variables: item });
+            } catch (e) {
+              console.error("Vitals sync failed", e);
+            }
+          }
+          setOfflineVitalsQueue([]);
+          localStorage.removeItem('halkyone-offline-vitals');
+        }
+
+        // Sync ESAS
+        if (offlineEsasQueue.length > 0) {
+          console.log(`Syncing ${offlineEsasQueue.length} ESAS reports...`);
+          for (const item of offlineEsasQueue) {
+            try {
+              await saveEsas({ variables: item });
+            } catch (e) {
+              console.error("ESAS sync failed", e);
+            }
+          }
+          setOfflineEsasQueue([]);
+          localStorage.removeItem('halkyone-offline-esas');
+        }
+      };
+      syncOfflineQueue();
+    }
+  }, [isOnline, offlineVitalsQueue, offlineEsasQueue, saveVitals, saveEsas]);
 
   // Live Wearables integration
   useEffect(() => {
@@ -607,21 +669,33 @@ const ComfortDashboard: React.FC = () => {
     if (!systolic || !diastolic) return;
     const value = `${systolic}/${diastolic} mmHg`;
     
-    try {
-      if (user?.patientId) {
-        await saveVitals({
-          variables: {
-            patientId: user.patientId,
-            bloodPressureSystolic: parseFloat(systolic),
-            bloodPressureDiastolic: parseFloat(diastolic),
-            heartRate: liveVitals.heartRate,
-            temperature: liveVitals.temperature,
-            oxygenSaturation: liveVitals.spO2
-          }
-        });
+    const vitalsPayload = {
+      patientId: user?.patientId,
+      bloodPressureSystolic: parseFloat(systolic),
+      bloodPressureDiastolic: parseFloat(diastolic),
+      heartRate: liveVitals.heartRate,
+      temperature: liveVitals.temperature,
+      oxygenSaturation: liveVitals.spO2
+    };
+
+    if (!isOnline) {
+      const updatedQueue = [...offlineVitalsQueue, vitalsPayload];
+      setOfflineVitalsQueue(updatedQueue);
+      localStorage.setItem('halkyone-offline-vitals', JSON.stringify(updatedQueue));
+      console.log("Offline: Blood pressure saved to queue.");
+    } else {
+      try {
+        if (user?.patientId) {
+          await saveVitals({
+            variables: vitalsPayload
+          });
+        }
+      } catch (err) {
+        console.error("Failed to save vitals directly to PostgreSQL database:", err);
+        const updatedQueue = [...offlineVitalsQueue, vitalsPayload];
+        setOfflineVitalsQueue(updatedQueue);
+        localStorage.setItem('halkyone-offline-vitals', JSON.stringify(updatedQueue));
       }
-    } catch (err) {
-      console.error("Failed to save vitals directly to PostgreSQL database:", err);
     }
 
     setBpValue(value);
@@ -715,25 +789,37 @@ const ComfortDashboard: React.FC = () => {
     const anxiety = getScoreByText('anxiety');
     const wellbeing = getScoreByText('wellbeing') || getScoreByText('well-being');
 
-    try {
-      if (user?.patientId) {
-        await saveEsas({
-          variables: {
-            patientId: user.patientId,
-            pain,
-            tiredness,
-            drowsiness,
-            nausea,
-            lackOfAppetite,
-            shortnessOfBreath,
-            depression,
-            anxiety,
-            wellbeing
-          }
-        });
+    const esasPayload = {
+      patientId: user?.patientId,
+      pain,
+      tiredness,
+      drowsiness,
+      nausea,
+      lackOfAppetite,
+      shortnessOfBreath,
+      depression,
+      anxiety,
+      wellbeing
+    };
+
+    if (!isOnline) {
+      const updatedQueue = [...offlineEsasQueue, esasPayload];
+      setOfflineEsasQueue(updatedQueue);
+      localStorage.setItem('halkyone-offline-esas', JSON.stringify(updatedQueue));
+      console.log("Offline: ESAS assessment saved to queue.");
+    } else {
+      try {
+        if (user?.patientId) {
+          await saveEsas({
+            variables: esasPayload
+          });
+        }
+      } catch (err) {
+        console.error("Failed to save ESAS assessment directly to PostgreSQL database:", err);
+        const updatedQueue = [...offlineEsasQueue, esasPayload];
+        setOfflineEsasQueue(updatedQueue);
+        localStorage.setItem('halkyone-offline-esas', JSON.stringify(updatedQueue));
       }
-    } catch (err) {
-      console.error("Failed to save ESAS assessment directly to PostgreSQL database:", err);
     }
 
     const total = esasAnswers.reduce((sum, val) => sum + val, 0);
@@ -1016,6 +1102,19 @@ const ComfortDashboard: React.FC = () => {
       </IonHeader>
 
       <IonContent className="ion-padding">
+        {!isOnline && (
+          <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-550 dark:text-amber-400 text-[11px] leading-relaxed flex items-center justify-between gap-2 animate-pulse">
+            <div className="flex items-center gap-2">
+              <IonIcon icon={alertCircle} className="w-4 h-4 flex-shrink-0" />
+              <span className="font-extrabold uppercase tracking-wider">Connection Offline (Cached Mode Active)</span>
+            </div>
+            {(offlineVitalsQueue.length > 0 || offlineEsasQueue.length > 0) && (
+              <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                {(offlineVitalsQueue.length + offlineEsasQueue.length)} Sync Queue
+              </span>
+            )}
+          </div>
+        )}
         <div className="space-y-5 pb-8">
           
           {/* Daily Care Ring - Glassmorphism */}

@@ -69,6 +69,14 @@ public static class DependencyInjection
             );
         });
 
+        services.AddHttpClient("OSRM", client =>
+        {
+            client.BaseAddress = new Uri(
+                configuration["Integrations:OSRM:ApiUrl"] ?? "http://router.project-osrm.org/"
+            );
+            client.Timeout = TimeSpan.FromSeconds(3);
+        });
+
         services.AddScoped<ISchedulingService, Infrastructure.Services.SchedulingService>();
         services.AddScoped<ITravelService, Infrastructure.Services.TravelService>();
         services.AddScoped<IMrnGenerator, Infrastructure.Services.MrnGenerator>();
