@@ -2,6 +2,14 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.3.8] - 2026-05-24
+- Implemented OSRM driving route calculations with a great-circle Haversine fallback to optimize palliative home-visit travel scheduling.
+- Polished clinician workstation with dynamic pulse skeleton grid loaders and unified theme-aware CSS variables to support seamless light/dark mode adaptation.
+- Enhanced mobile patient portal with simulated Face ID biometrics and resilient offline sync caching for blood pressure, symptom logs, pharmacy refills, and chat messages.
+- Resolved TypeScript environment and compiler namespace conflicts for Cypress E2E tests by isolating cypress configuration files.
+- Optimized transactional outbox job processor to handle messages concurrently with individual service scopes and exponential backoff retry scheduling.
+- Dynamic indexing of TenantId columns across all tenant-isolated database tables to eliminate full table scans during clinical workspace searches.
+
 ## [1.3.7] - 2026-05-22
 - Implemented Shift Report modal for practitioners and admins with dynamic database views.
 - Added date filtering capabilities for historical clinical shift reports.
