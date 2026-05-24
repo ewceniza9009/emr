@@ -22,7 +22,7 @@
 
 ## 📊 Clinical QA & Reliability Report
 
-[**📊 View Full CI/CD History**](https://github.com/ewceniza9009/emr/actions/workflows/cicd.yml) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/26083206434/artifacts/7077657883) | [**📦 Download Local QA Report**](./qa_report.zip)
+[**📊 View Full CI/CD History**](https://github.com/ewceniza9009/emr/actions) | [**🏆 Download Playwright Test Artifacts**](https://github.com/ewceniza9009/emr/actions/runs/26365846279/artifacts/7186488688) | [**📦 Download Local QA Report**](https://github.com/ewceniza9009/emr/blob/main/qa_report.zip)
 
 > [!IMPORTANT]
 > The links above represent a **100% successful verification** of all clinical modules: Enrollment, Scheduling, Booking, and Real-time Telemetry.
