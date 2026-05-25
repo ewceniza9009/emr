@@ -16,7 +16,7 @@ RUN dotnet build "Api.csproj" -c Release -o /app/build
 
 # Publish Stage
 FROM build AS publish
-RUN dotnet publish "Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Api.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:PublishReadyToRun=true
 
 # Runtime Stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final

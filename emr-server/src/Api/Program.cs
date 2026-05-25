@@ -181,27 +181,30 @@ try
     app.MapHub<Infrastructure.Hubs.NotificationHub>("/hubs/notifications");
     app.MapHub<Infrastructure.Hubs.ChatHub>("/hubs/chat");
 
-    using (var scope = app.Services.CreateScope())
+    _ = Task.Run(async () =>
     {
-        var _logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        try
+        using (var scope = app.Services.CreateScope())
         {
-            _logger.LogInformation("Starting database initialization...");
-            await DbInitializer.InitializeAsync(scope.ServiceProvider, 
-                bool.Parse(builder.Configuration["EMR_WIPE_DB"] ?? "false"),
-                bool.Parse(builder.Configuration["EMR_SEED_DB"] ?? "true"));
-            _logger.LogInformation("Database initialization completed successfully.");
+            var _logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            try
+            {
+                _logger.LogInformation("Starting database initialization in the background...");
+                await DbInitializer.InitializeAsync(scope.ServiceProvider, 
+                    bool.Parse(builder.Configuration["EMR_WIPE_DB"] ?? "false"),
+                    bool.Parse(builder.Configuration["EMR_SEED_DB"] ?? "true"));
+                _logger.LogInformation("Database initialization completed successfully.");
 
-            _logger.LogInformation("Warming up database query paths...");
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            _ = await dbContext.Patients.AnyAsync();
-            _logger.LogInformation("Database query paths warmed up successfully.");
+                _logger.LogInformation("Warming up database query paths...");
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                _ = await dbContext.Patients.AnyAsync();
+                _logger.LogInformation("Database query paths warmed up successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical(ex, "An error occurred during database initialization. The app will continue starting, but database features may be unavailable.");
+            }
         }
-        catch (Exception ex)
-        {
-            _logger.LogCritical(ex, "An error occurred during database initialization. The app will continue starting, but database features may be unavailable.");
-        }
-    }
+    });
 
     app.Run();
 }
