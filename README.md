@@ -285,7 +285,7 @@ Practitioners can architect and deploy custom clinical instruments:
 - **Smart Phrase Engine:** Shortcut-driven templates (`/soap`, `/death`, `/meds`) to eliminate charting friction.
 - **Outreach Call Scripts:** Standardized protocols for Enrollment, Bereavement, and Assessment coordination.
 
-### 4. Mobile Patient Workstation & "My Recovery"
+### 4. Mobile Patient Workstation & "Comfort Page"
 
 - **The Daily Care Ring:** Interactive progress visualization indicating medication and survey compliance.
 - **Native-Styled SurveyJS:** Custom wrapper using Ionic components (`IonContent`) for seamless rendering of ESAS-R and PHQ-9 forms.

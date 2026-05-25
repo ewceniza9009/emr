@@ -17,6 +17,7 @@ import {
   Truck,
   WifiOff,
   ClipboardList,
+  Smartphone,
 } from "lucide-react";
 
 export default function BentoFeatures() {
@@ -32,14 +33,14 @@ export default function BentoFeatures() {
           </h2>
         </div>
 
-        {/* 3x3 Perfectly Balanced Grid (9 Column Units Total) */}
+        {/* 4-Row Perfectly Balanced Grid (Sum of columns = 3 in each row) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           
           {/* ================= ROW 1 (3 Units) ================= */}
           {/* Card 1: Large Span - Clinical Logistics Map (Col Span 2) */}
           <motion.div
             whileHover={{ y: -5 }}
-            className="md:col-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[300px] flex flex-col justify-between"
+            className="md:col-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[300px] flex flex-col justify-end"
           >
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay" />
             <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -164,6 +165,25 @@ export default function BentoFeatures() {
                   <span className="text-slate-500 uppercase tracking-widest text-[8px] font-bold">Consent</span>
                   <span className="font-bold text-white flex items-center gap-0.5"><Lock className="w-2.5 h-2.5 text-emerald-400" /> Executed</span>
                 </div>
+
+                {/* Miniature ECG */}
+                <div className="mt-1 h-6 w-full relative">
+                  <svg
+                    className="absolute inset-0 w-full h-full opacity-60"
+                    viewBox="0 0 200 40"
+                    preserveAspectRatio="none"
+                  >
+                    <motion.path
+                      d="M 0 20 L 50 20 L 60 5 L 70 35 L 80 20 L 200 20"
+                      fill="none"
+                      stroke="#10b981"
+                      strokeWidth="2"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    />
+                  </svg>
+                </div>
               </div>
             </div>
 
@@ -230,7 +250,7 @@ export default function BentoFeatures() {
                 Remote Patient Monitoring
               </h3>
               <p className="text-xs text-slate-400">
-                Continuous vital sign tracking with integrated One-Click Triage alerts to claim, chat, or dispatch clinicians directly from critical breaches.
+                Continuous vital sign tracking with integrated One-Click Triage alerts to claim, chat, or dispatch clinicians directly from critical vital drops.
               </p>
             </div>
           </motion.div>
@@ -271,12 +291,119 @@ export default function BentoFeatures() {
                 HIPAA & Compliance
               </h3>
               <p className="text-xs text-slate-400">
-                Enterprise-grade PHI protection, regional data isolation, and robust system configurations ensuring strict compliance.
+                Enterprise-grade PHI protection and strict data configurations keeping clinical records secured.
               </p>
             </div>
           </motion.div>
 
-          {/* Card 5: Emergency Protocols & SQLite Cache (Col Span 1) */}
+          {/* Card 5: Comfort Care Mobile App (Col Span 1) */}
+          <motion.div
+            whileHover={{ y: -5 }}
+            className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[300px] flex flex-col justify-between"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+            {/* Mobile fingerprint scan animation overlay */}
+            <div className="absolute top-4 right-4 w-28 h-28 flex items-center justify-center pointer-events-none">
+              <div className="absolute inset-0 bg-emerald-500/5 rounded-full blur-[20px]" />
+              <motion.div
+                animate={{ scale: [1, 1.8], opacity: [0.6, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute w-12 h-12 rounded-full border border-emerald-500/30"
+              />
+              <Fingerprint className="w-8 h-8 text-emerald-400/25 relative z-10 group-hover:text-emerald-400 transition-colors" />
+            </div>
+
+            {/* Mobile Regimen Info */}
+            <div className="w-[85%] rounded-2xl bg-white/[0.02] border border-white/10 p-3.5 relative overflow-hidden group-hover:border-emerald-500/30 transition-colors">
+              <div className="text-[10px] text-white font-bold flex justify-between items-center mb-1">
+                <span>Comfort Mobile Portal</span>
+              </div>
+              <div className="flex flex-col gap-1 text-[8px]">
+                <div className="flex justify-between text-slate-300">
+                  <span>Rescue Medication</span>
+                  <span className="text-teal-400 font-bold">Active</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Clinician Chat</span>
+                  <span className="text-slate-400 font-bold">Seen ✓✓</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative z-10">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-3">
+                <Smartphone className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-1">
+                Comfort Care Mobile App
+              </h3>
+              <p className="text-xs text-slate-400">
+                Dignity-first patient app featuring magic biometric logins, break-through pharmacy orders, and real-time chat sync.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* ================= ROW 3 (3 Units) ================= */}
+          {/* Card 6: Patient Clinical Records & AI Assist (Col Span 2) */}
+          <motion.div
+            whileHover={{ y: -5 }}
+            className="md:col-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[300px] flex flex-col justify-between"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+            {/* Split Screen AI Note Drafting Mockup */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              
+              {/* Left Side: ESAS-R input burden */}
+              <div className="rounded-xl bg-white/[0.01] border border-white/5 p-3.5 flex flex-col gap-2">
+                <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Symptom Burden (ESAS-R)</div>
+                <div className="flex items-center justify-between text-xs text-white">
+                  <span>Pain</span>
+                  <span className="font-bold text-amber-400">8/10</span>
+                </div>
+                <div className="w-full bg-white/5 h-1 rounded-full"><motion.div initial={{ width: 0 }} whileInView={{ width: "80%" }} transition={{ duration: 1.5 }} className="bg-amber-400 h-full rounded-full" /></div>
+                
+                <div className="flex items-center justify-between text-xs text-white">
+                  <span>Dyspnea</span>
+                  <span className="font-bold text-rose-400">9/10</span>
+                </div>
+                <div className="w-full bg-white/5 h-1 rounded-full"><motion.div initial={{ width: 0 }} whileInView={{ width: "90%" }} transition={{ duration: 1.5 }} className="bg-rose-400 h-full rounded-full" /></div>
+              </div>
+
+              {/* Right Side: AI SOAP Note generation */}
+              <div className="rounded-xl bg-white/[0.02] border border-white/10 p-3.5 flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute top-1.5 right-2 flex items-center gap-1 text-[8px] font-bold text-teal-400">
+                  <Sparkles className="w-2.5 h-2.5 animate-spin" style={{ animationDuration: '4s' }} /> Draft Ready
+                </div>
+                <div className="text-[9px] font-mono text-slate-300 leading-normal">
+                  <span className="text-teal-400 font-bold">O:</span> Heart rate 112 bpm, SpO2 88%. Dyspnea evident at rest.
+                  <br />
+                  <span className="text-teal-400 font-bold">A:</span> Acute dyspnea secondary to COPD exacerbation.
+                  <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.8, repeat: Infinity }} className="inline-block w-1.5 h-3 bg-teal-400 ml-0.5 align-middle" />
+                </div>
+                <div className="flex gap-1.5 mt-2">
+                  <span className="text-[8px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded">R06.02 Dyspnea</span>
+                  <span className="text-[8px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded">G89.3 Pain</span>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="relative z-10 pointer-events-none mt-4">
+              <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center mb-3">
+                <ClipboardList className="w-5 h-5 text-teal-400 animate-pulse" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-1">
+                Patient Clinical Records
+              </h3>
+              <p className="text-xs text-slate-400">
+                Longitudinal vital tracking, palliative symptoms (ESAS-R) burden checklists, and AI-assisted SOAP note generation with recommended ICD-10 diagnostic tagging.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 7: Emergency Protocols (Col Span 1) */}
           <motion.div
             whileHover={{ y: -5 }}
             className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[300px] flex flex-col justify-between"
@@ -294,8 +421,8 @@ export default function BentoFeatures() {
               <div className="absolute top-4 left-4 text-[8px] font-mono text-red-500/50">
                 ACCESS: DENIED
               </div>
-              <div className="absolute bottom-4 right-4 text-[8px] font-mono text-indigo-400/60 flex items-center gap-0.5">
-                <Database className="w-2 h-2 animate-pulse" /> SQLITE CACHE
+              <div className="absolute bottom-4 right-4 text-[8px] font-mono text-red-500/50">
+                JWT: REVOKED
               </div>
             </div>
 
@@ -304,13 +431,53 @@ export default function BentoFeatures() {
                 Emergency Protocols
               </h3>
               <p className="text-xs text-slate-400">
-                Instant override capabilities for critical care, backed by a local SQLite offline cache to queue transactions when connections fail.
+                Instant override capabilities for critical care, ensuring clinical workspace safety pathways are never blocked when life-critical steps occur.
               </p>
             </div>
           </motion.div>
 
-          {/* ================= ROW 3 (3 Units) ================= */}
-          {/* Card 6: Intelligent Scheduling Engine (Col Span 2) */}
+          {/* ================= ROW 4 (3 Units) ================= */}
+          {/* Card 8: True SQLite Offline Cache (Col Span 1) */}
+          <motion.div
+            whileHover={{ y: -5 }}
+            className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[300px] flex flex-col justify-between"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+            {/* Offline sync queue simulation */}
+            <div className="w-full rounded-2xl bg-white/[0.02] border border-white/10 p-4 relative overflow-hidden group-hover:border-indigo-500/30 transition-colors">
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center gap-1.5 text-slate-400 text-[9px] font-bold">
+                  <WifiOff className="w-3.5 h-3.5 text-indigo-400" /> Connectivity: Offline
+                </div>
+              </div>
+              
+              <div className="flex flex-col gap-2 mt-2">
+                <div className="flex justify-between items-center text-[10px] text-white">
+                  <span>Vitals Log Sync</span>
+                  <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Queued (Local)</span>
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-white">
+                  <span>Chat Message Sync</span>
+                  <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Queued (Local)</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative z-10 mt-6">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4">
+                <Database className="w-5 h-5 text-indigo-400 animate-spin" style={{ animationDuration: '8s' }} />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">
+                True SQLite Offline Cache
+              </h3>
+              <p className="text-xs text-slate-400">
+                Keeps patient mobile transactions resilient. Logs are cached locally inside SQLite DBs, synchronizing immediately once connections are restored.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 9: Intelligent Scheduling Engine (Col Span 2) */}
           <motion.div
             whileHover={{ y: -5 }}
             className="md:col-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[300px] flex flex-col justify-end"
@@ -328,7 +495,7 @@ export default function BentoFeatures() {
                 ].map((slot, i) => (
                   <div
                     key={i}
-                    className={`h-10 w-full rounded-xl border flex items-center px-4 gap-4 transition-transform group-hover:-translate-x-2 ${
+                    className={`h-12 w-full rounded-xl border flex items-center px-4 gap-4 transition-transform group-hover:-translate-x-2 ${
                       slot.active
                         ? slot.conflict
                           ? "bg-red-500/10 border-red-500/30 animate-pulse"
@@ -336,18 +503,18 @@ export default function BentoFeatures() {
                         : "bg-white/5 border-white/10 opacity-50"
                     }`}
                   >
-                    <span className="text-[10px] font-mono text-slate-400 w-10">
+                    <span className="text-xs font-mono text-slate-400 w-10">
                       {slot.time}
                     </span>
                     {slot.active && (
                       <div
-                        className={`h-1.5 rounded-full flex-1 ${
+                        className={`h-2 rounded-full flex-1 ${
                           slot.conflict ? "bg-red-500/50" : "bg-indigo-500/50"
                         }`}
                       />
                     )}
                     {slot.conflict && (
-                      <span className="text-[8px] font-bold text-red-400 uppercase tracking-widest">
+                      <span className="text-[9px] font-bold text-red-400 uppercase tracking-widest">
                         Conflict
                       </span>
                     )}
@@ -357,55 +524,14 @@ export default function BentoFeatures() {
             </div>
 
             <div className="relative z-10 pointer-events-none w-full sm:w-1/2">
-              <div className="w-12 h-12 rounded-xl bg-[#0a0c12] border border-white/10 flex items-center justify-center mb-4 shadow-2xl">
-                <Calendar className="w-6 h-6 text-indigo-400 animate-bounce" />
+              <div className="w-16 h-16 rounded-2xl bg-[#0a0c12] border border-white/10 flex items-center justify-center mb-6 shadow-2xl">
+                <Calendar className="w-8 h-8 text-indigo-400 animate-bounce" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-1">
+              <h3 className="text-2xl font-bold text-white mb-2">
                 Intelligent Scheduling Engine
               </h3>
-              <p className="text-slate-400 text-xs max-w-sm">
+              <p className="text-slate-400 max-w-sm">
                 Automatically balances clinician availability, preventing conflicting appointments and managing real-world travel times.
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Card 7: Patient Clinical Records & AI Assist (Col Span 1) */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[300px] flex flex-col justify-between"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-            {/* AI Note Drafting Mini UI Mockup */}
-            <div className="w-full rounded-2xl bg-white/[0.02] border border-white/10 p-3.5 relative overflow-hidden group-hover:border-teal-500/30 transition-colors">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-[8px] font-black text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded tracking-widest uppercase flex items-center gap-1">
-                  <Sparkles className="w-2.5 h-2.5 animate-spin" style={{ animationDuration: '4s' }} /> AI SOAP Assist
-                </span>
-                <span className="text-[8px] font-mono text-emerald-400">Drafted</span>
-              </div>
-              
-              <p className="text-[9px] font-mono text-slate-300 leading-normal mb-1">
-                <span className="text-teal-400 font-bold">O:</span> SpO2 88%, HR 112 bpm.
-                <br />
-                <span className="text-teal-400 font-bold">A:</span> Exacerbation. COPD/Dyspnea.
-              </p>
-              
-              <div className="flex gap-1 mt-1">
-                <span className="text-[7px] font-bold text-slate-400 bg-white/5 px-1 py-0.2 rounded">R06.02 Dyspnea</span>
-                <span className="text-[7px] font-bold text-slate-400 bg-white/5 px-1 py-0.2 rounded">G89.3 Pain</span>
-              </div>
-            </div>
-
-            <div className="relative z-10 mt-2">
-              <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center mb-3">
-                <ClipboardList className="w-5 h-5 text-teal-400 animate-pulse" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-1">
-                Patient Clinical Records
-              </h3>
-              <p className="text-xs text-slate-400">
-                Palliative symptom checklists (ESAS-R), Breakthrough Meds tracking, and auto-drafted clinical SOAP notes.
               </p>
             </div>
           </motion.div>
