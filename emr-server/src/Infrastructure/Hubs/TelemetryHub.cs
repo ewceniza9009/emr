@@ -23,4 +23,16 @@ public class TelemetryHub : Hub
     {
         await Clients.All.SendAsync("ReceiveAlert", patientId, alertMessage);
     }
+
+    public async Task BroadcastTransitCoordinates(Guid patientId, decimal latitude, decimal longitude, decimal distanceToTargetMeters)
+    {
+        bool isMasked = distanceToTargetMeters <= 500;
+        await Clients.Group(patientId.ToString()).SendAsync("ReceiveTransitCoordinates", new {
+            patientId,
+            latitude = isMasked ? 0 : latitude, // Mask exact coordinates when within 500m geofence
+            longitude = isMasked ? 0 : longitude,
+            isMasked,
+            distance = distanceToTargetMeters
+        });
+    }
 }

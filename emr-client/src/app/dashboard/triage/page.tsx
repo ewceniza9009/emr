@@ -27,6 +27,9 @@ import TriageNoteDrawer from "@/components/TriageNoteDrawer";
 import TriageFilterPopover, { TriageFilters } from "@/components/TriageFilterPopover";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PermissionGate } from "@/components/PermissionGate";
+import BookingDrawer from "@/components/BookingDrawer";
+import { CareThreadChat } from "../patients/[id]/components/CareThreadChat";
+import { MessageSquare, Calendar } from "lucide-react";
 
 const GET_TRIAGE_DASHBOARD_DATA = gql`
   query GetTriageDashboardData($search: String, $isAlert: Boolean, $directiveTypes: [String!]) {
@@ -68,6 +71,9 @@ export default function TriageDashboard() {
   const [isTriageNoteOpen, setIsTriageNoteOpen] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
   const [selectedPatientName, setSelectedPatientName] = useState<string>("");
+  const [activeChatPatientId, setActiveChatPatientId] = useState<string | null>(null);
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [selectedBookingPatientId, setSelectedBookingPatientId] = useState("");
 
   const [filters, setFilters] = useState<TriageFilters>({ isAlert: null, directiveTypes: [] });
 
@@ -205,6 +211,23 @@ export default function TriageDashboard() {
         patientName={selectedPatientName}
         onSuccess={() => refetch()}
       />
+      {isBookingOpen && (
+        <BookingDrawer
+          open={isBookingOpen}
+          onClose={() => setIsBookingOpen(false)}
+          onBooked={() => refetch()}
+          patientId={selectedBookingPatientId}
+        />
+      )}
+      {activeChatPatientId && (
+        <div className="hidden">
+          <CareThreadChat 
+            patientId={activeChatPatientId} 
+            forceOpen={true} 
+            onCloseOverride={() => setActiveChatPatientId(null)} 
+          />
+        </div>
+      )}
       {/* Header & Stats */}
       <div className="flex items-center justify-between">
         <div>
@@ -341,14 +364,35 @@ export default function TriageDashboard() {
                             </button>
                           </PermissionGate>
                           <PermissionGate permission="clinical:order">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedBookingPatientId(p.patientId);
+                                setIsBookingOpen(true);
+                              }}
+                              className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
+                              title="Dispatch / Schedule Clinician"
+                            >
+                              <Calendar className="w-4 h-4" />
+                            </button>
                             <Link
                               href={`/dashboard/patients/${p.patientId}/visit`}
-                              className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
+                              className="p-1.5 rounded-lg bg-teal-500/10 text-teal-500 hover:bg-teal-500 hover:text-white transition-all border border-teal-500/20 shadow-sm"
                               title="Start Clinical Encounter"
                             >
                               <Stethoscope className="w-4 h-4" />
                             </Link>
                           </PermissionGate>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveChatPatientId(p.patientId);
+                            }}
+                            className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all border border-indigo-500/20 shadow-sm"
+                            title="Secure Chat Thread"
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                          </button>
                           <Link
                             href={`/dashboard/patients/${p.patientId}`}
                             className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 transition-all border border-white/5 shadow-sm"

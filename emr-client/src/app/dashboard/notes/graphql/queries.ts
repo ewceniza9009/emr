@@ -77,3 +77,16 @@ export const SAVE_NOTE = gql`
     saveClinicalNote(input: $input)
   }
 `;
+
+export const GENERATE_AI_SOAP_DRAFT = gql`
+  query GenerateAiSoapDraft($patientId: UUID!) {
+    generateAiSoapDraft(patientId: $patientId) {
+      subjective
+      objective
+      assessment
+      plan
+      suggestedIcdCodes
+      suggestedIcdDescriptions
+    }
+  }
+`;

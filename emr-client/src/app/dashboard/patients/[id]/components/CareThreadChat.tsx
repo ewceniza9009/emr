@@ -52,12 +52,20 @@ const SEND_NAVIGATOR_MESSAGE = gql`
   }
 `;
 
-export function CareThreadChat({ patientId }: { patientId: string }) {
+export function CareThreadChat({ 
+  patientId, 
+  forceOpen = false, 
+  onCloseOverride 
+}: { 
+  patientId: string; 
+  forceOpen?: boolean; 
+  onCloseOverride?: () => void; 
+}) {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState('');
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(forceOpen);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const isOpenRef = React.useRef(isOpen);
@@ -267,7 +275,7 @@ export function CareThreadChat({ patientId }: { patientId: string }) {
                 </div>
               </div>
               <button 
-                onClick={() => setIsOpen(false)} 
+                onClick={() => { setIsOpen(false); if (onCloseOverride) onCloseOverride(); }} 
                 className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-1.5 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--card-border)] transition-all"
               >
                 <X className="w-4 h-4" />

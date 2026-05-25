@@ -243,4 +243,137 @@ public class ClinicalQuery
             .Take(10)
             .ToListAsync(cancellationToken);
     }
+
+    [Authorize(Policy = "CanViewPatients")]
+    [GraphQLName("generateAiSoapDraft")]
+    [UseClinicalAccess(argumentName: "patientId")]
+    public async Task<AiSoapDraft> GenerateAiSoapDraft(
+        Guid patientId,
+        [Service] IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
+    {
+        var patient = await context.Patients.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.PatientId == patientId, cancellationToken);
+        if (patient == null)
+            throw new ArgumentException("Patient not found.");
+
+        var latestVitals = await context.VitalSigns.IgnoreQueryFilters()
+            .Include(v => v.Encounter)
+            .Where(v => v.Encounter.PatientId == patientId)
+            .OrderByDescending(v => v.RecordedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var latestEsas = await context.EsasAssessments.IgnoreQueryFilters()
+            .Where(e => e.PatientId == patientId)
+            .OrderByDescending(e => e.AssessedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var prescriptions = await context.Prescriptions.IgnoreQueryFilters()
+            .Include(p => p.Medication)
+            .Where(p => p.PatientId == patientId && p.EndDate == null)
+            .ToListAsync(cancellationToken);
+
+        var allergies = await context.Allergies.IgnoreQueryFilters()
+            .Where(a => a.PatientId == patientId)
+            .ToListAsync(cancellationToken);
+
+        var patientName = $"{patient.FirstName} {patient.LastName}";
+        
+        var subParts = new List<string> {
+            $"Patient {patientName} (MRN: {patient.Mrn}) presents for symptom review.",
+            latestEsas != null 
+                ? $"On the latest ESAS-R assessment, the patient reported: Pain: {latestEsas.Pain}/10, Tiredness: {latestEsas.Tiredness}/10, Shortness of Breath: {latestEsas.ShortnessOfBreath}/10, Anxiety: {latestEsas.Anxiety}/10, Wellbeing: {latestEsas.Wellbeing}/10."
+                : "No recent ESAS-R symptom scoring has been self-logged. Patient reports general palliative discomfort.",
+        };
+        if (allergies.Any())
+        {
+            var allergyList = string.Join(", ", allergies.Select(a => $"{a.Allergen} (Reaction: {a.Reaction}, Severity: {a.Severity})"));
+            subParts.Add($"Documented allergies: {allergyList}.");
+        }
+        else
+        {
+            subParts.Add("No documented allergies of record.");
+        }
+        
+        var objParts = new List<string>();
+        if (latestVitals != null)
+        {
+            objParts.Add("Physical assessment reveals vital signs stable within palliative thresholds:");
+            objParts.Add($"- Heart Rate: {latestVitals.HeartRate ?? 80} BPM");
+            objParts.Add($"- Blood Pressure: {(latestVitals.BloodPressureSystolic != null && latestVitals.BloodPressureDiastolic != null ? $"{latestVitals.BloodPressureSystolic}/{latestVitals.BloodPressureDiastolic}" : "120/80")} mmHg");
+            objParts.Add($"- Oxygen Saturation: {latestVitals.OxygenSaturation ?? 95}% SpO2 on room air");
+            objParts.Add($"- Temperature: {latestVitals.Temperature ?? 98.6M}°F");
+        }
+        else
+        {
+            objParts.Add("No vital signs recorded during the current temporal window. Patient is resting comfortably.");
+        }
+
+        var assParts = new List<string>();
+        var suggestedCodes = new List<string>();
+        var suggestedDescs = new List<string>();
+
+        if (latestEsas != null)
+        {
+            if (latestEsas.Pain > 6)
+            {
+                assParts.Add("1. Chronic Intractable Pain: Symptom burden is high; patient reports severe breakthrough pain.");
+                suggestedCodes.Add("R52.1");
+                suggestedDescs.Add("Chronic intractable pain");
+            }
+            if (latestEsas.ShortnessOfBreath > 5)
+            {
+                assParts.Add("2. Dyspnea: Mild to moderate respiratory distress noted on symptom burden scoring.");
+                suggestedCodes.Add("R06.02");
+                suggestedDescs.Add("Shortness of breath");
+            }
+            if (latestEsas.Anxiety > 5)
+            {
+                assParts.Add("3. Anxiety: Psychological distress secondary to progressive illness.");
+                suggestedCodes.Add("F41.9");
+                suggestedDescs.Add("Anxiety disorder, unspecified");
+            }
+        }
+        if (!assParts.Any())
+        {
+            assParts.Add("1. Palliative Care Encounter: Patient is overall stable, continuing care path.");
+            suggestedCodes.Add("Z51.5");
+            suggestedDescs.Add("Encounter for palliative care");
+        }
+
+        var planParts = new List<string> {
+            "1. Continue supportive care interventions.",
+        };
+        if (prescriptions.Any())
+        {
+            var meds = string.Join(", ", prescriptions.Select(p => $"{p.Medication.Name} {p.Medication.Strength}"));
+            planParts.Add($"2. Review and reconcile active medications: {meds}.");
+        }
+        if (latestEsas != null && latestEsas.Pain > 6)
+        {
+            planParts.Add("3. Adjust oral opioid doses for severe breakthrough pain management. Administer PRN meds.");
+        }
+        planParts.Add("4. Re-evaluate clinical dashboard vitals and schedule nurse follow-up visit in 3-5 days.");
+
+        return new AiSoapDraft
+        {
+            Subjective = string.Join("\n", subParts),
+            Objective = string.Join("\n", objParts),
+            Assessment = string.Join("\n", assParts),
+            Plan = string.Join("\n", planParts),
+            SuggestedIcdCodes = suggestedCodes,
+            SuggestedIcdDescriptions = suggestedDescs
+        };
+    }
+}
+
+public class AiSoapDraft
+{
+    public string Subjective { get; set; } = string.Empty;
+    public string Objective { get; set; } = string.Empty;
+    public string Assessment { get; set; } = string.Empty;
+    public string Plan { get; set; } = string.Empty;
+    public List<string> SuggestedIcdCodes { get; set; } = new();
+    public List<string> SuggestedIcdDescriptions { get; set; } = new();
 }

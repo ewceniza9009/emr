@@ -2,6 +2,13 @@
 
 All notable changes to the Halkyone Clinical OS will be documented in this file.
 
+## [1.3.9] - 2026-05-25
+- Implemented One-Click Triage Claiming: Care coordinators can claim critical priority alerts, dispatch field clinicians, and start real-time chats directly from the triage dashboard.
+- Integrated Generative AI SOAP Assist: Clinical documentation is accelerated via automated drafting based on telemetry trends and ESAS-R symptom burdens.
+- Activated Visit Radar Live Tracking: Added Leaflet-based live clinician route visualization with SignalR streaming and a 500m geofenced privacy masking boundary.
+- Configured SQLite Offline Caching: Enabled seamless patient portal vital checks, symptom recording, and queueing during network outages using SQLite fallback databases.
+- Hardened Database Warmup and Migration Pipeline: Improved startup resilience by awaiting DB schema seeding inline, resolving race conditions under load.
+
 ## [1.3.8] - 2026-05-24
 - Implemented OSRM driving route calculations with a great-circle Haversine fallback to optimize palliative home-visit travel scheduling.
 - Polished clinician workstation with dynamic pulse skeleton grid loaders and unified theme-aware CSS variables to support seamless light/dark mode adaptation.

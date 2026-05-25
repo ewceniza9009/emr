@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   User,
   Edit3,
+  Sparkles
 } from "lucide-react";
 import { PermissionGate } from "@/components/PermissionGate";
 
@@ -35,6 +36,7 @@ export function NoteEditor({ state }: NoteEditorProps) {
     handleKeyDown,
     handleSave,
     handleDownload,
+    handleAiAssist,
     showSmartPhrases,
     setShowSmartPhrases,
     phraseFilter,
@@ -181,6 +183,22 @@ export function NoteEditor({ state }: NoteEditorProps) {
                   Narrative
                 </button>
               </div>
+            )}
+
+            {!isFinalized && (
+              <button
+                disabled={isSyncing}
+                onClick={handleAiAssist}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-500/30 text-[9px] font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-50 active:scale-95 mr-2"
+                title="AI Auto-Chart Draft SOAP Note & ICD-10 suggestions"
+              >
+                {isSyncing ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3.5 h-3.5" />
+                )}
+                <span>AI Assist</span>
+              </button>
             )}
 
             <button

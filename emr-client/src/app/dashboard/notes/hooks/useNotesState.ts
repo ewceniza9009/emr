@@ -8,7 +8,8 @@ import {
   GET_NOTES_DATA,
   GET_PATIENT_CLINICAL_DETAILS,
   START_ENCOUNTER,
-  SAVE_NOTE
+  SAVE_NOTE,
+  GENERATE_AI_SOAP_DRAFT
 } from "../graphql/queries";
 
 export type NoteField = "narrative" | "subjective" | "objective" | "assessment" | "plan";
@@ -87,6 +88,9 @@ export function useNotesState() {
   const [searchTerm, setSearchTerm] = useState("");
   const [icdSearch, setIcdSearch] = useState("");
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [loadAiDraft] = useLazyQuery(GENERATE_AI_SOAP_DRAFT, {
+    fetchPolicy: "network-only"
+  });
   
   // Collapsible patients list
   const [expandedPatients, setExpandedPatients] = useState<Record<string, boolean>>({});
@@ -438,6 +442,43 @@ export function useNotesState() {
     }
   };
 
+  const handleAiAssist = async () => {
+    if (!selectedNote?.patientId) return;
+    setIsSyncing(true);
+    try {
+      const { data: aiData } = await loadAiDraft({
+        variables: { patientId: selectedNote.patientId }
+      });
+      if (aiData?.generateAiSoapDraft) {
+        const draft = aiData.generateAiSoapDraft;
+        setSoapSubjective(draft.subjective || "");
+        setSoapObjective(draft.objective || "");
+        setSoapAssessment(draft.assessment || "");
+        setSoapPlan(draft.plan || "");
+        setNoteFormat("soap");
+        updateMergedNarrative(
+          draft.subjective || "",
+          draft.objective || "",
+          draft.assessment || "",
+          draft.plan || ""
+        );
+        showToast("AI Charting Draft generated successfully!", "success");
+
+        if (draft.suggestedIcdCodes && draft.suggestedIcdCodes.length > 0) {
+          draft.suggestedIcdCodes.forEach((code: string, idx: number) => {
+            const desc = draft.suggestedIcdDescriptions[idx] || "Suggested Diagnosis";
+            insertDiagnosis({ code, desc });
+          });
+        }
+      }
+    } catch (e: any) {
+      console.error(e);
+      showToast("AI generation failed. Please try again.", "error");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const togglePatient = (patientId: string) => {
     setExpandedPatients(prev => ({
       ...prev,
@@ -528,6 +569,7 @@ export function useNotesState() {
     selectPhrase,
     handleSave,
     handleDownload,
+    handleAiAssist,
     isSyncing,
     lastSaved,
     
