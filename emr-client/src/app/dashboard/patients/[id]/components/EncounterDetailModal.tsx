@@ -9,6 +9,74 @@ interface EncounterDetailModalProps {
   state: UsePatientDashboardStateReturn;
 }
 
+function renderFormattedNote(content: string) {
+  if (!content) return null;
+
+  const isSoapMarkdown = content.includes("### SUBJECTIVE") || content.includes("### OBJECTIVE") || content.includes("### ASSESSMENT") || content.includes("### PLAN");
+  const isSoapLegacy = /^[SOAP]:\s/mi.test(content) || (content.includes("S:") && content.includes("O:") && content.includes("A:") && content.includes("P:"));
+
+  if (isSoapMarkdown || isSoapLegacy) {
+    let subjective = "";
+    let objective = "";
+    let assessment = "";
+    let plan = "";
+
+    if (isSoapMarkdown) {
+      const s = content.match(/### SUBJECTIVE\n([\s\S]*?)(?=\n\n### OBJECTIVE|\n### OBJECTIVE|$)/i);
+      const o = content.match(/### OBJECTIVE\n([\s\S]*?)(?=\n\n### ASSESSMENT|\n### ASSESSMENT|$)/i);
+      const a = content.match(/### ASSESSMENT\n([\s\S]*?)(?=\n\n### PLAN|\n### PLAN|$)/i);
+      const p = content.match(/### PLAN\n([\s\S]*?)$/i);
+
+      subjective = s ? s[1].trim() : "";
+      objective = o ? o[1].trim() : "";
+      assessment = a ? a[1].trim() : "";
+      plan = p ? p[1].trim() : "";
+    } else {
+      const s = content.match(/S:\s*([\s\S]*?)(?=\b[OAP]:|$)/i);
+      const o = content.match(/O:\s*([\s\S]*?)(?=\b[AP]:|$)/i);
+      const a = content.match(/A:\s*([\s\S]*?)(?=\b[P]:|$)/i);
+      const p = content.match(/P:\s*([\s\S]*?)$/i);
+
+      subjective = s ? s[1].trim() : "";
+      objective = o ? o[1].trim() : "";
+      assessment = a ? a[1].trim() : "";
+      plan = p ? p[1].trim() : "";
+    }
+
+    const sections = [
+      { label: "Subjective (S)", text: subjective, badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+      { label: "Objective (O)", text: objective, badgeColor: "bg-teal-500/10 text-teal-400 border-teal-500/20" },
+      { label: "Assessment (A)", text: assessment, badgeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
+      { label: "Plan (P)", text: plan, badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    ];
+
+    return (
+      <div className="space-y-4 w-full">
+        {sections.map((sec, idx) => (
+          sec.text ? (
+            <div key={idx} className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] space-y-2 overflow-x-auto custom-scrollbar">
+              <span className={`inline-block px-2.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${sec.badgeColor}`}>
+                {sec.label}
+              </span>
+              <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap break-words font-medium">
+                {sec.text}
+              </p>
+            </div>
+          ) : null
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-5 rounded-[1.5rem] bg-[var(--input-bg)] border border-[var(--card-border)] w-full overflow-x-auto custom-scrollbar">
+      <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap break-words font-medium">
+        {content}
+      </p>
+    </div>
+  );
+}
+
 export function EncounterDetailModal({ state }: EncounterDetailModalProps) {
   const { selectedEncounter, setSelectedEncounter } = state;
 
@@ -47,7 +115,7 @@ export function EncounterDetailModal({ state }: EncounterDetailModalProps) {
               </div>
               <button
                 onClick={() => setSelectedEncounter(null)}
-                className="p-2 hover:bg-[var(--input-bg)] rounded-xl text-[var(--text-muted)] hover:text-white transition-all active:scale-95"
+                className="p-2 hover:bg-[var(--input-bg)] rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all active:scale-95"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -82,14 +150,21 @@ export function EncounterDetailModal({ state }: EncounterDetailModalProps) {
                     Clinical Narrative
                   </span>
                 </div>
-                <div className="p-6 rounded-3xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] relative group min-h-[100px] overflow-y-auto max-h-[250px] custom-scrollbar">
+                <div className="p-0 border border-transparent relative group max-h-[350px] overflow-y-auto overflow-x-hidden custom-scrollbar">
                   <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:scale-110 transition-transform duration-1000">
                     <Stethoscope className="w-24 h-24" />
                   </div>
-                  <p className="text-sm text-[var(--text-primary)] leading-relaxed italic relative z-10 whitespace-pre-wrap">
-                    {selectedEncounter.clinicalNotes?.[0]?.content ||
-                      "No narrative content recorded for this encounter."}
-                  </p>
+                  <div className="w-full relative z-10">
+                    {selectedEncounter.clinicalNotes?.[0]?.content ? (
+                      renderFormattedNote(selectedEncounter.clinicalNotes[0].content)
+                    ) : (
+                      <div className="p-6 rounded-3xl bg-[var(--input-bg)]/50 border border-[var(--card-border)]">
+                        <p className="text-sm text-[var(--text-secondary)] leading-relaxed italic">
+                          No narrative content recorded for this encounter.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

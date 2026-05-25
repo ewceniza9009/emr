@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useLazyQuery } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ToastProvider";
@@ -102,13 +102,16 @@ export function useNotesState() {
   const assessmentRef = useRef<HTMLTextAreaElement>(null);
   const planRef = useRef<HTMLTextAreaElement>(null);
 
-  const appointmentsData = data?.appointments?.items || [];
-  const appointments = appointmentsData
-    .filter((n: any) =>
-      `${n.patient?.firstName} ${n.patient?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      n.patient?.mrn?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a: any, b: any) => new Date(b.scheduledStart).getTime() - new Date(a.scheduledStart).getTime());
+  const appointments = useMemo(() => {
+    const appointmentsData = data?.appointments?.items || [];
+    return appointmentsData
+      .map((n: any) => ({ ...n }))
+      .filter((n: any) =>
+        `${n.patient?.firstName} ${n.patient?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        n.patient?.mrn?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a: any, b: any) => new Date(b.scheduledStart).getTime() - new Date(a.scheduledStart).getTime());
+  }, [data?.appointments?.items, searchTerm]);
 
   const smartPhrases = data?.smartPhrases || [];
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -183,8 +186,27 @@ export function useNotesState() {
 
   // Switch note content
   useEffect(() => {
-    if (selectedId) {
-      const rawContent = noteCache[selectedId] || "";
+    if (selectedId && selectedNote) {
+      // 1. Pre-populate encounterId in encounterCache if it exists
+      const existingEncounter = selectedNote.encounters?.[0];
+      if (existingEncounter?.encounterId) {
+        setEncounterCache(prev => ({ ...prev, [selectedId]: existingEncounter.encounterId }));
+      }
+
+      // 2. Resolve raw content: prioritize server note if it exists, otherwise fall back to local storage cache
+      const serverNote = existingEncounter?.clinicalNotes?.[0];
+      let rawContent = "";
+      
+      if (serverNote) {
+        if (serverNote.subjective || serverNote.objective || serverNote.assessment || serverNote.plan) {
+          rawContent = `### SUBJECTIVE\n${serverNote.subjective || ""}\n\n### OBJECTIVE\n${serverNote.objective || ""}\n\n### ASSESSMENT\n${serverNote.assessment || ""}\n\n### PLAN\n${serverNote.plan || ""}`;
+        } else {
+          rawContent = serverNote.content || "";
+        }
+      } else {
+        rawContent = noteCache[selectedId] || "";
+      }
+
       setNarrative(rawContent);
 
       if (rawContent.includes("### SUBJECTIVE") || rawContent.includes("### OBJECTIVE") || rawContent.includes("### ASSESSMENT") || rawContent.includes("### PLAN")) {
@@ -206,7 +228,7 @@ export function useNotesState() {
         setSoapPlan("");
       }
     }
-  }, [selectedId, noteCache]);
+  }, [selectedId, selectedNote]);
 
   useEffect(() => {
     if (appointments.length > 0 && !selectedId) {
@@ -390,6 +412,17 @@ export function useNotesState() {
   const handleSave = async (finalize: boolean) => {
     if (!selectedId || !selectedNote) return;
 
+    if (finalize) {
+      const isEmpty = noteFormat === "narrative"
+        ? !narrative.trim()
+        : (!soapSubjective.trim() && !soapObjective.trim() && !soapAssessment.trim() && !soapPlan.trim());
+
+      if (isEmpty) {
+        showToast("Cannot sign and lock an empty clinical note", "error");
+        return;
+      }
+    }
+
     setIsSyncing(true);
     try {
       let encounterId = encounterCache[selectedId];
@@ -415,6 +448,10 @@ export function useNotesState() {
           input: {
             encounterId,
             authorId: (session?.user as any)?.practitionerId || "00000000-0000-0000-0000-000000000000",
+            subjective: soapSubjective,
+            objective: soapObjective,
+            assessment: soapAssessment,
+            plan: soapPlan,
             content: narrative,
             signature: finalize ? (session?.user?.name || "Digitally Signed") : null
           }
@@ -424,7 +461,7 @@ export function useNotesState() {
       showToast(finalize ? "Note Finalized & Locked" : "Progress Note Synced", "success");
       
       if (finalize) {
-        selectedNote.status = 'FINISHED';
+        selectedNote.status = 'COMPLETED';
       }
     } catch (err) {
       showToast("Sync Failed. Check Connection.", "error");

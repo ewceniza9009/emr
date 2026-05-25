@@ -93,8 +93,7 @@ export default function DocsPage() {
                 ⚡ Sub-50ms Response
               </h4>
               <p className="text-xs text-slate-400">
-                Optimized GraphQL endpoint query orchestration and Redis
-                data-caching layers.
+                Optimized GraphQL endpoint query orchestration.
               </p>
             </li>
             <li className="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-teal-500/20 transition-all">

@@ -31,7 +31,7 @@ export function ClinicalContextPanel({ state }: ClinicalContextPanelProps) {
     setIcdSearch
   } = state;
 
-  const noteFinalized = selectedNote?.status === 'FINISHED';
+  const noteFinalized = selectedNote?.status === 'COMPLETED';
 
   return (
     <div className="w-[340px] shrink-0 flex flex-col gap-4 overflow-hidden h-full">

@@ -159,6 +159,74 @@ interface VisitSummaryDrawerProps {
   appointmentId: string;
 }
 
+function renderFormattedNote(content: string) {
+  if (!content) return null;
+
+  const isSoapMarkdown = content.includes("### SUBJECTIVE") || content.includes("### OBJECTIVE") || content.includes("### ASSESSMENT") || content.includes("### PLAN");
+  const isSoapLegacy = /^[SOAP]:\s/mi.test(content) || (content.includes("S:") && content.includes("O:") && content.includes("A:") && content.includes("P:"));
+
+  if (isSoapMarkdown || isSoapLegacy) {
+    let subjective = "";
+    let objective = "";
+    let assessment = "";
+    let plan = "";
+
+    if (isSoapMarkdown) {
+      const s = content.match(/### SUBJECTIVE\n([\s\S]*?)(?=\n\n### OBJECTIVE|\n### OBJECTIVE|$)/i);
+      const o = content.match(/### OBJECTIVE\n([\s\S]*?)(?=\n\n### ASSESSMENT|\n### ASSESSMENT|$)/i);
+      const a = content.match(/### ASSESSMENT\n([\s\S]*?)(?=\n\n### PLAN|\n### PLAN|$)/i);
+      const p = content.match(/### PLAN\n([\s\S]*?)$/i);
+
+      subjective = s ? s[1].trim() : "";
+      objective = o ? o[1].trim() : "";
+      assessment = a ? a[1].trim() : "";
+      plan = p ? p[1].trim() : "";
+    } else {
+      const s = content.match(/S:\s*([\s\S]*?)(?=\b[OAP]:|$)/i);
+      const o = content.match(/O:\s*([\s\S]*?)(?=\b[AP]:|$)/i);
+      const a = content.match(/A:\s*([\s\S]*?)(?=\b[P]:|$)/i);
+      const p = content.match(/P:\s*([\s\S]*?)$/i);
+
+      subjective = s ? s[1].trim() : "";
+      objective = o ? o[1].trim() : "";
+      assessment = a ? a[1].trim() : "";
+      plan = p ? p[1].trim() : "";
+    }
+
+    const sections = [
+      { label: "Subjective (S)", text: subjective, badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+      { label: "Objective (O)", text: objective, badgeColor: "bg-teal-500/10 text-teal-400 border-teal-500/20" },
+      { label: "Assessment (A)", text: assessment, badgeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
+      { label: "Plan (P)", text: plan, badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+    ];
+
+    return (
+      <div className="space-y-4">
+        {sections.map((sec, idx) => (
+          sec.text ? (
+            <div key={idx} className="p-5 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] space-y-3">
+              <span className={`inline-block px-3 py-1 rounded text-[8px] font-black uppercase tracking-wider border ${sec.badgeColor}`}>
+                {sec.label}
+              </span>
+              <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap font-medium">
+                {sec.text}
+              </p>
+            </div>
+          ) : null
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 rounded-[2rem] bg-[var(--input-bg)] border border-[var(--card-border)]">
+      <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap font-medium">
+        {content}
+      </p>
+    </div>
+  );
+}
+
 export default function VisitSummaryDrawer({
   isOpen,
   onClose,
@@ -783,12 +851,17 @@ export default function VisitSummaryDrawer({
                             <p className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em]">
                               {note.type}
                             </p>
-                            <div className="p-5 rounded-[1.5rem] bg-[var(--input-bg)] border border-[var(--card-border)] shadow-sm hover:border-blue-500/30 transition-all duration-300">
-                              <p className="text-[13px] text-[var(--text-secondary)] leading-[1.6] italic font-medium opacity-90 whitespace-pre-wrap">
-                                {note.content ||
-                                  "System generated clinical narrative pending clinician finalization."}
-                              </p>
-                            </div>
+                             <div className="w-full">
+                               {note.content ? (
+                                 renderFormattedNote(note.content)
+                               ) : (
+                                 <div className="p-5 rounded-[1.5rem] bg-[var(--input-bg)] border border-[var(--card-border)]">
+                                   <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed italic opacity-60">
+                                     System generated clinical narrative pending clinician finalization.
+                                   </p>
+                                 </div>
+                               )}
+                             </div>
                           </div>
                         </div>
                       ))}

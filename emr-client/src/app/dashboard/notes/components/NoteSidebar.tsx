@@ -86,11 +86,11 @@ export function NoteSidebar({ state }: NoteSidebarProps) {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <span className={`text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider border ${
-                              n.status === 'FINISHED'
+                              n.status === 'COMPLETED'
                                 ? 'bg-rose-500/10 text-rose-500 border-rose-500/20'
                                 : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                             }`}>
-                              {n.status === 'FINISHED' ? 'LOCKED' : n.status}
+                              {n.status === 'COMPLETED' ? 'LOCKED' : n.status}
                             </span>
                             <span className="text-[8px] font-black text-[var(--text-muted)]">
                               {new Date(n.scheduledStart).toLocaleDateString()}

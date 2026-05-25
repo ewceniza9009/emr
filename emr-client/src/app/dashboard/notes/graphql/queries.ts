@@ -18,6 +18,18 @@ export const GET_NOTES_DATA = gql`
           firstName
           lastName
         }
+        encounters {
+          encounterId
+          clinicalNotes {
+            noteId
+            subjective
+            objective
+            assessment
+            plan
+            content
+            isSigned
+          }
+        }
       }
     }
     smartPhrases {
