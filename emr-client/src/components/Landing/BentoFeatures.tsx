@@ -230,11 +230,11 @@ export default function BentoFeatures() {
                 <div className="absolute inset-0 rounded-full border-t-2 border-emerald-400 animate-spin" />
                 <Activity className="w-5 h-5 text-emerald-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">
-                Unified Clinical Record
+              <h3 className="text-2xl font-bold text-white mb-3">
+                Patient Outreach Terminal
               </h3>
-              <p className="text-slate-400 text-xs max-w-[250px]">
-                High-fidelity workstation incorporating palliative comfort regimes, dailyBreakthrough Rx, advance directives, and auto-drafted AI SOAP notes.
+              <p className="text-slate-400 text-sm max-w-[250px]">
+                High-fidelity workstation for rapidly transitioning leads into the registry. Integrates health plan verification, HIPAA consent, and auto-drafted AI SOAP note support instantly.
               </p>
             </div>
           </motion.div>
