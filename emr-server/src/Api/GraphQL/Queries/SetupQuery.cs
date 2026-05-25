@@ -64,12 +64,7 @@ public class SetupQuery
     ) =>
         context
             .DurableMedicalEquipment.AsNoTracking()
-            .Where(e =>
-                !context.EquipmentDeliveries.Any(d =>
-                    d.EquipmentId == e.EquipmentId
-                    && d.Status != Domain.Enums.DeliveryStatus.Returned
-                )
-            );
+            .Where(e => e.Status == EquipmentStatus.Available || e.Status == EquipmentStatus.InUse);
 
     [Authorize(Policy = "CanViewPatients")]
     [UseProjection]

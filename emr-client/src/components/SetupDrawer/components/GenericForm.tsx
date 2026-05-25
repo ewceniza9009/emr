@@ -253,6 +253,32 @@ export default function GenericForm({ type, form, onChange }: GenericFormProps) 
             </option>
           </select>
         </div>
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+            Equipment Status
+          </label>
+          <select
+            className="premium-input w-full rounded-xl p-3 text-sm appearance-none cursor-pointer"
+            value={form.status || "AVAILABLE"}
+            onChange={(e) => onChange({ ...form, status: e.target.value })}
+          >
+            <option value="AVAILABLE" className="bg-[var(--sidebar-bg)]">
+              Available
+            </option>
+            <option value="IN_USE" className="bg-[var(--sidebar-bg)]">
+              In Use
+            </option>
+            <option value="UNDER_MAINTENANCE" className="bg-[var(--sidebar-bg)]">
+              Under Maintenance
+            </option>
+            <option value="RETIRED" className="bg-[var(--sidebar-bg)]">
+              Retired
+            </option>
+            <option value="LOST" className="bg-[var(--sidebar-bg)]">
+              Lost
+            </option>
+          </select>
+        </div>
       </div>
     );
   }

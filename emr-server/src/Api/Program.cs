@@ -1,18 +1,18 @@
 using System.Threading.RateLimiting;
 using Api;
 using Application;
+using Hangfire;
+using Hangfire.Storage.SQLite;
 using Infrastructure;
 using Infrastructure.Data;
 using Infrastructure.Hubs;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using Microsoft.EntityFrameworkCore;
-using Hangfire;
-using Hangfire.Storage.SQLite;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -62,21 +62,28 @@ try
     builder.Services.AddSingleton(typeAdapterConfig);
     builder.Services.AddScoped<IMapper, ServiceMapper>();
 
-    builder.Services.AddSignalR()
+    builder
+        .Services.AddSignalR()
         .AddJsonProtocol(options =>
         {
-            options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+            options.PayloadSerializerOptions.PropertyNamingPolicy = System
+                .Text
+                .Json
+                .JsonNamingPolicy
+                .CamelCase;
         });
     builder.Services.AddHostedService<TelemetrySimulatorService>();
 
     builder.Services.AddApiServices(builder.Configuration);
 
     // Background Jobs with Hangfire
-    builder.Services.AddHangfire(configuration => configuration
-        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-        .UseSimpleAssemblyNameTypeSerializer()
-        .UseRecommendedSerializerSettings()
-        .UseSQLiteStorage("Data Source=hangfire.db;"));
+    builder.Services.AddHangfire(configuration =>
+        configuration
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSQLiteStorage("Data Source=hangfire.db;")
+    );
 
     builder.Services.AddHangfireServer();
 
@@ -149,13 +156,24 @@ try
     app.UseCors("PalliativeCorsPolicy");
     app.UseRouting();
 
-    app.UseHangfireDashboard("/hangfire", new DashboardOptions
-    {
-        Authorization = new[] { new Hangfire.Dashboard.LocalRequestsOnlyAuthorizationFilter() }
-    });
+    app.UseHangfireDashboard(
+        "/hangfire",
+        new DashboardOptions
+        {
+            Authorization = new[] { new Hangfire.Dashboard.LocalRequestsOnlyAuthorizationFilter() },
+        }
+    );
 
-    RecurringJob.AddOrUpdate("daily-report", () => Console.WriteLine("Generated Daily Clinical Report"), Cron.Daily());
-    RecurringJob.AddOrUpdate("sms-reminders", () => Console.WriteLine("Sent SMS Reminders to patients"), Cron.Hourly());
+    RecurringJob.AddOrUpdate(
+        "daily-report",
+        () => Console.WriteLine("Generated Daily Clinical Report"),
+        Cron.Daily()
+    );
+    RecurringJob.AddOrUpdate(
+        "sms-reminders",
+        () => Console.WriteLine("Sent SMS Reminders to patients"),
+        Cron.Hourly()
+    );
 
     app.UseAuthentication();
     app.UseAuthorization();
@@ -177,9 +195,9 @@ try
 
     app.MapGraphQL("/graphql");
 
-    app.MapHub<Infrastructure.Hubs.TelemetryHub>("/hubs/telemetry");
-    app.MapHub<Infrastructure.Hubs.NotificationHub>("/hubs/notifications");
-    app.MapHub<Infrastructure.Hubs.ChatHub>("/hubs/chat");
+    app.MapHub<TelemetryHub>("/hubs/telemetry");
+    app.MapHub<NotificationHub>("/hubs/notifications");
+    app.MapHub<ChatHub>("/hubs/chat");
 
     using (var scope = app.Services.CreateScope())
     {
@@ -187,9 +205,11 @@ try
         try
         {
             _logger.LogInformation("Starting database initialization...");
-            await DbInitializer.InitializeAsync(scope.ServiceProvider, 
+            await DbInitializer.InitializeAsync(
+                scope.ServiceProvider,
                 bool.Parse(builder.Configuration["EMR_WIPE_DB"] ?? "false"),
-                bool.Parse(builder.Configuration["EMR_SEED_DB"] ?? "true"));
+                bool.Parse(builder.Configuration["EMR_SEED_DB"] ?? "true")
+            );
             _logger.LogInformation("Database initialization completed successfully.");
 
             _logger.LogInformation("Warming up database query paths...");
@@ -199,7 +219,10 @@ try
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ex, "An error occurred during database initialization. The app will continue starting, but database features may be unavailable.");
+            _logger.LogCritical(
+                ex,
+                "An error occurred during database initialization. The app will continue starting, but database features may be unavailable."
+            );
         }
     }
 

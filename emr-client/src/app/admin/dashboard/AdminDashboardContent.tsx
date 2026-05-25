@@ -415,17 +415,28 @@ export default function AdminDashboardContent() {
               {
                 key: "status",
                 label: "Status",
-                render: (item: any) => (
-                  <span
-                    className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${
-                      item.status === "Available"
-                        ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                        : "bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20"
-                    }`}
-                  >
-                    {item.status}
-                  </span>
-                ),
+                render: (item: any) => {
+                  const status = (item.status || "").toUpperCase();
+                  let colorClass = "bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20";
+                  if (status === "AVAILABLE") {
+                    colorClass = "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+                  } else if (status === "UNDER_MAINTENANCE") {
+                    colorClass = "bg-amber-500/10 text-amber-500 border-amber-500/20";
+                  } else if (status === "LOST") {
+                    colorClass = "bg-rose-500/10 text-rose-500 border-rose-500/20";
+                  } else if (status === "RETIRED") {
+                    colorClass = "bg-slate-500/10 text-slate-500 border-slate-500/20";
+                  } else if (status === "IN_USE") {
+                    colorClass = "bg-blue-500/10 text-blue-500 border-blue-500/20";
+                  }
+                  return (
+                    <span
+                      className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${colorClass}`}
+                    >
+                      {formatEnum(item.status)}
+                    </span>
+                  );
+                },
               },
             ]}
           />

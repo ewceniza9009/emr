@@ -23,6 +23,7 @@ public class UpdateDeploymentStatusCommandHandler : IRequestHandler<UpdateDeploy
     public async Task<bool> Handle(UpdateDeploymentStatusCommand request, CancellationToken cancellationToken)
     {
         var delivery = await _context.EquipmentDeliveries
+            .Include(d => d.Equipment)
             .FirstOrDefaultAsync(d => d.DeliveryId == request.DeliveryId, cancellationToken);
 
         if (delivery == null) return false;
@@ -31,6 +32,18 @@ public class UpdateDeploymentStatusCommandHandler : IRequestHandler<UpdateDeploy
         if (request.NewStatus == DeliveryStatus.Delivered)
         {
             delivery.DeliveredAt = DateTimeOffset.UtcNow;
+        }
+
+        if (delivery.Equipment != null)
+        {
+            if (request.NewStatus == DeliveryStatus.Returned || request.NewStatus == DeliveryStatus.Failed)
+            {
+                delivery.Equipment.Status = EquipmentStatus.Available;
+            }
+            else if (request.NewStatus == DeliveryStatus.Delivered || request.NewStatus == DeliveryStatus.OutForDelivery)
+            {
+                delivery.Equipment.Status = EquipmentStatus.InUse;
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);
