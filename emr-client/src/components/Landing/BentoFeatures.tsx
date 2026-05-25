@@ -6,8 +6,6 @@ import {
   Map,
   Activity,
   Lock,
-  Cpu,
-  ShieldCheck,
   Calendar,
   Sparkles,
   Database,
@@ -16,6 +14,9 @@ import {
   Navigation,
   MessageSquare,
   Truck,
+  Smartphone,
+  Fingerprint,
+  Heart,
 } from "lucide-react";
 
 export default function BentoFeatures() {
@@ -34,10 +35,11 @@ export default function BentoFeatures() {
         {/* Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           
+          {/* ROW 1 */}
           {/* Card 1: Visit Radar & Logistics Map (Col Span 2) */}
           <motion.div
             whileHover={{ y: -5 }}
-            className="md:col-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group min-h-[340px]"
+            className="md:col-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[360px] flex flex-col justify-between"
           >
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay" />
             <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -53,7 +55,6 @@ export default function BentoFeatures() {
                     <stop offset="50%" stopColor="#14b8a6" stopOpacity="1" />
                     <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
                   </linearGradient>
-                  {/* Privacy mask pattern */}
                   <radialGradient id="privacyGlow" cx="50%" cy="50%" r="50%">
                     <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.25" />
                     <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
@@ -74,7 +75,6 @@ export default function BentoFeatures() {
                   transition={{ duration: 2, ease: "easeInOut" }}
                 />
                 
-                {/* Pulsing Clinician Marker */}
                 <circle cx="160" cy="210" r="6" fill="#10b981" className="animate-pulse" />
               </svg>
 
@@ -88,14 +88,14 @@ export default function BentoFeatures() {
             </div>
 
             <div className="relative z-10 h-full flex flex-col justify-end mt-48 sm:mt-0 pointer-events-none">
-              <div className="w-14 h-14 rounded-2xl bg-[#0a0c12] border border-white/10 flex items-center justify-center mb-6 shadow-2xl">
+              <div className="w-12 h-12 rounded-2xl bg-[#0a0c12] border border-white/10 flex items-center justify-center mb-4 shadow-2xl">
                 <Map className="w-6 h-6 text-teal-400" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">
                 Visit Radar & Logistics
               </h3>
-              <p className="text-slate-400 text-sm max-w-sm">
-                Real-time clinician route streaming utilizing SignalR coordinates, integrated with a dynamic 500m geofenced privacy mask.
+              <p className="text-slate-400 text-xs max-w-sm">
+                Real-time clinician route streaming utilizing SignalR coordinates, integrated with a dynamic 500m geofenced privacy mask to secure practitioner locations.
               </p>
             </div>
           </motion.div>
@@ -103,7 +103,7 @@ export default function BentoFeatures() {
           {/* Card 2: One-Click Triage Workspace (Col Span 1) */}
           <motion.div
             whileHover={{ y: -5 }}
-            className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group min-h-[340px] flex flex-col justify-between"
+            className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[360px] flex flex-col justify-between"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
@@ -120,19 +120,19 @@ export default function BentoFeatures() {
 
               {/* Action buttons grid */}
               <div className="grid grid-cols-3 gap-2">
-                <button className="h-8 bg-rose-500/20 hover:bg-rose-500/40 text-[9px] font-black text-rose-300 rounded-lg uppercase tracking-wider transition-colors flex items-center justify-center gap-1 border border-rose-500/30">
+                <span className="h-8 bg-rose-500/20 text-[9px] font-black text-rose-300 rounded-lg uppercase tracking-wider flex items-center justify-center border border-rose-500/30">
                   Claim
-                </button>
-                <button className="h-8 bg-teal-500/20 hover:bg-teal-500/40 text-[9px] font-black text-teal-300 rounded-lg uppercase tracking-wider transition-colors flex items-center justify-center gap-1 border border-teal-500/30">
+                </span>
+                <span className="h-8 bg-teal-500/20 text-[9px] font-black text-teal-300 rounded-lg uppercase tracking-wider flex items-center justify-center gap-1 border border-teal-500/30">
                   <MessageSquare className="w-3 h-3" /> Chat
-                </button>
-                <button className="h-8 bg-emerald-500/20 hover:bg-emerald-500/40 text-[9px] font-black text-emerald-300 rounded-lg uppercase tracking-wider transition-colors flex items-center justify-center gap-1 border border-emerald-500/30">
+                </span>
+                <span className="h-8 bg-emerald-500/20 text-[9px] font-black text-emerald-300 rounded-lg uppercase tracking-wider flex items-center justify-center gap-1 border border-emerald-500/30">
                   <Truck className="w-3 h-3" /> Dispatch
-                </button>
+                </span>
               </div>
             </div>
 
-            <div className="relative z-10 mt-6">
+            <div className="relative z-10">
               <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-4">
                 <BellRing className="w-5 h-5 text-rose-400 animate-pulse" />
               </div>
@@ -140,20 +140,21 @@ export default function BentoFeatures() {
                 One-Click Triage Workspace
               </h3>
               <p className="text-xs text-slate-400">
-                Instantly intercept critical vital threshold breaches. Claim tickets, trigger video chats, or dispatch field coordinators immediately.
+                Instantly intercept critical vital threshold breaches. Claim tickets, trigger video chats, or dispatch field coordinators immediately from the telemetry console.
               </p>
             </div>
           </motion.div>
 
-          {/* Card 3: Patient Outreach & Record Registry (Col Span 1 - Row Span 2) */}
+          {/* ROW 2 */}
+          {/* Card 3: Patient Outreach & Record Registry (Col Span 1) */}
           <motion.div
             whileHover={{ y: -5 }}
-            className="md:row-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group flex flex-col justify-between min-h-[400px]"
+            className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[360px] flex flex-col justify-between"
           >
             <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
             {/* Detailed Patient Card Mockup */}
-            <div className="w-full rounded-2xl bg-white/[0.02] border border-white/10 shadow-2xl relative overflow-hidden group-hover:border-emerald-500/30 transition-colors mb-6">
+            <div className="w-full rounded-2xl bg-white/[0.02] border border-white/10 shadow-2xl relative overflow-hidden group-hover:border-emerald-500/30 transition-colors">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-[40px] rounded-full translate-x-1/2 -translate-y-1/2" />
 
               {/* Header Profile */}
@@ -171,7 +172,7 @@ export default function BentoFeatures() {
               </div>
 
               {/* Body Details */}
-              <div className="p-4 flex flex-col gap-3 relative z-10">
+              <div className="p-4 flex flex-col gap-2 relative z-10">
                 <div className="flex justify-between items-center">
                   <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Health Plan</span>
                   <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">Medicare</span>
@@ -187,16 +188,12 @@ export default function BentoFeatures() {
               </div>
             </div>
 
-            <div className="flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-full border border-emerald-500/30 flex items-center justify-center mb-6 relative">
-                <div className="absolute inset-0 rounded-full border-t-2 border-emerald-400 animate-spin" style={{ animationDuration: '3s' }} />
-                <Activity className="w-5 h-5 text-emerald-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3">
+            <div className="relative z-10 flex flex-col">
+              <h3 className="text-lg font-bold text-white mb-2">
                 Unified Clinical Record
               </h3>
-              <p className="text-slate-400 text-xs leading-relaxed max-w-[280px]">
-                High-density registry integrating palliative comfort care plans, active daily Breakthrough Pharmacy regimes, advance directives, and verified insurance metadata.
+              <p className="text-slate-400 text-xs leading-relaxed">
+                High-density registry integrating palliative comfort care plans, active daily Breakthrough Pharmacy regimes, advance directives, and insurance metadata.
               </p>
             </div>
           </motion.div>
@@ -204,12 +201,12 @@ export default function BentoFeatures() {
           {/* Card 4: Generative AI SOAP Assist (Col Span 2) */}
           <motion.div
             whileHover={{ y: -5 }}
-            className="md:col-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group min-h-[340px] flex flex-col justify-between"
+            className="md:col-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[360px] flex flex-col justify-between"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
             {/* Split Screen AI Note Drafting Mockup */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               
               {/* Left Side: ESAS-R input burden */}
               <div className="rounded-xl bg-white/[0.01] border border-white/5 p-3 flex flex-col gap-2">
@@ -229,7 +226,7 @@ export default function BentoFeatures() {
 
               {/* Right Side: AI SOAP Note generation */}
               <div className="rounded-xl bg-white/[0.02] border border-white/10 p-3 flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute top-1 right-2 flex items-center gap-1 text-[8px] font-bold text-teal-400">
+                <div className="absolute top-1.5 right-2 flex items-center gap-1 text-[8px] font-bold text-teal-400">
                   <Sparkles className="w-2.5 h-2.5 animate-spin" style={{ animationDuration: '4s' }} /> Draft Ready
                 </div>
                 <div className="text-[9px] font-mono text-slate-300 leading-normal">
@@ -246,10 +243,10 @@ export default function BentoFeatures() {
             </div>
 
             <div className="relative z-10 pointer-events-none mt-4">
-              <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center mb-4">
+              <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center mb-3">
                 <Sparkles className="w-5 h-5 text-teal-400" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">
+              <h3 className="text-lg font-bold text-white mb-1">
                 Generative AI SOAP Assist
               </h3>
               <p className="text-xs text-slate-400">
@@ -258,10 +255,52 @@ export default function BentoFeatures() {
             </div>
           </motion.div>
 
-          {/* Card 5: SQLite Offline Caching (Col Span 1) */}
+          {/* ROW 3 */}
+          {/* Card 5: Mobile Patient Comfort Portal (Col Span 1) */}
           <motion.div
             whileHover={{ y: -5 }}
-            className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group min-h-[340px] flex flex-col justify-between"
+            className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[360px] flex flex-col justify-between"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+            {/* Mobile UI mockup details */}
+            <div className="w-full rounded-2xl bg-white/[0.02] border border-white/10 p-4 relative overflow-hidden group-hover:border-emerald-500/30 transition-colors">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5 text-slate-300 text-[10px] font-bold">
+                  <Fingerprint className="w-3.5 h-3.5 text-emerald-400 animate-pulse" /> Biometric Access
+                </div>
+                <span className="text-[8px] font-mono text-emerald-400 uppercase tracking-wider">DFUTB Verified</span>
+              </div>
+              
+              <div className="flex flex-col gap-2 mt-2">
+                <div className="flex justify-between items-center text-[10px] text-white">
+                  <span>Rescue Rx Regimen</span>
+                  <span className="text-[9px] font-bold text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded">Active</span>
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-white">
+                  <span>Secure Patient Chat</span>
+                  <span className="text-[9px] font-bold text-slate-400 bg-white/5 px-1.5 py-0.5 rounded">Seen ✓✓</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative z-10 mt-6">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
+                <Smartphone className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">
+                Comfort Care Mobile App
+              </h3>
+              <p className="text-xs text-slate-400">
+                Dignity-first patient portal enabling passwordless biometric logins, breakthrough medication regimen requests, and instant secure patient-clinician chat channels.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Card 6: SQLite Offline Caching (Col Span 1) */}
+          <motion.div
+            whileHover={{ y: -5 }}
+            className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[360px] flex flex-col justify-between"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
@@ -293,66 +332,39 @@ export default function BentoFeatures() {
                 True SQLite Offline Cache
               </h3>
               <p className="text-xs text-slate-400">
-                Keeps patient portal transactions, vital logging, and chat logs resilient. Transactions are persisted inside SQLite caches and synchronized automatically when network connections are restored.
+                Keeps patient mobile transactions resilient. Logs and chat records are safely queued locally inside SQLite DBs, synchronizing immediately once connections re-establish.
               </p>
             </div>
           </motion.div>
 
-          {/* Card 6: Intelligent Scheduling Engine (Col Span 2) */}
+          {/* Card 7: Intelligent Scheduling Engine (Col Span 1) */}
           <motion.div
             whileHover={{ y: -5 }}
-            className="md:col-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group min-h-[340px] flex flex-col justify-end"
+            className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group h-[360px] flex flex-col justify-between"
           >
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-            <div className="absolute top-8 right-8 bottom-8 left-1/2 overflow-hidden mask-image:linear-gradient(to_left,white,transparent)">
-              <div className="flex flex-col gap-3 w-full h-full justify-center pl-8">
-                {[
-                  { time: "14:00", active: false },
-                  { time: "14:30", active: true, conflict: false },
-                  { time: "15:00", active: true, conflict: true },
-                  { time: "15:30", active: false },
-                ].map((slot, i) => (
-                  <div
-                    key={i}
-                    className={`h-12 w-full rounded-xl border flex items-center px-4 gap-4 transition-transform group-hover:-translate-x-2 ${
-                      slot.active
-                        ? slot.conflict
-                           ? "bg-red-500/10 border-red-500/30"
-                          : "bg-purple-500/20 border-purple-500/50"
-                        : "bg-white/5 border-white/10 opacity-50"
-                    }`}
-                  >
-                    <span className="text-xs font-mono text-slate-400 w-10">
-                      {slot.time}
-                    </span>
-                    {slot.active && (
-                      <div
-                        className={`h-2 rounded-full flex-1 ${
-                          slot.conflict ? "bg-red-500/50" : "bg-purple-500/50"
-                        }`}
-                      />
-                    )}
-                    {slot.conflict && (
-                      <span className="text-[9px] font-bold text-red-400 uppercase tracking-widest animate-pulse">
-                        Conflict
-                      </span>
-                    )}
-                  </div>
-                ))}
+            {/* Micro scheduling preview */}
+            <div className="w-full flex flex-col gap-1.5 rounded-2xl bg-white/[0.02] border border-white/10 p-3 relative overflow-hidden group-hover:border-purple-500/30 transition-colors">
+              <div className="flex justify-between items-center text-[9px] text-slate-400 font-mono">
+                <span>15:00</span>
+                <span className="text-[8px] font-bold text-red-400 uppercase animate-pulse">Conflict Auto-Resolved</span>
+              </div>
+              <div className="h-1 bg-red-500/30 rounded-full w-full overflow-hidden">
+                <div className="h-full bg-purple-500 w-[70%]" />
               </div>
             </div>
 
-            <div className="relative z-10 pointer-events-none w-full sm:w-1/2">
-              <div className="w-14 h-14 rounded-2xl bg-[#0a0c12] border border-white/10 flex items-center justify-center mb-6 shadow-2xl">
-                <Calendar className="w-6 h-6 text-purple-400" />
+            <div className="relative z-10 pointer-events-none mt-6">
+              <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mb-4">
+                <Calendar className="w-5 h-5 text-purple-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">
-                Intelligent Scheduling Engine
+              <h3 className="text-lg font-bold text-white mb-2">
+                Intelligent Scheduling
               </h3>
-              <p className="text-slate-400 text-sm max-w-sm">
-                Automatically resolves booking conflicts, overlays driving route constraints, and schedules visits sequentially to protect practitioner dispatch availability.
+              <p className="text-xs text-slate-400">
+                Automatically resolves booking conflicts, overlays driving route constraints, and coordinates sequential visits to optimize field clinician schedules.
               </p>
             </div>
           </motion.div>
