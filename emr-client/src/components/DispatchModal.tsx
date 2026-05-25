@@ -155,7 +155,7 @@ export default function DispatchModal({ open, onClose, patientId, patientName, o
                           setAssigningId(p.practitionerId);
                           assign({ variables: { patientId, practitionerId: p.practitionerId } });
                         }}
-                        className="group w-full flex items-center justify-between p-5 rounded-3xl bg-[var(--card-bg)]/40 border border-[var(--card-border)] hover:border-[var(--primary)]/40 transition-all hover:shadow-xl hover:shadow-[var(--primary-glow)]/5 text-left relative overflow-hidden"
+                        className="group w-full flex items-center justify-between p-5 rounded-3xl bg-[rgba(var(--card-bg-rgb),0.4)] border border-[var(--card-border)] hover:border-[var(--primary)]/40 transition-all hover:shadow-xl hover:shadow-[var(--primary-glow)]/5 text-left relative overflow-hidden"
                       >
                         <div className="flex items-center gap-5 relative z-10">
                           <div className="relative">

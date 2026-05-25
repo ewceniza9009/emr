@@ -40,9 +40,13 @@ export default function StatusPage() {
   const isAuthenticated = status === "authenticated";
 
   useEffect(() => {
+    document.documentElement.classList.add("force-dark");
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.documentElement.classList.remove("force-dark");
+    };
   }, []);
 
   const runDiagnostics = async () => {

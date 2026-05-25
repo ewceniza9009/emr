@@ -93,7 +93,7 @@ export default function CommandModal({
     const parts = message.split(urlRegex);
     
     return (
-      <div className="text-[var(--text-secondary)] text-sm leading-relaxed px-4 break-all whitespace-pre-wrap space-y-3">
+      <div className="text-[var(--text-secondary)] text-sm leading-relaxed px-4 break-words whitespace-pre-wrap space-y-3">
         {parts.map((part, index) => {
           if (part.match(urlRegex)) {
             return (
@@ -146,7 +146,7 @@ export default function CommandModal({
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="relative w-full max-w-md overflow-hidden rounded-[2.5rem] border border-[var(--card-border)] bg-[var(--card-bg)]/80 backdrop-blur-2xl p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]"
+            className="relative w-full max-w-md overflow-hidden rounded-[2.5rem] border border-[var(--card-border)] bg-[rgba(var(--card-bg-rgb),0.8)] backdrop-blur-2xl p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]"
           >
             <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gradient-to-br from-[var(--primary)]/5 to-transparent blur-[100px] pointer-events-none" />
             
@@ -214,7 +214,7 @@ export default function CommandModal({
             
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--divider-color)] transition-all"
+              className="absolute top-6 right-6 z-20 p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--divider-color)] transition-all"
             >
               <X className="w-5 h-5" />
             </button>

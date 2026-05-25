@@ -24,7 +24,7 @@ export default function DashboardPreview() {
           <div className="mx-auto flex items-center gap-2 px-4 py-1.5 rounded-md bg-black/40 border border-white/5">
             <Lock className="w-3 h-3 text-teal-500" />
             <span className="text-[10px] font-mono text-slate-400 tracking-wider">
-              halkyone.clinical.local/triage
+              https://emr-three-hazel.vercel.app
             </span>
           </div>
         </div>
@@ -158,7 +158,9 @@ export default function DashboardPreview() {
                         >
                           <Activity
                             className={`w-4 h-4 ${
-                              i === 0 ? "text-red-400 animate-pulse" : "text-teal-400"
+                              i === 0
+                                ? "text-red-400 animate-pulse"
+                                : "text-teal-400"
                             }`}
                           />
                         </div>

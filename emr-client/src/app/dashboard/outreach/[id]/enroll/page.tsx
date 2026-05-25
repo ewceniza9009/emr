@@ -656,7 +656,7 @@ export default function OutreachDetail() {
                 </button>
               ) : (
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => setIsEditingSummary(false)} className="p-1.5 rounded bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-[var(--text-primary)] transition-all"><X className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => setIsEditingSummary(false)} className="p-1.5 rounded bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"><X className="w-3.5 h-3.5" /></button>
                   <button onClick={handleSaveSummary} className="p-1.5 rounded bg-teal-500 text-black hover:bg-teal-600 transition-all"><Save className="w-3.5 h-3.5" /></button>
                 </div>
               )}
@@ -717,7 +717,7 @@ export default function OutreachDetail() {
                     <button onClick={() => { setLocationForm({ ...lead.mailingAddress }); setIsEditingLocation(true); }} className="opacity-0 group-hover/site:opacity-100 p-1 text-[var(--text-muted)] hover:text-teal-500 transition-all"><Pencil className="w-3 h-3" /></button>
                   ) : (
                     <div className="flex items-center gap-1.5">
-                      <button onClick={() => setIsEditingLocation(false)} className="p-1 rounded bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-[var(--text-primary)] transition-all"><X className="w-3 h-3" /></button>
+                      <button onClick={() => setIsEditingLocation(false)} className="p-1 rounded bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"><X className="w-3 h-3" /></button>
                       <button onClick={handleSaveLocation} className="p-1 rounded bg-teal-500 text-black hover:bg-teal-600 transition-all"><Check className="w-3 h-3" /></button>
                     </div>
                   )}
@@ -746,7 +746,7 @@ export default function OutreachDetail() {
                 <button onClick={() => { setReachabilityForm({ preferredContactTime: lead.preferredContactTime }); setIsEditingReachability(true); }} className="p-2 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-teal-500 transition-all opacity-0 group-hover:opacity-100"><Pencil className="w-4 h-4" /></button>
               ) : (
                 <div className="flex items-center gap-1.5">
-                  <button onClick={() => setIsEditingReachability(false)} className="p-1.5 rounded bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-[var(--text-primary)] transition-all"><X className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => setIsEditingReachability(false)} className="p-1.5 rounded bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"><X className="w-3.5 h-3.5" /></button>
                   <button onClick={handleSaveReachability} className="p-1.5 rounded bg-teal-500 text-black hover:bg-teal-600 transition-all"><Save className="w-3.5 h-3.5" /></button>
                 </div>
               )}

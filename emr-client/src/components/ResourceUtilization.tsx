@@ -112,7 +112,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="bg-[var(--card-bg)]/80 border border-[var(--card-border)] rounded-[1.5rem] p-5 space-y-5"
+              className="bg-[rgba(var(--card-bg-rgb),0.8)] border border-[var(--card-border)] rounded-[1.5rem] p-5 space-y-5"
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-[var(--input-bg)]" />
@@ -221,7 +221,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
           return (
             <div
               key={u.practitionerId}
-              className={`group relative bg-[var(--card-bg)]/80 border border-[var(--card-border)] rounded-[1.5rem] p-5 transition-all duration-500 shadow-2xl hover:shadow-${statusColor}-500/5 overflow-hidden backdrop-blur-xl`}
+              className={`group relative bg-[rgba(var(--card-bg-rgb),0.8)] border border-[var(--card-border)] rounded-[1.5rem] p-5 transition-all duration-500 shadow-2xl hover:shadow-${statusColor}-500/5 overflow-hidden backdrop-blur-xl`}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-4">
@@ -339,7 +339,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
                 </div>
                 <button
                   onClick={() => setSelectedPractitioner(null)}
-                  className="w-9 h-9 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] hover:text-white hover:bg-rose-500/20 hover:border-rose-500/30 transition-all"
+                  className="w-9 h-9 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-500/10 dark:hover:bg-rose-500/20 hover:border-rose-500/20 dark:hover:border-rose-500/30 transition-all"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -468,7 +468,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
         )}
 
       {utilization.length === 0 && (
-        <div className="text-center py-20 bg-[var(--card-bg)]/20 border border-dashed border-[var(--card-border)] rounded-[3rem]">
+        <div className="text-center py-20 bg-[rgba(var(--card-bg-rgb),0.2)] border border-dashed border-[var(--card-border)] rounded-[3rem]">
           <LayoutDashboard className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4 opacity-20" />
           <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest italic">
             No clinical resources found in the current registry segment.

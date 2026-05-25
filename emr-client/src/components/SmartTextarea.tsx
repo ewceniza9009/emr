@@ -280,7 +280,7 @@ export default function SmartTextarea({
 
       {/* Floating Glassmorphic Undo Action Indicator */}
       {showUndoBanner && (
-        <div className="absolute bottom-3 right-3 z-50 flex items-center gap-2 bg-[var(--card-bg)]/90 border border-emerald-500/30 rounded-xl px-3 py-1.5 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="absolute bottom-3 right-3 z-50 flex items-center gap-2 bg-[rgba(var(--card-bg-rgb),0.9)] border border-emerald-500/30 rounded-xl px-3 py-1.5 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200">
           <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
             Template Inserted
           </span>
