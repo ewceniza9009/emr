@@ -8,12 +8,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Lock, Mail, Loader2, ChevronRight, Activity, TrendingUp, ArrowLeft } from "lucide-react";
 import Image from "next/image";
+import BeehiveAnimation from "@/components/Landing/BeehiveAnimation";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid work email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   remember: z.boolean().optional(),
 });
+
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -160,6 +162,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex flex-1 relative bg-[#020408] items-center justify-center overflow-hidden">
         {/* Animated Mesh Background */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <BeehiveAnimation />
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay" />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#14b8a610_1px,transparent_1px),linear-gradient(to_bottom,#14b8a610_1px,transparent_1px)] bg-[size:4rem_4rem]" />
           <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-teal-500/20 blur-[120px] animate-pulse mix-blend-screen" style={{ animationDuration: '8s' }} />

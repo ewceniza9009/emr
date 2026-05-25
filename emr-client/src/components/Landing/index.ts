@@ -7,3 +7,5 @@ export { default as Metrics } from "./Metrics";
 export { default as CTA } from "./CTA";
 export { default as Footer } from "./Footer";
 export { default as ChangelogModal } from "./ChangelogModal";
+export { default as BeehiveAnimation } from "./BeehiveAnimation";
+

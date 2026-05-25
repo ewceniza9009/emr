@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import BeehiveAnimation from "./BeehiveAnimation";
 
 export default function Background() {
   return (
@@ -9,6 +10,9 @@ export default function Background() {
       {/* Core Glow */}
       <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-teal-500/10 rounded-[100%] blur-[120px] opacity-70" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-emerald-500/10 rounded-[100%] blur-[80px] opacity-50 mix-blend-screen" />
+
+      {/* Interactive Beehive Honeycomb Grid */}
+      <BeehiveAnimation />
 
       {/* Subtle Grid Pattern */}
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.015] mix-blend-overlay" />
