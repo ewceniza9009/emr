@@ -13,6 +13,9 @@ import {
   Sparkles,
   Database,
   Fingerprint,
+  MessageSquare,
+  Truck,
+  WifiOff,
 } from "lucide-react";
 
 export default function BentoFeatures() {
@@ -30,7 +33,7 @@ export default function BentoFeatures() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-6 max-w-6xl mx-auto auto-rows-[300px]">
           
-          {/* Box 1: Large Span - Clinical Logistics Map */}
+          {/* Box 1: Large Span - Clinical Logistics & Visit Radar Map */}
           <motion.div
             whileHover={{ y: -5 }}
             className="md:col-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group"
@@ -69,16 +72,17 @@ export default function BentoFeatures() {
                     </feMerge>
                   </filter>
                   <radialGradient id="radarPrivacy" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.2" />
+                    <stop offset="0%" stopColor="#14b8a6" stopOpacity="0.25" />
                     <stop offset="100%" stopColor="#14b8a6" stopOpacity="0" />
                   </radialGradient>
                 </defs>
                 
                 {/* 500m Privacy Mask Overlay */}
-                <circle cx="200" cy="150" r="50" fill="url(#radarPrivacy)" stroke="rgba(20,184,166,0.3)" strokeWidth="1" strokeDasharray="4 4" />
+                <circle cx="210" cy="130" r="50" fill="url(#radarPrivacy)" stroke="rgba(20,184,166,0.4)" strokeWidth="1.5" strokeDasharray="5 5" />
+                <circle cx="210" cy="130" r="3.5" fill="#14b8a6" />
 
                 <motion.path
-                  d="M 50 250 Q 150 250 200 150 T 350 50"
+                  d="M 50 250 Q 150 250 210 130 T 350 50"
                   fill="none"
                   stroke="url(#routeGradient)"
                   strokeWidth="4"
@@ -109,7 +113,7 @@ export default function BentoFeatures() {
               <div className="absolute top-1/3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 shadow-[0_10px_30px_rgba(20,184,166,0.2)] flex items-center gap-3 group-hover:scale-105 transition-transform">
                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-[10px] font-bold text-white tracking-widest uppercase">
-                  ETA: 12 Mins • Radar Enabled (500m Masked)
+                  Radar Enabled • Live Coordinates Masked
                 </span>
               </div>
             </div>
@@ -127,7 +131,7 @@ export default function BentoFeatures() {
             </div>
           </motion.div>
 
-          {/* Box 2: Tall - Patient Profile / Outreach Terminal */}
+          {/* Box 2: Tall - Unified Record & AI Assist */}
           <motion.div
             whileHover={{ y: -5 }}
             className="md:row-span-2 relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group flex flex-col"
@@ -139,17 +143,16 @@ export default function BentoFeatures() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-[40px] rounded-full translate-x-1/2 -translate-y-1/2" />
 
               {/* Header Profile */}
-              <div className="p-5 border-b border-white/5 flex items-center gap-4 relative z-10">
+              <div className="p-4 border-b border-white/5 flex items-center gap-4 relative z-10">
                 <div className="relative">
                   <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-lg">
                     DM
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-[#0a0c12] rounded-full" />
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-white">David Martinez</span>
-                    <span className="text-[8px] font-black text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded animate-pulse">AI SOAP Draft Ready</span>
+                <div>
+                  <div className="text-sm font-bold text-white">
+                    David Martinez
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                     ID: P-882914-A • ACTIVE
@@ -158,12 +161,12 @@ export default function BentoFeatures() {
               </div>
 
               {/* Body Details */}
-              <div className="p-5 flex flex-col gap-3 relative z-10">
+              <div className="p-4 flex flex-col gap-2.5 relative z-10">
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     Health Plan
                   </span>
-                  <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">
+                  <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">
                     Medicare Advantage
                   </span>
                 </div>
@@ -172,7 +175,7 @@ export default function BentoFeatures() {
                     Directives
                   </span>
                   <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded">
-                    DNR / Comfort Care
+                    DNR/Comfort Care
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -184,8 +187,25 @@ export default function BentoFeatures() {
                   </span>
                 </div>
 
+                {/* AI Assist SOAP block integrated inside card */}
+                <div className="mt-2 rounded-xl bg-teal-500/5 border border-teal-500/20 p-2.5 flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-[9px] font-black text-teal-400 uppercase tracking-wider">
+                    <span>AI SOAP Auto-Draft</span>
+                    <Sparkles className="w-3 h-3 text-teal-400 animate-pulse" />
+                  </div>
+                  <p className="text-[9px] font-mono text-slate-300 leading-tight">
+                    <span className="text-teal-400 font-bold">O:</span> SpO2 88%, HR 112 bpm. Severe pain.
+                    <br />
+                    <span className="text-teal-400 font-bold">A:</span> Acute exacerbation. COPD / Pain.
+                  </p>
+                  <div className="flex gap-1">
+                    <span className="text-[8px] font-bold text-slate-400 bg-white/5 px-1 py-0.5 rounded">R06.02 Dyspnea</span>
+                    <span className="text-[8px] font-bold text-slate-400 bg-white/5 px-1 py-0.5 rounded">G89.3 Pain</span>
+                  </div>
+                </div>
+
                 {/* Miniature ECG */}
-                <div className="mt-2 h-12 w-full relative">
+                <div className="mt-2 h-8 w-full relative">
                   <svg
                     className="absolute inset-0 w-full h-full opacity-60"
                     viewBox="0 0 200 40"
@@ -202,29 +222,24 @@ export default function BentoFeatures() {
                     />
                   </svg>
                 </div>
-
-                {/* Sync Button */}
-                <div className="w-full h-10 mt-2 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-xl flex items-center justify-center text-[10px] font-black text-white tracking-[0.2em] uppercase shadow-[0_5px_20px_rgba(16,185,129,0.3)] cursor-pointer">
-                  Finalize Registry
-                </div>
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col items-center text-center">
-              <div className="w-16 h-16 rounded-full border border-emerald-500/30 flex items-center justify-center mb-6 relative">
+            <div className="mt-6 flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full border border-emerald-500/30 flex items-center justify-center mb-4 relative">
                 <div className="absolute inset-0 rounded-full border-t-2 border-emerald-400 animate-spin" />
-                <Activity className="w-6 h-6 text-emerald-400" />
+                <Activity className="w-5 h-5 text-emerald-400" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">
+              <h3 className="text-xl font-bold text-white mb-2">
                 Unified Clinical Record
               </h3>
-              <p className="text-slate-400 text-sm max-w-[250px]">
-                High-density workstation integrating palliative Comfort Care plans, active breakthrough regimens, and auto-drafted AI SOAP notes.
+              <p className="text-slate-400 text-xs max-w-[250px]">
+                High-fidelity workstation incorporating palliative comfort regimes, dailyBreakthrough Rx, advance directives, and auto-drafted AI SOAP notes.
               </p>
             </div>
           </motion.div>
 
-          {/* Box 3: Small - RPM / One-Click Triage */}
+          {/* Box 3: Small - RPM & One-Click Triage */}
           <motion.div
             whileHover={{ y: -5 }}
             className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group flex flex-col justify-between"
@@ -239,7 +254,7 @@ export default function BentoFeatures() {
               >
                 <path
                   d="M 0 100 L 0 50 Q 50 20 100 60 T 200 40 L 200 100 Z"
-                  fill="url(#blueGrad)"
+                  fill="url(#redGrad)"
                 />
                 <path
                   d="M 0 50 Q 50 20 100 60 T 200 40"
@@ -249,7 +264,7 @@ export default function BentoFeatures() {
                   filter="url(#glow)"
                 />
                 <defs>
-                  <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="redGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#ef4444" stopOpacity="0.4" />
                     <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
                   </linearGradient>
@@ -257,15 +272,21 @@ export default function BentoFeatures() {
               </svg>
               
               {/* Triage Alerts and Action buttons */}
-              <div className="absolute right-8 top-8 flex flex-col gap-1.5 items-end">
+              <div className="absolute right-8 top-6 flex flex-col gap-1.5 items-end">
                 <span className="px-2.5 py-0.5 bg-rose-500/20 border border-rose-500/30 rounded-lg text-[9px] font-black text-rose-400 animate-pulse tracking-wide">
                   SpO2: 82% Critical Alert ⚠️
                 </span>
                 
-                <div className="flex gap-1 opacity-90 scale-90 origin-right">
-                  <span className="px-1.5 py-0.5 bg-rose-500/30 text-[8px] font-black text-rose-300 rounded border border-rose-500/30 cursor-pointer hover:bg-rose-500/50">Claim</span>
-                  <span className="px-1.5 py-0.5 bg-teal-500/30 text-[8px] font-black text-teal-300 rounded border border-teal-500/30 cursor-pointer hover:bg-teal-500/50">Chat</span>
-                  <span className="px-1.5 py-0.5 bg-emerald-500/30 text-[8px] font-black text-emerald-300 rounded border border-emerald-500/30 cursor-pointer hover:bg-emerald-500/50">Dispatch</span>
+                <div className="flex gap-1.5 opacity-90 scale-90 origin-right">
+                  <span className="px-2 py-0.5 bg-rose-500/30 hover:bg-rose-500/50 text-[8px] font-black text-rose-300 rounded border border-rose-500/30 cursor-pointer transition-colors flex items-center gap-0.5">
+                    Claim
+                  </span>
+                  <span className="px-2 py-0.5 bg-teal-500/30 hover:bg-teal-500/50 text-[8px] font-black text-teal-300 rounded border border-teal-500/30 cursor-pointer transition-colors flex items-center gap-0.5">
+                    <MessageSquare className="w-2.5 h-2.5" /> Chat
+                  </span>
+                  <span className="px-2 py-0.5 bg-emerald-500/30 hover:bg-emerald-500/50 text-[8px] font-black text-emerald-300 rounded border border-emerald-500/30 cursor-pointer transition-colors flex items-center gap-0.5">
+                    <Truck className="w-2.5 h-2.5" /> Dispatch
+                  </span>
                 </div>
               </div>
             </div>
@@ -274,15 +295,15 @@ export default function BentoFeatures() {
 
             <div className="relative z-10">
               <h3 className="text-xl font-bold text-white mb-2">
-                Triage & Remote Monitoring
+                One-Click Triage & RPM
               </h3>
               <p className="text-sm text-slate-400">
-                Intercept critical drops immediately. Claim alerts, dispatch field clinicians, or initiate care chats directly.
+                Intercept critical drops immediately. Claim alerts, dispatch field coordinators, or initiate care chats directly from the live telemetry alert.
               </p>
             </div>
           </motion.div>
 
-          {/* Box 4: Small - Security Radar */}
+          {/* Box 4: Small - Security Radar & Offline Cache */}
           <motion.div
             whileHover={{ y: -5 }}
             className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group flex flex-col justify-between"
@@ -309,25 +330,33 @@ export default function BentoFeatures() {
               />
             </div>
 
-            <div className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[8px] font-bold text-amber-400 tracking-widest uppercase flex items-center gap-1 w-max relative z-10">
-              <Lock className="w-2 h-2" /> Verified
+            {/* Offline sync queue simulation panel */}
+            <div className="w-[75%] rounded-xl bg-indigo-500/5 border border-indigo-500/20 p-2.5 flex flex-col gap-1 relative z-10">
+              <div className="flex justify-between items-center text-[8px] font-black text-indigo-400 uppercase tracking-widest">
+                <span>Offline SQLite Cache</span>
+                <WifiOff className="w-3 h-3" />
+              </div>
+              <div className="flex justify-between text-[8px] text-white">
+                <span>Vitals Log</span>
+                <span className="text-amber-400 font-bold">Queued</span>
+              </div>
+              <div className="flex justify-between text-[8px] text-white">
+                <span>Chat Message</span>
+                <span className="text-amber-400 font-bold">Queued</span>
+              </div>
             </div>
 
             <div className="relative z-10">
-              {/* SQLite sync queue badge */}
-              <div className="mb-2 flex items-center gap-1 text-[9px] font-bold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded w-max">
-                <Database className="w-3 h-3 animate-pulse" /> SQLite Offline Sync Active
-              </div>
               <h3 className="text-xl font-bold text-white mb-2">
-                HIPAA, Security & Cache
+                Security & SQLite Cache
               </h3>
               <p className="text-sm text-slate-400">
-                PHI protection coupled with secure local SQLite database caches to persist transactions during network outages.
+                Enterprise HIPAA compliance coupled with active SQLite local databases to cache patient logs securely during network outages.
               </p>
             </div>
           </motion.div>
 
-          {/* Box 5: Identity Vault / Emergency & Mobile Portal */}
+          {/* Box 5: Identity Vault & Passwordless Biometrics */}
           <motion.div
             whileHover={{ y: -5 }}
             className="relative p-8 rounded-[2rem] bg-[#050914] border border-white/10 overflow-hidden group flex flex-col justify-between"
@@ -338,29 +367,36 @@ export default function BentoFeatures() {
               <div className="absolute w-full h-[1px] bg-red-500/10 top-1/2 -translate-y-1/2" />
               <div className="absolute w-[1px] h-full bg-red-500/10 left-1/2 -translate-x-1/2" />
 
+              {/* Glowing Key Vault */}
               <div className="w-20 h-20 rounded-2xl bg-[#0a0c12] border border-red-500/30 flex items-center justify-center relative z-10 shadow-[0_0_30px_rgba(239,68,68,0.15)] group-hover:scale-110 transition-transform">
                 <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                 <Key className="w-8 h-8 text-red-500" />
               </div>
 
+              {/* Fingerprint animation rings overlay */}
+              <div className="absolute w-36 h-36 flex items-center justify-center pointer-events-none z-20">
+                <motion.div
+                  animate={{ scale: [1, 1.6], opacity: [0.5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                  className="absolute w-12 h-12 rounded-full border border-emerald-500/20"
+                />
+                <Fingerprint className="w-6 h-6 text-emerald-400/20 absolute z-30 group-hover:text-emerald-400 transition-colors" />
+              </div>
+
               <div className="absolute top-4 left-4 text-[8px] font-mono text-red-500/50">
                 ACCESS: DENIED
               </div>
-              <div className="absolute bottom-4 right-4 text-[8px] font-mono text-red-500/50">
-                JWT: REVOKED
+              <div className="absolute bottom-4 right-4 text-[8px] font-mono text-emerald-400/50">
+                BIOMETRIC: OK
               </div>
             </div>
 
             <div className="relative z-10 mt-6">
-              {/* Biometrics badge */}
-              <div className="mb-2 flex items-center gap-1 text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded w-max">
-                <Fingerprint className="w-3 h-3 animate-pulse" /> Passwordless Biometrics Active
-              </div>
               <h3 className="text-xl font-bold text-white mb-2">
-                Emergency & Mobile Access
+                Emergency & Biometric Portal
               </h3>
               <p className="text-sm text-slate-400">
-                Instant override capabilities for critical care and magic passwordless biometric logins on client-patient portals.
+                Emergency clinical override logs combined with magic passwordless biometric mobile logins for patient portal access.
               </p>
             </div>
           </motion.div>
