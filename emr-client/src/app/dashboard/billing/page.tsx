@@ -15,14 +15,18 @@ import {
   History,
   Eye,
   ChevronDown,
-  X
+  X,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown
 } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import { useSettings } from "@/lib/SettingsContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import BenefitClaimDrawer from "@/components/BenefitClaimDrawer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSort } from "@/hooks/useSort";
 import { PermissionGate } from "@/components/PermissionGate";
 
 const GET_INVOICES = gql`
@@ -181,13 +185,40 @@ export default function BillingPage() {
   const totalClaims = claimData?.zBenefitClaims?.totalCount || 0;
   const summary = summaryData?.billingSummary || { totalReceivables: 0, pendingClaimsCount: 0, totalClaimsCount: 0, paidClaimsTotal: 0 };
 
+  const {
+    sortField: invoiceSortField,
+    sortOrder: invoiceSortOrder,
+    handleSort: handleInvoiceSort,
+    sortedItems: sortedInvoices,
+  } = useSort<any>(invoices, {
+    customAccessors: {
+      name: (invoice: any) => `${invoice.patient?.firstName || ""} ${invoice.patient?.lastName || ""}`,
+      total: (invoice: any) => Number(invoice.patientResponsibility) || 0,
+      generatedAt: (invoice: any) => invoice.generatedAt ? new Date(invoice.generatedAt).getTime() : 0,
+      dueDate: (invoice: any) => invoice.dueDate ? new Date(invoice.dueDate).getTime() : 0,
+    },
+  });
+
+  const {
+    sortField: claimSortField,
+    sortOrder: claimSortOrder,
+    handleSort: handleClaimSort,
+    sortedItems: sortedClaims,
+  } = useSort<any>(claims, {
+    customAccessors: {
+      name: (claim: any) => `${claim.patient?.firstName || ""} ${claim.patient?.lastName || ""}`,
+      totalAmount: (claim: any) => Number(claim.totalAmount) || 0,
+      submittedAt: (claim: any) => claim.submittedAt ? new Date(claim.submittedAt).getTime() : 0,
+    },
+  });
+
   const refetch = () => {
     refetchInvoices();
     refetchClaims();
   };
 
-  const filteredInvoices = invoices;
-  const filteredClaims = claims;
+  const filteredInvoices = sortedInvoices;
+  const filteredClaims = sortedClaims;
 
   const handleEditClaim = (claim: any) => {
     setEditingClaim({
@@ -359,12 +390,60 @@ export default function BillingPage() {
             <div className="space-y-6">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left border-b border-[var(--card-border)]">
-                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Entity Details</th>
-                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Invoice #</th>
-                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Status</th>
+                  <tr className="text-left border-b border-[var(--card-border)] select-none">
+                    <th 
+                      onClick={() => handleInvoiceSort("name")}
+                      className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      <div className="flex items-center gap-1">
+                        Entity Details
+                        {invoiceSortField === "name" ? (
+                          invoiceSortOrder === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 opacity-40" />
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      onClick={() => handleInvoiceSort("invoiceNumber")}
+                      className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      <div className="flex items-center gap-1">
+                        Invoice #
+                        {invoiceSortField === "invoiceNumber" ? (
+                          invoiceSortOrder === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 opacity-40" />
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      onClick={() => handleInvoiceSort("status")}
+                      className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      <div className="flex items-center gap-1">
+                        Status
+                        {invoiceSortField === "status" ? (
+                          invoiceSortOrder === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 opacity-40" />
+                        )}
+                      </div>
+                    </th>
                     <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-center">Items</th>
-                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-right">Total Liability</th>
+                    <th 
+                      onClick={() => handleInvoiceSort("total")}
+                      className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-right cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        Total Liability
+                        {invoiceSortField === "total" ? (
+                          invoiceSortOrder === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 opacity-40" />
+                        )}
+                      </div>
+                    </th>
                     <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-center">Actions</th>
                   </tr>
                 </thead>
@@ -380,7 +459,7 @@ export default function BillingPage() {
                         <td className="py-5 px-4"><div className="flex justify-center"><Skeleton className="h-10 w-10 rounded-xl" /></div></td>
                       </tr>
                     ))
-                  ) : invoices.map((invoice: any) => (
+                  ) : filteredInvoices.map((invoice: any) => (
                     <tr key={invoice.invoiceId} className="hover:bg-white/[0.01] transition-colors group">
                       <td className="py-5 px-4">
                         <div className="flex items-center gap-3">
@@ -457,12 +536,60 @@ export default function BillingPage() {
             <div className="space-y-6">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left border-b border-[var(--card-border)]">
-                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Patient</th>
-                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">PhilHealth PIN</th>
+                  <tr className="text-left border-b border-[var(--card-border)] select-none">
+                    <th 
+                      onClick={() => handleClaimSort("name")}
+                      className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      <div className="flex items-center gap-1">
+                        Patient
+                        {claimSortField === "name" ? (
+                          claimSortOrder === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 opacity-40" />
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      onClick={() => handleClaimSort("philhealthNumber")}
+                      className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      <div className="flex items-center gap-1">
+                        PhilHealth PIN
+                        {claimSortField === "philhealthNumber" ? (
+                          claimSortOrder === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 opacity-40" />
+                        )}
+                      </div>
+                    </th>
                     <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Package Code</th>
-                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4">Status</th>
-                    <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-right">Claim Amount</th>
+                    <th 
+                      onClick={() => handleClaimSort("status")}
+                      className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      <div className="flex items-center gap-1">
+                        Status
+                        {claimSortField === "status" ? (
+                          claimSortOrder === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 opacity-40" />
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      onClick={() => handleClaimSort("totalAmount")}
+                      className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-right cursor-pointer hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        Claim Amount
+                        {claimSortField === "totalAmount" ? (
+                          claimSortOrder === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 opacity-40" />
+                        )}
+                      </div>
+                    </th>
                     <th className="pb-5 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-4 text-center">Management</th>
                   </tr>
                 </thead>
@@ -478,7 +605,7 @@ export default function BillingPage() {
                         <td className="py-5 px-4"><div className="flex justify-center gap-2"><Skeleton className="h-10 w-10 rounded-xl" /><Skeleton className="h-10 w-10 rounded-xl" /></div></td>
                       </tr>
                     ))
-                  ) : claims.map((claim: any) => (
+                  ) : filteredClaims.map((claim: any) => (
                     <tr key={claim.claimId} className="hover:bg-white/[0.01] transition-colors group">
                       <td className="py-5 px-4">
                         <div className="flex items-center gap-3">

@@ -23,8 +23,32 @@ public class SetupQuery
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public IQueryable<Facility> GetFacilities([Service] IApplicationDbContext context) =>
-        context.Facilities.AsNoTracking();
+    public IQueryable<Facility> GetFacilities(
+        [Service] IApplicationDbContext context,
+        string? search = null,
+        int? skip = null,
+        int? take = null
+    )
+    {
+        var query = context.Facilities.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLower();
+            query = query.Where(f =>
+                f.Name.ToLower().Contains(searchLower) ||
+                f.FacilityAddress.City.ToLower().Contains(searchLower)
+            );
+        }
+
+        if (skip.HasValue)
+            query = query.Skip(skip.Value);
+
+        if (take.HasValue)
+            query = query.Take(take.Value);
+
+        return query;
+    }
 
     [Authorize(Policy = "CanViewPatients")]
     [UseProjection]

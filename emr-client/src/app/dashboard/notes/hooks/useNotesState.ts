@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useLazyQuery } from "@apollo/client";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ToastProvider";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   GET_NOTES_DATA,
   GET_PATIENT_CLINICAL_DETAILS,
@@ -61,7 +62,23 @@ export function useNotesState() {
   const { data: session } = useSession();
   const { showToast } = useToast();
   
-  const { data, loading } = useQuery(GET_NOTES_DATA);
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  const PAGE_SIZE = 20;
+  const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch]);
+
+  const { data, loading } = useQuery(GET_NOTES_DATA, {
+    variables: {
+      search: debouncedSearch || undefined,
+      skip: page * PAGE_SIZE,
+      take: PAGE_SIZE
+    },
+    fetchPolicy: "cache-and-network"
+  });
   const [startEncounter] = useMutation(START_ENCOUNTER);
   const [saveNote] = useMutation(SAVE_NOTE);
 
@@ -85,7 +102,6 @@ export function useNotesState() {
   const [noteCache, setNoteCache] = useState<Record<string, string>>({});
   const [encounterCache, setEncounterCache] = useState<Record<string, string>>({});
   const [isSyncing, setIsSyncing] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const [icdSearch, setIcdSearch] = useState("");
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [loadAiDraft] = useLazyQuery(GENERATE_AI_SOAP_DRAFT, {
@@ -104,14 +120,8 @@ export function useNotesState() {
 
   const appointments = useMemo(() => {
     const appointmentsData = data?.appointments?.items || [];
-    return appointmentsData
-      .map((n: any) => ({ ...n }))
-      .filter((n: any) =>
-        `${n.patient?.firstName} ${n.patient?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        n.patient?.mrn?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      .sort((a: any, b: any) => new Date(b.scheduledStart).getTime() - new Date(a.scheduledStart).getTime());
-  }, [data?.appointments?.items, searchTerm]);
+    return appointmentsData.map((n: any) => ({ ...n }));
+  }, [data?.appointments?.items]);
 
   const smartPhrases = data?.smartPhrases || [];
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -141,7 +151,11 @@ export function useNotesState() {
     groupedPatients[pid].notes.push(appt);
   });
 
-  const groupedList = Object.values(groupedPatients);
+  const groupedList = Object.values(groupedPatients).sort((a: any, b: any) => {
+    const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+    const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
 
   // Lazy load patient clinical details for the side-panel
   const [loadClinicalDetails, { data: clinicalDetails, loading: loadingDetails }] = useLazyQuery(
@@ -613,6 +627,10 @@ export function useNotesState() {
     // Search / Dialog states
     searchTerm,
     setSearchTerm,
+    page,
+    setPage,
+    PAGE_SIZE,
+    totalCount: data?.appointments?.totalCount || 0,
     icdSearch,
     setIcdSearch,
     isBookingOpen,

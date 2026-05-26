@@ -31,7 +31,10 @@ public class AppointmentQuery
         DateTime? startDate = null,
         DateTime? endDate = null,
         Guid? patientId = null,
-        Guid? id = null
+        Guid? id = null,
+        string? search = null,
+        int? skip = null,
+        int? take = null
     )
     {
         var query = context
@@ -53,7 +56,26 @@ public class AppointmentQuery
         if (id.HasValue)
             query = query.Where(a => a.AppointmentId == id.Value);
 
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.ToLower();
+            query = query.Where(a =>
+                a.Patient.FirstName.ToLower().Contains(searchLower) ||
+                a.Patient.LastName.ToLower().Contains(searchLower) ||
+                a.Patient.Mrn.ToLower().Contains(searchLower)
+            );
+        }
+
         var totalCount = await query.CountAsync();
+
+        query = query.OrderByDescending(a => a.ScheduledStart);
+
+        if (skip.HasValue)
+            query = query.Skip(skip.Value);
+
+        if (take.HasValue)
+            query = query.Take(take.Value);
+
         var items = await query.ProjectToType<AppointmentDto>().ToListAsync();
 
         return new PagedResponse<AppointmentDto> { Items = items, TotalCount = totalCount };

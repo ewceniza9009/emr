@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client";
 
 export const GET_NOTES_DATA = gql`
-  query GetNotesData {
-    appointments {
+  query GetNotesData($search: String, $skip: Int, $take: Int) {
+    appointments(search: $search, skip: $skip, take: $take) {
       items {
         appointmentId
         patientId
@@ -31,6 +31,7 @@ export const GET_NOTES_DATA = gql`
           }
         }
       }
+      totalCount
     }
     smartPhrases {
       shortcut
