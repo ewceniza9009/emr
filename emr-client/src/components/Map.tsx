@@ -102,9 +102,12 @@ export default function Map({
     };
   });
 
+  const cartoApiKey = process.env.NEXT_PUBLIC_CARTO_API_KEY || "cb1_4hvw_1_a2a7a3ae2d14d255f29b14c9";
+  const cartoKeyParam = cartoApiKey ? `?key=${cartoApiKey}` : "";
+
   let tileLayerUrl = theme === 'dark' 
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+    ? `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png${cartoKeyParam}`
+    : `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png${cartoKeyParam}`;
 
   // Tactical layer override
   if (activeHud === "layers") {

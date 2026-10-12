@@ -96,6 +96,7 @@ services:
         - NEXT_PUBLIC_GRAPHQL_URL=http://localhost:34832/graphql
         - NEXT_PUBLIC_GRAPHQL_WS_URL=ws://localhost:34832/graphql
         - NEXT_PUBLIC_SIGNALR_ENDPOINT=http://localhost:34832/hubs/telemetry
+        - NEXT_PUBLIC_CARTO_API_KEY=cb1_4hvw_1_a2a7a3ae2d14d255f29b14c9
     container_name: emr-client
     restart: always
     ports:

@@ -158,6 +158,7 @@ Below are step-by-step variations for implementing the most critical infrastruct
 ## 🛠️ Deployment Checklist
 
 - [ ] Configure `NEXT_PUBLIC_API_URL` for the frontend.
+- [ ] Configure `NEXT_PUBLIC_CARTO_API_KEY` for map basemaps (`cb1_4hvw_1_...`).
 - [ ] Provision **Azure SignalR Service** and update connection strings.
 - [ ] Set up **Azure Key Vault** for secret management (API Keys, SQL Credentials).
 - [ ] Configure **Application Insights** for real-time clinical monitoring and logging.

@@ -389,9 +389,14 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
                 <ZoomControl position="topright" />
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url={theme === 'dark'
-                    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                  url={
+                    (() => {
+                      const cartoApiKey = process.env.NEXT_PUBLIC_CARTO_API_KEY || "cb1_4hvw_1_a2a7a3ae2d14d255f29b14c9";
+                      const keyParam = cartoApiKey ? `?key=${cartoApiKey}` : "";
+                      return theme === 'dark'
+                        ? `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png${keyParam}`
+                        : `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png${keyParam}`;
+                    })()
                   }
                 />
                 <MapBoundsUpdater center={markerPos} />
