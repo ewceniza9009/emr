@@ -199,15 +199,15 @@ public class AuthController : ControllerBase
 
         // Standard mobile app base URL from environment/settings configuration
         string baseUrl = _configuration["MobilePortalUrl"];
-        if (string.IsNullOrEmpty(baseUrl) || baseUrl.Contains("localhost"))
+        if (string.IsNullOrEmpty(baseUrl))
         {
             var host = Request.Host.Value;
             var referer = Request.Headers["Referer"].ToString();
             var origin = Request.Headers["Origin"].ToString();
 
-            if (host.Contains("34832") || referer.Contains("3681") || origin.Contains("3681"))
+            if (host.Contains("34832") || referer.Contains("34831") || origin.Contains("34831") || referer.Contains("3681") || origin.Contains("3681"))
             {
-                baseUrl = "http://localhost:3682";
+                baseUrl = "http://localhost:34833";
             }
             else
             {
