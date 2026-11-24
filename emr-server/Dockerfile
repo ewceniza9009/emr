@@ -7,12 +7,12 @@ COPY ["emr-server/src/Api/Api.csproj", "emr-server/src/Api/"]
 COPY ["emr-server/src/Application/Application.csproj", "emr-server/src/Application/"]
 COPY ["emr-server/src/Domain/Domain.csproj", "emr-server/src/Domain/"]
 COPY ["emr-server/src/Infrastructure/Infrastructure.csproj", "emr-server/src/Infrastructure/"]
-RUN dotnet restore "emr-server/src/Api/Api.csproj"
+RUN dotnet restore "emr-server/src/Api/Api.csproj" -r linux-x64 /p:PublishReadyToRun=true
 
 # Copy everything and publish in a single compilation pass
 COPY emr-server/ ./emr-server/
 WORKDIR "/src/emr-server/src/Api"
-RUN dotnet publish "Api.csproj" -c Release --no-restore -o /app/publish /p:UseAppHost=false /p:PublishReadyToRun=true
+RUN dotnet publish "Api.csproj" -c Release --no-restore -r linux-x64 --self-contained false -o /app/publish /p:UseAppHost=false /p:PublishReadyToRun=true
 
 # Runtime Stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final

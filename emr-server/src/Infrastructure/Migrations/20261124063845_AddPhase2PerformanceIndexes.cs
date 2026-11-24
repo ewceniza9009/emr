@@ -10,29 +10,23 @@ namespace Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "ix_practitioners_npi_number",
-                table: "practitioners");
-
-            migrationBuilder.DropIndex(
-                name: "ix_practitioners_prc_license_number",
-                table: "practitioners");
-
-            migrationBuilder.DropIndex(
-                name: "ix_patients_mrn",
-                table: "patients");
-
-            migrationBuilder.DropIndex(
-                name: "ix_patients_philhealth_number",
-                table: "patients");
-
-            migrationBuilder.DropIndex(
-                name: "ix_durable_medical_equipment_serial_number",
-                table: "durable_medical_equipment");
-
-            migrationBuilder.DropIndex(
-                name: "ix_billing_invoices_invoice_number",
-                table: "billing_invoices");
+            // The original indexes were created with pascal-case IX_* names by the initial
+            // migration, while later EF snapshots use lower-case ix_* names. Drop both
+            // variants so this migration works on fresh and already-migrated databases.
+            migrationBuilder.Sql(@"
+DROP INDEX IF EXISTS ix_practitioners_npi_number;
+DROP INDEX IF EXISTS ""IX_practitioners_npi_number"";
+DROP INDEX IF EXISTS ix_practitioners_prc_license_number;
+DROP INDEX IF EXISTS ""IX_practitioners_prc_license_number"";
+DROP INDEX IF EXISTS ix_patients_mrn;
+DROP INDEX IF EXISTS ""IX_patients_mrn"";
+DROP INDEX IF EXISTS ix_patients_philhealth_number;
+DROP INDEX IF EXISTS ""IX_patients_philhealth_number"";
+DROP INDEX IF EXISTS ix_durable_medical_equipment_serial_number;
+DROP INDEX IF EXISTS ""IX_durable_medical_equipment_serial_number"";
+DROP INDEX IF EXISTS ix_billing_invoices_invoice_number;
+DROP INDEX IF EXISTS ""IX_billing_invoices_invoice_number"";
+            ");
 
             migrationBuilder.CreateIndex(
                 name: "ix_practitioners_tenant_npi_number",
@@ -147,65 +141,27 @@ DROP INDEX IF EXISTS ix_patient_phones_number_trgm;
 DROP INDEX IF EXISTS ix_patient_outreaches_search_trgm;
 DROP INDEX IF EXISTS ix_patients_search_trgm;
             ");
-            migrationBuilder.DropIndex(
-                name: "ix_practitioners_tenant_npi_number",
-                table: "practitioners");
+            migrationBuilder.Sql(@"
+DROP INDEX IF EXISTS ix_practitioners_tenant_npi_number;
+DROP INDEX IF EXISTS ix_practitioners_tenant_prc_license_number;
+DROP INDEX IF EXISTS ix_patients_tenant_mrn;
+DROP INDEX IF EXISTS ix_patients_tenant_philhealth_number;
+DROP INDEX IF EXISTS ix_dme_tenant_serial_number;
+DROP INDEX IF EXISTS ix_billing_invoices_tenant_invoice_number;
 
-            migrationBuilder.DropIndex(
-                name: "ix_practitioners_tenant_prc_license_number",
-                table: "practitioners");
-
-            migrationBuilder.DropIndex(
-                name: "ix_patients_tenant_mrn",
-                table: "patients");
-
-            migrationBuilder.DropIndex(
-                name: "ix_patients_tenant_philhealth_number",
-                table: "patients");
-
-            migrationBuilder.DropIndex(
-                name: "ix_dme_tenant_serial_number",
-                table: "durable_medical_equipment");
-
-            migrationBuilder.DropIndex(
-                name: "ix_billing_invoices_tenant_invoice_number",
-                table: "billing_invoices");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_practitioners_npi_number",
-                table: "practitioners",
-                column: "npi_number",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_practitioners_prc_license_number",
-                table: "practitioners",
-                column: "prc_license_number",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_patients_mrn",
-                table: "patients",
-                column: "mrn",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_patients_philhealth_number",
-                table: "patients",
-                column: "philhealth_number",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_durable_medical_equipment_serial_number",
-                table: "durable_medical_equipment",
-                column: "serial_number",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_billing_invoices_invoice_number",
-                table: "billing_invoices",
-                column: "invoice_number",
-                unique: true);
+CREATE UNIQUE INDEX IF NOT EXISTS ""IX_practitioners_npi_number""
+    ON practitioners (npi_number);
+CREATE UNIQUE INDEX IF NOT EXISTS ""IX_practitioners_prc_license_number""
+    ON practitioners (prc_license_number);
+CREATE UNIQUE INDEX IF NOT EXISTS ""IX_patients_mrn""
+    ON patients (mrn);
+CREATE UNIQUE INDEX IF NOT EXISTS ""IX_patients_philhealth_number""
+    ON patients (philhealth_number);
+CREATE UNIQUE INDEX IF NOT EXISTS ""IX_durable_medical_equipment_serial_number""
+    ON durable_medical_equipment (serial_number);
+CREATE UNIQUE INDEX IF NOT EXISTS ""IX_billing_invoices_invoice_number""
+    ON billing_invoices (invoice_number);
+            ");
         }
     }
 }

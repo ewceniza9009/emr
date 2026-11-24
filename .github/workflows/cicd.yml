@@ -86,6 +86,15 @@ jobs:
 
       - name: Run E2E Tests
         run: |
+          # Reused runners can leave stale listeners behind from a previous attempt.
+          for port in 34732 3671; do
+            pids=$(lsof -ti tcp:"$port" 2>/dev/null || true)
+            if [ -n "$pids" ]; then
+              echo "Freeing port $port (pids: $pids)"
+              echo "$pids" | xargs -r kill -9 || true
+            fi
+          done
+
           # Ensure Database is fully awake
           npx wait-on tcp:127.0.0.1:5432
           
@@ -93,8 +102,11 @@ jobs:
           export ASPNETCORE_ENVIRONMENT=Production
           (cd emr-server/src/Api && dotnet run --no-build --no-launch-profile --configuration Release --urls "http://127.0.0.1:34732" -- --seed) &
           
-          # Start Frontend (Forcing port 3671)
-          (cd emr-client && npm start -- -p 3671) &
+          # Start Frontend (standalone output is not supported by `next start`)
+          mkdir -p emr-client/.next/standalone/.next emr-client/.next/standalone/public
+          cp -r emr-client/.next/static emr-client/.next/standalone/.next/ 2>/dev/null || true
+          cp -r emr-client/public/. emr-client/.next/standalone/public/ 2>/dev/null || true
+          (cd emr-client/.next/standalone && HOSTNAME=127.0.0.1 PORT=3671 node server.js) &
           
           # Wait for services to be 100% Healthy
           npx wait-on -t 600000 http://127.0.0.1:34732/health http://127.0.0.1:3671
