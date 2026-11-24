@@ -252,8 +252,8 @@ export default function SmartTextarea({
           className="w-64 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 backdrop-blur-xl"
         >
           <div className="p-3 border-b border-[var(--card-border)] bg-[var(--primary)]/5 flex items-center justify-between">
-            <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Smart Phrases</p>
-            <span className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">ESC</span>
+            <p className="text-[11px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">Smart Phrases</p>
+            <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">ESC</span>
           </div>
           <div ref={listRef} className="relative max-h-48 overflow-y-auto custom-scrollbar">
             {filteredPhrases.map((p, idx) => (
@@ -266,12 +266,12 @@ export default function SmartTextarea({
                 }`}
               >
                 <div className="flex items-center justify-between mb-0.5">
-                  <span className={`text-[9px] font-black uppercase ${idx === selectedIndex ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
+                  <span className={`text-[11px] font-black uppercase ${idx === selectedIndex ? "text-[var(--primary)]" : "text-[var(--foreground)]"}`}>
                     {p.shortcut}
                   </span>
                   <ChevronRight className={`w-3 h-3 transition-transform ${idx === selectedIndex ? "translate-x-1 text-[var(--primary)]" : "text-[var(--text-muted)]"}`} />
                 </div>
-                <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest truncate">{p.label}</p>
+                <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest truncate">{p.label}</p>
               </div>
             ))}
           </div>
@@ -281,24 +281,24 @@ export default function SmartTextarea({
       {/* Floating Glassmorphic Undo Action Indicator */}
       {showUndoBanner && (
         <div className="absolute bottom-3 right-3 z-50 flex items-center gap-2 bg-[rgba(var(--card-bg-rgb),0.9)] border border-emerald-500/30 rounded-xl px-3 py-1.5 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+          <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
             Template Inserted
           </span>
           <div className="h-3 w-[1px] bg-slate-805/40 mx-1" />
           <button
             type="button"
             onClick={handleUndo}
-            className="text-[9px] font-black uppercase text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer bg-transparent border-none outline-none p-0"
+            className="text-[11px] font-black uppercase text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer bg-transparent border-none outline-none p-0"
           >
             <span>Undo</span>
-            <kbd className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded text-[8px] font-bold font-sans uppercase">
+            <kbd className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded text-[11px] font-bold font-sans uppercase">
               Ctrl+Z
             </kbd>
           </button>
           <button
             type="button"
             onClick={() => setShowUndoBanner(false)}
-            className="text-[9px] font-bold text-slate-500 hover:text-slate-300 ml-1.5 bg-transparent border-none outline-none cursor-pointer p-0"
+            className="text-[11px] font-bold text-slate-500 hover:text-slate-300 ml-1.5 bg-transparent border-none outline-none cursor-pointer p-0"
           >
             ✕
           </button>

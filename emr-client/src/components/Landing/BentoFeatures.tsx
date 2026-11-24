@@ -151,18 +151,18 @@ export default function BentoFeatures() {
                 </div>
                 <div>
                   <div className="text-xs font-bold text-white">David Martinez</div>
-                  <div className="text-[8px] text-slate-400 font-mono">ID: P-882914-A</div>
+                  <div className="text-[11px] text-slate-400 font-mono">ID: P-882914-A</div>
                 </div>
               </div>
 
               {/* Body Details */}
               <div className="p-3 flex flex-col gap-1.5 relative z-10">
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-slate-500 uppercase tracking-widest text-[8px] font-bold">Health Plan</span>
+                  <span className="text-slate-500 uppercase tracking-widest text-[11px] font-bold">Health Plan</span>
                   <span className="font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">Medicare</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px]">
-                  <span className="text-slate-500 uppercase tracking-widest text-[8px] font-bold">Consent</span>
+                  <span className="text-slate-500 uppercase tracking-widest text-[11px] font-bold">Consent</span>
                   <span className="font-bold text-white flex items-center gap-0.5"><Lock className="w-2.5 h-2.5 text-emerald-400" /> Executed</span>
                 </div>
 
@@ -232,13 +232,13 @@ export default function BentoFeatures() {
               
               {/* Triage Alerts and Action buttons */}
               <div className="absolute right-8 top-6 flex flex-col gap-1 items-end">
-                <span className="px-2 py-0.5 bg-rose-500/20 border border-rose-500/30 rounded text-[8px] font-black text-rose-400 animate-pulse tracking-wide">
+                <span className="px-2 py-0.5 bg-rose-500/20 border border-rose-500/30 rounded text-[11px] font-black text-rose-400 animate-pulse tracking-wide">
                   SpO2: 82% Critical ⚠️
                 </span>
                 <div className="flex gap-1 scale-75 origin-right">
-                  <span className="px-1.5 py-0.5 bg-rose-500/30 text-[8px] font-black text-rose-300 rounded border border-rose-500/30 cursor-pointer">Claim</span>
-                  <span className="px-1.5 py-0.5 bg-teal-500/30 text-[8px] font-black text-teal-300 rounded border border-teal-500/30 cursor-pointer flex items-center gap-0.5"><MessageSquare className="w-2 h-2" /> Chat</span>
-                  <span className="px-1.5 py-0.5 bg-emerald-500/30 text-[8px] font-black text-emerald-300 rounded border border-emerald-500/30 cursor-pointer flex items-center gap-0.5"><Truck className="w-2 h-2" /> Dispatch</span>
+                  <span className="px-1.5 py-0.5 bg-rose-500/30 text-[11px] font-black text-rose-300 rounded border border-rose-500/30 cursor-pointer">Claim</span>
+                  <span className="px-1.5 py-0.5 bg-teal-500/30 text-[11px] font-black text-teal-300 rounded border border-teal-500/30 cursor-pointer flex items-center gap-0.5"><MessageSquare className="w-2 h-2" /> Chat</span>
+                  <span className="px-1.5 py-0.5 bg-emerald-500/30 text-[11px] font-black text-emerald-300 rounded border border-emerald-500/30 cursor-pointer flex items-center gap-0.5"><Truck className="w-2 h-2" /> Dispatch</span>
                 </div>
               </div>
             </div>
@@ -282,7 +282,7 @@ export default function BentoFeatures() {
               />
             </div>
 
-            <div className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[8px] font-bold text-amber-400 tracking-widest uppercase flex items-center gap-1 w-max relative z-10">
+            <div className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[11px] font-bold text-amber-400 tracking-widest uppercase flex items-center gap-1 w-max relative z-10">
               <Lock className="w-2 h-2" /> Verified
             </div>
 
@@ -319,7 +319,7 @@ export default function BentoFeatures() {
               <div className="text-[10px] text-white font-bold flex justify-between items-center mb-1">
                 <span>Comfort Mobile Portal</span>
               </div>
-              <div className="flex flex-col gap-1 text-[8px]">
+              <div className="flex flex-col gap-1 text-[11px]">
                 <div className="flex justify-between text-slate-300">
                   <span>Rescue Medication</span>
                   <span className="text-teal-400 font-bold">Active</span>
@@ -357,7 +357,7 @@ export default function BentoFeatures() {
               
               {/* Left Side: ESAS-R input burden */}
               <div className="rounded-xl bg-white/[0.01] border border-white/5 p-3.5 flex flex-col gap-2">
-                <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Symptom Burden (ESAS-R)</div>
+                <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Symptom Burden (ESAS-R)</div>
                 <div className="flex items-center justify-between text-xs text-white">
                   <span>Pain</span>
                   <span className="font-bold text-amber-400">8/10</span>
@@ -373,18 +373,18 @@ export default function BentoFeatures() {
 
               {/* Right Side: AI SOAP Note generation */}
               <div className="rounded-xl bg-white/[0.02] border border-white/10 p-3.5 flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute top-1.5 right-2 flex items-center gap-1 text-[8px] font-bold text-teal-400">
+                <div className="absolute top-1.5 right-2 flex items-center gap-1 text-[11px] font-bold text-teal-400">
                   <Sparkles className="w-2.5 h-2.5 animate-spin" style={{ animationDuration: '4s' }} /> Draft Ready
                 </div>
-                <div className="text-[9px] font-mono text-slate-300 leading-normal">
+                <div className="text-[11px] font-mono text-slate-300 leading-normal">
                   <span className="text-teal-400 font-bold">O:</span> Heart rate 112 bpm, SpO2 88%. Dyspnea evident at rest.
                   <br />
                   <span className="text-teal-400 font-bold">A:</span> Acute dyspnea secondary to COPD exacerbation.
                   <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.8, repeat: Infinity }} className="inline-block w-1.5 h-3 bg-teal-400 ml-0.5 align-middle" />
                 </div>
                 <div className="flex gap-1.5 mt-2">
-                  <span className="text-[8px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded">R06.02 Dyspnea</span>
-                  <span className="text-[8px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded">G89.3 Pain</span>
+                  <span className="text-[11px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded">R06.02 Dyspnea</span>
+                  <span className="text-[11px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded">G89.3 Pain</span>
                 </div>
               </div>
 
@@ -418,10 +418,10 @@ export default function BentoFeatures() {
                 <Key className="w-6 h-6 text-red-500" />
               </div>
 
-              <div className="absolute top-4 left-4 text-[8px] font-mono text-red-500/50">
+              <div className="absolute top-4 left-4 text-[11px] font-mono text-red-500/50">
                 ACCESS: DENIED
               </div>
-              <div className="absolute bottom-4 right-4 text-[8px] font-mono text-red-500/50">
+              <div className="absolute bottom-4 right-4 text-[11px] font-mono text-red-500/50">
                 JWT: REVOKED
               </div>
             </div>
@@ -447,7 +447,7 @@ export default function BentoFeatures() {
             {/* Offline sync queue simulation */}
             <div className="w-full rounded-2xl bg-white/[0.02] border border-white/10 p-4 relative overflow-hidden group-hover:border-indigo-500/30 transition-colors">
               <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center gap-1.5 text-slate-400 text-[9px] font-bold">
+                <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-bold">
                   <WifiOff className="w-3.5 h-3.5 text-indigo-400" /> Connectivity: Offline
                 </div>
               </div>
@@ -455,11 +455,11 @@ export default function BentoFeatures() {
               <div className="flex flex-col gap-2 mt-2">
                 <div className="flex justify-between items-center text-[10px] text-white">
                   <span>Vitals Log Sync</span>
-                  <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Queued (Local)</span>
+                  <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Queued (Local)</span>
                 </div>
                 <div className="flex justify-between items-center text-[10px] text-white">
                   <span>Chat Message Sync</span>
-                  <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Queued (Local)</span>
+                  <span className="text-[11px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Queued (Local)</span>
                 </div>
               </div>
             </div>
@@ -514,7 +514,7 @@ export default function BentoFeatures() {
                       />
                     )}
                     {slot.conflict && (
-                      <span className="text-[9px] font-bold text-red-400 uppercase tracking-widest">
+                      <span className="text-[11px] font-bold text-red-400 uppercase tracking-widest">
                         Conflict
                       </span>
                     )}

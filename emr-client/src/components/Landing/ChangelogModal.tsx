@@ -30,7 +30,7 @@ export default function ChangelogModal({ open, onClose }: ChangelogModalProps) {
           >
             <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-6">
               <div>
-                <h2 className="text-2xl font-bold text-white uppercase tracking-tighter">
+                <h2 className="text-2xl font-bold text-white uppercase tracking-tight">
                   System Ledger
                 </h2>
                 <p className="text-[10px] text-teal-500 font-bold uppercase tracking-widest mt-1">

@@ -150,13 +150,13 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
 
       <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-visible">
         <div className="absolute top-0 left-0 w-full h-1 premium-gradient rounded-t-2xl" />
-        <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+        <h2 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
           <UserCircle className="w-3.5 h-3.5 text-[var(--primary)]" />
           Core Identity
         </h2>
         <div className="space-y-4">
           <div className="space-y-0.5">
-            <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
               Date of Birth
             </p>
             <p className="text-xs font-black text-[var(--text-primary)]">
@@ -165,7 +165,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
           </div>
           <div className="space-y-0.5 group/addr">
             <div className="flex items-center justify-between">
-              <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+              <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                 Clinical Address
               </p>
               <PermissionGate permission="patients:edit">
@@ -190,21 +190,21 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                 )}
               </p>
               {(patient.addresses?.[0]?.address?.region || patient.addresses?.[0]?.address?.country) && (
-                <p className="text-[9px] font-bold text-[var(--text-muted)]/60 uppercase tracking-widest mt-1">
+                <p className="text-[11px] font-bold text-[var(--text-muted)]/60 uppercase tracking-widest mt-1">
                   {patient.addresses[0].address.region}
                   {patient.addresses[0].address.region && patient.addresses[0].address.country ? " • " : ""}
                   {patient.addresses[0].address.country}
                 </p>
               )}
               {patient.addresses?.[0]?.address?.latitude != null && (
-                <p className="text-[8px] font-bold text-[var(--text-muted)]/40 tracking-wider mt-0.5 font-mono">
+                <p className="text-[11px] font-bold text-[var(--text-muted)]/40 tracking-wider mt-0.5 font-mono">
                   {patient.addresses[0].address.latitude.toFixed(4)}, {patient.addresses[0].address.longitude?.toFixed(4)}
                 </p>
               )}
             </div>
           </div>
           <div className="space-y-2 border-t border-[var(--card-border)] pt-3 mt-2" ref={navigatorRef}>
-            <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest block">
+            <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest block">
               Primary Care Navigator
             </label>
             <div className="relative">
@@ -242,11 +242,11 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                           ? `${currentNavigator.firstName} ${currentNavigator.lastName} (${currentNavigator.position || "Navigator"})`
                           : "-- Select Care Navigator --"}
                       </span>
-                      <span className="text-[var(--text-muted)] text-[8px] shrink-0">▼</span>
+                      <span className="text-[var(--text-muted)] text-[11px] shrink-0">▼</span>
                     </button>
 
                     {isNavigatorOpen && (
-                      <div className="absolute left-0 right-0 mt-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl shadow-2xl z-[9999] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 p-2 space-y-2 max-h-64 flex flex-col">
+                      <div className="absolute left-0 right-0 mt-1 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150 p-2 space-y-2 max-h-64 flex flex-col">
                         <div className="relative shrink-0">
                           <input
                             type="text"
@@ -296,7 +296,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                                     }`}
                                 >
                                   <span className="truncate">{p.firstName} {p.lastName}</span>
-                                  <span className="text-[9px] opacity-60 font-black uppercase shrink-0 tracking-wider">
+                                  <span className="text-[11px] opacity-60 font-black uppercase shrink-0 tracking-wider">
                                     {p.position || "Navigator"}
                                   </span>
                                 </button>
@@ -322,12 +322,12 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
       <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-hidden group">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-600 to-indigo-600" />
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
+          <h2 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
             <Key className="w-3.5 h-3.5 text-violet-400" />
             Patient Mobile Portal Key
           </h2>
         </div>
-        <p className="text-[9px] text-[var(--text-muted)] leading-relaxed mb-3">
+        <p className="text-[11px] text-[var(--text-muted)] leading-relaxed mb-3">
           Send these zero-password login keys to the patient or caregiver so they can authenticate instantly on their mobile device.
           {(patient as any).deviceSignature ? (
             <span className="block mt-1.5 font-bold text-violet-400 uppercase tracking-wider">
@@ -365,7 +365,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                 alert("Error: Failed to connect to secure token service. Please check that the EMR server is running.");
               }
             }}
-            className="w-full py-2.5 rounded-xl bg-violet-600/10 hover:bg-violet-600/20 text-violet-400 hover:text-violet-300 border border-violet-600/20 hover:border-violet-600/40 text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 animate-in fade-in duration-300"
+            className="w-full py-2.5 rounded-xl bg-violet-600/10 hover:bg-violet-600/20 text-violet-400 hover:text-violet-300 border border-violet-600/20 hover:border-violet-600/40 text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 animate-in fade-in duration-300"
           >
             {copiedLink ? (
               <>
@@ -409,7 +409,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                 alert("Error: Failed to connect to secure token service. Please check that the EMR server is running.");
               }
             }}
-            className="w-full py-2.5 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 border border-indigo-600/20 hover:border-indigo-600/40 text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 animate-in fade-in duration-300"
+            className="w-full py-2.5 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 border border-indigo-600/20 hover:border-indigo-600/40 text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 animate-in fade-in duration-300"
           >
             {copiedCaregiverLink ? (
               <>
@@ -453,7 +453,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                   alert("Failed to reset device binding.");
                 }
               }}
-              className="mt-1 w-full py-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/5 border border-rose-500/10 hover:border-rose-500/20 text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 active:scale-95 duration-200"
+              className="mt-1 w-full py-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/5 border border-rose-500/10 hover:border-rose-500/20 text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 active:scale-95 duration-200"
             >
               🔄 Reset Hardware Lock
             </button>
@@ -464,7 +464,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
       {/* Communications Panel */}
       <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
+          <h2 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
             <Phone className="w-3.5 h-3.5 text-[var(--primary)]" />
             Communications
           </h2>
@@ -479,7 +479,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
         </div>
         <div className="space-y-4">
           <div className="space-y-2">
-            <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3 opacity-60">
+            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-3 opacity-60">
               Patient Self-Registry
             </p>
             {patient.phones?.map((phone: any, idx: number) => (
@@ -503,12 +503,12 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                         {phone.phoneNumber}
                       </p>
                       {phone.isPrimary && (
-                        <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/10 uppercase tracking-tighter">
+                        <span className="text-[11px] font-black px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/10 uppercase tracking-tight">
                           Primary
                         </span>
                       )}
                     </div>
-                    <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">
+                    <p className="text-[11px] text-[var(--text-muted)] uppercase font-black tracking-widest">
                       {phone.type}
                     </p>
                   </div>
@@ -536,12 +536,12 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                         {email.emailAddress}
                       </p>
                       {email.isPrimary && (
-                        <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/10 uppercase tracking-tighter">
+                        <span className="text-[11px] font-black px-1.5 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] border border-[var(--primary)]/10 uppercase tracking-tight">
                           Primary
                         </span>
                       )}
                     </div>
-                    <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest">
+                    <p className="text-[11px] text-[var(--text-muted)] uppercase font-black tracking-widest">
                       {email.type}
                     </p>
                   </div>
@@ -556,7 +556,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
       <div className="bg-[var(--card-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
+          <h2 className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
             <Users className="w-3.5 h-3.5 text-emerald-400" />
             Trusted Contacts
           </h2>
@@ -593,11 +593,11 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                       {contact.firstName} {contact.lastName}
                     </p>
                     <div className="flex flex-col gap-0.5">
-                      <p className="text-[8px] text-[var(--text-muted)] uppercase font-black tracking-widest leading-none">
+                      <p className="text-[11px] text-[var(--text-muted)] uppercase font-black tracking-widest leading-none">
                         {contact.relationship}
                       </p>
                       {contact.email && (
-                        <p className="text-[8px] text-[var(--text-muted)]/60 lowercase tracking-normal leading-none select-all mt-0.5 font-medium">
+                        <p className="text-[11px] text-[var(--text-muted)]/60 lowercase tracking-normal leading-none select-all mt-0.5 font-medium">
                           {contact.email}
                         </p>
                       )}
@@ -606,13 +606,13 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
                 </div>
                 <div className="flex items-center gap-2">
                   {contact.isPrimaryContact && (
-                    <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-tighter flex items-center gap-1">
+                    <span className="text-[11px] font-black px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-tight flex items-center gap-1">
                       <Star className="w-2 h-2 fill-emerald-400" />
                       Primary
                     </span>
                   )}
                   {contact.isPoa && (
-                    <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 uppercase tracking-tighter">
+                    <span className="text-[11px] font-black px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 uppercase tracking-tight">
                       POA
                     </span>
                   )}
@@ -644,7 +644,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
               </div>
             ))
           ) : (
-            <p className="text-[9px] text-[var(--text-muted)] italic">
+            <p className="text-[11px] text-[var(--text-muted)] italic">
               No contacts registered
             </p>
           )}

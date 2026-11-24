@@ -317,7 +317,7 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
                 <h3 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.2em]">
                   Pin Location on Map
                 </h3>
-                <p className="text-[8px] font-bold text-teal-400 uppercase tracking-widest opacity-70">
+                <p className="text-[11px] font-bold text-teal-400 uppercase tracking-widest opacity-70">
                   Drag the pin or search for a location
                 </p>
               </div>
@@ -332,7 +332,7 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
 
           <div className="flex flex-1 overflow-hidden">
             <div className="w-[55%] relative bg-black/20">
-              <div className="absolute top-3 left-3 right-14 z-[1000]">
+              <div className="absolute top-3 left-3 right-14 z-[60]">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
                   <input
@@ -352,7 +352,7 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
                       <button
                         key={idx}
                         onClick={() => selectSearchResult(item)}
-                        className="w-full text-left px-4 py-2.5 text-[9px] font-bold text-[var(--text-primary)] hover:bg-teal-500/10 border-b border-[var(--card-border)] last:border-b-0 transition-colors leading-relaxed"
+                        className="w-full text-left px-4 py-2.5 text-[11px] font-bold text-[var(--text-primary)] hover:bg-teal-500/10 border-b border-[var(--card-border)] last:border-b-0 transition-colors leading-relaxed"
                       >
                         {item.display_name}
                       </button>
@@ -363,16 +363,16 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
 
               <button
                 onClick={handleLocateMe}
-                className="absolute top-3 right-3 z-[1000] w-9 h-9 bg-[var(--card-bg)]/90 backdrop-blur-md border border-[var(--card-border)] rounded-xl flex items-center justify-center text-teal-400 hover:bg-teal-500/15 hover:text-teal-300 transition-all shadow-lg"
+                className="absolute top-3 right-3 z-[60] w-9 h-9 bg-[var(--card-bg)]/90 backdrop-blur-md border border-[var(--card-border)] rounded-xl flex items-center justify-center text-teal-400 hover:bg-teal-500/15 hover:text-teal-300 transition-all shadow-lg"
                 title="Use current location"
               >
                 <Crosshair className="w-4 h-4" />
               </button>
 
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[60] pointer-events-none">
                 <div className="flex items-center gap-2 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
                   <GripVertical className="w-3 h-3 text-white/50" />
-                  <span className="text-[8px] font-bold text-white/60 uppercase tracking-widest">
+                  <span className="text-[11px] font-bold text-white/60 uppercase tracking-widest">
                     Drag pin &middot; Double-click to snap
                   </span>
                 </div>
@@ -423,13 +423,13 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
 
             <div className="w-[45%] p-5 overflow-y-auto space-y-3.5">
               <div className="bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--card-border)] space-y-2">
-                <div className="flex items-center gap-1.5 text-[8px] font-bold text-teal-400 uppercase tracking-widest">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold text-teal-400 uppercase tracking-widest">
                   <Navigation className="w-3 h-3" />
                   Coordinates
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-1">
-                    <label className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                    <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                       Lat
                     </label>
                     <input
@@ -437,12 +437,12 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
                       step="any"
                       value={form.latitude ?? ""}
                       onChange={(e) => handleFieldChange("latitude", e.target.value)}
-                      className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-lg px-3 py-1.5 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
+                      className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-lg px-3 py-1.5 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
                       placeholder="10.3157"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                    <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                       Lng
                     </label>
                     <input
@@ -450,7 +450,7 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
                       step="any"
                       value={form.longitude ?? ""}
                       onChange={(e) => handleFieldChange("longitude", e.target.value)}
-                      className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-lg px-3 py-1.5 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
+                      className="w-full bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-lg px-3 py-1.5 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
                       placeholder="123.8854"
                     />
                   </div>
@@ -459,40 +459,40 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
 
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                  <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                     Street Address
                   </label>
                   <input
                     type="text"
                     value={form.street}
                     onChange={(e) => handleFieldChange("street", e.target.value)}
-                    className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
+                    className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
                     placeholder="Street..."
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <div className="space-y-1">
-                    <label className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                    <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                       City
                     </label>
                     <input
                       type="text"
                       value={form.city}
                       onChange={(e) => handleFieldChange("city", e.target.value)}
-                      className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
+                      className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
                       placeholder="City..."
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                    <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                       State / Province
                     </label>
                     <input
                       type="text"
                       value={form.state}
                       onChange={(e) => handleFieldChange("state", e.target.value)}
-                      className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
+                      className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
                       placeholder="State..."
                     />
                   </div>
@@ -500,47 +500,47 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
 
                 <div className="grid grid-cols-2 gap-2.5">
                   <div className="space-y-1">
-                    <label className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                    <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                       Region
                     </label>
                     <input
                       type="text"
                       value={form.region}
                       onChange={(e) => handleFieldChange("region", e.target.value)}
-                      className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
+                      className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
                       placeholder="Region..."
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                    <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                       Postal Code
                     </label>
                     <input
                       type="text"
                       value={form.postalCode}
                       onChange={(e) => handleFieldChange("postalCode", e.target.value)}
-                      className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
+                      className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
                       placeholder="Postal Code..."
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                  <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                     Country
                   </label>
                   <input
                     type="text"
                     value={form.country}
                     onChange={(e) => handleFieldChange("country", e.target.value)}
-                    className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
+                    className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-3.5 py-2 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500/50 transition-all"
                     placeholder="Country..."
                   />
                 </div>
               </div>
 
               {isReversing && (
-                <div className="flex items-center gap-2 text-[8px] font-bold text-teal-400 uppercase tracking-widest animate-pulse">
+                <div className="flex items-center gap-2 text-[11px] font-bold text-teal-400 uppercase tracking-widest animate-pulse">
                   <Loader2 className="w-2.5 h-2.5 animate-spin" />
                   Resolving address from coordinates...
                 </div>
@@ -551,13 +551,13 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
           <div className="flex items-center justify-end gap-3 p-3.5 border-t border-[var(--card-border)] bg-[var(--input-bg)]/50">
             <button
               onClick={onClose}
-              className="px-5 h-9 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] text-[8px] font-black uppercase tracking-[0.2em] hover:bg-white/5 transition-all"
+              className="px-5 h-9 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--text-muted)] text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white/5 transition-all"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-6 h-9 rounded-xl bg-teal-500 text-black text-[8px] font-black uppercase tracking-[0.2em] hover:shadow-[0_0_20px_rgba(52,211,153,0.3)] transition-all active:scale-95 flex items-center gap-2"
+              className="px-6 h-9 rounded-xl bg-teal-500 text-black text-[11px] font-black uppercase tracking-[0.2em] hover:shadow-[0_0_20px_rgba(52,211,153,0.3)] transition-all active:scale-95 flex items-center gap-2"
             >
               <MapPin className="w-3 h-3" />
               Save Location

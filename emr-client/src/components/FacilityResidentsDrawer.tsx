@@ -88,7 +88,7 @@ export default function FacilityResidentsDrawer({ open, onClose, facility }: Pro
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         {/* Backdrop */}
         <div
           className="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-300"
@@ -125,12 +125,12 @@ export default function FacilityResidentsDrawer({ open, onClose, facility }: Pro
           {/* Subheader / Metadata */}
           <div className="px-8 py-4 bg-white/[0.01] border-b border-[var(--card-border)] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+              <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                 Active Registry
               </span>
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse" />
             </div>
-            <span className="px-2.5 py-1 rounded-lg bg-[var(--input-bg)] text-[var(--text-primary)] text-[9px] font-black uppercase tracking-widest border border-[var(--card-border)] shadow-sm">
+            <span className="px-2.5 py-1 rounded-lg bg-[var(--input-bg)] text-[var(--text-primary)] text-[11px] font-black uppercase tracking-widest border border-[var(--card-border)] shadow-sm">
               {residents.length} Residents Total
             </span>
           </div>
@@ -207,13 +207,13 @@ export default function FacilityResidentsDrawer({ open, onClose, facility }: Pro
                             {resident.firstName} {resident.lastName}
                           </p>
                           {resident.mrn && (
-                            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tight bg-[var(--input-bg)] text-[var(--text-muted)] border border-[var(--card-border)]">
+                            <span className="px-1.5 py-0.5 rounded text-[11px] font-black uppercase tracking-tight bg-[var(--input-bg)] text-[var(--text-muted)] border border-[var(--card-border)]">
                               {resident.mrn}
                             </span>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2 text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">
                           {resident.dob && <span>DOB: {formatClinicalDate(resident.dob)}</span>}
                           {age !== null && (
                             <>
@@ -234,7 +234,7 @@ export default function FacilityResidentsDrawer({ open, onClose, facility }: Pro
                     {/* Actions */}
                     <div className="flex flex-col gap-2 shrink-0">
                       {resident.visitStatus && (
-                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border text-center self-end ${getStatusStyle(resident.visitStatus)}`}>
+                        <span className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-widest border text-center self-end ${getStatusStyle(resident.visitStatus)}`}>
                           {formatEnum(resident.visitStatus)}
                         </span>
                       )}
@@ -249,7 +249,7 @@ export default function FacilityResidentsDrawer({ open, onClose, facility }: Pro
                         </Link>
                         <Link
                           href={`/dashboard/patients/${resident.patientId}`}
-                          className="px-3 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] text-[9px] font-black uppercase tracking-widest hover:bg-[var(--primary)] hover:text-white transition-all border border-[var(--primary)]/20 hover:border-[var(--primary)] shadow-sm flex items-center gap-1.5"
+                          className="px-3 py-2 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] text-[11px] font-black uppercase tracking-widest hover:bg-[var(--primary)] hover:text-white transition-all border border-[var(--primary)]/20 hover:border-[var(--primary)] shadow-sm flex items-center gap-1.5"
                           title="View Patient Chart"
                         >
                           <span>Chart</span>

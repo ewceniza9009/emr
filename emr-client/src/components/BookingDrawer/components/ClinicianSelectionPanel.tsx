@@ -59,7 +59,7 @@ export function ClinicianSelectionPanel({ state }: ClinicianSelectionPanelProps)
                       <p className={`text-[13px] font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
                         {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
                       </p>
-                      <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tighter">
+                      <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tight">
                         {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
                       </p>
                     </div>
@@ -74,12 +74,12 @@ export function ClinicianSelectionPanel({ state }: ClinicianSelectionPanelProps)
                               {p.travelTimeInMinutes}m
                             </span>
                           </div>
-                          <span className={`text-[9px] font-black uppercase tracking-tight ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"} opacity-70`}>
+                          <span className={`text-[11px] font-black uppercase tracking-tight ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-muted)]"} opacity-70`}>
                             {p.distanceInMiles?.toFixed(1)}mi
                           </span>
                         </>
                       ) : (
-                        <span className="text-[9px] font-black text-rose-500/80 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/10 uppercase tracking-widest">
+                        <span className="text-[11px] font-black text-rose-500/80 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/10 uppercase tracking-widest">
                           No Data
                         </span>
                       )}
@@ -140,7 +140,7 @@ export function ClinicianSelectionPanel({ state }: ClinicianSelectionPanelProps)
                       <p className={`text-[13px] font-semibold truncate ${isPrimary || isSupporting ? "text-[var(--primary)]" : "text-[var(--text-primary)]"}`}>
                         {p.firstName ? `${p.firstName} ${p.lastName}` : (p.fullName || p.FullName || "Provider")}
                       </p>
-                      <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tighter">
+                      <p className="text-[10px] font-medium text-[var(--text-muted)] mt-0.5 uppercase tracking-tight">
                         {isPrimary ? `${p.position} (Lead)` : isSupporting ? `${p.position} (Support)` : p.position}
                       </p>
                     </div>

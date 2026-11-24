@@ -44,7 +44,7 @@ export function LogisticsFleetTab({ state }: LogisticsFleetTabProps) {
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-[var(--primary)]" />
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tighter">
+            <h2 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3 uppercase tracking-tight">
               <Activity className="w-5 h-5 text-emerald-500 animate-pulse" />
               IoT Telemetry Stream
             </h2>
@@ -93,7 +93,7 @@ export function LogisticsFleetTab({ state }: LogisticsFleetTabProps) {
                       : "text-slate-500"
                   }`}
                 />
-                <span className="text-xs font-black uppercase tracking-tighter">
+                <span className="text-xs font-black uppercase tracking-tight">
                   O2 Saturation Feed
                 </span>
               </div>
@@ -110,7 +110,7 @@ export function LogisticsFleetTab({ state }: LogisticsFleetTabProps) {
                       : "text-slate-500"
                   }`}
                 />
-                <span className="text-xs font-black uppercase tracking-tighter">
+                <span className="text-xs font-black uppercase tracking-tight">
                   Cardiac Pulse Rate
                 </span>
               </div>

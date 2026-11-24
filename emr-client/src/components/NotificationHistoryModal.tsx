@@ -66,7 +66,7 @@ export default function NotificationHistoryModal({ isOpen, onClose }: Notificati
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -114,7 +114,7 @@ export default function NotificationHistoryModal({ isOpen, onClose }: Notificati
                 <Bell className="w-12 h-12 text-[var(--text-muted)]" />
                 <div>
                   <p className="text-[11px] font-black uppercase tracking-widest text-[var(--text-primary)]">Archive Empty</p>
-                  <p className="text-[9px] font-bold text-[var(--text-muted)] mt-1">No historical notifications found.</p>
+                  <p className="text-[11px] font-bold text-[var(--text-muted)] mt-1">No historical notifications found.</p>
                 </div>
               </div>
             ) : (
@@ -130,10 +130,10 @@ export default function NotificationHistoryModal({ isOpen, onClose }: Notificati
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[9px] font-black uppercase tracking-widest text-[var(--primary)]">
+                          <span className="text-[11px] font-black uppercase tracking-widest text-[var(--primary)]">
                             {notif.category || 'Clinical'}
                           </span>
-                          <span className="text-[9px] font-bold text-[var(--text-muted)]">
+                          <span className="text-[11px] font-bold text-[var(--text-muted)]">
                             {new Date(notif.createdAt).toLocaleString()}
                           </span>
                         </div>

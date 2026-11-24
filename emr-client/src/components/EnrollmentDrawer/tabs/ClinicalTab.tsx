@@ -24,7 +24,7 @@ export default function ClinicalTab({ state }: Props) {
         </div>
         <div className="bg-[var(--input-bg)] rounded-2xl p-6 border border-[var(--card-border)] space-y-6 shadow-inner">
           <div className="space-y-2">
-            <label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+            <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
               Primary Diagnosis (ICD-10 Search)
             </label>
             <div className="relative group/icd10">
@@ -63,7 +63,7 @@ export default function ClinicalTab({ state }: Props) {
                         </span>
                         <ChevronRight className="w-3 h-3 text-[var(--text-muted)] opacity-0 group-hover/item:opacity-100 transition-all" />
                       </div>
-                      <p className="text-[9px] font-bold text-[var(--text-primary)] mt-1 line-clamp-1">
+                      <p className="text-[11px] font-bold text-[var(--text-primary)] mt-1 line-clamp-1">
                         {res.description}
                       </p>
                     </button>
@@ -85,7 +85,7 @@ export default function ClinicalTab({ state }: Props) {
                 <button
                   key={item.value}
                   onClick={() => state.setAcuity(item.value)}
-                  className={`h-11 rounded-xl border text-[8px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 active:scale-95 duration-200
+                  className={`h-11 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-1 active:scale-95 duration-200
                     ${isActive 
                       ? item.color === "emerald" ? "bg-emerald-500/10 border-emerald-500 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.1)]"
                         : item.color === "amber" ? "bg-amber-500/10 border-amber-500 text-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.1)]"
@@ -112,7 +112,7 @@ export default function ClinicalTab({ state }: Props) {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-3">
-            <label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+            <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
               Housing Stability
             </label>
             <div className="space-y-1.5">
@@ -127,7 +127,7 @@ export default function ClinicalTab({ state }: Props) {
                   <button
                     key={item.value}
                     onClick={() => state.setSdohHousing(item.value)}
-                    className={`w-full h-9 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all flex items-center justify-between px-4 active:scale-[0.98] duration-200
+                    className={`w-full h-9 rounded-xl text-[11px] font-black uppercase tracking-widest border transition-all flex items-center justify-between px-4 active:scale-[0.98] duration-200
                       ${isActive 
                         ? item.color === "emerald" ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.05)]" 
                           : item.color === "amber" ? "bg-amber-500/10 border-amber-500/40 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.05)]" 
@@ -146,7 +146,7 @@ export default function ClinicalTab({ state }: Props) {
             </div>
           </div>
           <div className="space-y-3">
-            <label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+            <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
               Social Support
             </label>
             <div className="space-y-1.5">
@@ -161,7 +161,7 @@ export default function ClinicalTab({ state }: Props) {
                   <button
                     key={item.value}
                     onClick={() => state.setSdohSupport(item.value)}
-                    className={`w-full h-9 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all flex items-center justify-between px-4 active:scale-[0.98] duration-200
+                    className={`w-full h-9 rounded-xl text-[11px] font-black uppercase tracking-widest border transition-all flex items-center justify-between px-4 active:scale-[0.98] duration-200
                       ${isActive 
                         ? item.color === "emerald" ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.05)]" 
                           : item.color === "amber" ? "bg-amber-500/10 border-amber-500/40 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.05)]" 

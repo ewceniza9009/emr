@@ -234,7 +234,7 @@ export function CareThreadChat({
           {unreadCount > 0 && (
             <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500 items-center justify-center text-[8px] font-black text-white leading-none">
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500 items-center justify-center text-[11px] font-black text-white leading-none">
                 {unreadCount}
               </span>
             </span>
@@ -244,7 +244,7 @@ export function CareThreadChat({
         {/* Premium Tooltip */}
         <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-center">
           <div className="w-1.5 h-1.5 bg-slate-950 border-l border-t border-slate-800/80 rotate-45 -mb-1 shrink-0 z-10" />
-          <div className="bg-slate-950 border border-slate-800/80 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
+          <div className="bg-slate-950 border border-slate-800/80 text-white text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
             Secure Care Chat
           </div>
         </div>
@@ -268,7 +268,7 @@ export function CareThreadChat({
                   <h3 className="font-bold text-xs text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
                     Care Navigation Secure Chat
                   </h3>
-                  <span className="flex items-center gap-1 text-[8px] font-bold text-emerald-500 uppercase tracking-widest mt-0.5">
+                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-500 uppercase tracking-widest mt-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     Secure HIPAA Link
                   </span>
@@ -298,10 +298,10 @@ export function CareThreadChat({
                     <div key={m.chatMessageId || idx} className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
                       <div className="max-w-[75%] flex flex-col">
                         {/* Sender Label */}
-                        <div className={`flex items-center gap-1.5 mb-1 px-1 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] ${isSelf ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`flex items-center gap-1.5 mb-1 px-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)] ${isSelf ? 'justify-end' : 'justify-start'}`}>
                           <span>{isSelf ? 'Care Navigator' : 'Patient'}</span>
                           <span className="text-[var(--card-border)]">•</span>
-                          <span className="font-mono text-[8px]">
+                          <span className="font-mono text-[11px]">
                             {new Date(m.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           </span>
                         </div>
@@ -313,7 +313,7 @@ export function CareThreadChat({
                         }`}>
                           <div>{m.content}</div>
                           {isSelf && (
-                            <div className="flex items-center justify-end gap-1 mt-1 text-[8px] opacity-85 font-semibold select-none">
+                            <div className="flex items-center justify-end gap-1 mt-1 text-[11px] opacity-85 font-semibold select-none">
                               {isSeen ? (
                                 <span className="text-emerald-100 flex items-center gap-0.5" title="Read by Patient">
                                   Read <CheckCheck className="w-3.5 h-3.5" />
@@ -335,7 +335,7 @@ export function CareThreadChat({
 
             {/* Sideways Scrollable Quick Templates */}
             <div className="flex items-center gap-1.5 px-4 py-2 border-t border-[var(--card-border)] bg-[var(--card-bg)] shrink-0 relative">
-              <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
+              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
                 <Heart className="w-3 h-3 text-rose-500 fill-rose-500/20 animate-pulse" /> Templates:
               </span>
 
@@ -362,7 +362,7 @@ export function CareThreadChat({
                       e.stopPropagation();
                       setInputText(tmpl.text);
                     }}
-                    className="text-[9px] font-bold bg-[var(--input-bg)] hover:bg-[var(--primary)]/15 border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-full px-3 py-1 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all whitespace-nowrap active:scale-95 uppercase tracking-wider shrink-0"
+                    className="text-[11px] font-bold bg-[var(--input-bg)] hover:bg-[var(--primary)]/15 border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-full px-3 py-1 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all whitespace-nowrap active:scale-95 uppercase tracking-wider shrink-0"
                   >
                     {tmpl.label}
                   </button>
@@ -400,7 +400,7 @@ export function CareThreadChat({
               </div>
 
               {/* HIPAA Secure Bar */}
-              <div className="flex items-center justify-between text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider px-1">
+              <div className="flex items-center justify-between text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider px-1">
                 <span className="flex items-center gap-1">
                   <Lock className="w-2.5 h-2.5 text-[var(--primary)]" />
                   HIPAA Secure End-to-End Encryption

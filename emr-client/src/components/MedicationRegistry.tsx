@@ -232,7 +232,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
             <History className="w-3.5 h-3.5" />
             View Medication History
           </span>
-          <span className="bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 text-[8px] font-black">
+          <span className="bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 text-[11px] font-black">
             {inactivePrescriptions.length} Archive
           </span>
         </button>
@@ -241,7 +241,7 @@ export default function MedicationRegistry({ patientId }: { patientId: string })
       {/* Add Medication Modal */}
       {showAddModal && (
         <HalcyonPortal>
-          <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300">
              <div className="absolute inset-0" onClick={() => setShowAddModal(false)} />
              <div className="relative glass-morphism w-full max-w-lg rounded-[2.5rem] border border-[var(--card-border)] p-10 space-y-8 shadow-2xl bg-[var(--card-bg)] animate-in zoom-in-95 slide-in-from-bottom-8 duration-500">
                 <div className="flex items-center justify-between">

@@ -101,7 +101,7 @@ export function VisitScheduleTab({ state }: VisitScheduleTabProps) {
                           )}
                         </h4>
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                          className={`px-2 py-0.5 rounded-full text-[11px] font-black uppercase tracking-widest ${
                             isActive
                               ? "bg-emerald-500 text-white"
                               : "bg-[var(--card-border)] text-[var(--text-muted)]"
@@ -131,13 +131,13 @@ export function VisitScheduleTab({ state }: VisitScheduleTabProps) {
                       {(appt.visitType || appt.modality) && (
                         <div className="flex items-center gap-2 mt-2">
                           {appt.visitType && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[8px] font-black uppercase tracking-wider">
+                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[11px] font-black uppercase tracking-wider">
                               <ClipboardList className="w-2.5 h-2.5" />
                               {appt.visitType.replace(/_/g, " ")}
                             </span>
                           )}
                           {appt.modality && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[8px] font-black uppercase tracking-wider">
+                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[11px] font-black uppercase tracking-wider">
                               <MapPin className="w-2.5 h-2.5" />
                               {appt.modality.replace(/_/g, " ")}
                             </span>

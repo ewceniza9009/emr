@@ -61,7 +61,7 @@ export default function AddDiagnosisDrawer({ isOpen, onClose, patientId, onSucce
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
         
         <div className={`relative h-full w-full max-w-[500px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
@@ -91,7 +91,7 @@ export default function AddDiagnosisDrawer({ isOpen, onClose, patientId, onSucce
                    </div>
 
                    <div className="space-y-2">
-                      <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">ICD-10 Code</label>
+                      <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">ICD-10 Code</label>
                       <div className="relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500" />
                         <input 
@@ -105,7 +105,7 @@ export default function AddDiagnosisDrawer({ isOpen, onClose, patientId, onSucce
                    </div>
 
                    <div className="space-y-2">
-                      <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Condition Description</label>
+                      <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Condition Description</label>
                       <SmartTextarea 
                         className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-4 px-6 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-blue-500/50 transition-all min-h-[100px]"
                         value={form.description}
@@ -119,7 +119,7 @@ export default function AddDiagnosisDrawer({ isOpen, onClose, patientId, onSucce
 
                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                         <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Diagnosed At</label>
+                         <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Diagnosed At</label>
                           <CustomDatePicker
                             value={form.diagnosedAt}
                             onChange={val => setForm({...form, diagnosedAt: val})}

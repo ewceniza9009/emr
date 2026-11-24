@@ -160,7 +160,7 @@ export default function DynamicAssessment({
             <div className="px-6 py-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 font-black text-2xl shadow-2xl shadow-indigo-500/10">
               {calculateScore()}
             </div>
-            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mt-1">Registry Score</span>
+            <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] mt-1">Registry Score</span>
           </div>
         )}
       </div>
@@ -177,7 +177,7 @@ export default function DynamicAssessment({
                   {q.text}
                 </label>
                 {q.subtext && (
-                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-widest ml-4 font-bold">
+                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-widest ml-4 font-bold">
                     {q.subtext}
                   </p>
                 )}
@@ -187,13 +187,13 @@ export default function DynamicAssessment({
               {q.type === "SCALE" && (
                 <div className="ml-4 space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                       {limits.min} - Baseline
                     </span>
                     <div className="px-6 py-2 rounded-xl bg-indigo-500/5 text-indigo-500 border border-indigo-500/20 font-black text-lg">
                       {answers[q.questionId] ?? limits.min}
                     </div>
-                    <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                       {limits.max} - Peak
                     </span>
                   </div>
@@ -258,8 +258,8 @@ export default function DynamicAssessment({
                   value={answers[q.questionId] ?? ""}
                   onChange={(val) => handleAnswer(q.questionId, val)}
                   smartPhrases={smartPhrases}
-                  placeholder="INPUT CLINICAL OBSERVATIONS..."
-                  className="ml-4 w-full bg-[var(--background)] border border-[var(--divider-color)] rounded-xl p-6 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/30 focus:border-indigo-500/50 outline-none transition-all min-h-[120px] uppercase tracking-tighter"
+                  placeholder="Enter clinical observations..."
+                  className="ml-4 w-full bg-[var(--background)] border border-[var(--divider-color)] rounded-xl p-6 text-sm font-medium text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:border-indigo-500/50 outline-none transition-all min-h-[120px] leading-relaxed"
                 />
               )}
             </div>

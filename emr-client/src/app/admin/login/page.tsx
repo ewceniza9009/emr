@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
           <div className="w-16 h-16 rounded-[2rem] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40 mb-6 group cursor-pointer active:scale-95 transition-all">
             <Shield className="w-8 h-8 text-white group-hover:rotate-12 transition-transform" />
           </div>
-          <h1 className="text-3xl font-black text-[var(--text-primary)] uppercase tracking-tighter mb-2">Setup Portal</h1>
+          <h1 className="text-3xl font-black text-[var(--text-primary)] uppercase tracking-tight mb-2">Setup Portal</h1>
           <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em]">Administrative Access Only</p>
         </div>
 
@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
               <Terminal className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Security Protocol</p>
+              <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Security Protocol</p>
               <p className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-tight">RSA-4096 · TLS 1.3</p>
             </div>
           </div>
@@ -90,7 +90,7 @@ export default function AdminLoginPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Admin Identifier</label>
+              <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Admin Identifier</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-indigo-400 transition-colors" />
                 <input
@@ -100,11 +100,11 @@ export default function AdminLoginPage() {
                   placeholder="sysadmin@halkyone.clinical"
                 />
               </div>
-              {errors.email && <p className="text-[9px] text-rose-400 ml-1 font-black uppercase tracking-widest">{errors.email.message}</p>}
+              {errors.email && <p className="text-[11px] text-rose-400 ml-1 font-black uppercase tracking-widest">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Security Key</label>
+              <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Security Key</label>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-indigo-400 transition-colors" />
                 <input
@@ -114,7 +114,7 @@ export default function AdminLoginPage() {
                   placeholder="••••••••"
                 />
               </div>
-              {errors.password && <p className="text-[9px] text-rose-400 ml-1 font-black uppercase tracking-widest">{errors.password.message}</p>}
+              {errors.password && <p className="text-[11px] text-rose-400 ml-1 font-black uppercase tracking-widest">{errors.password.message}</p>}
             </div>
 
             <button
@@ -138,12 +138,12 @@ export default function AdminLoginPage() {
           <div className="flex items-center justify-center gap-8 text-[var(--text-muted)] opacity-60">
             <div className="flex items-center gap-2">
               <Database className="w-3 h-3" />
-              <span className="text-[8px] font-black uppercase tracking-[0.2em]">Live Registry</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.2em]">Live Registry</span>
             </div>
             <div className="w-1 h-1 rounded-full bg-[var(--card-border)]" />
             <div className="flex items-center gap-2">
               <Zap className="w-3 h-3" />
-              <span className="text-[8px] font-black uppercase tracking-[0.2em]">Encrypted Link</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.2em]">Encrypted Link</span>
             </div>
           </div>
 

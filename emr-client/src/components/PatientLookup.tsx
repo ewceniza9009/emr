@@ -59,7 +59,7 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
 
    return (
       <HalcyonPortal>
-         <div className="fixed inset-0 z-[9999999] flex items-start justify-center pt-[10vh] p-6 pointer-events-none">
+         <div className="fixed inset-0 z-[60] flex items-start justify-center pt-[10vh] p-6 pointer-events-none">
             {/* Subtle Backdrop - No darkening, just focus */}
             <div
                className="absolute inset-0 backdrop-blur-md bg-black/5 animate-in fade-in duration-300 pointer-events-auto"
@@ -116,17 +116,17 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                                        {item.title}
                                     </p>
                                     {item.type === 'PATIENT' ? (
-                                       <span className="text-[8px] px-2 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-widest border border-[var(--primary)]/20">
+                                       <span className="text-[11px] px-2 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-bold uppercase tracking-widest border border-[var(--primary)]/20">
                                           {item.subtitle}
                                        </span>
                                     ) : (
-                                       <span className="text-[8px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 font-bold uppercase tracking-widest border border-amber-500/20">
+                                       <span className="text-[11px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-500 font-bold uppercase tracking-widest border border-amber-500/20">
                                           {item.subtitle}
                                        </span>
                                     )}
                                  </div>
                                  <div className="flex items-center gap-5 mt-1">
-                                    <p className={`text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors ${selectedIndex === index ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
+                                    <p className={`text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-colors ${selectedIndex === index ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
                                        {item.type === 'PATIENT' ? <Activity className={`w-2.5 h-2.5 transition-opacity ${selectedIndex === index ? 'opacity-100' : 'opacity-50'}`} /> : <Phone className={`w-2.5 h-2.5 transition-opacity ${selectedIndex === index ? 'opacity-100' : 'opacity-50'}`} />}
                                        {item.metadata}
                                     </p>
@@ -155,15 +155,15 @@ export default function PatientLookup({ open, onClose, onSelect }: Props) {
                <div className="px-8 py-4 border-t border-[var(--card-border)] bg-[var(--input-bg)]/10 flex items-center justify-between">
                   <div className="flex items-center gap-6">
                      <div className="flex items-center gap-2">
-                        <kbd className="px-1.5 py-0.5 rounded bg-[var(--card-border)] text-[8px] font-bold text-[var(--text-muted)] border-b-2 border-black/20">↑↓</kbd>
-                        <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Navigate</span>
+                        <kbd className="px-1.5 py-0.5 rounded bg-[var(--card-border)] text-[11px] font-bold text-[var(--text-muted)] border-b-2 border-black/20">↑↓</kbd>
+                        <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Navigate</span>
                      </div>
                      <div className="flex items-center gap-2">
-                        <kbd className="px-1.5 py-0.5 rounded bg-[var(--card-border)] text-[8px] font-bold text-[var(--text-muted)] border-b-2 border-black/20">Enter</kbd>
-                        <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Select</span>
+                        <kbd className="px-1.5 py-0.5 rounded bg-[var(--card-border)] text-[11px] font-bold text-[var(--text-muted)] border-b-2 border-black/20">Enter</kbd>
+                        <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Select</span>
                      </div>
                   </div>
-                  <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Halkyone · Clinical Registry v1.1</p>
+                  <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-40">Halkyone · Clinical Registry v1.1</p>
                </div>
             </div>
          </div>

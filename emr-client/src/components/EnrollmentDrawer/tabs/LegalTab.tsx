@@ -86,7 +86,7 @@ export default function LegalTab({ state }: Props) {
                                 >
                                   {c.label}
                                 </p>
-                                <p className="text-[8px] font-bold text-[var(--text-muted)] mt-0.5 uppercase tracking-tight">
+                                <p className="text-[11px] font-bold text-[var(--text-muted)] mt-0.5 uppercase tracking-tight">
                                   {c.sub}
                                 </p>
                               </div>
@@ -109,7 +109,7 @@ export default function LegalTab({ state }: Props) {
                                 <h4 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">
                                   Digital Consent Handshake
                                 </h4>
-                                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tight mt-1 opacity-60">
+                                <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-tight mt-1 opacity-60">
                                   Authorize clinical data ingestion and
                                   treatment protocol.
                                 </p>
@@ -126,7 +126,7 @@ export default function LegalTab({ state }: Props) {
                                     <p className="text-black font-black text-[10px] uppercase tracking-widest">
                                       Seal Established
                                     </p>
-                                    <p className="text-teal-900 text-[8px] font-bold uppercase tracking-tight mt-0.5 opacity-70">
+                                    <p className="text-teal-900 text-[11px] font-bold uppercase tracking-tight mt-0.5 opacity-70">
                                       Token: {state.consentToken}
                                     </p>
                                   </div>
@@ -135,7 +135,7 @@ export default function LegalTab({ state }: Props) {
                                   <p className="text-black font-black text-[10px] uppercase tracking-tight">
                                     {state.consentTimestamp}
                                   </p>
-                                  <p className="text-teal-900 text-[8px] font-bold uppercase tracking-widest mt-0.5">
+                                  <p className="text-teal-900 text-[11px] font-bold uppercase tracking-widest mt-0.5">
                                     Verified
                                   </p>
                                 </div>
@@ -166,7 +166,7 @@ export default function LegalTab({ state }: Props) {
                               </PermissionGate>
                             )}
 
-                            <p className="text-[8px] font-medium text-[var(--text-muted)] leading-relaxed italic opacity-40 px-2">
+                            <p className="text-[11px] font-medium text-[var(--text-muted)] leading-relaxed italic opacity-40 px-2">
                               By establishing this seal, the practitioner
                               verifies that verbal or written consent has been
                               obtained from the patient or legal representative
@@ -187,7 +187,7 @@ export default function LegalTab({ state }: Props) {
                         <div className="bg-[var(--input-bg)] rounded-2xl p-5 border border-[var(--card-border)] space-y-5 shadow-inner">
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                                 Preferred Method
                               </label>
                               <select
@@ -203,14 +203,14 @@ export default function LegalTab({ state }: Props) {
                               </select>
                             </div>
                             <div className="space-y-1.5">
-                              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+                              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                                 Language Modality
                               </label>
                               <button
                                 onClick={() =>
                                   state.setInterpreterRequired(!state.interpreterRequired)
                                 }
-                                className={`w-full h-[41px] rounded-xl flex items-center justify-center border text-[9px] font-black uppercase tracking-widest transition-all
+                                className={`w-full h-[41px] rounded-xl flex items-center justify-center border text-[11px] font-black uppercase tracking-widest transition-all
                                 ${state.interpreterRequired ? "bg-rose-500/10 border-rose-500 text-rose-500" : "bg-[var(--card-bg)] border-[var(--card-border)] text-[var(--text-muted)]"}`}
                               >
                                 {state.interpreterRequired

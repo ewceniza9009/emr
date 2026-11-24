@@ -73,7 +73,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
         
         <div className={`relative h-full w-full max-w-[500px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
@@ -103,7 +103,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Document Title</label>
+                <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest">Document Title</label>
                 <div className="relative group">
                   <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500 transition-colors" />
                   <input 
@@ -117,7 +117,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Record Classification</label>
+                <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest">Record Classification</label>
                 <div className="relative group">
                   <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-blue-500 transition-colors" />
                   <select 
@@ -154,7 +154,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
                     <>
                       <CheckCircle2 className="w-10 h-10 text-blue-500" />
                       <p className="text-xs font-black text-[var(--text-primary)] uppercase text-center px-8 break-all">{file.name}</p>
-                      <button onClick={() => setFile(null)} className="text-[9px] text-rose-500 font-black uppercase hover:underline relative z-20">Remove File</button>
+                      <button onClick={() => setFile(null)} className="text-[11px] text-rose-500 font-black uppercase hover:underline relative z-20">Remove File</button>
                     </>
                   ) : (
                     <>
@@ -162,7 +162,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
                          <FileBox className="w-7 h-7" />
                       </div>
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Drop file here or click to browse</p>
-                      <p className="text-[8px] text-slate-600 uppercase font-bold tracking-tighter">PDF, PNG, JPG (MAX 10MB)</p>
+                      <p className="text-[11px] text-slate-600 uppercase font-bold tracking-tight">PDF, PNG, JPG (MAX 10MB)</p>
                     </>
                   )}
               </div>
@@ -192,7 +192,7 @@ export default function UploadDocumentDrawer({ isOpen, onClose, patientId, onSuc
                 </>
               )}
             </button>
-            <p className="text-[9px] font-black text-slate-700 text-center uppercase tracking-widest opacity-40">
+            <p className="text-[11px] font-black text-slate-700 text-center uppercase tracking-widest opacity-40">
               HIPAA Compliant Encrypted Ingestion
             </p>
           </div>

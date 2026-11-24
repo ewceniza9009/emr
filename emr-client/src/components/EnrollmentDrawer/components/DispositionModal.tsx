@@ -113,7 +113,7 @@ export default function DispositionModal({ state }: Props) {
               <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-widest">
                 Capture Disposition
               </h3>
-              <p className="text-[9px] font-bold text-[var(--primary)] uppercase tracking-widest opacity-60">
+              <p className="text-[11px] font-bold text-[var(--primary)] uppercase tracking-widest opacity-60">
                 Status: {state.pendingOutcome}
               </p>
             </div>
@@ -128,7 +128,7 @@ export default function DispositionModal({ state }: Props) {
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">
+            <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">
               Interaction Notes / Reason
             </label>
             <textarea
@@ -141,7 +141,7 @@ export default function DispositionModal({ state }: Props) {
           </div>
 
           <div className="space-y-2 relative" ref={calendarRef}>
-            <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">
+            <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">
               Next Follow-Up Plan
             </label>
             <div
@@ -193,7 +193,7 @@ export default function DispositionModal({ state }: Props) {
 
                   <div className="grid grid-cols-7 gap-1 text-center mb-1">
                     {daysOfWeek.map((day) => (
-                      <span key={day} className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">
+                      <span key={day} className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">
                         {day.toUpperCase()}
                       </span>
                     ))}

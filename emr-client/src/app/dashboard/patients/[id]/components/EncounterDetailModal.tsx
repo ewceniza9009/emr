@@ -55,7 +55,7 @@ function renderFormattedNote(content: string) {
         {sections.map((sec, idx) => (
           sec.text ? (
             <div key={idx} className="p-4 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] space-y-2 overflow-x-auto custom-scrollbar">
-              <span className={`inline-block px-2.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border ${sec.badgeColor}`}>
+              <span className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-black uppercase tracking-wider border ${sec.badgeColor}`}>
                 {sec.label}
               </span>
               <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap break-words font-medium">
@@ -124,7 +124,7 @@ export function EncounterDetailModal({ state }: EncounterDetailModalProps) {
             <div className="space-y-6">
               <div className="flex items-center gap-4 flex-wrap">
                 <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                  <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-1">
+                  <p className="text-[11px] font-black text-emerald-500 uppercase tracking-widest mb-1">
                     Status
                   </p>
                   <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
@@ -132,7 +132,7 @@ export function EncounterDetailModal({ state }: EncounterDetailModalProps) {
                   </p>
                 </div>
                 <div className="px-4 py-2 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)]">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">
                     Practitioner
                   </p>
                   <p className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-widest">
@@ -172,7 +172,7 @@ export function EncounterDetailModal({ state }: EncounterDetailModalProps) {
             <div className="pt-4 flex items-center justify-between border-t border-[var(--card-border)] flex-wrap gap-3">
               <div className="flex items-center gap-2 text-[var(--text-muted)]">
                 <ShieldCheck className="w-4 h-4 shrink-0" />
-                <span className="text-[8px] font-black uppercase tracking-[0.2em]">
+                <span className="text-[11px] font-black uppercase tracking-[0.2em]">
                   Forensically Audited Encounter Record
                 </span>
               </div>

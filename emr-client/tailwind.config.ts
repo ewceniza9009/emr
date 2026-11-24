@@ -11,9 +11,38 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        inter: ["var(--font-inter)", "sans-serif"],
-        outfit: ["var(--font-outfit)", "var(--font-inter)", "sans-serif"],
-        mono: ["var(--font-jetbrains)", "ui-monospace", "SFMono-Regular", "monospace"],
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Text"',
+          '"SF Pro Display"',
+          "var(--font-inter)",
+          '"Segoe UI"',
+          "Roboto",
+          "sans-serif",
+        ],
+        inter: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Text"',
+          "var(--font-inter)",
+          "sans-serif",
+        ],
+        outfit: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Display"',
+          "var(--font-inter)",
+          "sans-serif",
+        ],
+        mono: [
+          '"SF Mono"',
+          "ui-monospace",
+          "SFMono-Regular",
+          "var(--font-jetbrains)",
+          "Menlo",
+          "monospace",
+        ],
       },
       colors: {
         background: "var(--background)",

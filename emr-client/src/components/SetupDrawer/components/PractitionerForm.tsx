@@ -201,7 +201,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
                 ],
               })
             }
-            className="text-[9px] font-bold text-[var(--primary)] hover:underline uppercase tracking-widest"
+            className="text-[11px] font-bold text-[var(--primary)] hover:underline uppercase tracking-widest"
           >
             + Add License
           </button>
@@ -239,7 +239,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
               {/* License # and State */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">
+                  <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">
                     License #
                   </label>
                   <input
@@ -254,7 +254,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">
+                  <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">
                     Jurisdiction
                   </label>
                   <input
@@ -273,12 +273,12 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
               {/* Expiry Date */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
-                  <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1 flex items-center gap-1.5">
+                  <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1 flex items-center gap-1.5">
                     <Calendar className="w-2.5 h-2.5" />
                     Expiry Date
                   </label>
                   {lic.expiryDate && (
-                    <span className={`flex items-center gap-1 text-[8px] font-black uppercase tracking-widest ${expiry.color}`}>
+                    <span className={`flex items-center gap-1 text-[11px] font-black uppercase tracking-widest ${expiry.color}`}>
                       {expiry.icon}
                       {expiry.label}
                     </span>
@@ -330,7 +330,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
                 ],
               })
             }
-            className="text-[9px] font-bold text-[var(--primary)] hover:underline uppercase tracking-widest"
+            className="text-[11px] font-bold text-[var(--primary)] hover:underline uppercase tracking-widest"
           >
             + Add Zipcode
           </button>
@@ -374,7 +374,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
           <button
             type="button"
             onClick={() => setMapOpen(true)}
-            className="flex items-center gap-1.5 text-[9px] font-bold text-teal-400 hover:text-teal-300 uppercase tracking-widest transition-colors hover:underline"
+            className="flex items-center gap-1.5 text-[11px] font-bold text-teal-400 hover:text-teal-300 uppercase tracking-widest transition-colors hover:underline"
           >
             <MapPin className="w-3 h-3" />
             {addr.street ? "Edit on Map" : "Pin on Map"}
@@ -383,7 +383,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
 
         {/* Compact address preview if lat/lng is set */}
         {addr.latitude != null && addr.longitude != null && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-teal-500/5 border border-teal-500/20 text-[8px] font-bold text-teal-400 uppercase tracking-widest">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-teal-500/5 border border-teal-500/20 text-[11px] font-bold text-teal-400 uppercase tracking-widest">
             <MapPin className="w-3 h-3 shrink-0" />
             <span className="truncate">{addr.latitude.toFixed(5)}, {addr.longitude.toFixed(5)}</span>
             <span className="ml-auto text-teal-500/60">Pinned</span>
@@ -392,7 +392,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
 
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">
+            <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">
               Street Address
             </label>
             <input
@@ -405,7 +405,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
 
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">City</label>
+              <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">City</label>
               <input
                 placeholder="City"
                 className="premium-input w-full rounded-lg p-2 text-xs"
@@ -414,7 +414,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Province</label>
+              <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Province</label>
               <input
                 placeholder="State"
                 className="premium-input w-full rounded-lg p-2 text-xs"
@@ -423,7 +423,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Zip</label>
+              <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Zip</label>
               <input
                 placeholder="Zip"
                 className="premium-input w-full rounded-lg p-2 text-xs font-mono"
@@ -435,7 +435,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Region</label>
+              <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Region</label>
               <input
                 placeholder="Region"
                 className="premium-input w-full rounded-lg p-2 text-xs"
@@ -444,7 +444,7 @@ export default function PractitionerForm({ form, onChange }: PractitionerFormPro
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Country</label>
+              <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] ml-1">Country</label>
               <input
                 placeholder="Country"
                 className="premium-input w-full rounded-lg p-2 text-xs"

@@ -191,7 +191,7 @@ export default function PatientDetailPage() {
         </div>
 
         <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl max-w-fit">
-          <p className="text-[9px] font-mono text-slate-600 uppercase tracking-widest">
+          <p className="text-[11px] font-mono text-slate-600 uppercase tracking-widest">
             Diagnostic Payload: {error.message}
           </p>
         </div>
@@ -227,7 +227,7 @@ export default function PatientDetailPage() {
           <div className="flex items-center gap-0.5 p-1 bg-slate-200/50 dark:bg-neutral-900/60 backdrop-blur-md rounded-full border border-slate-300/40 dark:border-neutral-800/40 shadow-[inset_0_1px_3px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] w-fit flex-wrap">
             <button
               onClick={() => setActiveTab("snapshot")}
-              className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
+              className={`relative px-4 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
                            ${activeTab === "snapshot" 
                              ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
                              : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}
@@ -237,7 +237,7 @@ export default function PatientDetailPage() {
             </button>
             <button
               onClick={() => setActiveTab("history")}
-              className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
+              className={`relative px-4 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
                            ${activeTab === "history" 
                              ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
                              : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}
@@ -247,7 +247,7 @@ export default function PatientDetailPage() {
             </button>
             <button
               onClick={() => setActiveTab("activity")}
-              className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
+              className={`relative px-4 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
                            ${activeTab === "activity" 
                              ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
                              : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}
@@ -257,7 +257,7 @@ export default function PatientDetailPage() {
             </button>
             <button
               onClick={() => setActiveTab("logistics")}
-              className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
+              className={`relative px-4 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
                            ${activeTab === "logistics" 
                              ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
                              : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}
@@ -267,7 +267,7 @@ export default function PatientDetailPage() {
             </button>
             <button
               onClick={() => setActiveTab("coordination")}
-              className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
+              className={`relative px-4 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-widest transition-all duration-300 flex items-center gap-2 group/tab border border-transparent active:scale-95
                            ${activeTab === "coordination" 
                              ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
                              : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-neutral-200 hover:bg-white/40 dark:hover:bg-white/[0.02]"}`}

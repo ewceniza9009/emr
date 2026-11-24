@@ -61,7 +61,7 @@ export function ClinicalSnapshotTab({ state }: ClinicalSnapshotTabProps) {
             key={i}
             className="bg-[var(--card-bg)] rounded-xl p-3 border border-[var(--card-border)] shadow-md"
           >
-            <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">
+            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">
               {v.type}
             </p>
             <div className="flex items-baseline gap-1">
@@ -72,7 +72,7 @@ export function ClinicalSnapshotTab({ state }: ClinicalSnapshotTabProps) {
               >
                 {v.value}
               </span>
-              <span className="text-[9px] font-black text-[var(--text-muted)]">
+              <span className="text-[11px] font-black text-[var(--text-muted)]">
                 {v.unit}
               </span>
             </div>

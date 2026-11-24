@@ -75,7 +75,7 @@ export function StepVitals({ state }: { state: any }) {
     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
       <div className="space-y-1">
         <h2 className="text-sm font-bold uppercase tracking-tight">Clinical Encounter Summary</h2>
-        <p className="text-[8px] text-[var(--text-muted)] uppercase tracking-widest font-bold">SOAP Methodology Documentation</p>
+        <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-widest font-bold">SOAP Methodology Documentation</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {fields.map((v) => {
@@ -97,7 +97,7 @@ export function StepVitals({ state }: { state: any }) {
               }`}>
                 <v.icon className={`w-3.5 h-3.5 ${hasError ? 'text-red-500' : v.color}`} /> {v.label}
                 {v.id === 'sbp' && (!vitals.sbp || !vitals.dbp) && (vitals.sbp || vitals.dbp) && (
-                  <span className="text-[8px] font-black text-red-500 lowercase tracking-normal normal-case">(both BP values required)</span>
+                  <span className="text-[11px] font-black text-red-500 lowercase tracking-normal normal-case">(both BP values required)</span>
                 )}
               </label>
               {v.double ? (

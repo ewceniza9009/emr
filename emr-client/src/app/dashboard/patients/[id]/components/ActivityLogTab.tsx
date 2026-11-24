@@ -36,7 +36,7 @@ export function ActivityLogTab({ state }: ActivityLogTabProps) {
             onClick={() =>
               setHistorySortOrder(historySortOrder === "desc" ? "asc" : "desc")
             }
-            className="px-4 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all flex items-center gap-2 text-[9px] font-black uppercase tracking-widest active:scale-95"
+            className="px-4 py-1.5 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-all flex items-center gap-2 text-[11px] font-black uppercase tracking-widest active:scale-95"
           >
             <ArrowUpDown className="w-3.5 h-3.5 text-[var(--primary)]" />
             Sort: {historySortOrder === "desc" ? "Newest First" : "Oldest First"}
@@ -114,29 +114,29 @@ export function ActivityLogTab({ state }: ActivityLogTabProps) {
                         {parsedSoap && (
                           <div className="flex items-center gap-1">
                             {parsedSoap.subjective && (
-                              <span className="px-1.5 py-0.5 rounded-[0.25rem] text-[7px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                              <span className="px-1.5 py-0.5 rounded-[0.25rem] text-[11px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
                                 S
                               </span>
                             )}
                             {parsedSoap.objective && (
-                              <span className="px-1.5 py-0.5 rounded-[0.25rem] text-[7px] font-black uppercase tracking-wider bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                              <span className="px-1.5 py-0.5 rounded-[0.25rem] text-[11px] font-black uppercase tracking-wider bg-teal-500/10 text-teal-400 border border-teal-500/20">
                                 O
                               </span>
                             )}
                             {parsedSoap.assessment && (
-                              <span className="px-1.5 py-0.5 rounded-[0.25rem] text-[7px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                              <span className="px-1.5 py-0.5 rounded-[0.25rem] text-[11px] font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                                 A
                               </span>
                             )}
                             {parsedSoap.plan && (
-                              <span className="px-1.5 py-0.5 rounded-[0.25rem] text-[7px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                              <span className="px-1.5 py-0.5 rounded-[0.25rem] text-[11px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
                                 P
                               </span>
                             )}
                           </div>
                         )}
                       </div>
-                      <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                      <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                         {new Date(evt.encounterDate).toLocaleDateString()}
                       </span>
                     </div>
@@ -150,7 +150,7 @@ export function ActivityLogTab({ state }: ActivityLogTabProps) {
 
                     <div className="mt-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <div className="h-px flex-1 bg-[var(--primary)]/10" />
-                      <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[var(--primary)]">
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--primary)]">
                         Click for Full Narrative
                       </span>
                     </div>

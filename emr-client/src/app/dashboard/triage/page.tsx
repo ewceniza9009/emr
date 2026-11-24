@@ -302,18 +302,18 @@ export default function TriageDashboard() {
         </div>
         <div className="flex gap-3">
           <div className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600">
-            <div className="text-[9px] uppercase font-black tracking-widest leading-none mb-1">
+            <div className="text-[11px] uppercase font-black tracking-widest leading-none mb-1">
               Critical Symptom Burden
             </div>
-            <div className="text-lg font-black leading-none">
+            <div className="text-lg font-black leading-none tabular-nums">
               {alertCount} Patients
             </div>
           </div>
           <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600">
-            <div className="text-[9px] uppercase font-black tracking-widest leading-none mb-1">
+            <div className="text-[11px] uppercase font-black tracking-widest leading-none mb-1">
               Clinical Stability
             </div>
-            <div className="text-lg font-black leading-none">
+            <div className="text-lg font-black leading-none tabular-nums">
               {stableCount} Patients
             </div>
           </div>
@@ -327,10 +327,11 @@ export default function TriageDashboard() {
           />
           <input
             type="text"
+            aria-label="Search priority queue by name or MRN"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search priority queue by name or MRN..."
-            className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-xs font-bold placeholder:text-[var(--text-muted)] focus:outline-none focus:border-amber-500/50 transition-all uppercase tracking-widest"
+            className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 pl-12 pr-4 text-sm font-medium placeholder:text-[var(--text-muted)] focus:outline-none focus:border-amber-500/50 transition-all"
           />
           {loading && !isInitialLoading && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -439,7 +440,7 @@ export default function TriageDashboard() {
                         }
                       >
                         <div
-                          className={`inline-flex items-center justify-center px-3 py-1 rounded-xl text-[10px] font-black tracking-tight border shadow-sm
+                          className={`inline-flex items-center justify-center px-3 py-1 rounded-xl text-[11px] font-black tracking-tight tabular-nums border shadow-sm
                           ${p.latestPainScore > 7 ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"}`}
                         >
                           Pain: {p.latestPainScore}/10
@@ -452,12 +453,12 @@ export default function TriageDashboard() {
                         }
                       >
                         <div className="max-w-[180px] space-y-1">
-                          <p className={`text-[10px] font-medium line-clamp-1 ${p.triageNote ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] italic"}`}>
+                          <p className={`text-xs font-medium line-clamp-1 ${p.triageNote ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] italic"}`}>
                             {p.triageNote || "No triage note recorded"}
                           </p>
-                          <div className="flex items-center gap-1.5 opacity-50">
-                            <History className="w-2 h-2" />
-                            <span className="text-[8px] font-bold uppercase tracking-widest">
+                          <div className="flex items-center gap-1.5 opacity-60">
+                            <History className="w-3 h-3" />
+                            <span className="text-[11px] font-bold uppercase tracking-wider">
                               {p.triageNote ? "Triage Note Active" : "Awaiting Review"}
                             </span>
                           </div>
@@ -470,19 +471,20 @@ export default function TriageDashboard() {
                         }
                       >
                         <span
-                          className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.15em] border shadow-sm
-                          ${p.advanceDirectiveType !== "None" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" : "bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--card-border)] opacity-40"}`}
+                          className={`px-2 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider border shadow-sm
+                          ${p.advanceDirectiveType !== "None" ? "bg-blue-500/10 text-blue-500 border-blue-500/20" : "bg-[var(--input-bg)] text-[var(--text-muted)] border-[var(--card-border)] opacity-60"}`}
                         >
                           {p.advanceDirectiveType}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1.5">
                           {p.isAlert && (
                             <button
                               onClick={(e) => handleClaim(p.patientId, e)}
                               disabled={isClaiming}
-                              className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 shadow-sm"
+                              aria-label={`Claim alert for ${p.firstName} ${p.lastName}`}
+                              className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 shadow-sm"
                               title="Claim Alert"
                             >
                               <CheckCircle2 className="w-4 h-4" />
@@ -497,7 +499,8 @@ export default function TriageDashboard() {
                                   `${p.firstName} ${p.lastName}`,
                                 );
                               }}
-                              className="p-1.5 rounded-lg bg-amber-500/5 text-amber-500 hover:bg-amber-500 hover:text-black transition-all border border-amber-500/10 shadow-sm"
+                              aria-label={`Add triage note for ${p.firstName} ${p.lastName}`}
+                              className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-lg bg-amber-500/5 text-amber-500 hover:bg-amber-500 hover:text-black transition-all border border-amber-500/10 shadow-sm"
                               title="Add Triage Note"
                             >
                               <ClipboardList className="w-4 h-4" />
@@ -509,7 +512,8 @@ export default function TriageDashboard() {
                                 e.stopPropagation();
                                 handleLogDnr(p.patientId);
                               }}
-                              className="p-1.5 rounded-lg bg-blue-500/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/10 shadow-sm"
+                              aria-label={`Update advance directive for ${p.firstName} ${p.lastName}`}
+                              className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-lg bg-blue-500/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-blue-500/10 shadow-sm"
                               title="Update Advance Directive"
                             >
                               <ShieldAlert className="w-4 h-4" />
@@ -522,14 +526,16 @@ export default function TriageDashboard() {
                                 setSelectedBookingPatientId(p.patientId);
                                 setIsBookingOpen(true);
                               }}
-                              className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
+                              aria-label={`Schedule visit for ${p.firstName} ${p.lastName}`}
+                              className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-500/20 shadow-sm"
                               title="Dispatch / Schedule Clinician"
                             >
                               <Calendar className="w-4 h-4" />
                             </button>
                             <Link
                               href={`/dashboard/patients/${p.patientId}/visit`}
-                              className="p-1.5 rounded-lg bg-teal-500/10 text-teal-500 hover:bg-teal-500 hover:text-white transition-all border border-teal-500/20 shadow-sm"
+                              aria-label={`Start clinical encounter for ${p.firstName} ${p.lastName}`}
+                              className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-lg bg-teal-500/10 text-teal-500 hover:bg-teal-500 hover:text-white transition-all border border-teal-500/20 shadow-sm"
                               title="Start Clinical Encounter"
                             >
                               <Stethoscope className="w-4 h-4" />
@@ -540,14 +546,16 @@ export default function TriageDashboard() {
                               e.stopPropagation();
                               setActiveChatPatientId(p.patientId);
                             }}
-                            className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all border border-indigo-500/20 shadow-sm"
+                            aria-label={`Open secure chat for ${p.firstName} ${p.lastName}`}
+                            className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all border border-indigo-500/20 shadow-sm"
                             title="Secure Chat Thread"
                           >
                             <MessageSquare className="w-4 h-4" />
                           </button>
                           <Link
                             href={`/dashboard/patients/${p.patientId}`}
-                            className="p-1.5 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 transition-all border border-white/5 shadow-sm"
+                            aria-label={`View chart for ${p.firstName} ${p.lastName}`}
+                            className="min-w-[40px] min-h-[40px] inline-flex items-center justify-center rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/10 transition-all border border-white/5 shadow-sm"
                             title="View Patient Record"
                           >
                             <ChevronRight className="w-4 h-4" />

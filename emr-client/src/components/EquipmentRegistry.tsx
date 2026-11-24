@@ -164,14 +164,14 @@ export default function EquipmentRegistry({
                       <h3 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-tight truncate leading-tight">
                         {d.equipment?.modelName}
                       </h3>
-                      <p className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest leading-none mt-0.5">
+                      <p className="text-[11px] font-black text-[var(--primary)] uppercase tracking-widest leading-none mt-0.5">
                         {d.equipment?.type?.replace(/_/g, " ")}
                       </p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end shrink-0">
                     <span
-                      className={`px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest border ${
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-black uppercase tracking-widest border ${
                         d.status === "DELIVERED"
                           ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/30"
                           : d.status === "FAILED"
@@ -186,7 +186,7 @@ export default function EquipmentRegistry({
                         onClick={() =>
                           handleStatusUpdate(d.deliveryId, d.status)
                         }
-                        className="text-[6px] font-black uppercase tracking-tighter text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors flex items-center gap-1 mt-1"
+                        className="text-[6px] font-black uppercase tracking-tight text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors flex items-center gap-1 mt-1"
                       >
                         <Activity className="w-2 h-2" />
                         Update
@@ -196,7 +196,7 @@ export default function EquipmentRegistry({
                       <PermissionGate permission="logistics:manage">
                         <button
                           onClick={() => handleReturnAsset(d.deliveryId)}
-                          className="text-[6px] font-black uppercase tracking-tighter text-emerald-500 hover:text-emerald-400 transition-colors flex items-center gap-1 mt-1"
+                          className="text-[6px] font-black uppercase tracking-tight text-emerald-500 hover:text-emerald-400 transition-colors flex items-center gap-1 mt-1"
                         >
                           <CheckCircle2 className="w-2 h-2" />
                           Return Asset
@@ -208,18 +208,18 @@ export default function EquipmentRegistry({
 
                 <div className="flex items-center justify-between gap-2 px-3 py-2 bg-[var(--card-bg)]/50 rounded-xl border border-[var(--card-border)]/50">
                   <div className="flex flex-col">
-                    <span className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                       Serial
                     </span>
-                    <span className="text-[9px] font-mono font-bold text-[var(--text-primary)]">
+                    <span className="text-[11px] font-mono font-bold text-[var(--text-primary)]">
                       {d.equipment?.serialNumber}
                     </span>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                       Deployed
                     </span>
-                    <span className="text-[9px] font-bold text-[var(--text-primary)]">
+                    <span className="text-[11px] font-bold text-[var(--text-primary)]">
                       {d.deliveredAt
                         ? new Date(d.deliveredAt).toLocaleDateString()
                         : "PENDING"}
@@ -227,7 +227,7 @@ export default function EquipmentRegistry({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tight truncate group-hover:text-[var(--text-primary)] transition-colors">
+                <div className="flex items-center gap-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-tight truncate group-hover:text-[var(--text-primary)] transition-colors">
                   <Truck className="w-3 h-3 text-[var(--primary)]" />
                   {d.deliveryAddress}
                 </div>

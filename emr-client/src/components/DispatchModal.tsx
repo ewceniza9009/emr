@@ -85,7 +85,7 @@ export default function DispatchModal({ open, onClose, patientId, patientName, o
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-6">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
         <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
         
         <div className="relative w-full max-w-2xl bg-[var(--sidebar-bg)] border border-[var(--card-border)] rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in duration-300">
@@ -176,17 +176,17 @@ export default function DispatchModal({ open, onClose, patientId, patientName, o
                           <div className="space-y-1">
                             <div className="flex items-center gap-3">
                               <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{p.fullName}</h3>
-                              <span className="px-2 py-0.5 rounded-md bg-[var(--input-bg)] border border-[var(--card-border)] text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">{p.position}</span>
+                              <span className="px-2 py-0.5 rounded-md bg-[var(--input-bg)] border border-[var(--card-border)] text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">{p.position}</span>
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-1.5">
                                 <Activity className="w-3 h-3 text-[var(--primary)]" />
-                                <span className="text-[9px] font-black text-[var(--text-muted)] uppercase">{p.activeCases} Active Cases</span>
+                                <span className="text-[11px] font-black text-[var(--text-muted)] uppercase">{p.activeCases} Active Cases</span>
                               </div>
                               {p.isInServiceArea && (
                                 <div className="flex items-center gap-1.5 text-emerald-500">
                                   <Zap className="w-3 h-3" />
-                                  <span className="text-[9px] font-black uppercase">Service Area Match</span>
+                                  <span className="text-[11px] font-black uppercase">Service Area Match</span>
                                 </div>
                               )}
                             </div>
@@ -194,7 +194,7 @@ export default function DispatchModal({ open, onClose, patientId, patientName, o
                         </div>
 
                         <div className="flex items-center gap-3 relative z-10">
-                          <div className={`h-8 px-4 rounded-xl flex items-center justify-center text-[9px] font-black uppercase tracking-widest transition-all ${
+                          <div className={`h-8 px-4 rounded-xl flex items-center justify-center text-[11px] font-black uppercase tracking-widest transition-all ${
                             assigningId === p.practitionerId
                               ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
                               : p.activeCases > 15 
@@ -235,7 +235,7 @@ export default function DispatchModal({ open, onClose, patientId, patientName, o
               </div>
               <div className="space-y-1">
                 <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">Protocol-Driven Selection</h4>
-                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wide leading-relaxed">
+                <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wide leading-relaxed">
                   Suggestions are prioritized based on geographic proximity (Service Area Zip Matching) and real-time clinical caseload distribution to prevent provider burnout.
                 </p>
               </div>

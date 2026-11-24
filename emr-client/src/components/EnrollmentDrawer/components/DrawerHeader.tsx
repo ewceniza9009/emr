@@ -26,7 +26,7 @@ export default function DrawerHeader({ state, lead, onClose }: Props) {
             Enrollment
           </h2>
           <div className="flex items-center gap-2 mt-1">
-            <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.08em]">
+            <p className="text-[11px] font-black text-[var(--primary)] uppercase tracking-[0.08em]">
               {lead?.firstName} {lead?.lastName}
             </p>
           </div>
@@ -46,7 +46,7 @@ export default function DrawerHeader({ state, lead, onClose }: Props) {
                 key={tab}
                 onClick={() => !isLocked && state.setActiveTab(tab)}
                 disabled={isLocked}
-                className={`relative px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-[0.16em] transition-all duration-300 flex items-center gap-2 group/tab border border-transparent
+                className={`relative px-4 py-1.5 rounded-full text-[11px] font-extrabold uppercase tracking-[0.16em] transition-all duration-300 flex items-center gap-2 group/tab border border-transparent
                 ${isActive 
                   ? "bg-white dark:bg-white/10 text-[var(--primary)] shadow-[0_2px_8px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] border-slate-200/50 dark:border-white/5" 
                   : isLocked 

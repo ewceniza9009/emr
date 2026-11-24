@@ -157,7 +157,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden animate-fade-in">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden animate-fade-in">
         <div className="absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-500" onClick={onClose} />
         
         <div className={`relative h-full w-full max-w-[550px] bg-[var(--sidebar-bg)] shadow-[-30px_0_80px_rgba(0,0,0,0.5)] 
@@ -171,9 +171,9 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                 <UserPlus className="w-6 h-6 text-teal-500" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none">New Patient Referral</h2>
+                <h2 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tight leading-none">New Patient Referral</h2>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[9px] font-black text-teal-500/50 uppercase tracking-[0.2em]">Intake & Outreach Management</span>
+                  <span className="text-[11px] font-black text-teal-500/50 uppercase tracking-[0.2em]">Intake & Outreach Management</span>
                 </div>
               </div>
             </div>
@@ -195,14 +195,14 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Clinical Priority</label>
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Clinical Priority</label>
                     <div className="grid grid-cols-3 gap-2">
                       {['Routine', 'Urgent', 'Stat'].map(p => (
                         <button
                           key={p}
                           type="button"
                           onClick={() => setForm({...form, priority: p})}
-                          className={`py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all
+                          className={`py-2 rounded-lg text-[11px] font-black uppercase tracking-widest border transition-all
                             ${form.priority === p ? 'bg-rose-500 border-rose-400 text-white shadow-lg shadow-rose-500/20' : 'bg-white/5 border-white/5 text-[var(--text-muted)] hover:border-white/10'}`}
                         >
                           {p}
@@ -211,7 +211,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Referral Channel</label>
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Referral Channel</label>
                     <div className="relative">
                       <select 
                         className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] outline-none focus:border-teal-500/30 transition-all appearance-none cursor-pointer"
@@ -243,7 +243,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">First Name</label>
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">First Name</label>
                     <input 
                       required
                       className={`w-full bg-white/5 border rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none transition-all shadow-inner
@@ -256,13 +256,13 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                       placeholder="GIVEN NAME"
                     />
                     {errors.firstName && (
-                      <p className="text-[9px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
+                      <p className="text-[11px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
                         {errors.firstName}
                       </p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Last Name</label>
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Last Name</label>
                     <input 
                       required
                       className={`w-full bg-white/5 border rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none transition-all shadow-inner
@@ -275,7 +275,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                       placeholder="SURNAME"
                     />
                     {errors.lastName && (
-                      <p className="text-[9px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
+                      <p className="text-[11px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
                         {errors.lastName}
                       </p>
                     )}
@@ -283,7 +283,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Primary Diagnosis / Reason</label>
+                <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Primary Diagnosis / Reason</label>
                 <input 
                   className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
                   value={form.diagnosis}
@@ -305,7 +305,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
-                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Primary Phone</label>
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Primary Phone</label>
                     <input 
                       className={`w-full bg-white/5 border rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none transition-all shadow-inner
                         ${errors.primaryPhone ? 'border-rose-500/50 focus:border-rose-500/80' : 'border-white/5 focus:border-sky-500/30'}`}
@@ -317,13 +317,13 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                       placeholder="+63 XXX XXX XXXX"
                     />
                     {errors.primaryPhone && (
-                      <p className="text-[9px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
+                      <p className="text-[11px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
                         {errors.primaryPhone}
                       </p>
                     )}
                  </div>
                  <div className="space-y-2">
-                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Email Address</label>
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Email Address</label>
                     <input 
                       type="email"
                       className={`w-full bg-white/5 border rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none transition-all shadow-inner
@@ -336,7 +336,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                       placeholder="PATIENT@EMAIL.COM"
                     />
                     {errors.primaryEmail && (
-                      <p className="text-[9px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
+                      <p className="text-[11px] font-bold text-rose-500/80 ml-1 mt-1 uppercase tracking-wider animate-pulse">
                         {errors.primaryEmail}
                       </p>
                     )}
@@ -357,7 +357,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                 <button
                   type="button"
                   onClick={() => setIsEditingAddress(true)}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 text-teal-400 text-[9px] font-black uppercase tracking-widest transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 text-teal-400 text-[11px] font-black uppercase tracking-widest transition-all"
                 >
                   <MapPin className="w-3 h-3" />
                   Pin on Map
@@ -366,7 +366,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
 
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Street Address</label>
+                  <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Street Address</label>
                   <input 
                     className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
                     value={form.street}
@@ -377,7 +377,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">City</label>
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">City</label>
                     <input 
                       className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
                       value={form.city}
@@ -386,7 +386,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">State</label>
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">State</label>
                     <input 
                       className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
                       value={form.state}
@@ -395,7 +395,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Zip Code</label>
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Zip Code</label>
                     <input 
                       className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] placeholder:text-white/10 focus:outline-none focus:border-teal-500/30 transition-all shadow-inner"
                       value={form.postalCode}

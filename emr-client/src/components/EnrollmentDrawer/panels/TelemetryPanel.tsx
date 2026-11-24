@@ -19,7 +19,7 @@ export default function TelemetryPanel({ state }: Props) {
     const today = new Date();
     const headers = ["S", "M", "T", "W", "T", "F", "S"];
     const headerRow = headers.map((h, idx) => (
-      <div key={`header-${h}-${idx}`} className="h-10 flex items-center justify-center text-[9px] font-black text-[var(--text-muted)] opacity-50 uppercase tracking-[0.2em]">{h}</div>
+      <div key={`header-${h}-${idx}`} className="h-10 flex items-center justify-center text-[11px] font-black text-[var(--text-muted)] opacity-50 uppercase tracking-[0.2em]">{h}</div>
     ));
     for (let i = 0; i < first; i++) days.push(<div key={`empty-${i}`} className="h-12" />);
     for (let d = 1; d <= count; d++) {
@@ -89,7 +89,7 @@ export default function TelemetryPanel({ state }: Props) {
 
           {/* LOCATION */}
           <div className="bg-[var(--input-bg)] rounded-2xl p-4 border border-[var(--card-border)] shadow-inner">
-            <h3 className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 flex items-center gap-2"><MapPin className="w-3 h-3" /> Location Details</h3>
+            <h3 className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 flex items-center gap-2"><MapPin className="w-3 h-3" /> Location Details</h3>
             <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tight leading-relaxed">
               {state.address.street || "NO STREET SPECIFIED"}<br />
               <span className="opacity-60">
@@ -105,15 +105,15 @@ export default function TelemetryPanel({ state }: Props) {
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Scheduling Strategy</p>
-              <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${state.scheduleIntakeNow ? "bg-teal-500/10 border-teal-500/30 text-teal-500" : "bg-amber-500/10 border-amber-500/30 text-amber-500"}`}>
+              <span className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${state.scheduleIntakeNow ? "bg-teal-500/10 border-teal-500/30 text-teal-500" : "bg-amber-500/10 border-amber-500/30 text-amber-500"}`}>
                 {state.scheduleIntakeNow ? "Instant Intake" : "Schedule Later"}
               </span>
             </div>
             <div className="flex bg-[var(--input-bg)] rounded-2xl p-1.5 border border-[var(--card-border)] shadow-inner">
-              <button onClick={() => state.setScheduleIntakeNow(true)} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${state.scheduleIntakeNow ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+              <button onClick={() => state.setScheduleIntakeNow(true)} className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${state.scheduleIntakeNow ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
                 <CalendarCheck className="w-3.5 h-3.5" /> Book Now
               </button>
-              <button onClick={() => state.setScheduleIntakeNow(false)} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${!state.scheduleIntakeNow ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
+              <button onClick={() => state.setScheduleIntakeNow(false)} className={`flex-1 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${!state.scheduleIntakeNow ? "bg-amber-500 text-black shadow-lg shadow-amber-500/20" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}>
                 <Clock className="w-3.5 h-3.5" /> Later
               </button>
             </div>
@@ -126,7 +126,7 @@ export default function TelemetryPanel({ state }: Props) {
               <div className="flex items-center justify-between px-2 relative z-10">
                 <div className="flex flex-col">
                   <span className="text-[12px] font-black text-[var(--text-primary)] uppercase tracking-[0.3em]">{monthNames[state.viewDate.getMonth()]}</span>
-                  <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">{state.viewDate.getFullYear()}</span>
+                  <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">{state.viewDate.getFullYear()}</span>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => state.setViewDate(new Date(state.viewDate.getFullYear(), state.viewDate.getMonth() - 1))} className="w-9 h-9 flex items-center justify-center hover:bg-[var(--card-bg)] rounded-xl border border-[var(--card-border)] transition-all text-[var(--text-muted)] hover:text-[var(--primary)]"><ChevronLeft className="w-4 h-4" /></button>
@@ -168,7 +168,7 @@ export default function TelemetryPanel({ state }: Props) {
                     <div className="pb-5 border-b border-[var(--card-border)]/30 flex-1 group-hover/item:border-[var(--primary)]/20 transition-colors">
                       <div className="flex justify-between items-center mb-2">
                         <p className={`text-[10px] font-black uppercase tracking-widest ${a.outcome === "CONNECTED" ? "text-teal-500" : "text-[var(--text-primary)]"}`}>{a.outcome.replace("_", " ")}</p>
-                        <p className="text-[9px] font-bold text-[var(--text-muted)] bg-[var(--input-bg)] px-2 py-0.5 rounded-md border border-[var(--card-border)]">{new Date(a.activityDate).toLocaleDateString()}</p>
+                        <p className="text-[11px] font-bold text-[var(--text-muted)] bg-[var(--input-bg)] px-2 py-0.5 rounded-md border border-[var(--card-border)]">{new Date(a.activityDate).toLocaleDateString()}</p>
                       </div>
                       {a.reason && <p className="text-[10px] font-black text-[var(--primary)] uppercase tracking-[0.1em] mb-1.5">{a.reason}</p>}
                       <div className="relative"><p className="text-[11px] text-[var(--text-secondary)] leading-relaxed italic opacity-80 pl-3 border-l-2 border-[var(--card-border)]">{a.notes}</p></div>

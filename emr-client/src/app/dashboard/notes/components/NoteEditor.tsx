@@ -80,10 +80,10 @@ export function NoteEditor({ state }: NoteEditorProps) {
       className="absolute w-80 bg-[var(--card-bg)] border border-[var(--primary)]/30 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in duration-200 backdrop-blur-xl"
     >
       <div className="p-4 border-b border-[var(--card-border)] bg-[var(--primary)]/5 flex items-center justify-between">
-        <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">
+        <p className="text-[11px] font-black text-[var(--primary)] uppercase tracking-[0.2em]">
           Halkyone Smart Phrases
         </p>
-        <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase">
+        <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase">
           ESC to close
         </span>
       </div>
@@ -108,7 +108,7 @@ export function NoteEditor({ state }: NoteEditorProps) {
                   {p.shortcut}
                 </span>
               </div>
-              <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+              <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                 {p.label}
               </p>
             </div>
@@ -119,24 +119,24 @@ export function NoteEditor({ state }: NoteEditorProps) {
 
   const renderUndoBanner = () => (
     <div className="absolute bottom-3 right-3 z-50 flex items-center gap-2 bg-[#090d16]/90 border border-emerald-500/30 rounded-xl px-3 py-1.5 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200">
-      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+      <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
         Template Inserted
       </span>
       <div className="h-3 w-[1px] bg-slate-800/40 mx-1" />
       <button
         type="button"
         onClick={handleUndo}
-        className="text-[9px] font-black uppercase text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer bg-transparent border-none outline-none p-0"
+        className="text-[11px] font-black uppercase text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 cursor-pointer bg-transparent border-none outline-none p-0"
       >
         <span>Undo</span>
-        <kbd className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded text-[8px] font-bold font-sans uppercase">
+        <kbd className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded text-[11px] font-bold font-sans uppercase">
           Ctrl+Z
         </kbd>
       </button>
       <button
         type="button"
         onClick={() => setShowUndoBanner(false)}
-        className="text-[9px] font-bold text-slate-500 hover:text-slate-300 ml-1.5 bg-transparent border-none outline-none cursor-pointer p-0"
+        className="text-[11px] font-bold text-slate-500 hover:text-slate-300 ml-1.5 bg-transparent border-none outline-none cursor-pointer p-0"
       >
         ✕
       </button>
@@ -159,7 +159,7 @@ export function NoteEditor({ state }: NoteEditorProps) {
                 {isFinalized && <Lock className="w-3.5 h-3.5 text-rose-500" />}
               </h1>
               <div className="flex items-center gap-3 mt-0.5">
-                <span className="text-[8px] font-black text-[var(--text-muted)] tracking-widest uppercase">
+                <span className="text-[11px] font-black text-[var(--text-muted)] tracking-widest uppercase">
                   MRN: {selectedNote.patient?.mrn}
                 </span>
               </div>
@@ -172,13 +172,13 @@ export function NoteEditor({ state }: NoteEditorProps) {
               <div className="flex items-center h-9 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl p-0.5 mr-1">
                 <button
                   onClick={() => setNoteFormat("soap")}
-                  className={`h-full px-3.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center ${noteFormat === "soap" ? "bg-[var(--primary)] text-white shadow-md" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+                  className={`h-full px-3.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center ${noteFormat === "soap" ? "bg-[var(--primary)] text-white shadow-md" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
                 >
                   SOAP
                 </button>
                 <button
                   onClick={() => setNoteFormat("narrative")}
-                  className={`h-full px-3.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center ${noteFormat === "narrative" ? "bg-[var(--primary)] text-white shadow-md" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+                  className={`h-full px-3.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center ${noteFormat === "narrative" ? "bg-[var(--primary)] text-white shadow-md" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
                 >
                   Narrative
                 </button>
@@ -189,7 +189,7 @@ export function NoteEditor({ state }: NoteEditorProps) {
               <button
                 disabled={isSyncing}
                 onClick={handleAiAssist}
-                className="flex items-center justify-center h-9 gap-2 px-4 rounded-xl border border-indigo-500/30 text-[9px] font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-50 active:scale-95 mr-1"
+                className="flex items-center justify-center h-9 gap-2 px-4 rounded-xl border border-indigo-500/30 text-[11px] font-black uppercase tracking-widest bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-50 active:scale-95 mr-1"
                 title="AI Auto-Chart Draft SOAP Note & ICD-10 suggestions"
               >
                 {isSyncing ? (
@@ -203,7 +203,7 @@ export function NoteEditor({ state }: NoteEditorProps) {
 
             <button
               onClick={handleDownload}
-              className="flex items-center justify-center h-9 gap-2 px-4 rounded-xl border border-[var(--card-border)] text-[9px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/30 transition-all group mr-1"
+              className="flex items-center justify-center h-9 gap-2 px-4 rounded-xl border border-[var(--card-border)] text-[11px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/30 transition-all group mr-1"
             >
               <Download className="w-3.5 h-3.5 text-[var(--text-muted)] group-hover:text-[var(--primary)]" />
               <span className="text-[var(--text-muted)] group-hover:text-[var(--primary)]">
@@ -217,7 +217,7 @@ export function NoteEditor({ state }: NoteEditorProps) {
                   <button
                     disabled={isSyncing}
                     onClick={() => handleSave(false)}
-                    className="flex items-center justify-center h-9 gap-2 px-4 rounded-xl border border-[var(--card-border)] text-[9px] font-black uppercase tracking-widest hover:bg-[var(--primary-glow)] transition-all disabled:opacity-50 mr-1"
+                    className="flex items-center justify-center h-9 gap-2 px-4 rounded-xl border border-[var(--card-border)] text-[11px] font-black uppercase tracking-widest hover:bg-[var(--primary-glow)] transition-all disabled:opacity-50 mr-1"
                   >
                     {isSyncing ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -231,7 +231,7 @@ export function NoteEditor({ state }: NoteEditorProps) {
                   <button
                     disabled={isSyncing}
                     onClick={() => handleSave(true)}
-                    className="flex items-center justify-center h-9 gap-2 px-5 rounded-xl bg-[var(--primary)] text-white text-[9px] font-black uppercase tracking-widest shadow-xl shadow-[var(--primary-glow)] hover:opacity-90 transition-all disabled:opacity-50"
+                    className="flex items-center justify-center h-9 gap-2 px-5 rounded-xl bg-[var(--primary)] text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-[var(--primary-glow)] hover:opacity-90 transition-all disabled:opacity-50"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Sign & Lock</span>
@@ -247,7 +247,7 @@ export function NoteEditor({ state }: NoteEditorProps) {
           {/* Meta details */}
           <div className="grid grid-cols-2 gap-6 pb-2 border-b border-[var(--card-border)]/40 shrink-0">
             <div>
-              <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-wider">
+              <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider">
                 Attending Clinician
               </span>
               <p className="text-[11px] font-bold uppercase text-[var(--text-primary)] mt-1 flex items-center gap-2">
@@ -257,7 +257,7 @@ export function NoteEditor({ state }: NoteEditorProps) {
               </p>
             </div>
             <div>
-              <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-wider">
+              <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider">
                 Status & Phase
               </span>
               <p className="text-[11px] font-bold uppercase text-[var(--text-primary)] mt-1 flex items-center gap-2">
@@ -274,12 +274,12 @@ export function NoteEditor({ state }: NoteEditorProps) {
                 <h4 className="text-xs font-black uppercase tracking-wider text-rose-500">
                   Document Finalized & Signed
                 </h4>
-                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase mt-1">
+                <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase mt-1">
                   Signed digitally by {selectedNote.practitioner?.firstName}{" "}
                   {selectedNote.practitioner?.lastName} on{" "}
                   {new Date().toLocaleDateString()}
                 </p>
-                <p className="text-[8px] text-slate-500 font-mono mt-1">
+                <p className="text-[11px] text-slate-500 font-mono mt-1">
                   TRANSACTION ID: 0x9f32e9124adff233b8a92019ff29339e
                 </p>
               </div>
@@ -290,10 +290,10 @@ export function NoteEditor({ state }: NoteEditorProps) {
           {noteFormat === "narrative" ? (
             <div className="space-y-3 flex-1 flex flex-col min-h-0">
               <div className="flex items-center justify-between shrink-0">
-                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                   Clinical Narrative
                 </label>
-                <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
+                <span className="text-[11px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   Interactive Session
                 </span>
@@ -323,9 +323,9 @@ export function NoteEditor({ state }: NoteEditorProps) {
             <div className="space-y-5 flex-1 overflow-y-auto pr-1 custom-scrollbar min-h-0">
               {/* Subjective */}
               <div className="space-y-2">
-                <label className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-widest ml-1 flex justify-between">
+                <label className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-widest ml-1 flex justify-between">
                   <span>Subjective (S)</span>
-                  <span className="text-[8px] text-[var(--text-muted)] font-normal uppercase">
+                  <span className="text-[11px] text-[var(--text-muted)] font-normal uppercase">
                     Symptom profile & history
                   </span>
                 </label>
@@ -352,9 +352,9 @@ export function NoteEditor({ state }: NoteEditorProps) {
 
               {/* Objective */}
               <div className="space-y-2">
-                <label className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-widest ml-1 flex justify-between">
+                <label className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-widest ml-1 flex justify-between">
                   <span>Objective (O)</span>
-                  <span className="text-[8px] text-[var(--text-muted)] font-normal uppercase">
+                  <span className="text-[11px] text-[var(--text-muted)] font-normal uppercase">
                     Biometrics & physical findings
                   </span>
                 </label>
@@ -381,9 +381,9 @@ export function NoteEditor({ state }: NoteEditorProps) {
 
               {/* Assessment */}
               <div className="space-y-2">
-                <label className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-widest ml-1 flex justify-between">
+                <label className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-widest ml-1 flex justify-between">
                   <span>Assessment (A)</span>
-                  <span className="text-[8px] text-[var(--text-muted)] font-normal uppercase">
+                  <span className="text-[11px] text-[var(--text-muted)] font-normal uppercase">
                     Clinical findings & diagnoses
                   </span>
                 </label>
@@ -410,9 +410,9 @@ export function NoteEditor({ state }: NoteEditorProps) {
 
               {/* Plan */}
               <div className="space-y-2">
-                <label className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-widest ml-1 flex justify-between">
+                <label className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-widest ml-1 flex justify-between">
                   <span>Plan (P)</span>
-                  <span className="text-[8px] text-[var(--text-muted)] font-normal uppercase">
+                  <span className="text-[11px] text-[var(--text-muted)] font-normal uppercase">
                     Medications & care protocol
                   </span>
                 </label>
@@ -440,12 +440,12 @@ export function NoteEditor({ state }: NoteEditorProps) {
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--card-border)]/40 shrink-0">
           <div className="flex items-center gap-2 px-4 py-2 bg-[var(--input-bg)]/80 backdrop-blur-md rounded-full border border-[var(--card-border)]">
             <Lock className="w-3 h-3 text-[var(--text-muted)]" />
-            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+            <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
               HIPAA compliant E2E crypt session
             </span>
           </div>
           {lastSaved && (
-            <span className="text-[8px] font-black text-emerald-500/60 tracking-wider uppercase">
+            <span className="text-[11px] font-black text-emerald-500/60 tracking-wider uppercase">
               Autosaved {lastSaved.toLocaleTimeString()}
             </span>
           )}

@@ -45,7 +45,7 @@ export default function ReassignmentBookingDrawer(
   if (!state.canAccess) {
     return (
       <HalcyonPortal>
-        <div className="fixed inset-0 z-[9999999] flex justify-end">
+        <div className="fixed inset-0 z-[60] flex justify-end">
           <div
             className="absolute inset-0 bg-black/20 backdrop-blur-sm"
             onClick={onClose}
@@ -83,7 +83,7 @@ export default function ReassignmentBookingDrawer(
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[1000] flex justify-end">
+      <div className="fixed inset-0 z-[60] flex justify-end">
         <div
           className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           onClick={onClose}
@@ -95,7 +95,7 @@ export default function ReassignmentBookingDrawer(
               <h2 className="text-md font-black text-[var(--text-primary)] uppercase tracking-tight">
                 Modify Encounter Details
               </h2>
-              <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+              <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                 Adjust clinical assignments and lifecycle
               </p>
             </div>
@@ -103,7 +103,7 @@ export default function ReassignmentBookingDrawer(
               {isInProgress && appointment?.patient?.patientId && (
                 <Link
                   href={`/dashboard/patients/${appointment.patient.patientId}/visit?appointmentId=${appointmentId}`}
-                  className="px-4 py-2 rounded-xl bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all flex items-center gap-2 animate-pulse"
+                  className="px-4 py-2 rounded-xl bg-rose-500 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-600 transition-all flex items-center gap-2 animate-pulse"
                 >
                   <Video className="w-3.5 h-3.5" />
                   Join Session
@@ -127,7 +127,7 @@ export default function ReassignmentBookingDrawer(
                     <User className="w-4 h-4 text-[var(--primary)]" />
                   </div>
                   <div>
-                    <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">
+                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">
                       Patient
                     </span>
                     <p className="text-sm font-black text-[var(--text-primary)] tracking-tight">
@@ -137,7 +137,7 @@ export default function ReassignmentBookingDrawer(
                 </div>
                 {appointment?.status && (
                   <div className="px-2.5 py-1 rounded-md border border-[var(--card-border)] bg-[var(--input-bg)] shadow-sm">
-                    <span className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-widest">
+                    <span className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-widest">
                       {formatEnum(appointment.status)}
                     </span>
                   </div>
@@ -148,7 +148,7 @@ export default function ReassignmentBookingDrawer(
                 <div className="flex items-center gap-2">
                   <Clock className="w-3.5 h-3.5 text-[var(--primary)]/60" />
                   <div>
-                    <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">
+                    <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">
                       Time Slot
                     </span>
                     <p className="text-[11px] font-bold text-[var(--text-secondary)] flex items-center gap-1.5 mt-0.5">
@@ -159,7 +159,7 @@ export default function ReassignmentBookingDrawer(
                           )
                         : "..."}
                       {appointment?.scheduledEnd && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-black border border-[var(--primary)]/20">
+                        <span className="text-[11px] px-1.5 py-0.5 rounded-md bg-[var(--primary)]/10 text-[var(--primary)] font-black border border-[var(--primary)]/20">
                           {Math.round(
                             (new Date(appointment.scheduledEnd).getTime() -
                               new Date(appointment.scheduledStart).getTime()) /
@@ -174,7 +174,7 @@ export default function ReassignmentBookingDrawer(
                 <div className="flex items-center gap-2">
                   <MapPin className="w-3.5 h-3.5 text-[var(--primary)]/60" />
                   <div>
-                    <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">
+                    <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">
                       Location
                     </span>
                     <p className="text-[11px] font-bold text-[var(--text-secondary)] truncate mt-0.5">
@@ -189,7 +189,7 @@ export default function ReassignmentBookingDrawer(
             <div className="p-3 bg-[var(--input-bg)]/40 rounded-xl border border-[var(--card-border)] space-y-3">
               <div className="flex items-center gap-1.5">
                 <ClipboardList className="w-3 h-3 text-[var(--primary)]" />
-                <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                   Planned Assessments
                 </span>
               </div>
@@ -225,7 +225,7 @@ export default function ReassignmentBookingDrawer(
               <div className="p-3 bg-[var(--input-bg)]/40 rounded-xl border border-[var(--card-border)] space-y-2">
                 <div className="flex items-center gap-1.5">
                   <Activity className="w-3 h-3 text-[var(--primary)]" />
-                  <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                  <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                     Modality
                   </span>
                 </div>
@@ -242,7 +242,7 @@ export default function ReassignmentBookingDrawer(
               <div className="p-3 bg-[var(--input-bg)]/40 rounded-xl border border-[var(--card-border)] space-y-2">
                 <div className="flex items-center gap-1.5">
                   <Stethoscope className="w-3 h-3 text-[var(--primary)]" />
-                  <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                  <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                     Current Lead
                   </span>
                 </div>
@@ -254,7 +254,7 @@ export default function ReassignmentBookingDrawer(
                     <p className="text-[11px] font-black text-[var(--text-primary)] truncate">
                       {appointment?.practitioner?.fullName || "..."}
                     </p>
-                    <p className="text-[7px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
+                    <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-tight">
                       {appointment?.practitioner?.position || "Clinician"}
                     </p>
                   </div>
@@ -403,7 +403,7 @@ export default function ReassignmentBookingDrawer(
                   }
                 >
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:text-emerald-500">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:text-emerald-500">
                     Done
                   </span>
                 </button>
@@ -426,7 +426,7 @@ export default function ReassignmentBookingDrawer(
                   }
                 >
                   <X className="w-3.5 h-3.5 text-rose-500" />
-                  <span className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:text-rose-500">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:text-rose-500">
                     Cancel
                   </span>
                 </button>
@@ -449,7 +449,7 @@ export default function ReassignmentBookingDrawer(
                   }
                 >
                   <AlertCircle className="w-3.5 h-3.5 text-red-600" />
-                  <span className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:text-red-600">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] group-hover:text-red-600">
                     Delete
                   </span>
                 </button>
@@ -458,7 +458,7 @@ export default function ReassignmentBookingDrawer(
 
             <div className="flex items-center justify-between gap-4 pt-3 border-t border-[var(--card-border)]">
               <div className="flex flex-col">
-                <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                   Team
                 </span>
                 <p className="text-[11px] font-black text-[var(--text-primary)] truncate max-w-[200px]">
@@ -468,7 +468,7 @@ export default function ReassignmentBookingDrawer(
               <div className="flex items-center gap-2">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest hover:text-[var(--text-primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all"
+                  className="px-4 py-2 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest hover:text-[var(--text-primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-all"
                 >
                   Close
                 </button>
@@ -476,7 +476,7 @@ export default function ReassignmentBookingDrawer(
                   <button
                     disabled={updateDisabled}
                     onClick={state.handleUpdate}
-                    className={`px-6 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg ${
+                    className={`px-6 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg ${
                       updateDisabled
                         ? "bg-[var(--input-bg)] text-[var(--text-muted)] cursor-not-allowed opacity-50"
                         : "bg-[var(--primary)] text-white shadow-[var(--primary)]/20 hover:scale-[1.02] active:scale-[0.98]"

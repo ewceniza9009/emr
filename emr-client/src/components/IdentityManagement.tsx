@@ -112,7 +112,7 @@ export default function IdentityManagement() {
     <div className="flex-1 flex items-center justify-center bg-rose-500/5 rounded-3xl border border-rose-500/20">
       <div className="text-center max-w-md px-8">
         <ShieldAlert className="w-16 h-16 text-rose-500 mx-auto mb-6 opacity-50" />
-        <h2 className="text-xl font-black text-rose-500 uppercase tracking-tighter mb-2">Access Denied</h2>
+        <h2 className="text-xl font-black text-rose-500 uppercase tracking-tight mb-2">Access Denied</h2>
         <p className="text-[11px] font-bold text-rose-500/60 uppercase tracking-widest leading-relaxed">{error.message}</p>
         <button 
           onClick={() => refetch()}
@@ -240,7 +240,7 @@ export default function IdentityManagement() {
             className="flex items-center gap-2 px-3 py-1.5 bg-rose-500/10 border border-rose-500/20 rounded-lg group hover:bg-rose-500/20 transition-all"
           >
             <ShieldAlert className="w-3 h-3 text-rose-500 group-hover:scale-110 transition-transform" />
-            <span className="text-[7px] font-black text-rose-500 uppercase tracking-widest">Break-Glass Protocol</span>
+            <span className="text-[11px] font-black text-rose-500 uppercase tracking-widest">Break-Glass Protocol</span>
           </button>
           <div className="h-4 w-px bg-white/10 mx-2" />
           <div className="relative">
@@ -269,16 +269,16 @@ export default function IdentityManagement() {
                         <span className={`text-lg font-black ${isEmergency ? 'text-rose-500' : 'text-[var(--primary)]'} uppercase`}>{user.firstName[0]}{user.lastName[0]}</span>
                       </div>
                       <div>
-                        <h3 className="text-[12px] font-black text-[var(--text-primary)] uppercase tracking-tighter">{user.firstName} {user.lastName}</h3>
-                        <p className="text-[9px] font-bold text-[var(--text-muted)] opacity-70">{user.email}</p>
+                        <h3 className="text-[12px] font-black text-[var(--text-primary)] uppercase tracking-tight">{user.firstName} {user.lastName}</h3>
+                        <p className="text-[11px] font-bold text-[var(--text-muted)] opacity-70">{user.email}</p>
                         <div className="flex items-center gap-2 mt-1">
                           {user.tenantId && (
-                            <p className="text-[7px] font-black text-[var(--primary)] uppercase tracking-[0.2em] bg-[var(--primary)]/5 px-1.5 py-0.5 rounded border border-[var(--primary)]/10">
+                            <p className="text-[11px] font-black text-[var(--primary)] uppercase tracking-[0.2em] bg-[var(--primary)]/5 px-1.5 py-0.5 rounded border border-[var(--primary)]/10">
                               Org ID: {user.tenantId.slice(0, 8)}
                             </p>
                           )}
                           {isEmergency && (
-                            <p className="text-[7px] font-black text-rose-500 uppercase tracking-[0.2em] bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20 animate-pulse">
+                            <p className="text-[11px] font-black text-rose-500 uppercase tracking-[0.2em] bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20 animate-pulse">
                               Emergency Level 1
                             </p>
                           )}
@@ -295,7 +295,7 @@ export default function IdentityManagement() {
                           <button
                             key={role.id}
                             onClick={() => handleToggleRole(user, role.name, hasRole)}
-                            className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all ${
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest border transition-all ${
                               hasRole 
                                 ? "bg-[var(--primary)]/20 text-[var(--primary)] border-[var(--primary)]/40 shadow-inner" 
                                 : "bg-[var(--card-bg)]/50 text-[var(--text-muted)] border-[var(--card-border)] hover:border-[var(--primary)]/30"
@@ -311,7 +311,7 @@ export default function IdentityManagement() {
                   <div className="mt-4 pt-4 border-t border-[var(--card-border)] flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <RefreshCw className={`w-3 h-3 ${isEmergency ? 'text-rose-500' : 'text-[var(--primary)]'}`} />
-                      <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                      <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                         {isEmergency ? 'Audited Session' : 'Active Session'}
                       </span>
                     </div>
@@ -326,7 +326,7 @@ export default function IdentityManagement() {
             {/* Roles List */}
             <div className="lg:col-span-1 space-y-3">
               <div className="px-4 mb-4 flex items-center justify-between">
-                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Security Definitions</p>
+                <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Security Definitions</p>
                 <button 
                   onClick={handleCreateRole}
                   className="w-6 h-6 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center hover:bg-[var(--primary)] transition-all hover:text-white"
@@ -346,9 +346,9 @@ export default function IdentityManagement() {
                 >
                   <div className="flex items-center gap-3">
                     <ShieldCheck className={`w-4 h-4 ${selectedRoleId === role.id ? "text-white" : "text-[var(--primary)]"}`} />
-                    <span className="text-[11px] font-black uppercase tracking-tighter">{role.name}</span>
+                    <span className="text-[11px] font-black uppercase tracking-tight">{role.name}</span>
                   </div>
-                  <div className={`px-2 py-0.5 rounded text-[8px] font-black border ${
+                  <div className={`px-2 py-0.5 rounded text-[11px] font-black border ${
                     selectedRoleId === role.id ? "bg-white/20 border-white/30" : "bg-white/5 border-white/10"
                   }`}>
                     {role.permissions.length}
@@ -367,7 +367,7 @@ export default function IdentityManagement() {
                         <Lock className="w-6 h-6 text-[var(--primary)]" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter">Permission Matrix: {selectedRole.name}</h2>
+                        <h2 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tight">Permission Matrix: {selectedRole.name}</h2>
                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-60">Granting granular authority across clinical nodes</p>
                       </div>
                     </div>
@@ -397,8 +397,8 @@ export default function IdentityManagement() {
                           }`}
                         >
                           <div>
-                            <span className="text-[8px] font-black uppercase tracking-widest text-[var(--text-muted)] block mb-1">{group}</span>
-                            <span className={`text-[10px] font-black uppercase tracking-tighter ${hasPermission ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}>{action}</span>
+                            <span className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] block mb-1">{group}</span>
+                            <span className={`text-[10px] font-black uppercase tracking-tight ${hasPermission ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}`}>{action}</span>
                           </div>
                           <div className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all ${
                             hasPermission ? "bg-[var(--primary)] border-[var(--primary)] text-white" : "bg-[var(--card-bg)] border-[var(--card-border)] text-transparent"

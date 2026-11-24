@@ -29,7 +29,12 @@ export default function SessionGuard({ children }: { children: React.ReactNode }
     return (
       <>
         {children}
-        <div className="fixed inset-0 z-[200] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-500">
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-label="Session Security"
+          className="fixed inset-0 z-[95] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300"
+        >
           <div className="glass-morphism max-w-md w-full rounded-[2.5rem] border border-blue-500/20 p-12 text-center space-y-8 shadow-2xl">
             <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 mx-auto border border-blue-500/20 animate-pulse">
                <ShieldAlert className="w-10 h-10" />

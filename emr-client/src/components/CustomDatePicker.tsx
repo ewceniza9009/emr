@@ -209,7 +209,7 @@ export default function CustomDatePicker({
 
             <div className="grid grid-cols-7 gap-1 text-center mb-1">
               {daysOfWeek.map((day) => (
-                <span key={day} className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">
+                <span key={day} className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">
                   {day}
                 </span>
               ))}

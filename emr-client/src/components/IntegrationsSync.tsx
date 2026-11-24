@@ -83,13 +83,13 @@ export default function IntegrationsSync() {
             </div>
               <div className="space-y-1 mb-6">
                 <h2 className="text-sm font-black text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors uppercase tracking-tight">{p.name}</h2>
-                <p className="text-[var(--text-muted)] text-[9px] uppercase font-black tracking-widest">{p.type}</p>
+                <p className="text-[var(--text-muted)] text-[11px] uppercase font-black tracking-widest">{p.type}</p>
               </div>
             
             <div className="space-y-4 pt-4 border-t border-[var(--card-border)]">
               <div className="flex justify-between items-center">
                 <span className="text-[var(--text-muted)] text-[10px] font-bold uppercase">Status</span>
-                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter ${p.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[var(--input-bg)] text-[var(--text-muted)]'}`}>
+                <span className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-tight ${p.status === 'Active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[var(--input-bg)] text-[var(--text-muted)]'}`}>
                   {p.status}
                 </span>
               </div>
@@ -99,7 +99,7 @@ export default function IntegrationsSync() {
               </div>
             </div>
 
-            <button className="w-full mt-8 py-3 rounded-xl bg-[var(--input-bg)] text-[var(--text-muted)] font-black text-[9px] uppercase tracking-widest hover:bg-[var(--primary)] hover:text-[var(--sidebar-bg)] transition-all flex items-center justify-center gap-2">
+            <button className="w-full mt-8 py-3 rounded-xl bg-[var(--input-bg)] text-[var(--text-muted)] font-black text-[11px] uppercase tracking-widest hover:bg-[var(--primary)] hover:text-[var(--sidebar-bg)] transition-all flex items-center justify-center gap-2">
                Configure Segment <ChevronRight className="w-3 h-3" />
             </button>
           </div>
@@ -124,7 +124,7 @@ export default function IntegrationsSync() {
                  </div>
                  <div className="flex-1">
                     <p className="text-[var(--text-primary)] font-bold text-[11px] tracking-tight">{log.msg}</p>
-                    <p className="text-[var(--text-muted)] text-[8px] mt-1 uppercase font-black tracking-[0.2em]">{log.time}</p>
+                    <p className="text-[var(--text-muted)] text-[11px] mt-1 uppercase font-black tracking-[0.2em]">{log.time}</p>
                  </div>
               </div>
            ))}

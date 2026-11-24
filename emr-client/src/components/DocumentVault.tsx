@@ -176,8 +176,8 @@ export default function DocumentVault({ patientId }: Props) {
                </div>
                <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight mb-1 truncate">{doc.title}</h3>
                <div className="flex items-center justify-between mt-4">
-                  <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">{doc.documentType}</span>
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                  <span className="text-[11px] font-black text-blue-400 uppercase tracking-widest">{doc.documentType}</span>
+                  <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
                      {new Date(doc.uploadedAt).toLocaleDateString()}
                   </span>
                </div>
@@ -199,7 +199,7 @@ export default function DocumentVault({ patientId }: Props) {
             </div>
             <div>
                <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">HIPAA Compliant Storage</p>
-               <p className="text-[9px] text-slate-500 uppercase tracking-widest">All documents are encrypted at rest and in transit.</p>
+               <p className="text-[11px] text-slate-500 uppercase tracking-widest">All documents are encrypted at rest and in transit.</p>
             </div>
          </div>
          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Total Vault Size: 1.2 MB</span>

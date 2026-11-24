@@ -150,8 +150,8 @@ export default function FormDesignerPage() {
               <RefreshCw className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">Registry Synchronization</h4>
-              <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Push all existing nodes to the search cluster</p>
+              <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tight">Registry Synchronization</h4>
+              <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Push all existing nodes to the search cluster</p>
             </div>
           </div>
         </div>
@@ -186,7 +186,7 @@ export default function FormDesignerPage() {
                 showToast("Re-Indexing Failed", "error");
               }
             }}
-            className="px-6 py-2 rounded-xl bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
+            className="px-6 py-2 rounded-xl bg-indigo-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20"
           >
             Re-Index All Nodes
           </button>

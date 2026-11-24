@@ -74,10 +74,10 @@ export default function SecurityTab({
               <Lock className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">
+              <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tight">
                 Forensic Vault Linkage
               </h4>
-              <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-relaxed">
+              <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-relaxed">
                 Security state changes are permanently logged in the{" "}
                 <span className="text-rose-500">Security Audit Registry</span>{" "}
                 for compliance oversight.

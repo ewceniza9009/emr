@@ -36,7 +36,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: any) {
           background-color: var(--card-bg, #1a1a1a) !important;
         }
       `}</style>
-      <div className="fixed inset-0 z-[9999999] flex justify-end">
+      <div className="fixed inset-0 z-[60] flex justify-end">
         <div
           className="absolute inset-0 bg-black/10 backdrop-blur-sm"
           onClick={onClose}
@@ -92,7 +92,7 @@ export default function EnrollmentDrawer({ open, onClose, outreachId }: any) {
                             `/dashboard/patients/${duplicateMatch.patientId}`,
                           )
                         }
-                        className="px-4 py-2 bg-rose-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20"
+                        className="px-4 py-2 bg-rose-500 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20"
                       >
                         View Existing File
                       </button>

@@ -72,7 +72,7 @@ export default function ProblemList({ patientId }: { patientId: string }) {
                 <div>
                   <h3 className="text-[var(--text-primary)] font-black text-xs uppercase tracking-tight">
                     {p.description} 
-                    {p.isPrimary && <span className="ml-2 px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[7px] font-black uppercase tracking-widest border border-blue-500/20">Primary</span>}
+                    {p.isPrimary && <span className="ml-2 px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[11px] font-black uppercase tracking-widest border border-blue-500/20">Primary</span>}
                   </h3>
                   <div className="flex gap-3 mt-1">
                      <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider opacity-70">{p.icd10Code}</span>

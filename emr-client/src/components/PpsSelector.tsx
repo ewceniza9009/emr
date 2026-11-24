@@ -73,7 +73,7 @@ export default function PpsSelector({ onScoreChange }: PpsSelectorProps) {
             className={`flex items-center gap-4 px-6 py-3 rounded-2xl border transition-all ${getStatusColor(selected)}`}
           >
             <div className="flex flex-col items-start">
-               <span className="text-[8px] font-black uppercase tracking-widest opacity-60">Performance</span>
+               <span className="text-[11px] font-black uppercase tracking-widest opacity-60">Performance</span>
                <span className="text-2xl font-black tabular-nums">{selected}%</span>
             </div>
             <ChevronDown className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -90,7 +90,7 @@ export default function PpsSelector({ onScoreChange }: PpsSelectorProps) {
                 >
                   <div>
                     <div className="text-sm font-black text-[var(--text-primary)]">{l.percent}%</div>
-                    <div className="text-[9px] text-[var(--text-muted)] uppercase font-bold tracking-tighter mt-1">
+                    <div className="text-[11px] text-[var(--text-muted)] uppercase font-bold tracking-tight mt-1">
                       {l.ambulation} • {l.selfCare}
                     </div>
                   </div>

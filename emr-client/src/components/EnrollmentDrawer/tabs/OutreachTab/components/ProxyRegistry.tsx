@@ -30,7 +30,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
             });
             state.setIsAddingProxy(true);
           }}
-          className="px-3 py-1 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-[8px] font-black uppercase tracking-widest hover:bg-[var(--primary)] hover:text-black transition-all border border-[var(--primary)]/20 shadow-sm"
+          className="px-3 py-1 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-[11px] font-black uppercase tracking-widest hover:bg-[var(--primary)] hover:text-black transition-all border border-[var(--primary)]/20 shadow-sm"
         >
           + Add Proxy
         </button>
@@ -41,7 +41,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
           <div className="p-4 rounded-xl border border-[var(--primary)]/40 bg-[var(--primary)]/[0.04] space-y-3 animate-in slide-in-from-top-2 duration-300">
             <div className="grid grid-cols-2 gap-2">
               <input
-                className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
+                className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
                 value={state.newContact.firstName || ""}
                 onChange={(e) =>
                   state.setNewContact({
@@ -52,7 +52,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
                 placeholder="First Name"
               />
               <input
-                className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
+                className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
                 value={state.newContact.lastName || ""}
                 onChange={(e) =>
                   state.setNewContact({
@@ -65,7 +65,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <select
-                className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-2 text-[9px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50 [color-scheme:dark]"
+                className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-2 text-[11px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50 [color-scheme:dark]"
                 value={state.newContact.relationship || "Relative"}
                 onChange={(e) =>
                   state.setNewContact({
@@ -83,7 +83,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
                   ))}
               </select>
               <input
-                className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
+                className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
                 value={state.newContact.phoneNumber || ""}
                 onChange={(e) =>
                   state.setNewContact({
@@ -95,7 +95,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
               />
             </div>
             <input
-              className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
+              className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
               value={state.newContact.email || ""}
               onChange={(e) =>
                 state.setNewContact({
@@ -108,13 +108,13 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
             <div className="flex justify-end gap-2 pt-1">
               <button
                 onClick={() => state.setIsAddingProxy(false)}
-                className="px-3 py-1.5 rounded-lg text-[8px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5"
+                className="px-3 py-1.5 rounded-lg text-[11px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5"
               >
                 Cancel
               </button>
               <button
                 onClick={state.handleAddContact}
-                className="px-5 py-1.5 rounded-lg bg-[var(--primary)] text-black text-[8px] font-black uppercase tracking-widest shadow-lg"
+                className="px-5 py-1.5 rounded-lg bg-[var(--primary)] text-black text-[11px] font-black uppercase tracking-widest shadow-lg"
               >
                 Commit Proxy
               </button>
@@ -128,7 +128,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
               <div className="p-4 rounded-xl border border-[var(--primary)]/40 bg-[var(--primary)]/[0.02] space-y-3 animate-in slide-in-from-top-2 duration-300">
                 <div className="grid grid-cols-2 gap-2">
                   <input
-                    className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
+                    className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
                     value={state.newContact.firstName || ""}
                     onChange={(e) =>
                       state.setNewContact({
@@ -139,7 +139,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
                     placeholder="First Name"
                   />
                   <input
-                    className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
+                    className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
                     value={state.newContact.lastName || ""}
                     onChange={(e) =>
                       state.setNewContact({
@@ -152,7 +152,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <select
-                    className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-2 text-[9px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50 [color-scheme:dark]"
+                    className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-2 text-[11px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50 [color-scheme:dark]"
                     value={state.newContact.relationship || "Relative"}
                     onChange={(e) =>
                       state.setNewContact({
@@ -168,7 +168,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
                     ))}
                   </select>
                   <input
-                    className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
+                    className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
                     value={state.newContact.phoneNumber || ""}
                     onChange={(e) =>
                       state.setNewContact({
@@ -180,7 +180,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
                   />
                 </div>
                 <input
-                  className="w-full bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
+                  className="w-full bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
                   value={state.newContact.email || ""}
                   onChange={(e) =>
                     state.setNewContact({
@@ -193,13 +193,13 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
                 <div className="flex justify-end gap-2 pt-1">
                   <button
                     onClick={() => state.setEditingContactId(null)}
-                    className="px-3 py-1.5 rounded-lg text-[8px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5"
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={state.handleUpdateContact}
-                    className="px-5 py-1.5 rounded-lg bg-[var(--primary)] text-black text-[8px] font-black uppercase tracking-widest shadow-lg"
+                    className="px-5 py-1.5 rounded-lg bg-[var(--primary)] text-black text-[11px] font-black uppercase tracking-widest shadow-lg"
                   >
                     Commit Sync
                   </button>
@@ -216,13 +216,13 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
                       {contact.firstName} {contact.lastName}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[8px] font-black text-slate-400 tracking-tight shrink-0">
+                      <span className="text-[11px] font-black text-slate-400 tracking-tight shrink-0">
                         {formatPhoneNumber(contact.phoneNumber)}
                       </span>
                       {contact.email && (
                         <>
                           <span className="w-1 h-1 rounded-full bg-white/10" />
-                          <span className="text-[8px] font-bold text-slate-500 lowercase truncate">
+                          <span className="text-[11px] font-bold text-slate-500 lowercase truncate">
                             {contact.email}
                           </span>
                         </>
@@ -267,7 +267,7 @@ export default function ProxyRegistry({ state }: ProxyRegistryProps) {
         {state.relativeContacts.length === 0 && !state.isAddingProxy && (
           <div className="flex flex-col items-center justify-center py-4 opacity-20">
             <Users className="w-6 h-6 mb-1" />
-            <p className="text-[7px] font-black uppercase tracking-widest">
+            <p className="text-[11px] font-black uppercase tracking-widest">
               No Registered Proxies
             </p>
           </div>

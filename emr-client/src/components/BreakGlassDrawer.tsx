@@ -40,7 +40,7 @@ export default function BreakGlassDrawer({ open, onClose, onSuccess }: Props) {
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-500" onClick={onClose} />
 
         <div className={`relative h-full w-full max-w-[500px] bg-slate-950 shadow-[-50px_0_150px_rgba(0,0,0,0.5)] 
@@ -116,11 +116,11 @@ export default function BreakGlassDrawer({ open, onClose, onSuccess }: Props) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
-                  <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Window Duration</p>
+                  <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1">Window Duration</p>
                   <p className="text-xs font-black text-white">4 HOURS (UTC)</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
-                  <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Access Scope</p>
+                  <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1">Access Scope</p>
                   <p className="text-xs font-black text-white uppercase italic">Full Chart Access</p>
                 </div>
               </div>

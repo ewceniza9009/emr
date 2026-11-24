@@ -136,13 +136,13 @@ export default function TelehealthModal({ isOpen, onClose, patientName }: Telehe
               <span className="text-[var(--card-border)]">|</span>
               
               {/* Prominent MOCKED banner */}
-              <span className="text-[9px] font-black text-rose-500 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md uppercase tracking-widest animate-pulse">
+              <span className="text-[11px] font-black text-rose-500 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md uppercase tracking-widest animate-pulse">
                 Simulated Sandbox Feed (Mocked)
               </span>
             </div>
             
             <div className="flex items-center gap-3">
-              <span className="text-[9px] font-black text-[var(--primary)] bg-[var(--primary-glow)] border border-[var(--primary)]/20 px-3 py-1 rounded-full uppercase tracking-wider">
+              <span className="text-[11px] font-black text-[var(--primary)] bg-[var(--primary-glow)] border border-[var(--primary)]/20 px-3 py-1 rounded-full uppercase tracking-wider">
                 Latency: 14ms
               </span>
             </div>
@@ -174,7 +174,7 @@ export default function TelehealthModal({ isOpen, onClose, patientName }: Telehe
                   <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.15)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[size:100%_4px,6px_100%] pointer-events-none opacity-25" />
 
                   {/* Top-Right Signal strength & specs HUD */}
-                  <div className="absolute top-6 right-6 flex items-center gap-2.5 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-xl text-[9px] font-bold text-slate-300">
+                  <div className="absolute top-6 right-6 flex items-center gap-2.5 bg-black/50 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-xl text-[11px] font-bold text-slate-300">
                     <span className="flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       1080P HD
@@ -201,18 +201,18 @@ export default function TelehealthModal({ isOpen, onClose, patientName }: Telehe
                         
                         {/* Floating glass telemetry card */}
                         <div className="absolute top-6 left-6 p-4 rounded-2xl bg-black/50 backdrop-blur-md border border-white/10 space-y-3.5 shadow-2xl z-10 min-w-[170px]">
-                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-white/10 pb-1">
+                          <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest border-b border-white/10 pb-1">
                             Patient Telemetry
                           </p>
                           
                           {/* Heart Rate and ECG line */}
                           <div className="flex items-center justify-between gap-4">
                             <div className="space-y-0.5">
-                              <span className="text-[8px] font-black text-red-400 uppercase tracking-wider flex items-center gap-1">
+                              <span className="text-[11px] font-black text-red-400 uppercase tracking-wider flex items-center gap-1">
                                 <Activity className="w-3 h-3 text-red-500 animate-pulse" /> Heart Rate
                               </span>
                               <div className="text-base font-black text-white leading-none">
-                                {simulatedHeartRate} <span className="text-[8px] text-slate-400">BPM</span>
+                                {simulatedHeartRate} <span className="text-[11px] text-slate-400">BPM</span>
                               </div>
                             </div>
                             
@@ -232,11 +232,11 @@ export default function TelehealthModal({ isOpen, onClose, patientName }: Telehe
                           {/* Oxygen level SpO2 */}
                           <div className="flex items-center justify-between gap-4 pt-1">
                             <div className="space-y-0.5">
-                              <span className="text-[8px] font-black text-cyan-400 uppercase tracking-wider flex items-center gap-1">
+                              <span className="text-[11px] font-black text-cyan-400 uppercase tracking-wider flex items-center gap-1">
                                 <Heart className="w-3 h-3 text-cyan-400" /> SpO2 Level
                               </span>
                               <div className="text-base font-black text-white leading-none">
-                                96% <span className="text-[8px] text-slate-400">Stable</span>
+                                96% <span className="text-[11px] text-slate-400">Stable</span>
                               </div>
                             </div>
                             <div className="w-10 h-1.5 bg-slate-800 rounded-full overflow-hidden">
@@ -247,11 +247,11 @@ export default function TelehealthModal({ isOpen, onClose, patientName }: Telehe
                           {/* Respiratory Rate */}
                           <div className="pt-1 border-t border-white/5">
                             <div className="space-y-0.5">
-                              <span className="text-[8px] font-black text-indigo-400 uppercase tracking-wider">
+                              <span className="text-[11px] font-black text-indigo-400 uppercase tracking-wider">
                                 Resp. Rate
                               </span>
                               <div className="text-xs font-black text-white leading-none">
-                                {simulatedRespRate} <span className="text-[8px] text-slate-400">BrPM</span>
+                                {simulatedRespRate} <span className="text-[11px] text-slate-400">BrPM</span>
                               </div>
                             </div>
                           </div>
@@ -268,7 +268,7 @@ export default function TelehealthModal({ isOpen, onClose, patientName }: Telehe
                             <p className="text-sm font-black text-white uppercase tracking-tight">
                               {patientName}
                             </p>
-                            <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest animate-pulse">
+                            <p className="text-[11px] font-black text-[var(--primary)] uppercase tracking-widest animate-pulse">
                               Streaming Home Telehealth Feed...
                             </p>
                           </div>
@@ -282,19 +282,19 @@ export default function TelehealthModal({ isOpen, onClose, patientName }: Telehe
                     {isMuted ? (
                       <div className="text-rose-500 flex flex-col items-center gap-1.5">
                         <MicOff className="w-4 h-4 animate-bounce" />
-                        <span className="text-[8px] font-black uppercase tracking-widest">Muted</span>
+                        <span className="text-[11px] font-black uppercase tracking-widest">Muted</span>
                       </div>
                     ) : (
                       <div className="w-full h-full bg-slate-900/40 flex flex-col items-center justify-center gap-2 text-[var(--primary)]">
                         <div className="w-8 h-8 rounded-full bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20 shadow-md">
                           <User className="w-4 h-4" />
                         </div>
-                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">
                           Clinician (You)
                         </span>
                       </div>
                     )}
-                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-black/60 text-[8px] font-bold text-white uppercase tracking-wider border border-white/5">
+                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-black/60 text-[11px] font-bold text-white uppercase tracking-wider border border-white/5">
                       PIP VIEW
                     </div>
                   </div>
@@ -321,10 +321,10 @@ export default function TelehealthModal({ isOpen, onClose, patientName }: Telehe
                 {chatMessages.map((m, idx) => (
                   <div key={idx} className={`space-y-1.5 ${m.sender === "You (Clinician)" ? "text-right" : ""}`}>
                     <div className="flex items-center justify-between gap-2 px-1">
-                      <span className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest">
+                      <span className="text-[11px] font-black text-[var(--primary)] uppercase tracking-widest">
                         {m.sender}
                       </span>
-                      <span className="text-[8px] text-[var(--text-muted)] font-bold">
+                      <span className="text-[11px] text-[var(--text-muted)] font-bold">
                         {m.time}
                       </span>
                     </div>
@@ -332,7 +332,7 @@ export default function TelehealthModal({ isOpen, onClose, patientName }: Telehe
                       m.sender === "You (Clinician)" 
                         ? "bg-gradient-to-tr from-[var(--primary)] to-cyan-500 dark:to-cyan-600 text-white rounded-tr-none" 
                         : m.sender === "System" 
-                        ? "bg-[var(--background)] text-[var(--text-muted)] text-center w-full rounded-lg font-mono text-[9px] tracking-wider uppercase border border-[var(--card-border)]"
+                        ? "bg-[var(--background)] text-[var(--text-muted)] text-center w-full rounded-lg font-mono text-[11px] tracking-wider uppercase border border-[var(--card-border)]"
                         : "bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-secondary)] rounded-tl-none"
                     }`}>
                       {m.text}

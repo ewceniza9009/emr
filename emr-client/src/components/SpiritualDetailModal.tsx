@@ -64,12 +64,12 @@ export default function SpiritualDetailModal({ isOpen, onClose, spiritual }: Spi
                   Spiritual History (FICA)
                 </h2>
                 <div className="flex items-center gap-3 mt-2">
-                  <span className="flex items-center gap-1.5 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                  <span className="flex items-center gap-1.5 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                     <Calendar className="w-3 h-3" />
                     Clinical Record
                   </span>
                   {spiritual.religiousPreference && (
-                    <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[8px] font-black uppercase tracking-widest border border-indigo-500/20">
+                    <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 text-[11px] font-black uppercase tracking-widest border border-indigo-500/20">
                       {spiritual.religiousPreference}
                     </span>
                   )}
@@ -94,7 +94,7 @@ export default function SpiritualDetailModal({ isOpen, onClose, spiritual }: Spi
                     <div className={`w-6 h-6 rounded-lg ${item.bg} flex items-center justify-center`}>
                       <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
                     </div>
-                    <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">{item.label}</p>
+                    <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">{item.label}</p>
                   </div>
                   <p className="text-sm font-medium text-[var(--text-primary)] leading-relaxed">
                     {item.value || "Not specified during assessment."}
@@ -120,7 +120,7 @@ export default function SpiritualDetailModal({ isOpen, onClose, spiritual }: Spi
 
           {/* Footer */}
           <div className="px-8 py-5 border-t border-[var(--card-border)] shrink-0 flex items-center justify-between">
-            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50 flex items-center gap-2">
+            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50 flex items-center gap-2">
               <Zap className="w-3 h-3" />
               Halkyone Clinical OS · Holistic Care
             </p>

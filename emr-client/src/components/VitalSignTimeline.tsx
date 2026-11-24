@@ -57,7 +57,7 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
           </h2>
           <button 
             onClick={() => setIsLogOpen(true)}
-            className="text-blue-400 text-[9px] font-black uppercase tracking-widest hover:underline"
+            className="text-blue-400 text-[11px] font-black uppercase tracking-widest hover:underline"
           >
             Full Log
           </button>
@@ -75,7 +75,7 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
 
               return (
                 <div key={e.encounterId} className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] flex flex-col gap-3 group hover:border-[var(--primary)]/30 transition-all">
-                  <div className="flex items-center justify-between text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                  <div className="flex items-center justify-between text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                       <div className="flex items-center gap-1.5">
                         <Calendar className="w-3 h-3" />
                         {new Date(e.encounterDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -87,27 +87,27 @@ export default function VitalSignTimeline({ patientId }: { patientId: string }) 
                       <div className="text-center p-1.5 rounded-lg bg-[var(--background)]/50">
                         <Heart className="w-3.5 h-3.5 text-red-400 mx-auto mb-1" />
                         <div className="text-[var(--text-primary)] font-black text-xs">{v.heartRate || '--'}</div>
-                        <div className="text-[7px] text-[var(--text-muted)] uppercase font-black">BPM</div>
+                        <div className="text-[11px] text-[var(--text-muted)] uppercase font-black">BPM</div>
                       </div>
                       <div className="text-center p-1.5 rounded-lg bg-[var(--background)]/50">
                         <Activity className="w-3.5 h-3.5 text-blue-400 mx-auto mb-1" />
                         <div className="text-[var(--text-primary)] font-black text-xs">{v.bloodPressureSystolic}/{v.bloodPressureDiastolic}</div>
-                        <div className="text-[7px] text-[var(--text-muted)] uppercase font-black">mmHg</div>
+                        <div className="text-[11px] text-[var(--text-muted)] uppercase font-black">mmHg</div>
                       </div>
                       <div className="text-center p-1.5 rounded-lg bg-[var(--background)]/50">
                         <Wind className="w-3.5 h-3.5 text-emerald-400 mx-auto mb-1" />
                         <div className="text-[var(--text-primary)] font-black text-xs">{v.respiratoryRate || '--'}</div>
-                        <div className="text-[7px] text-[var(--text-muted)] uppercase font-black">RR</div>
+                        <div className="text-[11px] text-[var(--text-muted)] uppercase font-black">RR</div>
                       </div>
                       <div className="text-center p-1.5 rounded-lg bg-[var(--background)]/50">
                         <Droplets className="w-3.5 h-3.5 text-cyan-400 mx-auto mb-1" />
                         <div className="text-[var(--text-primary)] font-black text-xs">{v.oxygenSaturation}%</div>
-                        <div className="text-[7px] text-[var(--text-muted)] uppercase font-black">SpO2</div>
+                        <div className="text-[11px] text-[var(--text-muted)] uppercase font-black">SpO2</div>
                       </div>
                       <div className="text-center p-1.5 rounded-lg bg-[var(--background)]/50">
                         <Scale className="w-3.5 h-3.5 text-indigo-400 mx-auto mb-1" />
                         <div className="text-[var(--text-primary)] font-black text-xs">{v.weight || '--'}</div>
-                        <div className="text-[7px] text-[var(--text-muted)] uppercase font-black">kg</div>
+                        <div className="text-[11px] text-[var(--text-muted)] uppercase font-black">kg</div>
                       </div>
                   </div>
                 </div>

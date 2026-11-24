@@ -194,12 +194,12 @@ export default function NewInvoicePage() {
             </button>
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-black tracking-tighter uppercase leading-none text-[var(--text-primary)]">
+                <h1 className="text-xl font-black tracking-tight uppercase leading-none text-[var(--text-primary)]">
                   Billing Station
                 </h1>
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--input-bg)] border border-[var(--card-border)]">
                   <div className="w-1 h-1 rounded-full bg-[var(--primary)] shadow-[0_0_5px_var(--primary)]" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.1em] opacity-70">
+                  <span className="text-[11px] font-black uppercase tracking-[0.1em] opacity-70">
                     Auth: RCM-99
                   </span>
                 </div>
@@ -213,13 +213,13 @@ export default function NewInvoicePage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="px-4 h-10 rounded-xl bg-[var(--input-bg)] text-[9px] font-black uppercase tracking-widest border border-[var(--card-border)] hover:bg-[var(--card-border)] transition-all flex items-center gap-2">
+            <button className="px-4 h-10 rounded-xl bg-[var(--input-bg)] text-[11px] font-black uppercase tracking-widest border border-[var(--card-border)] hover:bg-[var(--card-border)] transition-all flex items-center gap-2">
               <Printer className="w-3.5 h-3.5 opacity-40" /> Print
             </button>
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="px-6 h-10 rounded-xl bg-[var(--primary)] text-white text-[9px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[var(--primary-glow)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50"
+              className="px-6 h-10 rounded-xl bg-[var(--primary)] text-white text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[var(--primary-glow)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 disabled:opacity-50"
             >
               {submitting ? (
                 <Clock className="w-3.5 h-3.5 animate-spin" />
@@ -247,14 +247,14 @@ export default function NewInvoicePage() {
                     <h2 className="text-lg font-black uppercase tracking-tight text-[var(--text-primary)]">
                       Billing Ledger
                     </h2>
-                    <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5 opacity-50">
+                    <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5 opacity-50">
                       Transaction distribution & itemization
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={addLineItem}
-                  className="h-10 px-6 rounded-xl bg-[var(--input-bg)] text-[9px] font-black uppercase tracking-widest hover:bg-[var(--primary)] hover:text-white transition-all border border-[var(--card-border)] flex items-center gap-2 group"
+                  className="h-10 px-6 rounded-xl bg-[var(--input-bg)] text-[11px] font-black uppercase tracking-widest hover:bg-[var(--primary)] hover:text-white transition-all border border-[var(--card-border)] flex items-center gap-2 group"
                 >
                   <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />{" "}
                   New Entry
@@ -265,16 +265,16 @@ export default function NewInvoicePage() {
               <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
                 {/* Header Row (Static) */}
                 <div className="px-6 grid grid-cols-12 gap-4 py-3 px-4 opacity-50 sticky top-0 bg-[var(--card-bg)] z-10 shrink-0">
-                  <div className="col-span-6 text-[9px] font-black uppercase tracking-[0.2em]">
+                  <div className="col-span-6 text-[11px] font-black uppercase tracking-[0.2em]">
                     Nomenclature / Service
                   </div>
-                  <div className="col-span-1 text-[9px] font-black uppercase tracking-[0.2em] text-center">
+                  <div className="col-span-1 text-[11px] font-black uppercase tracking-[0.2em] text-center">
                     Unit
                   </div>
-                  <div className="col-span-2 text-[9px] font-black uppercase tracking-[0.2em] text-right">
+                  <div className="col-span-2 text-[11px] font-black uppercase tracking-[0.2em] text-right">
                     Rate
                   </div>
-                  <div className="col-span-2 text-[9px] font-black uppercase tracking-[0.2em] text-right">
+                  <div className="col-span-2 text-[11px] font-black uppercase tracking-[0.2em] text-right">
                     Valuation
                   </div>
                   <div className="col-span-1"></div>
@@ -317,7 +317,7 @@ export default function NewInvoicePage() {
                       </div>
                       <div className="col-span-2">
                         <div className="relative group/input">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] font-black opacity-30">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-black opacity-30">
                             {currencySymbol}
                           </span>
                           <input
@@ -358,13 +358,13 @@ export default function NewInvoicePage() {
                 <div className="lg:col-span-7 space-y-3">
                   <div className="flex items-center gap-2">
                     <HistoryIcon className="w-3.5 h-3.5 text-[var(--primary)]" />
-                    <label className="text-[8px] font-black uppercase tracking-[0.3em] opacity-40">
+                    <label className="text-[11px] font-black uppercase tracking-[0.3em] opacity-40">
                       Documentation / Terms
                     </label>
                   </div>
                   <textarea
                     placeholder="RECORD ADMINISTRATIVE DIRECTIVES, BANKING CHANNELS, OR COMPLIANCE NOTES..."
-                    className="w-full h-24 bg-[var(--input-bg)]/50 border border-[var(--card-border)] rounded-[1.5rem] p-5 text-[9px] font-bold uppercase tracking-widest focus:outline-none focus:border-[var(--primary)]/30 transition-all resize-none shadow-inner leading-relaxed text-[var(--text-secondary)]"
+                    className="w-full h-24 bg-[var(--input-bg)]/50 border border-[var(--card-border)] rounded-[1.5rem] p-5 text-[11px] font-bold uppercase tracking-widest focus:outline-none focus:border-[var(--primary)]/30 transition-all resize-none shadow-inner leading-relaxed text-[var(--text-secondary)]"
                   />
                 </div>
 
@@ -375,7 +375,7 @@ export default function NewInvoicePage() {
                       <span>{formatCurrency(subtotal)}</span>
                     </div>
                     <div className="flex justify-between items-center px-4 py-2.5 bg-[var(--input-bg)]/50 rounded-xl border border-[var(--card-border)] group/adj">
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
+                      <span className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40">
                         Adjustments
                       </span>
                       <div className="relative w-28">
@@ -420,13 +420,13 @@ export default function NewInvoicePage() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--primary)]/5 rounded-full blur-[60px] -mr-16 -mt-16 group-hover:bg-[var(--primary)]/10 transition-all duration-700" />
 
               <div className="flex items-center justify-between relative mb-6">
-                <h3 className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
+                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40">
                   Recipient Protocol
                 </h3>
                 {selectedPatient && (
                   <button
                     onClick={() => setIsPatientLookupOpen(true)}
-                    className="text-[8px] font-black uppercase text-[var(--primary)] hover:underline underline-offset-4 transition-all"
+                    className="text-[11px] font-black uppercase text-[var(--primary)] hover:underline underline-offset-4 transition-all"
                   >
                     Override
                   </button>
@@ -444,7 +444,7 @@ export default function NewInvoicePage() {
                           .slice(0, 2) || "P"}
                       </div>
                       <div className="space-y-0.5">
-                        <h4 className="text-lg font-black uppercase tracking-tighter leading-none text-[var(--text-primary)]">
+                        <h4 className="text-lg font-black uppercase tracking-tight leading-none text-[var(--text-primary)]">
                           {selectedPatient.title || "UNKNOWN ENTITY"}
                         </h4>
                         <div className="flex items-center gap-1.5">
@@ -459,13 +459,13 @@ export default function NewInvoicePage() {
                     </div>
 
                     <div className="space-y-2 pt-4 border-t border-[var(--card-border)]">
-                      <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest p-3 bg-[var(--input-bg)]/30 rounded-xl border border-[var(--card-border)]">
+                      <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest p-3 bg-[var(--input-bg)]/30 rounded-xl border border-[var(--card-border)]">
                         <MapPin className="w-4 h-4 text-[var(--primary)] opacity-40" />
                         <span className="text-[var(--text-secondary)]">
                           {selectedPatient.metadata || "METROPOLIS CLUSTER"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest p-3 bg-[var(--input-bg)]/30 rounded-xl border border-[var(--card-border)]">
+                      <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest p-3 bg-[var(--input-bg)]/30 rounded-xl border border-[var(--card-border)]">
                         <User className="w-4 h-4 text-[var(--primary)] opacity-40" />
                         <span className="text-[var(--text-secondary)]">
                           Verified Patient Profile
@@ -486,7 +486,7 @@ export default function NewInvoicePage() {
                       <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-primary)]/60">
                         Initialize Entity
                       </p>
-                      <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-[0.1em] px-8 leading-relaxed">
+                      <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-[0.1em] px-8 leading-relaxed">
                         Registry Linkage Required
                       </p>
                     </div>
@@ -500,12 +500,12 @@ export default function NewInvoicePage() {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-[var(--primary)]" />
-                  <h3 className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40">
                     Benefit Integration
                   </h3>
                 </div>
                 {selectedPatient && claims.length > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[7px] font-black uppercase tracking-widest">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[11px] font-black uppercase tracking-widest">
                     Active Claims
                   </span>
                 )}
@@ -533,7 +533,7 @@ export default function NewInvoicePage() {
                         <div className="flex justify-between items-start mb-3">
                           <div className="space-y-0.5">
                             <p
-                              className={`text-[8px] font-black uppercase tracking-widest ${selectedClaimId === claim.claimId ? "text-white/60" : "text-[var(--text-muted)]"}`}
+                              className={`text-[11px] font-black uppercase tracking-widest ${selectedClaimId === claim.claimId ? "text-white/60" : "text-[var(--text-muted)]"}`}
                             >
                               PhilHealth PIN
                             </p>
@@ -542,7 +542,7 @@ export default function NewInvoicePage() {
                             </p>
                           </div>
                           <div
-                            className={`px-2 py-0.5 rounded text-[7px] font-black uppercase tracking-widest ${
+                            className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-widest ${
                               selectedClaimId === claim.claimId
                                 ? "bg-white/20 text-white"
                                 : "bg-[var(--primary)]/10 text-[var(--primary)]"
@@ -554,17 +554,17 @@ export default function NewInvoicePage() {
                         <div className="flex justify-between items-end">
                           <div className="space-y-0.5">
                             <p
-                              className={`text-[8px] font-black uppercase tracking-widest ${selectedClaimId === claim.claimId ? "text-white/60" : "text-[var(--text-muted)]"}`}
+                              className={`text-[11px] font-black uppercase tracking-widest ${selectedClaimId === claim.claimId ? "text-white/60" : "text-[var(--text-muted)]"}`}
                             >
                               Status
                             </p>
-                            <p className="text-[9px] font-black uppercase">
+                            <p className="text-[11px] font-black uppercase">
                               {claim.status}
                             </p>
                           </div>
                           <div className="text-right">
                             <p
-                              className={`text-[8px] font-black uppercase tracking-widest ${selectedClaimId === claim.claimId ? "text-white/60" : "text-[var(--text-muted)]"}`}
+                              className={`text-[11px] font-black uppercase tracking-widest ${selectedClaimId === claim.claimId ? "text-white/60" : "text-[var(--text-muted)]"}`}
                             >
                               Coverage
                             </p>
@@ -589,7 +589,7 @@ export default function NewInvoicePage() {
                   <div className="w-14 h-14 rounded-full bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center mb-4">
                     <Clock className="w-6 h-6 text-[var(--text-muted)]" />
                   </div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-center max-w-[140px] leading-relaxed">
+                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-center max-w-[140px] leading-relaxed">
                     Select patient to query registry
                   </p>
                 </div>
@@ -601,14 +601,14 @@ export default function NewInvoicePage() {
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <Calendar className="w-5 h-5 text-[var(--primary)]" />
-                  <h3 className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40">
                     Payment Terms
                   </h3>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
                   <div className="flex flex-col gap-2 relative">
-                    <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] ml-1">
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] ml-1">
                       Invoice Date
                     </label>
                     <CustomDatePicker
@@ -618,7 +618,7 @@ export default function NewInvoicePage() {
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] ml-1">
+                    <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] ml-1">
                       Projected Maturity
                     </label>
                     <div className="flex items-center justify-between p-3.5 bg-[var(--primary)]/10 rounded-xl border border-[var(--primary)]/20 text-[var(--primary)]">
@@ -638,7 +638,7 @@ export default function NewInvoicePage() {
                 </div>
 
                 <div className="space-y-3 pt-4 border-t border-[var(--card-border)]">
-                  <label className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] ml-1">
+                  <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] ml-1">
                     Settlement Framework
                   </label>
                   <div className="grid grid-cols-3 gap-3">
@@ -646,7 +646,7 @@ export default function NewInvoicePage() {
                       <button
                         key={days}
                         onClick={() => setDueInDays(days)}
-                        className={`py-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all ${
+                        className={`py-3 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all ${
                           dueInDays === days
                             ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-lg shadow-[var(--primary-glow)] scale-105"
                             : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--primary)]/30"

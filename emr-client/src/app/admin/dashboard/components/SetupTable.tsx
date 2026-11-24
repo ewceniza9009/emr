@@ -29,12 +29,12 @@ export default function SetupTable({
             {columns.map((col) => (
               <th
                 key={col.key}
-                className="px-5 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]"
+                className="px-5 py-3 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]"
               >
                 {col.label}
               </th>
             ))}
-            <th className="px-5 py-3 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] text-right">
+            <th className="px-5 py-3 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] text-right">
               Management
             </th>
           </tr>

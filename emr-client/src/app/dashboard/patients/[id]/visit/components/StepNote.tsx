@@ -25,13 +25,13 @@ export function StepNote({ state }: { state: any }) {
     <div className="space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
       <div className="space-y-2">
         <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-tight">Clinical Documentation</h2>
-        <p className="text-[var(--text-muted)] text-[8px] uppercase tracking-widest font-bold">Synthesize encounter findings into a permanent SOAP record.</p>
+        <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-widest font-bold">Synthesize encounter findings into a permanent SOAP record.</p>
       </div>
       <div className="space-y-10">
         {sections.map((section) => (
           <div key={section.id} className="space-y-2 relative">
             <label className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-              <span className="w-4 h-4 rounded bg-[var(--primary)] text-white flex items-center justify-center text-[9px]">{section.id.toUpperCase()}</span>
+              <span className="w-4 h-4 rounded bg-[var(--primary)] text-white flex items-center justify-center text-[11px]">{section.id.toUpperCase()}</span>
               {section.label}
             </label>
             <SmartTextarea

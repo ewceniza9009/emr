@@ -161,7 +161,7 @@ export default function AssessmentDetailModal({
                 )}
                 <div className="flex items-center gap-3 mt-2">
                   {assessment.completedAt && (
-                    <span className="flex items-center gap-1.5 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                    <span className="flex items-center gap-1.5 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                       <Calendar className="w-3 h-3" />
                       {new Date(assessment.completedAt).toLocaleDateString(
                         undefined,
@@ -170,13 +170,13 @@ export default function AssessmentDetailModal({
                     </span>
                   )}
                   {assessment.assessor && (
-                    <span className="flex items-center gap-1.5 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                    <span className="flex items-center gap-1.5 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                       <User className="w-3 h-3" />
                       {assessment.assessor.firstName}{" "}
                       {assessment.assessor.lastName}
                     </span>
                   )}
-                  <span className="flex items-center gap-1.5 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest font-mono">
+                  <span className="flex items-center gap-1.5 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest font-mono">
                     <Hash className="w-3 h-3" />
                     {assessment.assessmentResponseId.slice(0, 8).toUpperCase()}
                   </span>
@@ -189,7 +189,7 @@ export default function AssessmentDetailModal({
                 <div
                   className={`px-4 py-2 rounded-xl border text-center ${scoreColors.badge}`}
                 >
-                  <p className="text-[8px] font-black uppercase tracking-widest opacity-70 mb-0.5">
+                  <p className="text-[11px] font-black uppercase tracking-widest opacity-70 mb-0.5">
                     Total Score
                   </p>
                   <p
@@ -214,7 +214,7 @@ export default function AssessmentDetailModal({
             {totalScore != null && scoreColors && (
               <div className="p-5 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-2 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">
+                  <span className="flex items-center gap-2 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">
                     <BarChart3 className="w-3.5 h-3.5 text-[var(--primary)]" />
                     Composite Score
                   </span>
@@ -238,7 +238,7 @@ export default function AssessmentDetailModal({
             {/* Q&A breakdown */}
             {sortedQuestions.length > 0 ? (
               <div className="space-y-3">
-                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
+                <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[var(--primary)]" />
                   Response Breakdown — {sortedQuestions.length} item
                   {sortedQuestions.length !== 1 ? "s" : ""}
@@ -263,7 +263,7 @@ export default function AssessmentDetailModal({
                     >
                       <div className="flex items-start gap-4">
                         {/* Question number */}
-                        <div className="w-7 h-7 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 text-[9px] font-black mt-0.5">
+                        <div className="w-7 h-7 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center shrink-0 text-[11px] font-black mt-0.5">
                           {idx + 1}
                         </div>
                         <div className="flex-1 min-w-0 space-y-2.5">
@@ -272,7 +272,7 @@ export default function AssessmentDetailModal({
                               {q.text}
                             </p>
                             {q.subtext && (
-                              <p className="text-[9px] text-[var(--text-muted)] italic mt-0.5">
+                              <p className="text-[11px] text-[var(--text-muted)] italic mt-0.5">
                                 {q.subtext}
                               </p>
                             )}
@@ -280,13 +280,13 @@ export default function AssessmentDetailModal({
 
                           {/* Answer display */}
                           {rawAnswer == null ? (
-                            <span className="inline-flex text-[9px] text-[var(--text-muted)] italic">
+                            <span className="inline-flex text-[11px] text-[var(--text-muted)] italic">
                               — No response recorded
                             </span>
                           ) : isNumeric && numericVal != null ? (
                             <div className="space-y-1.5">
                               <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                                <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                                   Score
                                 </span>
                                 <span
@@ -309,7 +309,7 @@ export default function AssessmentDetailModal({
                               {rawAnswer.map((v: any, i: number) => (
                                 <span
                                   key={i}
-                                  className="px-2.5 py-1 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-[9px] font-black uppercase tracking-wider border border-[var(--primary)]/20"
+                                  className="px-2.5 py-1 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-[11px] font-black uppercase tracking-wider border border-[var(--primary)]/20"
                                 >
                                   {String(v)}
                                 </span>
@@ -320,7 +320,7 @@ export default function AssessmentDetailModal({
                               {options.map((opt, i) => (
                                 <span
                                   key={i}
-                                  className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all ${
+                                  className={`px-2.5 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider border transition-all ${
                                     String(rawAnswer) === opt
                                       ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-md"
                                       : "bg-[var(--card-border)]/30 text-[var(--text-muted)] border-[var(--card-border)]"
@@ -343,7 +343,7 @@ export default function AssessmentDetailModal({
                                     if (key && value) {
                                       return (
                                         <div key={idx} className="group">
-                                          <span className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] block mb-0.5 group-hover:text-indigo-400 transition-colors">
+                                          <span className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] block mb-0.5 group-hover:text-indigo-400 transition-colors">
                                             {key.trim()}
                                           </span>
                                           <p className="text-[11px] font-medium text-[var(--text-primary)] leading-relaxed whitespace-pre-wrap">
@@ -379,7 +379,7 @@ export default function AssessmentDetailModal({
             ) : Object.keys(answers).length > 0 ? (
               /* Fallback: render raw answers when questions aren't available */
               <div className="space-y-3">
-                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
+                <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[var(--primary)]" />
                   Recorded Responses
                 </p>
@@ -389,7 +389,7 @@ export default function AssessmentDetailModal({
                     className="p-5 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-between"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center text-[9px] font-black">
+                      <div className="w-7 h-7 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center text-[11px] font-black">
                         {idx + 1}
                       </div>
                       <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
@@ -409,7 +409,7 @@ export default function AssessmentDetailModal({
                   <p className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-widest">
                     No Response Data
                   </p>
-                  <p className="text-[9px] text-[var(--text-muted)] mt-1">
+                  <p className="text-[11px] text-[var(--text-muted)] mt-1">
                     Answer data is not available for this assessment.
                   </p>
                 </div>
@@ -419,7 +419,7 @@ export default function AssessmentDetailModal({
 
           {/* Footer */}
           <div className="px-8 py-5 border-t border-[var(--card-border)] shrink-0 flex items-center justify-between">
-            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50 flex items-center gap-2">
+            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest opacity-50 flex items-center gap-2">
               <Zap className="w-3 h-3" />
               Halkyone Clinical OS · Encrypted Record
             </p>

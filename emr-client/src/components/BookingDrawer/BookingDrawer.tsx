@@ -40,7 +40,7 @@ export default function BookingDrawer({
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[1000] flex justify-end">
+      <div className="fixed inset-0 z-[60] flex justify-end">
         <div onClick={onClose} className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" />
         <div className="relative w-full max-w-[1200px] h-full bg-[var(--background)] shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-500">
           <DrawerHeader state={state} appointmentId={appointmentId} onClose={onClose} />

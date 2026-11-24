@@ -56,7 +56,7 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { isCollapsed, toggle } = useSidebar();
+  const { isCollapsed, toggle, mobileOpen, setMobileOpen } = useSidebar();
   const { data: session, update } = useSession();
   const { prompt } = useCommandModal();
 
@@ -84,10 +84,20 @@ export function Sidebar() {
   };
 
   return (
-    <aside
-      className={`bg-[var(--sidebar-bg)] border-r border-[var(--card-border)] h-screen flex flex-col sticky top-0 transition-all duration-300 ease-in-out z-[50] ${isCollapsed ? "w-20" : "w-64"
-        }`}
-    >
+    <>
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-[65] bg-slate-950/60 backdrop-blur-sm lg:hidden"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        aria-label="Primary clinical navigation"
+        className={`bg-[var(--sidebar-bg)] border-r border-[var(--card-border)] h-screen flex flex-col transition-all duration-300 ease-in-out fixed inset-y-0 left-0 z-[70] lg:sticky lg:top-0 lg:z-[50] ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        } ${isCollapsed ? "w-20" : "w-64"}`}
+      >
       {/* Brand Section */}
       <div className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} px-6 h-14 border-b border-[var(--card-border)] shrink-0`}>
         <div className="flex items-center gap-2.5">
@@ -101,8 +111,8 @@ export function Sidebar() {
             <div className="flex flex-col">
               <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALKYONE</h2>
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider leading-none">Clinical OS</span>
-                <span className="px-1 py-0.5 text-[7px] font-black bg-[var(--primary)]/10 text-[var(--primary)] rounded border border-[var(--primary)]/10 uppercase tracking-widest leading-none">v{manifest.version}</span>
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider leading-none">Clinical OS</span>
+                <span className="px-1 py-0.5 text-[11px] font-black bg-[var(--primary)]/10 text-[var(--primary)] rounded border border-[var(--primary)]/10 uppercase tracking-widest leading-none">v{manifest.version}</span>
               </div>
             </div>
           )}
@@ -117,6 +127,7 @@ export function Sidebar() {
             <PermissionGate key={item.href} permission={item.permission}>
               <Link
                 href={item.href}
+                onClick={() => setMobileOpen(false)}
                 title={isCollapsed ? item.label : ""}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative ${isActive
                   ? (item.activeBg || "bg-[var(--primary)]/10") + " " + (item.color || "text-[var(--primary)]")
@@ -199,11 +210,12 @@ export function Sidebar() {
               <Shield className="w-4 h-4 text-rose-500" />
               <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Emergency Active</span>
             </div>
-            <p className="text-[8px] font-bold text-rose-500/70 uppercase leading-tight">Privilege escalation active. All actions are currently being recorded for clinical audit.</p>
+            <p className="text-[11px] font-bold text-rose-500/70 uppercase leading-tight">Privilege escalation active. All actions are currently being recorded for clinical audit.</p>
           </div>
         )}
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 

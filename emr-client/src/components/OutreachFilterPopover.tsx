@@ -76,7 +76,7 @@ const OutreachFilterPopover: React.FC<OutreachFilterPopoverProps> = ({ onFilterC
       >
         <Filter className={`w-4 h-4 ${currentActiveCount > 0 ? "animate-pulse" : ""}`} />
         {currentActiveCount > 0 && (
-          <span className="flex items-center justify-center bg-blue-500 text-white text-[9px] font-black w-4 h-4 rounded-full">
+          <span className="flex items-center justify-center bg-blue-500 text-white text-[11px] font-black w-4 h-4 rounded-full">
             {currentActiveCount}
           </span>
         )}
@@ -90,12 +90,12 @@ const OutreachFilterPopover: React.FC<OutreachFilterPopoverProps> = ({ onFilterC
               <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20">
                 <Target className="w-4 h-4 text-blue-500" />
               </div>
-              <h3 className="text-xs font-black uppercase tracking-tighter">Outreach Logic</h3>
+              <h3 className="text-xs font-black uppercase tracking-tight">Outreach Logic</h3>
             </div>
             {currentActiveCount > 0 && (
               <button
                 onClick={clearFilters}
-                className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 transition-colors"
+                className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 transition-colors"
               >
                 Clear
               </button>
@@ -126,7 +126,7 @@ const OutreachFilterPopover: React.FC<OutreachFilterPopoverProps> = ({ onFilterC
                         : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-blue-500/20"
                       }`}
                   >
-                    <span className="text-[9px] font-black uppercase tracking-tight">
+                    <span className="text-[11px] font-black uppercase tracking-tight">
                       {s.replace('_', ' ')}
                     </span>
                     {stagedFilters.statuses.includes(s) && <Check className="w-2.5 h-2.5" />}
@@ -151,7 +151,7 @@ const OutreachFilterPopover: React.FC<OutreachFilterPopoverProps> = ({ onFilterC
                         : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-amber-500/20"
                       }`}
                   >
-                    <span className="text-[9px] font-black uppercase tracking-tight">{count === 0 ? '0' : count === 2 ? '1-2' : '3+'}</span>
+                    <span className="text-[11px] font-black uppercase tracking-tight">{count === 0 ? '0' : count === 2 ? '1-2' : '3+'}</span>
                     {stagedFilters.callAttempts === count && <Check className="w-2.5 h-2.5" />}
                   </button>
                 ))}

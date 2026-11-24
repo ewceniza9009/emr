@@ -118,7 +118,7 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 !m-0 !p-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 !m-0 !p-0 z-[60] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
 
         <div className="relative w-full max-w-md bg-[var(--card-bg)] h-full shadow-2xl border-l border-[var(--card-border)] flex flex-col animate-in slide-in-from-right duration-500">
@@ -179,7 +179,7 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
                       >
                         <div>
                           <p className="text-xs font-bold">{p.firstName} {p.lastName}</p>
-                          <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{p.mrn}</p>
+                          <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">{p.mrn}</p>
                         </div>
                         {selectedPatientId === p.patientId && <CheckCircle2 className="w-4 h-4 text-[var(--primary)]" />}
                       </button>
@@ -243,7 +243,7 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
             >
               {isLoading ? "Processing Submission..." : isEdit ? "Update Claim Status" : "Submit Claim to PhilHealth"}
             </button>
-            <div className="mt-4 flex items-center gap-2 justify-center text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+            <div className="mt-4 flex items-center gap-2 justify-center text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
               <AlertCircle className="w-3 h-3" />
               E-Claims submission is subject to validation
             </div>

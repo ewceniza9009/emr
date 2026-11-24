@@ -12,7 +12,7 @@ import {
   IonSpinner
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { heart, chatbubbleEllipses, medkit, logOutOutline } from 'ionicons/icons';
+import { heart, chatbubbleEllipses, medkit } from 'ionicons/icons';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
@@ -54,7 +54,7 @@ import './theme/variables.css';
 setupIonicReact();
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, isLoading, logout } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -110,16 +110,8 @@ const AppContent: React.FC = () => {
                   </IonTabButton>
                   <IonTabButton tab="pharmacy" href="/app/pharmacy">
                     <IonIcon aria-hidden="true" icon={medkit} className="w-5 h-5" />
-                    <IonLabel className="text-[10px] font-sans font-bold">Pharmacy</IonLabel>
+                    <IonLabel className="text-[11px] font-sans font-bold">Pharmacy</IonLabel>
                   </IonTabButton>
-                  <button
-                    type="button"
-                    onClick={logout}
-                    className="flex flex-col items-center justify-center flex-1 h-full bg-transparent border-none text-rose-500 cursor-pointer active:opacity-75 transition-opacity"
-                  >
-                    <IonIcon aria-hidden="true" icon={logOutOutline} className="w-5 h-5 text-rose-500" />
-                    <span className="text-[10px] font-sans font-bold text-rose-500">Exit</span>
-                  </button>
                 </IonTabBar>
               </IonTabs>
             ) : (

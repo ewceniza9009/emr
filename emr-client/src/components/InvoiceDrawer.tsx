@@ -227,7 +227,7 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
                 >
                   <div>
                     <p className="text-xs font-bold">{p.firstName} {p.lastName}</p>
-                    <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{p.mrn}</p>
+                    <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">{p.mrn}</p>
                   </div>
                   {selectedPatientId === p.patientId && <CheckCircle2 className="w-4 h-4 text-[var(--primary)]" />}
                 </button>
@@ -296,7 +296,7 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
              <div className="h-px bg-[var(--card-border)] my-2" />
              <div className="flex justify-between items-end">
                 <div>
-                   <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Patient Responsibility</p>
+                   <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Patient Responsibility</p>
                    <h3 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">{formatCurrency(patientResponsibility)}</h3>
                 </div>
                 <Calculator className="w-8 h-8 text-[var(--primary)] opacity-20" />
@@ -322,7 +322,7 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
           >
             {submitting ? "Processing..." : isEdit ? "Save Changes" : "Create & Issue Invoice"}
           </button>
-          <div className="mt-4 flex items-center gap-2 justify-center text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+          <div className="mt-4 flex items-center gap-2 justify-center text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
             <Calendar className="w-3 h-3" />
             Due Date: {new Date(Date.now() + dueInDays * 24 * 60 * 60 * 1000).toLocaleDateString()}
           </div>

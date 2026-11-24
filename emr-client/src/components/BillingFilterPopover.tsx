@@ -79,7 +79,7 @@ const BillingFilterPopover: React.FC<BillingFilterPopoverProps> = ({ onFilterCha
         <Filter className={`w-4 h-4 ${currentActiveCount > 0 ? "animate-pulse" : ""}`} />
         <span className="text-[10px] font-black uppercase tracking-widest">Filters</span>
         {currentActiveCount > 0 && (
-          <span className="flex items-center justify-center bg-blue-500 text-white text-[9px] font-black w-4 h-4 rounded-full ml-1">
+          <span className="flex items-center justify-center bg-blue-500 text-white text-[11px] font-black w-4 h-4 rounded-full ml-1">
             {currentActiveCount}
           </span>
         )}
@@ -93,12 +93,12 @@ const BillingFilterPopover: React.FC<BillingFilterPopoverProps> = ({ onFilterCha
               <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20">
                 <Receipt className="w-4 h-4 text-blue-500" />
               </div>
-              <h3 className="text-xs font-black uppercase tracking-tighter">Billing Logic</h3>
+              <h3 className="text-xs font-black uppercase tracking-tight">Billing Logic</h3>
             </div>
             {currentActiveCount > 0 && (
               <button 
                 onClick={clearFilters}
-                className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 transition-colors"
+                className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 transition-colors"
               >
                 Reset
               </button>
@@ -123,7 +123,7 @@ const BillingFilterPopover: React.FC<BillingFilterPopoverProps> = ({ onFilterCha
                         : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-blue-500/20"
                     }`}
                   >
-                    <span className="text-[9px] font-black uppercase tracking-tight">{p}</span>
+                    <span className="text-[11px] font-black uppercase tracking-tight">{p}</span>
                     {stagedFilters.period === p && <Check className="w-2.5 h-2.5" />}
                   </button>
                 ))}
@@ -148,7 +148,7 @@ const BillingFilterPopover: React.FC<BillingFilterPopoverProps> = ({ onFilterCha
                           : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-emerald-500/20"
                       }`}
                     >
-                      <span className="text-[9px] font-black uppercase tracking-tight">{s}</span>
+                      <span className="text-[11px] font-black uppercase tracking-tight">{s}</span>
                       {stagedFilters.invoiceStatuses.includes(s) && <Check className="w-2.5 h-2.5" />}
                     </button>
                   ))}
@@ -171,7 +171,7 @@ const BillingFilterPopover: React.FC<BillingFilterPopoverProps> = ({ onFilterCha
                           : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-amber-500/20"
                       }`}
                     >
-                      <span className="text-[9px] font-black uppercase tracking-tight">{s}</span>
+                      <span className="text-[11px] font-black uppercase tracking-tight">{s}</span>
                       {stagedFilters.claimStatuses.includes(s) && <Check className="w-2.5 h-2.5" />}
                     </button>
                   ))}

@@ -330,9 +330,9 @@ export default function BillingPage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.1em]">{stat.label}</p>
+                <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.1em]">{stat.label}</p>
                 {loading ? <Skeleton className="h-3 w-8 rounded" /> : (
-                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter ${stat.trend.startsWith('+') ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                  <span className={`text-[11px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tight ${stat.trend.startsWith('+') ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'}`}>
                     {stat.trend}
                   </span>
                 )}
@@ -340,7 +340,7 @@ export default function BillingPage() {
               {loading ? <Skeleton className="h-7 w-24 mt-1" /> : (
                 <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight leading-none mt-0.5">{stat.value}</h3>
               )}
-              <p className="text-[8px] font-black text-[var(--text-muted)] mt-1 opacity-50 uppercase tracking-widest truncate">{stat.desc}</p>
+              <p className="text-[11px] font-black text-[var(--text-muted)] mt-1 opacity-50 uppercase tracking-widest truncate">{stat.desc}</p>
             </div>
           </div>
         ))}
@@ -351,13 +351,13 @@ export default function BillingPage() {
         <div className="flex items-center gap-1 p-1 bg-[var(--card-bg)] rounded-xl border border-[var(--card-border)] shrink-0">
           <button
             onClick={() => setActiveTab("invoices")}
-            className={`px-5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "invoices" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+            className={`px-5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === "invoices" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
           >
             Receivables
           </button>
           <button
             onClick={() => setActiveTab("claims")}
-            className={`px-5 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === "claims" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+            className={`px-5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === "claims" ? "bg-[var(--primary)] text-white shadow-lg shadow-[var(--primary-glow)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
           >
             Benefits
           </button>
@@ -372,7 +372,7 @@ export default function BillingPage() {
             placeholder="SEARCH ENTITY OR MRN..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all placeholder:text-[var(--text-muted)]"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[11px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--primary)] transition-all placeholder:text-[var(--text-muted)]"
           />
         </div>
 
@@ -468,16 +468,16 @@ export default function BillingPage() {
                           </div>
                           <div>
                             <p className="text-sm font-bold">{invoice.patient?.firstName} {invoice.patient?.lastName}</p>
-                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">MRN: {invoice.patient?.mrn}</p>
+                            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">MRN: {invoice.patient?.mrn}</p>
                           </div>
                         </div>
                       </td>
                       <td className="py-5 px-4">
                         <p className="text-xs font-bold text-[var(--primary)]">{invoice.invoiceNumber}</p>
-                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Generated {new Date(invoice.generatedAt).toLocaleDateString()}</p>
+                        <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Generated {new Date(invoice.generatedAt).toLocaleDateString()}</p>
                       </td>
                       <td className="py-5 px-4">
-                        <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tighter ${getStatusColor(invoice.status)}`}>
+                        <span className={`text-[11px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tight ${getStatusColor(invoice.status)}`}>
                           {invoice.status}
                         </span>
                       </td>
@@ -488,7 +488,7 @@ export default function BillingPage() {
                       </td>
                       <td className="py-5 px-4 text-right">
                         <p className="text-sm font-black tracking-tight">{formatCurrency(invoice.patientResponsibility)}</p>
-                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Settlement Required</p>
+                        <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Settlement Required</p>
                       </td>
                       <td className="py-5 px-4 text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -614,7 +614,7 @@ export default function BillingPage() {
                           </div>
                           <div>
                             <p className="text-sm font-bold">{claim.patient?.firstName} {claim.patient?.lastName}</p>
-                            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Verified Member</p>
+                            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Verified Member</p>
                           </div>
                         </div>
                       </td>
@@ -628,13 +628,13 @@ export default function BillingPage() {
                         </div>
                       </td>
                       <td className="py-5 px-4">
-                        <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tighter ${getStatusColor(claim.status)}`}>
+                        <span className={`text-[11px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tight ${getStatusColor(claim.status)}`}>
                           {claim.status}
                         </span>
                       </td>
                       <td className="py-5 px-4 text-right">
                         <p className="text-sm font-black text-[var(--text-primary)]">{formatCurrency(claim.totalAmount)}</p>
-                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Expected Release</p>
+                        <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Expected Release</p>
                       </td>
                       <td className="py-5 px-4 text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -751,11 +751,11 @@ function ClaimHistoryModal({ claimId, onClose, getStatusColor }: { claimId: stri
               </div>
               <div className="flex-1 pb-4">
                 <div className="flex items-center justify-between">
-                  <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase border ${getStatusColor(log.newStatus)}`}>{log.newStatus}</span>
-                  <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{new Date(log.changedAt).toLocaleString()}</span>
+                  <span className={`text-[11px] font-black px-2 py-0.5 rounded uppercase border ${getStatusColor(log.newStatus)}`}>{log.newStatus}</span>
+                  <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">{new Date(log.changedAt).toLocaleString()}</span>
                 </div>
                 <p className="text-xs font-bold mt-1 text-[var(--text-primary)]">{log.remarks || "Status updated by system"}</p>
-                <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-0.5">Operator: {log.changedBy}</p>
+                <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mt-0.5">Operator: {log.changedBy}</p>
               </div>
             </div>
           ))}

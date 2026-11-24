@@ -162,7 +162,7 @@ export default function AdminDashboardContent() {
             <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em] animate-pulse">
               Synchronizing Master Registry
             </p>
-            <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">
+            <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">
               Establishing Secure Peer Connection...
             </p>
           </div>
@@ -184,7 +184,7 @@ export default function AdminDashboardContent() {
           </div>
           <button
             onClick={() => refetch()}
-            className="px-6 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[9px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-lg shadow-rose-500/5"
+            className="px-6 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[11px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all shadow-lg shadow-rose-500/5"
           >
             Retry Synchronization
           </button>
@@ -215,7 +215,7 @@ export default function AdminDashboardContent() {
                 label: "Status",
                 render: (item: any) => (
                   <span
-                    className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${
+                    className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-tight border ${
                       item.isActive
                         ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                         : "bg-rose-500/10 text-rose-500 border-rose-500/20"
@@ -235,7 +235,7 @@ export default function AdminDashboardContent() {
                   return (
                     <div className="flex items-center gap-2">
                       <span
-                        className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${
+                        className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-tight border ${
                           hasAccount
                             ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
                             : "bg-amber-500/10 text-amber-500 border-amber-500/20"
@@ -364,7 +364,7 @@ export default function AdminDashboardContent() {
                     return (
                       <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                        <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                        <span className="px-2 py-1 rounded-md text-[11px] font-black uppercase tracking-tight border bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
                           Neural Script Active
                         </span>
                       </div>
@@ -373,7 +373,7 @@ export default function AdminDashboardContent() {
                     return (
                       <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
-                        <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-amber-500/10 text-amber-500 border-amber-500/20">
+                        <span className="px-2 py-1 rounded-md text-[11px] font-black uppercase tracking-tight border bg-amber-500/10 text-amber-500 border-amber-500/20">
                           Legacy Bridge Mode
                         </span>
                       </div>
@@ -381,7 +381,7 @@ export default function AdminDashboardContent() {
                   return (
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-slate-700" />
-                      <span className="px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-tighter border bg-slate-500/10 text-slate-500 border-slate-500/20 opacity-50">
+                      <span className="px-2 py-1 rounded-md text-[11px] font-black uppercase tracking-tight border bg-slate-500/10 text-slate-500 border-slate-500/20 opacity-50">
                         Empty Schema
                       </span>
                     </div>
@@ -394,7 +394,7 @@ export default function AdminDashboardContent() {
                 render: (item: any) => (
                   <Link
                     href={`/admin/forms/${item.questionnaireId}/design`}
-                    className="inline-flex items-center gap-3 px-4 py-2 border border-[var(--card-border)] bg-[var(--card-bg)]/50 hover:bg-[var(--primary)] hover:border-[var(--primary)] text-[var(--text-muted)] hover:text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all group/btn"
+                    className="inline-flex items-center gap-3 px-4 py-2 border border-[var(--card-border)] bg-[var(--card-bg)]/50 hover:bg-[var(--primary)] hover:border-[var(--primary)] text-[var(--text-muted)] hover:text-white rounded-xl text-[11px] font-black uppercase tracking-[0.2em] transition-all group/btn"
                   >
                     <ClipboardList className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
                     Launch Designer
@@ -431,7 +431,7 @@ export default function AdminDashboardContent() {
                   }
                   return (
                     <span
-                      className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${colorClass}`}
+                      className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-tight border ${colorClass}`}
                     >
                       {formatEnum(item.status)}
                     </span>
@@ -482,7 +482,7 @@ export default function AdminDashboardContent() {
                     label: "Status",
                     render: (item: any) => (
                       <span
-                        className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter border ${
+                        className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-tight border ${
                           item.isActive
                             ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                             : "bg-rose-500/10 text-rose-500 border-rose-500/20"
@@ -522,12 +522,12 @@ export default function AdminDashboardContent() {
             </div>
           </div>
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-60">
+            <div className="flex items-center gap-2 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] opacity-60">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
               <span>Live Terminal</span>
             </div>
             <div className="h-4 w-px bg-[var(--card-border)]" />
-            <div className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-[0.3em]">
+            <div className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-[0.3em]">
               {session?.user?.name || "Root Admin"}
             </div>
           </div>
@@ -615,7 +615,7 @@ export default function AdminDashboardContent() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <div className="flex items-center gap-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                <div className="flex items-center gap-4 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl">
                     <Activity className="w-3.5 h-3.5 text-[var(--primary)]" />
                     Last Sync: {new Date().toLocaleTimeString()}

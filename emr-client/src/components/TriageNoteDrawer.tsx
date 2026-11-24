@@ -50,7 +50,7 @@ export default function TriageNoteDrawer({ isOpen, onClose, patientId, patientNa
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden animate-fade-in">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden animate-fade-in">
         <div className="absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-500" onClick={onClose} />
         
         <div className={`relative h-full w-full max-w-[450px] bg-[rgba(var(--card-bg-rgb),0.95)] backdrop-blur-2xl shadow-[-30px_0_80px_rgba(0,0,0,0.15)] 
@@ -68,7 +68,7 @@ export default function TriageNoteDrawer({ isOpen, onClose, patientId, patientNa
                 <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none mb-1">
                   Clinical Triage Note
                 </h2>
-                <div className="flex items-center gap-1.5 mt-1 text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                <div className="flex items-center gap-1.5 mt-1 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                   <User className="w-3 h-3 text-amber-500/60" />
                   <span>{patientName}</span>
                 </div>
@@ -91,7 +91,7 @@ export default function TriageNoteDrawer({ isOpen, onClose, patientId, patientNa
                     key={level}
                     type="button"
                     onClick={() => setUrgency(level)}
-                    className={`py-3.5 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all active:scale-95 duration-300
+                    className={`py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest border transition-all active:scale-95 duration-300
                       ${urgency === level 
                         ? 'bg-amber-500 border-amber-400 text-black shadow-lg shadow-amber-500/10' 
                         : 'bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-amber-500/30 hover:text-[var(--text-primary)]'}`}

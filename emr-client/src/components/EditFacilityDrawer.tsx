@@ -158,7 +158,7 @@ export default function EditFacilityDrawer({
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div
           className="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-300"
           onClick={onClose}
@@ -220,7 +220,7 @@ export default function EditFacilityDrawer({
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest">
                   Facility Official Name
                 </label>
                 <input
@@ -232,7 +232,7 @@ export default function EditFacilityDrawer({
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest">
                   Classification Type
                 </label>
                 <select
@@ -259,7 +259,7 @@ export default function EditFacilityDrawer({
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest">
                   Coordinator Name
                 </label>
                 <input
@@ -273,7 +273,7 @@ export default function EditFacilityDrawer({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest">
                     Phone Line
                   </label>
                   <input
@@ -285,7 +285,7 @@ export default function EditFacilityDrawer({
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest">
                     Email Address
                   </label>
                   <input
@@ -311,7 +311,7 @@ export default function EditFacilityDrawer({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest">
                     Organizational NPI
                   </label>
                   <input
@@ -326,7 +326,7 @@ export default function EditFacilityDrawer({
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                  <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest">
                     Federal Tax ID (EIN)
                   </label>
                   <input
@@ -339,7 +339,7 @@ export default function EditFacilityDrawer({
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest">
                   Place of Service (POS) Code
                 </label>
                 <select
@@ -371,7 +371,7 @@ export default function EditFacilityDrawer({
                 <button
                   type="button"
                   onClick={() => setIsEditingAddress(true)}
-                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest transition-all"
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-[11px] font-black uppercase tracking-widest transition-all"
                 >
                   <MapPin className="w-3.5 h-3.5" />
                   Pin on Map
@@ -387,7 +387,7 @@ export default function EditFacilityDrawer({
 
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Street Address</label>
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Street Address</label>
                   <input 
                     className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-inner uppercase tracking-widest"
                     value={form.street}
@@ -398,7 +398,7 @@ export default function EditFacilityDrawer({
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">City Hub</label>
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">City Hub</label>
                     <input 
                       className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-inner uppercase tracking-widest"
                       value={form.city}
@@ -407,7 +407,7 @@ export default function EditFacilityDrawer({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">State</label>
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">State</label>
                     <input 
                       className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-inner uppercase tracking-widest"
                       value={form.state}
@@ -416,7 +416,7 @@ export default function EditFacilityDrawer({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Zip Code</label>
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Zip Code</label>
                     <input 
                       className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-2.5 px-4 text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all shadow-inner uppercase tracking-widest"
                       value={form.postalCode}

@@ -78,7 +78,7 @@ export default function QuickDispositionFooter({ state }: QuickDispositionFooter
   return (
     <div className="sticky bottom-0 z-20 -mx-5 -mb-5 p-5 mt-auto bg-gradient-to-t from-[var(--sidebar-bg)] via-[var(--sidebar-bg)] to-transparent border-t border-[var(--card-border)] backdrop-blur-md space-y-3">
       <div className="flex items-center justify-between px-1">
-        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">
+        <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em]">
           Quick Disposition Action
         </p>
         <div className="flex gap-1">
@@ -92,7 +92,7 @@ export default function QuickDispositionFooter({ state }: QuickDispositionFooter
           <button
             key={btn.id}
             onClick={() => state.handleLogActivity(btn.id)}
-            className={`h-8 rounded-full bg-[var(--input-bg)] border border-[var(--card-border)] text-[8px] font-black text-[var(--text-muted)] uppercase tracking-wider transition-all active:scale-[0.97] flex items-center justify-center gap-1.5 px-3.5 shadow-inner hover:scale-[1.02] ${btn.c}`}
+            className={`h-8 rounded-full bg-[var(--input-bg)] border border-[var(--card-border)] text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider transition-all active:scale-[0.97] flex items-center justify-center gap-1.5 px-3.5 shadow-inner hover:scale-[1.02] ${btn.c}`}
           >
             {btn.icon}
             <span>{btn.label}</span>

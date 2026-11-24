@@ -44,7 +44,7 @@ export default function MonthView({
         {DAYS.map((day, i) => (
           <div
             key={i}
-            className="py-2.5 text-center text-[9px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] border-r border-slate-200 dark:border-white/10 last:border-r-0"
+            className="py-2.5 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] border-r border-slate-200 dark:border-white/10 last:border-r-0"
           >
             {day}
           </div>
@@ -240,7 +240,7 @@ export default function MonthView({
                               {appt.practitioner?.firstName} {appt.practitioner?.lastName}
                             </span>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[9px] font-bold uppercase tracking-widest font-mono">
+                              <span className="text-[11px] font-bold uppercase tracking-widest font-mono">
                                 {statusConfig.label}
                               </span>
                               <div className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />

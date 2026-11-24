@@ -86,7 +86,7 @@ const PatientFilterPopover: React.FC<PatientFilterPopoverProps> = ({ onFilterCha
       >
         <Filter className={`w-4 h-4 ${currentActiveCount > 0 ? "animate-pulse" : ""}`} />
         {currentActiveCount > 0 && (
-          <span className="flex items-center justify-center bg-indigo-500 text-white text-[9px] font-black w-4 h-4 rounded-full">
+          <span className="flex items-center justify-center bg-indigo-500 text-white text-[11px] font-black w-4 h-4 rounded-full">
             {currentActiveCount}
           </span>
         )}
@@ -100,12 +100,12 @@ const PatientFilterPopover: React.FC<PatientFilterPopoverProps> = ({ onFilterCha
               <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
                 <Users className="w-4 h-4 text-indigo-500" />
               </div>
-              <h3 className="text-xs font-black uppercase tracking-tighter">Registry Logic</h3>
+              <h3 className="text-xs font-black uppercase tracking-tight">Registry Logic</h3>
             </div>
             {currentActiveCount > 0 && (
               <button
                 onClick={clearFilters}
-                className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 transition-colors"
+                className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 transition-colors"
               >
                 Reset
               </button>
@@ -129,7 +129,7 @@ const PatientFilterPopover: React.FC<PatientFilterPopoverProps> = ({ onFilterCha
                         : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-indigo-500/20"
                       }`}
                   >
-                    <span className="text-[9px] font-black uppercase tracking-tight">{sex}</span>
+                    <span className="text-[11px] font-black uppercase tracking-tight">{sex}</span>
                     {stagedFilters.biologicalSex === sex && <Check className="w-2.5 h-2.5" />}
                   </button>
                 ))}
@@ -152,7 +152,7 @@ const PatientFilterPopover: React.FC<PatientFilterPopoverProps> = ({ onFilterCha
                         : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-emerald-500/20"
                       }`}
                   >
-                    <span className="text-[9px] font-black uppercase tracking-tight">{formatEnum(status)}</span>
+                    <span className="text-[11px] font-black uppercase tracking-tight">{formatEnum(status)}</span>
                     {stagedFilters.visitStatuses.includes(status) && <Check className="w-2.5 h-2.5" />}
                   </button>
                 ))}
@@ -175,7 +175,7 @@ const PatientFilterPopover: React.FC<PatientFilterPopoverProps> = ({ onFilterCha
                         : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-blue-500/20"
                       }`}
                   >
-                    <span className="text-[9px] font-black uppercase tracking-tight">{type === 'None' ? 'Missing' : type}</span>
+                    <span className="text-[11px] font-black uppercase tracking-tight">{type === 'None' ? 'Missing' : type}</span>
                     {stagedFilters.directiveTypes.includes(type) && <Check className="w-2.5 h-2.5" />}
                   </button>
                 ))}

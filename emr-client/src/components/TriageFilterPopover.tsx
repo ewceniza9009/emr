@@ -75,7 +75,7 @@ const TriageFilterPopover: React.FC<TriageFilterPopoverProps> = ({ onFilterChang
       >
         <Filter className={`w-4 h-4 ${currentActiveCount > 0 ? "animate-pulse" : ""}`} />
         {currentActiveCount > 0 && (
-          <span className="flex items-center justify-center bg-amber-500 text-black text-[9px] font-black w-4 h-4 rounded-full">
+          <span className="flex items-center justify-center bg-amber-500 text-black text-[11px] font-black w-4 h-4 rounded-full">
             {currentActiveCount}
           </span>
         )}
@@ -89,12 +89,12 @@ const TriageFilterPopover: React.FC<TriageFilterPopoverProps> = ({ onFilterChang
               <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
                 <Activity className="w-4 h-4 text-amber-500" />
               </div>
-              <h3 className="text-xs font-black uppercase tracking-tighter">Clinical Logic</h3>
+              <h3 className="text-xs font-black uppercase tracking-tight">Clinical Logic</h3>
             </div>
             {currentActiveCount > 0 && (
               <button 
                 onClick={clearFilters}
-                className="text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 transition-colors"
+                className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 transition-colors"
               >
                 Reset
               </button>
@@ -151,7 +151,7 @@ const TriageFilterPopover: React.FC<TriageFilterPopoverProps> = ({ onFilterChang
                         : "bg-[var(--input-bg)] border-[var(--card-border)] hover:border-blue-500/20"
                     }`}
                   >
-                    <span className="text-[9px] font-black uppercase tracking-tight">{type === 'None' ? 'Missing' : type}</span>
+                    <span className="text-[11px] font-black uppercase tracking-tight">{type === 'None' ? 'Missing' : type}</span>
                     {stagedFilters.directiveTypes.includes(type) && <Check className="w-2.5 h-2.5" />}
                   </button>
                 ))}

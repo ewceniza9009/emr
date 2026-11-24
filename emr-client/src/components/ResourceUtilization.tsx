@@ -171,7 +171,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
     <div className="pt-4 pb-8 space-y-6 relative">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h2 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tighter flex items-center gap-3">
+          <h2 className="text-xl font-black text-[var(--text-primary)] uppercase tracking-tight flex items-center gap-3">
             <Flame className="w-6 h-6 text-orange-500" />
             Resource Utilization Heatmap
           </h2>
@@ -182,19 +182,19 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500/40" />
-            <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+            <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
               Optimal
             </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-amber-500/20 border border-amber-500/40" />
-            <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+            <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
               Elevated
             </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-rose-500/20 border border-rose-500/40" />
-            <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+            <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
               Critical
             </span>
           </div>
@@ -231,11 +231,11 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter leading-none mb-1">
+                    <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight leading-none mb-1">
                       {u.fullName}
                     </h3>
                     <p
-                      className={`text-[8px] font-black uppercase tracking-[0.2em] opacity-80`}
+                      className={`text-[11px] font-black uppercase tracking-[0.2em] opacity-80`}
                     >
                       {isCritical
                         ? "CRITICAL LOAD"
@@ -249,7 +249,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
 
               {/* Load Bar */}
               <div className="space-y-1.5 mb-4">
-                <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)]">
+                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)]">
                   <span>Capacity Utilization</span>
                   <span
                     className={isCritical ? "text-rose-500 animate-pulse" : ""}
@@ -273,7 +273,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
 
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="bg-[var(--input-bg)]/40 p-2 py-2.5 rounded-xl border border-[var(--card-border)]/50 text-center transition-colors group-hover:bg-[var(--input-bg)]/60">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1 opacity-60">
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1 opacity-60">
                     Open Cases
                   </p>
                   <p className="text-lg font-black text-[var(--text-primary)]">
@@ -281,7 +281,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
                   </p>
                 </div>
                 <div className="bg-[var(--input-bg)]/40 p-2 py-2.5 rounded-xl border border-[var(--card-border)]/50 text-center transition-colors group-hover:bg-[var(--input-bg)]/60">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1 opacity-60">
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1 opacity-60">
                     Pending Tasks
                   </p>
                   <p className="text-lg font-black text-[var(--text-primary)]">
@@ -292,7 +292,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
 
               <button
                 onClick={() => setSelectedPractitioner(u)}
-                className="w-full py-2.5 bg-[var(--card-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)] hover:border-[var(--primary)] text-[var(--text-muted)] hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-lg"
+                className="w-full py-2.5 bg-[var(--card-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)] hover:border-[var(--primary)] text-[var(--text-muted)] hover:text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 group/btn shadow-lg"
               >
                 <ClipboardList className="w-3.5 h-3.5" />
                 Review Workflow
@@ -315,7 +315,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
       {mounted &&
         selectedPractitioner &&
         createPortal(
-          <div className="fixed inset-0 left-0 top-0 w-screen h-screen z-[9999] flex items-center justify-center p-6 sm:p-20 animate-in fade-in duration-300 backdrop-blur-md bg-black/40">
+          <div className="fixed inset-0 left-0 top-0 w-screen h-screen z-[60] flex items-center justify-center p-6 sm:p-20 animate-in fade-in duration-300 backdrop-blur-md bg-black/40">
             <div className="bg-[var(--card-bg)] border border-[var(--card-border)] w-full max-w-4xl max-h-[85vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
               {/* Modal Header */}
               <div className="py-4 px-6 border-b border-[var(--card-border)] bg-[var(--input-bg)]/20 flex items-center justify-between">
@@ -325,14 +325,14 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
                   </div>
                   <div>
                     <div className="flex items-center gap-2.5 mb-0.5">
-                      <h2 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-tighter">
+                      <h2 className="text-lg font-black text-[var(--text-primary)] uppercase tracking-tight">
                         {selectedPractitioner.fullName}
                       </h2>
-                      <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-emerald-500 text-[8px] font-black uppercase tracking-widest">
+                      <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-emerald-500 text-[11px] font-black uppercase tracking-widest">
                         Active Session
                       </div>
                     </div>
-                    <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                    <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                       Workload Intelligence & Forensic Drill-down
                     </p>
                   </div>
@@ -352,7 +352,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
                     <div className="w-10 h-10 bg-[var(--primary)]/10 rounded-full flex items-center justify-center mx-auto border border-[var(--primary)]/20 text-[var(--primary)]">
                       <Activity className="w-5 h-5 animate-spin" />
                     </div>
-                    <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                    <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                       Fetching Live Workload Stream...
                     </p>
                   </div>
@@ -384,7 +384,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
                               <h4 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-tight mb-0.5">
                                 {item.title}
                               </h4>
-                              <div className="flex items-center gap-3 text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                              <div className="flex items-center gap-3 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                                 <span className="flex items-center gap-1">
                                   <Activity className="w-2.5 h-2.5" />
                                   {item.type}
@@ -423,7 +423,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
                       detailData.practitionerWorkloadDetails.length === 0) && (
                       <div className="text-center py-12 opacity-40">
                         <ClipboardList className="w-10 h-10 mx-auto mb-3" />
-                        <p className="text-[9px] font-black uppercase tracking-widest">
+                        <p className="text-[11px] font-black uppercase tracking-widest">
                           No Active Workload Identified
                         </p>
                       </div>
@@ -443,20 +443,20 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
                       />
                     ))}
                   </div>
-                  <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                  <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                     Collaborating Teams Active
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setSelectedPractitioner(null)}
-                    className="px-4 py-2 text-[9px] font-black text-[var(--text-muted)] hover:text-[var(--text-primary)] uppercase tracking-widest transition-all"
+                    className="px-4 py-2 text-[11px] font-black text-[var(--text-muted)] hover:text-[var(--text-primary)] uppercase tracking-widest transition-all"
                   >
                     Dismiss
                   </button>
                   <button
                     onClick={handleDispatch}
-                    className="px-5 py-2 bg-[var(--primary)] text-[var(--sidebar-bg)] rounded-xl text-[9px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-xl shadow-[var(--primary-glow)]"
+                    className="px-5 py-2 bg-[var(--primary)] text-[var(--sidebar-bg)] rounded-xl text-[11px] font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-xl shadow-[var(--primary-glow)]"
                   >
                     Dispatch Adjustment
                   </button>

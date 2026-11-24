@@ -18,7 +18,7 @@ export default function IdentityHub({ state }: IdentityHubProps) {
         </h2>
         <button
           onClick={() => state.setIsAddingRelative(!state.isAddingRelative)}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
             state.isAddingRelative
               ? "bg-rose-500 text-white"
               : "bg-[var(--primary)] text-black hover:bg-[var(--primary)]/80"
@@ -32,7 +32,7 @@ export default function IdentityHub({ state }: IdentityHubProps) {
         <div className="bg-white/[0.02] border border-[var(--card-border)] rounded-xl p-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
           <div className="grid grid-cols-2 gap-2">
             <input
-              className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50"
+              className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50"
               value={state.newContact.phoneNumber || ""}
               onChange={(e) =>
                 state.setNewContact({
@@ -46,7 +46,7 @@ export default function IdentityHub({ state }: IdentityHubProps) {
               placeholder="(XXX) XXX-XXXX"
             />
             <input
-              className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50"
+              className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-[var(--primary)]/50"
               value={state.newContact.email || ""}
               onChange={(e) =>
                 state.setNewContact({
@@ -63,7 +63,7 @@ export default function IdentityHub({ state }: IdentityHubProps) {
                 ? state.handleUpdateContact
                 : state.handleAddContact
             }
-            className="w-full py-2 rounded-lg bg-[var(--primary)] text-black text-[8px] font-black uppercase tracking-widest shadow-lg"
+            className="w-full py-2 rounded-lg bg-[var(--primary)] text-black text-[11px] font-black uppercase tracking-widest shadow-lg"
           >
             Commit Registry
           </button>
@@ -75,7 +75,7 @@ export default function IdentityHub({ state }: IdentityHubProps) {
         {state.isEditingLead ? (
           <div className="p-4 rounded-xl border border-[var(--primary)]/40 bg-[var(--primary)]/[0.04] space-y-3 animate-in slide-in-from-top-2 duration-200">
             <div className="space-y-1">
-              <label className="text-[7px] font-black text-[var(--primary)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-black text-[var(--primary)] uppercase tracking-widest ml-1">
                 Edit Primary Phone
               </label>
               <input
@@ -93,13 +93,13 @@ export default function IdentityHub({ state }: IdentityHubProps) {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => state.setIsEditingLead(false)}
-                className="px-3 py-1.5 rounded-lg text-[8px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5"
+                className="px-3 py-1.5 rounded-lg text-[11px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5"
               >
                 Cancel
               </button>
               <button
                 onClick={state.handleUpdateLeadPhone}
-                className="px-5 py-1.5 rounded-lg bg-[var(--primary)] text-black text-[8px] font-black uppercase tracking-widest shadow-lg"
+                className="px-5 py-1.5 rounded-lg bg-[var(--primary)] text-black text-[11px] font-black uppercase tracking-widest shadow-lg"
               >
                 Save Primary
               </button>
@@ -153,7 +153,7 @@ export default function IdentityHub({ state }: IdentityHubProps) {
               <div className="p-3 rounded-lg border border-[var(--primary)]/40 bg-[var(--primary)]/[0.04] space-y-3 animate-in slide-in-from-top-2 duration-200">
                 <div className="grid grid-cols-2 gap-2">
                   <input
-                    className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
+                    className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
                     value={state.newContact.phoneNumber || ""}
                     onChange={(e) =>
                       state.setNewContact({
@@ -167,7 +167,7 @@ export default function IdentityHub({ state }: IdentityHubProps) {
                     placeholder="(XXX) XXX-XXXX"
                   />
                   <input
-                    className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[9px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
+                    className="bg-[var(--background)] border border-[var(--card-border)] rounded-lg py-2 px-3 text-[11px] font-bold text-[var(--text-primary)] outline-none focus:border-[var(--primary)]/50"
                     value={state.newContact.email || ""}
                     onChange={(e) =>
                       state.setNewContact({
@@ -181,13 +181,13 @@ export default function IdentityHub({ state }: IdentityHubProps) {
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={() => state.setEditingContactId(null)}
-                    className="px-3 py-1.5 rounded-lg text-[8px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5"
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={state.handleUpdateContact}
-                    className="px-5 py-1.5 rounded-lg bg-[var(--primary)] text-black text-[8px] font-black uppercase tracking-widest shadow-lg"
+                    className="px-5 py-1.5 rounded-lg bg-[var(--primary)] text-black text-[11px] font-black uppercase tracking-widest shadow-lg"
                   >
                     Commit Sync
                   </button>

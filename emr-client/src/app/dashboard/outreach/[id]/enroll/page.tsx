@@ -369,8 +369,8 @@ export default function OutreachDetail() {
           <div>
             <h1 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight leading-none">Patient Outreach Profile</h1>
             <div className="flex items-center gap-3 mt-1.5">
-              <span className="px-1.5 py-0.5 rounded bg-teal-500/10 text-[7px] font-black text-teal-500 uppercase tracking-widest border border-teal-500/20">Active Session</span>
-              <span className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-widest opacity-80">{lead.firstName} {lead.lastName}</span>
+              <span className="px-1.5 py-0.5 rounded bg-teal-500/10 text-[11px] font-black text-teal-500 uppercase tracking-widest border border-teal-500/20">Active Session</span>
+              <span className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-widest opacity-80">{lead.firstName} {lead.lastName}</span>
             </div>
           </div>
         </div>
@@ -391,7 +391,7 @@ export default function OutreachDetail() {
              <section className="bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] p-5 space-y-5 shadow-2xl relative group/registry">
                 <div className="flex items-center justify-between">
                   <h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Identity Hub</h2>
-                  <button onClick={() => setIsAddingRelative(!isAddingRelative)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all ${isAddingRelative ? 'bg-rose-500 text-[var(--text-primary)]' : 'bg-teal-500 text-black hover:bg-teal-600'}`}>{isAddingRelative ? 'Cancel' : '+ Add Channel'}</button>
+                  <button onClick={() => setIsAddingRelative(!isAddingRelative)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${isAddingRelative ? 'bg-rose-500 text-[var(--text-primary)]' : 'bg-teal-500 text-black hover:bg-teal-600'}`}>{isAddingRelative ? 'Cancel' : '+ Add Channel'}</button>
                 </div>
 
                 {isAddingRelative && (
@@ -401,7 +401,7 @@ export default function OutreachDetail() {
                       <input className="w-full bg-[var(--background)] border border-white/5 rounded-xl py-2.5 px-4 text-[10px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={newRelativeForm.email} onChange={e => setNewRelativeForm({...newRelativeForm, email: e.target.value})} placeholder="Email" />
                     </div>
                     <div className="flex justify-end gap-2">
-                      <button onClick={editingContactId ? handleUpdateContact : handleAddRelative} className="w-full py-2.5 rounded-xl bg-teal-500 text-black text-[9px] font-black uppercase tracking-widest shadow-xl">Commit Registry</button>
+                      <button onClick={editingContactId ? handleUpdateContact : handleAddRelative} className="w-full py-2.5 rounded-xl bg-teal-500 text-black text-[11px] font-black uppercase tracking-widest shadow-xl">Commit Registry</button>
                     </div>
                   </div>
                 )}
@@ -417,8 +417,8 @@ export default function OutreachDetail() {
                           <input className="w-full bg-[var(--background)] border border-white/5 rounded-xl py-3 px-5 text-sm font-bold text-[var(--text-primary)] outline-none focus:border-teal-500" value={primaryForm.primaryEmail} onChange={e => setPrimaryForm({...primaryForm, primaryEmail: e.target.value})} placeholder="Email" />
                         </div>
                         <div className="flex justify-end gap-3 pt-2">
-                          <button onClick={() => setIsEditingPrimary(false)} className="px-6 py-2.5 rounded-xl text-[9px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5">Abort</button>
-                          <button onClick={handleSavePrimary} className="px-10 py-2.5 rounded-xl bg-teal-500 text-black text-[9px] font-black uppercase tracking-widest shadow-xl">Commit Sync</button>
+                          <button onClick={() => setIsEditingPrimary(false)} className="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5">Abort</button>
+                          <button onClick={handleSavePrimary} className="px-10 py-2.5 rounded-xl bg-teal-500 text-black text-[11px] font-black uppercase tracking-widest shadow-xl">Commit Sync</button>
                         </div>
                       </div>
                     ) : (
@@ -427,7 +427,7 @@ export default function OutreachDetail() {
                           <PhoneCall className="w-[18px] h-[18px] text-teal-500" />
                           <div>
                             <p className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider leading-none">{formatPhoneNumber(lead.primaryPhone) || "NO PHONE"}</p>
-                            {lead.primaryEmail && <p className="text-[8px] font-bold text-teal-500/70 mt-1 lowercase">{lead.primaryEmail}</p>}
+                            {lead.primaryEmail && <p className="text-[11px] font-bold text-teal-500/70 mt-1 lowercase">{lead.primaryEmail}</p>}
                             <span className="text-[6px] font-black text-teal-500 uppercase mt-1 block">PRIMARY VECTOR</span>
                           </div>
                         </div>
@@ -448,8 +448,8 @@ export default function OutreachDetail() {
                               <input className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500" value={newRelativeForm.email} onChange={e => setNewRelativeForm({...newRelativeForm, email: e.target.value})} placeholder="Email" />
                             </div>
                             <div className="flex justify-end gap-2">
-                              <button onClick={() => setEditingContactId(null)} className="px-3 py-1.5 rounded-lg text-[8px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5">Cancel</button>
-                              <button onClick={handleUpdateContact} className="px-5 py-1.5 rounded-lg bg-teal-500 text-black text-[8px] font-black uppercase tracking-widest shadow-xl">Commit Sync</button>
+                              <button onClick={() => setEditingContactId(null)} className="px-3 py-1.5 rounded-lg text-[11px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5">Cancel</button>
+                              <button onClick={handleUpdateContact} className="px-5 py-1.5 rounded-lg bg-teal-500 text-black text-[11px] font-black uppercase tracking-widest shadow-xl">Commit Sync</button>
                             </div>
                           </div>
                         ) : (
@@ -458,7 +458,7 @@ export default function OutreachDetail() {
                               <Smartphone className="w-[18px] h-[18px] text-slate-400" />
                               <div>
                                 <p className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider leading-none">{formatPhoneNumber(contact.phoneNumber)}</p>
-                                {contact.email && <p className="text-[8px] font-bold text-teal-500/70 mt-1 lowercase">{contact.email}</p>}
+                                {contact.email && <p className="text-[11px] font-bold text-teal-500/70 mt-1 lowercase">{contact.email}</p>}
                                 <span className="text-[6px] font-black text-[var(--text-muted)] uppercase mt-1 block">SECONDARY CHANNEL</span>
                               </div>
                             </div>
@@ -487,11 +487,11 @@ export default function OutreachDetail() {
                         setNewRelativeForm({ firstName: "", lastName: "", relationship: "Relative", phoneNumber: "", email: "" }); 
                         setIsAddingProxy(true); 
                       }} 
-                      className="px-3 py-1 rounded-lg bg-teal-500/10 text-teal-500 text-[8px] font-black uppercase tracking-widest hover:bg-teal-400 hover:text-black transition-all border border-teal-500/20"
+                      className="px-3 py-1 rounded-lg bg-teal-500/10 text-teal-500 text-[11px] font-black uppercase tracking-widest hover:bg-teal-400 hover:text-black transition-all border border-teal-500/20"
                     >
                       + Add Proxy
                     </button>
-                    <span className="px-3 py-1 rounded bg-white/5 text-[var(--text-muted)] text-[8px] font-black uppercase tracking-widest border border-white/5">{relativeContacts.length} Registered</span>
+                    <span className="px-3 py-1 rounded bg-white/5 text-[var(--text-muted)] text-[11px] font-black uppercase tracking-widest border border-white/5">{relativeContacts.length} Registered</span>
                   </div>
                 </div>
 
@@ -510,8 +510,8 @@ export default function OutreachDetail() {
                         <input className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500" value={newRelativeForm.email} onChange={e => setNewRelativeForm({...newRelativeForm, email: e.target.value})} placeholder="Email" />
                       </div>
                       <div className="flex justify-end gap-2">
-                        <button onClick={() => setIsAddingProxy(false)} className="px-3 py-1.5 rounded-lg text-[8px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5">Cancel</button>
-                        <button onClick={async () => { await handleAddRelative(); setIsAddingProxy(false); }} className="px-5 py-1.5 rounded-lg bg-teal-500 text-black text-[8px] font-black uppercase tracking-widest shadow-xl">Commit Proxy</button>
+                        <button onClick={() => setIsAddingProxy(false)} className="px-3 py-1.5 rounded-lg text-[11px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5">Cancel</button>
+                        <button onClick={async () => { await handleAddRelative(); setIsAddingProxy(false); }} className="px-5 py-1.5 rounded-lg bg-teal-500 text-black text-[11px] font-black uppercase tracking-widest shadow-xl">Commit Proxy</button>
                       </div>
                     </div>
                   )}
@@ -531,8 +531,8 @@ export default function OutreachDetail() {
                             <input className="bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[10px] font-bold text-[var(--text-primary)] outline-none focus:border-teal-500" value={newRelativeForm.email} onChange={e => setNewRelativeForm({...newRelativeForm, email: e.target.value})} placeholder="Email" />
                           </div>
                           <div className="flex justify-end gap-2">
-                            <button onClick={() => setEditingContactId(null)} className="px-3 py-1.5 rounded-lg text-[8px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5">Cancel</button>
-                            <button onClick={handleUpdateContact} className="px-5 py-1.5 rounded-lg bg-teal-500 text-black text-[8px] font-black uppercase tracking-widest shadow-xl">Commit Sync</button>
+                            <button onClick={() => setEditingContactId(null)} className="px-3 py-1.5 rounded-lg text-[11px] font-black uppercase text-[var(--text-muted)] hover:bg-white/5">Cancel</button>
+                            <button onClick={handleUpdateContact} className="px-5 py-1.5 rounded-lg bg-teal-500 text-black text-[11px] font-black uppercase tracking-widest shadow-xl">Commit Sync</button>
                           </div>
                         </div>
                       ) : (
@@ -544,9 +544,9 @@ export default function OutreachDetail() {
                               <div className="flex flex-col gap-1 mt-1">
                                 <div className="flex items-center gap-2">
                                   <span className="text-[10px] font-black text-slate-400 tracking-tight">{formatPhoneNumber(contact.phoneNumber)}</span>
-                                  <span className="text-[7px] font-black text-teal-500/50 uppercase tracking-widest italic">/ {RELATIONSHIP_LABELS[contact.relationship] || contact.relationship}</span>
+                                  <span className="text-[11px] font-black text-teal-500/50 uppercase tracking-widest italic">/ {RELATIONSHIP_LABELS[contact.relationship] || contact.relationship}</span>
                                 </div>
-                                {contact.email && <span className="text-[8px] font-bold text-teal-500/70 lowercase">{contact.email}</span>}
+                                {contact.email && <span className="text-[11px] font-bold text-teal-500/70 lowercase">{contact.email}</span>}
                               </div>
                             </div>
                           </div>
@@ -561,7 +561,7 @@ export default function OutreachDetail() {
                   )) : (
                     <div className="h-full flex flex-col items-center justify-center py-10 opacity-30">
                        <Users className="w-10 h-10 mb-3" />
-                       <p className="text-[9px] font-black uppercase tracking-widest">No Proxy Contacts</p>
+                       <p className="text-[11px] font-black uppercase tracking-widest">No Proxy Contacts</p>
                     </div>
                   )}
                 </div>
@@ -571,14 +571,14 @@ export default function OutreachDetail() {
           {/* Evaluation Panels (BALANCED DENSITY) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
             <section className="bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] p-5 space-y-5 shadow-2xl group/engagement hover:border-teal-500/20 transition-colors">
-              <div><h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Engagement Profile</h2><p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] mt-1">Assess patient disposition.</p></div>
+              <div><h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Engagement Profile</h2><p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] mt-1">Assess patient disposition.</p></div>
               <div className="grid grid-cols-5 gap-1.5">
                 {Object.values(EnrollmentDisposition).map((d) => (
-                  <button key={d} onClick={() => { setDisposition(d); handleUpdateLead({ disposition: d }); }} className={`py-3 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all shadow-lg border ${disposition === d ? 'bg-teal-500 text-black border-teal-500 shadow-teal-500/20' : 'bg-white/5 text-[var(--text-muted)] border-[var(--card-border)] hover:bg-white/10 hover:border-white/20'}`}>{d}</button>
+                  <button key={d} onClick={() => { setDisposition(d); handleUpdateLead({ disposition: d }); }} className={`py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg border ${disposition === d ? 'bg-teal-500 text-black border-teal-500 shadow-teal-500/20' : 'bg-white/5 text-[var(--text-muted)] border-[var(--card-border)] hover:bg-white/10 hover:border-white/20'}`}>{d}</button>
                 ))}
               </div>
               <div className="space-y-2.5 pt-2 border-t border-white/5">
-                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Proposed Health Plan</p>
+                <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Proposed Health Plan</p>
                 <select className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-[10px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500 shadow-inner transition-all" value={selectedPlan || ""} onChange={(e) => { setSelectedPlan(e.target.value); handleUpdateLead({ healthPlanId: e.target.value }); }}>
                   <option value="">Select Clinical Plan...</option>{planData?.healthPlans.map((plan: any) => <option key={plan.healthPlanId} value={plan.healthPlanId}>{plan.name}</option>)}
                 </select>
@@ -586,23 +586,23 @@ export default function OutreachDetail() {
             </section>
 
             <section className="bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] p-5 space-y-5 shadow-2xl group/eval hover:border-teal-500/20 transition-colors">
-              <div><h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Logistical Strategy</h2><p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] mt-1">Evaluate environmental barriers.</p></div>
+              <div><h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Logistical Strategy</h2><p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] mt-1">Evaluate environmental barriers.</p></div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Comm Status</p>
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Comm Status</p>
                   <select className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-xl py-3 px-3 text-[10px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={communicationStatus} onChange={(e) => { setCommunicationStatus(e.target.value as CommunicationAbility); handleUpdateLead({ communicationStatus: e.target.value }); }}>
                     {Object.values(CommunicationAbility).map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Tech Access</p>
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Tech Access</p>
                   <select className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-xl py-3 px-3 text-[10px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={techAccess} onChange={(e) => { setTechAccess(e.target.value as TechAccessLevel); handleUpdateLead({ techAccess: e.target.value }); }}>
                     {Object.values(TechAccessLevel).map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </div>
               </div>
               <div className="space-y-2.5 pt-2 border-t border-white/5">
-                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Selected Modality</p>
+                <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Selected Modality</p>
                 <select className="w-full bg-[var(--background)] border border-[var(--card-border)] rounded-xl py-3 px-3 text-[10px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={selectedModality} onChange={(e) => { setSelectedModality(e.target.value as CareModality); handleUpdateLead({ modality: e.target.value }); }}>
                    {Object.values(CareModality).map(v => <option key={v} value={v}>{v}</option>)}
                 </select>
@@ -615,7 +615,7 @@ export default function OutreachDetail() {
           {/* Activity Intel (BALANCED) */}
           <section className="bg-[var(--card-bg)] rounded-2xl border border-[var(--card-border)] p-5 shadow-2xl space-y-5 shrink-0 hover:border-teal-500/20 transition-colors">
             <div className="flex items-center justify-between">
-              <div><h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Activity Intel</h2><p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] mt-1">Capture encounter data.</p></div>
+              <div><h2 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Activity Intel</h2><p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.4em] mt-1">Capture encounter data.</p></div>
               <button onClick={() => handleLogActivity("NO_ANSWER")} className={`flex items-center gap-2 px-6 py-2.5 rounded-xl border border-rose-500/30 text-rose-500 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:bg-rose-500/10 shadow-lg ${isLoggingNoAnswer ? 'animate-pulse' : ''}`}><PhoneOff className="w-4 h-4" /> {isLoggingNoAnswer ? 'Recording...' : 'Log No Answer'}</button>
             </div>
             <div className="relative group/log">
@@ -665,7 +665,7 @@ export default function OutreachDetail() {
             {isEditingSummary ? (
               <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
                 <div className="space-y-1.5">
-                  <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Legal Identity</p>
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Legal Identity</p>
                   <div className="grid grid-cols-2 gap-2">
                     <input className="w-full bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[10px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={summaryForm.firstName} onChange={e => setSummaryForm({...summaryForm, firstName: e.target.value})} placeholder="First" />
                     <input className="w-full bg-[var(--background)] border border-white/5 rounded-lg py-2 px-3 text-[10px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={summaryForm.lastName} onChange={e => setSummaryForm({...summaryForm, lastName: e.target.value})} placeholder="Last" />
@@ -673,23 +673,23 @@ export default function OutreachDetail() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                    <div className="space-y-1">
-                     <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Biological Sex</p>
-                     <select className="w-full bg-[var(--background)] border border-white/5 rounded-lg py-2 px-2 text-[9px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={summaryForm.biologicalSex || ""} onChange={e => setSummaryForm({...summaryForm, biologicalSex: e.target.value})}>
+                     <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Biological Sex</p>
+                     <select className="w-full bg-[var(--background)] border border-white/5 rounded-lg py-2 px-2 text-[11px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={summaryForm.biologicalSex || ""} onChange={e => setSummaryForm({...summaryForm, biologicalSex: e.target.value})}>
                         <option value="">Select...</option>
                         {Object.values(BiologicalSex).map(v => <option key={v} value={v}>{v}</option>)}
                      </select>
                    </div>
                    <div className="space-y-1">
-                     <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Gender Identity</p>
-                     <select className="w-full bg-[var(--background)] border border-white/5 rounded-lg py-2 px-2 text-[9px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={summaryForm.genderIdentity || ""} onChange={e => setSummaryForm({...summaryForm, genderIdentity: e.target.value})}>
+                     <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Gender Identity</p>
+                     <select className="w-full bg-[var(--background)] border border-white/5 rounded-lg py-2 px-2 text-[11px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={summaryForm.genderIdentity || ""} onChange={e => setSummaryForm({...summaryForm, genderIdentity: e.target.value})}>
                         <option value="">Select...</option>
                         <option value="Male">Male</option><option value="Female">Female</option><option value="NonBinary">Non-Binary</option><option value="Other">Other</option>
                      </select>
                    </div>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Outreach Status</p>
-                  <select className="w-full bg-[var(--background)] border border-white/5 rounded-lg py-2 px-2 text-[9px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={summaryForm.status || ""} onChange={e => setSummaryForm({...summaryForm, status: e.target.value})}>
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Outreach Status</p>
+                  <select className="w-full bg-[var(--background)] border border-white/5 rounded-lg py-2 px-2 text-[11px] font-black text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={summaryForm.status || ""} onChange={e => setSummaryForm({...summaryForm, status: e.target.value})}>
                       {Object.entries(OUTREACH_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
                 </div>
@@ -704,15 +704,15 @@ export default function OutreachDetail() {
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-                  <div className="space-y-1.5"><p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Biological Sex</p><p className="text-xs font-black uppercase">{lead.biologicalSex || "N/A"}</p></div>
-                  <div className="space-y-1.5"><p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Gender Identity</p><p className="text-xs font-black uppercase">{lead.genderIdentity || "N/A"}</p></div>
+                  <div className="space-y-1.5"><p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Biological Sex</p><p className="text-xs font-black uppercase">{lead.biologicalSex || "N/A"}</p></div>
+                  <div className="space-y-1.5"><p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Gender Identity</p><p className="text-xs font-black uppercase">{lead.genderIdentity || "N/A"}</p></div>
                 </div>
               </>
             )}
 
             <div className={`pt-4 border-t border-white/5 relative group/site ${isEditingLocation ? 'bg-white/[0.02] p-3 -mx-3 rounded-b-2xl' : ''}`}>
                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Mailing Site</p>
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Mailing Site</p>
                   {!isEditingLocation ? (
                     <button onClick={() => { setLocationForm({ ...lead.mailingAddress }); setIsEditingLocation(true); }} className="opacity-0 group-hover/site:opacity-100 p-1 text-[var(--text-muted)] hover:text-teal-500 transition-all"><Pencil className="w-3 h-3" /></button>
                   ) : (
@@ -755,7 +755,7 @@ export default function OutreachDetail() {
             {isEditingReachability ? (
               <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
                 <div className="space-y-1.5">
-                  <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Preferred Contact Window</p>
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Preferred Contact Window</p>
                   <select 
                     className="w-full bg-[var(--background)] border border-white/5 rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] uppercase outline-none focus:border-teal-500 shadow-inner"
                     value={reachabilityForm.preferredContactTime || ""}
@@ -768,7 +768,7 @@ export default function OutreachDetail() {
                     <option value="WEEKENDS ONLY">WEEKENDS ONLY</option>
                   </select>
                   <div className="pt-2">
-                    <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1.5">Or Custom Window</p>
+                    <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1 mb-1.5">Or Custom Window</p>
                     <input className="w-full bg-[var(--background)] border border-white/5 rounded-xl py-2.5 px-4 text-[10px] font-bold text-[var(--text-primary)] uppercase outline-none focus:border-teal-500" value={reachabilityForm.preferredContactTime || ""} onChange={e => setReachabilityForm({...reachabilityForm, preferredContactTime: e.target.value})} placeholder="E.G. LATE NIGHTS" />
                   </div>
                 </div>
@@ -777,7 +777,7 @@ export default function OutreachDetail() {
               <div className="bg-teal-500/5 border border-teal-500/20 rounded-2xl p-4 space-y-4">
                 <div className="flex items-center justify-between"><span className="text-[10px] font-black text-[var(--text-primary)] uppercase">Optimal Window</span><Zap className="w-4 h-4 text-teal-500" /></div>
                 <p className="text-lg font-black text-teal-400 uppercase tracking-widest leading-tight">{lead.preferredContactTime || "No Window Set"}</p>
-                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Calculated via historical success patterns.</p>
+                <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Calculated via historical success patterns.</p>
               </div>
             )}
           </div>

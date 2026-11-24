@@ -54,7 +54,7 @@ export default function CalendarHeader({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-1.5 h-6 bg-[var(--primary)] rounded-full shadow-sm shadow-[var(--primary-glow)]" />
-          <h1 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter">
+          <h1 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">
             Clinical Scheduling
           </h1>
           <div className="flex items-center gap-3 ml-4 border-l border-[var(--card-border)] pl-4">
@@ -215,7 +215,7 @@ export default function CalendarHeader({
           <div className="h-4 w-px bg-[var(--card-border)]" />
 
           <div className="flex items-center gap-4">
-            <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+            <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
               Modality:
             </span>
             <div className="flex items-center gap-3">

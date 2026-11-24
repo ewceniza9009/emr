@@ -83,7 +83,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
 
         <div className={`relative h-full w-full max-w-[500px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
@@ -122,7 +122,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
                     <h3 className="text-[10px] font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Phone Registry (Self)</h3>
                     <div className="w-12 h-px bg-[var(--card-border)]" />
                   </div>
-                  <button type="button" onClick={handleAddPhone} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-[9px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/20 transition-all">
+                  <button type="button" onClick={handleAddPhone} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-[11px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/20 transition-all">
                     <Plus className="w-3.5 h-3.5" /> Add Vector
                   </button>
                 </div>
@@ -151,7 +151,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
                               key={t}
                               type="button"
                               onClick={() => setPhones(phones.map((p, i) => i === idx ? { ...p, type: t } : p))}
-                              className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${phone.type === t ? 'bg-[var(--primary)] text-white shadow-md' : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}
+                              className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${phone.type === t ? 'bg-[var(--primary)] text-white shadow-md' : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}
                             >
                               {t}
                             </button>
@@ -160,7 +160,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
                         <button
                           type="button"
                           onClick={() => setPrimaryPhone(idx)}
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${phone.isPrimary ? 'bg-emerald-500 text-black shadow-md' : 'bg-white/5 text-slate-600 hover:bg-white/10'}`}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${phone.isPrimary ? 'bg-emerald-500 text-black shadow-md' : 'bg-white/5 text-slate-600 hover:bg-white/10'}`}
                         >
                           {phone.isPrimary ? <ShieldCheck className="w-3 h-3" /> : null}
                           {phone.isPrimary ? 'Primary' : 'Set Primary'}
@@ -179,7 +179,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
                     <h3 className="text-[10px] font-black text-[var(--text-primary)] tracking-[0.3em] uppercase">Email Registry (Self)</h3>
                     <div className="w-12 h-px bg-[var(--card-border)]" />
                   </div>
-                  <button type="button" onClick={handleAddEmail} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-[9px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/20 transition-all">
+                  <button type="button" onClick={handleAddEmail} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)] text-[11px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/20 transition-all">
                     <Plus className="w-3.5 h-3.5" /> Add Vector
                   </button>
                 </div>
@@ -209,7 +209,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
                               key={t}
                               type="button"
                               onClick={() => setEmails(emails.map((em, i) => i === idx ? { ...em, type: t } : em))}
-                              className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${email.type === t ? 'bg-[var(--primary)] text-white shadow-md' : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}
+                              className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${email.type === t ? 'bg-[var(--primary)] text-white shadow-md' : 'bg-white/5 text-slate-500 hover:bg-white/10'}`}
                             >
                               {t}
                             </button>
@@ -218,7 +218,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
                         <button
                           type="button"
                           onClick={() => setPrimaryEmail(idx)}
-                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${email.isPrimary ? 'bg-emerald-500 text-black shadow-md' : 'bg-white/5 text-slate-600 hover:bg-white/10'}`}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${email.isPrimary ? 'bg-emerald-500 text-black shadow-md' : 'bg-white/5 text-slate-600 hover:bg-white/10'}`}
                         >
                           {email.isPrimary ? <ShieldCheck className="w-3 h-3" /> : null}
                           {email.isPrimary ? 'Primary' : 'Set Primary'}
@@ -231,7 +231,7 @@ export default function EditCommunicationsDrawer({ open, onClose, onSuccess, pat
               </section>
 
               <div className="p-6 rounded-2xl bg-[var(--primary)]/[0.03] border border-[var(--primary)]/10 shadow-inner">
-                <p className="text-[9px] text-[var(--primary)] font-bold leading-relaxed italic uppercase tracking-widest opacity-70">
+                <p className="text-[11px] text-[var(--primary)] font-bold leading-relaxed italic uppercase tracking-widest opacity-70">
                   * Clinical Synchronizer: Updating these self-vectors will propagate throughout the registry, visit schedule, and logistics modules.
                 </p>
               </div>

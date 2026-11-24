@@ -28,7 +28,7 @@ export default function UnenrollModal({ state }: Props) {
               <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-widest">
                 Reverse Enrollment
               </h3>
-              <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest opacity-60">
+              <p className="text-[11px] font-bold text-rose-500 uppercase tracking-widest opacity-60">
                 High-Authority Action
               </p>
             </div>
@@ -49,7 +49,7 @@ export default function UnenrollModal({ state }: Props) {
           </p>
 
           <div className="space-y-2">
-            <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">
+            <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">
               Reversal Reason / Notes
             </label>
             <textarea

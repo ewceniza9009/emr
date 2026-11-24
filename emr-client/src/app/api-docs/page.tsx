@@ -235,11 +235,11 @@ fetch('https://api.halkyone.health/graphql', {
                         : "bg-transparent border-transparent text-slate-400 hover:text-slate-200 hover:bg-white/[0.01]"
                     }`}
                   >
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
                       {ep.title}
                     </span>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border ${getMethodBadgeClass(ep.method)}`}>
+                      <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${getMethodBadgeClass(ep.method)}`}>
                         {ep.method}
                       </span>
                       <span className="text-xs font-mono truncate">{ep.path}</span>
@@ -276,9 +276,9 @@ fetch('https://api.halkyone.health/graphql', {
                     <div key={p.name} className="flex flex-col gap-1 text-xs">
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-bold text-teal-400">{p.name}</span>
-                        <span className="text-[9px] text-slate-500 font-mono">({p.type})</span>
+                        <span className="text-[11px] text-slate-500 font-mono">({p.type})</span>
                         {p.required && (
-                          <span className="text-[8px] font-black uppercase tracking-wider text-rose-500">
+                          <span className="text-[11px] font-black uppercase tracking-wider text-rose-500">
                             Required
                           </span>
                         )}
@@ -303,7 +303,7 @@ fetch('https://api.halkyone.health/graphql', {
                     <button
                       key={cs.lang}
                       onClick={() => setActiveLang(cs.lang)}
-                      className={`text-[9px] font-black uppercase tracking-widest transition-colors ${
+                      className={`text-[11px] font-black uppercase tracking-widest transition-colors ${
                         activeLang === cs.lang ? "text-teal-400" : "text-slate-500 hover:text-slate-300"
                       }`}
                     >
@@ -336,7 +336,7 @@ fetch('https://api.halkyone.health/graphql', {
               {/* Response Block */}
               <div className="border-t border-white/5">
                 <div className="px-6 py-3 bg-slate-950 border-b border-white/5 flex items-center justify-between">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">
                     Response Payload (200 OK)
                   </span>
                   <button

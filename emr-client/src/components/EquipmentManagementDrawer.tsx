@@ -157,7 +157,7 @@ export default function EquipmentManagementDrawer({
           {activeTab === 'DEPLOY' ? (
             <>
               <div className="space-y-3">
-                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Select Available Equipment</label>
+                <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Select Available Equipment</label>
                 {loading ? (
                   <div className="h-20 animate-pulse bg-[var(--input-bg)] rounded-2xl" />
                 ) : (
@@ -175,9 +175,9 @@ export default function EquipmentManagementDrawer({
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="text-xs font-black text-[var(--text-primary)] uppercase">{e.modelName}</p>
-                            <p className="text-[9px] text-[var(--primary)] font-bold font-mono">{e.serialNumber}</p>
+                            <p className="text-[11px] text-[var(--primary)] font-bold font-mono">{e.serialNumber}</p>
                           </div>
-                          <span className="text-[8px] font-black text-[var(--text-muted)] uppercase">{e.type.replace(/_/g, ' ')}</span>
+                          <span className="text-[11px] font-black text-[var(--text-muted)] uppercase">{e.type.replace(/_/g, ' ')}</span>
                         </div>
                       </button>
                     ))}
@@ -192,7 +192,7 @@ export default function EquipmentManagementDrawer({
               </div>
 
               <div className="space-y-3">
-                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Deployment Address</label>
+                <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Deployment Address</label>
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                   <input 
@@ -207,7 +207,7 @@ export default function EquipmentManagementDrawer({
           ) : (
             <>
               <div className="space-y-3">
-                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Model Name</label>
+                <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Model Name</label>
                 <input 
                   value={regModelName}
                   onChange={(e) => setRegModelName(e.target.value)}
@@ -216,7 +216,7 @@ export default function EquipmentManagementDrawer({
                 />
               </div>
               <div className="space-y-3">
-                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Serial Number (Tag)</label>
+                <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Serial Number (Tag)</label>
                 <div className="relative">
                   <QrCode className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                   <input 
@@ -228,7 +228,7 @@ export default function EquipmentManagementDrawer({
                 </div>
               </div>
               <div className="space-y-3">
-                <label className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Equipment Type</label>
+                <label className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Equipment Type</label>
                 <select 
                   value={regType}
                   onChange={(e) => setRegType(e.target.value)}

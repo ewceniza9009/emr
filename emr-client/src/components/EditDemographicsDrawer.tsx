@@ -70,7 +70,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
         
         <div className={`relative h-full w-full max-w-[500px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
@@ -111,7 +111,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Civil Status</label>
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Civil Status</label>
                     <select 
                       className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.civilStatus}
@@ -124,7 +124,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Religion</label>
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Religion</label>
                     <select 
                       className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.religion}
@@ -145,7 +145,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Biological Sex</label>
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Biological Sex</label>
                     <select 
                       className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.biologicalSex}
@@ -158,7 +158,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Gender Identity</label>
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Gender Identity</label>
                     <select 
                       className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.genderIdentity}
@@ -176,7 +176,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Primary Language</label>
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Primary Language</label>
                     <select 
                       className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                       value={form.language}
@@ -192,7 +192,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Nationality</label>
+                    <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Nationality</label>
                     <input 
                       className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all"
                       value={form.nationality}
@@ -202,7 +202,7 @@ export default function EditDemographicsDrawer({ open, onClose, onSuccess, patie
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Occupation</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Occupation</label>
                   <div className="relative group">
                     <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)]" />
                     <input 

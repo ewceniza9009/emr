@@ -1,13 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import NextTopLoader from "nextjs-toploader";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
+  display: "swap",
   variable: "--font-jetbrains",
 });
 
@@ -51,7 +55,7 @@ export default function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className={`${inter.variable} ${outfit.variable} ${jetbrains.variable} antialiased`}
+        className={`${inter.variable} ${jetbrains.variable} font-sans antialiased`}
       >
         <NextTopLoader
           color="#14b8a6"

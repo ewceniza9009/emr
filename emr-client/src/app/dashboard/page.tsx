@@ -176,7 +176,7 @@ export default function Dashboard() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-bold text-white/70 uppercase tracking-[0.2em]">{tenantConfig.organizationName}</span>
+              <span className="text-[11px] font-bold text-white/70 uppercase tracking-[0.2em]">{tenantConfig.organizationName}</span>
             </div>
             <h1 className="text-sm font-bold text-white tracking-tight uppercase">
               {greeting}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-400">{session?.user?.name?.split(' ')[0] || "Practitioner"}</span>
@@ -237,7 +237,7 @@ export default function Dashboard() {
                   <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
                     <stat.icon className="w-4 h-4" />
                   </div>
-                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md bg-white/5 ${stat.color}`}>
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md bg-white/5 ${stat.color}`}>
                     {stat.trend}
                   </span>
                 </div>
@@ -283,7 +283,7 @@ export default function Dashboard() {
                       className="p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:border-teal-500/30 hover:bg-teal-500/5 transition-all cursor-pointer group text-center flex flex-col items-center gap-2 relative"
                     >
                       {item.visitCount && item.visitCount > 1 && (
-                        <div className="absolute top-1 right-1 bg-teal-500 text-[7px] font-black text-white px-2 py-0.5 rounded-full shadow-lg z-10 border border-white/20">
+                        <div className="absolute top-1 right-1 bg-teal-500 text-[11px] font-black text-white px-2 py-0.5 rounded-full shadow-lg z-10 border border-white/20">
                           {item.visitCount}x
                         </div>
                       )}
@@ -296,7 +296,7 @@ export default function Dashboard() {
                         </p>
                         <div className="flex items-center justify-center gap-1.5 mt-1">
                           <span className={`w-1 h-1 rounded-full ${item.type === 'PATIENT' ? 'bg-blue-500' : 'bg-teal-500'}`} />
-                          <p className={`text-[8px] font-bold truncate tracking-widest uppercase ${isDuplicateName ? 'text-teal-400' : 'text-[var(--text-muted)]'}`}>
+                          <p className={`text-[11px] font-bold truncate tracking-widest uppercase ${isDuplicateName ? 'text-teal-400' : 'text-[var(--text-muted)]'}`}>
                             {item.subtitle || 'NO MRN'}
                           </p>
                         </div>
@@ -365,18 +365,18 @@ export default function Dashboard() {
                             <p className="text-xs font-bold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors truncate">
                               Assessment: {name}
                             </p>
-                            <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-medium truncate">
+                            <p className="text-[11px] text-[var(--text-muted)] mt-0.5 font-medium truncate">
                               MRN: {mrn} · Verified Registry
                             </p>
                           </div>
                           <div className="text-right hidden sm:block">
                             <div className="flex items-center justify-end gap-1 mb-0.5">
                               <Shield className={`w-2.5 h-2.5 ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`} />
-                              <span className={`text-[8px] font-bold uppercase tracking-widest ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`}>
+                              <span className={`text-[11px] font-bold uppercase tracking-widest ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`}>
                                 {isAlert ? 'Urgent' : 'Validated'}
                               </span>
                             </div>
-                            <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
+                            <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-tight">
                               Clinical Queue
                             </p>
                           </div>
@@ -394,7 +394,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Operational Pulse</h2>
-                  <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-bold uppercase tracking-widest">Real-time engagement metrics</p>
+                  <p className="text-[11px] text-[var(--text-muted)] mt-0.5 font-bold uppercase tracking-widest">Real-time engagement metrics</p>
                 </div>
               </div>
               <div className="h-[140px] w-full">
@@ -457,7 +457,7 @@ export default function Dashboard() {
                       <div key={i} className="p-4 rounded-2xl bg-white/[0.03] border border-white/5 space-y-2">
                         <div className={`flex items-center gap-2 ${alert.type === 'TELEMETRY' ? 'text-rose-500' : 'text-amber-500'}`}>
                           {alert.type === 'TELEMETRY' ? <AlertTriangle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                          <span className="text-[8px] font-bold uppercase tracking-[0.2em]">{alert.type === 'TELEMETRY' ? 'Telemetry Critical' : 'Compliance'}</span>
+                          <span className="text-[11px] font-bold uppercase tracking-[0.2em]">{alert.type === 'TELEMETRY' ? 'Telemetry Critical' : 'Compliance'}</span>
                         </div>
                         <h4 className="text-xs font-bold text-[var(--text-primary)]">{alert.title}</h4>
                         <p className="text-[10px] text-[var(--text-muted)] leading-relaxed font-medium">
@@ -471,7 +471,7 @@ export default function Dashboard() {
                               router.push(`/admin/dashboard?tab=practitioners&editId=${alert.targetId}`);
                             }
                           }}
-                          className={`w-full py-2 rounded-lg ${alert.type === 'TELEMETRY' ? 'bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500/20' : 'bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20'} text-[9px] font-bold transition-all active:scale-95`}
+                          className={`w-full py-2 rounded-lg ${alert.type === 'TELEMETRY' ? 'bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500/20' : 'bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500/20'} text-[11px] font-bold transition-all active:scale-95`}
                         >
                           {alert.actionText}
                         </button>
@@ -519,7 +519,7 @@ export default function Dashboard() {
       {/* Footer Branding - Compact */}
       <div className="pt-4 flex flex-col items-center gap-2 opacity-20">
         <div className="w-px h-8 bg-[var(--card-border)]" />
-        <p className="text-[8px] font-bold text-[var(--text-muted)] tracking-[0.4em] uppercase">Halkyone Clinical Operations Group · Secure Health Systems</p>
+        <p className="text-[11px] font-bold text-[var(--text-muted)] tracking-[0.4em] uppercase">Halkyone Clinical Operations Group · Secure Health Systems</p>
       </div>
     </motion.div>
   );
@@ -538,7 +538,7 @@ function NavTile({ icon: Icon, label, color, href, onClick }: { icon: any, label
       <div className={`w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center ${color} group-hover:scale-110 transition-transform`}>
         <Icon className="w-4 h-4" />
       </div>
-      <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{label}</span>
+      <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">{label}</span>
     </div>
   );
 }

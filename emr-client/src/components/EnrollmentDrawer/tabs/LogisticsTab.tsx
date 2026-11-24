@@ -47,7 +47,7 @@ export default function LogisticsTab({ state }: Props) {
                             <button
                               key={m.id}
                               onClick={() => state.setModality(m.id as CareModality)}
-                              className={`flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-2xl border text-[9px] font-bold transition-all
+                              className={`flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-2xl border text-[11px] font-bold transition-all
                                      ${state.modality === m.id ? "bg-[var(--primary)] border-transparent text-black shadow-lg shadow-[var(--primary-glow)]" : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--card-bg)]"}`}
                             >
                               {m.icon}
@@ -100,7 +100,7 @@ export default function LogisticsTab({ state }: Props) {
                         <div className="space-y-5">
                           {/* Care Navigator Selection */}
                           <div>
-                            <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 px-1">
+                            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 px-1">
                               Care Navigator Assignment
                             </p>
                             <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto scrollbar-hide">
@@ -108,7 +108,7 @@ export default function LogisticsTab({ state }: Props) {
                               state.practitioners.length === 0 ? (
                                 <div className="col-span-2 py-4 flex flex-col items-center justify-center opacity-30">
                                   <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mb-2" />
-                                  <p className="text-[8px] font-bold uppercase tracking-widest">
+                                  <p className="text-[11px] font-bold uppercase tracking-widest">
                                     Scanning Availability...
                                   </p>
                                 </div>
@@ -144,7 +144,7 @@ export default function LogisticsTab({ state }: Props) {
                                             >
                                               {p.fullName}
                                             </p>
-                                            <p className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] mt-1 opacity-60">
+                                            <p className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] mt-1 opacity-60">
                                               Patient Navigation
                                             </p>
                                           </div>
@@ -155,7 +155,7 @@ export default function LogisticsTab({ state }: Props) {
                                               <span className="text-[10px] font-black leading-none">
                                                 {avail.travelTimeInMinutes}M
                                               </span>
-                                              <span className="text-[7px] font-bold opacity-50 mt-1 uppercase tracking-tighter">
+                                              <span className="text-[11px] font-bold opacity-50 mt-1 uppercase tracking-tight">
                                                 {avail.distanceInMiles.toFixed(
                                                   1,
                                                 )}
@@ -167,7 +167,7 @@ export default function LogisticsTab({ state }: Props) {
                                         {!avail && !state.availabilityLoading && (
                                           <div className="mt-2 flex items-center gap-1 opacity-30">
                                             <Car className="w-2 h-2" />
-                                            <span className="text-[7px] font-bold uppercase tracking-tighter">
+                                            <span className="text-[11px] font-bold uppercase tracking-tight">
                                               Scan Unavailable
                                             </span>
                                           </div>
@@ -181,7 +181,7 @@ export default function LogisticsTab({ state }: Props) {
 
                           {/* Supporting Clinicians Selection */}
                           <div>
-                            <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 px-1">
+                            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-2 px-1">
                               Supporting Clinicians Assignment
                             </p>
                             <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto scrollbar-hide">
@@ -189,7 +189,7 @@ export default function LogisticsTab({ state }: Props) {
                               state.practitioners.length === 0 ? (
                                 <div className="col-span-2 py-4 flex flex-col items-center justify-center opacity-30">
                                   <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin mb-2" />
-                                  <p className="text-[8px] font-bold uppercase tracking-widest">
+                                  <p className="text-[11px] font-bold uppercase tracking-widest">
                                     Scanning Availability...
                                   </p>
                                 </div>
@@ -231,7 +231,7 @@ export default function LogisticsTab({ state }: Props) {
                                             >
                                               {p.fullName}
                                             </p>
-                                            <p className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] mt-1 opacity-60">
+                                            <p className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] mt-1 opacity-60">
                                               Lead Practitioner
                                             </p>
                                           </div>
@@ -242,7 +242,7 @@ export default function LogisticsTab({ state }: Props) {
                                               <span className="text-[10px] font-black leading-none">
                                                 {avail.travelTimeInMinutes}M
                                               </span>
-                                              <span className="text-[7px] font-bold opacity-50 mt-1 uppercase tracking-tighter">
+                                              <span className="text-[11px] font-bold opacity-50 mt-1 uppercase tracking-tight">
                                                 {avail.distanceInMiles.toFixed(
                                                   1,
                                                 )}
@@ -254,7 +254,7 @@ export default function LogisticsTab({ state }: Props) {
                                         {!avail && !state.availabilityLoading && (
                                           <div className="mt-2 flex items-center gap-1 opacity-30">
                                             <Car className="w-2 h-2" />
-                                            <span className="text-[7px] font-bold uppercase tracking-tighter">
+                                            <span className="text-[11px] font-bold uppercase tracking-tight">
                                               Scan Unavailable
                                             </span>
                                           </div>

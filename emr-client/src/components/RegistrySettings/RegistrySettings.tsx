@@ -132,11 +132,11 @@ export default function RegistrySettings() {
           <div className="mt-8 p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10">
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-3 h-3 text-indigo-400" />
-              <span className="text-[8px] font-bold text-indigo-400 uppercase tracking-[0.2em]">
+              <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-[0.2em]">
                 Clinical Context
               </span>
             </div>
-            <p className="text-[9px] text-[var(--text-muted)] leading-relaxed font-medium uppercase">
+            <p className="text-[11px] text-[var(--text-muted)] leading-relaxed font-medium uppercase">
               Operational state is bound to{" "}
               <span className="text-indigo-400 font-black">
                 {tenantConfig.organizationName}
@@ -203,7 +203,7 @@ export default function RegistrySettings() {
           <footer className="p-6 border-t border-[var(--card-border)] bg-[var(--input-bg)]/30 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {showSuccess && (
-                <div className="flex items-center gap-2 text-emerald-500 text-[9px] font-black uppercase tracking-widest animate-in fade-in slide-in-from-left-2">
+                <div className="flex items-center gap-2 text-emerald-500 text-[11px] font-black uppercase tracking-widest animate-in fade-in slide-in-from-left-2">
                   <CheckCircle2 className="w-3 h-3" />
                   <span>State Synchronized</span>
                 </div>
@@ -215,14 +215,14 @@ export default function RegistrySettings() {
                   setStagedPrefs(preferences);
                   setStagedTenant(tenantConfig);
                 }}
-                className="px-4 py-2 text-[9px] font-black text-[var(--text-muted)] hover:text-[var(--text-primary)] uppercase tracking-widest transition-all"
+                className="px-4 py-2 text-[11px] font-black text-[var(--text-muted)] hover:text-[var(--text-primary)] uppercase tracking-widest transition-all"
               >
                 Reset
               </button>
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] text-[var(--sidebar-bg)] rounded-xl font-black text-[9px] uppercase tracking-[0.2em] hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-[var(--primary-glow)] disabled:opacity-40"
+                className="flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] text-[var(--sidebar-bg)] rounded-xl font-black text-[11px] uppercase tracking-[0.2em] hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-[var(--primary-glow)] disabled:opacity-40"
               >
                 {isSaving ? (
                   <div className="w-3 h-3 border-2 border-[var(--sidebar-bg)]/30 border-t-[var(--sidebar-bg)] rounded-full animate-spin" />

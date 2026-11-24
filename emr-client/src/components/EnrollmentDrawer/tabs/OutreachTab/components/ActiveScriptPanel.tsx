@@ -18,11 +18,11 @@ export default function ActiveScriptPanel({ state }: ActiveScriptPanelProps) {
   return (
     <div className="bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl p-4 shadow-inner">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[9px] font-bold text-[var(--primary)] uppercase tracking-[0.2em]">
+        <p className="text-[11px] font-bold text-[var(--primary)] uppercase tracking-[0.2em]">
           Active Interaction Script
         </p>
         <select
-          className="bg-transparent border-none text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest outline-none cursor-pointer [color-scheme:dark]"
+          className="bg-transparent border-none text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest outline-none cursor-pointer [color-scheme:dark]"
           value={state.selectedScriptId || ""}
           onChange={(e) => state.setSelectedScriptId(e.target.value)}
         >

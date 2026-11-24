@@ -20,10 +20,10 @@ export default function ControlCard({
           {icon}
         </div>
         <div>
-          <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">
+          <h4 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tight">
             {title}
           </h4>
-          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+          <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
             {subtitle}
           </p>
         </div>

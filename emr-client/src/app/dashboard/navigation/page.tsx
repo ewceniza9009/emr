@@ -173,7 +173,7 @@ export default function CareNavigationPage() {
         />
 
         {/* Tactical HUD Overlay */}
-        <div className="absolute inset-x-10 bottom-10 flex items-end justify-between z-[1000]">
+        <div className="absolute inset-x-10 bottom-10 flex items-end justify-between z-[60]">
           <div className="flex items-center gap-2 bg-[var(--card-bg)]/80 backdrop-blur-xl border border-[var(--card-border)] rounded-2xl p-2 shadow-2xl">
             <button 
               onClick={() => setActiveHud("nav")}
@@ -195,15 +195,15 @@ export default function CareNavigationPage() {
           <div className="flex flex-col items-end gap-1 text-right">
              <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Live System Feed</span>
+                <span className="text-[11px] font-black text-emerald-500 uppercase tracking-widest">Live System Feed</span>
              </div>
-             <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Last Sync: {new Date().toLocaleTimeString()}</p>
-             <p className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">Region: Metro North-East</p>
+             <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Last Sync: {new Date().toLocaleTimeString()}</p>
+             <p className="text-[11px] font-black text-[var(--primary)] uppercase tracking-widest mt-1">Region: Metro North-East</p>
           </div>
         </div>
 
         {/* Overlay Stats */}
-        <div className="absolute top-6 left-6 z-[1000] pointer-events-none">
+        <div className="absolute top-6 left-6 z-[60] pointer-events-none">
           <div className="bg-[var(--sidebar-bg)]/90 backdrop-blur-xl border border-[var(--card-border)] rounded-[2rem] p-5 shadow-2xl min-w-[240px] transition-all duration-300 pointer-events-auto">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -211,8 +211,8 @@ export default function CareNavigationPage() {
                   <Navigation2 className="w-4 h-4 text-[var(--primary)]" />
                 </div>
                 <div>
-                  <h2 className="text-xs font-black uppercase tracking-tighter">Clinical Dispatch</h2>
-                  <p className="text-[9px] font-black text-emerald-500 tracking-wider uppercase flex items-center gap-1.5 mt-0.5">
+                  <h2 className="text-xs font-black uppercase tracking-tight">Clinical Dispatch</h2>
+                  <p className="text-[11px] font-black text-emerald-500 tracking-wider uppercase flex items-center gap-1.5 mt-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Active Ops
                   </p>
@@ -229,11 +229,11 @@ export default function CareNavigationPage() {
             {isStatsExpanded && (
               <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-[var(--card-border)]/50 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div>
-                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Navigators</p>
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Navigators</p>
                   <p className="text-xl font-black mt-0.5">{providers.length}</p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Facilities</p>
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Facilities</p>
                   <p className="text-xl font-black text-amber-500 mt-0.5">{facilities.length}</p>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function CareNavigationPage() {
                       </div>
                       <div>
                         <h4 className="text-xs font-black uppercase text-[var(--text-primary)]">{p.name}</h4>
-                        <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase">{p.role}</p>
+                        <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase">{p.role}</p>
                       </div>
                     </div>
                     <MoreVertical className="w-4 h-4 text-[var(--text-muted)]" />
@@ -328,14 +328,14 @@ export default function CareNavigationPage() {
                             style={{ width: `${p.battery}%` }}
                           />
                         </div>
-                        <span className="text-[8px] font-black text-[var(--text-muted)]">{p.battery}%</span>
+                        <span className="text-[11px] font-black text-[var(--text-muted)]">{p.battery}%</span>
                      </div>
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
                           handleProviderSelect(p.id);
                         }}
-                        className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform"
+                        className="text-[11px] font-black text-[var(--primary)] uppercase tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform"
                       >
                         Track <ChevronRight className="w-3 h-3" />
                       </button>
@@ -355,7 +355,7 @@ export default function CareNavigationPage() {
                       </div>
                       <div>
                         <h4 className="text-xs font-black uppercase text-[var(--text-primary)]">{f.name}</h4>
-                        <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-[var(--card-border)] text-[var(--text-muted)] uppercase tracking-wider">
+                        <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-[var(--card-border)] text-[var(--text-muted)] uppercase tracking-wider">
                           {f.type}
                         </span>
                       </div>
@@ -376,7 +376,7 @@ export default function CareNavigationPage() {
                       </div>
                       <div className="text-right">
                         <span className="font-bold block text-[var(--text-secondary)] truncate">{f.contactPerson}</span>
-                        <span className="text-[9px] block">{f.contactPhone}</span>
+                        <span className="text-[11px] block">{f.contactPhone}</span>
                       </div>
                     </div>
                   </div>
@@ -387,7 +387,7 @@ export default function CareNavigationPage() {
                           e.stopPropagation();
                           handleFacilitySelect(f.id);
                         }}
-                        className="text-[9px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform"
+                        className="text-[11px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform"
                       >
                         Track <ChevronRight className="w-3 h-3" />
                       </button>

@@ -105,7 +105,7 @@ export function StepAssessment({ state }: { state: any }) {
         <div className="flex flex-col items-center gap-2">
           <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em]">Hydrating Assessment Schema</p>
           <div className="h-0.5 w-12 bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Syncing Clinical Metadata</p>
+          <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Syncing Clinical Metadata</p>
         </div>
       </div>
     );

@@ -95,7 +95,7 @@ export default function SchedulingCalendar() {
                           )}
                           <div className="flex flex-col items-center gap-0.5">
                             <span
-                              className={`text-[9px] font-black uppercase tracking-[0.2em] ${isToday ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}
+                              className={`text-[11px] font-black uppercase tracking-[0.2em] ${isToday ? "text-[var(--primary)]" : "text-[var(--text-muted)]"}`}
                             >
                               {state.GRID_CONFIG.DAYS[i]}
                             </span>

@@ -194,7 +194,7 @@ export default function ProviderSchedulePanel({
                         <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest leading-none">
                           {provider.travelTimeInMinutes}m Transit
                         </span>
-                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter mt-0.5">Clinical Vector</span>
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight mt-0.5">Clinical Vector</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">

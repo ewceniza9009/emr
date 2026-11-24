@@ -270,7 +270,7 @@ export default function OutreachPage() {
                     <div
                       className={`w-1.5 h-1.5 rounded-full animate-pulse ${stat.accent}`}
                     />
-                    <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                    <span className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
                       {stat.trend}
                     </span>
                   </div>

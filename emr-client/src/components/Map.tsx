@@ -160,7 +160,7 @@ export default function Map({
                   <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mb-1">
                     📍 {p.street || "Location Unknown"}
                   </p>
-                  <div className="flex items-center justify-between text-[9px] font-black mt-2">
+                  <div className="flex items-center justify-between text-[11px] font-black mt-2">
                     <span className={`px-2 py-0.5 rounded-full ${p.status === 'On Site' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
                       {p.status}
                     </span>
@@ -196,14 +196,14 @@ export default function Map({
                     <div className="w-2 h-2 rounded-full bg-amber-500"></div>
                     <span className="font-bold text-xs uppercase text-slate-800 dark:text-slate-100">{f.name}</span>
                   </div>
-                  <div className="text-[9px] px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded font-black uppercase tracking-wider w-fit mb-2">
+                  <div className="text-[11px] px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded font-black uppercase tracking-wider w-fit mb-2">
                     🏢 {f.type}
                   </div>
                   <div className="border-t border-slate-100 dark:border-slate-800 my-1"></div>
                   <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold mb-1.5">
                     📍 {f.street || "Address Unknown"}
                   </p>
-                  <div className="flex flex-col gap-1 text-[9px] text-slate-500 font-medium">
+                  <div className="flex flex-col gap-1 text-[11px] text-slate-500 font-medium">
                     <div>👤 Lead: <span className="font-bold text-slate-700 dark:text-slate-300">{f.contactPerson || "N/A"}</span></div>
                     <div>📞 Contact: <span className="font-bold text-slate-700 dark:text-slate-300">{f.contactPhone || "N/A"}</span></div>
                     <div>👥 Residents: <span className="font-bold text-slate-700 dark:text-slate-300">{f.residentsCount}</span></div>

@@ -14,7 +14,7 @@ export default function VitalLogDrawer({ isOpen, onClose, encounters }: Props) {
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
 
         <div className={`relative h-full w-full max-w-2xl bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
@@ -58,37 +58,37 @@ export default function VitalLogDrawer({ isOpen, onClose, encounters }: Props) {
                   {e.vitalSigns?.map((v: any, vIdx: number) => (
                     <div key={vIdx} className="col-span-full grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/5 rounded-3xl p-6 border border-white/5">
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
+                        <div className="flex items-center gap-2 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
                           <Heart className="w-3 h-3 text-rose-500" /> Heart Rate
                         </div>
                         <p className="text-xl font-black text-[var(--text-primary)]">{v.heartRate || '--'} <span className="text-[10px] text-slate-500">BPM</span></p>
                       </div>
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
+                        <div className="flex items-center gap-2 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
                           <Activity className="w-3 h-3 text-blue-500" /> Blood Pressure
                         </div>
                         <p className="text-xl font-black text-[var(--text-primary)]">{v.bloodPressureSystolic}/{v.bloodPressureDiastolic} <span className="text-[10px] text-slate-500">mmHg</span></p>
                       </div>
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
+                        <div className="flex items-center gap-2 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
                           <Wind className="w-3 h-3 text-emerald-500" /> Resp. Rate
                         </div>
                         <p className="text-xl font-black text-[var(--text-primary)]">{v.respiratoryRate || '--'} <span className="text-[10px] text-slate-500">RR</span></p>
                       </div>
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
+                        <div className="flex items-center gap-2 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
                           <Droplets className="w-3 h-3 text-cyan-500" /> O2 Saturation
                         </div>
                         <p className="text-xl font-black text-[var(--text-primary)] text-emerald-400">{v.oxygenSaturation}%</p>
                       </div>
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
+                        <div className="flex items-center gap-2 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
                           <Thermometer className="w-3 h-3 text-amber-500" /> Temperature
                         </div>
                         <p className="text-xl font-black text-[var(--text-primary)]">{v.temperature} °F</p>
                       </div>
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
+                        <div className="flex items-center gap-2 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">
                           <Scale className="w-3 h-3 text-indigo-500" /> Weight
                         </div>
                         <p className="text-xl font-black text-[var(--text-primary)]">{v.weight} <span className="text-[10px] text-slate-500">kg</span></p>

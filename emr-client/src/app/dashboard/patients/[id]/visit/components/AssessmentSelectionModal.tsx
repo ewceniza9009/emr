@@ -67,7 +67,7 @@ export function AssessmentSelectionModal({ isOpen, onClose, onSelect, selectedId
                     {isSelected ? (
                       <div className="flex items-center gap-2 px-3 py-1 bg-[var(--primary)]/10 rounded-full border border-[var(--primary)]/20">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[var(--primary)]" />
-                        <span className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest">Added</span>
+                        <span className="text-[11px] font-black text-[var(--primary)] uppercase tracking-widest">Added</span>
                       </div>
                     ) : (
                       <div className="w-8 h-8 rounded-full border border-[var(--border-color,rgba(0,0,0,0.1))] flex items-center justify-center text-[var(--text-muted)] group-hover:border-[var(--primary)]/40 group-hover:text-[var(--primary)] transition-all">

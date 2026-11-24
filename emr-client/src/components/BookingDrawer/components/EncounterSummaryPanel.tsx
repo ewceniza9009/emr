@@ -41,7 +41,7 @@ export function EncounterSummaryPanel({ state, appointmentId, isLocked, bookingL
             disabled={isLocked}
             onChange={e => state.setDuration(parseInt(e.target.value))}
             className="w-full h-1.5 rounded-full appearance-none transition-colors accent-[var(--primary)] bg-[var(--input-bg)] border border-[var(--card-border)] cursor-pointer disabled:opacity-30" />
-          <div className="flex justify-between mt-4 text-[9px] font-bold text-[var(--text-muted)] tracking-widest uppercase">
+          <div className="flex justify-between mt-4 text-[11px] font-bold text-[var(--text-muted)] tracking-widest uppercase">
             <span>15m</span>
             <span>Standard Visit</span>
             <span>60m</span>
@@ -81,7 +81,7 @@ export function EncounterSummaryPanel({ state, appointmentId, isLocked, bookingL
         <div className="flex items-center justify-between">
           <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Encounter Summary</h3>
           {state.selectedSlot?.shiftStart && (
-            <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[9px] font-bold uppercase tracking-wider
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-full border text-[11px] font-bold uppercase tracking-wider
                         ${(state.modality.includes("TELEHEALTH") || state.modality.includes("VIDEO")) ? "bg-[var(--primary)]/10 border-[var(--primary)]/20 text-[var(--primary)]" :
                 state.selectedSlot.distanceInMiles < 0.1 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.1)]" :
                   state.selectedSlot.travelTimeInMinutes < 15 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" :
@@ -110,7 +110,7 @@ export function EncounterSummaryPanel({ state, appointmentId, isLocked, bookingL
                       {new Date(state.selectedSlot.shiftStart).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                     </h4>
                     {state.selectedSlot.distanceInMiles < 0.1 && (
-                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-tighter">
+                      <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500 text-[11px] font-black uppercase tracking-tight">
                         <Zap className="w-2.5 h-2.5 fill-emerald-500" />
                         Optimized
                       </span>
@@ -126,7 +126,7 @@ export function EncounterSummaryPanel({ state, appointmentId, isLocked, bookingL
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Back-to-back Advantage</p>
-                    <p className="text-[9px] font-medium text-slate-500 leading-normal">
+                    <p className="text-[11px] font-medium text-slate-500 leading-normal">
                       Practitioner is already at this location (or extremely close). Travel time has been negated for maximum efficiency.
                     </p>
                   </div>
@@ -140,7 +140,7 @@ export function EncounterSummaryPanel({ state, appointmentId, isLocked, bookingL
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Proximity Advantage</p>
-                    <p className="text-[9px] font-medium text-slate-500 leading-normal">
+                    <p className="text-[11px] font-medium text-slate-500 leading-normal">
                       Clinician is in the immediate vicinity. Minimal transit time allows for a more flexible start window.
                     </p>
                   </div>

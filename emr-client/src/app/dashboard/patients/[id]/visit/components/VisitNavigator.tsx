@@ -37,7 +37,7 @@ export function VisitNavigator({ state }: { state: any }) {
                       : "text-[var(--text-muted)] opacity-40 cursor-not-allowed"
                     }`}
                 >
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center border text-[9px] font-black ${isActive
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center border text-[11px] font-black ${isActive
                     ? "bg-white border-white " + (isAssessment ? "text-indigo-500" : "text-[var(--primary)]")
                     : "border-current"
                     }`}>

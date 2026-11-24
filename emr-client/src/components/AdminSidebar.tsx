@@ -66,8 +66,8 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
             <div className="flex flex-col">
               <h2 className="text-base font-bold text-[var(--text-primary)] tracking-tight leading-none">HALKYONE SETUP</h2>
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider leading-none">Admin Terminal</span>
-                <span className="px-1 py-0.5 text-[7px] font-black bg-[var(--primary)]/10 text-[var(--primary)] rounded border border-[var(--primary)]/10 uppercase tracking-widest leading-none">v{manifest.version}</span>
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider leading-none">Admin Terminal</span>
+                <span className="px-1 py-0.5 text-[11px] font-black bg-[var(--primary)]/10 text-[var(--primary)] rounded border border-[var(--primary)]/10 uppercase tracking-widest leading-none">v{manifest.version}</span>
               </div>
             </div>
           )}
@@ -78,7 +78,7 @@ export default function AdminSidebar({ activeTab, setActiveTab }: Props) {
       <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto scrollbar-hide">
         {!isCollapsed && (
           <div className="px-3 mb-2">
-            <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Master Registries</p>
+            <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Master Registries</p>
           </div>
         )}
 

@@ -202,7 +202,7 @@ export default function VitalsIoTPage() {
             <h1 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.2em] leading-none">
               Clinical Telemetry
             </h1>
-            <p className="text-[8px] text-[var(--text-muted)] font-black uppercase tracking-widest mt-1.5 flex items-center gap-1">
+            <p className="text-[11px] text-[var(--text-muted)] font-black uppercase tracking-widest mt-1.5 flex items-center gap-1">
               <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
               Online Vital Signs Grid
             </p>
@@ -348,7 +348,7 @@ export default function VitalsIoTPage() {
                     <h3 className="text-sm font-black text-[var(--text-primary)] tracking-tight uppercase leading-none group-hover:text-[var(--primary)] transition-colors">
                       {patient.firstName} {patient.lastName}
                     </h3>
-                    <p className="text-[9.5px] text-[var(--text-muted)] font-black tracking-widest uppercase mt-2">
+                    <p className="text-[11px] text-[var(--text-muted)] font-black tracking-widest uppercase mt-2">
                       {patient.mrn}
                     </p>
                   </div>
@@ -384,7 +384,7 @@ export default function VitalsIoTPage() {
                     <span className="text-[7.5px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
                       Generic IoT Gateway
                     </span>
-                    <span className="text-[7px] text-[var(--text-muted)] font-bold uppercase tracking-wider mt-0.5">
+                    <span className="text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-wider mt-0.5">
                       {isStreaming
                         ? "STREAMING LINK SECURED"
                         : "Awaiting secure handshake..."}
@@ -413,7 +413,7 @@ export default function VitalsIoTPage() {
             <h3 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest leading-none">
               Clinical Integrity Guard
             </h3>
-            <p className="text-[8px] text-[var(--text-secondary)] font-bold uppercase tracking-widest mt-1.5 leading-relaxed max-w-xl">
+            <p className="text-[11px] text-[var(--text-secondary)] font-bold uppercase tracking-widest mt-1.5 leading-relaxed max-w-xl">
               Live telemetry signals are strictly driven by active biosensors.
               Manual records remain pending until synchronized with local
               gateway.

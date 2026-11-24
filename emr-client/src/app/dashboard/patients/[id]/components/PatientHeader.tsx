@@ -37,19 +37,19 @@ function PatientLiveVitalsPills({
     <div className="flex items-center gap-4 tabular-nums">
       <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/5 border border-rose-500/10">
         <Activity className="w-3 h-3 text-rose-500 animate-pulse" />
-        <span className="text-[9px] font-black text-rose-500 uppercase">
+        <span className="text-[11px] font-black text-rose-500 uppercase">
           {vitals.hr} BPM
         </span>
       </div>
       <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/5 border border-emerald-500/10">
         <Wind className="w-3 h-3 text-emerald-500" />
-        <span className="text-[9px] font-black text-emerald-500 uppercase">
+        <span className="text-[11px] font-black text-emerald-500 uppercase">
           {vitals.spo2}% SpO2
         </span>
       </div>
       <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/5 border border-amber-500/10">
         <Thermometer className="w-3 h-3 text-amber-500" />
-        <span className="text-[9px] font-black text-amber-500 uppercase">
+        <span className="text-[11px] font-black text-amber-500 uppercase">
           {vitals.temp}°F
         </span>
       </div>
@@ -105,7 +105,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
             {patient.firstName} {patient.lastName}
           </h1>
           <div className="flex items-center gap-3 mt-2 flex-wrap">
-            <p className="text-[var(--text-muted)] text-[9px] font-black tracking-[0.2em] uppercase">
+            <p className="text-[var(--text-muted)] text-[11px] font-black tracking-[0.2em] uppercase">
               {patient.mrn} • {patient.biologicalSex}
             </p>
             <span className="w-1 h-1 rounded-full bg-[var(--card-border)] hidden sm:block" />
@@ -125,7 +125,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
             className={`w-1.5 h-1.5 rounded-full animate-pulse ${isEmergency ? "bg-red-500" : "bg-emerald-500"}`}
           />
           <span
-            className={`text-[9px] font-black uppercase tracking-widest ${isEmergency ? "text-red-500" : "text-emerald-500"}`}
+            className={`text-[11px] font-black uppercase tracking-widest ${isEmergency ? "text-red-500" : "text-emerald-500"}`}
           >
             Status: {isEmergency ? "Critical" : "Stable"}
           </span>
@@ -140,7 +140,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
             </button>
             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-center">
               <div className="w-1.5 h-1.5 bg-slate-950 border-l border-t border-slate-800/80 rotate-45 -mb-1 shrink-0 z-10" />
-              <div className="bg-slate-950 border border-slate-800/80 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
+              <div className="bg-slate-950 border border-slate-800/80 text-white text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
                 Tag Z-Benefit Plan
               </div>
             </div>
@@ -156,7 +156,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
             </Link>
             <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-center">
               <div className="w-1.5 h-1.5 bg-slate-950 border-l border-t border-slate-800/80 rotate-45 -mb-1 shrink-0 z-10" />
-              <div className="bg-slate-950 border border-slate-800/80 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
+              <div className="bg-slate-950 border border-slate-800/80 text-white text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
                 Start Clinical Assessment
               </div>
             </div>
@@ -172,7 +172,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
           </button>
           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-center">
             <div className="w-1.5 h-1.5 bg-slate-950 border-l border-t border-slate-800/80 rotate-45 -mb-1 shrink-0 z-10" />
-            <div className="bg-slate-950 border border-slate-800/80 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
+            <div className="bg-slate-950 border border-slate-800/80 text-white text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
               Launch Telehealth Visit
             </div>
           </div>
@@ -192,7 +192,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
             </button>
             <div className="absolute top-full right-0 mt-2.5 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 pointer-events-none transition-all duration-200 z-50 flex flex-col items-end">
               <div className="w-1.5 h-1.5 bg-slate-950 border-l border-t border-slate-800/80 rotate-45 -mb-1 shrink-0 z-10 mr-[17px]" />
-              <div className="bg-slate-950 border border-slate-800/80 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
+              <div className="bg-slate-950 border border-slate-800/80 text-white text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap">
                 {downloadingDossier ? "Generating Dossier..." : "Download Clinical Dossier"}
               </div>
             </div>
@@ -216,7 +216,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
                   ? "bg-red-950 border-red-800/80" 
                   : "bg-slate-950 border-slate-800/80"
               }`} />
-              <div className={`border text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap ${
+              <div className={`border text-white text-[11px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap ${
                 isEmergency 
                   ? "bg-red-950 border-red-800/80 text-red-400" 
                   : "bg-slate-950 border-slate-800/80"

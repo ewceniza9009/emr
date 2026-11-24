@@ -15,7 +15,7 @@ class LocalNotificationServiceImpl {
         {
           title,
           body,
-          id: new Date().getTime(),
+          id: Math.floor(Date.now() % 2147483647),
           schedule: { at: new Date(Date.now() + delayMs) }
         }
       ]

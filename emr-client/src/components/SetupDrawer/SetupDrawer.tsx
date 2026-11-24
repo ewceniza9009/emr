@@ -63,7 +63,7 @@ export default function SetupDrawer(props: SetupDrawerProps) {
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div
           className="absolute inset-0 bg-[var(--background)]/40 backdrop-blur-md animate-in fade-in duration-300"
           onClick={onClose}

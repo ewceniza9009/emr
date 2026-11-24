@@ -208,7 +208,7 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
 
         <div className={`relative h-full w-full max-w-[450px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
@@ -257,7 +257,7 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">First Name</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">First Name</label>
                   <input
                     required
                     className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
@@ -266,7 +266,7 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Last Name</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Last Name</label>
                   <input
                     required
                     className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
@@ -277,7 +277,7 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Relationship Type</label>
+                <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Relationship Type</label>
                 <select
                   className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] appearance-none focus:outline-none focus:border-[var(--primary)]/50 transition-all uppercase"
                   value={form.relationship}
@@ -305,7 +305,7 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Phone Number</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Phone Number</label>
                   <div className="relative group">
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)]" />
                     <input
@@ -318,7 +318,7 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Email Address</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Email Address</label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)]" />
                     <input
@@ -350,7 +350,7 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
                   />
                   <div>
                     <p className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-widest">Primary Contact</p>
-                    <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-tight">Main person to contact for alerts</p>
+                    <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-tight">Main person to contact for alerts</p>
                   </div>
                 </label>
 
@@ -363,7 +363,7 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
                   />
                   <div>
                     <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Power of Attorney (POA)</p>
-                    <p className="text-[9px] text-blue-400/50 uppercase tracking-tight">Authorized medical decision maker</p>
+                    <p className="text-[11px] text-blue-400/50 uppercase tracking-tight">Authorized medical decision maker</p>
                   </div>
                 </label>
 
@@ -375,7 +375,7 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
                       </div>
                       <div>
                         <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">POA Documentation</p>
-                        <p className="text-[9px] text-blue-400/50 uppercase tracking-tight">Upload signed legal authority (PDF)</p>
+                        <p className="text-[11px] text-blue-400/50 uppercase tracking-tight">Upload signed legal authority (PDF)</p>
                       </div>
                     </div>
 
@@ -408,14 +408,14 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
                   />
                   <div>
                     <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Legal Guardian</p>
-                    <p className="text-[9px] text-purple-400/50 uppercase tracking-tight">Court-appointed representative</p>
+                    <p className="text-[11px] text-purple-400/50 uppercase tracking-tight">Court-appointed representative</p>
                   </div>
                 </label>
 
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Administrative Notes</label>
+                <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Administrative Notes</label>
                 <textarea
                   className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 transition-all h-24 resize-none"
                   value={form.notes}
@@ -432,7 +432,7 @@ export default function AddContactDrawer({ isOpen, patientId, initialData, onSuc
                 type="button"
                 onClick={handleDelete}
                 disabled={loading}
-                className="w-full py-3 rounded-xl border border-rose-500/20 text-rose-500 text-[9px] font-black uppercase tracking-widest hover:bg-rose-500/10 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl border border-rose-500/20 text-rose-500 text-[11px] font-black uppercase tracking-widest hover:bg-rose-500/10 transition-all flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Remove Contact Record

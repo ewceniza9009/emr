@@ -76,7 +76,7 @@ export function CoordinationRecordsTab({ state }: CoordinationRecordsTabProps) {
                   </div>
                   <div className="flex gap-2">
                     {contact.isPoa && (
-                      <span className="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[8px] font-black uppercase tracking-widest border border-blue-500/20">
+                      <span className="px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 text-[11px] font-black uppercase tracking-widest border border-blue-500/20">
                         POA
                       </span>
                     )}
@@ -158,7 +158,7 @@ export function CoordinationRecordsTab({ state }: CoordinationRecordsTabProps) {
                               });
                             }
                           }}
-                          className="w-full py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2"
+                          className="w-full py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[11px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2"
                         >
                           <ShieldCheck className="w-3.5 h-3.5" />
                           View POA Documentation ({displayDocs.length})

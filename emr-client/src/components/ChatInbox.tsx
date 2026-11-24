@@ -428,7 +428,7 @@ export function ChatInbox() {
         {hasUnread && (
           <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500 items-center justify-center text-[8px] font-black text-white leading-none">
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500 items-center justify-center text-[11px] font-black text-white leading-none">
               {unreadCount}
             </span>
           </span>
@@ -449,7 +449,7 @@ export function ChatInbox() {
                   <Shield className="w-4 h-4 text-[var(--primary)]" />
                   Clinical Inbox
                 </h3>
-                <span className="px-1.5 py-0.5 text-[8px] font-black bg-emerald-500/10 text-emerald-500 rounded border border-emerald-500/25 uppercase tracking-widest leading-none">
+                <span className="px-1.5 py-0.5 text-[11px] font-black bg-emerald-500/10 text-emerald-500 rounded border border-emerald-500/25 uppercase tracking-widest leading-none">
                   Live
                 </span>
               </div>
@@ -517,7 +517,7 @@ export function ChatInbox() {
                                 </span>
                               )}
                             </div>
-                            <div className="flex justify-between items-center mt-0.5 text-[9px] text-[var(--text-muted)]">
+                            <div className="flex justify-between items-center mt-0.5 text-[11px] text-[var(--text-muted)]">
                               <span className="truncate">
                                 {t.subject || "Care Thread"}
                               </span>
@@ -550,7 +550,7 @@ export function ChatInbox() {
                             {activeThread.patient.firstName}{" "}
                             {activeThread.patient.lastName}
                           </span>
-                          <span className="px-1.5 py-0.5 text-[8px] font-black bg-[var(--primary)]/10 text-[var(--primary)] rounded border border-[var(--primary)]/25 uppercase tracking-widest leading-none">
+                          <span className="px-1.5 py-0.5 text-[11px] font-black bg-[var(--primary)]/10 text-[var(--primary)] rounded border border-[var(--primary)]/25 uppercase tracking-widest leading-none">
                             Palliative Care
                           </span>
                         </div>
@@ -618,11 +618,11 @@ export function ChatInbox() {
                       >
                         <div className="max-w-[75%] flex flex-col">
                           <div
-                            className={`flex items-center gap-1.5 mb-1 px-1 text-[9px] font-bold uppercase tracking-wider text-[var(--text-muted)] ${isSelf ? "justify-end" : "justify-start"}`}
+                            className={`flex items-center gap-1.5 mb-1 px-1 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)] ${isSelf ? "justify-end" : "justify-start"}`}
                           >
                             <span>{isSelf ? "Care Navigator" : "Patient"}</span>
                             <span className="text-[var(--card-border)]">•</span>
-                            <span className="font-mono text-[8px]">
+                            <span className="font-mono text-[11px]">
                               {formatMessageTime(m.timestamp)}
                             </span>
                           </div>
@@ -636,7 +636,7 @@ export function ChatInbox() {
                           >
                             <div>{m.content}</div>
                             {isSelf && (
-                              <div className="flex items-center justify-end gap-1 mt-1 text-[9px] opacity-80 font-semibold select-none">
+                              <div className="flex items-center justify-end gap-1 mt-1 text-[11px] opacity-80 font-semibold select-none">
                                 {m.isSeen ? (
                                   <span
                                     className="text-teal-100/90 flex items-center gap-0.5"
@@ -667,7 +667,7 @@ export function ChatInbox() {
                 <div className="p-4 border-t border-[var(--card-border)] bg-[var(--card-bg)] flex flex-col gap-3 shrink-0">
                   {/* Quick Templates Bar */}
                   <div className="flex items-center gap-1.5 pb-1 relative shrink-0">
-                    <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
+                    <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider shrink-0 flex items-center gap-1 mr-1">
                       <Heart className="w-3 h-3 text-rose-500 fill-rose-500/20 animate-pulse" /> Templates:
                     </span>
 
@@ -694,7 +694,7 @@ export function ChatInbox() {
                             e.stopPropagation();
                             setInputText(tmpl.text);
                           }}
-                          className="text-[9px] font-bold bg-[var(--input-bg)] hover:bg-[var(--primary)]/15 border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-full px-3 py-1 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all whitespace-nowrap active:scale-95 uppercase tracking-wider shrink-0"
+                          className="text-[11px] font-bold bg-[var(--input-bg)] hover:bg-[var(--primary)]/15 border border-[var(--card-border)] hover:border-[var(--primary)]/30 rounded-full px-3 py-1 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all whitespace-nowrap active:scale-95 uppercase tracking-wider shrink-0"
                         >
                           {tmpl.label}
                         </button>
@@ -730,7 +730,7 @@ export function ChatInbox() {
                   </div>
 
                   {/* Secure line note */}
-                  <div className="flex items-center justify-between text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-wider px-1">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider px-1">
                     <span className="flex items-center gap-1">
                       <Lock className="w-2.5 h-2.5 text-[var(--primary)]" />
                       HIPAA Secure End-to-End Encryption

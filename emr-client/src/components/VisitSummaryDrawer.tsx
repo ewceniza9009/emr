@@ -205,7 +205,7 @@ function renderFormattedNote(content: string) {
         {sections.map((sec, idx) => (
           sec.text ? (
             <div key={idx} className="p-5 rounded-2xl bg-[var(--input-bg)] border border-[var(--card-border)] space-y-3">
-              <span className={`inline-block px-3 py-1 rounded text-[8px] font-black uppercase tracking-wider border ${sec.badgeColor}`}>
+              <span className={`inline-block px-3 py-1 rounded text-[11px] font-black uppercase tracking-wider border ${sec.badgeColor}`}>
                 {sec.label}
               </span>
               <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap font-medium">
@@ -347,7 +347,7 @@ export default function VisitSummaryDrawer({
   return (
     <>
       <HalcyonPortal>
-        <div className="fixed inset-0 !m-0 !p-0 z-[9999999] flex justify-end overflow-hidden">
+        <div className="fixed inset-0 !m-0 !p-0 z-[60] flex justify-end overflow-hidden">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300"
@@ -452,7 +452,7 @@ export default function VisitSummaryDrawer({
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-[9px] font-black text-[var(--primary)] uppercase tracking-widest px-2 py-0.5 rounded-md bg-[var(--primary)]/10">
+                          <span className="text-[11px] font-black text-[var(--primary)] uppercase tracking-widest px-2 py-0.5 rounded-md bg-[var(--primary)]/10">
                             Attending Practitioner
                           </span>
                         </div>
@@ -465,7 +465,7 @@ export default function VisitSummaryDrawer({
                         </p>
                       </div>
                       <div className="hidden md:block text-right shrink-0">
-                        <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1.5">
+                        <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1.5">
                           Encounter ID
                         </p>
                         <p className="text-[11px] font-mono font-bold text-[var(--text-primary)] opacity-50">
@@ -477,17 +477,17 @@ export default function VisitSummaryDrawer({
                     {(data?.appointment?.visitType ||
                       data?.appointment?.modality) && (
                       <div className="flex items-center gap-2 pt-1 border-t border-[var(--card-border)]">
-                        <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mr-1">
+                        <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mr-1">
                           Visit Context
                         </p>
                         {data.appointment.visitType && (
-                          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[9px] font-black uppercase tracking-wider">
+                          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[11px] font-black uppercase tracking-wider">
                             <ClipboardList className="w-3 h-3" />
                             {data.appointment.visitType.replace(/_/g, " ")}
                           </span>
                         )}
                         {data.appointment.modality && (
-                          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[9px] font-black uppercase tracking-wider">
+                          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[11px] font-black uppercase tracking-wider">
                             <MapPin className="w-3 h-3" />
                             {data.appointment.modality.replace(/_/g, " ")}
                           </span>
@@ -551,7 +551,7 @@ export default function VisitSummaryDrawer({
                             <v.icon
                               className={`w-3.5 h-3.5 ${v.color} group-hover/v:scale-110 transition-transform`}
                             />
-                            <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                            <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                               {v.label}
                             </span>
                           </div>
@@ -559,7 +559,7 @@ export default function VisitSummaryDrawer({
                             <span className="text-2xl font-bold text-[var(--text-primary)]">
                               {v.value || "0"}
                             </span>
-                            <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
+                            <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-tight">
                               {v.unit}
                             </span>
                           </div>
@@ -595,7 +595,7 @@ export default function VisitSummaryDrawer({
                         ].map((s, i) => (
                           <div key={i} className="space-y-2.5">
                             <div className="flex justify-between items-center px-1">
-                              <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                                 {s.label}
                               </span>
                               <span
@@ -639,7 +639,7 @@ export default function VisitSummaryDrawer({
                         <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1">
                           Retrieval Warning
                         </p>
-                        <p className="text-[9px] text-[var(--text-muted)] font-medium">
+                        <p className="text-[11px] text-[var(--text-muted)] font-medium">
                           {assessmentError.message}
                         </p>
                       </div>
@@ -714,24 +714,24 @@ export default function VisitSummaryDrawer({
                                         {res.questionnaire?.name}
                                       </h5>
                                       {isSkipped ? (
-                                        <span className="px-2.5 py-0.5 rounded-md bg-amber-500/10 text-amber-500 text-[9px] font-black border border-amber-500/20 shadow-sm animate-pulse">
+                                        <span className="px-2.5 py-0.5 rounded-md bg-amber-500/10 text-amber-500 text-[11px] font-black border border-amber-500/20 shadow-sm animate-pulse">
                                           SKIPPED
                                         </span>
                                       ) : (
                                         res.totalScore !== null && (
-                                          <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-black border border-blue-500/20">
+                                          <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[11px] font-black border border-blue-500/20">
                                             Score: {res.totalScore}
                                           </span>
                                         )
                                       )}
                                     </div>
-                                    <p className="text-[9px] text-[var(--text-muted)] italic line-clamp-1 mb-3">
+                                    <p className="text-[11px] text-[var(--text-muted)] italic line-clamp-1 mb-3">
                                       {isSkipped
                                         ? `Reason: ${skipReason.replace(/_/g, " ")}`
                                         : res.questionnaire?.description}
                                     </p>
                                     {!isSkipped && (
-                                      <span className="text-[8px] font-black text-[var(--primary)] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                      <span className="text-[11px] font-black text-[var(--primary)] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                                         View Full Breakdown →
                                       </span>
                                     )}
@@ -755,24 +755,24 @@ export default function VisitSummaryDrawer({
                                 </h5>
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
-                                    <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                                    <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                                       Faith
                                     </p>
-                                    <p className="text-[9px] font-bold text-[var(--text-primary)] truncate">
+                                    <p className="text-[11px] font-bold text-[var(--text-primary)] truncate">
                                       {s.faith || "N/A"}
                                     </p>
                                   </div>
                                   <div>
-                                    <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                                    <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                                       Community
                                     </p>
-                                    <p className="text-[9px] font-bold text-[var(--text-primary)] truncate">
+                                    <p className="text-[11px] font-bold text-[var(--text-primary)] truncate">
                                       {s.community || "N/A"}
                                     </p>
                                   </div>
                                 </div>
                                 <div className="mt-4 pt-3 border-t border-[var(--card-border)]">
-                                  <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <span className="text-[11px] font-black text-indigo-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
                                     Full History →
                                   </span>
                                 </div>
@@ -808,7 +808,7 @@ export default function VisitSummaryDrawer({
                                 <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">
                                   {d.type.replace(/_/g, " ")}
                                 </p>
-                                <p className="text-[9px] text-[var(--text-muted)] font-medium mt-1 line-clamp-1">
+                                <p className="text-[11px] text-[var(--text-muted)] font-medium mt-1 line-clamp-1">
                                   {d.notes ||
                                     "Documented on " +
                                       new Date(
@@ -818,10 +818,10 @@ export default function VisitSummaryDrawer({
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
-                              <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span className="text-[11px] font-black text-emerald-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
                                 View Details →
                               </span>
-                              <span className="px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest">
+                              <span className="px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-[11px] font-black uppercase tracking-widest">
                                 Active
                               </span>
                             </div>

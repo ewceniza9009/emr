@@ -26,7 +26,7 @@ export default function SectionLabel({
         <h2 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest leading-none">
           {title}
         </h2>
-        <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">
+        <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">
           {subtitle}
         </p>
       </div>

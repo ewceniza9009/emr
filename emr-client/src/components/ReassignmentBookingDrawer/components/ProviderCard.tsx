@@ -60,12 +60,12 @@ export default function ProviderCard({
                 {p.fullName}
               </p>
               {p.isCareNavigator && (
-                <span className="px-1 py-0.5 rounded bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[7px] font-black text-[var(--primary)] uppercase tracking-tighter">
+                <span className="px-1 py-0.5 rounded bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[11px] font-black text-[var(--primary)] uppercase tracking-tight">
                   CN
                 </span>
               )}
               {p.isSupportingClinician && (
-                <span className="px-1 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-[7px] font-black text-sky-500 uppercase tracking-tighter">
+                <span className="px-1 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-[11px] font-black text-sky-500 uppercase tracking-tight">
                   SC
                 </span>
               )}
@@ -73,12 +73,12 @@ export default function ProviderCard({
             <div className="flex items-center gap-2 mt-0.5">
               <div className="flex items-center gap-1">
                 <Navigation className="w-2.5 h-2.5 text-[var(--text-muted)]" />
-                <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                   {Math.round(p.travelTimeMinutes || 0)}m
                 </span>
               </div>
               <span className="w-0.5 h-0.5 rounded-full bg-[var(--card-border)]" />
-              <span className="text-[9px] font-bold text-[var(--text-muted)]">
+              <span className="text-[11px] font-bold text-[var(--text-muted)]">
                 {p.distanceInMiles?.toFixed(1) || "0.0"}mi
               </span>
             </div>
@@ -86,7 +86,7 @@ export default function ProviderCard({
         </div>
         <div className="flex flex-col items-end gap-1">
           <div
-            className={`px-2 py-0.5 border rounded-md text-[8px] font-black uppercase tracking-widest ${
+            className={`px-2 py-0.5 border rounded-md text-[11px] font-black uppercase tracking-widest ${
               isSelected
                 ? "bg-[var(--primary)] text-white border-transparent"
                 : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-muted)]"

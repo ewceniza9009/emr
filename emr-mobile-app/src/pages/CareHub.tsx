@@ -605,7 +605,7 @@ const CareHub: React.FC = () => {
                   <h2 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
                     {navigatorName}
                   </h2>
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[11px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
                     HIPAA
                   </span>
                 </div>
@@ -647,36 +647,38 @@ const CareHub: React.FC = () => {
               <span className="font-extrabold uppercase tracking-wider">Connection Offline (Cached Mode Active)</span>
             </div>
             {offlineChatQueue.length > 0 && (
-              <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="bg-amber-500 text-slate-950 font-black text-[11px] px-2 py-0.5 rounded-full uppercase tracking-wider">
                 {offlineChatQueue.length} Sync Queue
               </span>
             )}
           </div>
         )}
         <div className="flex flex-col min-h-full space-y-4 pb-6">
-          {/* Emergency Helper Tip */}
-          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 dark:from-amber-950/20 dark:to-slate-900/40 border border-amber-300 dark:border-amber-900/40 flex gap-3 shadow-sm">
-            <IonIcon
-              icon={warning}
-              className="w-5.5 h-5.5 text-amber-600 dark:text-amber-500 flex-shrink-0 animate-pulse"
-            />
-            <div>
-              <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest block">
-                NLP Distress Trigger Test
-              </span>
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
-                Type{" "}
-                <strong className="text-slate-700 dark:text-white font-extrabold">
-                  "chest pain"
-                </strong>{" "}
-                or{" "}
-                <strong className="text-slate-700 dark:text-white font-extrabold">
-                  "cannot breathe"
-                </strong>{" "}
-                to simulate the automatic triage override!
-              </p>
+          {/* Emergency Helper Tip (dev-only) */}
+          {import.meta.env.DEV && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 dark:from-amber-950/20 dark:to-slate-900/40 border border-amber-300 dark:border-amber-900/40 flex gap-3 shadow-sm">
+              <IonIcon
+                icon={warning}
+                className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 animate-pulse"
+              />
+              <div>
+                <span className="text-[11px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest block">
+                  NLP Distress Trigger Test
+                </span>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug mt-0.5">
+                  Type{" "}
+                  <strong className="text-slate-700 dark:text-white font-extrabold">
+                    "chest pain"
+                  </strong>{" "}
+                  or{" "}
+                  <strong className="text-slate-700 dark:text-white font-extrabold">
+                    "cannot breathe"
+                  </strong>{" "}
+                  to simulate the automatic triage override!
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Message List */}
           <div className="flex-grow space-y-4 pt-1">
@@ -736,7 +738,7 @@ const CareHub: React.FC = () => {
                               <p className="font-bold truncate text-[11px] leading-tight text-slate-200">
                                 {msg.fileName}
                               </p>
-                              <p className="text-[9px] opacity-75 font-mono leading-none mt-0.5 text-slate-400">
+                              <p className="text-[11px] opacity-75 font-mono leading-none mt-0.5 text-slate-400">
                                 {msg.fileSize}
                               </p>
                             </div>
@@ -762,7 +764,7 @@ const CareHub: React.FC = () => {
                       <span>{msg.timestamp}</span>
                       {isPatient && (
                         <span className="flex items-center gap-0.5 ml-1 select-none">
-                          <span className="text-[9px] font-bold uppercase tracking-wider opacity-85">
+                          <span className="text-[11px] font-bold uppercase tracking-wider opacity-85">
                             {msg.isSeen ? "Seen" : "Sent"}
                           </span>
                           <IonIcon
@@ -805,41 +807,42 @@ const CareHub: React.FC = () => {
         <div className="flex items-center gap-2 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-md">
           <button
             onClick={() => cameraInputRef.current?.click()}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-900 flex-shrink-0 flex items-center justify-center cursor-pointer"
+            aria-label="Take secure photo"
+            className="min-w-[44px] min-h-[44px] text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-900 flex-shrink-0 flex items-center justify-center cursor-pointer"
             title="Take Secure Photo"
-            style={{ borderRadius: "9999px" }}
           >
             <IonIcon
               icon={camera}
-              className="w-5.5 h-5.5 text-slate-500 dark:text-slate-400"
+              className="w-5 h-5 text-slate-500 dark:text-slate-400"
             />
           </button>
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-900 flex-shrink-0 flex items-center justify-center cursor-pointer"
+            aria-label="Attach document"
+            className="min-w-[44px] min-h-[44px] text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-900 flex-shrink-0 flex items-center justify-center cursor-pointer"
             title="Attach Document"
-            style={{ borderRadius: "9999px" }}
           >
             <IonIcon
               icon={attach}
-              className="w-5.5 h-5.5 text-slate-500 dark:text-slate-400"
+              className="w-5 h-5 text-slate-500 dark:text-slate-400"
             />
           </button>
 
           <input
             type="text"
+            aria-label="Message to care team"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your secure message..."
-            className="flex-grow bg-transparent border-0 outline-none text-[14px] font-semibold text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 py-2 px-1"
+            className="flex-grow bg-transparent border-0 outline-none text-base font-medium text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 py-2 px-1"
           />
 
           <button
             onClick={handleSendMessage}
-            className="w-10 h-10 bg-teal-600 dark:bg-teal-500 hover:bg-teal-500 dark:hover:bg-teal-400 text-white dark:text-[#020408] rounded-full active:opacity-90 flex-shrink-0 flex items-center justify-center shadow-md transition-all"
-            style={{ borderRadius: "9999px" }}
+            aria-label="Send message"
+            className="min-w-[44px] min-h-[44px] bg-teal-600 dark:bg-teal-500 hover:bg-teal-500 dark:hover:bg-teal-400 text-white dark:text-[#020408] rounded-full active:opacity-90 flex-shrink-0 flex items-center justify-center shadow-md transition-all"
           >
             <IonIcon icon={paperPlane} className="w-5 h-5" />
           </button>
@@ -865,7 +868,7 @@ const CareHub: React.FC = () => {
                 Palliative Rescue Protocol Active
               </h2>
               <div className="flex flex-col items-center gap-1.5 mt-1">
-                <div className="px-3 py-0.5 bg-rose-500/10 border border-rose-500/20 rounded-full text-[9px] font-black font-mono text-rose-600 dark:text-rose-400 uppercase tracking-widest">
+                <div className="px-3 py-0.5 bg-rose-500/10 border border-rose-500/20 rounded-full text-[11px] font-black font-mono text-rose-600 dark:text-rose-400 uppercase tracking-widest">
                   Active Protection: Comfort Measures Only (DNR)
                 </div>
                 <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500">
@@ -908,10 +911,10 @@ const CareHub: React.FC = () => {
             <div className="flex flex-col gap-2 w-full mt-2">
               <a
                 href="tel:18005557255"
-                className="w-full h-11 bg-teal-600 hover:bg-teal-505 dark:bg-teal-500 dark:hover:bg-teal-400 text-white dark:text-[#020408] rounded-full flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider shadow-md shadow-teal-500/10 active:scale-95 transition-transform"
+                className="w-full h-11 bg-teal-600 hover:bg-teal-500 dark:bg-teal-500 dark:hover:bg-teal-400 text-white dark:text-[#020408] rounded-full flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider shadow-md shadow-teal-500/10 active:scale-95 transition-transform"
                 style={{ textDecoration: "none" }}
               >
-                <IonIcon icon={shieldCheckmark} className="w-4.5 h-4.5" />
+                <IonIcon icon={shieldCheckmark} className="w-4 h-4" />
                 <span>Call Palliative Triage Hotline</span>
               </a>
 
@@ -935,7 +938,7 @@ const CareHub: React.FC = () => {
                     // Force dial 911 if requested
                     window.location.href = "tel:911";
                   }}
-                  className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-500 transition-colors bg-transparent border-0 outline-none cursor-pointer"
+                  className="text-[11px] uppercase font-black text-slate-400 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-500 transition-colors bg-transparent border-0 outline-none cursor-pointer"
                 >
                   ⚠️ Override Comfort Protocol: Call 911
                 </button>
@@ -963,7 +966,7 @@ const CareHub: React.FC = () => {
             </div>
 
             <div className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-left">
-              <span className="text-[9px] font-black uppercase text-amber-600 dark:text-amber-500 tracking-wider">
+              <span className="text-[11px] font-black uppercase text-amber-600 dark:text-amber-500 tracking-wider">
                 Patient Directions
               </span>
               <p className="text-[10px] text-slate-700 dark:text-slate-300 leading-snug mt-1">

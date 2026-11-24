@@ -69,7 +69,7 @@ export default function Phq9Scoring({ onScoreChange }: Phq9ScoringProps) {
         <div className="px-6 py-3 rounded-2xl bg-pink-500/5 border border-pink-500/10 flex flex-col items-center">
            <div className="text-[10px] font-black text-pink-400 uppercase tracking-widest mb-1">Total Score</div>
            <div className="text-3xl font-black text-[var(--text-primary)] tabular-nums">{totalScore}</div>
-           <div className={`text-[10px] font-bold uppercase tracking-tighter mt-1 ${severity.color}`}>{severity.label}</div>
+           <div className={`text-[10px] font-bold uppercase tracking-tight mt-1 ${severity.color}`}>{severity.label}</div>
         </div>
       </div>
 

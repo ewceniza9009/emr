@@ -37,7 +37,8 @@ import {
   statsChart,
   lockClosed,
   trendingUp,
-  informationCircle
+  informationCircle,
+  logOutOutline
 } from 'ionicons/icons';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -186,7 +187,7 @@ const ESAS_SYMPTOMS = [
 
 const ComfortDashboard: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const { user, apiUrl, token } = useAuth();
+  const { user, apiUrl, token, logout } = useAuth();
 
   // Connection monitoring state
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
@@ -941,7 +942,7 @@ const ComfortDashboard: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="w-3.5 h-3.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_#ef4444]" />
               <div className="space-y-0.5">
-                <span className="text-[9px] uppercase font-black tracking-widest text-slate-400 block">WebRTC Session</span>
+                <span className="text-[11px] uppercase font-black tracking-widest text-slate-400 block">WebRTC Session</span>
                 <span className="text-xs font-black text-white">Dr. Sarah Ross</span>
               </div>
             </div>
@@ -1000,13 +1001,13 @@ const ComfortDashboard: React.FC = () => {
                   <IonIcon icon={videocamOff} className="w-6 h-6 text-slate-500" />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 relative">
-                    <div className="absolute top-2 left-2 bg-black/60 px-1.5 py-0.5 rounded text-[8px] font-mono tracking-widest text-slate-400 uppercase">
+                    <div className="absolute top-2 left-2 bg-black/60 px-1.5 py-0.5 rounded text-[11px] font-mono tracking-widest text-slate-400 uppercase">
                       Self
                     </div>
                     <svg viewBox="0 0 100 100" className="w-12 h-12 text-slate-600">
                       <path fill="currentColor" d="M50 20c-8.3 0-15 6.7-15 15s6.7 15 15 15 15-6.7 15-15-6.7-15-15-15zm-25 45c0-11 9-20 20-20h10c11 0 20 9 20 20v5H25v-5z" />
                     </svg>
-                    <span className="text-[7px] text-slate-500 uppercase font-black tracking-widest mt-2">Active Camera</span>
+                    <span className="text-[11px] text-slate-500 uppercase font-black tracking-widest mt-2">Active Camera</span>
                   </div>
                 )}
               </div>
@@ -1015,7 +1016,7 @@ const ComfortDashboard: React.FC = () => {
 
           {/* Subtitles / Transcription Overlay */}
           <div className="z-10 bg-slate-950/85 backdrop-blur-md px-5 py-4 rounded-2xl border border-slate-800/80 max-w-sm mx-auto w-full shadow-2xl mb-4 animate-in fade-in slide-in-from-bottom-6 duration-300">
-            <span className="text-[8px] font-black uppercase text-teal-400 tracking-wider block mb-1">Live Clinical Transcription</span>
+            <span className="text-[11px] font-black uppercase text-teal-400 tracking-wider block mb-1">Live Clinical Transcription</span>
             <p className="text-xs font-semibold text-slate-200 leading-relaxed min-h-[40px] italic">
               {liveTranscription}
             </p>
@@ -1032,7 +1033,7 @@ const ComfortDashboard: React.FC = () => {
                   : 'bg-slate-900/80 border-slate-800 text-white hover:bg-slate-800'
               }`}
             >
-              <IonIcon icon={callMuted ? micOff : mic} className="w-5.5 h-5.5" />
+              <IonIcon icon={callMuted ? micOff : mic} className="w-5 h-5" />
             </button>
 
             {/* End Call Button */}
@@ -1058,7 +1059,7 @@ const ComfortDashboard: React.FC = () => {
                   : 'bg-slate-900/80 border-slate-800 text-white hover:bg-slate-800'
               }`}
             >
-              <IonIcon icon={callVideoOff ? videocamOff : videocam} className="w-5.5 h-5.5" />
+              <IonIcon icon={callVideoOff ? videocamOff : videocam} className="w-5 h-5" />
             </button>
           </div>
 
@@ -1092,6 +1093,7 @@ const ComfortDashboard: React.FC = () => {
               {/* Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
+                aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 style={{ borderRadius: '9999px' }}
                 className={`w-10 h-10 flex items-center justify-center border transition-all active:scale-95 shadow-sm cursor-pointer ${
                   theme === 'dark'
@@ -1105,6 +1107,7 @@ const ComfortDashboard: React.FC = () => {
 
               {/* Notification Button */}
               <button
+                aria-label="View notifications"
                 style={{ borderRadius: '9999px' }}
                 className={`relative w-10 h-10 flex items-center justify-center border transition-all active:scale-95 shadow-sm cursor-pointer ${
                   theme === 'dark'
@@ -1115,6 +1118,21 @@ const ComfortDashboard: React.FC = () => {
               >
                 <IonIcon icon={notifications} className="w-5 h-5" />
                 <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_6px_#10b981]" />
+              </button>
+
+              {/* Sign Out Button */}
+              <button
+                onClick={logout}
+                aria-label="Sign out"
+                style={{ borderRadius: '9999px' }}
+                className={`w-10 h-10 flex items-center justify-center border transition-all active:scale-95 shadow-sm cursor-pointer ${
+                  theme === 'dark'
+                    ? 'bg-slate-900 border-slate-800 text-rose-400 hover:bg-rose-950/40'
+                    : 'bg-white border-slate-200 text-rose-600 hover:bg-rose-50'
+                }`}
+                title="Sign Out"
+              >
+                <IonIcon icon={logOutOutline} className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -1129,7 +1147,7 @@ const ComfortDashboard: React.FC = () => {
               <span className="font-extrabold uppercase tracking-wider">Connection Offline (Cached Mode Active)</span>
             </div>
             {(offlineVitalsQueue.length > 0 || offlineEsasQueue.length > 0) && (
-              <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="bg-amber-500 text-slate-950 font-black text-[11px] px-2 py-0.5 rounded-full uppercase tracking-wider">
                 {(offlineVitalsQueue.length + offlineEsasQueue.length)} Sync Queue
               </span>
             )}
@@ -1138,12 +1156,12 @@ const ComfortDashboard: React.FC = () => {
         <div className="space-y-5 pb-8">
           
           {/* Daily Care Ring - Glassmorphism */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b0f19] dark:bg-gradient-to-br dark:from-slate-900/80 dark:to-[#0b0f19]/80 p-4.5 shadow-[0_4px_20px_rgba(15,23,42,0.03)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#0b0f19] dark:bg-gradient-to-br dark:from-slate-900/80 dark:to-[#0b0f19]/80 p-4 shadow-[0_4px_20px_rgba(15,23,42,0.03)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]">
             <div className="absolute -right-16 -top-16 w-36 h-36 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
             
             <div className="flex items-center justify-between gap-4">
               <div className="space-y-1">
-                <span className="text-[9px] font-extrabold tracking-wider text-teal-600 dark:text-teal-400 uppercase">Today's Progress</span>
+                <span className="text-[11px] font-extrabold tracking-wider text-teal-600 dark:text-teal-400 uppercase">Today's Progress</span>
                 <h2 className="text-base font-bold text-slate-900 dark:text-white leading-tight">Daily Care Ring</h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">
                   {doneCount === tasks.length 
@@ -1219,10 +1237,10 @@ const ComfortDashboard: React.FC = () => {
                       <p className={`text-xs font-semibold ${task.done ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-800 dark:text-slate-200'}`}>
                         {task.title}
                       </p>
-                      <span className="text-[9px] text-slate-400 dark:text-slate-500 font-mono">{task.time}</span>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">{task.time}</span>
                     </div>
                   </div>
-                  <IonIcon icon={chevronForward} className="w-3.5 h-3.5 text-slate-300 dark:text-slate-755" />
+                  <IonIcon icon={chevronForward} className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600" />
                 </div>
               ))}
             </div>
@@ -1240,20 +1258,24 @@ const ComfortDashboard: React.FC = () => {
               <div className="p-2.5 rounded-xl bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20 text-teal-600 dark:text-teal-400 group-hover:scale-105 transition-transform">
                 <IonIcon icon={trendingUp} className="w-5 h-5" />
               </div>
-              <div className="flex-grow space-y-1">
+              <div className="flex-grow space-y-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[8px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Active Program</span>
+                  <span className="text-[11px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Active Program</span>
                   <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
                 </div>
-                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">Oncology Care Plan</h3>
+                <h3 className="text-xs font-black text-slate-900 dark:text-white tracking-tight truncate">
+                  {data?.myMobileProfile?.diagnoses?.find((d: any) => d.isPrimary)?.description || 'Palliative Care Plan'}
+                </h3>
                 <div className="flex items-center gap-3">
                   <div className="w-24 bg-slate-100 dark:bg-slate-900 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-teal-500 h-full rounded-full" style={{ width: '68%' }} />
+                    <div className="bg-teal-500 h-full rounded-full transition-all duration-300" style={{ width: `${percentage}%` }} />
                   </div>
-                  <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold">68% Phase 2</span>
+                  <span className="text-[11px] font-mono tabular-nums text-slate-500 dark:text-slate-400 font-bold">
+                    {percentage}% Today ({doneCount}/{tasks.length})
+                  </span>
                 </div>
               </div>
-              <IonIcon icon={chevronForward} className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              <IonIcon icon={chevronForward} className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </div>
           </div>
 
@@ -1271,8 +1293,8 @@ const ComfortDashboard: React.FC = () => {
               </div>
               <div className="flex-grow space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[8px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase">Goals of Care Vault</span>
-                  <div className="px-1.5 py-0.2 bg-emerald-500/10 border border-emerald-500/20 rounded text-[7px] font-mono font-bold text-emerald-600 uppercase tracking-widest">
+                  <span className="text-[11px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase">Goals of Care Vault</span>
+                  <div className="px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[11px] font-mono font-bold text-emerald-600 uppercase tracking-widest">
                     Verified
                   </div>
                 </div>
@@ -1301,8 +1323,8 @@ const ComfortDashboard: React.FC = () => {
               </div>
               <div className="flex-grow space-y-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[8px] font-black tracking-widest text-rose-600 dark:text-rose-400 uppercase">Caregiver Resources</span>
-                  <div className="px-1.5 py-0.2 bg-rose-500/10 border border-rose-500/20 rounded text-[7px] font-mono font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest animate-pulse">
+                  <span className="text-[11px] font-black tracking-widest text-rose-600 dark:text-rose-400 uppercase">Caregiver Resources</span>
+                  <div className="px-1.5 py-0.5 bg-rose-500/10 border border-rose-500/20 rounded text-[11px] font-mono font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest animate-pulse">
                     New Support Guides
                   </div>
                 </div>
@@ -1316,11 +1338,11 @@ const ComfortDashboard: React.FC = () => {
           </div>
 
           {/* Virtual Waiting Room Banner - Responsive colors */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#090d16] dark:bg-gradient-to-r dark:from-teal-950/20 dark:via-[#0a1824]/40 dark:to-slate-900/80 p-4.5 shadow-[0_4px_20px_rgba(15,23,42,0.03)] dark:shadow-lg">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#090d16] dark:bg-gradient-to-r dark:from-teal-950/20 dark:via-[#0a1824]/40 dark:to-slate-900/80 p-4 shadow-[0_4px_20px_rgba(15,23,42,0.03)] dark:shadow-lg">
             <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-teal-500/5 to-transparent pointer-events-none" />
             <div className="flex items-start gap-4">
               <div className="p-3 bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20 text-teal-600 dark:text-teal-400 rounded-xl flex-shrink-0 animate-pulse">
-                <IonIcon icon={videocam} className="w-5.5 h-5.5" />
+                <IonIcon icon={videocam} className="w-5 h-5" />
               </div>
               <div className="space-y-3 flex-grow">
                 <div>
@@ -1357,7 +1379,7 @@ const ComfortDashboard: React.FC = () => {
                 ) : (
                   <button
                     onClick={() => setWaitingRoomActive(true)}
-                    className="w-full h-10 flex items-center justify-center bg-teal-600 dark:bg-gradient-to-r dark:from-teal-500 dark:to-emerald-500 hover:bg-teal-505 dark:hover:from-teal-400 dark:hover:to-emerald-400 text-white dark:text-slate-950 rounded-full text-xs font-black tracking-wide uppercase transition-all shadow-[0_4px_12px_rgba(13,148,136,0.15)] dark:shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
+                    className="w-full h-10 flex items-center justify-center bg-teal-600 dark:bg-gradient-to-r dark:from-teal-500 dark:to-emerald-500 hover:bg-teal-500 dark:hover:from-teal-400 dark:hover:to-emerald-400 text-white dark:text-slate-950 rounded-full text-xs font-black tracking-wide uppercase transition-all shadow-[0_4px_12px_rgba(13,148,136,0.15)] dark:shadow-[0_4px_12px_rgba(20,184,166,0.3)]"
                     style={{ borderRadius: '9999px' }}
                   >
                     Join Virtual Waiting Room
@@ -1368,17 +1390,17 @@ const ComfortDashboard: React.FC = () => {
           </div>
 
           {/* Visit Radar Logistics Transit Card */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#090d16] dark:bg-gradient-to-r dark:from-[#0d1627] dark:to-[#090d16] p-4.5 shadow-md">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#090d16] dark:bg-gradient-to-r dark:from-[#0d1627] dark:to-[#090d16] p-4 shadow-md">
             <div className="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-indigo-500/5 to-transparent pointer-events-none" />
             <div className="flex items-start gap-4">
               <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl flex-shrink-0 animate-pulse">
-                <IonIcon icon={map} className="w-5.5 h-5.5" />
+                <IonIcon icon={map} className="w-5 h-5" />
               </div>
               <div className="space-y-3 flex-grow">
                 <div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
-                    <span className="text-[9px] uppercase font-black tracking-widest text-indigo-500 dark:text-indigo-400">Clinician In Transit</span>
+                    <span className="text-[11px] uppercase font-black tracking-widest text-indigo-500 dark:text-indigo-400">Clinician In Transit</span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-1">Visit Radar Logistics</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
@@ -1401,7 +1423,7 @@ const ComfortDashboard: React.FC = () => {
           <div>
             <div className="flex justify-between items-center mb-2.5 px-1">
               <h3 className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-black">Wearables Telemetry</h3>
-              <span className="text-[8px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest flex items-center gap-1">
+              <span className="text-[11px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                 Live Sync
               </span>
@@ -1420,12 +1442,12 @@ const ComfortDashboard: React.FC = () => {
                 <div className="absolute top-3.5 right-3.5 text-rose-500 animate-pulse">
                   <IonIcon icon={heart} className="w-5 h-5" />
                 </div>
-                <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Heart Rate</span>
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Heart Rate</span>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-xl font-black text-slate-900 dark:text-white">{liveVitals.heartRate}</span>
                   <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">BPM</span>
                 </div>
-                <div className="mt-3.5 flex items-center gap-1.5 text-[9px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-950/40 px-2 py-0.5 rounded-full w-max">
+                <div className="mt-3.5 flex items-center gap-1.5 text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-950/40 px-2 py-0.5 rounded-full w-max">
                   <IonIcon icon={pulse} className="w-3 h-3" />
                   <span>Resting 65</span>
                 </div>
@@ -1442,12 +1464,12 @@ const ComfortDashboard: React.FC = () => {
                 <div className="absolute top-3.5 right-3.5 text-teal-600 dark:text-teal-400">
                   <IonIcon icon={pulse} className="w-5 h-5" />
                 </div>
-                <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Blood Oxygen</span>
+                <span className="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Blood Oxygen</span>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-xl font-black text-slate-900 dark:text-white">{liveVitals.spO2}</span>
                   <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">% SpO2</span>
                 </div>
-                <div className="mt-3.5 flex items-center gap-1.5 text-[9px] text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/20 border border-teal-200/50 dark:border-teal-950/40 px-2 py-0.5 rounded-full w-max">
+                <div className="mt-3.5 flex items-center gap-1.5 text-[11px] text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/20 border border-teal-200/50 dark:border-teal-950/40 px-2 py-0.5 rounded-full w-max">
                   <span>Normal Range</span>
                 </div>
               </div>
@@ -1465,7 +1487,7 @@ const ComfortDashboard: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="space-y-0.5">
-                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Body Temperature</span>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Body Temperature</span>
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-xl font-black text-slate-900 dark:text-white">{liveVitals.temperature}</span>
                       <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">°F</span>
@@ -1482,7 +1504,7 @@ const ComfortDashboard: React.FC = () => {
 
           <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-105/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-900/60">
             <IonIcon icon={alertCircle} className="w-4 h-4 text-slate-400 dark:text-slate-500 mt-0.5 flex-shrink-0" />
-            <span className="text-[9px] text-slate-400 dark:text-slate-500 leading-snug">
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 leading-snug">
               This room is a HIPAA-compliant virtual clinical workspace. All communications, video triage, and wearable telemetry are encrypted in transit and at rest.
             </span>
           </div>
@@ -1496,9 +1518,9 @@ const ComfortDashboard: React.FC = () => {
       {showBpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-xs flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center p-4.5 border-b border-slate-100 dark:border-slate-800/80">
+            <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-800/80">
               <div>
-                <span className="text-[8px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Input Log</span>
+                <span className="text-[11px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Input Log</span>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Blood Pressure</h3>
               </div>
               <button 
@@ -1516,7 +1538,7 @@ const ComfortDashboard: React.FC = () => {
 
               <div className="flex items-center gap-3">
                 <div className="flex-1 space-y-1">
-                  <label className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500">Systolic</label>
+                  <label className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500">Systolic</label>
                   <input
                     type="number"
                     value={systolic}
@@ -1527,7 +1549,7 @@ const ComfortDashboard: React.FC = () => {
                 </div>
                 <span className="text-slate-300 dark:text-slate-700 font-bold pt-4">/</span>
                 <div className="flex-1 space-y-1">
-                  <label className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500">Diastolic</label>
+                  <label className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500">Diastolic</label>
                   <input
                     type="number"
                     value={diastolic}
@@ -1558,7 +1580,7 @@ const ComfortDashboard: React.FC = () => {
           <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 rounded-[2rem] w-full max-w-md flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center p-5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30">
               <div>
-                <span className="text-[8px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Comfort Check-in</span>
+                <span className="text-[11px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Comfort Check-in</span>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Edmonton Symptom Assessment (ESAS-R)</h3>
               </div>
               <button 
@@ -1613,7 +1635,7 @@ const ComfortDashboard: React.FC = () => {
                             }}
                             className="w-full accent-teal-500 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer"
                           />
-                          <div className="flex justify-between text-[8px] font-mono font-bold text-slate-400">
+                          <div className="flex justify-between text-[11px] font-mono font-bold text-slate-400">
                             <span>{symptom.minLabel}</span>
                             <span>{symptom.maxLabel}</span>
                           </div>
@@ -1625,7 +1647,7 @@ const ComfortDashboard: React.FC = () => {
                   {/* Real-time Dynamic Average Score Panel */}
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 to-indigo-500/10 border border-teal-500/20 flex items-center justify-between mt-5">
                     <div className="space-y-0.5">
-                      <span className="text-[9px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider">Live Calibration</span>
+                      <span className="text-[11px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider">Live Calibration</span>
                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">Current Average Severity</h4>
                     </div>
                     <div className="text-right">
@@ -1681,9 +1703,9 @@ const ComfortDashboard: React.FC = () => {
       {showWoundModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center p-4.5 border-b border-slate-100 dark:border-slate-800/80">
+            <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-800/80">
               <div>
-                <span className="text-[8px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Log Photo</span>
+                <span className="text-[11px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Log Photo</span>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Wound Check-in</h3>
               </div>
               <button 
@@ -1705,7 +1727,7 @@ const ComfortDashboard: React.FC = () => {
                     <IonIcon icon={cloudUpload} className="w-8 h-8 animate-bounce" />
                   </div>
                   <div className="w-full max-w-xs space-y-1">
-                    <div className="flex justify-between text-[9px] font-bold text-slate-400 uppercase">
+                    <div className="flex justify-between text-[11px] font-bold text-slate-400 uppercase">
                       <span>Uploading Photo...</span>
                       <span>{uploadProgress}%</span>
                     </div>
@@ -1742,13 +1764,13 @@ const ComfortDashboard: React.FC = () => {
       {showAnalyticsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center p-4.5 border-b border-slate-100 dark:border-slate-800/80">
+            <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-800/80">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400">
                   <IonIcon icon={statsChart} className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[8px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Wearables Hub</span>
+                  <span className="text-[11px] font-black tracking-widest text-teal-600 dark:text-teal-400 uppercase">Wearables Hub</span>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Vitals Trend Analysis</h3>
                 </div>
               </div>
@@ -1785,13 +1807,13 @@ const ComfortDashboard: React.FC = () => {
 
               {/* Time Range Selector */}
               <div className="flex justify-between items-center px-1">
-                <span className="text-[9px] font-extrabold uppercase text-slate-400 dark:text-slate-500">Historical Scope</span>
+                <span className="text-[11px] font-extrabold uppercase text-slate-400 dark:text-slate-500">Historical Scope</span>
                 <div className="flex gap-1.5">
                   {(['day', 'week', 'month'] as const).map((r) => (
                     <button
                       key={r}
                       onClick={() => setAnalyticsRange(r)}
-                      className={`text-[9px] uppercase tracking-widest font-black px-2.5 py-1 rounded-md transition-all ${
+                      className={`text-[11px] uppercase tracking-widest font-black px-2.5 py-1 rounded-md transition-all ${
                         analyticsRange === r
                           ? 'bg-teal-500/10 border border-teal-500/30 text-teal-600 dark:text-teal-400'
                           : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
@@ -1807,7 +1829,7 @@ const ComfortDashboard: React.FC = () => {
               <div className="relative h-48 w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-900 rounded-2xl p-4 flex flex-col justify-between overflow-hidden">
                 <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                  <span className="text-[8px] font-mono tracking-widest text-slate-400 dark:text-slate-500 uppercase">Live Stream Connected</span>
+                  <span className="text-[11px] font-mono tracking-widest text-slate-400 dark:text-slate-500 uppercase">Live Stream Connected</span>
                 </div>
                 
                 {/* SVG Graph Gridlines and Line */}
@@ -1864,7 +1886,7 @@ const ComfortDashboard: React.FC = () => {
                 </div>
 
                 {/* X-Axis labels */}
-                <div className="flex justify-between text-[8px] font-mono text-slate-500 dark:text-slate-600 px-1 border-t border-slate-200/60 dark:border-slate-900/80 pt-1.5">
+                <div className="flex justify-between text-[11px] font-mono text-slate-500 dark:text-slate-600 px-1 border-t border-slate-200/60 dark:border-slate-900/80 pt-1.5">
                   {analyticsRange === 'week' ? (
                     ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => <span key={day}>{day}</span>)
                   ) : analyticsRange === 'day' ? (
@@ -1878,7 +1900,7 @@ const ComfortDashboard: React.FC = () => {
               {/* Health Summary Card */}
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-900 flex justify-between items-center">
                 <div className="space-y-0.5">
-                  <span className="text-[8px] font-black uppercase text-slate-400 dark:text-slate-500">Average Reading</span>
+                  <span className="text-[11px] font-black uppercase text-slate-400 dark:text-slate-500">Average Reading</span>
                   <div className="text-sm font-black text-slate-900 dark:text-white font-mono">
                     {selectedMetric === 'heart' ? '74 BPM (Normal)' : selectedMetric === 'spo2' ? '98.2% SpO2 (Excellent)' : '98.5°F (Stable)'}
                   </div>
@@ -1911,7 +1933,7 @@ const ComfortDashboard: React.FC = () => {
                 }`}
                 style={{ borderRadius: '9999px' }}
               >
-                <IonIcon icon={sync} className={`w-4.5 h-4.5 ${isSyncingWearables ? 'animate-spin' : ''}`} />
+                <IonIcon icon={sync} className={`w-4 h-4 ${isSyncingWearables ? 'animate-spin' : ''}`} />
                 <span>{isSyncingWearables ? 'Syncing iOS HealthKit...' : 'Force Bluetooth Wearables Sync'}</span>
               </button>
             </div>
@@ -1925,13 +1947,13 @@ const ComfortDashboard: React.FC = () => {
       {showRadarModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center p-4.5 border-b border-slate-100 dark:border-slate-800/80">
+            <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-800/80">
               <div className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                   <IonIcon icon={map} className="w-5 h-5 animate-pulse" />
                 </div>
                 <div>
-                  <span className="text-[8px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase">Live Radar</span>
+                  <span className="text-[11px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase">Live Radar</span>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">Visit Transit Map</h3>
                 </div>
               </div>
@@ -2028,14 +2050,14 @@ const ComfortDashboard: React.FC = () => {
 
                 {/* Live Distance overlay HUD */}
                 <div className="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 flex flex-col justify-center">
-                  <span className="text-[7px] text-slate-500 uppercase tracking-widest font-black">Live ETA</span>
+                  <span className="text-[11px] text-slate-500 uppercase tracking-widest font-black">Live ETA</span>
                   <span className="text-xs font-black text-white font-mono leading-none mt-0.5">
                     {radarTransitProgress >= 90 ? 'Clinician Arrived' : `${Math.ceil((100 - radarTransitProgress) * 0.15)} mins away`}
                   </span>
                 </div>
 
                 <div className="absolute bottom-3 right-3 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 flex flex-col justify-center text-right">
-                  <span className="text-[7px] text-slate-500 uppercase tracking-widest font-black">Speed Vector</span>
+                  <span className="text-[11px] text-slate-500 uppercase tracking-widest font-black">Speed Vector</span>
                   <span className="text-xs font-black text-white font-mono leading-none mt-0.5">
                     {radarTransitProgress >= 90 ? '0 mph' : '24 mph'}
                   </span>
@@ -2050,16 +2072,16 @@ const ComfortDashboard: React.FC = () => {
                   </div>
                   <div className="space-y-0.5">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{clinicianName}</h4>
-                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold block">{clinicianSpecialty}</span>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-semibold block">{clinicianSpecialty}</span>
                   </div>
                 </div>
                 {radarTransitProgress >= 75 ? (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-full text-[9px] font-extrabold uppercase tracking-wide">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-full text-[11px] font-extrabold uppercase tracking-wide">
                     <IonIcon icon={lockClosed} className="w-3.5 h-3.5" />
                     <span>Geofence Shroud</span>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full text-[9px] font-extrabold uppercase tracking-wide animate-pulse">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full text-[11px] font-extrabold uppercase tracking-wide animate-pulse">
                     <span>Active Tracking</span>
                   </div>
                 )}
@@ -2110,17 +2132,17 @@ const ComfortDashboard: React.FC = () => {
               {/* Active Pathway Details Card */}
               <div className="p-4 rounded-[1.75rem] border border-slate-100 dark:border-slate-900 bg-slate-50/50 dark:bg-[#060a13] space-y-3">
                 <div>
-                  <span className="text-[8px] font-extrabold tracking-widest text-slate-400 dark:text-slate-500 uppercase">Assigned Care Plan</span>
+                  <span className="text-[11px] font-extrabold tracking-widest text-slate-400 dark:text-slate-500 uppercase">Assigned Care Plan</span>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{carePlanName}</h4>
                 </div>
                 <div className="h-px bg-slate-100 dark:bg-slate-900" />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-[8px] font-extrabold tracking-widest text-slate-400 dark:text-slate-500 uppercase">Lead Coordinator</span>
+                    <span className="text-[11px] font-extrabold tracking-widest text-slate-400 dark:text-slate-500 uppercase">Lead Coordinator</span>
                     <p className="text-xs text-slate-800 dark:text-slate-300 font-semibold mt-0.5">{loading ? 'Loading...' : data?.myMobileProfile?.primaryCareNavigatorName || 'Sarah Jenkins'}</p>
                   </div>
                   <div>
-                    <span className="text-[8px] font-extrabold tracking-widest text-slate-400 dark:text-slate-500 uppercase">Clinical MRN</span>
+                    <span className="text-[11px] font-extrabold tracking-widest text-slate-400 dark:text-slate-500 uppercase">Clinical MRN</span>
                     <p className="text-xs text-slate-800 dark:text-slate-300 font-mono font-bold mt-0.5">{loading ? 'Loading...' : data?.myMobileProfile?.mrn || 'MRN-99999'}</p>
                   </div>
                 </div>
@@ -2129,19 +2151,19 @@ const ComfortDashboard: React.FC = () => {
               {/* Milestone Pathway Progress Grid */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
-                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Pathway</span>
+                  <span className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Pathway</span>
                   <p className="text-base font-extrabold text-teal-600 dark:text-teal-400 font-mono">{completionPercent}%</p>
-                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block">Completed</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block">Completed</span>
                 </div>
                 <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
-                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Prescriptions</span>
+                  <span className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Prescriptions</span>
                   <p className="text-base font-extrabold text-violet-500 font-mono">{meds.length}</p>
-                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block">In Database</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block">In Database</span>
                 </div>
                 <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
-                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Visits</span>
+                  <span className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Visits</span>
                   <p className="text-base font-extrabold text-blue-500 font-mono">{data?.myMobileProfile?.encounters?.length || 0}</p>
-                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block">Encounters</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block">Encounters</span>
                 </div>
               </div>
 
@@ -2172,10 +2194,10 @@ const ComfortDashboard: React.FC = () => {
                       <h4 className={`text-xs font-black uppercase tracking-tight flex items-center gap-2 ${activePhase >= 1 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
                         Phase 1: Palliative Care Enrollment
                         {activePhase > 1 && (
-                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
+                          <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
                         )}
                         {activePhase === 1 && (
-                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
+                          <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
                         )}
                       </h4>
                       <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 1 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
@@ -2203,10 +2225,10 @@ const ComfortDashboard: React.FC = () => {
                       <h4 className={`text-xs font-black uppercase tracking-tight flex items-center gap-2 ${activePhase >= 2 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
                         Phase 2: Pain & Symptom Stabilization
                         {activePhase > 2 && (
-                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
+                          <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
                         )}
                         {activePhase === 2 && (
-                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
+                          <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
                         )}
                       </h4>
                       <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 2 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
@@ -2234,10 +2256,10 @@ const ComfortDashboard: React.FC = () => {
                       <h4 className={`text-xs font-black uppercase tracking-tight flex items-center gap-2 ${activePhase >= 3 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
                         Phase 3: Interim Assessment & Titration
                         {activePhase > 3 && (
-                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
+                          <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
                         )}
                         {activePhase === 3 && (
-                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
+                          <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
                         )}
                       </h4>
                       <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 3 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
@@ -2265,10 +2287,10 @@ const ComfortDashboard: React.FC = () => {
                       <h4 className={`text-xs font-black uppercase tracking-tight flex items-center gap-2 ${activePhase >= 4 ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
                         Phase 4: Discharge Readiness Evaluation
                         {activePhase > 4 && (
-                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
+                          <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-widest">Completed</span>
                         )}
                         {activePhase === 4 && (
-                          <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
+                          <span className="px-1.5 py-0.5 rounded text-[11px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
                         )}
                       </h4>
                       <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 4 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
@@ -2306,11 +2328,11 @@ const ComfortDashboard: React.FC = () => {
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-teal-50 dark:bg-teal-500/10 border border-teal-100 dark:border-teal-500/20 text-teal-600 dark:text-teal-400">
-                  <IonIcon icon={shieldCheckmark} className="w-5.5 h-5.5" />
+                  <IonIcon icon={shieldCheckmark} className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Goals of Care Vault</h3>
-                  <span className="text-[8px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-widest mt-0.5 block">Advanced Care Planning (ACP)</span>
+                  <span className="text-[11px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-widest mt-0.5 block">Advanced Care Planning (ACP)</span>
                 </div>
               </div>
               <button 
@@ -2341,7 +2363,7 @@ const ComfortDashboard: React.FC = () => {
                             {d.type === 'DNR' ? 'Do Not Resuscitate (DNR)' : d.type === 'ComfortMeasuresOnly' ? 'Comfort Measures Only (CMO)' : d.type}
                           </span>
                         </div>
-                        <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase font-mono">
+                        <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase font-mono">
                           Active since {new Date(d.effectiveDate).toLocaleDateString()}
                         </span>
                       </div>
@@ -2356,7 +2378,7 @@ const ComfortDashboard: React.FC = () => {
                         rel="noopener noreferrer"
                         className="h-10 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200/50 dark:border-slate-700 transition-colors w-full"
                       >
-                        <IonIcon icon={cloudUpload} className="w-4.5 h-4.5 text-teal-500" />
+                        <IonIcon icon={cloudUpload} className="w-4 h-4 text-teal-500" />
                         <span>View Signed Legal Document</span>
                       </a>
                     </div>
@@ -2393,11 +2415,11 @@ const ComfortDashboard: React.FC = () => {
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 text-rose-600 dark:text-rose-400">
-                  <IonIcon icon={informationCircle} className="w-5.5 h-5.5" />
+                  <IonIcon icon={informationCircle} className="w-5 h-5" />
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Anticipatory Comfort Care</h3>
-                  <span className="text-[8px] font-black uppercase text-rose-600 dark:text-rose-400 tracking-widest mt-0.5 block">Caregiver & Family Support Hub</span>
+                  <span className="text-[11px] font-black uppercase text-rose-600 dark:text-rose-400 tracking-widest mt-0.5 block">Caregiver & Family Support Hub</span>
                 </div>
               </div>
               <button 
@@ -2419,7 +2441,7 @@ const ComfortDashboard: React.FC = () => {
                 
                 {/* Dyspnea */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
-                  <span className="text-[9px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider block">1. Air Hunger / Dyspnea</span>
+                  <span className="text-[11px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider block">1. Air Hunger / Dyspnea</span>
                   <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
                     • <strong>Bedside Fan Effect:</strong> A cool breeze blowing across the cheek/face stimulates the trigeminal nerve, naturally calming breathing centers in the brain.<br />
                     • <strong>Optimized Position:</strong> Support the patient sitting upright or leaning forward slightly, resting their forearms on a bedside table.
@@ -2428,7 +2450,7 @@ const ComfortDashboard: React.FC = () => {
 
                 {/* Respiratory Secretions */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
-                  <span className="text-[9px] font-black uppercase text-rose-600 dark:text-rose-400 tracking-wider block">2. Congestion ("Death Rattle")</span>
+                  <span className="text-[11px] font-black uppercase text-rose-600 dark:text-rose-400 tracking-wider block">2. Congestion ("Death Rattle")</span>
                   <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
                     • <strong>Reassurance:</strong> This loud breathing is a natural relaxation of throat muscles. It is not painful or distressing for the patient.<br />
                     • <strong>Bedside Action:</strong> Turn the patient gently to a side-lying position. <strong>Do not use deep suctioning</strong>, as it can cause significant airway spasms and panic.
@@ -2437,7 +2459,7 @@ const ComfortDashboard: React.FC = () => {
 
                 {/* Terminal Restlessness */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/50 dark:border-slate-800 space-y-1.5">
-                  <span className="text-[9px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider block">3. Terminal Restlessness & Panic</span>
+                  <span className="text-[11px] font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider block">3. Terminal Restlessness & Panic</span>
                   <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
                     • <strong>Calming Ambience:</strong> Dim the bedroom lighting, turn off loud television noise, and play low-volume ambient music.<br />
                     • <strong>Touch & Tone:</strong> Speak in low, peaceful, steady whispers. Hold their hand or brush their forehead gently to provide sensory grounding.
@@ -2446,7 +2468,7 @@ const ComfortDashboard: React.FC = () => {
 
                 {/* Bereavement Support */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-rose-950/10 border border-slate-200/50 dark:border-rose-900/20 space-y-1.5">
-                  <span className="text-[9px] font-black uppercase text-pink-600 dark:text-pink-400 tracking-wider block">4. Bereavement & Caregiver Support</span>
+                  <span className="text-[11px] font-black uppercase text-pink-600 dark:text-pink-400 tracking-wider block">4. Bereavement & Caregiver Support</span>
                   <p className="text-xs text-slate-800 dark:text-slate-200 font-semibold leading-relaxed">
                     • <strong>Counseling Access:</strong> We provide 24/7 complimentary grief support, spiritual counseling, and local support handovers for family members.<br />
                     • <strong>Respite Checklist:</strong> Coordinate a caregiver shift handoff utilizing the Comfort Ring tasks to maintain continuity.
@@ -2462,7 +2484,7 @@ const ComfortDashboard: React.FC = () => {
                   className="w-full h-11 bg-rose-600 hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400 text-white dark:text-[#020408] rounded-full flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider shadow-md shadow-rose-500/10 active:scale-95 transition-transform"
                   style={{ textDecoration: 'none' }}
                 >
-                  <IonIcon icon={shieldCheckmark} className="w-4.5 h-4.5" />
+                  <IonIcon icon={shieldCheckmark} className="w-4 h-4" />
                   <span>Call Palliative Support Hotline</span>
                 </a>
 

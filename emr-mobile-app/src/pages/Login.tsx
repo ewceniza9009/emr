@@ -270,7 +270,7 @@ const Login: React.FC = () => {
                     <span className="text-[11px] font-black uppercase text-teal-400 tracking-wider">
                       Simulate Token Link Verification
                     </span>
-                    <p className="text-[9px] text-slate-500 max-w-[200px] leading-normal mx-auto mt-0.5">
+                    <p className="text-[11px] text-slate-500 max-w-[200px] leading-normal mx-auto mt-0.5">
                       Verify secure token link authentication for instant local evaluation
                     </p>
                   </div>
@@ -288,7 +288,7 @@ const Login: React.FC = () => {
                     <span className="text-[11px] font-black uppercase text-emerald-400 tracking-wider">
                       Biometric Face ID Unlock
                     </span>
-                    <p className="text-[9px] text-slate-500 max-w-[200px] leading-normal mx-auto mt-0.5">
+                    <p className="text-[11px] text-slate-500 max-w-[200px] leading-normal mx-auto mt-0.5">
                       Secure passwordless access using registered Face ID telemetry
                     </p>
                   </div>
@@ -297,7 +297,7 @@ const Login: React.FC = () => {
                 {/* Divider */}
                 <div className="flex items-center gap-3">
                   <div className="h-[1px] bg-slate-800 flex-grow" />
-                  <span className="text-[9px] uppercase font-bold text-slate-500 tracking-widest">
+                  <span className="text-[11px] uppercase font-bold text-slate-500 tracking-widest">
                     Or Magic Token Bypass
                   </span>
                   <div className="h-[1px] bg-slate-800 flex-grow" />
@@ -306,7 +306,7 @@ const Login: React.FC = () => {
                 {/* Passwordless Magic Token input */}
                 <form onSubmit={handleMagicLogin} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[9px] uppercase font-black tracking-widest text-slate-500 block">
+                    <label className="text-[11px] uppercase font-black tracking-widest text-slate-500 block">
                       Demo Magic Token / MRN
                     </label>
                     <div className="flex items-center justify-between rounded-2xl border border-[#1e293b] bg-[#070a13] pl-4 pr-1.5 py-1.5 focus-within:border-teal-500/50 transition-all gap-2">
@@ -333,7 +333,7 @@ const Login: React.FC = () => {
                       >
                         <IonIcon icon={copyIcon} className="w-3.5 h-3.5" />
                         {isCopied && (
-                          <div className="absolute bottom-full right-0 mb-2 bg-slate-900 border border-slate-800 text-emerald-400 text-[8px] font-bold uppercase tracking-widest py-1 px-2 rounded-md shadow-lg animate-fadeIn whitespace-nowrap z-50">
+                          <div className="absolute bottom-full right-0 mb-2 bg-slate-900 border border-slate-800 text-emerald-400 text-[11px] font-bold uppercase tracking-widest py-1 px-2 rounded-md shadow-lg animate-fadeIn whitespace-nowrap z-50">
                             Copied!
                           </div>
                         )}
@@ -384,7 +384,7 @@ const Login: React.FC = () => {
             {showSettings && (
               <div className="p-4 bg-slate-950 border border-slate-900 rounded-2xl space-y-3 shadow-xl animate-fadeIn">
                 <div className="space-y-1">
-                  <span className="text-[9px] uppercase font-black tracking-widest text-slate-500 block">
+                  <span className="text-[11px] uppercase font-black tracking-widest text-slate-500 block">
                     EMR Backend API Bridge Address
                   </span>
                   <input
@@ -394,7 +394,7 @@ const Login: React.FC = () => {
                     placeholder="https://localhost:34731"
                     className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 outline-none text-xs text-white placeholder-slate-655 focus:border-teal-500/50"
                   />
-                  <span className="text-[8px] text-slate-600 block leading-normal mt-0.5">
+                  <span className="text-[11px] text-slate-600 block leading-normal mt-0.5">
                     • Default browser environment:{" "}
                     <strong className="text-slate-500">
                       https://localhost:34731
@@ -415,10 +415,10 @@ const Login: React.FC = () => {
             )}
 
             <div className="text-center">
-              <span className="text-[9px] text-slate-600 uppercase font-medium block">
+              <span className="text-[11px] text-slate-600 uppercase font-medium block">
                 Halkyone Clinical Platform v1.2.4 (Tactical Mobile client)
               </span>
-              <span className="text-[8px] text-slate-700 block mt-0.5">
+              <span className="text-[11px] text-slate-700 block mt-0.5">
                 Authorized clinical personnel only. All access is audited in
                 accordance with HIPAA standards.
               </span>
@@ -434,7 +434,7 @@ const Login: React.FC = () => {
                 <IonIcon icon={shieldCheckmark} className="w-6 h-6 text-emerald-400" />
               </div>
               <div className="space-y-0.5">
-                <span className="text-[9px] uppercase font-black tracking-widest text-slate-500 block">Biometric Hub</span>
+                <span className="text-[11px] uppercase font-black tracking-widest text-slate-500 block">Biometric Hub</span>
                 <h3 className="text-sm font-black text-white">Face ID Authentication</h3>
               </div>
             </div>
@@ -474,7 +474,7 @@ const Login: React.FC = () => {
 
             {/* Terminal logs */}
             <div className="w-full max-w-sm mx-auto mb-6">
-              <div className="w-full h-32 rounded-2xl bg-[#090b11] border border-slate-900 p-4 font-mono text-[9px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar shadow-inner">
+              <div className="w-full h-32 rounded-2xl bg-[#090b11] border border-slate-900 p-4 font-mono text-[11px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar shadow-inner">
                 {scanLogs.map((log, lIdx) => (
                   <div key={lIdx} className="flex gap-1.5 leading-relaxed font-mono">
                     <span className="text-emerald-505 select-none font-mono">&gt;</span>

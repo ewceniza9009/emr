@@ -90,7 +90,7 @@ export function ServiceLocationPanel({ state, patientId, setPatientId }: Service
                               return activePractitioner?.travelTimeInMinutes != null ? `${activePractitioner.travelTimeInMinutes}m` : "0m";
                             })()} Transit
                           </span>
-                          <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter mt-0.5">Clinical Vector</span>
+                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-tight mt-0.5">Clinical Vector</span>
                         </div>
                       </div>
                       <button type="button" onClick={() => state.setIsEditingAddress(!state.isEditingAddress)}
@@ -136,12 +136,12 @@ export function ServiceLocationPanel({ state, patientId, setPatientId }: Service
                         </div>
                       </div>
                       {(state.patientAddress.region || state.patientAddress.country) && (
-                        <p className="text-[9px] font-bold text-[var(--text-muted)]/50 uppercase tracking-widest">
+                        <p className="text-[11px] font-bold text-[var(--text-muted)]/50 uppercase tracking-widest">
                           {state.patientAddress.region}{state.patientAddress.region && state.patientAddress.country ? " • " : ""}{state.patientAddress.country}
                         </p>
                       )}
                       {state.patientAddress.latitude != null && (
-                        <p className="text-[8px] font-mono text-[var(--text-muted)]/30 tracking-wider">
+                        <p className="text-[11px] font-mono text-[var(--text-muted)]/30 tracking-wider">
                           {state.patientAddress.latitude.toFixed(4)}, {state.patientAddress.longitude?.toFixed(4)}
                         </p>
                       )}

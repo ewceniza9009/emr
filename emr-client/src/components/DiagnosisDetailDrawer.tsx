@@ -12,7 +12,7 @@ export default function DiagnosisDetailDrawer({ isOpen, onClose, diagnosis }: Pr
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
         
         <div className={`relative h-full w-full max-w-[500px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
@@ -61,7 +61,7 @@ export default function DiagnosisDetailDrawer({ isOpen, onClose, diagnosis }: Pr
 
                    <div className="grid grid-cols-2 gap-4">
                       <div className="p-6 rounded-2xl bg-slate-500/5 border border-[var(--card-border)]">
-                         <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-2">Diagnosed On</label>
+                         <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">Diagnosed On</label>
                          <div className="flex items-center gap-3">
                             <Calendar className="w-5 h-5 text-slate-500" />
                             <span className="text-sm font-black text-[var(--text-primary)]">
@@ -70,7 +70,7 @@ export default function DiagnosisDetailDrawer({ isOpen, onClose, diagnosis }: Pr
                          </div>
                       </div>
                       <div className="p-6 rounded-2xl bg-slate-500/5 border border-[var(--card-border)]">
-                         <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-2">Record Status</label>
+                         <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">Record Status</label>
                          <div className="flex items-center gap-3">
                             <Activity className="w-5 h-5 text-emerald-500" />
                             <span className="text-sm font-black text-emerald-400 uppercase">Active</span>

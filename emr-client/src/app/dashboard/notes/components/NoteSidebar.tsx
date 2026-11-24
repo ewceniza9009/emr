@@ -29,7 +29,7 @@ export function NoteSidebar({ state }: NoteSidebarProps) {
       <div className="bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--card-border)] p-4 flex flex-col gap-4 overflow-hidden h-full">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-black uppercase tracking-tighter">
+            <h2 className="text-sm font-black uppercase tracking-tight">
               Clinical Notes
             </h2>
             <p className="text-[10px] font-black text-[var(--primary)] tracking-widest uppercase">
@@ -77,12 +77,12 @@ export function NoteSidebar({ state }: NoteSidebarProps) {
                       <h4 className="text-xs font-black uppercase text-[var(--text-primary)] group-hover/hdr:text-[var(--primary)] transition-colors">
                         {group.firstName} {group.lastName}
                       </h4>
-                      <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-wider">
+                      <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-wider">
                         MRN: {group.mrn}
                       </span>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full text-[8px] font-black bg-[var(--primary)]/10 text-[var(--primary)] uppercase tracking-tighter shrink-0">
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-black bg-[var(--primary)]/10 text-[var(--primary)] uppercase tracking-tight shrink-0">
                     {group.notes.length}{" "}
                     {group.notes.length === 1 ? "visit" : "visits"}
                   </span>
@@ -104,7 +104,7 @@ export function NoteSidebar({ state }: NoteSidebarProps) {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <span
-                              className={`text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider border ${
+                              className={`text-[11px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider border ${
                                 n.status === "COMPLETED"
                                   ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
                                   : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
@@ -112,11 +112,11 @@ export function NoteSidebar({ state }: NoteSidebarProps) {
                             >
                               {n.status === "COMPLETED" ? "LOCKED" : n.status}
                             </span>
-                            <span className="text-[8px] font-black text-[var(--text-muted)]">
+                            <span className="text-[11px] font-black text-[var(--text-muted)]">
                               {new Date(n.scheduledStart).toLocaleDateString()}
                             </span>
                           </div>
-                          <span className="text-[9px] font-bold text-[var(--text-secondary)] uppercase">
+                          <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase">
                             Clinical Note
                           </span>
                         </div>
@@ -137,7 +137,7 @@ export function NoteSidebar({ state }: NoteSidebarProps) {
         </div>
         {/* Footer Pagination */}
         <div className="pt-2 border-t border-[var(--card-border)] flex items-center justify-between">
-          <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+          <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
             {totalCount > 0 
               ? `${page * PAGE_SIZE + 1}-${Math.min((page + 1) * PAGE_SIZE, totalCount)} of ${totalCount}`
               : "0 of 0"
@@ -147,14 +147,14 @@ export function NoteSidebar({ state }: NoteSidebarProps) {
              <button 
                disabled={page === 0}
                onClick={() => setPage((p: number) => p - 1)}
-               className="px-2.5 py-1 rounded bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] disabled:opacity-40 text-[9px] font-black hover:text-[var(--text-primary)] transition-all"
+               className="px-2.5 py-1 rounded bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] disabled:opacity-40 text-[11px] font-black hover:text-[var(--text-primary)] transition-all"
              >
                PREV
              </button>
              <button 
                disabled={(page + 1) * PAGE_SIZE >= totalCount}
                onClick={() => setPage((p: number) => p + 1)}
-               className="px-2.5 py-1 rounded bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] disabled:opacity-40 text-[9px] font-black hover:text-[var(--text-primary)] transition-all"
+               className="px-2.5 py-1 rounded bg-[var(--input-bg)] border border-[var(--card-border)] text-[var(--text-muted)] disabled:opacity-40 text-[11px] font-black hover:text-[var(--text-primary)] transition-all"
              >
                NEXT
              </button>

@@ -39,14 +39,14 @@ export function VisitHeader({ state }: { state: any }) {
             </h1>
             <div className="flex items-center gap-2 px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20">
               <span className="w-1 h-1 rounded-full bg-teal-500 animate-pulse" />
-              <span className="text-[9px] font-bold text-teal-500 uppercase tracking-widest">ACTIVE ENCOUNTER</span>
+              <span className="text-[11px] font-bold text-teal-500 uppercase tracking-widest">ACTIVE ENCOUNTER</span>
             </div>
           </div>
 
           <div className="flex items-center gap-4 mt-2">
             <div className="flex items-center gap-1.5">
-              <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">MRN</span>
-              <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter bg-[var(--input-bg)] px-2 py-0.5 rounded-md border border-[var(--card-border)]">
+              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">MRN</span>
+              <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tight bg-[var(--input-bg)] px-2 py-0.5 rounded-md border border-[var(--card-border)]">
                 {patient?.mrn || 'PENDING'}
               </span>
             </div>
@@ -59,14 +59,14 @@ export function VisitHeader({ state }: { state: any }) {
             {appointment?.visitType && (
               <>
                 <div className="w-px h-3 bg-[var(--divider-color)]" />
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[8px] font-black uppercase tracking-wider">
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--primary)]/10 border border-[var(--primary)]/20 text-[var(--primary)] text-[11px] font-black uppercase tracking-wider">
                   <ClipboardList className="w-2.5 h-2.5" />
                   {appointment.visitType.replace(/_/g, ' ')}
                 </span>
               </>
             )}
             {appointment?.modality && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[8px] font-black uppercase tracking-wider">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[11px] font-black uppercase tracking-wider">
                 <MapPin className="w-2.5 h-2.5" />
                 {appointment.modality.replace(/_/g, ' ')}
               </span>
@@ -81,19 +81,19 @@ export function VisitHeader({ state }: { state: any }) {
             <div className="text-right">
               <div className="flex items-center justify-end gap-1.5 mb-1 opacity-50">
                 <Users className="w-2.5 h-2.5 text-blue-400" />
-                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">Support Team</p>
+                <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">Support Team</p>
               </div>
               <div className="flex -space-x-2 justify-end">
                 {appointment.supportingClinicians.map((sc: any) => (
                   <div
                     key={sc.practitionerId}
-                    className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[9px] font-black text-blue-500 shadow-sm cursor-help group/sc relative"
+                    className="w-7 h-7 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[11px] font-black text-blue-500 shadow-sm cursor-help group/sc relative"
                     title={`${sc.firstName} ${sc.lastName} (${sc.position})`}
                   >
                     {sc.firstName[0]}{sc.lastName[0]}
                     <div className="absolute top-10 right-0 bg-[var(--card-bg)] border border-[var(--card-border)] p-2 rounded-lg shadow-2xl opacity-0 group-hover/sc:opacity-100 pointer-events-none transition-all z-[110] whitespace-nowrap text-left">
                       <p className="text-[10px] font-black text-[var(--text-primary)] uppercase">{sc.firstName} {sc.lastName}</p>
-                      <p className="text-[8px] text-blue-400 font-bold uppercase tracking-widest mt-0.5">{sc.position}</p>
+                      <p className="text-[11px] text-blue-400 font-bold uppercase tracking-widest mt-0.5">{sc.position}</p>
                     </div>
                   </div>
                 ))}
@@ -108,7 +108,7 @@ export function VisitHeader({ state }: { state: any }) {
           <div className="text-right">
             <div className="flex items-center justify-end gap-1.5 mb-1 opacity-50">
               <Zap className="w-2.5 h-2.5 text-teal-400" />
-              <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">Practitioner Context</p>
+              <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest leading-none">Practitioner Context</p>
             </div>
             <p className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">{session?.user?.name || "System Admin"}</p>
           </div>

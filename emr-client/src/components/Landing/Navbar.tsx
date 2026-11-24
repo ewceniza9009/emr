@@ -53,7 +53,7 @@ export default function Navbar({
               <span className="text-xl font-bold text-white tracking-tight leading-none uppercase">
                 HALKYONE
               </span>
-              <span className="text-[9px] font-black text-teal-500 uppercase tracking-[0.3em] mt-1">
+              <span className="text-[11px] font-black text-teal-500 uppercase tracking-[0.3em] mt-1">
                 Clinical OS
               </span>
             </div>

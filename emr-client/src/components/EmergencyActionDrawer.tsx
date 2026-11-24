@@ -42,7 +42,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
 
   return (
     <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
+      <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
         <div className="absolute inset-0 bg-[var(--background)]/40 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
         
         <div className={`relative h-full w-full max-w-[450px] bg-[rgba(var(--card-bg-rgb),0.95)] backdrop-blur-2xl shadow-[-50px_0_150px_rgba(239,68,68,0.15)] 
@@ -62,7 +62,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                 <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none mb-1">
                   Emergency Action
                 </h2>
-                <p className="text-[8px] font-black text-red-500 dark:text-red-400 uppercase tracking-[0.25em]">
+                <p className="text-[11px] font-black text-red-500 dark:text-red-400 uppercase tracking-[0.25em]">
                   Rapid Response Protocol · Active Crisis
                 </p>
               </div>
@@ -91,7 +91,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                 <ShieldAlert className="w-6 h-6 animate-pulse" />
               </div>
               <div className="space-y-1">
-                <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Goal of Care</p>
+                <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest leading-none">Goal of Care</p>
                 <h3 className={`text-[11px] font-black uppercase tracking-[0.05em] leading-none mt-1.5 ${
                   dnrStatus ? "text-amber-500 dark:text-amber-400" : "text-red-500 dark:text-red-400"
                 }`}>
@@ -103,17 +103,17 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
             {/* Patient Context */}
             <div className="p-6 rounded-[2rem] bg-[rgba(var(--card-bg-rgb),0.5)] border border-[var(--card-border)] space-y-5 shadow-sm">
               <div className="flex items-center gap-4">
-                <h3 className="text-[9px] font-black text-[var(--text-muted)] tracking-widest uppercase">Clinical Context</h3>
+                <h3 className="text-[11px] font-black text-[var(--text-muted)] tracking-widest uppercase">Clinical Context</h3>
                 <div className="flex-1 h-px bg-[var(--divider-color)]" />
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 bg-[var(--input-bg)]/40 border border-[var(--card-border)]/50 rounded-2xl">
-                  <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1.5 opacity-60">Patient</p>
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1.5 opacity-60">Patient</p>
                   <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-tight">{patient.firstName} {patient.lastName}</p>
                 </div>
                 <div className="p-3 bg-[var(--input-bg)]/40 border border-[var(--card-border)]/50 rounded-2xl">
-                  <p className="text-[7px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1.5 opacity-60">MRN</p>
+                  <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1.5 opacity-60">MRN</p>
                   <p className="text-xs font-black text-[var(--text-primary)] uppercase tracking-tight font-mono">{patient.mrn}</p>
                 </div>
               </div>
@@ -129,7 +129,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                       <p className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-tight">{c.firstName} {c.lastName}</p>
                     </div>
                   </div>
-                  <a href={`tel:${c.phone}`} className="px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500 hover:text-white border border-blue-500/20 text-blue-400 hover:border-transparent text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95">
+                  <a href={`tel:${c.phone}`} className="px-3 py-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500 hover:text-white border border-blue-500/20 text-blue-400 hover:border-transparent text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 active:scale-95">
                     <PhoneCall className="w-3 h-3" />
                     {c.phone}
                   </a>
@@ -140,7 +140,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
             {/* Action Zone */}
             <div className="space-y-5">
               <div className="flex items-center gap-4">
-                <h3 className="text-[9px] font-black text-[var(--text-muted)] tracking-widest uppercase">Crisis Escalation</h3>
+                <h3 className="text-[11px] font-black text-[var(--text-muted)] tracking-widest uppercase">Crisis Escalation</h3>
                 <div className="flex-1 h-px bg-[var(--divider-color)]" />
               </div>
 
@@ -164,7 +164,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                   <button 
                     onClick={handleDispatch}
                     disabled={dispatched}
-                    className={`py-4 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-2.5 border active:scale-[0.98] ${
+                    className={`py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-2.5 border active:scale-[0.98] ${
                       dispatched 
                         ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-none" 
                         : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-primary)] hover:border-emerald-500/30 hover:text-emerald-500 hover:bg-emerald-500/[0.03]"
@@ -179,7 +179,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                   <button 
                     onClick={handleNotifyTeam}
                     disabled={notified}
-                    className={`py-4 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-2.5 border active:scale-[0.98] ${
+                    className={`py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex flex-col items-center justify-center gap-2.5 border active:scale-[0.98] ${
                       notified 
                         ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-none" 
                         : "bg-[var(--input-bg)] border-[var(--card-border)] text-[var(--text-primary)] hover:border-emerald-500/30 hover:text-emerald-500 hover:bg-emerald-500/[0.03]"
@@ -197,7 +197,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
           <div className="p-6 bg-[rgba(var(--card-bg-rgb),0.5)] border-t border-[var(--card-border)] shrink-0">
             <button 
               onClick={onClose}
-              className="w-full h-12 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--divider-color)] text-[var(--text-muted)] hover:text-[var(--text-primary)] font-black text-[9px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 border border-[var(--card-border)] shadow-sm active:scale-[0.98]"
+              className="w-full h-12 rounded-xl bg-[var(--input-bg)] hover:bg-[var(--divider-color)] text-[var(--text-muted)] hover:text-[var(--text-primary)] font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 border border-[var(--card-border)] shadow-sm active:scale-[0.98]"
             >
               Stand By / Return to Chart
             </button>

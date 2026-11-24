@@ -65,7 +65,7 @@ export function StepDirectives({ state }: { state: any }) {
                 <div className="text-left">
                   <p className={`text-sm font-bold uppercase tracking-tight ${isActive ? 'text-[var(--primary)]' : 'text-[var(--foreground)]'
                     }`}>{item.label}</p>
-                  <p className="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-black mt-1">
+                  <p className="text-[11px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-black mt-1">
                     {item.desc} • {isActive ? 'Active' : 'Unset'}
                   </p>
                 </div>

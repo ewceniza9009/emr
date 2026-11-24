@@ -67,7 +67,7 @@ function OnboardingContent() {
           <div className="w-20 h-20 bg-rose-500/10 rounded-3xl flex items-center justify-center mx-auto border border-rose-500/20 text-rose-500">
             <Shield className="w-10 h-10" />
           </div>
-          <h1 className="text-xl font-black text-white uppercase tracking-tighter">Access Forbidden</h1>
+          <h1 className="text-xl font-black text-white uppercase tracking-tight">Access Forbidden</h1>
           <p className="text-slate-400 text-sm leading-relaxed">
             This terminal requires a valid cryptographic invitation token to initialize clinician onboarding.
           </p>
@@ -114,7 +114,7 @@ function OnboardingContent() {
           </div>
           <div>
             <h1 className="text-lg font-black text-white uppercase tracking-[0.2em]">Halkyone</h1>
-            <p className="text-[9px] font-black text-blue-500/60 uppercase tracking-[0.4em]">Clinical OS Onboarding</p>
+            <p className="text-[11px] font-black text-blue-500/60 uppercase tracking-[0.4em]">Clinical OS Onboarding</p>
           </div>
         </div>
 
@@ -126,7 +126,7 @@ function OnboardingContent() {
               <UserCheck className="w-5 h-5" />
               <span className="text-[10px] font-black uppercase tracking-[0.3em]">Identity Verified</span>
             </div>
-            <h2 className="text-3xl font-black text-white uppercase tracking-tighter">Initialize Account</h2>
+            <h2 className="text-3xl font-black text-white uppercase tracking-tight">Initialize Account</h2>
             <p className="text-slate-400 text-xs leading-relaxed font-medium">
               Create a secure passphrase to activate your clinician credentials and access the master clinical registry.
             </p>
@@ -186,7 +186,7 @@ function OnboardingContent() {
           </form>
 
           <div className="text-center">
-            <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">
+            <p className="text-[11px] font-black text-slate-600 uppercase tracking-widest">
               Secured by Halkyone Cryptographic Identity Protocol
             </p>
           </div>

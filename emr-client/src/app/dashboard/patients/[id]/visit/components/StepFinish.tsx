@@ -18,7 +18,7 @@ export function StepFinish({ state }: { state: any }) {
         </div>
         <div>
           <h2 className="text-sm font-bold text-[var(--foreground)] uppercase tracking-tight">Visit Summary</h2>
-          <p className="text-[var(--text-muted)] text-[8px] uppercase tracking-widest font-bold">Review all captured data before final submission.</p>
+          <p className="text-[var(--text-muted)] text-[11px] uppercase tracking-widest font-bold">Review all captured data before final submission.</p>
         </div>
       </div>
 
@@ -72,7 +72,7 @@ export function StepFinish({ state }: { state: any }) {
                 </div>
                 <div>
                   <p className="text-[10px] font-black text-[var(--foreground)] uppercase">{sc.firstName} {sc.lastName}</p>
-                  <p className="text-[8px] text-blue-400 font-bold uppercase tracking-widest">{sc.position}</p>
+                  <p className="text-[11px] text-blue-400 font-bold uppercase tracking-widest">{sc.position}</p>
                 </div>
               </div>
             ))}

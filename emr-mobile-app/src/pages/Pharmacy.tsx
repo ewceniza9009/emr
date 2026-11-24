@@ -415,7 +415,7 @@ const Pharmacy: React.FC = () => {
             {isPRN && (
               <span 
                 style={{ borderRadius: '9999px' }}
-                className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-rose-500/15 text-rose-500 border border-rose-500/20"
+                className="text-[11px] font-black uppercase tracking-widest px-2 py-0.5 bg-rose-500/15 text-rose-500 border border-rose-500/20"
               >
                 Rescue
               </span>
@@ -423,7 +423,7 @@ const Pharmacy: React.FC = () => {
             {refillStatus !== 'none' && (
               <span 
                 style={{ borderRadius: '9999px' }}
-                className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 ${
+                className={`text-[11px] font-black uppercase tracking-widest px-2 py-0.5 ${
                   refillStatus === 'triage' 
                     ? 'bg-amber-500/15 text-amber-500 animate-pulse' 
                     : 'bg-emerald-500/15 text-emerald-500'
@@ -453,7 +453,7 @@ const Pharmacy: React.FC = () => {
         {/* Lower Action & Telemetry */}
         <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-3 pl-1">
           <div className="flex flex-col min-w-0">
-            <span className="text-[9px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-black">Schedule</span>
+            <span className="text-[11px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-black">Schedule</span>
             <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-700 dark:text-slate-300 font-bold font-mono">
               <IonIcon icon={time} className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
               <span className="truncate">{med.frequency}</span>
@@ -464,21 +464,14 @@ const Pharmacy: React.FC = () => {
             {/* Log Intake Capsule Button */}
             <button
               onClick={() => handleLogIntake(med.prescriptionId, med.medication?.name)}
-              style={{ 
-                borderRadius: '8px',
-                paddingLeft: '20px',
-                paddingRight: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              className={`h-8 text-[10px] font-bold uppercase tracking-wide transition-all whitespace-nowrap flex-shrink-0 cursor-pointer ${
+              aria-label={isTaken ? `Undo logged dose for ${med.medication?.name}` : `Log intake for ${med.medication?.name}`}
+              className={`min-h-[44px] px-4 rounded-xl text-xs font-bold uppercase tracking-wide transition-all whitespace-nowrap flex-shrink-0 cursor-pointer flex items-center justify-center ${
                 isTaken 
                   ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-transparent hover:border-slate-300 dark:hover:border-slate-700'
               } active:scale-[0.98]`}
             >
-              <IonIcon icon={checkmarkCircle} className={`w-3.5 h-3.5 ${isTaken ? 'text-emerald-500' : 'text-slate-400 opacity-50'} mr-1.5`} />
+              <IonIcon icon={checkmarkCircle} className={`w-4 h-4 ${isTaken ? 'text-emerald-500' : 'text-slate-400 opacity-50'} mr-1.5`} />
               <span>{isTaken ? 'Logged' : 'Intake'}</span>
             </button>
 
@@ -486,22 +479,15 @@ const Pharmacy: React.FC = () => {
             <button
               onClick={() => startRefillPipeline(med)}
               disabled={refillStatus === 'triage'}
-              style={{ 
-                borderRadius: '8px',
-                paddingLeft: '20px',
-                paddingRight: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              className={`h-8 text-[10px] font-bold uppercase tracking-wide transition-all border shadow-sm whitespace-nowrap flex-shrink-0 cursor-pointer ${
+              aria-label={`Request refill for ${med.medication?.name}`}
+              className={`min-h-[44px] px-4 rounded-xl text-xs font-bold uppercase tracking-wide transition-all border shadow-sm whitespace-nowrap flex-shrink-0 cursor-pointer flex items-center justify-center ${
                 refillStatus === 'triage'
                   ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-transparent opacity-50 cursor-not-allowed'
                   : 'bg-teal-600 dark:bg-gradient-to-r dark:from-teal-500 dark:to-emerald-500 hover:bg-teal-500 dark:hover:from-teal-400 dark:hover:to-emerald-400 text-white dark:text-slate-950 border-teal-600/20 dark:border-teal-500/20 active:scale-[0.98]'
               }`}
             >
-              <IonIcon icon={refreshCircle} className="w-3.5 h-3.5 mr-1.5" />
-              <span>{refillStatus === 'ready' ? 'Refill' : 'Refill'}</span>
+              <IonIcon icon={refreshCircle} className="w-4 h-4 mr-1.5" />
+              <span>Refill</span>
             </button>
           </div>
         </div>
@@ -528,7 +514,7 @@ const Pharmacy: React.FC = () => {
             <div className="space-y-0.5">
               <h1 className="text-[15px] font-black tracking-tight text-slate-900 dark:text-white font-sans flex items-baseline gap-1.5">
                 Pharmacy
-                <span className="text-[9.5px] text-slate-500 dark:text-slate-400 font-normal uppercase tracking-wider">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal uppercase tracking-wider">
                   Oncology Plan
                 </span>
               </h1>
@@ -577,7 +563,7 @@ const Pharmacy: React.FC = () => {
               <span className="font-extrabold uppercase tracking-wider">Connection Offline (Cached Mode Active)</span>
             </div>
             {offlineMessageQueue.length > 0 && (
-              <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="bg-amber-500 text-slate-950 font-black text-[11px] px-2 py-0.5 rounded-full uppercase tracking-wider">
                 {offlineMessageQueue.length} Sync Queue
               </span>
             )}
@@ -636,7 +622,7 @@ const Pharmacy: React.FC = () => {
                     <span className={`text-base font-black leading-none font-mono ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                       {takenCount}
                     </span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-0.5">
                       / {totalMeds}
                     </span>
                   </div>
@@ -756,7 +742,7 @@ const Pharmacy: React.FC = () => {
                 <IonIcon icon={refreshCircle} className="w-6 h-6 text-teal-400 animate-spin" />
               </div>
               <div className="space-y-0.5">
-                <span className="text-[9px] uppercase font-black tracking-widest text-slate-400 block">Refill Processing Center</span>
+                <span className="text-[11px] uppercase font-black tracking-widest text-slate-400 block">Refill Processing Center</span>
                 <h3 className="text-sm font-black text-white">{activeRefillMed.medication?.name}</h3>
               </div>
             </div>
@@ -888,7 +874,7 @@ const Pharmacy: React.FC = () => {
           <div className="w-full max-w-sm mx-auto mb-6">
             {!refillCompleted ? (
               /* High Fidelity Triage Terminal Logs */
-              <div className="w-full h-32 rounded-2xl bg-[#090b11] border border-slate-900 p-4 font-mono text-[9px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar shadow-inner">
+              <div className="w-full h-32 rounded-2xl bg-[#090b11] border border-slate-900 p-4 font-mono text-[11px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar shadow-inner">
                 {refillLogs.map((log, lIdx) => (
                   <div key={lIdx} className="flex gap-1.5 leading-relaxed font-mono">
                     <span className="text-teal-500 select-none font-mono">&gt;</span>
@@ -933,7 +919,7 @@ const Pharmacy: React.FC = () => {
                 {/* Header pattern */}
                 <div className="bg-gradient-to-r from-teal-600 to-emerald-500 px-5 py-4 text-white flex justify-between items-center">
                   <div>
-                    <span className="text-[9px] uppercase font-black tracking-widest text-teal-100 block">eRx Pickup Ticket</span>
+                    <span className="text-[11px] uppercase font-black tracking-widest text-teal-100 block">eRx Pickup Ticket</span>
                     <h4 className="text-sm font-black tracking-tight uppercase leading-none mt-1">Refill Dispatch Verified</h4>
                   </div>
                   <IonIcon icon={storefront} className="w-7 h-7 text-white" />
@@ -943,22 +929,22 @@ const Pharmacy: React.FC = () => {
                 <div className="p-5 space-y-3.5">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-[8px] uppercase font-black text-slate-400 tracking-wider block">Authorized Medication</span>
+                      <span className="text-[11px] uppercase font-black text-slate-400 tracking-wider block">Authorized Medication</span>
                       <span className="text-[12px] font-black text-slate-800 block truncate">{activeRefillMed.medication?.name}</span>
                     </div>
                     <div>
-                      <span className="text-[8px] uppercase font-black text-slate-400 tracking-wider block">Fulfillment Site</span>
+                      <span className="text-[11px] uppercase font-black text-slate-400 tracking-wider block">Fulfillment Site</span>
                       <span className="text-[12px] font-black text-slate-800 block truncate">CVS Pharmacy #4820</span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 border-t border-dashed border-slate-200 pt-3">
                     <div>
-                      <span className="text-[8px] uppercase font-black text-slate-400 tracking-wider block">Pickup ID Code</span>
+                      <span className="text-[11px] uppercase font-black text-slate-400 tracking-wider block">Pickup ID Code</span>
                       <span className="text-[13px] font-mono font-black text-teal-600 block">RX-999-51A4</span>
                     </div>
                     <div>
-                      <span className="text-[8px] uppercase font-black text-slate-400 tracking-wider block">Fulfillment Est.</span>
+                      <span className="text-[11px] uppercase font-black text-slate-400 tracking-wider block">Fulfillment Est.</span>
                       <span className="text-[13px] font-black text-emerald-600 block">Ready in 2 Hours</span>
                     </div>
                   </div>
@@ -970,7 +956,7 @@ const Pharmacy: React.FC = () => {
                         <div key={wIdx} className="bg-slate-900" style={{ width: `${w}px` }} />
                       ))}
                     </div>
-                    <span className="text-[9px] font-mono tracking-[0.3em] font-extrabold text-slate-400 mt-1 uppercase">
+                    <span className="text-[11px] font-mono tracking-[0.3em] font-extrabold text-slate-400 mt-1 uppercase">
                       *SHA256-ERX-091A4F*
                     </span>
                   </div>

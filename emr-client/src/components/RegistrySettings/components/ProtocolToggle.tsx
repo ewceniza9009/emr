@@ -22,10 +22,10 @@ export default function ProtocolToggle({
           }`}
         />
         <div>
-          <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tighter">
+          <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-tight">
             {title}
           </p>
-          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+          <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
             {desc}
           </p>
         </div>

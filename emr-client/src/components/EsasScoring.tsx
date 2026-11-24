@@ -123,7 +123,7 @@ export default function EsasScoring({ onScoreChange }: EsasScoringProps) {
 
             <div className="flex justify-between px-1">
                {[0, 2, 4, 6, 8, 10].map(v => (
-                 <span key={v} className="text-[8px] font-bold text-[var(--text-muted)]">{v}</span>
+                 <span key={v} className="text-[11px] font-bold text-[var(--text-muted)]">{v}</span>
                ))}
             </div>
           </div>

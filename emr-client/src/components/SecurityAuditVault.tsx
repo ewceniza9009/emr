@@ -103,8 +103,8 @@ export default function SecurityAuditVault() {
           <div className="flex items-center gap-6">
             <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_rgba(var(--primary-rgb),0.4)]" />
             <div>
-              <h1 className="text-xl font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Security Audit Vault</h1>
-              <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1.5 flex items-center gap-2">
+              <h1 className="text-xl font-black text-[var(--text-primary)] tracking-tight uppercase leading-none">Security Audit Vault</h1>
+              <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.3em] mt-1.5 flex items-center gap-2">
                 <Shield className="w-3 h-3 text-emerald-500" />
                 Forensic Integrity Active · {totalCount} Events Logged
               </p>
@@ -133,12 +133,12 @@ export default function SecurityAuditVault() {
             <table className="w-full text-left border-collapse sticky-header">
               <thead className="sticky top-0 z-10 bg-[var(--card-bg)] shadow-sm">
                 <tr className="bg-[var(--input-bg)] border-b border-[var(--card-border)]">
-                  <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Timestamp</th>
-                  <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Actor</th>
-                  <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Action</th>
-                  <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Details</th>
-                  <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Entity</th>
-                  <th className="px-6 py-4 text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest text-right">Diagnostic</th>
+                  <th className="px-6 py-4 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Timestamp</th>
+                  <th className="px-6 py-4 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Actor</th>
+                  <th className="px-6 py-4 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Action</th>
+                  <th className="px-6 py-4 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Details</th>
+                  <th className="px-6 py-4 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Entity</th>
+                  <th className="px-6 py-4 text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest text-right">Diagnostic</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--card-border)]">
@@ -153,7 +153,7 @@ export default function SecurityAuditVault() {
                     <td className="px-6 py-2.5">
                       <div className="flex flex-col">
                         <span className="text-[11px] font-black text-[var(--text-primary)]">{new Date(log.timestamp).toLocaleDateString()}</span>
-                        <span className="text-[9px] font-black text-[var(--text-muted)] uppercase">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                        <span className="text-[11px] font-black text-[var(--text-muted)] uppercase">{new Date(log.timestamp).toLocaleTimeString()}</span>
                       </div>
                     </td>
                     <td className="px-6 py-2.5">
@@ -163,12 +163,12 @@ export default function SecurityAuditVault() {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[11px] font-black text-[var(--text-primary)] uppercase">{log.userName || 'System'}</span>
-                          <span className="text-[8px] font-mono text-[var(--text-muted)] uppercase">{log.userId?.slice(0, 8)}...</span>
+                          <span className="text-[11px] font-mono text-[var(--text-muted)] uppercase">{log.userId?.slice(0, 8)}...</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-2.5">
-                      <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${
+                      <span className={`px-2 py-0.5 rounded-md text-[11px] font-black uppercase tracking-widest border ${
                         log.action.includes('UNAUTHORIZED') 
                           ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' 
                           : log.action.includes('ACTIVATED') 
@@ -195,15 +195,15 @@ export default function SecurityAuditVault() {
                       {log.targetName ? (
                         <div className="flex flex-col">
                           <span className="text-[11px] font-black text-[var(--text-primary)] uppercase">{log.targetName}</span>
-                          <span className="text-[8px] font-mono text-[var(--text-muted)] uppercase">{log.targetUserId?.slice(0, 8)}...</span>
+                          <span className="text-[11px] font-mono text-[var(--text-muted)] uppercase">{log.targetUserId?.slice(0, 8)}...</span>
                         </div>
                       ) : (
-                        <span className="text-[9px] text-[var(--text-muted)] italic">Global System</span>
+                        <span className="text-[11px] text-[var(--text-muted)] italic">Global System</span>
                       )}
                     </td>
                     <td className="px-6 py-2.5 text-right">
                       <div className="flex flex-col items-end gap-1">
-                        <div className="flex items-center gap-1.5 text-[8px] font-mono text-[var(--text-muted)]">
+                        <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-muted)]">
                           <Activity className="w-2.5 h-2.5" />
                           {log.ipAddress || '0.0.0.0'}
                         </div>
@@ -250,10 +250,10 @@ export default function SecurityAuditVault() {
               <Shield className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[9px] font-black uppercase tracking-widest text-indigo-400/70">Integrity</h3>
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-indigo-400/70">Integrity</h3>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tighter">Verified</p>
-                <span className="text-[8px] font-medium text-indigo-500/60 uppercase">Safe</span>
+                <p className="text-sm font-black text-[var(--text-primary)] uppercase tracking-tight">Verified</p>
+                <span className="text-[11px] font-medium text-indigo-500/60 uppercase">Safe</span>
               </div>
             </div>
           </div>
@@ -263,12 +263,12 @@ export default function SecurityAuditVault() {
               <AlertCircle className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[9px] font-black uppercase tracking-widest text-rose-400/70">Unauthorized</h3>
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-rose-400/70">Unauthorized</h3>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-black text-rose-500 uppercase tracking-tighter">
+                <p className="text-sm font-black text-rose-500 uppercase tracking-tight">
                   {logs.filter((l: any) => l.action.includes('UNAUTHORIZED')).length}
                 </p>
-                <span className="text-[8px] font-medium text-rose-500/60 uppercase">Alerts</span>
+                <span className="text-[11px] font-medium text-rose-500/60 uppercase">Alerts</span>
               </div>
             </div>
           </div>
@@ -278,12 +278,12 @@ export default function SecurityAuditVault() {
               <Zap className="w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[9px] font-black uppercase tracking-widest text-emerald-400/70">Break-Glass</h3>
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-emerald-400/70">Break-Glass</h3>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-black text-emerald-500 uppercase tracking-tighter">
+                <p className="text-sm font-black text-emerald-500 uppercase tracking-tight">
                   {logs.filter((l: any) => l.action.includes('ACTIVATED')).length}
                 </p>
-                <span className="text-[8px] font-medium text-emerald-500/60 uppercase">Active</span>
+                <span className="text-[11px] font-medium text-emerald-500/60 uppercase">Active</span>
               </div>
             </div>
           </div>
@@ -291,7 +291,7 @@ export default function SecurityAuditVault() {
 
         {/* Forensic Detail Modal - Portal to Root */}
         {selectedLog && typeof document !== 'undefined' && createPortal(
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 animate-in fade-in duration-300">
             <div 
               className="absolute inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-md"
               onClick={() => setSelectedLog(null)}
@@ -304,8 +304,8 @@ export default function SecurityAuditVault() {
                     <Terminal className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-[var(--text-primary)] tracking-tighter uppercase leading-none">Forensic Data</h2>
-                    <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
+                    <h2 className="text-lg font-black text-[var(--text-primary)] tracking-tight uppercase leading-none">Forensic Data</h2>
+                    <p className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
                       <Activity className="w-3 h-3 text-[var(--primary)]" />
                       Chain ID: {selectedLog.auditLogId.slice(0, 18)}...
                     </p>
@@ -323,12 +323,12 @@ export default function SecurityAuditVault() {
               <div className="p-6 pt-6 overflow-y-auto custom-scrollbar space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 rounded-2xl bg-[var(--input-bg)]/50 border border-[var(--card-border)]">
-                    <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Chronology</span>
+                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Chronology</span>
                     <p className="text-[11px] font-bold text-[var(--text-primary)] mt-0.5">{new Date(selectedLog.timestamp).toLocaleString()}</p>
                   </div>
                   <div className="p-4 rounded-2xl bg-[var(--input-bg)]/50 border border-[var(--card-border)] overflow-hidden">
-                    <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Action</span>
-                    <p className="text-[11px] font-black text-[var(--primary)] uppercase tracking-tighter mt-0.5 break-all leading-tight">
+                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">Action</span>
+                    <p className="text-[11px] font-black text-[var(--primary)] uppercase tracking-tight mt-0.5 break-all leading-tight">
                       {selectedLog.action}
                     </p>
                   </div>
@@ -336,7 +336,7 @@ export default function SecurityAuditVault() {
 
                 {selectedLog.recordDescription && (
                   <div className="space-y-3">
-                    <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Record Description</span>
+                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Record Description</span>
                     <div className="p-4 rounded-2xl bg-[var(--primary)]/5 border border-[var(--primary)]/10 text-[11px] font-bold text-[var(--text-primary)]">
                       {selectedLog.recordDescription}
                     </div>
@@ -344,7 +344,7 @@ export default function SecurityAuditVault() {
                 )}
 
                 <div className="space-y-3">
-                  <span className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Forensic Payload</span>
+                  <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest ml-1">Forensic Payload</span>
                   <div className="p-5 rounded-2xl bg-slate-950 dark:bg-black border border-[var(--card-border)] font-mono text-[10px] leading-relaxed text-emerald-400/80 shadow-inner overflow-x-auto">
                     {selectedLog.details && selectedLog.details.startsWith('{') ? (
                       <pre className="whitespace-pre-wrap break-all">{JSON.stringify(JSON.parse(selectedLog.details), null, 2)}</pre>
@@ -359,7 +359,7 @@ export default function SecurityAuditVault() {
                     <User className="w-3.5 h-3.5 text-[var(--primary)]" />
                     <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">{selectedLog.userName}</span>
                   </div>
-                  <span className="text-[8px] font-mono text-[var(--text-muted)] uppercase tracking-widest">
+                  <span className="text-[11px] font-mono text-[var(--text-muted)] uppercase tracking-widest">
                     IP: {selectedLog.ipAddress || 'Internal'}
                   </span>
                 </div>

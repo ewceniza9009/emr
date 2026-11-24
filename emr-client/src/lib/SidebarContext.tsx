@@ -6,12 +6,15 @@ interface SidebarContextType {
   isCollapsed: boolean;
   setIsCollapsed: (value: boolean) => void;
   toggle: () => void;
+  mobileOpen: boolean;
+  setMobileOpen: (value: boolean) => void;
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -28,8 +31,8 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ isCollapsed, setIsCollapsed, toggle }),
-    [isCollapsed, toggle]
+    () => ({ isCollapsed, setIsCollapsed, toggle, mobileOpen, setMobileOpen }),
+    [isCollapsed, toggle, mobileOpen]
   );
 
   return (

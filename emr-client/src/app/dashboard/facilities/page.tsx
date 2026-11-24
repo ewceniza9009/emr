@@ -177,7 +177,7 @@ export default function FacilitiesPage() {
                     <Building2 className="w-6 h-6" />
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <span className="px-2.5 py-1 rounded-lg bg-[var(--input-bg)] text-[var(--text-muted)] text-[9px] font-black uppercase tracking-widest border border-[var(--card-border)] shadow-sm">
+                    <span className="px-2.5 py-1 rounded-lg bg-[var(--input-bg)] text-[var(--text-muted)] text-[11px] font-black uppercase tracking-widest border border-[var(--card-border)] shadow-sm">
                       {formatEnum(f.type) || "GENERAL"}
                     </span>
                     <PermissionGate permission="setup:manage">
@@ -214,7 +214,7 @@ export default function FacilitiesPage() {
                         Registered Residents
                       </span>
                     </div>
-                    <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                    <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">
                       View →
                     </span>
                   </div>

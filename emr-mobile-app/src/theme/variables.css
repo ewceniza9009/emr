@@ -49,6 +49,9 @@ ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
 
 /* Theme Design Tokens and Variable Overrides */
 :root {
+  /* Sleek Apple-grade System Typography */
+  --ion-font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+
   /* Default: Porcelain Light Mode */
   --ion-background-color: #f8fafc;
   --ion-text-color: #0f172a;
@@ -57,6 +60,13 @@ ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
   --ion-tab-bar-border-color: #e2e8f0;
   --ion-tab-button-color-selected: #0d9488; /* teal-600 */
   --ion-toolbar-background: #f8fafc;
+}
+
+body {
+  font-family: var(--ion-font-family);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .dark,
@@ -100,18 +110,25 @@ ion-toolbar {
   --background: var(--ion-toolbar-background) !important;
 }
 
-/* Premium Core Animations */
+/* Prevent iOS Safari auto-zoom on form focus */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* Premium Core Animations (GPU-composited) */
 @keyframes scan-sweep {
   0% {
-    top: 0%;
+    transform: translateY(0%);
     opacity: 0.8;
   }
   50% {
-    top: 100%;
+    transform: translateY(100%);
     opacity: 1;
   }
   100% {
-    top: 0%;
+    transform: translateY(0%);
     opacity: 0.8;
   }
 }
@@ -135,6 +152,7 @@ ion-toolbar {
 
 .animate-scan-sweep {
   animation: scan-sweep 2s infinite linear;
+  will-change: transform;
 }
 
 .animate-fadeIn {
@@ -143,5 +161,14 @@ ion-toolbar {
 
 .animate-shake {
   animation: shake 0.2s ease-in-out 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 

@@ -180,10 +180,10 @@ export default function InvoiceDetailsPage() {
           <div>
             <h1 className="text-2xl font-bold uppercase tracking-tight">Invoice Details</h1>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${getStatusStyle(invoice.status)}`}>
+              <span className={`px-2 py-0.5 rounded text-[11px] font-black uppercase tracking-widest ${getStatusStyle(invoice.status)}`}>
                 {invoice.status}
               </span>
-              <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">ID: {invoice.invoiceId.slice(0, 8)}</span>
+              <span className="text-[11px] font-black text-[var(--text-muted)] uppercase tracking-widest">ID: {invoice.invoiceId.slice(0, 8)}</span>
             </div>
           </div>
         </div>
@@ -228,7 +228,7 @@ export default function InvoiceDetailsPage() {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-teal-500 rounded-2xl flex items-center justify-center text-3xl">A</div>
               <div>
-                <h2 className="text-2xl font-black tracking-tighter uppercase leading-none text-white">Halkyone Clinical OS</h2>
+                <h2 className="text-2xl font-black tracking-tight uppercase leading-none text-white">Halkyone Clinical OS</h2>
                 <p className="text-[10px] font-black text-teal-500 uppercase tracking-widest mt-1">Advanced Medical Infrastructure</p>
               </div>
             </div>
@@ -266,19 +266,19 @@ export default function InvoiceDetailsPage() {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-2">Financial Framework</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <p className="text-[9px] font-black text-slate-400 uppercase">Invoice Date</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase">Invoice Date</p>
                   <p className="text-xs font-bold text-slate-900">{new Date(invoice.generatedAt).toLocaleDateString()}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] font-black text-slate-400 uppercase">Due Date</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase">Due Date</p>
                   <p className="text-xs font-bold text-slate-900">{new Date(invoice.dueDate).toLocaleDateString()}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] font-black text-slate-400 uppercase">Payment Method</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase">Payment Method</p>
                   <p className="text-xs font-bold text-slate-900">Health Insurance / OOP</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] font-black text-slate-400 uppercase">Settlement Period</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase">Settlement Period</p>
                   <p className="text-xs font-bold text-slate-900">30 Days Net</p>
                 </div>
               </div>
@@ -301,7 +301,7 @@ export default function InvoiceDetailsPage() {
                   <tr key={item.itemId}>
                     <td className="py-5">
                       <p className="text-xs font-black uppercase text-slate-800">{item.description}</p>
-                      <p className="text-[9px] font-medium text-slate-400 mt-0.5">Clinical Service Instrumentation</p>
+                      <p className="text-[11px] font-medium text-slate-400 mt-0.5">Clinical Service Instrumentation</p>
                     </td>
                     <td className="py-5 text-center text-xs font-bold text-slate-600">{item.quantity}</td>
                     <td className="py-5 text-right text-xs font-bold text-slate-600">{formatCurrency(item.unitPrice)}</td>
@@ -347,7 +347,7 @@ export default function InvoiceDetailsPage() {
                 <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4 text-teal-600" />
                 </div>
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Electronic verification secured</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Electronic verification secured</p>
               </div>
               <p className="text-[10px] font-medium text-slate-400 max-w-sm leading-relaxed">
                 Please ensure settlement within the defined net-30 framework. Late payments may be subject to interest as per local medical billing regulations.

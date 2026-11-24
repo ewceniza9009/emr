@@ -100,7 +100,7 @@ export default function FacilityForm({ form, onChange }: FacilityFormProps) {
             <button
               type="button"
               onClick={() => setIsEditingAddress(true)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-widest transition-all"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-[11px] font-black uppercase tracking-widest transition-all"
             >
               <MapPin className="w-3.5 h-3.5" />
               Pin on Map

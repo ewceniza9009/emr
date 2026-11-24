@@ -80,7 +80,7 @@ export default function LiveHeartbeat({ patientId, enabled, onToggle, status }: 
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <div className={`w-1 h-1 rounded-full ${isLive ? 'bg-rose-500 animate-ping' : isInitializing ? 'bg-amber-500 animate-pulse' : 'bg-[var(--text-muted)]'}`} />
-                <span className="text-[7px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-0.5">
+                <span className="text-[11px] font-black uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-0.5">
                   <Zap className={`w-2 h-2 ${isLive ? 'text-rose-500' : isInitializing ? 'text-amber-500' : 'text-[var(--text-muted)]'}`} />
                   {isLive ? 'Live' : isInitializing ? 'Connecting' : 'Offline'}
                 </span>
@@ -137,13 +137,13 @@ export default function LiveHeartbeat({ patientId, enabled, onToggle, status }: 
       <div className="grid grid-cols-2 gap-2">
         {/* Oxygen Level */}
         <div className="p-2 rounded-xl bg-[var(--input-bg)]/20 border border-[var(--card-border)] hover:border-[var(--text-muted)]/20 transition-colors space-y-0.5 relative overflow-hidden group">
-          <div className="flex items-center justify-between text-[7px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
+          <div className="flex items-center justify-between text-[11px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
             <span className="flex items-center gap-1"><Wind className="w-3 h-3 text-emerald-500" /> SpO2</span>
             {isLive && <span className="text-[6.5px] text-emerald-500 font-bold uppercase tracking-wider">Live</span>}
           </div>
           <div className="flex items-baseline gap-0.5">
             <span className="text-base font-black text-[var(--text-primary)] font-mono tabular-nums leading-none">{vitals.spo2}</span>
-            {vitals.spo2 !== "--" && <span className="text-[8px] font-bold text-[var(--text-muted)]">%</span>}
+            {vitals.spo2 !== "--" && <span className="text-[11px] font-bold text-[var(--text-muted)]">%</span>}
           </div>
           {/* Micro chart indicator */}
           <div className="h-0.5 w-full bg-[var(--input-bg)] rounded-full overflow-hidden mt-1">
@@ -155,13 +155,13 @@ export default function LiveHeartbeat({ patientId, enabled, onToggle, status }: 
 
         {/* Body Temperature */}
         <div className="p-2 rounded-xl bg-[var(--input-bg)]/20 border border-[var(--card-border)] hover:border-[var(--text-muted)]/20 transition-colors space-y-0.5 relative overflow-hidden group">
-          <div className="flex items-center justify-between text-[7px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
+          <div className="flex items-center justify-between text-[11px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
             <span className="flex items-center gap-1"><Thermometer className="w-3 h-3 text-amber-500" /> Temp</span>
             {isLive && <span className="text-[6.5px] text-amber-500 font-bold uppercase tracking-wider">Live</span>}
           </div>
           <div className="flex items-baseline gap-0.5">
             <span className="text-base font-black text-[var(--text-primary)] font-mono tabular-nums leading-none">{vitals.temp}</span>
-            {vitals.temp !== "--" && <span className="text-[8px] font-bold text-[var(--text-muted)]">°F</span>}
+            {vitals.temp !== "--" && <span className="text-[11px] font-bold text-[var(--text-muted)]">°F</span>}
           </div>
           {/* Micro chart indicator */}
           <div className="h-0.5 w-full bg-[var(--input-bg)] rounded-full overflow-hidden mt-1">

@@ -74,10 +74,12 @@ body {
   padding: 0 !important;
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", var(--font-inter), "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 textarea, input {
@@ -87,16 +89,16 @@ textarea, input {
 code,
 pre,
 .font-mono {
-  font-family: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: "SF Mono", ui-monospace, SFMono-Regular, var(--font-jetbrains), Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-outfit), var(--font-inter), sans-serif;
-  letter-spacing: -0.04em;
-  font-weight: 800;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", var(--font-inter), sans-serif;
+  letter-spacing: -0.025em;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -125,13 +127,31 @@ h4 {
 }
 
 .clinical-label {
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 800 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.15em !important;
+  letter-spacing: 0.12em !important;
   color: var(--text-muted) !important;
-  margin-bottom: 10px !important;
+  margin-bottom: 8px !important;
   display: block !important;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .light .clinical-label {

@@ -55,17 +55,17 @@ export default function DemographicsHUD({ state }: DemographicsHUDProps) {
           </div>
           <div className="flex items-center gap-2 mt-2">
             {state.lead.isDoNotCall && (
-              <span className="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-500 text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
+              <span className="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-500 text-[11px] font-black uppercase tracking-widest flex items-center gap-1">
                 <ShieldCheck className="w-2.5 h-2.5" /> Do Not Call
               </span>
             )}
             {state.lead.isOptedOut && (
-              <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-500 text-[11px] font-black uppercase tracking-widest flex items-center gap-1">
                 <X className="w-2.5 h-2.5" /> Marketing Opt-Out
               </span>
             )}
             <span
-              className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border
+              className={`px-2 py-0.5 rounded-full text-[11px] font-black uppercase tracking-widest border
                   ${
                     state.lead.status === "ENROLLED"
                       ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"

@@ -46,7 +46,7 @@ export default function AdminTab({ state }: Props) {
         <div className="bg-[var(--input-bg)] rounded-2xl p-5 border border-[var(--card-border)] space-y-5 shadow-inner">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Date of Birth
               </label>
               <CustomDatePicker
@@ -55,7 +55,7 @@ export default function AdminTab({ state }: Props) {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Biological Sex
               </label>
               <select
@@ -75,7 +75,7 @@ export default function AdminTab({ state }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Gender Identity
               </label>
               <input
@@ -87,7 +87,7 @@ export default function AdminTab({ state }: Props) {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Primary Language
               </label>
               <input
@@ -100,7 +100,7 @@ export default function AdminTab({ state }: Props) {
             </div>
           </div>
           <div className="space-y-1.5">
-            <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+            <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
               Clinical Facility / Location
             </label>
             <div className="relative group/facility">
@@ -122,7 +122,7 @@ export default function AdminTab({ state }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+            <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
               Marital / Civil Status
             </label>
             <select
@@ -155,14 +155,14 @@ export default function AdminTab({ state }: Props) {
                 <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-wider truncate">
                   {state.address.street || "NO STREET SPECIFIED"}
                 </p>
-                <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                   {state.address.city}
                   {state.address.city && state.address.state ? ", " : ""}
                   {state.address.state} {state.address.postalCode}
                 </p>
                 {(state.address.latitude != null ||
                   state.address.country) && (
-                  <p className="text-[8px] font-bold text-[var(--text-muted)]/60 uppercase tracking-widest mt-1">
+                  <p className="text-[11px] font-bold text-[var(--text-muted)]/60 uppercase tracking-widest mt-1">
                     {state.address.country}
                     {state.address.latitude != null &&
                       ` • ${state.address.latitude.toFixed(4)}, ${state.address.longitude?.toFixed(4)}`}
@@ -179,7 +179,7 @@ export default function AdminTab({ state }: Props) {
             <div className="flex gap-2">
               <button
                 onClick={state.handleVerifyAddress}
-                className="flex-1 h-10 bg-transparent border border-[var(--primary)]/30 text-[var(--primary)] font-black text-[9px] uppercase tracking-[0.2em] rounded-xl hover:bg-[var(--primary)]/5 transition-all"
+                className="flex-1 h-10 bg-transparent border border-[var(--primary)]/30 text-[var(--primary)] font-black text-[11px] uppercase tracking-[0.2em] rounded-xl hover:bg-[var(--primary)]/5 transition-all"
               >
                 {state.isVerifyingAddress
                   ? "SCRUBBING GEODATA..."
@@ -187,7 +187,7 @@ export default function AdminTab({ state }: Props) {
               </button>
               <button
                 onClick={() => state.setIsEditingAddress(true)}
-                className="h-10 px-4 bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--primary)] font-black text-[9px] uppercase tracking-[0.2em] rounded-xl hover:bg-[var(--primary)]/5 transition-all flex items-center gap-1.5"
+                className="h-10 px-4 bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--primary)] font-black text-[11px] uppercase tracking-[0.2em] rounded-xl hover:bg-[var(--primary)]/5 transition-all flex items-center gap-1.5"
               >
                 <MapPin className="w-3 h-3" />
                 Map
@@ -214,7 +214,7 @@ export default function AdminTab({ state }: Props) {
         <div className="bg-[var(--input-bg)] rounded-2xl p-5 border border-[var(--card-border)] space-y-5 shadow-inner">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Health Plan Assignment
               </label>
               <select
@@ -231,11 +231,11 @@ export default function AdminTab({ state }: Props) {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Eligibility Status
               </label>
               <div
-                className={`w-full h-[41px] rounded-xl flex items-center justify-center border text-[9px] font-black uppercase tracking-widest
+                className={`w-full h-[41px] rounded-xl flex items-center justify-center border text-[11px] font-black uppercase tracking-widest
                                     ${state.eligibilityStatus === "VERIFIED" ? "bg-teal-500/10 border-teal-500/30 text-teal-500" : "bg-amber-500/10 border-amber-500/30 text-amber-500"}`}
               >
                 {state.eligibilityStatus}
@@ -244,7 +244,7 @@ export default function AdminTab({ state }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Member ID
               </label>
               <input
@@ -256,7 +256,7 @@ export default function AdminTab({ state }: Props) {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Next Follow-Up (Due Date)
               </label>
               <CustomDatePicker
@@ -265,7 +265,7 @@ export default function AdminTab({ state }: Props) {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Communication Status
               </label>
               <select
@@ -287,7 +287,7 @@ export default function AdminTab({ state }: Props) {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Group Number
               </label>
 
@@ -307,7 +307,7 @@ export default function AdminTab({ state }: Props) {
                 state.isVerifyingInsurance ||
                 state.eligibilityStatus === "VERIFIED"
               }
-              className={`w-full h-11 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] shadow-lg transition-all flex items-center justify-center gap-2
+              className={`w-full h-11 rounded-xl font-black text-[11px] uppercase tracking-[0.2em] shadow-lg transition-all flex items-center justify-center gap-2
                                 ${state.eligibilityStatus === "VERIFIED" ? "bg-teal-500/10 border border-teal-500/30 text-teal-500 cursor-default" : "bg-[var(--primary)] text-black hover:scale-[1.01] active:scale-[0.98]"}`}
             >
               {state.isVerifyingInsurance ? (
@@ -338,7 +338,7 @@ export default function AdminTab({ state }: Props) {
         </div>
         <div className="bg-[var(--input-bg)] rounded-2xl p-6 border border-[var(--card-border)] space-y-6 shadow-inner">
           <div className="space-y-2">
-            <label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+            <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
               Referring Physician / Facility
             </label>
             <div className="relative group/doc">
@@ -354,7 +354,7 @@ export default function AdminTab({ state }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 NPI Number (Registry ID)
               </label>
               <div className="relative group/npi">
@@ -369,7 +369,7 @@ export default function AdminTab({ state }: Props) {
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
+              <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest ml-1">
                 Referral Receipt Date
               </label>
               <CustomDatePicker

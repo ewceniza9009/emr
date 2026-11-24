@@ -167,7 +167,7 @@ export default function StatusPage() {
                     {s.icon}
                   </div>
                   <div>
-                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest block">
                       {s.category}
                     </span>
                     <h3 className="text-lg font-bold text-white tracking-tight mt-0.5">
@@ -185,7 +185,7 @@ export default function StatusPage() {
 
                 {/* SVG Visual Uptime Sparkline Bars */}
                 <div className="flex flex-col items-end gap-1.5">
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                  <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
                     15-Day History
                   </span>
                   <div className="flex gap-1">
@@ -213,7 +213,7 @@ export default function StatusPage() {
           <div className="lg:col-span-4 space-y-6 sticky top-28">
             <div className="rounded-3xl bg-[#080c14] border border-white/5 overflow-hidden">
               <div className="px-6 py-4 bg-slate-950 border-b border-white/5 flex items-center justify-between">
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
                   <Terminal className="w-3.5 h-3.5 text-teal-400" /> Diagnostic Terminal
                 </span>
                 <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />

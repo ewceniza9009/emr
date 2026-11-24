@@ -46,7 +46,7 @@ export function StepInit({ state }: { state: any }) {
                 </div>
                 <div className="text-center">
                   <p className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.2em] group-hover:text-indigo-400 transition-colors">{code}</p>
-                  <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Assessment</p>
+                  <p className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest opacity-50">Assessment</p>
                 </div>
               </div>
             ))}
@@ -65,7 +65,7 @@ export function StepInit({ state }: { state: any }) {
                 </div>
                 <div className="text-center">
                   <p className="text-[10px] font-black text-[var(--foreground)] uppercase tracking-tight group-hover:text-blue-400 transition-colors">{sc.firstName} {sc.lastName}</p>
-                  <p className="text-[8px] text-blue-400 font-bold uppercase tracking-widest opacity-70">{sc.position}</p>
+                  <p className="text-[11px] text-blue-400 font-bold uppercase tracking-widest opacity-70">{sc.position}</p>
                 </div>
               </div>
             ))}

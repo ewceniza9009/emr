@@ -7,7 +7,7 @@ import {
   Calendar, Activity, Shield, Search, User, Target,
   CheckCircle, ChevronRight
 } from "lucide-react";
-import HalcyonPortal from "./Portal";
+import * as Dialog from "@radix-ui/react-dialog";
 import { PermissionGate } from "./PermissionGate";
 import CustomDatePicker from "./CustomDatePicker";
 
@@ -79,24 +79,21 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
     }).catch(e => console.error("Mutation failed", e));
   };
 
-  if (!open) return null;
-
   return (
-    <HalcyonPortal>
-      <div className="fixed inset-0 z-[9999999] flex justify-end overflow-hidden">
-        <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={onClose} />
+    <Dialog.Root open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
+      <Dialog.Portal>
+        <div className="fixed inset-0 z-[60] flex justify-end overflow-hidden">
+          <Dialog.Overlay className="fixed inset-0 bg-slate-950/60 backdrop-blur-xl animate-in fade-in duration-300" />
 
-        <div className={`relative h-full w-full max-w-[500px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] 
-          flex flex-col transition-transform duration-300 ease-out border-l border-[var(--card-border)]
-          ${open ? "translate-x-0" : "translate-x-full"}`}>
+          <Dialog.Content className="relative z-10 h-full w-full max-w-[500px] bg-[var(--sidebar-bg)] shadow-[-50px_0_150px_rgba(0,0,0,0.1)] flex flex-col transition-transform duration-300 ease-out border-l border-[var(--card-border)] focus:outline-none">
 
           {/* Industrial Header */}
           <div className="h-20 w-full flex items-center justify-between px-8 bg-[var(--sidebar-bg)] border-b border-[var(--card-border)] shrink-0 backdrop-blur-md">
             <div className="flex items-center gap-6">
               <div className="w-1.5 h-10 bg-[var(--primary)] rounded-full shadow-[0_0_20px_var(--primary-glow)]" />
               <div className="flex flex-col">
-                <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">Patient Registration</h2>
-                <span className="text-[10px] font-black text-[var(--primary)] tracking-[0.2em] mt-1 uppercase">Clinical Data Entry</span>
+                <Dialog.Title className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight leading-none">Patient Registration</Dialog.Title>
+                <Dialog.Description className="text-[10px] font-black text-[var(--primary)] tracking-[0.2em] mt-1 uppercase">Clinical Data Entry</Dialog.Description>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -104,9 +101,11 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                 <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse" />
                 <span className="text-[10px] font-black text-[var(--primary)] uppercase tracking-widest">Record Link Active</span>
               </div>
-              <button onClick={onClose} className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-                <X className="w-6 h-6" />
-              </button>
+              <Dialog.Close asChild>
+                <button aria-label="Close patient registration" className="p-2 hover:bg-[var(--input-bg)] rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+                  <X className="w-6 h-6" />
+                </button>
+              </Dialog.Close>
             </div>
           </div>
 
@@ -134,7 +133,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Medical Record Number (MRN)</label>
+                <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Medical Record Number (MRN)</label>
                 <div className="relative group">
                   <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                   <input
@@ -149,28 +148,28 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Legal First Name</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Legal First Name</label>
                   <div className="relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                     <input
                       required
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-wider"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 pl-12 pr-4 text-sm font-medium text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all"
                       value={form.firstName}
                       onChange={e => setForm({ ...form, firstName: e.target.value })}
-                      placeholder="FIRST NAME"
+                      placeholder="First name"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Legal Last Name</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Legal Last Name</label>
                   <div className="relative group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                     <input
                       required
-                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 pl-12 pr-4 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-wider"
+                      className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 pl-12 pr-4 text-sm font-medium text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all"
                       value={form.lastName}
                       onChange={e => setForm({ ...form, lastName: e.target.value })}
-                      placeholder="LAST NAME"
+                      placeholder="Last name"
                     />
                   </div>
                 </div>
@@ -178,14 +177,14 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Date of Birth</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Date of Birth</label>
                   <CustomDatePicker
                     value={form.dob}
                     onChange={val => setForm({ ...form, dob: val })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Biological Sex</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Biological Sex</label>
                   <div className="relative group">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                     <select
@@ -215,7 +214,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Civil Status</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Civil Status</label>
                   <select
                     className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-bold text-[var(--text-primary)] appearance-none focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
                     value={form.civilStatus}
@@ -228,29 +227,29 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Religion</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Religion</label>
                   <input
-                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all"
                     value={form.religion}
                     onChange={e => setForm({ ...form, religion: e.target.value })}
-                    placeholder="RELIGION"
+                    placeholder="Religion"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Nationality</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Nationality</label>
                   <input
-                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all"
                     value={form.nationality}
                     onChange={e => setForm({ ...form, nationality: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Primary Language</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Primary Language</label>
                   <input
-                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                    className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all"
                     value={form.language}
                     onChange={e => setForm({ ...form, language: e.target.value })}
                   />
@@ -258,12 +257,12 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Occupation</label>
+                <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Occupation</label>
                 <input
-                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-bold text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-sm font-medium text-[var(--text-primary)] placeholder:text-[var(--text-muted)]/50 focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all"
                   value={form.occupation}
                   onChange={e => setForm({ ...form, occupation: e.target.value })}
-                  placeholder="CURRENT OR FORMER OCCUPATION"
+                  placeholder="Current or former occupation"
                 />
               </div>
             </section>
@@ -277,7 +276,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Philhealth Identification</label>
+                <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Philhealth Identification</label>
                 <div className="relative group">
                   <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                   <input
@@ -291,7 +290,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Health Plan Network</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Health Plan Network</label>
                   <div className="relative group">
                     <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                     <select
@@ -310,7 +309,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Primary Care Facility</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Primary Care Facility</label>
                   <div className="relative group">
                     <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                     <select
@@ -340,7 +339,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Deployment Address</label>
+                <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Deployment Address</label>
                 <div className="relative group">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] group-focus-within:text-[var(--primary)] transition-colors" />
                   <input
@@ -355,7 +354,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City Hub</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">City Hub</label>
                   <input
                     required
                     className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
@@ -364,7 +363,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Region Code</label>
+                  <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Region Code</label>
                   <input
                     required
                     className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
@@ -375,7 +374,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Postal Identification</label>
+                <label className="block text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Postal Identification</label>
                 <input
                   required
                   className="w-full bg-[var(--input-bg)] border border-[var(--card-border)] rounded-xl py-3.5 px-4 text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[var(--primary)]/50 focus:bg-[var(--primary)]/5 transition-all uppercase tracking-widest"
@@ -406,13 +405,14 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
                 )}
               </button>
             </PermissionGate>
-            <p className="text-[9px] font-bold text-[var(--text-muted)] text-center uppercase tracking-widest opacity-40">
+            <p className="text-[11px] font-bold text-[var(--text-muted)] text-center uppercase tracking-widest opacity-40">
               Authorized Clinical Enrollment Only
             </p>
           </div>
+          </Dialog.Content>
         </div>
-      </div>
-    </HalcyonPortal>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
