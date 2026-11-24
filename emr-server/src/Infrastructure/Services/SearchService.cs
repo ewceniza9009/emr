@@ -18,15 +18,22 @@ public class SearchService : ISearchService
     public SearchService(
         IConfiguration configuration,
         ICurrentUserService currentUserService,
-        IServiceProvider serviceProvider
+        IServiceProvider serviceProvider,
+        IElasticClient? elasticClient = null
     )
     {
         _currentUserService = currentUserService;
         _serviceProvider = serviceProvider;
-        var url = configuration["Elasticsearch:Url"] ?? "http://localhost:9200";
-        var settings = new ConnectionSettings(new Uri(url)).DefaultIndex(PatientIndex);
-
-        _client = new ElasticClient(settings);
+        if (elasticClient != null)
+        {
+            _client = elasticClient;
+        }
+        else
+        {
+            var url = configuration["Elasticsearch:Url"] ?? "http://localhost:9200";
+            var settings = new ConnectionSettings(new Uri(url)).DefaultIndex(PatientIndex);
+            _client = new ElasticClient(settings);
+        }
     }
 
     public async Task<List<SearchResultDto>> GlobalSearchAsync(
@@ -96,7 +103,8 @@ public class SearchService : ISearchService
 
         // Search Patients
         var dbPatients = await context
-            .Patients.Include(p => p.Phones)
+            .Patients.AsNoTracking()
+            .Include(p => p.Phones)
             .Include(p => p.Addresses)
                 .ThenInclude(a => a.Address)
             .Where(p =>
@@ -139,7 +147,8 @@ public class SearchService : ISearchService
         if (results.Count < 10)
         {
             var dbOutreach = await context
-                .PatientOutreaches.Where(o =>
+                .PatientOutreaches.AsNoTracking()
+                .Where(o =>
                     o.TenantId == tenantId
                     && (
                         o.FirstName.ToLower().Contains(searchTerm)

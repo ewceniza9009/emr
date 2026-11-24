@@ -47,7 +47,8 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid credentials. Please verify your email and password.");
       } else {
-        window.location.href = "/dashboard";
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again later.");

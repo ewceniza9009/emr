@@ -222,7 +222,7 @@ const Login: React.FC = () => {
                   />
 
                   <div
-                    className={`w-24 h-24 rounded-full bg-slate-950 border border-slate-850 flex items-center justify-center shadow-inner relative overflow-hidden`}
+                    className={`w-24 h-24 rounded-full bg-slate-950 border border-slate-900 flex items-center justify-center shadow-inner relative overflow-hidden`}
                   >
                     {/* Laser Sweep Effect */}
                     {verifyStep === "verifying" && (
@@ -306,7 +306,7 @@ const Login: React.FC = () => {
                 {/* Passwordless Magic Token input */}
                 <form onSubmit={handleMagicLogin} className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-[9px] uppercase font-black tracking-widest text-slate-550 block">
+                    <label className="text-[9px] uppercase font-black tracking-widest text-slate-500 block">
                       Demo Magic Token / MRN
                     </label>
                     <div className="flex items-center justify-between rounded-2xl border border-[#1e293b] bg-[#070a13] pl-4 pr-1.5 py-1.5 focus-within:border-teal-500/50 transition-all gap-2">
@@ -350,7 +350,7 @@ const Login: React.FC = () => {
                 </form>
 
                 {/* Generator Notice */}
-                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-850 text-[10px] text-slate-500 leading-normal flex gap-2 mt-4">
+                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-900 text-[10px] text-slate-500 leading-normal flex gap-2 mt-4">
                   <IonIcon
                     icon={globeOutline}
                     className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5"
@@ -374,7 +374,7 @@ const Login: React.FC = () => {
             <div className="flex justify-center">
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-550 hover:text-slate-450 uppercase tracking-widest bg-transparent border-0 cursor-pointer py-1.5 px-3 rounded-full hover:bg-slate-900/30 transition-all"
+                className="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-500 hover:text-slate-400 uppercase tracking-widest bg-transparent border-0 cursor-pointer py-1.5 px-3 rounded-full hover:bg-slate-900/30 transition-all"
               >
                 <IonIcon icon={settingsIcon} className="w-3.5 h-3.5" />
                 <span>API Server Settings</span>
@@ -382,9 +382,9 @@ const Login: React.FC = () => {
             </div>
 
             {showSettings && (
-              <div className="p-4 bg-slate-950 border border-slate-850 rounded-2xl space-y-3 shadow-xl animate-fadeIn">
+              <div className="p-4 bg-slate-950 border border-slate-900 rounded-2xl space-y-3 shadow-xl animate-fadeIn">
                 <div className="space-y-1">
-                  <span className="text-[9px] uppercase font-black tracking-widest text-slate-550 block">
+                  <span className="text-[9px] uppercase font-black tracking-widest text-slate-500 block">
                     EMR Backend API Bridge Address
                   </span>
                   <input
@@ -407,7 +407,7 @@ const Login: React.FC = () => {
                 </div>
                 <button
                   onClick={handleSaveSettings}
-                  className="w-full py-2 bg-slate-850 hover:bg-slate-800 border border-slate-750 text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all active:scale-[0.98]"
+                  className="w-full py-2 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all active:scale-[0.98]"
                 >
                   Save API Configuration
                 </button>
@@ -474,7 +474,7 @@ const Login: React.FC = () => {
 
             {/* Terminal logs */}
             <div className="w-full max-w-sm mx-auto mb-6">
-              <div className="w-full h-32 rounded-2xl bg-[#090b11] border border-slate-850 p-4 font-mono text-[9px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar shadow-inner">
+              <div className="w-full h-32 rounded-2xl bg-[#090b11] border border-slate-900 p-4 font-mono text-[9px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar shadow-inner">
                 {scanLogs.map((log, lIdx) => (
                   <div key={lIdx} className="flex gap-1.5 leading-relaxed font-mono">
                     <span className="text-emerald-505 select-none font-mono">&gt;</span>
@@ -487,7 +487,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsScanning(false)}
-                className="w-full mt-4 py-2.5 bg-slate-850 hover:bg-slate-800 border border-slate-750 text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all"
+                className="w-full mt-4 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all"
               >
                 Cancel Authentication
               </button>

@@ -8,76 +8,86 @@ namespace Api.GraphQL.Queries;
 public class DashboardQuery
 {
     [Authorize(Policy = "CanViewPatients")]
-    public async Task<DashboardStatsDto> GetDashboardStats([Service] IApplicationDbContext context)
+    public async Task<DashboardStatsDto> GetDashboardStats(
+        [Service] IApplicationDbContext context,
+        CancellationToken cancellationToken
+    )
     {
-        var tenantId = await context.TenantConfigurations.Select(t => t.TenantId).OrderBy(id => id).FirstOrDefaultAsync();
+        var now = DateTimeOffset.UtcNow;
+        var today = new DateTimeOffset(now.Date, TimeSpan.Zero);
 
-        // 1. Active Patients
-        var patientCount = await context.Patients.CountAsync();
+        var patientCount = await context.Patients.CountAsync(cancellationToken);
 
-        // 2. New Encounters
-        var today = new DateTimeOffset(DateTimeOffset.UtcNow.Date, TimeSpan.Zero);
         var appointmentCount = await context
-            .Appointments.Where(a =>
-                a.ScheduledStart >= today && a.ScheduledStart < today.AddDays(1)
-            )
-            .CountAsync();
+            .Appointments.Where(a => a.ScheduledStart >= today && a.ScheduledStart < today.AddDays(1))
+            .CountAsync(cancellationToken);
 
-        // 3. Pending Reviews
-        var pendingReviews = await context.ClinicalNotes.Where(n => !n.IsSigned).CountAsync();
+        var pendingReviews = await context
+            .ClinicalNotes.Where(n => !n.IsSigned)
+            .CountAsync(cancellationToken);
 
-        // 4. Critical Alerts
-        var criticalAlerts = await context
-            .Patients.Where(p =>
+        var equipmentCount = await context
+            .EquipmentDeliveries.Where(d => d.Status == Domain.Enums.DeliveryStatus.Delivered)
+            .CountAsync(cancellationToken);
+
+        // Single query for critical ESAS patients (returns count + top 2 instead of running subquery twice)
+        var criticalPatientsQuery = context.Patients
+            .AsNoTracking()
+            .Where(p =>
                 p.EsasAssessments.OrderByDescending(e => e.AssessedAt)
                     .Select(e => (bool?)(e.Pain > 7 || e.Wellbeing > 7))
                     .FirstOrDefault() == true
-            )
-            .CountAsync();
+            );
 
-        // 5. Deployed Equipment
-        var equipmentCount = await context
-            .EquipmentDeliveries.Where(d => d.Status == Domain.Enums.DeliveryStatus.Delivered)
-            .CountAsync();
+        var criticalAlerts = await criticalPatientsQuery.CountAsync(cancellationToken);
+        var criticalPatients = criticalAlerts > 0
+            ? await criticalPatientsQuery
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new { p.PatientId, p.Mrn, p.LastName })
+                .Take(2)
+                .ToListAsync(cancellationToken)
+            : [];
 
-        // 6. Generate Real-time Alerts
         var alerts = new List<AlertDto>();
-        var thirtyDaysFromNow = DateTimeOffset.UtcNow.AddDays(30);
+        var minValidExpiry = now.AddYears(-5);
+        var thirtyDaysFromNow = now.AddDays(30);
+
         var expiringLicensures = await context
-            .PractitionerLicensures.Include(l => l.Practitioner)
-            .Where(l => l.IsActive && l.ExpiryDate <= thirtyDaysFromNow)
+            .PractitionerLicensures
+            .AsNoTracking()
+            .Where(l => l.IsActive && l.ExpiryDate > minValidExpiry && l.ExpiryDate <= thirtyDaysFromNow)
             .OrderBy(l => l.ExpiryDate)
+            .Select(l => new
+            {
+                l.PractitionerId,
+                l.Practitioner.FirstName,
+                l.Practitioner.LastName,
+                l.State,
+                l.ExpiryDate,
+            })
             .Take(2)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         foreach (var l in expiringLicensures)
         {
+            var daysRemaining = (int)Math.Round((l.ExpiryDate - now).TotalDays);
+            var stateLabel = string.IsNullOrWhiteSpace(l.State) ? string.Empty : $" ({l.State})";
+            var expiryCopy = daysRemaining >= 0
+                ? $"expire in {daysRemaining} days."
+                : $"expired {Math.Abs(daysRemaining)} days ago.";
+
             alerts.Add(
                 new AlertDto
                 {
                     Type = "COMPLIANCE",
                     Title = "Licensure Renewal",
-                    Subtitle =
-                        $"{l.Practitioner.FirstName} {l.Practitioner.LastName} credentials ({l.State}) expire in {(int)(l.ExpiryDate - DateTimeOffset.UtcNow).TotalDays} days.",
-                    Priority =
-                        (l.ExpiryDate - DateTimeOffset.UtcNow).TotalDays < 14
-                            ? "CRITICAL"
-                            : "URGENT",
+                    Subtitle = $"{l.FirstName} {l.LastName} credentials{stateLabel} {expiryCopy}",
+                    Priority = daysRemaining < 14 ? "CRITICAL" : "URGENT",
                     ActionText = "Update Credentials",
                     TargetId = l.PractitionerId.ToString(),
                 }
             );
         }
-
-        var criticalPatients = await context
-            .Patients.Where(p =>
-                p.EsasAssessments.OrderByDescending(e => e.AssessedAt)
-                    .Select(e => (bool?)(e.Pain > 7 || e.Wellbeing > 7))
-                    .FirstOrDefault() == true
-            )
-            .OrderByDescending(p => p.CreatedAt)
-            .Take(2)
-            .ToListAsync();
 
         foreach (var p in criticalPatients)
         {
@@ -94,32 +104,34 @@ public class DashboardQuery
             );
         }
 
-        // 7. Operational Pulse (Last 24 hours in 4h increments)
-        var pulse = new List<OperationalPulseDto>();
-        var endTime = DateTimeOffset.UtcNow;
-        var startTime = endTime.AddDays(-1);
+        // Operational Pulse: 2 queries total instead of 14 sequential queries in a loop
+        var startTime = now.AddDays(-1);
+        var endWindow = startTime.AddHours(28);
 
+        var recentEncounterDates = await context.ClinicalEncounters
+            .AsNoTracking()
+            .Where(e => e.EncounterDate >= startTime && e.EncounterDate < endWindow)
+            .Select(e => e.EncounterDate)
+            .ToListAsync(cancellationToken);
+
+        var recentAlertDates = await context.EsasAssessments
+            .AsNoTracking()
+            .Where(e => e.AssessedAt >= startTime && e.AssessedAt < endWindow && (e.Pain > 7 || e.Wellbeing > 7))
+            .Select(e => e.AssessedAt)
+            .ToListAsync(cancellationToken);
+
+        var pulse = new List<OperationalPulseDto>(7);
         for (int i = 0; i <= 24; i += 4)
         {
             var pointTime = startTime.AddHours(i);
             var nextPoint = pointTime.AddHours(4);
 
-            var activeCount = await context.ClinicalEncounters.CountAsync(e =>
-                e.EncounterDate >= pointTime && e.EncounterDate < nextPoint
-            );
-
-            var alertCount = await context.EsasAssessments.CountAsync(e =>
-                e.AssessedAt >= pointTime
-                && e.AssessedAt < nextPoint
-                && (e.Pain > 7 || e.Wellbeing > 7)
-            );
-
             pulse.Add(
                 new OperationalPulseDto
                 {
                     Time = pointTime.ToString("HH:mm"),
-                    Active = activeCount,
-                    Alerts = alertCount,
+                    Active = recentEncounterDates.Count(d => d >= pointTime && d < nextPoint),
+                    Alerts = recentAlertDates.Count(d => d >= pointTime && d < nextPoint),
                 }
             );
         }

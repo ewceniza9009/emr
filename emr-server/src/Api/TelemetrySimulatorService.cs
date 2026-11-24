@@ -1,13 +1,7 @@
 using Infrastructure.Hubs;
-using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -19,10 +13,9 @@ public class TelemetrySimulatorService : BackgroundService
     private readonly IHubContext<TelemetryHub> _hubContext;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<TelemetrySimulatorService> _logger;
-    private readonly Random _random = new();
 
-    private List<Guid> _cachedPatientIds = new();
     private int _cachedSyncIntervalMs = 5000;
+    private bool _telemetryEnabled = true;
     private DateTime _lastCacheTime = DateTime.MinValue;
 
     public TelemetrySimulatorService(
@@ -44,46 +37,49 @@ public class TelemetrySimulatorService : BackgroundService
         {
             try
             {
-                // Cache DB results for 30 seconds to prevent DB lock contention and connection pool exhaustion
-                if (DateTime.UtcNow - _lastCacheTime > TimeSpan.FromSeconds(30) || !_cachedPatientIds.Any())
+                var activeStreams = TelemetryHub.GetActivePatientStreams();
+                if (activeStreams.Count == 0)
+                {
+                    await Task.Delay(2000, stoppingToken);
+                    continue;
+                }
+
+                if (DateTime.UtcNow - _lastCacheTime > TimeSpan.FromSeconds(30))
                 {
                     using var scope = _scopeFactory.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                    _cachedPatientIds = await dbContext
-                        .Patients
+                    var config = await dbContext.TenantConfigurations
+                        .AsNoTracking()
                         .IgnoreQueryFilters()
-                        .Select(p => p.PatientId)
-                        .ToListAsync(stoppingToken);
+                        .OrderBy(c => c.TenantConfigurationId)
+                        .FirstOrDefaultAsync(stoppingToken);
 
-                    var config = await dbContext.TenantConfigurations.IgnoreQueryFilters().OrderBy(c => c.TenantConfigurationId).FirstOrDefaultAsync(stoppingToken);
-                    _cachedSyncIntervalMs = config?.IotSyncIntervalMs ?? 5000;
-                    
-                    // Safe guard: minimum 500ms to avoid overloading SignalR and CPU
-                    if (_cachedSyncIntervalMs < 500)
-                    {
-                        _cachedSyncIntervalMs = 500;
-                    }
-
+                    _telemetryEnabled = config?.EnableTelemetry ?? true;
+                    _cachedSyncIntervalMs = Math.Max(500, config?.IotSyncIntervalMs ?? 5000);
                     _lastCacheTime = DateTime.UtcNow;
-                    _logger.LogInformation("Telemetry Simulator cached {Count} active patients. Sync Interval: {Ms}ms.", _cachedPatientIds.Count, _cachedSyncIntervalMs);
                 }
 
-                foreach (var patientId in _cachedPatientIds)
+                if (_telemetryEnabled)
                 {
-                    var vitals = new
+                    var tasks = activeStreams.Select(patientId =>
                     {
-                        HeartRate = _random.Next(65, 86),
-                        SpO2 = _random.Next(94, 100),
-                        Temperature = Math.Round(97.0 + (_random.NextDouble() * 2.5), 1),
-                    };
+                        var vitals = new
+                        {
+                            PatientId = patientId,
+                            HeartRate = Random.Shared.Next(65, 86),
+                            SpO2 = Random.Shared.Next(94, 100),
+                            Temperature = Math.Round(97.0 + (Random.Shared.NextDouble() * 2.5), 1),
+                        };
 
-                    await _hubContext
-                        .Clients.Group(patientId.ToString())
-                        .SendAsync("ReceiveVitals", vitals, stoppingToken);
+                        return _hubContext
+                            .Clients.Group(patientId)
+                            .SendAsync("ReceiveVitals", vitals, stoppingToken);
+                    });
+
+                    await Task.WhenAll(tasks);
                 }
 
-                // Use the dynamic interval from cached config
                 await Task.Delay(_cachedSyncIntervalMs, stoppingToken);
             }
             catch (OperationCanceledException)
@@ -93,7 +89,7 @@ public class TelemetrySimulatorService : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while simulating telemetry data.");
-                await Task.Delay(5000, stoppingToken); // Fallback delay on error
+                await Task.Delay(5000, stoppingToken);
             }
         }
     }

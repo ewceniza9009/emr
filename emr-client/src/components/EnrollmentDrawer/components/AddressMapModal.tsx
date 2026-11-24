@@ -311,7 +311,7 @@ export default function AddressMapModal({ isOpen, onClose, address, onSave }: Ad
           <div className="flex items-center justify-between p-5 pb-3 border-b border-[var(--card-border)]">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-2xl bg-teal-500/15 flex items-center justify-center text-teal-400 border border-teal-500/20">
-                <MapPin className="w-4.5 h-4.5" />
+                <MapPin className="w-[18px] h-[18px]" />
               </div>
               <div>
                 <h3 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.2em]">

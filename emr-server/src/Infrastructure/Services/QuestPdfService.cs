@@ -22,7 +22,8 @@ public class QuestPdfService : IPdfService
     public async Task<byte[]> GeneratePatientDossierAsync(Guid patientId)
     {
         var patient = await _context
-            .Patients.IgnoreQueryFilters()
+            .Patients.AsNoTracking()
+            .IgnoreQueryFilters()
             .Include(p => p.Addresses)
                 .ThenInclude(a => a.Address)
             .Include(p => p.Phones)
@@ -40,15 +41,18 @@ public class QuestPdfService : IPdfService
             throw new Exception("Patient not found");
 
         var allergies = await _context
-            .Allergies.Where(a => a.PatientId == patientId)
+            .Allergies.AsNoTracking()
+            .Where(a => a.PatientId == patientId)
             .OrderBy(a => a.IdentifiedAt)
             .ToListAsync();
         var problems = await _context
-            .Diagnoses.Where(d => d.PatientId == patientId)
+            .Diagnoses.AsNoTracking()
+            .Where(d => d.PatientId == patientId)
             .OrderBy(d => d.DiagnosedAt)
             .ToListAsync();
         var prescriptions = await _context
-            .Prescriptions.Include(p => p.Medication)
+            .Prescriptions.AsNoTracking()
+            .Include(p => p.Medication)
             .Where(p => p.PatientId == patientId)
             .OrderBy(p => p.StartDate)
             .ToListAsync();
@@ -320,7 +324,8 @@ public class QuestPdfService : IPdfService
     public async Task<byte[]> GenerateInvoiceAsync(Guid invoiceId)
     {
         var invoice = await _context
-            .BillingInvoices.IgnoreQueryFilters()
+            .BillingInvoices.AsNoTracking()
+            .IgnoreQueryFilters()
             .Include(i => i.Items)
             .Include(i => i.Patient)
             .FirstOrDefaultAsync(i => i.InvoiceId == invoiceId);
@@ -617,7 +622,8 @@ public class QuestPdfService : IPdfService
     public async Task<byte[]> GenerateEncounterSummaryAsync(Guid appointmentId)
     {
         var appointment = await _context
-            .Appointments.IgnoreQueryFilters()
+            .Appointments.AsNoTracking()
+            .IgnoreQueryFilters()
             .Include(a => a.Patient)
             .Include(a => a.Encounters)
                 .ThenInclude(e => e.VitalSigns)
@@ -636,6 +642,7 @@ public class QuestPdfService : IPdfService
             .FirstOrDefault();
 
         var allAssessments = await _context.AssessmentResponses
+            .AsNoTracking()
             .IgnoreQueryFilters()
             .Include(a => a.Questionnaire)
             .Include(a => a.Assessor)
@@ -649,6 +656,7 @@ public class QuestPdfService : IPdfService
             .ToList();
 
         var esas = await _context.EsasAssessments
+            .AsNoTracking()
             .IgnoreQueryFilters()
             .Where(e => e.Encounter != null && e.Encounter.AppointmentId == appointmentId)
             .OrderByDescending(e => e.AssessedAt)
@@ -657,7 +665,8 @@ public class QuestPdfService : IPdfService
         var invoice =
             encounter != null
                 ? await _context
-                    .BillingInvoices.IgnoreQueryFilters()
+                    .BillingInvoices.AsNoTracking()
+                    .IgnoreQueryFilters()
                     .Include(i => i.Items)
                     .Where(i => i.EncounterId == encounter.EncounterId)
                     .OrderBy(i => i.InvoiceId)
@@ -666,6 +675,7 @@ public class QuestPdfService : IPdfService
 
         var spiritual = encounter != null 
             ? await _context.SpiritualAssessments
+                .AsNoTracking()
                 .IgnoreQueryFilters()
                 .Where(s => s.EncounterId == encounter.EncounterId)
                 .OrderBy(s => s.SpiritualAssessmentId)
@@ -673,11 +683,13 @@ public class QuestPdfService : IPdfService
             : null;
 
         var directives = await _context.AdvanceDirectives
+            .AsNoTracking()
             .IgnoreQueryFilters()
             .Where(d => d.PatientId == patient.PatientId)
             .ToListAsync();
 
         var sdoh = await _context.SdohAssessments
+            .AsNoTracking()
             .IgnoreQueryFilters()
             .Where(s => s.CareNavigationCase.PatientId == patient.PatientId)
             .OrderByDescending(s => s.AssessedAt)

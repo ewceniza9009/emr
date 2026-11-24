@@ -17,7 +17,11 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
 
         builder.Property(p => p.Mrn).HasColumnName("mrn").HasMaxLength(50).IsRequired();
 
-        builder.HasIndex(p => p.Mrn).IsUnique();
+        builder
+            .HasIndex(p => new { p.TenantId, p.Mrn })
+            .HasDatabaseName("ix_patients_tenant_mrn")
+            .HasFilter("is_deleted = false")
+            .IsUnique();
 
         builder
             .Property(p => p.FirstName)
@@ -42,7 +46,11 @@ public class PatientConfiguration : IEntityTypeConfiguration<Patient>
             .HasColumnName("philhealth_number")
             .HasMaxLength(50);
 
-        builder.HasIndex(p => p.PhilhealthNumber).IsUnique();
+        builder
+            .HasIndex(p => new { p.TenantId, p.PhilhealthNumber })
+            .HasDatabaseName("ix_patients_tenant_philhealth_number")
+            .HasFilter("philhealth_number IS NOT NULL AND is_deleted = false")
+            .IsUnique();
 
         builder
             .HasMany(p => p.Addresses)

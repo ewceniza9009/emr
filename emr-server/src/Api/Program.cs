@@ -53,6 +53,10 @@ try
     });
 
     builder.Services.AddMemoryCache();
+    builder.Services.AddResponseCompression(options =>
+    {
+        options.EnableForHttps = true;
+    });
 
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
@@ -143,6 +147,7 @@ try
     var app = builder.Build();
 
     app.UseMiddleware<Api.Middleware.ExceptionMiddleware>();
+    app.UseResponseCompression();
     app.UseSerilogRequestLogging();
     app.UseDefaultFiles();
     app.UseStaticFiles();
@@ -205,10 +210,12 @@ try
         try
         {
             _logger.LogInformation("Starting database initialization...");
+            var wipeDb = args.Contains("--wipe") || bool.Parse(builder.Configuration["EMR_WIPE_DB"] ?? "false");
+            var seedDb = args.Contains("--seed") || bool.Parse(builder.Configuration["EMR_SEED_DB"] ?? "true");
             await DbInitializer.InitializeAsync(
                 scope.ServiceProvider,
-                bool.Parse(builder.Configuration["EMR_WIPE_DB"] ?? "false"),
-                bool.Parse(builder.Configuration["EMR_SEED_DB"] ?? "true")
+                wipeDb,
+                seedDb
             );
             _logger.LogInformation("Database initialization completed successfully.");
 

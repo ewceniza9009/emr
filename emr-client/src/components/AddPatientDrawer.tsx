@@ -58,7 +58,7 @@ export default function AddPatientDrawer({ open, onClose, onSuccess }: Props) {
     postalCode: ""
   });
 
-  const { data: metadata } = useQuery(GET_METADATA);
+  const { data: metadata } = useQuery(GET_METADATA, { skip: !open });
 
   const [createPatient, { loading, error: mutationError }] = useMutation(CREATE_PATIENT, {
     onCompleted: () => {

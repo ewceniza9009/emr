@@ -69,11 +69,11 @@ export default function VitalsTrendChart({ patientId }: { patientId: string }) {
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
         <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--divider-color)" vertical={false} />
           
           <XAxis 
             dataKey="date" 
-            stroke="#64748b" 
+            stroke="var(--text-muted)" 
             fontSize={10} 
             tickLine={false} 
             axisLine={false} 
@@ -82,30 +82,30 @@ export default function VitalsTrendChart({ patientId }: { patientId: string }) {
           {/* Left Y-axis for Heart Rate & Temp */}
           <YAxis 
             yAxisId="left"
-            stroke="#64748b" 
+            stroke="var(--text-muted)" 
             fontSize={10} 
             tickLine={false} 
             axisLine={false} 
             domain={['auto', 'auto']}
-            label={{ value: 'Heart Rate (bpm) / Temp (°C)', angle: -90, position: 'insideLeft', style: { fontSize: 8, fill: '#64748b', fontWeight: 'bold' } }}
+            label={{ value: 'Heart Rate (bpm) / Temp (°C)', angle: -90, position: 'insideLeft', style: { fontSize: 8, fill: 'var(--text-muted)', fontWeight: 'bold' } }}
           />
 
           {/* Right Y-axis for SpO2 */}
           <YAxis 
             yAxisId="right"
             orientation="right"
-            stroke="#64748b" 
+            stroke="var(--text-muted)" 
             fontSize={10} 
             tickLine={false} 
             axisLine={false} 
             domain={[70, 100]}
-            label={{ value: 'SpO2 (%)', angle: 90, position: 'insideRight', style: { fontSize: 8, fill: '#64748b', fontWeight: 'bold' } }}
+            label={{ value: 'SpO2 (%)', angle: 90, position: 'insideRight', style: { fontSize: 8, fill: 'var(--text-muted)', fontWeight: 'bold' } }}
           />
 
           <Tooltip 
-            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #ffffff10', borderRadius: '12px' }}
+            contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', color: 'var(--text-primary)' }}
             itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
-            labelStyle={{ fontSize: '10px', color: '#64748b', fontWeight: 'bold', marginBottom: '4px' }}
+            labelStyle={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 'bold', marginBottom: '4px' }}
           />
           
           <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />

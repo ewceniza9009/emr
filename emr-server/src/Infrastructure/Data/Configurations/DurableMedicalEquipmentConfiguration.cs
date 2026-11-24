@@ -21,7 +21,11 @@ public class DurableMedicalEquipmentConfiguration
             .HasMaxLength(100)
             .IsRequired();
 
-        builder.HasIndex(e => e.SerialNumber).IsUnique();
+        builder
+            .HasIndex(e => new { e.TenantId, e.SerialNumber })
+            .HasDatabaseName("ix_dme_tenant_serial_number")
+            .HasFilter("is_deleted = false")
+            .IsUnique();
 
         builder
             .Property(e => e.ModelName)

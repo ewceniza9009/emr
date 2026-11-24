@@ -3,9 +3,18 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { Activity, Wind } from "lucide-react";
-import { AreaChart, Area, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  AreaChart,
+  Area,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UsePatientDashboardStateReturn } from "../hooks/usePatientDashboardState";
+import {
+  UsePatientDashboardStateReturn,
+  usePatientLiveVitals,
+} from "../hooks/usePatientDashboardState";
 
 const EquipmentRegistry = dynamic(
   () => import("@/components/EquipmentRegistry"),
@@ -21,18 +30,16 @@ interface LogisticsFleetTabProps {
 }
 
 export function LogisticsFleetTab({ state }: LogisticsFleetTabProps) {
-  const {
+  const { patientId, telemetryEnabled, handleToggleTelemetry } = state;
+  const { vitals, telemetryData } = usePatientLiveVitals(
     patientId,
-    vitals,
-    telemetryData,
     telemetryEnabled,
-    handleToggleTelemetry,
-  } = state;
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <EquipmentRegistry patientId={patientId} />
-      
+
       <div className="bg-[var(--card-bg)] rounded-[2.5rem] p-10 border border-[var(--card-border)] shadow-xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-[var(--primary)]" />
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
@@ -123,13 +130,7 @@ export function LogisticsFleetTab({ state }: LogisticsFleetTabProps) {
                 >
                   <AreaChart data={telemetryData}>
                     <defs>
-                      <linearGradient
-                        id="colorHr"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
+                      <linearGradient id="colorHr" x1="0" y1="0" x2="0" y2="1">
                         <stop
                           offset="5%"
                           stopColor="#f43f5e"

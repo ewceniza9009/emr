@@ -25,8 +25,8 @@ const CREATE_ENCOUNTER = gql`
 `;
 
 const GET_PATIENTS = gql`
-  query GetPatientsForTelemetry {
-    patients {
+  query GetPatientsForTelemetry($take: Int) {
+    patients(take: $take) {
       items {
         patientId
         mrn
@@ -43,7 +43,9 @@ const GET_PATIENTS = gql`
 export default function VitalsIoTPage() {
   const { data: session } = useSession();
   const { showToast } = useToast();
-  const { data, loading, error } = useQuery(GET_PATIENTS);
+  const { data, loading, error } = useQuery(GET_PATIENTS, {
+    variables: { take: 24 },
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [enabledPatients, setEnabledPatients] = useState<
     Record<string, boolean>
@@ -175,7 +177,7 @@ export default function VitalsIoTPage() {
   if (error)
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-650 border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-600 border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
           <Activity className="w-8 h-8" />
         </div>
         <h2 className="text-xl font-bold text-[var(--text-primary)]">
@@ -194,7 +196,7 @@ export default function VitalsIoTPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-rose-500/[0.01] to-transparent pointer-events-none" />
         <div className="flex items-center gap-3 relative z-10">
           <div className="w-9 h-9 bg-rose-500/10 rounded-lg flex items-center justify-center border border-rose-500/20 shadow-lg shadow-rose-500/10">
-            <Heart className="w-4.5 h-4.5 text-rose-500 animate-pulse" />
+            <Heart className="w-[18px] h-[18px] text-rose-500 animate-pulse" />
           </div>
           <div>
             <h1 className="text-xs font-black text-[var(--text-primary)] uppercase tracking-[0.2em] leading-none">
@@ -404,7 +406,7 @@ export default function VitalsIoTPage() {
       <div className="glass-morphism rounded-2xl p-3 border border-[var(--card-border)] flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xl relative overflow-hidden group">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/[0.015] to-transparent pointer-events-none" />
         <div className="flex items-center gap-3 relative z-10">
-          <div className="w-8.5 h-8.5 rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] group-hover:text-blue-500 group-hover:border-blue-500/20 transition-all duration-500">
+          <div className="w-[34px] h-[34px] rounded-lg bg-[var(--input-bg)] border border-[var(--card-border)] flex items-center justify-center text-[var(--text-muted)] group-hover:text-blue-500 group-hover:border-blue-500/20 transition-all duration-500">
             <Activity className="w-4 h-4 animate-pulse" />
           </div>
           <div>
@@ -422,7 +424,7 @@ export default function VitalsIoTPage() {
           onClick={() =>
             showToast("Scanning for clinical bio-sensors...", "info")
           }
-          className="px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-550 hover:text-blue-500 text-[8.5px] font-black uppercase tracking-[0.15em] shadow-md transition-all duration-300 active:scale-95 relative z-10 shrink-0 text-center"
+          className="px-4 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-500 hover:text-blue-500 text-[8.5px] font-black uppercase tracking-[0.15em] shadow-md transition-all duration-300 active:scale-95 relative z-10 shrink-0 text-center"
         >
           Scan Clinical Grid
         </button>

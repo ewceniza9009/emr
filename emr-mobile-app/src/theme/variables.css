@@ -59,7 +59,8 @@ ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
   --ion-toolbar-background: #f8fafc;
 }
 
-.dark {
+.dark,
+.ion-palette-dark {
   /* Midnight Dark Mode */
   --ion-background-color: #020408;
   --ion-text-color: #ffffff;
@@ -68,6 +69,15 @@ ion-content::part(scroll)::-webkit-scrollbar-thumb:hover {
   --ion-tab-bar-border-color: #1e293b;
   --ion-tab-button-color-selected: #2dd4bf; /* teal-400 */
   --ion-toolbar-background: #020408;
+}
+
+/* Safe-area utilities for notched iOS/Android viewports */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* Ensure Ionic elements respect our custom properties */

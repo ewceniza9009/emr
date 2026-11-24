@@ -87,7 +87,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
     patientId,
     telemetryEnabled,
     handleToggleTelemetry,
-    telemetryData,
+    isIotConnected,
     showEditAddress,
     setShowEditAddress,
     handleSaveAddress,
@@ -142,7 +142,7 @@ export function CoreIdentityCard({ state }: CoreIdentityCardProps) {
         status={
           !telemetryEnabled
             ? "off"
-            : telemetryData.length > 0
+            : isIotConnected
               ? "live"
               : "initializing"
         }

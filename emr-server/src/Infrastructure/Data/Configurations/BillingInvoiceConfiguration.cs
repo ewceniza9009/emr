@@ -24,7 +24,11 @@ public class BillingInvoiceConfiguration : IEntityTypeConfiguration<BillingInvoi
             .HasMaxLength(100)
             .IsRequired();
 
-        builder.HasIndex(i => i.InvoiceNumber).IsUnique();
+        builder
+            .HasIndex(i => new { i.TenantId, i.InvoiceNumber })
+            .HasDatabaseName("ix_billing_invoices_tenant_invoice_number")
+            .HasFilter("is_deleted = false")
+            .IsUnique();
 
         builder
             .Property(i => i.Status)

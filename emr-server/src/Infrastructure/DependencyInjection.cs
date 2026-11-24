@@ -85,6 +85,12 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
         services.AddScoped<ISecurityAuditService, Infrastructure.Services.SecurityAuditService>();
+        services.AddSingleton<Nest.IElasticClient>( _ =>
+        {
+            var url = configuration["Elasticsearch:Url"] ?? "http://localhost:9200";
+            var settings = new Nest.ConnectionSettings(new Uri(url)).DefaultIndex("halkyone-patients");
+            return new Nest.ElasticClient(settings);
+        });
         services.AddScoped<ISearchService, Infrastructure.Services.SearchService>();
         services.AddScoped<INotificationService, Infrastructure.Services.NotificationService>();
         services.AddScoped<IMagicTokenService, Infrastructure.Services.MagicTokenService>();

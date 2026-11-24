@@ -5,6 +5,7 @@ using HotChocolate.Types.Descriptors;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Api.GraphQL.Attributes;
 
@@ -14,6 +15,8 @@ namespace Api.GraphQL.Attributes;
 /// </summary>
 public class UsePatientAccessAttribute(string argumentName = "patientId") : ObjectFieldDescriptorAttribute
 {
+    private sealed record CachedPatientIdentity(bool IsPatient, Guid PatientId);
+
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
@@ -24,64 +27,56 @@ public class UsePatientAccessAttribute(string argumentName = "patientId") : Obje
             async (IMiddlewareContext ctx) =>
             {
                 var currentUserService = ctx.Service<ICurrentUserService>();
-                var userManager = ctx.Service<UserManager<ApplicationUser>>();
-
-                // 1. IDENTITY VERIFICATION
                 var userIdStr = currentUserService.UserId;
-                if (string.IsNullOrEmpty(userIdStr))
+                if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userGuid))
                     throw new UnauthorizedAccessException("Mobile session expired or invalid.");
 
-                var user = await userManager.FindByIdAsync(userIdStr);
-                if (user == null)
-                    throw new UnauthorizedAccessException("Subject identity not found in registry.");
+                var cacheKey = $"patient-access:{userGuid}";
+                CachedPatientIdentity? identity = null;
 
-                // 2. ROLE VERIFICATION
-                var roles = await userManager.GetRolesAsync(user);
-                if (!roles.Any(r => r.Equals("Patient", StringComparison.OrdinalIgnoreCase)))
+                if (ctx.ContextData.TryGetValue(cacheKey, out var reqCached) && reqCached is CachedPatientIdentity reqIdentity)
+                {
+                    identity = reqIdentity;
+                }
+                else
+                {
+                    var memoryCache = ctx.Services.GetService<IMemoryCache>();
+                    if (memoryCache == null || !memoryCache.TryGetValue(cacheKey, out identity))
+                    {
+                        var userManager = ctx.Service<UserManager<ApplicationUser>>();
+                        var user = await userManager.FindByIdAsync(userIdStr);
+                        if (user == null)
+                            throw new UnauthorizedAccessException("Subject identity not found in registry.");
+
+                        var roles = await userManager.GetRolesAsync(user);
+                        var isPatient = roles.Any(r => r.Equals("Patient", StringComparison.OrdinalIgnoreCase));
+
+                        var dbContext = ctx.Service<IApplicationDbContext>();
+                        var ownedPatientId = await dbContext.PatientAccounts
+                            .AsNoTracking()
+                            .IgnoreQueryFilters()
+                            .Where(pa => pa.UserId == userGuid)
+                            .Select(pa => pa.PatientId)
+                            .FirstOrDefaultAsync(ctx.RequestAborted);
+
+                        identity = new CachedPatientIdentity(isPatient, ownedPatientId);
+                        memoryCache?.Set(cacheKey, identity, TimeSpan.FromSeconds(60));
+                    }
+
+                    ctx.ContextData[cacheKey] = identity;
+                }
+
+                if (!identity!.IsPatient)
                 {
                     throw new UnauthorizedAccessException("Access denied. This endpoint is strictly restricted to active Patient profiles.");
                 }
 
-                // 3. SECURE IDOR PREVENTION (Insecure Direct Object Reference)
                 if (!string.IsNullOrEmpty(argumentName))
                 {
                     Guid targetId = ResolveTargetId(ctx, argumentName);
-                    
-                    // If a targetId is provided in the query/mutation, it MUST match the user's patient ID
-                    if (targetId != Guid.Empty)
+                    if (targetId != Guid.Empty && (identity.PatientId == Guid.Empty || targetId != identity.PatientId))
                     {
-                        var dbContext = ctx.Service<IApplicationDbContext>();
-                        var patientAccount = await dbContext.PatientAccounts
-                            .IgnoreQueryFilters()
-                            .FirstOrDefaultAsync(pa => pa.UserId == Guid.Parse(userIdStr));
-
-                        Console.WriteLine($"[PATIENT_ACCESS_SECURITY] userIdStr: {userIdStr}");
-                        Console.WriteLine($"[PATIENT_ACCESS_SECURITY] targetId: {targetId}");
-                        if (patientAccount == null)
-                        {
-                            Console.WriteLine($"[PATIENT_ACCESS_SECURITY] patientAccount not found for userId: {userIdStr}");
-                            
-                            // Auto-heal: If in development/testing mode, we can search by patientId or heal the account userId mapping!
-                            var healedAccount = await dbContext.PatientAccounts
-                                .IgnoreQueryFilters()
-                                .FirstOrDefaultAsync(pa => pa.PatientId == targetId);
-                            if (healedAccount != null)
-                            {
-                                Console.WriteLine($"[PATIENT_ACCESS_SECURITY] HEALED: Updating patient account {healedAccount.PatientAccountId} userId from {healedAccount.UserId} to logged-in user {userIdStr}");
-                                healedAccount.UserId = Guid.Parse(userIdStr);
-                                await dbContext.SaveChangesAsync(default);
-                                patientAccount = healedAccount;
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine($"[PATIENT_ACCESS_SECURITY] patientAccount found: PatientId={patientAccount.PatientId}, UserId={patientAccount.UserId}");
-                        }
-
-                        if (patientAccount == null || targetId != patientAccount.PatientId)
-                        {
-                            throw new UnauthorizedAccessException("Tactical Security Violation: Patients may only access their own clinical records.");
-                        }
+                        throw new UnauthorizedAccessException("Tactical Security Violation: Patients may only access their own clinical records.");
                     }
                 }
 

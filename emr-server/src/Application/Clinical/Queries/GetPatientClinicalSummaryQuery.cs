@@ -45,54 +45,66 @@ public class GetPatientClinicalSummaryQueryHandler
             .ToListAsync(cancellationToken);
 
         var vitals = await _context
-            .VitalSigns.Where(v => v.Encounter.PatientId == request.PatientId)
+            .VitalSigns.AsNoTracking()
+            .Where(v => v.Encounter.PatientId == request.PatientId)
             .OrderByDescending(v => v.RecordedAt)
             .Take(10)
             .ToListAsync(cancellationToken);
 
         var flattenedVitals = new List<RecentVitalDto>();
+        var seenTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var v in vitals)
         {
-            if (v.BloodPressureSystolic.HasValue)
+            if (v.BloodPressureSystolic.HasValue && seenTypes.Add("BP"))
+            {
+                var sys = Math.Round(v.BloodPressureSystolic.Value, 0).ToString("0");
+                var dia = v.BloodPressureDiastolic.HasValue
+                    ? Math.Round(v.BloodPressureDiastolic.Value, 0).ToString("0")
+                    : "--";
+                flattenedVitals.Add(new RecentVitalDto("BP", $"{sys}/{dia}", "mmHg", v.RecordedAt));
+            }
+            if (v.HeartRate.HasValue && seenTypes.Add("HR"))
+            {
                 flattenedVitals.Add(
-                    new RecentVitalDto(
-                        "BP",
-                        $"{v.BloodPressureSystolic}/{v.BloodPressureDiastolic}",
-                        "mmHg",
-                        v.RecordedAt
-                    )
+                    new RecentVitalDto("HR", Math.Round(v.HeartRate.Value, 0).ToString("0"), "bpm", v.RecordedAt)
                 );
-            if (v.HeartRate.HasValue)
-                flattenedVitals.Add(
-                    new RecentVitalDto("HR", v.HeartRate.Value.ToString(), "bpm", v.RecordedAt)
-                );
-            if (v.OxygenSaturation.HasValue)
+            }
+            if (v.OxygenSaturation.HasValue && seenTypes.Add("SpO2"))
+            {
                 flattenedVitals.Add(
                     new RecentVitalDto(
                         "SpO2",
-                        v.OxygenSaturation.Value.ToString(),
+                        Math.Round(v.OxygenSaturation.Value, 0).ToString("0"),
                         "%",
                         v.RecordedAt
                     )
                 );
-            if (v.Temperature.HasValue)
+            }
+            if (v.Temperature.HasValue && seenTypes.Add("Temp"))
+            {
                 flattenedVitals.Add(
-                    new RecentVitalDto("Temp", v.Temperature.Value.ToString(), "°F", v.RecordedAt)
+                    new RecentVitalDto("Temp", v.Temperature.Value.ToString("0.#"), "°F", v.RecordedAt)
                 );
-            if (v.Weight.HasValue)
+            }
+            if (v.Weight.HasValue && seenTypes.Add("Weight"))
+            {
                 flattenedVitals.Add(
-                    new RecentVitalDto("Weight", v.Weight.Value.ToString(), "kg", v.RecordedAt)
+                    new RecentVitalDto("Weight", v.Weight.Value.ToString("0.#"), "kg", v.RecordedAt)
                 );
+            }
         }
 
         var problems = await _context
-            .Diagnoses.Where(d => d.PatientId == request.PatientId)
+            .Diagnoses.AsNoTracking()
+            .Where(d => d.PatientId == request.PatientId)
             .OrderByDescending(d => d.DiagnosedAt)
             .Select(d => new ActiveProblemDto(d.Icd10Code, d.Description, d.DiagnosedAt))
             .ToListAsync(cancellationToken);
 
         var allergies = await _context
-            .Allergies.Where(a => a.PatientId == request.PatientId)
+            .Allergies.AsNoTracking()
+            .Where(a => a.PatientId == request.PatientId)
             .Select(a => new AllergyDto(a.Allergen, a.Reaction, a.Severity.ToString()))
             .ToListAsync(cancellationToken);
 

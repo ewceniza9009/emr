@@ -31,6 +31,7 @@ public class NavigationQuery
     )
     {
         var threads = await context.CareThreads
+            .AsNoTracking()
             .Include(t => t.Messages)
             .Where(t => t.PatientId == patientId && t.IsActive)
             .ToListAsync(cancellationToken);
@@ -38,6 +39,7 @@ public class NavigationQuery
         if (!threads.Any())
         {
             var patient = await context.Patients
+                .AsNoTracking()
                 .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(p => p.PatientId == patientId, cancellationToken);
                 
@@ -70,6 +72,7 @@ public class NavigationQuery
     )
     {
         return await context.CareThreads
+            .AsNoTracking()
             .Include(t => t.Messages)
             .Include(t => t.Patient)
             .Where(t => t.IsActive)

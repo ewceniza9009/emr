@@ -107,6 +107,8 @@ export default function TriageDashboard() {
     setPage(0);
   }, [debouncedSearch, filters]);
 
+  const [isHubConnected, setIsHubConnected] = useState(false);
+
   const { data, loading, refetch, networkStatus } = useQuery(
     GET_TRIAGE_DASHBOARD_DATA,
     {
@@ -117,7 +119,7 @@ export default function TriageDashboard() {
         skip: page * PAGE_SIZE,
         take: PAGE_SIZE,
       },
-      pollInterval: 3000,
+      pollInterval: isHubConnected ? 0 : 15000,
       notifyOnNetworkStatusChange: true,
     },
   );
@@ -132,24 +134,23 @@ export default function TriageDashboard() {
         process.env.NEXT_PUBLIC_SIGNALR_ENDPOINT ||
           "http://localhost:34732/hubs/telemetry",
       )
-      .configureLogging(LogLevel.Information)
+      .configureLogging(LogLevel.Warning)
       .withAutomaticReconnect()
       .build();
+
+    connection.onreconnecting(() => setIsHubConnected(false));
+    connection.onreconnected(() => setIsHubConnected(true));
+    connection.onclose(() => setIsHubConnected(false));
 
     connection
       .start()
       .then(() => {
-        console.log("Connected to TelemetryHub for triage alerts");
-        connection.on("ReceiveAlert", (patientId, alertMessage) => {
-          console.log(
-            "Received alert, refetching triage list",
-            patientId,
-            alertMessage,
-          );
+        setIsHubConnected(true);
+        connection.on("ReceiveAlert", () => {
           refetch();
         });
       })
-      .catch((err) => console.error("Error connecting to TelemetryHub:", err));
+      .catch(() => setIsHubConnected(false));
 
     return () => {
       connection.stop();
@@ -451,18 +452,13 @@ export default function TriageDashboard() {
                         }
                       >
                         <div className="max-w-[180px] space-y-1">
-                          <p className="text-[10px] text-[var(--text-primary)] font-medium line-clamp-1 italic opacity-80">
-                            {p.triageNote ||
-                              (p.isAlert
-                                ? "Patient reporting breakthrough pain. Requires symptom review."
-                                : "Clinical status remains stable based on last encounter.")}
+                          <p className={`text-[10px] font-medium line-clamp-1 ${p.triageNote ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] italic"}`}>
+                            {p.triageNote || "No triage note recorded"}
                           </p>
-                          <div className="flex items-center gap-1.5 opacity-40">
+                          <div className="flex items-center gap-1.5 opacity-50">
                             <History className="w-2 h-2" />
                             <span className="text-[8px] font-bold uppercase tracking-widest">
-                              {p.triageNote
-                                ? "Triage Note Active"
-                                : "Last Note: 2h ago"}
+                              {p.triageNote ? "Triage Note Active" : "Awaiting Review"}
                             </span>
                           </div>
                         </div>

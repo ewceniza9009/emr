@@ -61,6 +61,7 @@ CREATE TABLE facilities (
     facility_address_city text NOT NULL,
     facility_address_state text NOT NULL,
     facility_address_postal_code text NOT NULL,
+    facility_address_region text NOT NULL,
     facility_address_country text NOT NULL,
     facility_address_latitude double precision,
     facility_address_longitude double precision,
@@ -155,6 +156,8 @@ CREATE TABLE outbox_messages (
     created_on_utc timestamp with time zone NOT NULL,
     processed_on_utc timestamp with time zone,
     error text,
+    retry_count integer NOT NULL,
+    next_attempt_utc timestamp with time zone,
     CONSTRAINT pk_outbox_messages PRIMARY KEY (id)
 );
 
@@ -272,6 +275,7 @@ CREATE TABLE tenant_configurations (
     urgent_wellbeing_threshold integer NOT NULL,
     is_active boolean NOT NULL,
     enable_elasticsearch boolean NOT NULL,
+    enable_osrm_travel boolean NOT NULL,
     enforce_mfa boolean NOT NULL,
     session_timeout_minutes integer NOT NULL,
     strict_onboarding boolean NOT NULL,
@@ -594,6 +598,7 @@ CREATE TABLE entity_addresses (
     city text NOT NULL,
     state text NOT NULL,
     postal_code text NOT NULL,
+    region text NOT NULL,
     country text NOT NULL,
     latitude double precision,
     longitude double precision,
@@ -696,6 +701,7 @@ CREATE TABLE patient_outreaches (
     mailing_address_city text NOT NULL,
     mailing_address_state text NOT NULL,
     mailing_address_postal_code text NOT NULL,
+    mailing_address_region text NOT NULL,
     mailing_address_country text NOT NULL,
     mailing_address_latitude double precision,
     mailing_address_longitude double precision,
@@ -1256,10 +1262,19 @@ CREATE TABLE billing_invoice_items (
 CREATE INDEX ix_advance_directives_patient_id ON advance_directives (patient_id);
 
 
+CREATE INDEX "IX_advance_directives_tenant_id" ON advance_directives (tenant_id);
+
+
 CREATE INDEX ix_allergies_patient_id ON allergies (patient_id);
 
 
+CREATE INDEX "IX_allergies_tenant_id" ON allergies (tenant_id);
+
+
 CREATE INDEX ix_appointment_resources_block_id ON appointment_resources (block_id);
+
+
+CREATE INDEX "IX_appointment_resources_tenant_id" ON appointment_resources (tenant_id);
 
 
 CREATE INDEX ix_appointment_supporting_clinicians_practitioner_id ON appointment_supporting_clinicians (practitioner_id);
@@ -1272,6 +1287,9 @@ CREATE INDEX ix_appointments_patient_id ON appointments (patient_id);
 
 
 CREATE INDEX ix_appointments_practitioner_id ON appointments (practitioner_id);
+
+
+CREATE INDEX "IX_appointments_tenant_id" ON appointments (tenant_id);
 
 
 CREATE INDEX "IX_AspNetRoleClaims_RoleId" ON "AspNetRoleClaims" ("RoleId");
@@ -1307,10 +1325,19 @@ CREATE INDEX ix_assessment_responses_patient_id ON assessment_responses (patient
 CREATE INDEX ix_assessment_responses_questionnaire_id ON assessment_responses (questionnaire_id);
 
 
+CREATE INDEX "IX_assessment_responses_tenant_id" ON assessment_responses (tenant_id);
+
+
 CREATE INDEX ix_barrier_logs_case_id ON barrier_logs (case_id);
 
 
+CREATE INDEX "IX_barrier_logs_tenant_id" ON barrier_logs (tenant_id);
+
+
 CREATE INDEX ix_billing_invoice_items_invoice_id ON billing_invoice_items (invoice_id);
+
+
+CREATE INDEX "IX_billing_invoice_items_tenant_id" ON billing_invoice_items (tenant_id);
 
 
 CREATE INDEX ix_billing_invoices_claim_id ON billing_invoices (claim_id);
@@ -1319,10 +1346,13 @@ CREATE INDEX ix_billing_invoices_claim_id ON billing_invoices (claim_id);
 CREATE INDEX ix_billing_invoices_encounter_id ON billing_invoices (encounter_id);
 
 
-CREATE UNIQUE INDEX ix_billing_invoices_invoice_number ON billing_invoices (invoice_number);
-
-
 CREATE INDEX ix_billing_invoices_patient_id ON billing_invoices (patient_id);
+
+
+CREATE INDEX "IX_billing_invoices_tenant_id" ON billing_invoices (tenant_id);
+
+
+CREATE UNIQUE INDEX ix_billing_invoices_tenant_invoice_number ON billing_invoices (tenant_id, invoice_number) WHERE is_deleted = false;
 
 
 CREATE INDEX ix_care_navigation_cases_navigator_id ON care_navigation_cases (navigator_id);
@@ -1331,16 +1361,31 @@ CREATE INDEX ix_care_navigation_cases_navigator_id ON care_navigation_cases (nav
 CREATE INDEX ix_care_navigation_cases_patient_id ON care_navigation_cases (patient_id);
 
 
+CREATE INDEX "IX_care_navigation_cases_tenant_id" ON care_navigation_cases (tenant_id);
+
+
 CREATE INDEX ix_care_threads_patient_id ON care_threads (patient_id);
+
+
+CREATE INDEX "IX_care_threads_tenant_id" ON care_threads (tenant_id);
 
 
 CREATE INDEX ix_caregiver_links_patient_account_id ON caregiver_links (patient_account_id);
 
 
+CREATE INDEX "IX_caregiver_links_tenant_id" ON caregiver_links (tenant_id);
+
+
 CREATE INDEX ix_chat_messages_care_thread_id ON chat_messages (care_thread_id);
 
 
+CREATE INDEX "IX_chat_messages_tenant_id" ON chat_messages (tenant_id);
+
+
 CREATE INDEX ix_claim_status_logs_claim_id ON claim_status_logs (claim_id);
+
+
+CREATE INDEX "IX_claim_status_logs_tenant_id" ON claim_status_logs (tenant_id);
 
 
 CREATE INDEX ix_clinical_encounters_appointment_id ON clinical_encounters (appointment_id);
@@ -1352,10 +1397,16 @@ CREATE INDEX ix_clinical_encounters_patient_id ON clinical_encounters (patient_i
 CREATE INDEX ix_clinical_encounters_practitioner_id ON clinical_encounters (practitioner_id);
 
 
+CREATE INDEX "IX_clinical_encounters_tenant_id" ON clinical_encounters (tenant_id);
+
+
 CREATE INDEX ix_clinical_notes_author_id ON clinical_notes (author_id);
 
 
 CREATE INDEX ix_clinical_notes_encounter_id ON clinical_notes (encounter_id);
+
+
+CREATE INDEX "IX_clinical_notes_tenant_id" ON clinical_notes (tenant_id);
 
 
 CREATE INDEX ix_diagnoses_encounter_id ON diagnoses (encounter_id);
@@ -1364,13 +1415,22 @@ CREATE INDEX ix_diagnoses_encounter_id ON diagnoses (encounter_id);
 CREATE INDEX ix_diagnoses_patient_id ON diagnoses (patient_id);
 
 
-CREATE UNIQUE INDEX ix_durable_medical_equipment_serial_number ON durable_medical_equipment (serial_number);
+CREATE INDEX "IX_diagnoses_tenant_id" ON diagnoses (tenant_id);
+
+
+CREATE UNIQUE INDEX ix_dme_tenant_serial_number ON durable_medical_equipment (tenant_id, serial_number) WHERE is_deleted = false;
+
+
+CREATE INDEX "IX_durable_medical_equipment_tenant_id" ON durable_medical_equipment (tenant_id);
 
 
 CREATE INDEX ix_entity_addresses_patient_id ON entity_addresses (patient_id);
 
 
 CREATE INDEX ix_entity_addresses_practitioner_id ON entity_addresses (practitioner_id);
+
+
+CREATE INDEX "IX_entity_addresses_tenant_id" ON entity_addresses (tenant_id);
 
 
 CREATE INDEX ix_equipment_deliveries_encounter_id ON equipment_deliveries (encounter_id);
@@ -1382,16 +1442,37 @@ CREATE INDEX ix_equipment_deliveries_equipment_id ON equipment_deliveries (equip
 CREATE INDEX ix_equipment_deliveries_patient_id ON equipment_deliveries (patient_id);
 
 
+CREATE INDEX "IX_equipment_deliveries_tenant_id" ON equipment_deliveries (tenant_id);
+
+
 CREATE INDEX ix_esas_assessments_encounter_id ON esas_assessments (encounter_id);
 
 
 CREATE INDEX ix_esas_assessments_patient_id ON esas_assessments (patient_id);
 
 
+CREATE INDEX "IX_esas_assessments_tenant_id" ON esas_assessments (tenant_id);
+
+
+CREATE INDEX "IX_facilities_tenant_id" ON facilities (tenant_id);
+
+
+CREATE INDEX "IX_health_plans_tenant_id" ON health_plans (tenant_id);
+
+
+CREATE INDEX "IX_integration_profiles_tenant_id" ON integration_profiles (tenant_id);
+
+
 CREATE INDEX ix_intervention_logs_case_id ON intervention_logs (case_id);
 
 
+CREATE INDEX "IX_intervention_logs_tenant_id" ON intervention_logs (tenant_id);
+
+
 CREATE INDEX ix_magic_tokens_patient_id ON magic_tokens (patient_id);
+
+
+CREATE INDEX "IX_magic_tokens_tenant_id" ON magic_tokens (tenant_id);
 
 
 CREATE INDEX ix_navigation_tasks_assigned_to ON navigation_tasks (assigned_to);
@@ -1400,19 +1481,37 @@ CREATE INDEX ix_navigation_tasks_assigned_to ON navigation_tasks (assigned_to);
 CREATE INDEX ix_navigation_tasks_case_id ON navigation_tasks (case_id);
 
 
+CREATE INDEX "IX_navigation_tasks_tenant_id" ON navigation_tasks (tenant_id);
+
+
 CREATE INDEX ix_outreach_activities_outreach_id ON outreach_activities (outreach_id);
 
 
 CREATE INDEX ix_outreach_activities_practitioner_id ON outreach_activities (practitioner_id);
 
 
+CREATE INDEX "IX_outreach_activities_tenant_id" ON outreach_activities (tenant_id);
+
+
 CREATE INDEX ix_outreach_contacts_patient_outreach_id ON outreach_contacts (patient_outreach_id);
+
+
+CREATE INDEX "IX_outreach_contacts_tenant_id" ON outreach_contacts (tenant_id);
+
+
+CREATE INDEX "IX_outreach_scripts_tenant_id" ON outreach_scripts (tenant_id);
 
 
 CREATE UNIQUE INDEX ix_patient_accounts_patient_id ON patient_accounts (patient_id);
 
 
+CREATE INDEX "IX_patient_accounts_tenant_id" ON patient_accounts (tenant_id);
+
+
 CREATE INDEX ix_patient_contacts_patient_id ON patient_contacts (patient_id);
+
+
+CREATE INDEX "IX_patient_contacts_tenant_id" ON patient_contacts (tenant_id);
 
 
 CREATE INDEX ix_patient_documents_patient_contact_id ON patient_documents (patient_contact_id);
@@ -1421,10 +1520,16 @@ CREATE INDEX ix_patient_documents_patient_contact_id ON patient_documents (patie
 CREATE INDEX ix_patient_documents_patient_id ON patient_documents (patient_id);
 
 
+CREATE INDEX "IX_patient_documents_tenant_id" ON patient_documents (tenant_id);
+
+
 CREATE INDEX ix_patient_documents_uploaded_by_id ON patient_documents (uploaded_by_id);
 
 
 CREATE INDEX ix_patient_emails_patient_id ON patient_emails (patient_id);
+
+
+CREATE INDEX "IX_patient_emails_tenant_id" ON patient_emails (tenant_id);
 
 
 CREATE INDEX ix_patient_outreaches_assigned_practitioner_id ON patient_outreaches (assigned_practitioner_id);
@@ -1436,7 +1541,13 @@ CREATE INDEX ix_patient_outreaches_enrolled_patient_id ON patient_outreaches (en
 CREATE INDEX ix_patient_outreaches_health_plan_id ON patient_outreaches (health_plan_id);
 
 
+CREATE INDEX "IX_patient_outreaches_tenant_id" ON patient_outreaches (tenant_id);
+
+
 CREATE INDEX ix_patient_phones_patient_id ON patient_phones (patient_id);
+
+
+CREATE INDEX "IX_patient_phones_tenant_id" ON patient_phones (tenant_id);
 
 
 CREATE INDEX ix_patients_facility_id ON patients (facility_id);
@@ -1445,25 +1556,37 @@ CREATE INDEX ix_patients_facility_id ON patients (facility_id);
 CREATE INDEX ix_patients_health_plan_id ON patients (health_plan_id);
 
 
-CREATE UNIQUE INDEX ix_patients_mrn ON patients (mrn);
+CREATE INDEX "IX_patients_tenant_id" ON patients (tenant_id);
 
 
-CREATE UNIQUE INDEX ix_patients_philhealth_number ON patients (philhealth_number);
+CREATE UNIQUE INDEX ix_patients_tenant_mrn ON patients (tenant_id, mrn) WHERE is_deleted = false;
+
+
+CREATE UNIQUE INDEX ix_patients_tenant_philhealth_number ON patients (tenant_id, philhealth_number) WHERE philhealth_number IS NOT NULL AND is_deleted = false;
 
 
 CREATE INDEX ix_practitioner_licensures_practitioner_id ON practitioner_licensures (practitioner_id);
 
 
+CREATE INDEX "IX_practitioner_licensures_tenant_id" ON practitioner_licensures (tenant_id);
+
+
 CREATE INDEX ix_practitioner_service_areas_practitioner_id ON practitioner_service_areas (practitioner_id);
+
+
+CREATE INDEX "IX_practitioner_service_areas_tenant_id" ON practitioner_service_areas (tenant_id);
 
 
 CREATE INDEX ix_practitioner_service_areas_zip_code ON practitioner_service_areas (zip_code);
 
 
-CREATE UNIQUE INDEX ix_practitioners_npi_number ON practitioners (npi_number);
+CREATE INDEX "IX_practitioners_tenant_id" ON practitioners (tenant_id);
 
 
-CREATE UNIQUE INDEX ix_practitioners_prc_license_number ON practitioners (prc_license_number);
+CREATE UNIQUE INDEX ix_practitioners_tenant_npi_number ON practitioners (tenant_id, npi_number) WHERE npi_number IS NOT NULL AND is_deleted = false;
+
+
+CREATE UNIQUE INDEX ix_practitioners_tenant_prc_license_number ON practitioners (tenant_id, prc_license_number) WHERE prc_license_number IS NOT NULL AND is_deleted = false;
 
 
 CREATE UNIQUE INDEX ix_practitioners_user_id ON practitioners (user_id);
@@ -1478,13 +1601,28 @@ CREATE INDEX ix_prescriptions_patient_id ON prescriptions (patient_id);
 CREATE INDEX ix_prescriptions_prescribed_by_id ON prescriptions (prescribed_by_id);
 
 
+CREATE INDEX "IX_prescriptions_tenant_id" ON prescriptions (tenant_id);
+
+
 CREATE INDEX ix_provider_shifts_practitioner_id ON provider_shifts (practitioner_id);
+
+
+CREATE INDEX "IX_provider_shifts_tenant_id" ON provider_shifts (tenant_id);
+
+
+CREATE INDEX "IX_questionnaires_tenant_id" ON questionnaires (tenant_id);
 
 
 CREATE INDEX ix_questions_questionnaire_id ON questions (questionnaire_id);
 
 
+CREATE INDEX "IX_questions_tenant_id" ON questions (tenant_id);
+
+
 CREATE INDEX ix_schedule_blocks_practitioner_id ON schedule_blocks (practitioner_id);
+
+
+CREATE INDEX "IX_schedule_blocks_tenant_id" ON schedule_blocks (tenant_id);
 
 
 CREATE INDEX ix_sdoh_assessments_assessor_id ON sdoh_assessments (assessor_id);
@@ -1493,18 +1631,172 @@ CREATE INDEX ix_sdoh_assessments_assessor_id ON sdoh_assessments (assessor_id);
 CREATE INDEX ix_sdoh_assessments_case_id ON sdoh_assessments (case_id);
 
 
+CREATE INDEX "IX_sdoh_assessments_tenant_id" ON sdoh_assessments (tenant_id);
+
+
+CREATE INDEX "IX_security_audit_logs_tenant_id" ON security_audit_logs (tenant_id);
+
+
+CREATE INDEX "IX_smart_phrases_tenant_id" ON smart_phrases (tenant_id);
+
+
 CREATE INDEX ix_spiritual_assessments_encounter_id ON spiritual_assessments (encounter_id);
 
 
 CREATE INDEX ix_spiritual_assessments_patient_id ON spiritual_assessments (patient_id);
 
 
+CREATE INDEX "IX_spiritual_assessments_tenant_id" ON spiritual_assessments (tenant_id);
+
+
 CREATE INDEX ix_telemetry_logs_equipment_id_recorded_at ON telemetry_logs (equipment_id, recorded_at);
+
+
+CREATE INDEX "IX_telemetry_logs_tenant_id" ON telemetry_logs (tenant_id);
+
+
+CREATE INDEX "IX_tenant_configurations_tenant_id" ON tenant_configurations (tenant_id);
 
 
 CREATE INDEX ix_vital_signs_encounter_id ON vital_signs (encounter_id);
 
 
+CREATE INDEX "IX_vital_signs_tenant_id" ON vital_signs (tenant_id);
+
+
 CREATE INDEX ix_z_benefit_claims_patient_id ON z_benefit_claims (patient_id);
 
 
+CREATE INDEX "IX_z_benefit_claims_tenant_id" ON z_benefit_claims (tenant_id);
+
+
+
+-- ============================================================================
+-- Custom PostgreSQL Extensions, Functions, Views & Performance Indexes
+-- ============================================================================
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX IF NOT EXISTS ix_patients_search_trgm
+    ON patients USING gin (LOWER(last_name) gin_trgm_ops, LOWER(first_name) gin_trgm_ops, LOWER(mrn) gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS ix_patient_outreaches_search_trgm
+    ON patient_outreaches USING gin (LOWER(last_name) gin_trgm_ops, LOWER(first_name) gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS ix_patient_phones_number_trgm
+    ON patient_phones USING gin (LOWER(phone_number) gin_trgm_ops);
+
+CREATE INDEX IF NOT EXISTS ix_outbox_messages_unprocessed
+    ON outbox_messages (created_on_utc, next_attempt_utc)
+    WHERE processed_on_utc IS NULL AND retry_count < 5;
+
+CREATE INDEX IF NOT EXISTS ix_magic_tokens_token_hash
+    ON magic_tokens (token_hash)
+    WHERE is_used = false AND is_deleted = false;
+
+CREATE INDEX IF NOT EXISTS ix_notifications_user_unread
+    ON notifications (user_id, is_read, priority DESC, created_at DESC)
+    WHERE is_deleted = false;
+
+CREATE INDEX IF NOT EXISTS ix_appointments_tenant_practitioner_window
+    ON appointments (tenant_id, practitioner_id, scheduled_start, scheduled_end)
+    WHERE is_deleted = false;
+
+CREATE INDEX IF NOT EXISTS ix_appointments_tenant_start_status
+    ON appointments (tenant_id, scheduled_start DESC, status)
+    WHERE is_deleted = false;
+
+CREATE INDEX IF NOT EXISTS ix_appointments_patient_start
+    ON appointments (patient_id, status, scheduled_start DESC)
+    WHERE is_deleted = false;
+
+CREATE INDEX IF NOT EXISTS ix_esas_assessments_patient_assessed_desc
+    ON esas_assessments (patient_id, assessed_at DESC)
+    WHERE is_deleted = false;
+
+CREATE INDEX IF NOT EXISTS ix_clinical_encounters_tenant_patient_date_desc
+    ON clinical_encounters (tenant_id, patient_id, encounter_date DESC)
+    WHERE is_deleted = false;
+
+CREATE INDEX IF NOT EXISTS ix_vital_signs_encounter_recorded_desc
+    ON vital_signs (encounter_id, recorded_at DESC)
+    WHERE is_deleted = false;
+
+CREATE OR REPLACE FUNCTION get_practitioner_shift_summary(p_practitioner_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone)
+RETURNS TABLE (
+    TotalEncounters integer,
+    UnsignedNotes integer,
+    DiagnosesAdded integer,
+    PrescriptionsAuthorized integer,
+    VitalsLogged integer,
+    MedicationsAdministered integer,
+    TriageActionsResolved integer,
+    CasesTouched integer,
+    SdohAssessmentsCompleted integer,
+    BarriersMitigated integer,
+    SimulatedRvus double precision
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        (SELECT count(*)::int FROM "clinical_encounters" WHERE "practitioner_id" = p_practitioner_id AND "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "clinical_notes" WHERE "author_id" = p_practitioner_id AND "is_signed" = false AND "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "diagnoses" d JOIN "clinical_encounters" ce ON d."encounter_id" = ce."encounter_id" WHERE ce."practitioner_id" = p_practitioner_id AND d."created_at" >= p_start_date AND d."created_at" < p_end_date),
+        (SELECT count(*)::int FROM "prescriptions" WHERE "prescribed_by_id" = p_practitioner_id AND "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "vital_signs" v JOIN "clinical_encounters" ce ON v."encounter_id" = ce."encounter_id" WHERE ce."practitioner_id" = p_practitioner_id AND v."created_at" >= p_start_date AND v."created_at" < p_end_date),
+        0,
+        0,
+        (SELECT count(*)::int FROM "care_navigation_cases" WHERE "navigator_id" = p_practitioner_id AND "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "sdoh_assessments" WHERE "assessor_id" = p_practitioner_id AND "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "barrier_logs" b JOIN "care_navigation_cases" c ON b."case_id" = c."case_id" WHERE c."navigator_id" = p_practitioner_id AND b."created_at" >= p_start_date AND b."created_at" < p_end_date),
+        ((SELECT count(*)::int FROM "clinical_encounters" WHERE "practitioner_id" = p_practitioner_id AND "created_at" >= p_start_date AND "created_at" < p_end_date) * 2.5)::double precision;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION get_system_shift_summary(p_start_date timestamp with time zone, p_end_date timestamp with time zone)
+RETURNS TABLE (
+    TotalEncounters integer,
+    UnsignedNotes integer,
+    DiagnosesAdded integer,
+    PrescriptionsAuthorized integer,
+    VitalsLogged integer,
+    MedicationsAdministered integer,
+    TriageActionsResolved integer,
+    CasesTouched integer,
+    SdohAssessmentsCompleted integer,
+    BarriersMitigated integer,
+    SimulatedRvus double precision
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        (SELECT count(*)::int FROM "clinical_encounters" WHERE "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "clinical_notes" WHERE "is_signed" = false AND "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "diagnoses" WHERE "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "prescriptions" WHERE "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "vital_signs" WHERE "created_at" >= p_start_date AND "created_at" < p_end_date),
+        0,
+        0,
+        (SELECT count(*)::int FROM "care_navigation_cases" WHERE "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "sdoh_assessments" WHERE "created_at" >= p_start_date AND "created_at" < p_end_date),
+        (SELECT count(*)::int FROM "barrier_logs" WHERE "created_at" >= p_start_date AND "created_at" < p_end_date),
+        ((SELECT count(*)::int FROM "clinical_encounters" WHERE "created_at" >= p_start_date AND "created_at" < p_end_date) * 2.5)::double precision;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE MATERIALIZED VIEW vw_system_daily_summary AS
+SELECT
+    CURRENT_DATE as ReportDate,
+    (SELECT count(*) FROM "clinical_encounters") as TotalEncounters,
+    (SELECT count(*) FROM "clinical_notes" WHERE "is_signed" = false) as UnsignedNotes,
+    (SELECT count(*) FROM "diagnoses") as DiagnosesAdded,
+    (SELECT count(*) FROM "prescriptions") as PrescriptionsAuthorized,
+    (SELECT count(*) FROM "vital_signs") as VitalsLogged,
+    0 as MedicationsAdministered,
+    0 as TriageActionsResolved,
+    (SELECT count(*) FROM "care_navigation_cases") as CasesTouched,
+    (SELECT count(*) FROM "sdoh_assessments") as SdohAssessmentsCompleted,
+    (SELECT count(*) FROM "barrier_logs") as BarriersMitigated,
+    ((SELECT count(*) FROM "clinical_encounters") * 2.5)::double precision as SimulatedRvus;
+
+CREATE UNIQUE INDEX idx_vw_system_daily_summary ON vw_system_daily_summary (ReportDate);

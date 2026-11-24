@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { formatInTimeZone } from "date-fns-tz";
@@ -195,7 +195,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [tenantLoading]);
 
-  const updatePreferences = (newPrefs: Partial<UserPreferences>) => {
+  const updatePreferences = useCallback((newPrefs: Partial<UserPreferences>) => {
     setPreferences((prev) => {
       const updated = { ...prev, ...newPrefs };
       try {
@@ -206,9 +206,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       } catch (e) {}
       return updated;
     });
-  };
+  }, []);
 
-  const updateTenantConfig = async (newConfig: Partial<TenantSettings>) => {
+  const updateTenantConfig = useCallback(async (newConfig: Partial<TenantSettings>) => {
     if (!tenantData?.tenantConfigurations?.[0]) return;
 
     const tenantId = tenantData.tenantConfigurations[0].tenantId;
@@ -250,14 +250,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       console.error("Failed to update tenant configuration:", error);
       throw error;
     }
-  };
+  }, [tenantData, tenantConfig, mutateTenantConfig]);
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = useCallback((amount: number) => {
     const symbol = currencySymbols[tenantConfig.currency] || "$";
     return `${symbol}${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
+  }, [tenantConfig.currency]);
 
-  const formatDate = (date: string | Date) => {
+  const formatDate = useCallback((date: string | Date) => {
     if (!date) return "--";
     const rawTz = tenantConfig.timezone || "UTC";
     const normalizedTz = rawTz.includes("(")
@@ -269,23 +269,35 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       return new Date(date).toLocaleDateString();
     }
-  };
+  }, [tenantConfig.timezone]);
 
   const currencySymbol = currencySymbols[tenantConfig.currency] || "$";
 
+  const contextValue = useMemo(
+    () => ({
+      preferences,
+      tenantConfig,
+      updatePreferences,
+      updateTenantConfig,
+      formatCurrency,
+      formatDate,
+      currencySymbol,
+      isLoaded,
+    }),
+    [
+      preferences,
+      tenantConfig,
+      updatePreferences,
+      updateTenantConfig,
+      formatCurrency,
+      formatDate,
+      currencySymbol,
+      isLoaded,
+    ],
+  );
+
   return (
-    <SettingsContext.Provider
-      value={{
-        preferences,
-        tenantConfig,
-        updatePreferences,
-        updateTenantConfig,
-        formatCurrency,
-        formatDate,
-        currencySymbol,
-        isLoaded,
-      }}
-    >
+    <SettingsContext.Provider value={contextValue}>
       {children}
     </SettingsContext.Provider>
   );

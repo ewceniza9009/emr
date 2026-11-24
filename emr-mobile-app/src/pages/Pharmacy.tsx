@@ -51,6 +51,7 @@ const GET_MY_PRESCRIPTIONS = gql`
 const GET_MY_PROFILE = gql`
   query GetMyProfile($patientId: UUID!) {
     myMobileProfile(patientId: $patientId) {
+      patientId
       primaryCareNavigatorName
     }
   }
@@ -113,20 +114,31 @@ const Pharmacy: React.FC = () => {
     };
   }, []);
 
-  // Sync offline queued pharmacy messages when online
+  // Sync offline queued pharmacy messages when online (retain failed items)
+  const isSyncingPharmacyRef = React.useRef(false);
   useEffect(() => {
-    if (isOnline && offlineMessageQueue.length > 0) {
+    if (isOnline && offlineMessageQueue.length > 0 && !isSyncingPharmacyRef.current) {
       const syncMessages = async () => {
-        console.log(`Syncing ${offlineMessageQueue.length} offline pharmacy logs...`);
-        for (const msg of offlineMessageQueue) {
-          try {
-            await sendMessage({ variables: msg });
-          } catch (e) {
-            console.error("Failed to sync pharmacy log message", e);
+        isSyncingPharmacyRef.current = true;
+        try {
+          const failed: any[] = [];
+          for (const msg of offlineMessageQueue) {
+            try {
+              await sendMessage({ variables: msg });
+            } catch (e) {
+              console.error("Failed to sync pharmacy log message", e);
+              failed.push(msg);
+            }
           }
+          setOfflineMessageQueue(failed);
+          if (failed.length === 0) {
+            localStorage.removeItem('halkyone-offline-pharmacy-messages');
+          } else {
+            localStorage.setItem('halkyone-offline-pharmacy-messages', JSON.stringify(failed));
+          }
+        } finally {
+          isSyncingPharmacyRef.current = false;
         }
-        setOfflineMessageQueue([]);
-        localStorage.removeItem('halkyone-offline-pharmacy-messages');
       };
       syncMessages();
     }
@@ -164,6 +176,7 @@ const Pharmacy: React.FC = () => {
   const [refillStep, setRefillStep] = useState<number>(0);
   const [refillLogs, setRefillLogs] = useState<string[]>([]);
   const [refillCompleted, setRefillCompleted] = useState<boolean>(false);
+  const [refillQueuedOffline, setRefillQueuedOffline] = useState<boolean>(false);
 
   // 4. Emoji Burst Particles State
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -213,10 +226,9 @@ const Pharmacy: React.FC = () => {
     localStorage.setItem('halkyone-taken-meds', JSON.stringify(updated));
 
     if (!currentStatus) {
-      triggerEmojiBurst();
-      setToastMessage(`🎉 Dose logged! Adherence ring updated for ${name}.`);
+      setToastMessage(`Dose logged for ${name}.`);
     } else {
-      setToastMessage(`🔄 Dose intake unchecked for ${name}.`);
+      setToastMessage(`Dose intake unchecked for ${name}.`);
     }
     setShowToast(true);
 
@@ -253,25 +265,24 @@ const Pharmacy: React.FC = () => {
     setActiveRefillMed(med);
     setRefillStep(1);
     setRefillCompleted(false);
-    setRefillLogs(["📡 Core connection initialized via Patient SignalR Portal..."]);
+    setRefillQueuedOffline(false);
+    setRefillLogs(["Connecting to Care Team portal..."]);
 
     // Update history to triage status
     const updatedHistory = { ...refillHistory, [med.prescriptionId]: 'triage' as const };
     setRefillHistory(updatedHistory);
     localStorage.setItem('halkyone-refill-history', JSON.stringify(updatedHistory));
 
-    // Phase 1 -> Dispatch immediately
     setRefillStep(2);
     setRefillLogs(prev => [
       ...prev,
-      "📤 MediatR command: [CreatePrescriptionRefillCommand] dispatched successfully.",
-      `👥 Payload bound to Care Navigator: [${navigatorName}]`
+      `Routing refill request to Care Navigator (${navigatorName})...`
     ]);
 
     const msgPayload = {
       patientId: user?.patientId || "00000000-0000-0000-0000-000000000000",
       careThreadId: "00000000-0000-0000-0000-000000000000",
-      content: `🏥 [REFILL REQUEST] I am requesting a refill for my active prescription: ${med.medication?.name || 'Medication'} (${med.dose || 'Standard'}). Dose: ${med.dose || 'N/A'}. Frequency: ${med.frequency || 'N/A'}.`
+      content: `[REFILL REQUEST] Requesting refill for active prescription: ${med.medication?.name || 'Medication'} (${med.dose || 'Standard'}). Dose: ${med.dose || 'N/A'}. Frequency: ${med.frequency || 'N/A'}.`
     };
 
     if (!isOnline) {
@@ -282,34 +293,24 @@ const Pharmacy: React.FC = () => {
       setRefillStep(4);
       setRefillLogs(prev => [
         ...prev,
-        "📤 Offline Mode: Refill request cached locally.",
-        `👥 Payload bound to Care Navigator: [${navigatorName}]`,
-        `✅ Local clearance logged. Will sync when online.`,
-        "👨‍⚕️ Requesting Digital Signature verification for: Dr. Sarah Ross, MD",
-        "✍️ Cryptographic hash generated: [SHA256-ERX-091A4F]. Signature verified.",
-        "📦 Fulfillment pipeline set: [LOCAL CACHE QUEUED]."
+        "Device offline: refill request saved locally.",
+        "Will transmit automatically once connectivity returns."
       ]);
+      setRefillQueuedOffline(true);
       setRefillCompleted(true);
-      
-      const readyHistory = { ...refillHistory, [med.prescriptionId]: 'ready' as const };
-      setRefillHistory(readyHistory);
-      localStorage.setItem('halkyone-refill-history', JSON.stringify(readyHistory));
     } else {
       try {
         await sendMessage({
           variables: msgPayload
         });
-        console.log("Refill request logged dynamically on clinical database care thread!");
         
         setRefillStep(4);
         setRefillLogs(prev => [
           ...prev,
-          `✅ Care Triage clearance logged and routed.`,
-          "👨‍⚕️ Requesting Digital Signature verification for: Dr. Sarah Ross, MD",
-          "✍️ Cryptographic hash generated: [SHA256-ERX-091A4F]. Signature verified.",
-          "🚚 Dispensing payload directed to: CVS Pharmacy #4820 (Main Street).",
-          "📦 Fulfillment pipeline set: [PENDING CARE TEAM SIGN-OFF]."
+          "Care Triage request received and routed for physician review.",
+          "Pharmacy fulfillment pending Care Team sign-off."
         ]);
+        setRefillQueuedOffline(false);
         setRefillCompleted(true);
         
         const readyHistory = { ...refillHistory, [med.prescriptionId]: 'ready' as const };
@@ -317,7 +318,6 @@ const Pharmacy: React.FC = () => {
         localStorage.setItem('halkyone-refill-history', JSON.stringify(readyHistory));
       } catch (err: any) {
         console.error("Failed to persist refill log message:", err);
-        // Queue it offline
         const updatedQueue = [...offlineMessageQueue, msgPayload];
         setOfflineMessageQueue(updatedQueue);
         localStorage.setItem('halkyone-offline-pharmacy-messages', JSON.stringify(updatedQueue));
@@ -325,17 +325,11 @@ const Pharmacy: React.FC = () => {
         setRefillStep(4);
         setRefillLogs(prev => [
           ...prev,
-          "📤 Network Error: Refill request cached locally in sync queue.",
-          `✅ Local clearance logged. Will sync when online.`,
-          "👨‍⚕️ Requesting Digital Signature verification for: Dr. Sarah Ross, MD",
-          "✍️ Cryptographic hash generated: [SHA256-ERX-091A4F]. Signature verified.",
-          "📦 Fulfillment pipeline set: [LOCAL CACHE QUEUED]."
+          "Network unavailable: refill request saved to offline sync queue.",
+          "Will transmit automatically once connectivity returns."
         ]);
+        setRefillQueuedOffline(true);
         setRefillCompleted(true);
-
-        const readyHistory = { ...refillHistory, [med.prescriptionId]: 'ready' as const };
-        setRefillHistory(readyHistory);
-        localStorage.setItem('halkyone-refill-history', JSON.stringify(readyHistory));
       }
     }
   };
@@ -443,15 +437,15 @@ const Pharmacy: React.FC = () => {
 
         {/* Card Body - Content Stack (Aligned perfectly with left edge!) */}
         <div className="space-y-1 pl-1">
-          <span className="text-[11px] text-teal-650 dark:text-teal-400 font-extrabold block leading-none">
+          <span className="text-[11px] text-teal-600 dark:text-teal-400 font-extrabold block leading-none">
             {med.medication?.strength || ''}
           </span>
-          <div className="text-xs text-slate-500 dark:text-slate-350 font-bold pt-0.5 flex items-baseline gap-1">
+          <div className="text-xs text-slate-500 dark:text-slate-300 font-bold pt-0.5 flex items-baseline gap-1">
             Dosage: <span className="font-mono text-slate-900 dark:text-white font-black">{med.dose}</span>
           </div>
           {med.indications && (
-            <p className="text-[10px] text-slate-400 dark:text-slate-450 font-semibold leading-relaxed">
-              Indication: <span className="text-slate-650 dark:text-slate-300 italic font-bold">{med.indications}</span>
+            <p className="text-[10px] text-slate-400 dark:text-slate-400 font-semibold leading-relaxed">
+              Indication: <span className="text-slate-600 dark:text-slate-300 italic font-bold">{med.indications}</span>
             </p>
           )}
         </div>
@@ -577,7 +571,7 @@ const Pharmacy: React.FC = () => {
 
       <IonContent className="ion-padding relative">
         {!isOnline && (
-          <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-550 dark:text-amber-400 text-[11px] leading-relaxed flex items-center justify-between gap-2 animate-pulse">
+          <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 dark:text-amber-400 text-[11px] leading-relaxed flex items-center justify-between gap-2 animate-pulse">
             <div className="flex items-center gap-2">
               <IonIcon icon={alertCircle} className="w-4 h-4 flex-shrink-0" />
               <span className="font-extrabold uppercase tracking-wider">Connection Offline (Cached Mode Active)</span>
@@ -741,7 +735,7 @@ const Pharmacy: React.FC = () => {
           {/* Smart Notifications Advisory */}
           <div className="p-4 rounded-2xl bg-slate-100/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-900/60 text-slate-500 space-y-1.5">
             <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest block">🔒 Medication Privacy Assurance</span>
-            <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-450 font-semibold">
+            <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400 font-semibold">
               Local notifications display generic medication alerts (e.g. "Time for your Scheduled Care Dose") to preserve patient health status privacy in public environments, matching clinical best practices.
             </p>
           </div>
@@ -770,7 +764,7 @@ const Pharmacy: React.FC = () => {
             {refillCompleted && (
               <button 
                 onClick={closePipelineModal}
-                className="p-2 rounded-full bg-slate-850 border border-slate-700 text-slate-400 hover:text-white transition-all cursor-pointer"
+                className="p-2 rounded-full bg-slate-900 border border-slate-700 text-slate-400 hover:text-white transition-all cursor-pointer"
               >
                 <IonIcon icon={close} className="w-5 h-5" />
               </button>
@@ -894,7 +888,7 @@ const Pharmacy: React.FC = () => {
           <div className="w-full max-w-sm mx-auto mb-6">
             {!refillCompleted ? (
               /* High Fidelity Triage Terminal Logs */
-              <div className="w-full h-32 rounded-2xl bg-[#090b11] border border-slate-850 p-4 font-mono text-[9px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar shadow-inner">
+              <div className="w-full h-32 rounded-2xl bg-[#090b11] border border-slate-900 p-4 font-mono text-[9px] text-slate-400 overflow-y-auto space-y-1.5 custom-scrollbar shadow-inner">
                 {refillLogs.map((log, lIdx) => (
                   <div key={lIdx} className="flex gap-1.5 leading-relaxed font-mono">
                     <span className="text-teal-500 select-none font-mono">&gt;</span>
@@ -908,6 +902,30 @@ const Pharmacy: React.FC = () => {
                   <span className="select-none font-mono">&gt;</span>
                   <span>Executing pipeline step...</span>
                 </div>
+              </div>
+            ) : refillQueuedOffline ? (
+              <div className="w-full rounded-3xl bg-white text-slate-900 border border-amber-300 overflow-hidden shadow-2xl">
+                <div className="bg-amber-500 px-5 py-4 text-white flex justify-between items-center">
+                  <div>
+                    <span className="text-[11px] uppercase font-bold tracking-wider text-amber-50 block">Offline Sync Queue</span>
+                    <h4 className="text-sm font-bold leading-none mt-1">Refill Saved Offline</h4>
+                  </div>
+                  <IonIcon icon={storefront} className="w-7 h-7 text-white" />
+                </div>
+                <div className="p-5 space-y-2">
+                  <p className="text-xs font-semibold text-slate-800">
+                    Your refill request for <span className="font-bold">{activeRefillMed.medication?.name}</span> is queued on this device.
+                  </p>
+                  <p className="text-xs text-slate-600">
+                    It has not yet been transmitted to the pharmacy. As soon as your connection returns, it will be sent to {navigatorName} for verification.
+                  </p>
+                </div>
+                <button
+                  onClick={closePipelineModal}
+                  className="w-full bg-slate-900 text-white font-bold text-xs py-3.5 hover:bg-slate-800 active:scale-95 transition-colors text-center border-t border-slate-200 cursor-pointer min-h-11"
+                >
+                  Close
+                </button>
               </div>
             ) : (
               /* Real-time High Fidelity Barcoded Pick-up Receipt Ticket */
@@ -925,22 +943,22 @@ const Pharmacy: React.FC = () => {
                 <div className="p-5 space-y-3.5">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-[8px] uppercase font-black text-slate-450 tracking-wider block">Authorized Medication</span>
+                      <span className="text-[8px] uppercase font-black text-slate-400 tracking-wider block">Authorized Medication</span>
                       <span className="text-[12px] font-black text-slate-800 block truncate">{activeRefillMed.medication?.name}</span>
                     </div>
                     <div>
-                      <span className="text-[8px] uppercase font-black text-slate-450 tracking-wider block">Fulfillment Site</span>
+                      <span className="text-[8px] uppercase font-black text-slate-400 tracking-wider block">Fulfillment Site</span>
                       <span className="text-[12px] font-black text-slate-800 block truncate">CVS Pharmacy #4820</span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 border-t border-dashed border-slate-200 pt-3">
                     <div>
-                      <span className="text-[8px] uppercase font-black text-slate-450 tracking-wider block">Pickup ID Code</span>
+                      <span className="text-[8px] uppercase font-black text-slate-400 tracking-wider block">Pickup ID Code</span>
                       <span className="text-[13px] font-mono font-black text-teal-600 block">RX-999-51A4</span>
                     </div>
                     <div>
-                      <span className="text-[8px] uppercase font-black text-slate-450 tracking-wider block">Fulfillment Est.</span>
+                      <span className="text-[8px] uppercase font-black text-slate-400 tracking-wider block">Fulfillment Est.</span>
                       <span className="text-[13px] font-black text-emerald-600 block">Ready in 2 Hours</span>
                     </div>
                   </div>

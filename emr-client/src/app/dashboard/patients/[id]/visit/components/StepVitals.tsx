@@ -90,7 +90,7 @@ export function StepVitals({ state }: { state: any }) {
             <div key={v.id} className={`space-y-3 p-5 rounded-2xl bg-[var(--card-bg,white)] border transition-all group ${
               hasError 
                 ? 'border-red-500/30 bg-red-500/[0.01]' 
-                : 'border-[var(--border-color,rgba(0,0,0,0.08))] shadow-sm hover:shadow-md'
+                : 'border-[var(--card-border)] shadow-sm hover:shadow-md'
             }`}>
               <label className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 transition-colors ${
                 hasError ? 'text-red-500' : 'text-[var(--text-muted)] group-hover:text-[var(--primary)]'
@@ -107,17 +107,17 @@ export function StepVitals({ state }: { state: any }) {
                     onChange={e => setVitals({ ...vitals, sbp: e.target.value })}
                     placeholder="120"
                     className={`w-full bg-[var(--background)] border ${
-                      !isSbpValid ? 'border-red-500/50 focus:border-red-500' : 'border-[var(--border-color,rgba(0,0,0,0.05))] focus:border-[var(--primary)]/50'
-                    } rounded-xl py-3 px-4 text-xl font-bold text-[var(--foreground)] outline-none transition-all placeholder:text-[var(--text-muted)]/20`}
+                      !isSbpValid ? 'border-red-500/50 focus:border-red-500' : 'border-[var(--card-border)] focus:border-[var(--primary)]/50'
+                    } rounded-xl py-3 px-4 text-xl font-bold tabular-nums text-[var(--foreground)] outline-none transition-all placeholder:text-[var(--text-muted)]/30`}
                   />
-                  <span className="text-[var(--text-muted)]/20 text-xl font-black">/</span>
+                  <span className="text-[var(--text-muted)]/30 text-xl font-black">/</span>
                   <input
                     value={vitals.dbp}
                     onChange={e => setVitals({ ...vitals, dbp: e.target.value })}
                     placeholder="80"
                     className={`w-full bg-[var(--background)] border ${
-                      !isDbpValid ? 'border-red-500/50 focus:border-red-500' : 'border-[var(--border-color,rgba(0,0,0,0.05))] focus:border-[var(--primary)]/50'
-                    } rounded-xl py-3 px-4 text-xl font-bold text-[var(--foreground)] outline-none transition-all placeholder:text-[var(--text-muted)]/20`}
+                      !isDbpValid ? 'border-red-500/50 focus:border-red-500' : 'border-[var(--card-border)] focus:border-[var(--primary)]/50'
+                    } rounded-xl py-3 px-4 text-xl font-bold tabular-nums text-[var(--foreground)] outline-none transition-all placeholder:text-[var(--text-muted)]/30`}
                   />
                 </div>
               ) : (
@@ -132,8 +132,8 @@ export function StepVitals({ state }: { state: any }) {
                        (v.id === 'rr' && !isRrValid) ||
                        (v.id === 'spo2' && !isSpo2Valid))
                         ? 'border-red-500/50 focus:border-red-500'
-                        : 'border-[var(--border-color,rgba(0,0,0,0.05))] focus:border-[var(--primary)]/50'
-                    } rounded-xl py-3 px-4 text-xl font-bold text-[var(--foreground)] outline-none transition-all placeholder:text-[var(--text-muted)]/20`}
+                        : 'border-[var(--card-border)] focus:border-[var(--primary)]/50'
+                    } rounded-xl py-3 px-4 text-xl font-bold tabular-nums text-[var(--foreground)] outline-none transition-all placeholder:text-[var(--text-muted)]/30`}
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-muted)] font-black uppercase tracking-widest">{v.unit}</span>
                 </div>
@@ -142,8 +142,8 @@ export function StepVitals({ state }: { state: any }) {
           );
         })}
       </div>
-      <div className="pt-8 flex gap-4 border-t border-[var(--border-color,rgba(0,0,0,0.05))]">
-        <button onClick={() => setStep(prevStep.id)} className="flex-1 py-3.5 rounded-xl bg-[var(--background)] border border-[var(--border-color,rgba(0,0,0,0.1))] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:text-[var(--foreground)] hover:bg-[var(--background)]/80 transition-all">Back</button>
+      <div className="pt-8 flex gap-4 border-t border-[var(--card-border)]">
+        <button onClick={() => setStep(prevStep.id)} className="flex-1 py-3.5 rounded-xl bg-[var(--background)] border border-[var(--card-border)] text-[var(--text-muted)] font-black text-[10px] uppercase tracking-widest hover:text-[var(--foreground)] hover:bg-[var(--background)]/80 transition-all">Back</button>
         <button
           onClick={() => setStep(nextStep.id)}
           disabled={!isValid}

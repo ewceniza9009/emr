@@ -32,11 +32,19 @@ public class PractitionerConfiguration : IEntityTypeConfiguration<Practitioner>
             .HasColumnName("prc_license_number")
             .HasMaxLength(50);
 
-        builder.HasIndex(p => p.PrcLicenseNumber).IsUnique();
+        builder
+            .HasIndex(p => new { p.TenantId, p.PrcLicenseNumber })
+            .HasDatabaseName("ix_practitioners_tenant_prc_license_number")
+            .HasFilter("prc_license_number IS NOT NULL AND is_deleted = false")
+            .IsUnique();
 
         builder.Property(p => p.NpiNumber).HasColumnName("npi_number").HasMaxLength(50);
 
-        builder.HasIndex(p => p.NpiNumber).IsUnique();
+        builder
+            .HasIndex(p => new { p.TenantId, p.NpiNumber })
+            .HasDatabaseName("ix_practitioners_tenant_npi_number")
+            .HasFilter("npi_number IS NOT NULL AND is_deleted = false")
+            .IsUnique();
 
         builder.Property(p => p.IsActive).HasColumnName("is_active").HasDefaultValue(true);
 

@@ -527,14 +527,15 @@ namespace Infrastructure.Migrations
                     b.HasIndex("EncounterId")
                         .HasDatabaseName("ix_billing_invoices_encounter_id");
 
-                    b.HasIndex("InvoiceNumber")
-                        .IsUnique()
-                        .HasDatabaseName("ix_billing_invoices_invoice_number");
-
                     b.HasIndex("PatientId")
                         .HasDatabaseName("ix_billing_invoices_patient_id");
 
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "InvoiceNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_billing_invoices_tenant_invoice_number")
+                        .HasFilter("is_deleted = false");
 
                     b.ToTable("billing_invoices", (string)null);
                 });
@@ -1289,11 +1290,12 @@ namespace Infrastructure.Migrations
                     b.HasKey("EquipmentId")
                         .HasName("pk_durable_medical_equipment");
 
-                    b.HasIndex("SerialNumber")
-                        .IsUnique()
-                        .HasDatabaseName("ix_durable_medical_equipment_serial_number");
-
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "SerialNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_dme_tenant_serial_number")
+                        .HasFilter("is_deleted = false");
 
                     b.ToTable("durable_medical_equipment", (string)null);
                 });
@@ -2477,15 +2479,17 @@ namespace Infrastructure.Migrations
                     b.HasIndex("HealthPlanId")
                         .HasDatabaseName("ix_patients_health_plan_id");
 
-                    b.HasIndex("Mrn")
-                        .IsUnique()
-                        .HasDatabaseName("ix_patients_mrn");
-
-                    b.HasIndex("PhilhealthNumber")
-                        .IsUnique()
-                        .HasDatabaseName("ix_patients_philhealth_number");
-
                     b.HasIndex("TenantId");
+
+                    b.HasIndex("TenantId", "Mrn")
+                        .IsUnique()
+                        .HasDatabaseName("ix_patients_tenant_mrn")
+                        .HasFilter("is_deleted = false");
+
+                    b.HasIndex("TenantId", "PhilhealthNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_patients_tenant_philhealth_number")
+                        .HasFilter("philhealth_number IS NOT NULL AND is_deleted = false");
 
                     b.ToTable("patients", (string)null);
                 });
@@ -3122,19 +3126,21 @@ namespace Infrastructure.Migrations
                     b.HasKey("PractitionerId")
                         .HasName("pk_practitioners");
 
-                    b.HasIndex("NpiNumber")
-                        .IsUnique()
-                        .HasDatabaseName("ix_practitioners_npi_number");
-
-                    b.HasIndex("PrcLicenseNumber")
-                        .IsUnique()
-                        .HasDatabaseName("ix_practitioners_prc_license_number");
-
                     b.HasIndex("TenantId");
 
                     b.HasIndex("UserId")
                         .IsUnique()
                         .HasDatabaseName("ix_practitioners_user_id");
+
+                    b.HasIndex("TenantId", "NpiNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_practitioners_tenant_npi_number")
+                        .HasFilter("npi_number IS NOT NULL AND is_deleted = false");
+
+                    b.HasIndex("TenantId", "PrcLicenseNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_practitioners_tenant_prc_license_number")
+                        .HasFilter("prc_license_number IS NOT NULL AND is_deleted = false");
 
                     b.ToTable("practitioners", (string)null);
                 });

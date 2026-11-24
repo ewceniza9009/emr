@@ -48,6 +48,7 @@ public class MobilePortalQuery
     )
     {
         return await context.CareThreads
+            .AsNoTracking()
             .Include(t => t.Messages)
             .Where(t => t.PatientId == patientId && t.IsActive)
             .ToListAsync(cancellationToken);
@@ -61,6 +62,7 @@ public class MobilePortalQuery
     )
     {
         return await context.VitalSigns
+            .AsNoTracking()
             .IgnoreQueryFilters()
             .Include(v => v.Encounter)
             .Where(v => v.Encounter.PatientId == patientId)
@@ -77,6 +79,7 @@ public class MobilePortalQuery
     )
     {
         return await context.ClinicalEncounters
+            .AsNoTracking()
             .IgnoreQueryFilters()
             .Include(e => e.Practitioner)
             .Where(e => e.PatientId == patientId)
@@ -92,6 +95,7 @@ public class MobilePortalQuery
     )
     {
         return await context.EsasAssessments
+            .AsNoTracking()
             .IgnoreQueryFilters()
             .Where(e => e.PatientId == patientId)
             .OrderByDescending(e => e.AssessedAt)
@@ -107,6 +111,7 @@ public class MobilePortalQuery
     )
     {
         return await context.Questionnaires
+            .AsNoTracking()
             .IgnoreQueryFilters()
             .Include(q => q.Questions)
             .FirstOrDefaultAsync(q => q.AssessmentType == type, ct);

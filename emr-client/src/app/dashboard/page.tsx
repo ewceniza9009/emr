@@ -34,12 +34,17 @@ import { useSession } from "next-auth/react";
 import { useToast } from "@/components/ToastProvider";
 import { useSettings } from "@/lib/SettingsContext";
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
-import BookingDrawer from "@/components/BookingDrawer";
-import AddPatientDrawer from "@/components/AddPatientDrawer";
-import { ShiftReportModal } from "@/components/ShiftReportModal";
 import { PermissionGate } from "@/components/PermissionGate";
+
+const BookingDrawer = dynamic(() => import("@/components/BookingDrawer"), { ssr: false });
+const AddPatientDrawer = dynamic(() => import("@/components/AddPatientDrawer"), { ssr: false });
+const ShiftReportModal = dynamic(
+  () => import("@/components/ShiftReportModal").then((m) => m.ShiftReportModal),
+  { ssr: false }
+);
 import {
   AreaChart,
   Area,
@@ -138,12 +143,13 @@ export default function Dashboard() {
     else if (hour >= 17) setGreeting("Good evening");
   }, []);
 
+  const criticalAlertsCount = data?.dashboardStats?.criticalAlerts ?? 0;
   const stats = [
-    { label: "Patients", value: data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, trend: "+12.4%", desc: "Active Caseload", action: "ADD_PATIENT", color: "text-blue-500" },
-    { label: "Encounters", value: data?.dashboardStats?.newEncounters.toString(), icon: Target, trend: "+5.1%", desc: "Past 24H", action: "BOOK_APPOINTMENT", color: "text-amber-500" },
-    { label: "Reviews", value: data?.dashboardStats?.pendingReviews.toString(), icon: Clock, trend: "-2.3%", desc: "Avg Latency", href: "/dashboard/triage", color: "text-purple-500" },
-    { label: "Alerts", value: data?.dashboardStats?.criticalAlerts.toString(), icon: AlertTriangle, trend: "Stable", desc: "System Health", href: "/dashboard/triage#alerts", color: "text-rose-500" },
-    { label: "Equipment", value: data?.dashboardStats?.deployedEquipmentCount.toString(), icon: Truck, trend: "+3", desc: "Logistics", href: "/dashboard/telemetry", color: "text-emerald-500" },
+    { label: "Patients", value: data?.dashboardStats?.activePatients.toLocaleString(), icon: Users, trend: "+12.4%", desc: "Active Caseload", action: "ADD_PATIENT", color: "text-teal-500" },
+    { label: "Encounters", value: data?.dashboardStats?.newEncounters.toString(), icon: Target, trend: "+5.1%", desc: "Past 24H", action: "BOOK_APPOINTMENT", color: "text-teal-500" },
+    { label: "Reviews", value: data?.dashboardStats?.pendingReviews.toString(), icon: Clock, trend: "-2.3%", desc: "Avg Latency", href: "/dashboard/triage", color: "text-slate-400" },
+    { label: "Alerts", value: criticalAlertsCount.toString(), icon: AlertTriangle, trend: criticalAlertsCount > 0 ? "Needs Review" : "Stable", desc: "System Health", href: "/dashboard/triage#alerts", color: criticalAlertsCount > 0 ? "text-rose-500" : "text-emerald-500" },
+    { label: "Equipment", value: data?.dashboardStats?.deployedEquipmentCount.toString(), icon: Truck, trend: "+3", desc: "Logistics", href: "/dashboard/telemetry", color: "text-teal-500" },
   ];
 
   return (
@@ -153,9 +159,15 @@ export default function Dashboard() {
       variants={containerVariants}
       className="w-full space-y-4 pb-8"
     >
-      <BookingDrawer open={isBookingOpen} onClose={() => setIsBookingOpen(false)} onBooked={() => { }} />
-      <AddPatientDrawer open={isAddPatientOpen} onClose={() => setIsAddPatientOpen(false)} onSuccess={() => { }} />
-      <ShiftReportModal open={isReportOpen} onClose={() => setIsReportOpen(false)} isAdminView={reportAsAdmin} />
+      {isBookingOpen && (
+        <BookingDrawer open={isBookingOpen} onClose={() => setIsBookingOpen(false)} onBooked={() => { }} />
+      )}
+      {isAddPatientOpen && (
+        <AddPatientDrawer open={isAddPatientOpen} onClose={() => setIsAddPatientOpen(false)} onSuccess={() => { }} />
+      )}
+      {isReportOpen && (
+        <ShiftReportModal open={isReportOpen} onClose={() => setIsReportOpen(false)} isAdminView={reportAsAdmin} />
+      )}
       {/* Premium Hero Header - Compact */}
       <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2rem] bg-slate-900 border border-white/10 p-6 sm:p-8 shadow-xl">
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-teal-500/20 to-blue-600/20 blur-[100px] pointer-events-none" />
@@ -326,45 +338,51 @@ export default function Dashboard() {
                       </div>
                     </div>
                   ))
+                ) : (data?.triageWorklist?.items || []).filter((item: any) => !!item?.patientId).length === 0 ? (
+                  <p className="text-xs text-[var(--text-muted)] py-6 text-center">
+                    No recent clinical triage activity recorded.
+                  </p>
                 ) : (
-                  (data?.triageWorklist?.items || []).slice(0, 4).map((item: any, i: number) => {
-                    const isReal = !!item.patientId;
-                    const patientId = isReal ? item.patientId : "sample-id";
-                    const mrn = isReal ? item.mrn : `PRN-${48291 + i}`;
-                    const name = isReal ? `${item.firstName} ${item.lastName}` : "Patient Assessment";
-                    const isAlert = isReal ? item.isAlert : i === 0;
+                  (data?.triageWorklist?.items || [])
+                    .filter((item: any) => !!item?.patientId)
+                    .slice(0, 4)
+                    .map((item: any) => {
+                      const patientId = item.patientId;
+                      const mrn = item.mrn || "NO MRN";
+                      const name = `${item.firstName} ${item.lastName}`.trim();
+                      const isAlert = !!item.isAlert;
 
-                    return (
-                      <div
-                        key={isReal ? item.patientId : i}
-                        onClick={() => router.push(`/dashboard/patients/${patientId}`)}
-                        className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20 transition-all cursor-pointer active:scale-[0.99] group"
-                      >
-                        <div className={`w-10 h-10 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0 ${isAlert ? 'border-rose-500/30 bg-rose-500/5' : ''}`}>
-                          <Zap className={`${isAlert ? 'text-rose-500 animate-pulse' : 'text-[var(--primary)]'} w-5 h-5`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors truncate">
-                            {isReal ? `Assessment: ${name}` : `Patient Assessment: ${mrn}`}
-                          </p>
-                          <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-medium truncate">
-                            {isReal ? `MRN: ${mrn} · Verified Registry` : "Clinical Review · Synchronized 2h ago"}
-                          </p>
-                        </div>
-                        <div className="text-right hidden sm:block">
-                          <div className="flex items-center justify-end gap-1 mb-0.5">
-                            <Shield className={`w-2.5 h-2.5 ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`} />
-                            <span className={`text-[8px] font-bold uppercase tracking-widest ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`}>
-                              {isAlert ? 'Urgent' : 'Validated'}
-                            </span>
+                      return (
+                        <div
+                          key={patientId}
+                          onClick={() => router.push(`/dashboard/patients/${patientId}`)}
+                          className="flex items-center gap-3 p-3 rounded-xl bg-[var(--input-bg)] border border-[var(--card-border)] hover:bg-[var(--primary)]/5 hover:border-[var(--primary)]/20 transition-colors cursor-pointer active:scale-[0.99] group"
+                        >
+                          <div className={`w-10 h-10 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] flex items-center justify-center shrink-0 ${isAlert ? 'border-rose-500/30 bg-rose-500/5' : ''}`}>
+                            <Zap className={`${isAlert ? 'text-rose-500 animate-pulse' : 'text-[var(--primary)]'} w-5 h-5`} />
                           </div>
-                          <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
-                            System Admin
-                          </p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors truncate">
+                              Assessment: {name}
+                            </p>
+                            <p className="text-[9px] text-[var(--text-muted)] mt-0.5 font-medium truncate">
+                              MRN: {mrn} · Verified Registry
+                            </p>
+                          </div>
+                          <div className="text-right hidden sm:block">
+                            <div className="flex items-center justify-end gap-1 mb-0.5">
+                              <Shield className={`w-2.5 h-2.5 ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`} />
+                              <span className={`text-[8px] font-bold uppercase tracking-widest ${isAlert ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                {isAlert ? 'Urgent' : 'Validated'}
+                              </span>
+                            </div>
+                            <p className="text-[8px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
+                              Clinical Queue
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })
+                      );
+                    })
                 )}
               </div>
             </motion.div>
@@ -391,11 +409,11 @@ export default function Dashboard() {
                     </defs>
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        backgroundColor: 'var(--card-bg)',
                         borderRadius: '12px',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        border: '1px solid var(--card-border)',
                         backdropFilter: 'blur(10px)',
-                        color: '#fff',
+                        color: 'var(--text-primary)',
                         fontSize: '10px'
                       }}
                     />

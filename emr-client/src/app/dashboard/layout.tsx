@@ -1,16 +1,11 @@
-﻿"use client";
-
 import { Sidebar } from "@/components/Sidebar";
 import { TopBar } from "@/components/TopBar";
-import { useSidebar } from "@/lib/SidebarContext";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isCollapsed } = useSidebar();
-
   return (
     <div className="flex min-h-screen bg-[var(--background)] selection:bg-blue-500/30 text-[var(--text-primary)]">
       <Sidebar />

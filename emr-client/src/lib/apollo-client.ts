@@ -1,40 +1,32 @@
-import { ApolloClient, InMemoryCache, HttpLink, split } from '@apollo/client';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
-import { createClient } from 'graphql-ws';
-import { getMainDefinition } from '@apollo/client/utilities';
+import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 import { setContext } from "@apollo/client/link/context";
 import { getSession } from "next-auth/react";
+
+let cachedAuthToken: string | null | undefined = undefined;
+
+export function setApolloAuthToken(token: string | null | undefined) {
+  cachedAuthToken = token;
+}
 
 const httpLink = new HttpLink({
   uri: process.env.NEXT_PUBLIC_GRAPHQL_URL,
 });
 
 const authLink = setContext(async (_, { headers }) => {
-  const session = await getSession();
-  const token = (session?.user as any)?.token;
+  let token = cachedAuthToken;
+  if (token === undefined && typeof window !== "undefined") {
+    const session = await getSession();
+    token = (session?.user as any)?.token ?? null;
+    cachedAuthToken = token;
+  }
 
   return {
     headers: {
       ...headers,
       authorization: token ? `Bearer ${token}` : "",
     }
-  }
+  };
 });
-
-const wsLink = typeof window !== 'undefined'
-  ? new GraphQLWsLink(
-      createClient({
-        url: process.env.NEXT_PUBLIC_GRAPHQL_WS_URL || 'ws://localhost:34731/graphql',
-        connectionParams: async () => {
-          const session = await getSession();
-          const token = (session?.user as any)?.token;
-          return {
-            Authorization: token ? `Bearer ${token}` : "",
-          };
-        },
-      })
-    )
-  : null;
 
 const splitLink = authLink.concat(httpLink);
 

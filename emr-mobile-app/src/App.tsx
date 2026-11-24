@@ -1,3 +1,4 @@
+import React, { Suspense, lazy } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
@@ -12,12 +13,13 @@ import {
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { heart, chatbubbleEllipses, medkit, logOutOutline } from 'ionicons/icons';
-import ComfortDashboard from './pages/ComfortDashboard';
-import CareHub from './pages/CareHub';
-import Pharmacy from './pages/Pharmacy';
-import Login from './pages/Login';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+const ComfortDashboard = lazy(() => import('./pages/ComfortDashboard'));
+const CareHub = lazy(() => import('./pages/CareHub'));
+const Pharmacy = lazy(() => import('./pages/Pharmacy'));
+const Login = lazy(() => import('./pages/Login'));
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -67,64 +69,72 @@ const AppContent: React.FC = () => {
 
   return (
     <IonReactRouter>
-      <IonRouterOutlet>
-        <Route exact path="/login">
-          {isAuthenticated ? <Redirect to="/app/comfort" /> : <Login />}
-        </Route>
+      <Suspense
+        fallback={
+          <div className="flex flex-col items-center justify-center min-h-screen bg-[#020408] text-teal-400">
+            <IonSpinner name="crescent" color="teal" />
+          </div>
+        }
+      >
+        <IonRouterOutlet>
+          <Route exact path="/login">
+            {isAuthenticated ? <Redirect to="/app/comfort" /> : <Login />}
+          </Route>
 
-        <Route path="/app">
-          {isAuthenticated ? (
-            <IonTabs>
-              <IonRouterOutlet>
-                <Route exact path="/app/comfort">
-                  <ComfortDashboard />
-                </Route>
-                <Route exact path="/app/care-hub">
-                  <CareHub />
-                </Route>
-                <Route exact path="/app/pharmacy">
-                  <Pharmacy />
-                </Route>
-                <Route exact path="/app">
-                  <Redirect to="/app/comfort" />
-                </Route>
-              </IonRouterOutlet>
+          <Route path="/app">
+            {isAuthenticated ? (
+              <IonTabs>
+                <IonRouterOutlet>
+                  <Route exact path="/app/comfort">
+                    <ComfortDashboard />
+                  </Route>
+                  <Route exact path="/app/care-hub">
+                    <CareHub />
+                  </Route>
+                  <Route exact path="/app/pharmacy">
+                    <Pharmacy />
+                  </Route>
+                  <Route exact path="/app">
+                    <Redirect to="/app/comfort" />
+                  </Route>
+                </IonRouterOutlet>
 
-              <IonTabBar slot="bottom">
-                <IonTabButton tab="comfort" href="/app/comfort">
-                  <IonIcon aria-hidden="true" icon={heart} className="w-5 h-5" />
-                  <IonLabel className="text-[10px] font-sans font-bold">Comfort Hub</IonLabel>
-                </IonTabButton>
-                <IonTabButton tab="care-hub" href="/app/care-hub">
-                  <IonIcon aria-hidden="true" icon={chatbubbleEllipses} className="w-5 h-5" />
-                  <IonLabel className="text-[10px] font-sans font-bold">Care Hub</IonLabel>
-                </IonTabButton>
-                <IonTabButton tab="pharmacy" href="/app/pharmacy">
-                  <IonIcon aria-hidden="true" icon={medkit} className="w-5 h-5" />
-                  <IonLabel className="text-[10px] font-sans font-bold">Pharmacy</IonLabel>
-                </IonTabButton>
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="flex flex-col items-center justify-center flex-1 h-full bg-transparent border-none text-rose-500 cursor-pointer active:opacity-75 transition-opacity"
-                >
-                  <IonIcon aria-hidden="true" icon={logOutOutline} className="w-5 h-5 text-rose-500" />
-                  <span className="text-[10px] font-sans font-bold text-rose-500">Exit</span>
-                </button>
-              </IonTabBar>
-            </IonTabs>
-          ) : (
-            <Redirect to="/login" />
-          )}
-        </Route>
+                <IonTabBar slot="bottom">
+                  <IonTabButton tab="comfort" href="/app/comfort">
+                    <IonIcon aria-hidden="true" icon={heart} className="w-5 h-5" />
+                    <IonLabel className="text-[10px] font-sans font-bold">Comfort Hub</IonLabel>
+                  </IonTabButton>
+                  <IonTabButton tab="care-hub" href="/app/care-hub">
+                    <IonIcon aria-hidden="true" icon={chatbubbleEllipses} className="w-5 h-5" />
+                    <IonLabel className="text-[10px] font-sans font-bold">Care Hub</IonLabel>
+                  </IonTabButton>
+                  <IonTabButton tab="pharmacy" href="/app/pharmacy">
+                    <IonIcon aria-hidden="true" icon={medkit} className="w-5 h-5" />
+                    <IonLabel className="text-[10px] font-sans font-bold">Pharmacy</IonLabel>
+                  </IonTabButton>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="flex flex-col items-center justify-center flex-1 h-full bg-transparent border-none text-rose-500 cursor-pointer active:opacity-75 transition-opacity"
+                  >
+                    <IonIcon aria-hidden="true" icon={logOutOutline} className="w-5 h-5 text-rose-500" />
+                    <span className="text-[10px] font-sans font-bold text-rose-500">Exit</span>
+                  </button>
+                </IonTabBar>
+              </IonTabs>
+            ) : (
+              <Redirect to="/login" />
+            )}
+          </Route>
 
-        <Route exact path="/">
-          <Redirect to="/app/comfort" />
-        </Route>
-        
-        {/* Catch-all fallback */}
-        <Route render={() => <Redirect to={isAuthenticated ? "/app/comfort" : "/login"} />} />
-      </IonRouterOutlet>
+          <Route exact path="/">
+            <Redirect to="/app/comfort" />
+          </Route>
+          
+          {/* Catch-all fallback */}
+          <Route render={() => <Redirect to={isAuthenticated ? "/app/comfort" : "/login"} />} />
+        </IonRouterOutlet>
+      </Suspense>
     </IonReactRouter>
   );
 };

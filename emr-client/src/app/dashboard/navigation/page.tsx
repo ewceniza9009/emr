@@ -120,8 +120,8 @@ export default function CareNavigationPage() {
         role: "Care Navigator",
         location: primaryAddress?.street || (activeAppt ? "Sector Active" : "Stationary"),
         status: activeAppt ? "On Site" : upcomingAppt ? "In Transit" : "Idle",
-        eta: upcomingAppt ? "15m" : "--",
-        battery: Math.floor(Math.random() * 40) + 60, // 60% to 100%
+        eta: upcomingAppt?.travelTimeMinutes ? `${upcomingAppt.travelTimeMinutes}m` : "--",
+        battery: 100,
         lat: primaryAddress?.latitude,
         lng: primaryAddress?.longitude,
         street: primaryAddress?.street,

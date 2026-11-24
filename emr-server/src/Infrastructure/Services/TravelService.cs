@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services;
@@ -19,8 +20,11 @@ public class TravelService : ITravelService
     private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<TravelService> _logger;
+    private readonly IMemoryCache? _cache;
     private const int FALLBACK_IN_PERSON_BUFFER = 5;
     private const int TELEHEALTH_BUFFER_MINS = 3;
+    private const string EnableOsrmCacheKey = "travel:enable_osrm";
+    private const string CircuitBreakerCacheKey = "travel:osrm_circuit_open";
 
     private DateTimeOffset _lastOsrmFailure = DateTimeOffset.MinValue;
     private readonly TimeSpan CircuitBreakerDuration = TimeSpan.FromMinutes(2);
@@ -29,12 +33,14 @@ public class TravelService : ITravelService
     public TravelService(
         IDbContextFactory<ApplicationDbContext> dbFactory,
         IHttpClientFactory httpClientFactory,
-        ILogger<TravelService> logger
+        ILogger<TravelService> logger,
+        IMemoryCache? cache = null
     )
     {
         _dbFactory = dbFactory;
         _httpClientFactory = httpClientFactory;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<(double distanceInMiles, double durationInMinutes)> GetDistanceAndDurationAsync(
@@ -48,6 +54,11 @@ public class TravelService : ITravelService
         var fallbackDistance = GeoUtils.CalculateDistance(startLat, startLon, endLat, endLon);
         var fallbackDuration = GeoUtils.EstimateTravelTimeMinutes(fallbackDistance);
 
+        if (!_enableOsrmCached.HasValue && _cache != null && _cache.TryGetValue(EnableOsrmCacheKey, out bool cachedSetting))
+        {
+            _enableOsrmCached = cachedSetting;
+        }
+
         if (!_enableOsrmCached.HasValue)
         {
             try
@@ -58,6 +69,7 @@ public class TravelService : ITravelService
                     .OrderBy(c => c.TenantConfigurationId)
                     .FirstOrDefaultAsync(ct);
                 _enableOsrmCached = settings?.EnableOsrmTravel ?? false;
+                _cache?.Set(EnableOsrmCacheKey, _enableOsrmCached.Value, TimeSpan.FromMinutes(2));
             }
             catch (Exception ex)
             {
@@ -72,8 +84,10 @@ public class TravelService : ITravelService
             return (fallbackDistance, fallbackDuration);
         }
 
-        // Circuit breaker: if OSRM failed recently within this scoped request, bypass to prevent sequential query cancellation
-        if (DateTimeOffset.UtcNow - _lastOsrmFailure < CircuitBreakerDuration)
+        // Circuit breaker: shared across requests via IMemoryCache when available
+        var isCircuitOpen = (_cache != null && _cache.TryGetValue(CircuitBreakerCacheKey, out bool open) && open)
+            || (DateTimeOffset.UtcNow - _lastOsrmFailure < CircuitBreakerDuration);
+        if (isCircuitOpen)
         {
             _logger.LogDebug(">>> OSRM CIRCUIT BREAKER ACTIVE: Skipping OSRM call, immediately falling back to Haversine.");
             return (fallbackDistance, fallbackDuration);
@@ -93,7 +107,8 @@ public class TravelService : ITravelService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning(">>> OSRM ROUTE FAILED (HTTP Status {Status}): Falling back to Haversine.", response.StatusCode);
-                _lastOsrmFailure = DateTimeOffset.UtcNow; // Trigger circuit breaker
+                _lastOsrmFailure = DateTimeOffset.UtcNow;
+                _cache?.Set(CircuitBreakerCacheKey, true, CircuitBreakerDuration);
                 return (fallbackDistance, fallbackDuration);
             }
 

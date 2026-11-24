@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 type Theme = "dark" | "light";
 
@@ -21,7 +28,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (savedTheme) {
         setTheme(savedTheme);
       }
-    } catch (e) { }
+    } catch (e) {}
   }, []);
 
   useEffect(() => {
@@ -30,18 +37,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.classList.add(theme);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next = prev === "dark" ? "light" : "dark";
       localStorage.setItem("halkyone-theme", next);
       return next;
     });
-  };
+  }, []);
+
+  const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
 
@@ -52,4 +59,3 @@ export function useTheme() {
   }
   return context;
 }
-

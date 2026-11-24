@@ -66,7 +66,7 @@ export default function InvoiceDrawer({ open, onClose, onSuccess, initialData }:
   const [searchTerm, setSearchTerm] = useState("");
   const [downloading, setDownloading] = useState(false);
 
-  const { data: patientData } = useQuery(GET_PATIENTS);
+  const { data: patientData } = useQuery(GET_PATIENTS, { skip: !open });
   const [createInvoice, { loading: creating }] = useMutation(CREATE_INVOICE);
   const [updateInvoice, { loading: updating }] = useMutation(UPDATE_INVOICE);
   const [voidInvoice, { loading: voiding }] = useMutation(VOID_INVOICE);

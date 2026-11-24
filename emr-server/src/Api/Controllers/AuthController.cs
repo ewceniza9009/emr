@@ -37,8 +37,12 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("debug-db")]
-    public async Task<IActionResult> DebugDb()
+    public async Task<IActionResult> DebugDb([FromServices] IWebHostEnvironment env)
     {
+        if (!env.IsDevelopment())
+        {
+            return NotFound();
+        }
         var threads = await _context.CareThreads
             .IgnoreQueryFilters()
             .Select(t => new {
@@ -105,17 +109,43 @@ public class AuthController : ControllerBase
             foreach (var userRole in userRoles)
             {
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
 
-                // Inherit permissions from roles
-                var role = await _roleManager.FindByNameAsync(userRole);
-                if (role != null)
+            if (userRoles.Count > 0 && _context is Infrastructure.Data.ApplicationDbContext appDb)
+            {
+                var permissionValues = await appDb
+                    .Roles.AsNoTracking()
+                    .Where(r => r.Name != null && userRoles.Contains(r.Name))
+                    .Join(
+                        appDb.RoleClaims.AsNoTracking(),
+                        r => r.Id,
+                        rc => rc.RoleId,
+                        (r, rc) => rc
+                    )
+                    .Where(rc => rc.ClaimType == "permission" && rc.ClaimValue != null)
+                    .Select(rc => rc.ClaimValue!)
+                    .Distinct()
+                    .ToListAsync();
+
+                foreach (var perm in permissionValues)
                 {
-                    var roleClaims = await _roleManager.GetClaimsAsync(role);
-                    foreach (var claim in roleClaims.Where(c => c.Type == "permission"))
+                    authClaims.Add(new Claim("permission", perm));
+                }
+            }
+            else
+            {
+                foreach (var userRole in userRoles)
+                {
+                    var role = await _roleManager.FindByNameAsync(userRole);
+                    if (role != null)
                     {
-                        if (!authClaims.Any(c => c.Type == "permission" && c.Value == claim.Value))
+                        var roleClaims = await _roleManager.GetClaimsAsync(role);
+                        foreach (var claim in roleClaims.Where(c => c.Type == "permission"))
                         {
-                            authClaims.Add(new Claim("permission", claim.Value));
+                            if (!authClaims.Any(c => c.Type == "permission" && c.Value == claim.Value))
+                            {
+                                authClaims.Add(new Claim("permission", claim.Value));
+                            }
                         }
                     }
                 }

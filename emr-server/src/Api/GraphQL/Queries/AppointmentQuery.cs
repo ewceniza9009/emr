@@ -34,15 +34,11 @@ public class AppointmentQuery
         Guid? id = null,
         string? search = null,
         int? skip = null,
-        int? take = null
+        int? take = null,
+        CancellationToken cancellationToken = default
     )
     {
-        var query = context
-            .Appointments.Include(a => a.Patient)
-            .Include(a => a.Practitioner)
-            .Include(a => a.SupportingClinicians)
-            .Include(a => a.Encounters)
-            .AsNoTracking();
+        var query = context.Appointments.AsNoTracking();
 
         if (startDate.HasValue)
             query = query.Where(a => a.ScheduledStart >= startDate.Value);
@@ -58,7 +54,7 @@ public class AppointmentQuery
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var searchLower = search.ToLower();
+            var searchLower = search.Trim().ToLower();
             query = query.Where(a =>
                 a.Patient.FirstName.ToLower().Contains(searchLower) ||
                 a.Patient.LastName.ToLower().Contains(searchLower) ||
@@ -66,17 +62,17 @@ public class AppointmentQuery
             );
         }
 
-        var totalCount = await query.CountAsync();
+        var totalCount = await query.CountAsync(cancellationToken);
 
         query = query.OrderByDescending(a => a.ScheduledStart);
 
         if (skip.HasValue)
             query = query.Skip(skip.Value);
 
-        if (take.HasValue)
-            query = query.Take(take.Value);
+        var effectiveTake = id.HasValue ? 1 : Math.Clamp(take ?? 250, 1, 500);
+        query = query.Take(effectiveTake);
 
-        var items = await query.ProjectToType<AppointmentDto>().ToListAsync();
+        var items = await query.ProjectToType<AppointmentDto>().ToListAsync(cancellationToken);
 
         return new PagedResponse<AppointmentDto> { Items = items, TotalCount = totalCount };
     }
@@ -91,12 +87,8 @@ public class AppointmentQuery
     )
     {
         return await context
-            .Appointments.Include(a => a.Patient)
-            .Include(a => a.Practitioner)
-            .Include(a => a.SupportingClinicians)
-            .Include(a => a.Encounters)
+            .Appointments.AsNoTracking()
             .Where(a => a.AppointmentId == id)
-            .AsNoTracking()
             .ProjectToType<AppointmentDto>()
             .FirstOrDefaultAsync(cancellationToken);
     }

@@ -382,7 +382,7 @@ export default function DirectiveDetailModal({ isOpen, onClose, onSuccess, patie
                     </button>
                     <button
                       onClick={handlePrintProtocol}
-                      className="flex items-center gap-2 text-blue-400 text-[10px] font-black uppercase tracking-wider hover:text-blue-350 transition-all whitespace-nowrap bg-blue-500/5 hover:bg-blue-500/10 px-3.5 py-2 rounded-xl border border-blue-500/10 hover:border-blue-500/20"
+                      className="flex items-center gap-2 text-blue-400 text-[10px] font-black uppercase tracking-wider hover:text-blue-300 transition-all whitespace-nowrap bg-blue-500/5 hover:bg-blue-500/10 px-3.5 py-2 rounded-xl border border-blue-500/10 hover:border-blue-500/20"
                     >
                       <Printer className="w-3.5 h-3.5" />
                       Print Protocol

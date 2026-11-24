@@ -88,6 +88,7 @@ const SEND_MESSAGE_MUTATION = gql`
 const GET_MY_PROFILE = gql`
   query GetMyProfile($patientId: UUID!) {
     myMobileProfile(patientId: $patientId) {
+      patientId
       primaryCareNavigatorName
       hasAdvanceDirective
     }
@@ -202,20 +203,31 @@ const CareHub: React.FC = () => {
 
   const [sendMessageMutation] = useMutation(SEND_MESSAGE_MUTATION);
 
-  // Sync offline queued chat messages when online
+  // Sync offline queued chat messages when online (retain failed messages)
+  const isSyncingChatRef = useRef(false);
   useEffect(() => {
-    if (isOnline && offlineChatQueue.length > 0) {
+    if (isOnline && offlineChatQueue.length > 0 && !isSyncingChatRef.current) {
       const syncChatMessages = async () => {
-        console.log(`Syncing ${offlineChatQueue.length} offline chat messages...`);
-        for (const msg of offlineChatQueue) {
-          try {
-            await sendMessageMutation({ variables: msg });
-          } catch (e) {
-            console.error("Failed to sync offline chat message", e);
+        isSyncingChatRef.current = true;
+        try {
+          const failed: any[] = [];
+          for (const msg of offlineChatQueue) {
+            try {
+              await sendMessageMutation({ variables: msg });
+            } catch (e) {
+              console.error("Failed to sync offline chat message", e);
+              failed.push(msg);
+            }
           }
+          setOfflineChatQueue(failed);
+          if (failed.length === 0) {
+            localStorage.removeItem('halkyone-offline-chat-messages');
+          } else {
+            localStorage.setItem('halkyone-offline-chat-messages', JSON.stringify(failed));
+          }
+        } finally {
+          isSyncingChatRef.current = false;
         }
-        setOfflineChatQueue([]);
-        localStorage.removeItem('halkyone-offline-chat-messages');
       };
       syncChatMessages();
     }
@@ -583,7 +595,7 @@ const CareHub: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="relative">
-                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-teal-650 dark:text-teal-400 font-black text-xs">
+                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-teal-600 dark:text-teal-400 font-black text-xs">
                   {navigatorInitials}
                 </div>
                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-[#020408] shadow-[0_0_8px_#10b981]" />
@@ -593,7 +605,7 @@ const CareHub: React.FC = () => {
                   <h2 className="text-sm font-black text-slate-900 dark:text-white leading-tight">
                     {navigatorName}
                   </h2>
-                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[8px] font-black text-emerald-650 dark:text-emerald-400 uppercase tracking-wider">
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded text-[8px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
                     HIPAA
                   </span>
                 </div>
@@ -629,7 +641,7 @@ const CareHub: React.FC = () => {
 
       <IonContent ref={contentRef} className="ion-padding">
         {!isOnline && (
-          <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-550 dark:text-amber-400 text-[11px] leading-relaxed flex items-center justify-between gap-2 animate-pulse">
+          <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 dark:text-amber-400 text-[11px] leading-relaxed flex items-center justify-between gap-2 animate-pulse">
             <div className="flex items-center gap-2">
               <IonIcon icon={alertCircle} className="w-4 h-4 flex-shrink-0" />
               <span className="font-extrabold uppercase tracking-wider">Connection Offline (Cached Mode Active)</span>
@@ -643,7 +655,7 @@ const CareHub: React.FC = () => {
         )}
         <div className="flex flex-col min-h-full space-y-4 pb-6">
           {/* Emergency Helper Tip */}
-          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 dark:from-amber-950/20 dark:to-slate-900/40 border border-amber-250 dark:border-amber-900/40 flex gap-3 shadow-sm">
+          <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 dark:from-amber-950/20 dark:to-slate-900/40 border border-amber-300 dark:border-amber-900/40 flex gap-3 shadow-sm">
             <IonIcon
               icon={warning}
               className="w-5.5 h-5.5 text-amber-600 dark:text-amber-500 flex-shrink-0 animate-pulse"
@@ -687,7 +699,7 @@ const CareHub: React.FC = () => {
                     }`}
                   >
                     {msg.isAttachment && (
-                      <div className="flex items-center gap-2 mb-2 p-2 rounded-lg bg-slate-200/50 dark:bg-teal-950/50 border border-slate-350 dark:border-teal-900/50">
+                      <div className="flex items-center gap-2 mb-2 p-2 rounded-lg bg-slate-200/50 dark:bg-teal-950/50 border border-slate-300 dark:border-teal-900/50">
                         <IonIcon
                           icon={shieldCheckmark}
                           className="w-4 h-4 text-slate-700 dark:text-teal-400"
@@ -744,7 +756,7 @@ const CareHub: React.FC = () => {
                           ? msg.isAttachment
                             ? "text-slate-400 dark:text-slate-500"
                             : "text-teal-200 dark:text-teal-400 font-bold"
-                          : "text-slate-400 dark:text-slate-550 font-bold"
+                          : "text-slate-400 dark:text-slate-500 font-bold"
                       } font-mono`}
                     >
                       <span>{msg.timestamp}</span>
@@ -755,7 +767,7 @@ const CareHub: React.FC = () => {
                           </span>
                           <IonIcon
                             icon={msg.isSeen ? checkmarkDone : checkmark}
-                            className={`w-3.5 h-3.5 ${msg.isSeen ? "text-teal-200 dark:text-teal-400" : "text-teal-350/60"}`}
+                            className={`w-3.5 h-3.5 ${msg.isSeen ? "text-teal-200 dark:text-teal-400" : "text-teal-300/60"}`}
                           />
                         </span>
                       )}
@@ -793,7 +805,7 @@ const CareHub: React.FC = () => {
         <div className="flex items-center gap-2 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-md">
           <button
             onClick={() => cameraInputRef.current?.click()}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-850 flex-shrink-0 flex items-center justify-center cursor-pointer"
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-900 flex-shrink-0 flex items-center justify-center cursor-pointer"
             title="Take Secure Photo"
             style={{ borderRadius: "9999px" }}
           >
@@ -805,7 +817,7 @@ const CareHub: React.FC = () => {
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-850 flex-shrink-0 flex items-center justify-center cursor-pointer"
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-full active:bg-slate-100 dark:active:bg-slate-900 flex-shrink-0 flex items-center justify-center cursor-pointer"
             title="Attach Document"
             style={{ borderRadius: "9999px" }}
           >
@@ -873,7 +885,7 @@ const CareHub: React.FC = () => {
               <span className="text-[10px] font-black uppercase text-rose-600 dark:text-rose-400 tracking-wider block">
                 Rescue Action & Bedside Protocol
               </span>
-              <div className="text-xs text-slate-700 dark:text-slate-350 leading-relaxed space-y-1.5 font-semibold">
+              <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed space-y-1.5 font-semibold">
                 <p>
                   • <strong>Rescue Opioid:</strong> Administer{" "}
                   <strong>0.25 mL (5 mg)</strong> of sublingual liquid morphine
@@ -923,7 +935,7 @@ const CareHub: React.FC = () => {
                     // Force dial 911 if requested
                     window.location.href = "tel:911";
                   }}
-                  className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-650 hover:text-rose-500 dark:hover:text-rose-500 transition-colors bg-transparent border-0 outline-none cursor-pointer"
+                  className="text-[9px] uppercase font-black text-slate-400 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-500 transition-colors bg-transparent border-0 outline-none cursor-pointer"
                 >
                   ⚠️ Override Comfort Protocol: Call 911
                 </button>
@@ -943,7 +955,7 @@ const CareHub: React.FC = () => {
               <div className="px-3 py-1 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-full inline-block text-[10px] font-mono text-rose-600 dark:text-rose-400 uppercase tracking-widest">
                 Symptom Detected: {sosReason}
               </div>
-              <p className="text-xs text-slate-555 dark:text-slate-400 leading-relaxed max-w-sm mt-2">
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mt-2">
                 Our clinical NLP core has identified symptoms indicative of
                 cardiac or respiratory distress. A high-priority dashboard
                 override was sent to the Halkyone Clinical Command Center.

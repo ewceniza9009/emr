@@ -4,9 +4,70 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, gql } from "@apollo/client";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import * as signalR from "@microsoft/signalr";
+import { signalRService } from "@/lib/signalr-connection";
 import { useRecentlyBrowsed } from "@/hooks/useRecentlyBrowsed";
 import { useCommandModal } from "@/components/CommandModalProvider";
+
+export interface LiveVitalsSnapshot {
+  hr: number | string;
+  spo2: number | string;
+  temp: number | string;
+}
+
+export interface TelemetryPoint {
+  hr: number;
+  spo2: number;
+  time: string;
+}
+
+/**
+ * Isolates 1Hz SignalR vital updates to leaf telemetry consumers so the
+ * entire PatientDetailPage tree does not re-render every second.
+ */
+export function usePatientLiveVitals(patientId?: string, enabled: boolean = true) {
+  const [vitals, setVitals] = useState<LiveVitalsSnapshot>({
+    hr: "--",
+    spo2: "--",
+    temp: "--",
+  });
+  const [telemetryData, setTelemetryData] = useState<TelemetryPoint[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    if (!patientId || !enabled) {
+      setIsConnected(false);
+      return;
+    }
+
+    const unsubscribe = signalRService.subscribePatientVitals(patientId, (data) => {
+      setIsConnected(true);
+      const hr = data.heartRate;
+      const spo2 = data.spO2;
+      const time = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+
+      setVitals((prev) => ({
+        hr,
+        spo2,
+        temp: data.temperature ?? prev.temp ?? 98.6,
+      }));
+
+      setTelemetryData((prev) => {
+        const next = [...prev, { hr, spo2, time }];
+        return next.length > 20 ? next.slice(next.length - 20) : next;
+      });
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [patientId, enabled]);
+
+  return { vitals, telemetryData, isConnected };
+}
 
 export const CREATE_ENCOUNTER = gql`
   mutation CreateEncounter($input: CreateClinicalEncounterCommandInput!) {
@@ -185,16 +246,12 @@ export function usePatientDashboardState() {
   const [historySortOrder, setHistorySortOrder] = useState<"desc" | "asc">("desc");
   const [selectedEncounter, setSelectedEncounter] = useState<any>(null);
 
-  // IoT Telemetry State
-  const [vitals, setVitals] = useState({ hr: 72, spo2: 98, temp: 98.6 });
-  const [telemetryData, setTelemetryData] = useState<any[]>([]);
+  // IoT Telemetry Toggle State (1Hz live values are isolated in usePatientLiveVitals)
+  const [vitals] = useState<LiveVitalsSnapshot>({ hr: "--", spo2: "--", temp: "--" });
+  const [telemetryData] = useState<TelemetryPoint[]>([]);
   const [isIotConnected, setIsIotConnected] = useState(false);
   const [telemetryEnabled, setTelemetryEnabled] = useState(true);
-
-  const telemetryEnabledRef = useRef(true);
-  useEffect(() => {
-    telemetryEnabledRef.current = telemetryEnabled;
-  }, [telemetryEnabled]);
+  const hasReceivedVitalsRef = useRef(false);
 
   const [createEncounter] = useMutation(CREATE_ENCOUNTER);
   const [deleteContact] = useMutation(DELETE_CONTACT);
@@ -203,12 +260,14 @@ export function usePatientDashboardState() {
   const handleToggleTelemetry = async () => {
     const newState = !telemetryEnabled;
     setTelemetryEnabled(newState);
-    telemetryEnabledRef.current = newState;
+    if (!newState) {
+      hasReceivedVitalsRef.current = false;
+      setIsIotConnected(false);
+    }
 
-    if (newState && telemetryData.length === 0) {
-      console.log("[IoT] Attempting to create encounter for Patient ID:", params.id);
+    if (newState && !hasReceivedVitalsRef.current) {
       try {
-        const res = await createEncounter({
+        await createEncounter({
           variables: {
             input: {
               patientId: params.id as string,
@@ -223,7 +282,6 @@ export function usePatientDashboardState() {
             },
           },
         });
-        console.log("[IoT] createEncounter Response:", res);
       } catch (e) {
         console.error("[IoT] createEncounter Error:", e);
       }
@@ -231,65 +289,24 @@ export function usePatientDashboardState() {
   };
 
   useEffect(() => {
-    if (!params.id) return;
+    const patientIdStr = params.id as string | undefined;
+    if (!patientIdStr || !telemetryEnabled) {
+      hasReceivedVitalsRef.current = false;
+      setIsIotConnected(false);
+      return;
+    }
 
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl(
-        process.env.NEXT_PUBLIC_SIGNALR_ENDPOINT ||
-          "http://localhost:34732/hubs/telemetry",
-      )
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.None)
-      .build();
-
-    const startConnection = async () => {
-      try {
-        await connection.start();
+    const unsubscribe = signalRService.subscribePatientVitals(patientIdStr, () => {
+      if (!hasReceivedVitalsRef.current) {
+        hasReceivedVitalsRef.current = true;
         setIsIotConnected(true);
-        await connection.invoke("JoinPatientStream", params.id);
-
-        connection.on("ReceiveVitals", (data: any) => {
-          console.log("[IoT] ReceiveVitals triggered! Data:", data);
-          console.log("[IoT] telemetryEnabledRef.current is:", telemetryEnabledRef.current);
-          if (telemetryEnabledRef.current) {
-            const newVital = {
-              hr: data.heartRate,
-              spo2: data.spO2,
-              time: new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-              }),
-            };
-
-            setVitals((prev) => ({
-              ...prev,
-              hr: data.heartRate,
-              spo2: data.spO2,
-              temp: data.temperature || prev.temp,
-            }));
-
-            setTelemetryData((prev) => {
-              const updated = [...prev, newVital];
-              if (updated.length > 20) return updated.slice(1);
-              return updated;
-            });
-          }
-        });
-      } catch (err: any) {
-        const isAbort = err?.name === 'AbortError' || err?.toString()?.includes('stopped');
-        if (!isAbort) {
-          console.error("[IoT] Connection Failure:", err);
-        }
       }
-    };
-
-    startConnection();
+    });
 
     return () => {
-      connection.stop();
+      unsubscribe();
     };
-  }, [params.id]);
+  }, [params.id, telemetryEnabled]);
 
   const isUuid = (val: any) =>
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(val));
@@ -434,7 +451,7 @@ export function usePatientDashboardState() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/clinical/export/dossier/${params.id}`,
         {
           headers: {
-            Authorization: `Bearer ${(session as any)?.accessToken}`,
+            Authorization: `Bearer ${(session?.user as any)?.token || (session as any)?.accessToken || ""}`,
           },
         },
       );

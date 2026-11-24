@@ -56,14 +56,23 @@ public class OutreachQuery
     }
 
     [Authorize(Policy = "CanManageOutreach")]
-    public async Task<OutreachMetricsDto> GetOutreachMetrics([Service] IApplicationDbContext context)
+    public async Task<OutreachMetricsDto> GetOutreachMetrics(
+        [Service] IApplicationDbContext context,
+        CancellationToken cancellationToken = default
+    )
     {
+        var counts = await context
+            .PatientOutreaches.AsNoTracking()
+            .GroupBy(o => o.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Status, x => x.Count, cancellationToken);
+
         return new OutreachMetricsDto
         {
-            NewLeadsCount = await context.PatientOutreaches.CountAsync(o => o.Status == OutreachStatus.Lead),
-            ContactedCount = await context.PatientOutreaches.CountAsync(o => o.Status == OutreachStatus.Contacted),
-            InterestedCount = await context.PatientOutreaches.CountAsync(o => o.Status == OutreachStatus.Interested),
-            EnrolledCount = await context.PatientOutreaches.CountAsync(o => o.Status == OutreachStatus.Enrolled)
+            NewLeadsCount = counts.GetValueOrDefault(OutreachStatus.Lead),
+            ContactedCount = counts.GetValueOrDefault(OutreachStatus.Contacted),
+            InterestedCount = counts.GetValueOrDefault(OutreachStatus.Interested),
+            EnrolledCount = counts.GetValueOrDefault(OutreachStatus.Enrolled)
         };
     }
 }

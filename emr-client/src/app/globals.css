@@ -20,8 +20,10 @@ html {
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
   --primary: #14b8a6;
+  --primary-hover: #0d9488;
   --primary-rgb: 20, 184, 166;
   --primary-glow: rgba(20, 184, 166, 0.12);
+  --border-color: var(--card-border);
   --elegant-blue: #2563eb;
   --elegant-blue-glow: rgba(37, 99, 235, 0.4);
   --sidebar-bg: #020408;
@@ -46,8 +48,10 @@ html {
   --text-muted: #334155;
   /* Sharpened Slate-500 */
   --primary: #0891b2;
+  --primary-hover: #0e7490;
   --primary-rgb: 8, 145, 178;
   --primary-glow: rgba(8, 145, 178, 0.05);
+  --border-color: var(--card-border);
   --elegant-blue: #2563eb;
   --elegant-blue-glow: rgba(37, 99, 235, 0.25);
   --sidebar-bg: #ffffff;
@@ -319,6 +323,21 @@ body::-webkit-scrollbar-thumb:hover,
 
 .animate-halkyone-pulse {
   animation: halkyone-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes ecg-sweep {
+  0% {
+    stroke-dashoffset: 200;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.ecg-trace-live {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: ecg-sweep 2.5s linear infinite;
 }
 
 @keyframes shimmer {

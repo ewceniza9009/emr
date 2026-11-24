@@ -2,6 +2,7 @@ using Application.Common.Dtos;
 using Application.Common.Interfaces;
 using Domain.Common;
 using HotChocolate.Authorization;
+using Infrastructure.Data;
 using Infrastructure.Identity;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
@@ -14,21 +15,25 @@ public class IdentityQuery
 {
     [Authorize(Policy = "CanManageSetup")]
     public async Task<List<UserDto>> GetUsers(
-        [Service] UserManager<ApplicationUser> userManager,
-        [Service] RoleManager<IdentityRole> roleManager,
-        [Service] ICurrentUserService currentUserService
+        [Service] ApplicationDbContext dbContext,
+        [Service] ICurrentUserService currentUserService,
+        CancellationToken cancellationToken = default
     )
     {
-        var isAdmin =
-            currentUserService.UserId != null
-            && (await userManager.FindByIdAsync(currentUserService.UserId))?.TenantId == null; // Or check role
+        var currentUserId = currentUserService.UserId;
+        var isSuperAdmin =
+            currentUserId != null
+            && await dbContext
+                .UserRoles.AsNoTracking()
+                .Join(
+                    dbContext.Roles.AsNoTracking(),
+                    ur => ur.RoleId,
+                    r => r.Id,
+                    (ur, r) => new { ur.UserId, r.Name }
+                )
+                .AnyAsync(x => x.UserId == currentUserId && x.Name == Roles.Admin, cancellationToken);
 
-        // Let's use a simpler check: If they are in the Admin role, they see all.
-        var user = await userManager.FindByIdAsync(currentUserService.UserId!);
-        var roles = await userManager.GetRolesAsync(user!);
-        var isSuperAdmin = roles.Contains(Roles.Admin);
-
-        var query = userManager.Users.AsQueryable();
+        var query = dbContext.Users.AsNoTracking();
 
         if (!isSuperAdmin)
         {
@@ -36,52 +41,79 @@ public class IdentityQuery
             query = query.Where(u => u.TenantId == tenantId);
         }
 
-        var users = await query.ToListAsync();
-        var userDtos = new List<UserDto>();
+        var users = await query
+            .Select(u => new
+            {
+                u.Id,
+                u.Email,
+                u.FirstName,
+                u.LastName,
+                u.TenantId,
+                u.EmergencyAccessExpiry
+            })
+            .ToListAsync(cancellationToken);
 
-        foreach (var u in users)
-        {
-            var userRoles = await userManager.GetRolesAsync(u);
-            userDtos.Add(
-                new UserDto
-                {
-                    Id = u.Id,
-                    Email = u.Email!,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    Roles = userRoles.ToList(),
-                    TenantId = u.TenantId,
-                    EmergencyAccessExpiry = u.EmergencyAccessExpiry
-                }
-            );
-        }
+        var userIds = users.Select(u => u.Id).ToList();
+        var rolePairs = await dbContext
+            .UserRoles.AsNoTracking()
+            .Where(ur => userIds.Contains(ur.UserId))
+            .Join(
+                dbContext.Roles.AsNoTracking(),
+                ur => ur.RoleId,
+                r => r.Id,
+                (ur, r) => new { ur.UserId, RoleName = r.Name ?? string.Empty }
+            )
+            .ToListAsync(cancellationToken);
 
-        return userDtos;
+        var rolesByUser = rolePairs
+            .GroupBy(x => x.UserId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.RoleName).ToList());
+
+        return users
+            .Select(u => new UserDto
+            {
+                Id = u.Id,
+                Email = u.Email ?? string.Empty,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                Roles = rolesByUser.TryGetValue(u.Id, out var rList) ? rList : new List<string>(),
+                TenantId = u.TenantId,
+                EmergencyAccessExpiry = u.EmergencyAccessExpiry
+            })
+            .ToList();
     }
 
     [Authorize(Policy = "CanManageSetup")]
-    public async Task<List<RoleDto>> GetRoles([Service] RoleManager<IdentityRole> roleManager)
+    public async Task<List<RoleDto>> GetRoles(
+        [Service] ApplicationDbContext dbContext,
+        CancellationToken cancellationToken = default
+    )
     {
-        var roles = await roleManager.Roles.ToListAsync();
-        var roleDtos = new List<RoleDto>();
+        var roles = await dbContext
+            .Roles.AsNoTracking()
+            .Select(r => new { r.Id, r.Name })
+            .ToListAsync(cancellationToken);
 
-        foreach (var role in roles)
-        {
-            var claims = await roleManager.GetClaimsAsync(role);
-            roleDtos.Add(
-                new RoleDto
-                {
-                    Id = role.Id,
-                    Name = role.Name!,
-                    Permissions = claims
-                        .Where(c => c.Type == "permission")
-                        .Select(c => c.Value)
-                        .ToList(),
-                }
-            );
-        }
+        var claims = await dbContext
+            .RoleClaims.AsNoTracking()
+            .Where(c => c.ClaimType == "permission" && c.ClaimValue != null)
+            .Select(c => new { c.RoleId, Value = c.ClaimValue! })
+            .ToListAsync(cancellationToken);
 
-        return roleDtos;
+        var permissionsByRole = claims
+            .GroupBy(c => c.RoleId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Value).Distinct().ToList());
+
+        return roles
+            .Select(role => new RoleDto
+            {
+                Id = role.Id,
+                Name = role.Name ?? string.Empty,
+                Permissions = permissionsByRole.TryGetValue(role.Id, out var perms)
+                    ? perms
+                    : new List<string>(),
+            })
+            .ToList();
     }
 
     [Authorize(Policy = "CanManageSetup")]

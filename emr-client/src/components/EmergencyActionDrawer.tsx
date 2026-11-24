@@ -122,7 +122,7 @@ export default function EmergencyActionDrawer({ open, onClose, patient, onEscala
                 <div key={c.patientContactId} className="p-4 rounded-2xl bg-blue-500/[0.03] border border-blue-500/10 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 border border-blue-500/20 flex items-center justify-center shrink-0">
-                      <Users className="w-4.5 h-4.5" />
+                      <Users className="w-[18px] h-[18px]" />
                     </div>
                     <div>
                       <span className="text-[6px] font-black text-blue-500 uppercase tracking-widest block mb-0.5">Authorized POA Contact</span>

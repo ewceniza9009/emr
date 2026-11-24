@@ -66,7 +66,7 @@ export default function BenefitClaimDrawer({ open, onClose, onSuccess, initialDa
   const [searchTerm, setSearchTerm] = useState("");
   const [newStatus, setNewStatus] = useState(initialData?.status || "Submitted");
 
-  const { data: patientData } = useQuery(GET_PATIENTS);
+  const { data: patientData } = useQuery(GET_PATIENTS, { skip: !open });
   const [submitClaim, { loading: submitting }] = useMutation(SUBMIT_CLAIM);
   const [updateStatus, { loading: updating }] = useMutation(UPDATE_CLAIM_STATUS);
 

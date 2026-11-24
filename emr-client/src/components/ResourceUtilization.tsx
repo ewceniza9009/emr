@@ -321,7 +321,7 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
               <div className="py-4 px-6 border-b border-[var(--card-border)] bg-[var(--input-bg)]/20 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-11 h-11 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center border border-[var(--primary)]/20 text-[var(--primary)]">
-                    <ClipboardList className="w-5.5 h-5.5" />
+                    <ClipboardList className="w-[22px] h-[22px]" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2.5 mb-0.5">
@@ -375,9 +375,9 @@ export default function ResourceUtilization({ searchQuery = "" }: ResourceUtiliz
                               }`}
                             >
                               {item.type === "VISIT" ? (
-                                <Calendar className="w-4.5 h-4.5" />
+                                <Calendar className="w-[18px] h-[18px]" />
                               ) : (
-                                <ShieldCheck className="w-4.5 h-4.5" />
+                                <ShieldCheck className="w-[18px] h-[18px]" />
                               )}
                             </div>
                             <div>

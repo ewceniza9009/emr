@@ -444,7 +444,7 @@ export default function AddReferralDrawer({ open, onClose, onSuccess }: Props) {
                   <Activity className="w-4 h-4 animate-spin text-slate-950" />
                 ) : (
                   <>
-                    <CheckCircle className="w-4.5 h-4.5 text-slate-950 group-hover:scale-110 transition-transform duration-300" />
+                    <CheckCircle className="w-[18px] h-[18px] text-slate-950 group-hover:scale-110 transition-transform duration-300" />
                     <span>Register Patient for Outreach</span>
                   </>
                 )}

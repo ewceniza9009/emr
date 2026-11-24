@@ -4,7 +4,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Mapster;
 using MediatR;
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Billing.Commands;
 
@@ -21,8 +21,19 @@ public class CreateInvoiceCommandHandler : IRequestHandler<CreateInvoiceCommand,
 
     public async Task<BillingInvoiceDto> Handle(CreateInvoiceCommand request, CancellationToken cancellationToken)
     {
-        var invoiceCount = _context.BillingInvoices.Count();
+        var invoiceCount = await _context
+            .BillingInvoices.AsNoTracking()
+            .CountAsync(cancellationToken);
         var invoiceNumber = $"INV-{_dateTime.UtcNow:yyyyMM}-{invoiceCount + 1:D4}";
+        if (
+            await _context
+                .BillingInvoices.AsNoTracking()
+                .AnyAsync(i => i.InvoiceNumber == invoiceNumber, cancellationToken)
+        )
+        {
+            invoiceNumber =
+                $"INV-{_dateTime.UtcNow:yyyyMM}-{invoiceCount + 1:D4}-{Guid.NewGuid().ToString("N")[..4].ToUpperInvariant()}";
+        }
 
         var invoice = new BillingInvoice
         {

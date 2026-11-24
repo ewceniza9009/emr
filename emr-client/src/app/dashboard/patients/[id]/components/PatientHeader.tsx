@@ -17,10 +17,45 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { PermissionGate } from "@/components/PermissionGate";
-import { UsePatientDashboardStateReturn } from "../hooks/usePatientDashboardState";
+import {
+  UsePatientDashboardStateReturn,
+  usePatientLiveVitals,
+} from "../hooks/usePatientDashboardState";
 import { CareThreadChat } from "./CareThreadChat";
 
 const TelehealthModal = dynamic(() => import("@/components/TelehealthModal"));
+
+function PatientLiveVitalsPills({
+  patientId,
+  enabled,
+}: {
+  patientId: string;
+  enabled: boolean;
+}) {
+  const { vitals } = usePatientLiveVitals(patientId, enabled);
+  return (
+    <div className="flex items-center gap-4 tabular-nums">
+      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/5 border border-rose-500/10">
+        <Activity className="w-3 h-3 text-rose-500 animate-pulse" />
+        <span className="text-[9px] font-black text-rose-500 uppercase">
+          {vitals.hr} BPM
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/5 border border-emerald-500/10">
+        <Wind className="w-3 h-3 text-emerald-500" />
+        <span className="text-[9px] font-black text-emerald-500 uppercase">
+          {vitals.spo2}% SpO2
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/5 border border-amber-500/10">
+        <Thermometer className="w-3 h-3 text-amber-500" />
+        <span className="text-[9px] font-black text-amber-500 uppercase">
+          {vitals.temp}°F
+        </span>
+      </div>
+    </div>
+  );
+}
 
 interface PatientHeaderProps {
   state: UsePatientDashboardStateReturn;
@@ -31,7 +66,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
   const {
     patientId,
     patient,
-    vitals,
+    telemetryEnabled,
     isEmergency,
     setShowBenefitClaim,
     handleDownloadDossier,
@@ -74,26 +109,7 @@ export function PatientHeader({ state }: PatientHeaderProps) {
               {patient.mrn} • {patient.biologicalSex}
             </p>
             <span className="w-1 h-1 rounded-full bg-[var(--card-border)] hidden sm:block" />
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-rose-500/5 border border-rose-500/10">
-                <Activity className="w-3 h-3 text-rose-500 animate-pulse" />
-                <span className="text-[9px] font-black text-rose-500 uppercase">
-                  {vitals.hr} BPM
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/5 border border-emerald-500/10">
-                <Wind className="w-3 h-3 text-emerald-500" />
-                <span className="text-[9px] font-black text-emerald-500 uppercase">
-                  {vitals.spo2}% SpO2
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/5 border border-amber-500/10">
-                <Thermometer className="w-3 h-3 text-amber-500" />
-                <span className="text-[9px] font-black text-amber-500 uppercase">
-                  {vitals.temp}°F
-                </span>
-              </div>
-            </div>
+            <PatientLiveVitalsPills patientId={patientId} enabled={telemetryEnabled} />
           </div>
         </div>
       </div>

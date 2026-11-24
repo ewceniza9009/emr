@@ -41,29 +41,54 @@ public class GetTriageWorklistQueryHandler
         if (request.IsAlert.HasValue)
         {
             query = query.Where(p =>
-                ((p.EsasAssessments.OrderByDescending(e => e.AssessedAt)
-                    .Any(e => e.Pain > 7 || e.Wellbeing > 7)
-                 || p.CareNavigationCases.Any(c => c.AcuityLevel == Domain.Enums.AcuityLevel.Critical && c.Status == Domain.Enums.CaseStatus.Open))
-                 && (p.TriageNote == null || !p.TriageNote.Contains("Claimed"))) == request.IsAlert.Value
+                (
+                    (
+                        p.EsasAssessments.OrderByDescending(e => e.AssessedAt)
+                            .Select(e => (bool?)(e.Pain > 7 || e.Wellbeing > 7))
+                            .FirstOrDefault() == true
+                        || p.CareNavigationCases.Any(c =>
+                            c.AcuityLevel == Domain.Enums.AcuityLevel.Critical
+                            && c.Status == Domain.Enums.CaseStatus.Open
+                        )
+                    )
+                    && (p.TriageNote == null || !p.TriageNote.Contains("Claimed"))
+                ) == request.IsAlert.Value
             );
         }
 
-        if (request.DirectiveTypes != null && request.DirectiveTypes.Any())
+        if (request.DirectiveTypes != null && request.DirectiveTypes.Count > 0)
         {
-            if (request.DirectiveTypes.Contains("None"))
+            var includeNone = request.DirectiveTypes.Any(d =>
+                string.Equals(d, "None", StringComparison.OrdinalIgnoreCase)
+            );
+            var validDirectives = request
+                .DirectiveTypes.Select(d =>
+                    Enum.TryParse<Domain.Enums.DirectiveType>(d, true, out var parsed)
+                        ? (Domain.Enums.DirectiveType?)parsed
+                        : null
+                )
+                .Where(d => d.HasValue)
+                .Select(d => d!.Value)
+                .ToList();
+
+            if (includeNone && validDirectives.Count > 0)
             {
                 query = query.Where(p =>
                     !p.AdvanceDirectives.Any(ad => ad.IsActive)
                     || p.AdvanceDirectives.Any(ad =>
-                        ad.IsActive && request.DirectiveTypes.Contains(ad.Type.ToString())
+                        ad.IsActive && validDirectives.Contains(ad.Type)
                     )
                 );
             }
-            else
+            else if (includeNone)
+            {
+                query = query.Where(p => !p.AdvanceDirectives.Any(ad => ad.IsActive));
+            }
+            else if (validDirectives.Count > 0)
             {
                 query = query.Where(p =>
                     p.AdvanceDirectives.Any(ad =>
-                        ad.IsActive && request.DirectiveTypes.Contains(ad.Type.ToString())
+                        ad.IsActive && validDirectives.Contains(ad.Type)
                     )
                 );
             }

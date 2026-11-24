@@ -44,6 +44,7 @@ import { useTheme } from '../contexts/ThemeContext';
 const GET_DASHBOARD_DATA = gql`
   query GetDashboardData($patientId: UUID!) {
     myMobileProfile(patientId: $patientId) {
+      patientId
       firstName
       lastName
       mrn
@@ -398,40 +399,55 @@ const ComfortDashboard: React.FC = () => {
     refetchQueries: [{ query: GET_DASHBOARD_DATA, variables: { patientId: user?.patientId } }]
   });
 
-  // Auto-sync offline queue when online returns
+  // Auto-sync offline queue when online returns (retain failed items on transient error)
+  const isSyncingQueueRef = React.useRef(false);
   useEffect(() => {
-    if (isOnline) {
-      const syncOfflineQueue = async () => {
-        // Sync vitals
+    if (!isOnline || isSyncingQueueRef.current) return;
+    if (offlineVitalsQueue.length === 0 && offlineEsasQueue.length === 0) return;
+
+    const syncOfflineQueue = async () => {
+      isSyncingQueueRef.current = true;
+      try {
         if (offlineVitalsQueue.length > 0) {
-          console.log(`Syncing ${offlineVitalsQueue.length} vitals reports...`);
+          const failedVitals: any[] = [];
           for (const item of offlineVitalsQueue) {
             try {
               await saveVitals({ variables: item });
             } catch (e) {
               console.error("Vitals sync failed", e);
+              failedVitals.push(item);
             }
           }
-          setOfflineVitalsQueue([]);
-          localStorage.removeItem('halkyone-offline-vitals');
+          setOfflineVitalsQueue(failedVitals);
+          if (failedVitals.length === 0) {
+            localStorage.removeItem('halkyone-offline-vitals');
+          } else {
+            localStorage.setItem('halkyone-offline-vitals', JSON.stringify(failedVitals));
+          }
         }
 
-        // Sync ESAS
         if (offlineEsasQueue.length > 0) {
-          console.log(`Syncing ${offlineEsasQueue.length} ESAS reports...`);
+          const failedEsas: any[] = [];
           for (const item of offlineEsasQueue) {
             try {
               await saveEsas({ variables: item });
             } catch (e) {
               console.error("ESAS sync failed", e);
+              failedEsas.push(item);
             }
           }
-          setOfflineEsasQueue([]);
-          localStorage.removeItem('halkyone-offline-esas');
+          setOfflineEsasQueue(failedEsas);
+          if (failedEsas.length === 0) {
+            localStorage.removeItem('halkyone-offline-esas');
+          } else {
+            localStorage.setItem('halkyone-offline-esas', JSON.stringify(failedEsas));
+          }
         }
-      };
-      syncOfflineQueue();
-    }
+      } finally {
+        isSyncingQueueRef.current = false;
+      }
+    };
+    syncOfflineQueue();
   }, [isOnline, offlineVitalsQueue, offlineEsasQueue, saveVitals, saveEsas]);
 
   // Live Wearables integration
@@ -853,7 +869,11 @@ const ComfortDashboard: React.FC = () => {
             const base64data = reader.result as string;
             setWoundPhoto(base64data);
             const dateStr = new Date().toISOString().split('T')[0];
-            localStorage.setItem(`halkyone-wound-photo-${dateStr}`, base64data);
+            try {
+              localStorage.setItem(`halkyone-wound-photo-${dateStr}`, base64data);
+            } catch (quotaErr) {
+              console.warn("[ComfortDashboard] Skipped localStorage photo cache (quota exceeded):", quotaErr);
+            }
             
             setTasks(prevTasks => {
               const updated = prevTasks.map(t => t.id === 'wound' ? { ...t, done: true, title: 'Log evening wound photo (Logged)' } : t);
@@ -936,7 +956,7 @@ const ComfortDashboard: React.FC = () => {
             <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
               {callVideoOff ? (
                 <div className="flex flex-col items-center justify-center space-y-4">
-                  <div className="w-20 h-20 rounded-full bg-slate-850 border border-slate-700 flex items-center justify-center text-slate-400 text-3xl font-bold">
+                  <div className="w-20 h-20 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 text-3xl font-bold">
                     SR
                   </div>
                   <span className="text-xs text-slate-400 uppercase font-black tracking-widest">Doctor's Video Paused</span>
@@ -986,7 +1006,7 @@ const ComfortDashboard: React.FC = () => {
                     <svg viewBox="0 0 100 100" className="w-12 h-12 text-slate-600">
                       <path fill="currentColor" d="M50 20c-8.3 0-15 6.7-15 15s6.7 15 15 15 15-6.7 15-15-6.7-15-15-15zm-25 45c0-11 9-20 20-20h10c11 0 20 9 20 20v5H25v-5z" />
                     </svg>
-                    <span className="text-[7px] text-slate-550 uppercase font-black tracking-widest mt-2">Active Camera</span>
+                    <span className="text-[7px] text-slate-500 uppercase font-black tracking-widest mt-2">Active Camera</span>
                   </div>
                 )}
               </div>
@@ -996,7 +1016,7 @@ const ComfortDashboard: React.FC = () => {
           {/* Subtitles / Transcription Overlay */}
           <div className="z-10 bg-slate-950/85 backdrop-blur-md px-5 py-4 rounded-2xl border border-slate-800/80 max-w-sm mx-auto w-full shadow-2xl mb-4 animate-in fade-in slide-in-from-bottom-6 duration-300">
             <span className="text-[8px] font-black uppercase text-teal-400 tracking-wider block mb-1">Live Clinical Transcription</span>
-            <p className="text-xs font-semibold text-slate-150 leading-relaxed min-h-[40px] italic">
+            <p className="text-xs font-semibold text-slate-200 leading-relaxed min-h-[40px] italic">
               {liveTranscription}
             </p>
           </div>
@@ -1103,7 +1123,7 @@ const ComfortDashboard: React.FC = () => {
 
       <IonContent className="ion-padding">
         {!isOnline && (
-          <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-550 dark:text-amber-400 text-[11px] leading-relaxed flex items-center justify-between gap-2 animate-pulse">
+          <div className="mb-4 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 dark:text-amber-400 text-[11px] leading-relaxed flex items-center justify-between gap-2 animate-pulse">
             <div className="flex items-center gap-2">
               <IonIcon icon={alertCircle} className="w-4 h-4 flex-shrink-0" />
               <span className="font-extrabold uppercase tracking-wider">Connection Offline (Cached Mode Active)</span>
@@ -1125,7 +1145,7 @@ const ComfortDashboard: React.FC = () => {
               <div className="space-y-1">
                 <span className="text-[9px] font-extrabold tracking-wider text-teal-600 dark:text-teal-400 uppercase">Today's Progress</span>
                 <h2 className="text-base font-bold text-slate-900 dark:text-white leading-tight">Daily Care Ring</h2>
-                <p className="text-xs text-slate-550 dark:text-slate-400 leading-snug">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">
                   {doneCount === tasks.length 
                     ? '🎉 Excellent! All tasks completed!' 
                     : `${tasks.length - doneCount} task${tasks.length - doneCount > 1 ? 's' : ''} remaining.`}
@@ -1227,7 +1247,7 @@ const ComfortDashboard: React.FC = () => {
                 </div>
                 <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">Oncology Care Plan</h3>
                 <div className="flex items-center gap-3">
-                  <div className="w-24 bg-slate-100 dark:bg-slate-850 h-1.5 rounded-full overflow-hidden">
+                  <div className="w-24 bg-slate-100 dark:bg-slate-900 h-1.5 rounded-full overflow-hidden">
                     <div className="bg-teal-500 h-full rounded-full" style={{ width: '68%' }} />
                   </div>
                   <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold">68% Phase 2</span>
@@ -1246,18 +1266,18 @@ const ComfortDashboard: React.FC = () => {
             <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-indigo-500/5 rounded-full blur-xl pointer-events-none" />
             
             <div className="flex items-center gap-3.5">
-              <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-650 dark:text-indigo-400 group-hover:scale-105 transition-transform">
+              <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform">
                 <IonIcon icon={shieldCheckmark} className="w-5 h-5" />
               </div>
               <div className="flex-grow space-y-1">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[8px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase">Goals of Care Vault</span>
-                  <div className="px-1.5 py-0.2 bg-emerald-500/10 border border-emerald-500/20 rounded text-[7px] font-mono font-bold text-emerald-650 uppercase tracking-widest">
+                  <div className="px-1.5 py-0.2 bg-emerald-500/10 border border-emerald-500/20 rounded text-[7px] font-mono font-bold text-emerald-600 uppercase tracking-widest">
                     Verified
                   </div>
                 </div>
                 <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">Active Advance Directives</h3>
-                <p className="text-[10px] text-slate-550 dark:text-slate-450 leading-none">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-none">
                   {data?.myMobileProfile?.hasAdvanceDirective 
                     ? `🛡️ DNR & Comfort Measures Active` 
                     : 'Log and verify clinical directives'}
@@ -1276,7 +1296,7 @@ const ComfortDashboard: React.FC = () => {
             <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-rose-500/5 rounded-full blur-xl pointer-events-none" />
             
             <div className="flex items-center gap-3.5">
-              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 text-rose-650 dark:text-rose-400 group-hover:scale-105 transition-transform">
+              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 group-hover:scale-105 transition-transform">
                 <IonIcon icon={informationCircle} className="w-5 h-5" />
               </div>
               <div className="flex-grow space-y-1">
@@ -1287,7 +1307,7 @@ const ComfortDashboard: React.FC = () => {
                   </div>
                 </div>
                 <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">Anticipatory Guidance</h3>
-                <p className="text-[10px] text-slate-550 dark:text-slate-450 leading-none">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-none">
                   Calming symptom care, respite, & bereavement guides
                 </p>
               </div>
@@ -1305,7 +1325,7 @@ const ComfortDashboard: React.FC = () => {
               <div className="space-y-3 flex-grow">
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">Telehealth Video Triage</h3>
-                  <p className="text-xs text-slate-550 dark:text-slate-400 mt-0.5 leading-snug">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
                     Dr. Ross is reviewing your clinical logs. Connect for your virtual room check-in.
                   </p>
                 </div>
@@ -1314,7 +1334,7 @@ const ComfortDashboard: React.FC = () => {
                   <div className="space-y-3 animate-in fade-in zoom-in-95 duration-300">
                     <button
                       onClick={() => setCallActive(true)}
-                      className="w-full h-11 flex items-center justify-between px-5 bg-rose-600 dark:bg-gradient-to-r dark:from-rose-500 dark:to-red-650 hover:from-rose-400 hover:to-red-550 text-white rounded-full text-xs font-black tracking-wide uppercase transition-all shadow-[0_4px_15px_rgba(239,68,68,0.3)] hover:scale-[1.01] active:scale-[0.99] relative"
+                      className="w-full h-11 flex items-center justify-between px-5 bg-rose-600 dark:bg-gradient-to-r dark:from-rose-500 dark:to-red-600 hover:from-rose-400 hover:to-red-500 text-white rounded-full text-xs font-black tracking-wide uppercase transition-all shadow-[0_4px_15px_rgba(239,68,68,0.3)] hover:scale-[1.01] active:scale-[0.99] relative"
                       style={{ borderRadius: '9999px' }}
                     >
                       <span className="flex items-center gap-2">
@@ -1361,7 +1381,7 @@ const ComfortDashboard: React.FC = () => {
                     <span className="text-[9px] uppercase font-black tracking-widest text-indigo-500 dark:text-indigo-400">Clinician In Transit</span>
                   </div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-1">Visit Radar Logistics</h3>
-                  <p className="text-xs text-slate-550 dark:text-slate-400 mt-0.5 leading-snug">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
                     Your clinician {clinicianName} is in route. Live transit coordinates are active.
                   </p>
                 </div>
@@ -1380,8 +1400,8 @@ const ComfortDashboard: React.FC = () => {
           {/* Wearables / IoT Telemetry Grid */}
           <div>
             <div className="flex justify-between items-center mb-2.5 px-1">
-              <h3 className="text-[10px] uppercase tracking-widest text-slate-450 dark:text-slate-500 font-black">Wearables Telemetry</h3>
-              <span className="text-[8px] font-bold text-teal-650 dark:text-teal-400 uppercase tracking-widest flex items-center gap-1">
+              <h3 className="text-[10px] uppercase tracking-widest text-slate-400 dark:text-slate-500 font-black">Wearables Telemetry</h3>
+              <span className="text-[8px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                 Live Sync
               </span>
@@ -1400,7 +1420,7 @@ const ComfortDashboard: React.FC = () => {
                 <div className="absolute top-3.5 right-3.5 text-rose-500 animate-pulse">
                   <IonIcon icon={heart} className="w-5 h-5" />
                 </div>
-                <span className="text-[9px] text-slate-455 dark:text-slate-500 font-bold uppercase tracking-wider">Heart Rate</span>
+                <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Heart Rate</span>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-xl font-black text-slate-900 dark:text-white">{liveVitals.heartRate}</span>
                   <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">BPM</span>
@@ -1422,7 +1442,7 @@ const ComfortDashboard: React.FC = () => {
                 <div className="absolute top-3.5 right-3.5 text-teal-600 dark:text-teal-400">
                   <IonIcon icon={pulse} className="w-5 h-5" />
                 </div>
-                <span className="text-[9px] text-slate-455 dark:text-slate-500 font-bold uppercase tracking-wider">Blood Oxygen</span>
+                <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Blood Oxygen</span>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="text-xl font-black text-slate-900 dark:text-white">{liveVitals.spO2}</span>
                   <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">% SpO2</span>
@@ -1440,12 +1460,12 @@ const ComfortDashboard: React.FC = () => {
                 }}
                 className="col-span-2 relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-900/40 p-4 shadow-[0_4px_20px_rgba(15,23,42,0.02)] active:scale-[0.98] transition-all cursor-pointer hover:border-violet-500/30"
               >
-                <div className="absolute top-4 right-4 text-violet-650 dark:text-violet-405">
+                <div className="absolute top-4 right-4 text-violet-600 dark:text-violet-405">
                   <IonIcon icon={sunny} className="w-5 h-5 animate-pulse" />
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="space-y-0.5">
-                    <span className="text-[9px] text-slate-455 dark:text-slate-500 font-bold uppercase tracking-wider">Body Temperature</span>
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Body Temperature</span>
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-xl font-black text-slate-900 dark:text-white">{liveVitals.temperature}</span>
                       <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold">°F</span>
@@ -1490,7 +1510,7 @@ const ComfortDashboard: React.FC = () => {
             </div>
 
             <div className="p-5 space-y-4">
-              <p className="text-xs text-slate-550 dark:text-slate-400 leading-snug">
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">
                 Please enter your current blood pressure values as measured by your clinical cuff.
               </p>
 
@@ -1501,18 +1521,18 @@ const ComfortDashboard: React.FC = () => {
                     type="number"
                     value={systolic}
                     onChange={(e) => setSystolic(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-center text-sm font-black text-slate-850 dark:text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-center text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
                     placeholder="120"
                   />
                 </div>
-                <span className="text-slate-300 dark:text-slate-750 font-bold pt-4">/</span>
+                <span className="text-slate-300 dark:text-slate-700 font-bold pt-4">/</span>
                 <div className="flex-1 space-y-1">
                   <label className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500">Diastolic</label>
                   <input
                     type="number"
                     value={diastolic}
                     onChange={(e) => setDiastolic(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-center text-sm font-black text-slate-850 dark:text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-center text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
                     placeholder="80"
                   />
                 </div>
@@ -1551,7 +1571,7 @@ const ComfortDashboard: React.FC = () => {
             <div className="p-5 flex-1 max-h-[65vh] overflow-y-auto space-y-4 scrollbar-thin">
               {esasScore === null ? (
                 <div className="space-y-4">
-                  <p className="text-xs text-slate-550 dark:text-slate-400 leading-snug">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">
                     Please adjust the sliders below to rate your current comfort level. 0 represents no symptom (or excellent wellbeing/appetite) and 10 represents worst possible.
                   </p>
 
@@ -1566,7 +1586,7 @@ const ComfortDashboard: React.FC = () => {
                             <span className="text-xs font-bold text-slate-900 dark:text-white">
                               {symptom.label}
                             </span>
-                            <span className="block text-[10px] text-slate-550 dark:text-slate-400">
+                            <span className="block text-[10px] text-slate-500 dark:text-slate-400">
                               {symptom.desc}
                             </span>
                           </div>
@@ -1593,7 +1613,7 @@ const ComfortDashboard: React.FC = () => {
                             }}
                             className="w-full accent-teal-500 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer"
                           />
-                          <div className="flex justify-between text-[8px] font-mono font-bold text-slate-450">
+                          <div className="flex justify-between text-[8px] font-mono font-bold text-slate-400">
                             <span>{symptom.minLabel}</span>
                             <span>{symptom.maxLabel}</span>
                           </div>
@@ -1606,7 +1626,7 @@ const ComfortDashboard: React.FC = () => {
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-500/10 to-indigo-500/10 border border-teal-500/20 flex items-center justify-between mt-5">
                     <div className="space-y-0.5">
                       <span className="text-[9px] font-black uppercase text-teal-600 dark:text-teal-400 tracking-wider">Live Calibration</span>
-                      <h4 className="text-xs font-bold text-slate-850 dark:text-white">Current Average Severity</h4>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white">Current Average Severity</h4>
                     </div>
                     <div className="text-right">
                       <span className="text-base font-black text-slate-900 dark:text-white font-mono">
@@ -1633,11 +1653,11 @@ const ComfortDashboard: React.FC = () => {
                     <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
                       Average Comfort Score: {esasAverage} / 10
                     </h4>
-                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-violet-500/10 border border-violet-500/20 text-violet-500 dark:text-violet-455">
+                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-violet-500/10 border border-violet-500/20 text-violet-500 dark:text-violet-400">
                       Status: {getEsasSeverity(esasAverage || 0)}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-555 dark:text-slate-450 max-w-xs mx-auto leading-relaxed">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
                     Your Edmonton Symptom log has been stored in PostgreSQL database. Your palliative Navigator Sarah Jenkins has been updated for real-time symptom calibration.
                   </p>
 
@@ -1675,7 +1695,7 @@ const ComfortDashboard: React.FC = () => {
             </div>
 
             <div className="p-5 space-y-4">
-              <p className="text-xs text-slate-550 dark:text-slate-400 leading-snug">
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">
                 Please upload or capture a clear photo of your wound area. This image is stored securely and is only accessible by your credentialed care team.
               </p>
 
@@ -1689,7 +1709,7 @@ const ComfortDashboard: React.FC = () => {
                       <span>Uploading Photo...</span>
                       <span>{uploadProgress}%</span>
                     </div>
-                    <div className="w-full h-1 bg-slate-150 dark:bg-slate-850 rounded-full overflow-hidden">
+                    <div className="w-full h-1 bg-slate-200 dark:bg-slate-900 rounded-full overflow-hidden">
                       <div className="h-full bg-teal-500 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
                     </div>
                   </div>
@@ -1702,7 +1722,7 @@ const ComfortDashboard: React.FC = () => {
                     onChange={handleWoundUpload}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
                   />
-                  <div className="p-3.5 rounded-full bg-white dark:bg-slate-800/80 border border-slate-150 dark:border-slate-750 text-slate-500 dark:text-slate-400 shadow-sm flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
+                  <div className="p-3.5 rounded-full bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 shadow-sm flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200">
                     <IonIcon icon={camera} className="w-6 h-6 text-teal-600 dark:text-teal-400" />
                   </div>
                   <div className="mt-3.5 space-y-1">
@@ -1755,7 +1775,7 @@ const ComfortDashboard: React.FC = () => {
                     className={`py-2 text-[10px] uppercase tracking-wider font-extrabold rounded-lg transition-all ${
                       selectedMetric === tab.id
                         ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm border border-slate-200/50 dark:border-slate-700/50'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-750 dark:hover:text-white'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'
                     }`}
                   >
                     {tab.label}
@@ -1773,8 +1793,8 @@ const ComfortDashboard: React.FC = () => {
                       onClick={() => setAnalyticsRange(r)}
                       className={`text-[9px] uppercase tracking-widest font-black px-2.5 py-1 rounded-md transition-all ${
                         analyticsRange === r
-                          ? 'bg-teal-500/10 border border-teal-500/30 text-teal-650 dark:text-teal-400'
-                          : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350'
+                          ? 'bg-teal-500/10 border border-teal-500/30 text-teal-600 dark:text-teal-400'
+                          : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
                       }`}
                     >
                       {r}
@@ -1784,7 +1804,7 @@ const ComfortDashboard: React.FC = () => {
               </div>
 
               {/* Elegant SVG Chart Rendering */}
-              <div className="relative h-48 w-full bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-900 rounded-2xl p-4 flex flex-col justify-between overflow-hidden">
+              <div className="relative h-48 w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-900 rounded-2xl p-4 flex flex-col justify-between overflow-hidden">
                 <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                   <span className="text-[8px] font-mono tracking-widest text-slate-400 dark:text-slate-500 uppercase">Live Stream Connected</span>
@@ -1844,7 +1864,7 @@ const ComfortDashboard: React.FC = () => {
                 </div>
 
                 {/* X-Axis labels */}
-                <div className="flex justify-between text-[8px] font-mono text-slate-500 dark:text-slate-600 px-1 border-t border-slate-200/60 dark:border-slate-850/80 pt-1.5">
+                <div className="flex justify-between text-[8px] font-mono text-slate-500 dark:text-slate-600 px-1 border-t border-slate-200/60 dark:border-slate-900/80 pt-1.5">
                   {analyticsRange === 'week' ? (
                     ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => <span key={day}>{day}</span>)
                   ) : analyticsRange === 'day' ? (
@@ -1856,7 +1876,7 @@ const ComfortDashboard: React.FC = () => {
               </div>
 
               {/* Health Summary Card */}
-              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-slate-150 dark:border-slate-850 flex justify-between items-center">
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-900 flex justify-between items-center">
                 <div className="space-y-0.5">
                   <span className="text-[8px] font-black uppercase text-slate-400 dark:text-slate-500">Average Reading</span>
                   <div className="text-sm font-black text-slate-900 dark:text-white font-mono">
@@ -1886,7 +1906,7 @@ const ComfortDashboard: React.FC = () => {
                 }}
                 className={`w-full h-11 flex items-center justify-center gap-2 rounded-full text-xs font-black uppercase tracking-wider transition-all shadow-md ${
                   isSyncingWearables 
-                    ? 'bg-slate-100 dark:bg-slate-850 text-slate-450 cursor-not-allowed border border-slate-200 dark:border-slate-800' 
+                    ? 'bg-slate-100 dark:bg-slate-900 text-slate-400 cursor-not-allowed border border-slate-200 dark:border-slate-800' 
                     : 'bg-teal-600 dark:bg-gradient-to-r dark:from-teal-500 dark:to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white dark:text-slate-950 active:scale-95'
                 }`}
                 style={{ borderRadius: '9999px' }}
@@ -1924,7 +1944,7 @@ const ComfortDashboard: React.FC = () => {
             </div>
 
             <div className="p-5 space-y-4 flex-1">
-              <p className="text-xs text-slate-550 dark:text-slate-400 leading-snug">
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">
                 Your primary clinician is in route. For safety and security, accurate tracking coordinates are masked within a 500-meter geofence of your recovery room.
               </p>
 
@@ -2023,14 +2043,14 @@ const ComfortDashboard: React.FC = () => {
               </div>
 
               {/* Clinician Card */}
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-slate-150 dark:border-slate-850 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-900 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-850 border border-slate-300 dark:border-slate-750 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 text-sm">
+                  <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 text-sm">
                     {clinicianInitials}
                   </div>
                   <div className="space-y-0.5">
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">{clinicianName}</h4>
-                    <span className="text-[9px] text-slate-450 dark:text-slate-500 font-semibold block">{clinicianSpecialty}</span>
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold block">{clinicianSpecialty}</span>
                   </div>
                 </div>
                 {radarTransitProgress >= 75 ? (
@@ -2088,19 +2108,19 @@ const ComfortDashboard: React.FC = () => {
             {/* Scrollable Content Wrapper */}
             <div className="flex-1 overflow-y-auto pr-1.5 space-y-4 custom-scrollbar">
               {/* Active Pathway Details Card */}
-              <div className="p-4 rounded-[1.75rem] border border-slate-100 dark:border-slate-850 bg-slate-50/50 dark:bg-[#060a13] space-y-3">
+              <div className="p-4 rounded-[1.75rem] border border-slate-100 dark:border-slate-900 bg-slate-50/50 dark:bg-[#060a13] space-y-3">
                 <div>
-                  <span className="text-[8px] font-extrabold tracking-widest text-slate-455 dark:text-slate-500 uppercase">Assigned Care Plan</span>
+                  <span className="text-[8px] font-extrabold tracking-widest text-slate-400 dark:text-slate-500 uppercase">Assigned Care Plan</span>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">{carePlanName}</h4>
                 </div>
-                <div className="h-px bg-slate-100 dark:bg-slate-850" />
+                <div className="h-px bg-slate-100 dark:bg-slate-900" />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-[8px] font-extrabold tracking-widest text-slate-450 dark:text-slate-500 uppercase">Lead Coordinator</span>
+                    <span className="text-[8px] font-extrabold tracking-widest text-slate-400 dark:text-slate-500 uppercase">Lead Coordinator</span>
                     <p className="text-xs text-slate-800 dark:text-slate-300 font-semibold mt-0.5">{loading ? 'Loading...' : data?.myMobileProfile?.primaryCareNavigatorName || 'Sarah Jenkins'}</p>
                   </div>
                   <div>
-                    <span className="text-[8px] font-extrabold tracking-widest text-slate-455 dark:text-slate-500 uppercase">Clinical MRN</span>
+                    <span className="text-[8px] font-extrabold tracking-widest text-slate-400 dark:text-slate-500 uppercase">Clinical MRN</span>
                     <p className="text-xs text-slate-800 dark:text-slate-300 font-mono font-bold mt-0.5">{loading ? 'Loading...' : data?.myMobileProfile?.mrn || 'MRN-99999'}</p>
                   </div>
                 </div>
@@ -2111,17 +2131,17 @@ const ComfortDashboard: React.FC = () => {
                 <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
                   <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Pathway</span>
                   <p className="text-base font-extrabold text-teal-600 dark:text-teal-400 font-mono">{completionPercent}%</p>
-                  <span className="text-[8px] font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest block">Completed</span>
+                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block">Completed</span>
                 </div>
                 <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
                   <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Prescriptions</span>
                   <p className="text-base font-extrabold text-violet-500 font-mono">{meds.length}</p>
-                  <span className="text-[8px] font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest block">In Database</span>
+                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block">In Database</span>
                 </div>
                 <div className="p-3.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/80 bg-white dark:bg-[#070b13] text-center space-y-1">
                   <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Visits</span>
                   <p className="text-base font-extrabold text-blue-500 font-mono">{data?.myMobileProfile?.encounters?.length || 0}</p>
-                  <span className="text-[8px] font-bold text-slate-550 dark:text-slate-400 uppercase tracking-widest block">Encounters</span>
+                  <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block">Encounters</span>
                 </div>
               </div>
 
@@ -2158,7 +2178,7 @@ const ComfortDashboard: React.FC = () => {
                           <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
                         )}
                       </h4>
-                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 1 ? 'text-slate-550 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 1 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
                         EMR patient chart initialized under {data?.myMobileProfile?.mrn || 'MRN-99999'}. Care coordination assignment completed.
                       </p>
                     </div>
@@ -2189,7 +2209,7 @@ const ComfortDashboard: React.FC = () => {
                           <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
                         )}
                       </h4>
-                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 2 ? 'text-slate-555 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 2 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
                         Daily vitals check, wound tracking, and oncology medication adherence logging are active.
                       </p>
                     </div>
@@ -2206,7 +2226,7 @@ const ComfortDashboard: React.FC = () => {
                         3
                       </div>
                     ) : (
-                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-450 dark:text-slate-655 text-[10px] font-bold">
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-655 text-[10px] font-bold">
                         3
                       </div>
                     )}
@@ -2220,7 +2240,7 @@ const ComfortDashboard: React.FC = () => {
                           <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
                         )}
                       </h4>
-                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 3 ? 'text-slate-555 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 3 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
                         Symptom tracking checkups and clinical review scheduled upon completing initial therapy blocks.
                       </p>
                     </div>
@@ -2237,7 +2257,7 @@ const ComfortDashboard: React.FC = () => {
                         4
                       </div>
                     ) : (
-                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-455 dark:text-slate-655 text-[10px] font-bold">
+                      <div className="absolute -left-8.5 top-0 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-655 text-[10px] font-bold">
                         4
                       </div>
                     )}
@@ -2251,7 +2271,7 @@ const ComfortDashboard: React.FC = () => {
                           <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-teal-500/10 text-teal-500 border border-teal-500/20 uppercase tracking-widest animate-pulse">Active</span>
                         )}
                       </h4>
-                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 4 ? 'text-slate-555 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
+                      <p className={`text-[11px] mt-1 leading-relaxed ${activePhase >= 4 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'}`}>
                         Final clinical assessment checkups, health graduation milestones, and coordination handoff.
                       </p>
                     </div>
@@ -2262,7 +2282,7 @@ const ComfortDashboard: React.FC = () => {
               {/* Bottom Progress Summary */}
               <div className="p-4 rounded-2xl bg-teal-500/5 border border-teal-500/10 flex items-center gap-3">
                 <IonIcon icon={informationCircle} className="text-teal-600 dark:text-teal-400 w-5 h-5 flex-shrink-0" />
-                <p className="text-[10px] text-slate-550 dark:text-slate-455 leading-snug">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">
                   Your recovery metrics are synchronized directly with EMR. Your primary Navigator <strong>{data?.myMobileProfile?.primaryCareNavigatorName || 'Sarah Jenkins'}</strong> will contact you if any adjustments are needed.
                 </p>
               </div>
@@ -2303,7 +2323,7 @@ const ComfortDashboard: React.FC = () => {
 
             {/* Scrollable Content Wrapper */}
             <div className="flex-1 overflow-y-auto pr-1.5 space-y-4 custom-scrollbar">
-              <p className="text-xs text-slate-550 dark:text-slate-455 leading-relaxed">
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 These are your legally binding and active Advance Directives as verified and signed in cooperation with your Halkyone primary care providers.
               </p>
 
@@ -2326,7 +2346,7 @@ const ComfortDashboard: React.FC = () => {
                         </span>
                       </div>
 
-                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed font-sans italic bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-slate-150 dark:border-slate-850">
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed font-sans italic bg-white dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-900">
                         "{d.notes}"
                       </p>
 
@@ -2334,7 +2354,7 @@ const ComfortDashboard: React.FC = () => {
                         href={d.documentUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="h-10 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200/50 dark:border-slate-750 transition-colors w-full"
+                        className="h-10 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200/50 dark:border-slate-700 transition-colors w-full"
                       >
                         <IonIcon icon={cloudUpload} className="w-4.5 h-4.5 text-teal-500" />
                         <span>View Signed Legal Document</span>
@@ -2343,14 +2363,14 @@ const ComfortDashboard: React.FC = () => {
                   ))
                 ) : (
                   <div className="text-center py-6 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                    <p className="text-xs text-slate-455 dark:text-slate-555">No advance directives registered in active profile.</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500">No advance directives registered in active profile.</p>
                   </div>
                 )}
               </div>
 
               <div className="p-3.5 rounded-2xl bg-teal-500/5 border border-teal-500/10 flex items-start gap-2.5">
                 <IonIcon icon={informationCircle} className="text-teal-600 dark:text-teal-400 w-4 h-4 flex-shrink-0 mt-0.5" />
-                <p className="text-[10px] text-slate-500 dark:text-slate-455 leading-relaxed">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
                   If you need to make changes to your Goals of Care, upload a new directive, or contact Dr. Ross, please coordinate with your Primary Care Navigator.
                 </p>
               </div>
@@ -2372,7 +2392,7 @@ const ComfortDashboard: React.FC = () => {
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 text-rose-600 dark:text-rose-455">
+                <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 text-rose-600 dark:text-rose-400">
                   <IonIcon icon={informationCircle} className="w-5.5 h-5.5" />
                 </div>
                 <div>
@@ -2390,7 +2410,7 @@ const ComfortDashboard: React.FC = () => {
 
             {/* Scrollable Content Wrapper */}
             <div className="flex-1 overflow-y-auto pr-1.5 space-y-4 custom-scrollbar">
-              <p className="text-xs text-slate-550 dark:text-slate-400 leading-relaxed font-semibold">
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
                 Palliative physical transitions can be managed peacefully at home. Use these clinical comfort guides to support your loved one during progressive symptom changes.
               </p>
 

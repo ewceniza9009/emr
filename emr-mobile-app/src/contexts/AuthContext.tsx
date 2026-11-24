@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { client as apolloClient } from '../apolloClient';
 
 export interface AuthenticatedUser {
   id: string;
@@ -218,8 +219,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    localStorage.removeItem('halkyone-mobile-token');
-    localStorage.removeItem('halkyone-mobile-user');
+    const preservedKeys = new Set([
+      'halkyone-theme',
+      'halkyone-mobile-api-url',
+      'halkyone-device-id',
+    ]);
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('halkyone-') && !preservedKeys.has(key)) {
+        localStorage.removeItem(key);
+      }
+    }
+    apolloClient.clearStore().catch(() => {});
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);

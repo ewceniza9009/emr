@@ -424,7 +424,7 @@ export default function OutreachDetail() {
                     ) : (
                       <div className="flex items-center justify-between p-3.5 rounded-xl bg-teal-500/[0.03] border border-teal-500/10 hover:border-teal-500/40 transition-all group relative">
                         <div className="flex items-center gap-4">
-                          <PhoneCall className="w-4.5 h-4.5 text-teal-500" />
+                          <PhoneCall className="w-[18px] h-[18px] text-teal-500" />
                           <div>
                             <p className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider leading-none">{formatPhoneNumber(lead.primaryPhone) || "NO PHONE"}</p>
                             {lead.primaryEmail && <p className="text-[8px] font-bold text-teal-500/70 mt-1 lowercase">{lead.primaryEmail}</p>}
@@ -455,7 +455,7 @@ export default function OutreachDetail() {
                         ) : (
                           <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/20 transition-all group relative mb-2">
                             <div className="flex items-center gap-4">
-                              <Smartphone className="w-4.5 h-4.5 text-slate-400" />
+                              <Smartphone className="w-[18px] h-[18px] text-slate-400" />
                               <div>
                                 <p className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-wider leading-none">{formatPhoneNumber(contact.phoneNumber)}</p>
                                 {contact.email && <p className="text-[8px] font-bold text-teal-500/70 mt-1 lowercase">{contact.email}</p>}
@@ -467,7 +467,7 @@ export default function OutreachDetail() {
                                 <button onClick={() => startEditingContact(contact)} className="p-2 rounded-lg bg-white/5 text-[var(--text-muted)] hover:text-teal-500 transition-all"><Pencil className="w-3.5 h-3.5" /></button>
                                 <button onClick={() => handleRemoveContact(contact.outreachContactId)} className="p-2 rounded-lg bg-white/5 text-rose-500/50 hover:text-rose-500 transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
                               </div>
-                              <button onClick={() => setActiveCall({ name: contact.firstName, phone: contact.phoneNumber })} className="p-2.5 rounded-lg bg-white/10 text-[var(--text-primary)] hover:bg-teal-500 hover:text-black transition-all shadow-xl"><PhoneForwarded className="w-4.5 h-4.5" /></button>
+                              <button onClick={() => setActiveCall({ name: contact.firstName, phone: contact.phoneNumber })} className="p-2.5 rounded-lg bg-white/10 text-[var(--text-primary)] hover:bg-teal-500 hover:text-black transition-all shadow-xl"><PhoneForwarded className="w-[18px] h-[18px]" /></button>
                             </div>
                           </div>
                         )}

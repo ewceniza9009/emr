@@ -258,23 +258,23 @@ public class ClinicalQuery
         if (patient == null)
             throw new ArgumentException("Patient not found.");
 
-        var latestVitals = await context.VitalSigns.IgnoreQueryFilters()
+        var latestVitals = await context.VitalSigns.AsNoTracking().IgnoreQueryFilters()
             .Include(v => v.Encounter)
             .Where(v => v.Encounter.PatientId == patientId)
             .OrderByDescending(v => v.RecordedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
-        var latestEsas = await context.EsasAssessments.IgnoreQueryFilters()
+        var latestEsas = await context.EsasAssessments.AsNoTracking().IgnoreQueryFilters()
             .Where(e => e.PatientId == patientId)
             .OrderByDescending(e => e.AssessedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
-        var prescriptions = await context.Prescriptions.IgnoreQueryFilters()
+        var prescriptions = await context.Prescriptions.AsNoTracking().IgnoreQueryFilters()
             .Include(p => p.Medication)
             .Where(p => p.PatientId == patientId && p.EndDate == null)
             .ToListAsync(cancellationToken);
 
-        var allergies = await context.Allergies.IgnoreQueryFilters()
+        var allergies = await context.Allergies.AsNoTracking().IgnoreQueryFilters()
             .Where(a => a.PatientId == patientId)
             .ToListAsync(cancellationToken);
 
