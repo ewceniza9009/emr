@@ -34,7 +34,9 @@ jobs:
   clinical-verification:
     name: Clinical Verification (Build & Playwright)
     needs: [backend]
-    runs-on: ubuntu-latest
+    # Playwright 1.59.1 does not support installing browser dependencies on Ubuntu 26.04,
+    # which ubuntu-latest now resolves to. Pin to a supported runner until Playwright is upgraded.
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:15
