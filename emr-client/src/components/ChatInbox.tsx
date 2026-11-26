@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import {
@@ -435,10 +436,10 @@ export function ChatInbox() {
         )}
       </button>
 
-      {isOpen && (
+      {isOpen && typeof document !== "undefined" && createPortal(
         <div
           onClick={handleOutsideClick}
-          className="fixed inset-0 z-[150] flex justify-end bg-black/40 backdrop-blur-sm transition-all duration-350"
+          className="fixed inset-0 z-[75] flex justify-end bg-black/40 backdrop-blur-sm transition-all duration-350"
         >
           <div className="w-full max-w-3xl h-full bg-[var(--card-bg)] shadow-2xl flex border-l border-[var(--card-border)] animate-in slide-in-from-right duration-300 overflow-hidden">
             {/* Sidebar List */}
@@ -741,7 +742,8 @@ export function ChatInbox() {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

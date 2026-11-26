@@ -28,7 +28,7 @@ export function TopBar() {
   }, []);
 
   return (
-    <header className="h-14 flex items-center justify-between gap-3 px-4 lg:px-8 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)] sticky top-0 z-[50] transition-all duration-300">
+    <header className="h-14 flex items-center justify-between gap-3 px-4 lg:px-8 border-b border-[var(--card-border)] bg-[var(--sidebar-bg)] sticky top-0 z-[55] transition-all duration-300">
       {/* Mobile Sidebar Trigger + Clinical Search */}
       <div className="flex items-center gap-3 flex-1 max-w-xl">
         <button
